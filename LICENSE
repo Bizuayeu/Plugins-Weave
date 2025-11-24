@@ -19,3 +19,41 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+PATENT NOTICE
+
+The core technology of EpisodicRAG is the subject of a pending patent application
+in Japan:
+
+  Application Number: 特願2025-198943
+  Title: Hierarchical Memory and Digest Generation System
+  Filed: 2025
+
+This patent application covers the 8-layer memory architecture and digest
+generation processes implemented in this software.
+
+PATENT LICENSE NOTICE:
+
+1. Non-Commercial Use:
+   The copyright owner grants a royalty-free, non-exclusive license under any
+   applicable patents to use, make, and distribute this software for
+   non-commercial purposes, subject to the terms of the MIT License above.
+
+2. Commercial Use:
+   For commercial use of this software, please contact the copyright owner
+   to discuss patent licensing terms. Commercial use without prior written
+   agreement may require a separate patent license.
+
+3. No Patent License for Modifications:
+   The MIT License above grants permission to modify and create derivative works.
+   However, such permission does NOT include an implied patent license for any
+   modifications that fall within the scope of the pending patent application.
+   Patent licensing for derivative works may require separate negotiation.
+
+For patent licensing inquiries, please contact: Bizuayeu
+
+This patent notice does not limit the permissions granted by the MIT License
+above for copyright purposes, but clarifies the separate patent rights that
+may apply to the underlying technology.
