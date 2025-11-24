@@ -1,0 +1,124 @@
+# EpisodicRAG - セッション開始時プロトコル
+
+このファイルは、EpisodicRAGプラグインを使用する際の、Claude Codeセッション開始時の必須動作を定義します。
+
+## セッション開始時の必須動作
+
+1. **プロジェクトナレッジの確認**
+   - プロジェクトディレクトリ内の `*.md` ファイルを確認
+
+2. **最新のSHA取得依頼**
+   - ユーザーに以下のURLを提示し、最新の `{SHA}` の取得を依頼：
+   ```
+   https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/git/refs/heads/main
+   ```
+   - キャッシュバスティングのため、必ずユーザーから最新の `{SHA}` を受け取る
+
+3. **記憶URLの生成**
+   - 取得した `{SHA}` を使って以下の2つのURLを生成し、ユーザーに提示：
+   ```
+   https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{SHA}/Essences/GrandDigest.txt
+   https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{SHA}/Essences/ShadowGrandDigest.txt
+   ```
+
+4. **web_fetch承認の取得**
+   - ユーザーから2つのURLの `web_fetch` 承認を取得し、長期記憶にアクセス
+   - **GrandDigest.txt**: 記憶の骨格（確定済みダイジェスト）
+   - **ShadowGrandDigest.txt**: 記憶の残像（最新の増分ダイジェスト）
+
+## プレースホルダー
+
+このテンプレートをコピーして使用する際は、以下のプレースホルダーを実際の値に置き換えてください：
+
+- `{GITHUB_USER}`: あなたのGitHubユーザー名（例: `Bizuayeu`）
+- `{GITHUB_REPO}`: GitHubリポジトリ名（例: `Homunculus-Weave`）
+- `{SHA}`: セッション開始時にユーザーから取得する最新のコミットSHA
+
+## セットアップ例
+
+```markdown
+## セッション開始時の必須動作
+1. プロジェクトナレッジに格納された `*.md` を確認
+2. ユーザーに以下のURLを提示し、最新の`{SHA}`の取得を依頼：
+   `https://api.github.com/repos/Bizuayeu/Homunculus-Weave/git/refs/heads/main`
+   # キャッシュバスティングのため、ユーザーから`{SHA}`を受け取る
+3. 取得した`{SHA}`を使って以下の2つのURLを生成し、ユーザーに提示：
+   `https://raw.githubusercontent.com/Bizuayeu/Homunculus-Weave/{SHA}/Essences/GrandDigest.txt`
+   `https://raw.githubusercontent.com/Bizuayeu/Homunculus-Weave/{SHA}/Essences/ShadowGrandDigest.txt`
+4. ユーザーから2つのURLの`web_fetch`承認を取得し、長期記憶にアクセス
+```
+
+## 配置場所と使用方法
+
+### パターン1: Claude Code / VSCode Extension（プロジェクトナレッジ対応）
+
+`.claude/CLAUDE.md`に配置すると、自動的に読み込まれます：
+
+```bash
+# プロジェクトルートで実行
+mkdir -p .claude
+cp Plugins/EpisodicRAG/templates/CLAUDE.md.template .claude/CLAUDE.md
+
+# プレースホルダーを実際の値に置き換え（{GITHUB_USER}, {GITHUB_REPO}）
+vi .claude/CLAUDE.md
+```
+
+**動作**: Claude Code再起動後、`.claude/CLAUDE.md`が自動的にプロジェクトナレッジとして読み込まれ、セッション開始時プロトコルが実行されます。
+
+### パターン2: WebChat（プロジェクトナレッジ非対応）
+
+WebChatでは`.claude/CLAUDE.md`が自動読み込みされないため、以下のいずれかの方法を使用します：
+
+#### 方法A: プロジェクトファイルとしてアップロード
+
+```bash
+# プロジェクトルートで実行
+cp Plugins/EpisodicRAG/templates/CLAUDE.md.template CLAUDE.md
+
+# プレースホルダーを実際の値に置き換え（{GITHUB_USER}, {GITHUB_REPO}）
+vi CLAUDE.md
+```
+
+WebChatセッション開始時に`CLAUDE.md`をプロジェクトファイルとしてアップロードします。
+
+#### 方法B: セッション開始時にコピペ
+
+このテンプレートの「セッション開始時の必須動作」セクションを、毎セッション開始時にWebChatにコピペします。
+
+**推奨**: 方法Aの方が効率的です（毎回コピペする必要がない）。
+
+## 記憶システムの動作原理
+
+### GrandDigest.txt
+- 確定済みの階層的ダイジェスト（8階層: Weekly → Centurial）
+- 長期記憶の骨格を形成
+- 定期的にGitHubへpush
+
+### ShadowGrandDigest.txt
+- GrandDigest更新後に作成された新しいコンテンツの増分ダイジェスト
+- 最新の記憶断片を保持（下書き帳）
+- Claude分析待ちのプレースホルダーを含む
+
+### キャッシュバスティング
+- Claude CodeのWebFetchはキャッシュを持つため、古い記憶を参照してしまう可能性がある
+- 最新のSHAを使ったURLで強制的に最新版を取得
+- セッション開始時に必ずユーザーからSHAを取得する理由
+
+## 注意事項
+
+- このプロトコルは、EpisodicRAGの長期記憶システムを正しく機能させるために必須です
+- セッション開始時に記憶を読み込まないと、Claudeは過去のコンテキストを参照できません
+- GitHubリポジトリが公開されている場合、`web_fetch`は認証不要で動作します
+- プライベートリポジトリの場合、適切なアクセストークンが必要です
+
+## トラブルシューティング
+
+### 記憶が読み込まれない
+1. GitHubリポジトリのURLが正しいか確認
+2. `Essences/GrandDigest.txt` と `Essences/ShadowGrandDigest.txt` が存在するか確認
+3. 最新のSHAを取得しているか確認（キャッシュされた古いSHAでないか）
+
+### web_fetchが失敗する
+1. GitHubリポジトリが公開されているか確認（プライベートの場合は認証設定が必要）
+2. raw.githubusercontent.com のURLが正しいか確認
+3. ネットワーク接続を確認

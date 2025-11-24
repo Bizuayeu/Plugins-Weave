@@ -1,0 +1,24 @@
+{
+  "_comment_base_dir": "プラグインルートからの相対パス（. = プラグイン内、../../.. = 3階層上）",
+  "base_dir": ".",
+
+  "_comment_paths": "base_dirからの相対パスでデータ配置先を指定",
+  "paths": {
+    "loops_dir": "data/Loops",
+    "digests_dir": "data/Digests",
+    "essences_dir": "data/Essences",
+    "identity_file_path": null
+  },
+
+  "_comment_levels": "各階層のダイジェスト生成に必要なファイル数（Threshold）",
+  "levels": {
+    "weekly_threshold": 5,
+    "monthly_threshold": 5,
+    "quarterly_threshold": 3,
+    "annual_threshold": 4,
+    "triennial_threshold": 3,
+    "decadal_threshold": 3,
+    "multi_decadal_threshold": 3,
+    "centurial_threshold": 4
+  }
+}

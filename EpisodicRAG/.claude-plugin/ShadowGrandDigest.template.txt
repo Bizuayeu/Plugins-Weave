@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "last_updated": "2025-11-23T00:00:00",
+    "version": "1.0"
+  },
+  "latest_digests": {
+    "weekly": {
+      "overall_digest": null
+    },
+    "monthly": {
+      "overall_digest": null
+    },
+    "quarterly": {
+      "overall_digest": null
+    },
+    "annual": {
+      "overall_digest": null
+    },
+    "triennial": {
+      "overall_digest": null
+    },
+    "decadal": {
+      "overall_digest": null
+    },
+    "multi_decadal": {
+      "overall_digest": null
+    },
+    "centurial": {
+      "overall_digest": null
+    }
+  }
+}

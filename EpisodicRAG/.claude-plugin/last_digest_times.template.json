@@ -1,0 +1,34 @@
+{
+  "weekly": {
+    "timestamp": "",
+    "file_numbers": []
+  },
+  "monthly": {
+    "timestamp": "",
+    "file_numbers": []
+  },
+  "quarterly": {
+    "timestamp": "",
+    "file_numbers": []
+  },
+  "annual": {
+    "timestamp": "",
+    "file_numbers": []
+  },
+  "triennial": {
+    "timestamp": "",
+    "file_numbers": []
+  },
+  "decadal": {
+    "timestamp": "",
+    "file_numbers": []
+  },
+  "multi_decadal": {
+    "timestamp": "",
+    "file_numbers": []
+  },
+  "centurial": {
+    "timestamp": "",
+    "file_numbers": []
+  }
+}

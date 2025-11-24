@@ -1,0 +1,13 @@
+{
+  "name": "Toybox",
+  "owner": {
+    "name": "Weave"
+  },
+  "plugins": [
+    {
+      "name": "EpisodicRAG-Plugin",
+      "source": "./EpisodicRAG",
+      "description": "Hierarchical Episodic Memory Generator"
+    }
+  ]
+}
