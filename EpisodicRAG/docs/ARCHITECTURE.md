@@ -26,7 +26,7 @@
 ### Plugin構造（完全自己完結）
 
 ```
-~/.claude/plugins/EpisodicRAG-Plugin@Toybox/
+~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/
 ├── .claude-plugin/
 │   ├── config.json                 # 設定ファイル（@digest-setupで生成）
 │   ├── config.template.json        # 設定テンプレート
@@ -183,7 +183,7 @@ class DigestConfig:
 
 **解決:**
 ```
-plugin_root = ~/.claude/plugins/EpisodicRAG-Plugin@Toybox
+plugin_root = ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
 base_dir = plugin_root / ../../.. = /Users/username/DEV
 loops_path = base_dir / homunculus/Weave/EpisodicRAG/Loops
            = /Users/username/DEV/homunculus/Weave/EpisodicRAG/Loops
