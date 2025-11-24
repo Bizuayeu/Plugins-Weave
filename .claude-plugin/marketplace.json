@@ -1,13 +1,33 @@
 {
-  "name": "Toybox",
+  "name": "Plugins-Weave",
   "owner": {
-    "name": "Weave"
+    "name": "Weave",
+    "email": "noreply@github.com"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for hierarchical memory management and long-term knowledge systems",
+    "version": "1.1.0",
+    "pluginRoot": "."
   },
   "plugins": [
     {
       "name": "EpisodicRAG-Plugin",
       "source": "./EpisodicRAG",
-      "description": "Hierarchical Episodic Memory Generator"
+      "description": "Hierarchical memory system for Claude. Digests conversation logs into 8 tiers spanning ~100 years. Prevents memory fragmentation and enables cross-session memory inheritance.",
+      "version": "1.1.0",
+      "author": "Weave @ EpisodicRAG",
+      "homepage": "https://note.com/weave_ai",
+      "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+      "license": "MIT",
+      "keywords": [
+        "episodic-memory",
+        "rag",
+        "hierarchical-storage",
+        "conversation-digest",
+        "long-term-memory",
+        "knowledge-management",
+        "ai-memory"
+      ]
     }
   ]
 }
