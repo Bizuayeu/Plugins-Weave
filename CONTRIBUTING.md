@@ -42,7 +42,7 @@ EpisodicRAGプラグインの開発に興味を持っていただき、ありが
 #### 1. ディレクトリ構造の確認
 
 ```
-homunculus/Toybox/
+plugins-weave/
   ├── .claude-plugin/           # マーケットプレイス設定
   │   └── marketplace.json
   └── EpisodicRAG/              # プラグイン本体
@@ -63,18 +63,22 @@ homunculus/Toybox/
 Claude Codeで以下を実行：
 
 ```bash
-/marketplace add ./homunculus/Toybox
+# 相対パスの場合
+/marketplace add ./plugins-weave
+
+# または絶対パスの場合
+/marketplace add C:\Users\anyth\DEV\plugins-weave
 ```
 
 **成功時の出力**:
 ```
-✅ Marketplace 'Toybox' added successfully
+✅ Marketplace 'Plugins-Weave' added successfully
 ```
 
 #### 3. プラグインのインストール
 
 ```bash
-/plugin install EpisodicRAG-Plugin@Toybox
+/plugin install EpisodicRAG-Plugin@Plugins-Weave
 ```
 
 **成功時の出力**:
@@ -110,10 +114,10 @@ Claude Codeで以下を実行：
 
 ```bash
 # 1. アンインストール
-/plugin uninstall EpisodicRAG-Plugin@Toybox
+/plugin uninstall EpisodicRAG-Plugin@Plugins-Weave
 
 # 2. 再インストール
-/plugin install EpisodicRAG-Plugin@Toybox
+/plugin install EpisodicRAG-Plugin@Plugins-Weave
 
 # 3. セットアップ（必要に応じて）
 @digest-setup
@@ -136,7 +140,7 @@ Claude Codeで以下を実行：
 #### 1. セットアップスクリプト実行
 
 ```bash
-cd homunculus/Toybox/EpisodicRAG
+cd plugins-weave/EpisodicRAG
 bash templates/setup.sh
 ```
 
@@ -148,11 +152,11 @@ python scripts/config.py --show-paths
 
 **出力例**:
 ```
-Plugin Root: [Your Project]/Toybox/EpisodicRAG
-Config File: [Your Project]/Toybox/EpisodicRAG/.claude-plugin/config.json
-Loops Path: [Your Project]/Toybox/EpisodicRAG/data/Loops
-Digests Path: [Your Project]/Toybox/EpisodicRAG/data/Digests
-Essences Path: [Your Project]/Toybox/EpisodicRAG/data/Essences
+Plugin Root: [Your Project]/plugins-weave/EpisodicRAG
+Config File: [Your Project]/plugins-weave/EpisodicRAG/.claude-plugin/config.json
+Loops Path: [Your Project]/plugins-weave/EpisodicRAG/data/Loops
+Digests Path: [Your Project]/plugins-weave/EpisodicRAG/data/Digests
+Essences Path: [Your Project]/plugins-weave/EpisodicRAG/data/Essences
 ```
 
 （identity_file_pathを設定している場合は "Identity File:" 行も表示されます）

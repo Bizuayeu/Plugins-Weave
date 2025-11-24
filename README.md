@@ -46,16 +46,16 @@ EpisodicRAGは、会話ログ（Loopファイル）を階層的にダイジェ�
 
 ### プラグインマーケットプレイス経由（推奨）
 
-1. **Toyboxマーケットプレイスを追加**
+1. **Plugins-Weaveマーケットプレイスを追加**
 
    ```bash
-   /marketplace add https://github.com/bizuayeu/Toybox
+   /marketplace add https://github.com/Bizuayeu/Plugins-Weave
    ```
 
 2. **プラグインをインストール**
 
    ```bash
-   /plugin install EpisodicRAG-Plugin@Toybox
+   /plugin install EpisodicRAG-Plugin@Plugins-Weave
    ```
 
 3. **初期セットアップ実行**
