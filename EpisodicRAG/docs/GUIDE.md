@@ -856,7 +856,7 @@ A: いいえ、オプションです。GitHub連携なしでもプラグイン�
 - 📙 **技術仕様を理解したい**: [ARCHITECTURE.md](ARCHITECTURE.md)
 - 🔧 **GitHub連携を設定したい**: [ADVANCED.md](ADVANCED.md)
 - 🆘 **高度な問題に直面した**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- 🛠️ **開発に参加したい**: [../CONTRIBUTING.md](../CONTRIBUTING.md)
+- 🛠️ **開発に参加したい**: [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ---
 

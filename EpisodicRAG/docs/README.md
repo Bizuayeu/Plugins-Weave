@@ -23,7 +23,7 @@ EpisodicRAGプラグインのドキュメントハブです。目的に応じて
 |-------------|------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 技術仕様・アーキテクチャ |
 | [ADVANCED.md](ADVANCED.md) | GitHub連携・高度な機能 |
-| [../CONTRIBUTING.md](../CONTRIBUTING.md) | 開発参加ガイド |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | 開発参加ガイド |
 
 ---
 

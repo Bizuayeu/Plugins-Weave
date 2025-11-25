@@ -308,7 +308,7 @@ git status
 3. **設定の編集はインストール済プラグイン側で行う**
    - インストール先: `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/`
 
-詳細は[TROUBLESHOOTING.md](EpisodicRAG/docs/TROUBLESHOOTING.md#開発環境とインストール環境の混在)を参照してください。
+詳細は[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md#開発環境とインストール環境の混在)を参照してください。
 
 ---
 

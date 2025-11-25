@@ -89,7 +89,8 @@
 │   ├── ARCHITECTURE.md             # このファイル
 │   └── TROUBLESHOOTING.md          # トラブルシューティング
 ├── README.md                       # 一般ユーザー向けドキュメント
-└── CONTRIBUTING.md                 # 開発者向けドキュメント
+├── CONTRIBUTING.md                 # 開発者向けドキュメント
+└── CHANGELOG.md                    # 変更履歴
 ```
 
 ---
