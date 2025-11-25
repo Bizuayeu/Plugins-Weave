@@ -28,7 +28,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 # Plugin版: config.pyをインポート
 from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES, PLACEHOLDER_LIMITS, extract_number_only
-from utils import log_warning, load_json_with_template, save_json
+from utils import log_info, log_warning, load_json_with_template, save_json
 from digest_times import DigestTimesTracker
 
 
@@ -230,7 +230,7 @@ class ShadowGrandDigestManager:
                                     overall = {}
 
                                 # ログ出力: Digestファイルから読み込んだ情報
-                                print(f"    [INFO] Read digest content from {file_path.name}")
+                                log_info(f"Read digest content from {file_path.name}")
                                 print(f"      - digest_type: {overall.get('digest_type', 'N/A')}")
                                 print(f"      - keywords: {len(overall.get('keywords', []))} items")
                                 print(f"      - abstract: {len(overall.get('abstract', ''))} chars")
@@ -249,25 +249,23 @@ class ShadowGrandDigestManager:
         )
 
         if is_placeholder:
-            # PLACEHOLDERの場合のみ更新
-            overall_digest["abstract"] = f"<!-- PLACEHOLDER: {total_files}ファイル分の全体統合分析 (2400文字程度) -->"
-            overall_digest["impression"] = "<!-- PLACEHOLDER: 所感・展望 (800文字程度) -->"
+            # PLACEHOLDERの場合のみ更新（定数を使用）
+            limits = PLACEHOLDER_LIMITS
+            overall_digest["abstract"] = f"<!-- PLACEHOLDER: {total_files}ファイル分の全体統合分析 ({limits['abstract_chars']}文字程度) -->"
+            overall_digest["impression"] = f"<!-- PLACEHOLDER: 所感・展望 ({limits['impression_chars']}文字程度) -->"
             overall_digest["keywords"] = [
-                "<!-- PLACEHOLDER: keyword1 -->",
-                "<!-- PLACEHOLDER: keyword2 -->",
-                "<!-- PLACEHOLDER: keyword3 -->",
-                "<!-- PLACEHOLDER: keyword4 -->",
-                "<!-- PLACEHOLDER: keyword5 -->"
+                f"<!-- PLACEHOLDER: keyword{i} -->"
+                for i in range(1, limits["keyword_count"] + 1)
             ]
-            print(f"[INFO] Initialized placeholder for {total_files} file(s)")
+            log_info(f"Initialized placeholder for {total_files} file(s)")
         else:
             # 既存の分析を保持
-            print(f"[INFO] Preserved existing analysis (now {total_files} file(s) total)")
-            print(f"[INFO] Claude should re-analyze all {total_files} files to integrate new content")
+            log_info(f"Preserved existing analysis (now {total_files} file(s) total)")
+            log_info(f"Claude should re-analyze all {total_files} files to integrate new content")
 
         self.save(shadow_data)
-        print(f"[INFO] Added {added_count} file(s) to ShadowGrandDigest.{level}")
-        print(f"[INFO] Total files in shadow: {total_files}")
+        log_info(f"Added {added_count} file(s) to ShadowGrandDigest.{level}")
+        log_info(f"Total files in shadow: {total_files}")
 
     def clear_shadow_level(self, level: str):
         """指定レベルのShadowを初期化"""
@@ -277,7 +275,7 @@ class ShadowGrandDigestManager:
         shadow_data["latest_digests"][level]["overall_digest"] = self._create_empty_overall_digest()
 
         self.save(shadow_data)
-        print(f"[INFO] Cleared ShadowGrandDigest for level: {level}")
+        log_info(f"Cleared ShadowGrandDigest for level: {level}")
 
     def get_shadow_digest_for_level(self, level: str) -> Optional[Dict[str, Any]]:
         """
@@ -289,7 +287,7 @@ class ShadowGrandDigestManager:
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
         if not overall_digest or not overall_digest.get("source_files"):
-            print(f"[INFO] No shadow digest for level: {level}")
+            log_info(f"No shadow digest for level: {level}")
             return None
 
         return overall_digest
@@ -304,11 +302,11 @@ class ShadowGrandDigestManager:
         digest = self.get_shadow_digest_for_level(level)
 
         if not digest:
-            print(f"[INFO] No shadow digest to promote for level: {level}")
+            log_info(f"No shadow digest to promote for level: {level}")
             return
 
         file_count = len(digest.get("source_files", []))
-        print(f"[INFO] Shadow digest ready for promotion: {file_count} file(s)")
+        log_info(f"Shadow digest ready for promotion: {file_count} file(s)")
         # 実際の昇格処理はfinalize_from_shadow.pyで実行される
 
     def update_shadow_for_new_loops(self):
@@ -319,10 +317,10 @@ class ShadowGrandDigestManager:
         new_files = self.find_new_files("weekly")
 
         if not new_files:
-            print("[INFO] No new Loop files found")
+            log_info("No new Loop files found")
             return
 
-        print(f"[INFO] Found {len(new_files)} new Loop file(s):")
+        log_info(f"Found {len(new_files)} new Loop file(s):")
 
         # Shadowに増分追加
         self.add_files_to_shadow("weekly", new_files)
@@ -348,12 +346,12 @@ class ShadowGrandDigestManager:
             new_files = self.find_new_files(next_level)
 
             if new_files:
-                print(f"[INFO] Found {len(new_files)} new file(s) for {next_level}:")
+                log_info(f"Found {len(new_files)} new file(s) for {next_level}:")
 
                 # 3. 次のレベルのShadowに増分追加
                 self.add_files_to_shadow(next_level, new_files)
         else:
-            print(f"[INFO] No next level for {level} (top level)")
+            log_info(f"No next level for {level} (top level)")
 
         # 4. 現在のレベルのShadowをクリア
         self.clear_shadow_level(level)

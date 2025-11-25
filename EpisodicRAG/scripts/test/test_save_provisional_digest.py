@@ -29,22 +29,22 @@ class TestProvisionalDigestSaver(unittest.TestCase):
         self.digests_path = Path(self.temp_dir) / "Digests"
         self.digests_path.mkdir()
 
+        # Provisionalディレクトリを作成
+        self.weekly_provisional = self.digests_path / "1_Weekly" / "Provisional"
+        self.weekly_provisional.mkdir(parents=True, exist_ok=True)
+
         # テスト用のsaverを作成（configをモック）
         with patch('save_provisional_digest.DigestConfig') as mock_config_class:
             mock_config = MagicMock()
             mock_config.digests_path = self.digests_path
+            # get_provisional_dir をモック
+            mock_config.get_provisional_dir.return_value = self.weekly_provisional
             mock_config_class.return_value = mock_config
             self.saver = ProvisionalDigestSaver()
 
     def tearDown(self):
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir)
-
-    def test_get_provisional_dir_creates_directory(self):
-        """Provisionalディレクトリが作成されることを確認"""
-        provisional_dir = self.saver.get_provisional_dir("weekly")
-        self.assertTrue(provisional_dir.exists())
-        self.assertTrue(provisional_dir.is_dir())
 
     def test_load_individual_digests_from_list(self):
         """JSON文字列（リスト形式）からの読み込み"""

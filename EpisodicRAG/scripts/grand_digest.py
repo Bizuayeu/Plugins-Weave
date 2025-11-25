@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 from config import DigestConfig, LEVEL_NAMES
-from utils import log_error, load_json_with_template, save_json
+from utils import log_info, log_error, load_json_with_template, save_json
 
 
 class GrandDigestManager:
@@ -71,5 +71,5 @@ class GrandDigestManager:
 
         # 保存
         self.save(grand_data)
-        print(f"[INFO] Updated GrandDigest.txt for level: {level}")
+        log_info(f"Updated GrandDigest.txt for level: {level}")
         return True

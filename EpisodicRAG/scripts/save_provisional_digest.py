@@ -29,7 +29,7 @@ if sys.platform == 'win32' and __name__ == "__main__":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 from config import DigestConfig, LEVEL_CONFIG, extract_file_number
-from utils import log_error, log_warning, save_json, get_next_digest_number
+from utils import log_info, log_error, log_warning, save_json, get_next_digest_number
 
 
 class ProvisionalDigestSaver:
@@ -54,12 +54,12 @@ class ProvisionalDigestSaver:
             既存のProvisionalファイルがあればその番号、なければNone
         """
         # レベル設定を取得
-        config = self.level_config.get(level)
-        if not config:
+        level_cfg = self.level_config.get(level)
+        if not level_cfg:
             raise ValueError(f"Invalid level: {level}")
 
-        prefix = config["prefix"]
-        provisional_dir = self.get_provisional_dir(level)
+        prefix = level_cfg["prefix"]
+        provisional_dir = self.config.get_provisional_dir(level)
 
         # ProvisionalディレクトリのIndividualファイルを検索
         pattern = f"{prefix}[0-9]*_Individual.txt"
@@ -77,24 +77,6 @@ class ProvisionalDigestSaver:
 
         return max_num if max_num > 0 else None
 
-    def get_provisional_dir(self, level: str) -> Path:
-        """
-        レベルに応じたProvisionalサブディレクトリを取得
-
-        Args:
-            level: ダイジェストレベル（weekly, monthly等）
-
-        Returns:
-            Provisionalサブディレクトリのパス
-        """
-        config = self.level_config.get(level)
-        if not config:
-            raise ValueError(f"Invalid level: {level}")
-
-        provisional_dir = self.digests_path / "Provisional" / config["dir"]
-        provisional_dir.mkdir(parents=True, exist_ok=True)
-        return provisional_dir
-
     def load_existing_provisional(self, level: str, digest_num: int) -> Optional[Dict[str, Any]]:
         """
         既存のProvisionalDigestファイルを読み込み
@@ -106,14 +88,14 @@ class ProvisionalDigestSaver:
         Returns:
             既存のProvisionalデータ、存在しなければNone
         """
-        config = self.level_config.get(level)
-        if not config:
+        level_cfg = self.level_config.get(level)
+        if not level_cfg:
             raise ValueError(f"Invalid level: {level}")
 
-        prefix = config["prefix"]
-        digits = config["digits"]
+        prefix = level_cfg["prefix"]
+        digits = level_cfg["digits"]
         filename = f"{prefix}{str(digest_num).zfill(digits)}_Individual.txt"
-        provisional_dir = self.get_provisional_dir(level)
+        provisional_dir = self.config.get_provisional_dir(level)
         file_path = provisional_dir / filename
 
         if not file_path.exists():
@@ -162,7 +144,7 @@ class ProvisionalDigestSaver:
         for new_digest in new_digests:
             filename = new_digest["filename"]
             if filename in merged_dict:
-                print(f"[INFO] Overwriting existing digest: {filename}")
+                log_info(f"Overwriting existing digest: {filename}")
             merged_dict[filename] = new_digest
 
         # リストとして返す
@@ -186,19 +168,19 @@ class ProvisionalDigestSaver:
             保存したファイルのPath
         """
         # レベル設定を取得
-        config = self.level_config.get(level)
-        if not config:
+        level_cfg = self.level_config.get(level)
+        if not level_cfg:
             raise ValueError(f"Invalid level: {level}")
 
-        prefix = config["prefix"]
-        digits = config["digits"]
+        prefix = level_cfg["prefix"]
+        digits = level_cfg["digits"]
 
         # 追加モードの場合、既存番号を使用。なければ警告して新規作成
         if append:
             current_num = self.get_current_digest_number(level)
             if current_num is not None:
                 digest_num = current_num
-                print(f"[INFO] Appending to existing Provisional: {prefix}{str(digest_num).zfill(digits)}_Individual.txt")
+                log_info(f"Appending to existing Provisional: {prefix}{str(digest_num).zfill(digits)}_Individual.txt")
 
                 # 既存データを読み込み
                 existing_data = self.load_existing_provisional(level, digest_num)
@@ -223,7 +205,8 @@ class ProvisionalDigestSaver:
 
         # ファイル名: {prefix}{digest_num}_Individual.txt
         filename = f"{prefix}{str(digest_num).zfill(digits)}_Individual.txt"
-        provisional_dir = self.get_provisional_dir(level)
+        provisional_dir = self.config.get_provisional_dir(level)
+        provisional_dir.mkdir(parents=True, exist_ok=True)
         file_path = provisional_dir / filename
 
         # ProvisionalDigest構造
@@ -322,7 +305,7 @@ Examples:
         if len(individual_digests) == 0:
             log_warning("No individual digests to save. Creating empty Provisional file.")
 
-        print(f"[INFO] Loaded {len(individual_digests)} individual digests")
+        log_info(f"Loaded {len(individual_digests)} individual digests")
 
         # ProvisionalDigestを保存
         saved_path = saver.save_provisional(args.level, individual_digests, append=args.append)

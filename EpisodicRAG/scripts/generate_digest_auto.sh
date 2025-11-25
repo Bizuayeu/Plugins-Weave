@@ -1,103 +1,100 @@
 #!/bin/bash
 # =============================================================================
-# EpisodicRAG Digest Auto-Generator
+# EpisodicRAG ダイジェスト自動生成スクリプト
 # =============================================================================
 #
-# DESCRIPTION:
-#   Main entry point for digest generation workflow.
-#   Handles Loop detection and digest finalization.
-#
-# USAGE:
-#   ./generate_digest_auto.sh              # Detect new Loops
-#   ./generate_digest_auto.sh <LEVEL>      # Finalize digest
-#
-# ARGUMENTS:
-#   LEVEL   weekly|monthly|quarterly|annual|triennial|decadal|multi_decadal|centurial
-#
-# PROCESS FLOW (no args):
-#   1. Load context (Identity.md, GrandDigest.txt)
-#   2. Run shadow_grand_digest.py for Loop detection
-#   3. Display ShadowGrandDigest.weekly
-#   4. Output DigestAnalyzer instructions
-#
-# PROCESS FLOW (with LEVEL):
-#   1. Load context files
-#   2. Check Shadow state for level
-#   3. Guide title proposal
-#   4. Execute finalize_from_shadow.py
-#   5. Cascade to next level
-#
-# EXIT CODES:
-#   0   Success
-#   1   Configuration error or invalid arguments
-#
-# DEPENDENCIES:
-#   - Python 3
-#   - config.py (path resolution)
-#
-# =============================================================================
-#
-# EpisodicRAG Digest Auto-Generator (Plugin版 - config.py統合)
-# ==============================================================
-# 引数なし: 新Loopファイル検出 → ShadowGrandDigest.weeklyにプレースホルダー追加
-#           → Claudeが即座に分析すべき（まだらボケ回避）
-#
-# 引数あり: ShadowGrandDigest → RegularDigest確定（分析は既に完了済み前提）
+# 概要:
+#   ダイジェスト生成ワークフローのメインエントリーポイント。
+#   新規Loop検出とダイジェスト確定処理を担当。
 #
 # 使用方法:
-#   ./generate_digest_auto.sh                    # 新Loop検出 → Claudeが即分析
-#   ./generate_digest_auto.sh weekly             # ShadowからRegular確定
-#   ./generate_digest_auto.sh monthly
-#   ./generate_digest_auto.sh quarterly
-#   ./generate_digest_auto.sh annual
-#   ./generate_digest_auto.sh triennial
-#   ./generate_digest_auto.sh decadal
-#   ./generate_digest_auto.sh multi_decadal
-#   ./generate_digest_auto.sh centurial
+#   ./generate_digest_auto.sh              # 新規Loop検出
+#   ./generate_digest_auto.sh <LEVEL>      # ダイジェスト確定
+#   ./generate_digest_auto.sh --help       # 詳細ヘルプ表示
 #
-# プロセスフロー:
-#   1. /digest → 新Loopファイル検出、プレースホルダー追加
-#   2. Claudeが即座に分析 → ShadowGrandDigest.$LEVEL更新（まだらボケ回避）
-#      2-1: Context Loading
-#        - Identity.md でClaudeの自己認識を把握
-#        - GrandDigest.txt で全体文脈を把握
-#        - ShadowGrandDigest.txt で今回の対象を確認
-#      2-2: DigestAnalyzer分析 (並列実行)
-#        - [!] CRITICAL: Recency Bias回避のため、全ファイルを並列分析
-#        - 各source fileに対して個別のDigestAnalyzerを起動
-#        - 既に分析済みのファイルも、今回改めて読み直す
-#        - 大きなファイル(>25000トークン)は分割読み込みで全文取得
-#        - DigestAnalyzerがlong/short両方を生成:
-#          * digest_type (本質的テーマ、10-20文字)
-#          * keywords (5個、各20-50文字)
-#          * abstract.long (2400文字、overall用)
-#          * abstract.short (1200文字、individual用)
-#          * impression.long (800文字、overall用)
-#          * impression.short (400文字、individual用)
-#      2-3: Provisional保存 (次階層用individual_digests自動生成)
-#        - save_provisional_digest.py実行
-#        - short版を使用してindividual_digests作成
-#        - 次階層のProvisionalファイル生成（次の確定時に自動マージ）
-#      2-4: ShadowGrandDigest更新 (long版)
-#        - Essences/ShadowGrandDigest.txt を開く
-#        - プレースホルダーをlong版で置換
-#        - 保存
-#   3. Loop追加の度に /digest → Claudeが再分析（動的更新）
-#   4. /digest $LEVEL → RegularDigestに確定、Provisionalマージ、GrandDigest更新
+# LEVEL:
+#   weekly | monthly | quarterly | annual |
+#   triennial | decadal | multi_decadal | centurial
 #
-# 処理構造:
-#                RegularDigest  ShadowGrandDigest  GrandDigest
-#   Loop                        1(追加+分析)
-#   Weekly       1(分析済)      3(カスケード)      2
-#   Monthly      1(分析済)      3(カスケード)      2
-#   Quarterly    1(分析済)      3(カスケード)      2
-#   Annual       1(分析済)      3(カスケード)      2
-#   Triennial    1(分析済)      3(カスケード)      2
-#   Decadal      1(分析済)      3(カスケード)      2
-#   Multi-dec    1(分析済)      3(カスケード)      2
-#   Centurial    1(分析済)                         2
+# 終了コード:
+#   0   成功
+#   1   設定エラーまたは引数不正
+#
+# =============================================================================
 
 set -e  # エラーで即停止
+
+# --help オプション処理
+show_help() {
+    cat << 'EOF'
+================================================================================
+EpisodicRAG ダイジェスト自動生成スクリプト - 詳細ヘルプ
+================================================================================
+
+【重要】このスクリプトの役割
+  - スクリプト自体は「Claudeへの指示」を出力するのみ
+  - 実際の分析処理はClaudeが実行（DigestAnalyzerサブエージェント等）
+  - Context（Identity.md, GrandDigest.txt等）を表示してClaudeに渡す
+
+【プロセスフロー: 引数なし（新Loop検出）】
+  スクリプト実行:
+    1. shadow_grand_digest.py で新Loopファイル検出
+    2. ShadowGrandDigest.weekly にプレースホルダー追加
+    3. Context情報と次ステップ指示を出力
+
+  Claudeが実行（スクリプト出力後）:
+    1. DigestAnalyzer並列起動 → long/short両方を生成
+    2. save_provisional_digest.py でProvisional保存
+    3. ShadowGrandDigest更新（long版で置換）
+
+【プロセスフロー: LEVEL指定（ダイジェスト確定）】
+  スクリプト実行:
+    1. Context情報（GrandDigest, ShadowGrandDigest）を表示
+    2. 確定手順の指示を出力
+
+  Claudeが実行（スクリプト出力後）:
+    1. ShadowGrandDigest状態確認（未分析ならDigestAnalyzer起動）
+    2. タイトル提案 → ユーザー承認
+    3. finalize_from_shadow.py実行
+    4. 次階層Shadow統合更新
+
+【処理構造】
+               RegularDigest  ShadowGrandDigest  GrandDigest
+  Loop                        1(追加+分析)
+  Weekly       1(分析済)      3(カスケード)      2
+  Monthly      1(分析済)      3(カスケード)      2
+  Quarterly    1(分析済)      3(カスケード)      2
+  Annual       1(分析済)      3(カスケード)      2
+  Triennial    1(分析済)      3(カスケード)      2
+  Decadal      1(分析済)      3(カスケード)      2
+  Multi-dec    1(分析済)      3(カスケード)      2
+  Centurial    1(分析済)                         2
+
+【DigestAnalyzer出力形式】（Claudeが生成）
+  - digest_type      本質的テーマ（10-20文字）
+  - keywords         5個（各20-50文字）
+  - abstract.long    2400文字（現階層overall用）
+  - abstract.short   1200文字（次階層individual用）
+  - impression.long  800文字（現階層overall用）
+  - impression.short 400文字（次階層individual用）
+
+【まだらボケ回避について】
+  新Loopファイル検出後、Claudeが即座に分析しないとメモリギャップが発生。
+  Recency Bias回避のため、全ファイルを並列分析することが重要。
+
+【依存関係】
+  - Python 3
+  - config.py (パス解決)
+
+================================================================================
+EOF
+    exit 0
+}
+
+# 引数チェック（--help は他の処理より先に）
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    show_help
+fi
 
 # スクリプト自身のディレクトリを取得
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

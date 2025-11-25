@@ -1,42 +1,83 @@
 #!/bin/bash
 # =============================================================================
-# EpisodicRAG Plugin Setup Script
+# EpisodicRAG Plugin セットアップスクリプト
 # =============================================================================
 #
-# DESCRIPTION:
-#   Interactive setup wizard for EpisodicRAG plugin.
-#   Creates configuration and directory structure.
+# 概要:
+#   EpisodicRAGプラグインの対話型セットアップウィザード。
+#   設定ファイルとディレクトリ構造を作成する。
 #
-# USAGE:
-#   ./setup.sh
+# 使用方法:
+#   ./setup.sh           # 対話型セットアップ
+#   ./setup.sh --help    # 詳細ヘルプ表示
 #
-# INTERACTIVE PROMPTS:
-#   1. Loops directory path (default: data/Loops)
-#   2. Identity file path (optional)
-#
-# CREATED STRUCTURE:
-#   .claude-plugin/config.json
-#   data/Loops/           (if default)
-#   data/Digests/
-#     1_Weekly/Provisional/
-#     2_Monthly/Provisional/
-#     ... (8 levels)
-#   data/Essences/
-#     GrandDigest.txt
-#     ShadowGrandDigest.txt
-#
-# EXIT CODES:
-#   0   Success
-#   1   Error during setup
+# 終了コード:
+#   0   成功
+#   1   エラー発生
 #
 # =============================================================================
-#
-# EpisodicRAG Plugin Setup Script
-# ================================
-# 完全自己完結型のEpisodicRAGシステムをセットアップ
-#
 
 set -e  # エラーで即停止
+
+# --help オプション処理
+show_help() {
+    cat << 'EOF'
+================================================================================
+EpisodicRAG Plugin セットアップスクリプト - 詳細ヘルプ
+================================================================================
+
+【対話プロンプト】
+  1. Loops directory (Loopファイルの配置先)
+     - デフォルト: data/Loops (Plugin内)
+     - 外部参照例: ../../../EpisodicRAG/Loops
+
+  2. Identity file (オプション)
+     - 外部プロジェクトのIdentityファイルパス
+     - 例: ../../../Identities/Identity.md
+
+【作成されるディレクトリ構造】
+  .claude-plugin/config.json    設定ファイル
+  data/Loops/                   Loopファイル格納（デフォルト選択時）
+  data/Digests/                 ダイジェスト格納
+    1_Weekly/Provisional/
+    2_Monthly/Provisional/
+    3_Quarterly/Provisional/
+    4_Annual/Provisional/
+    5_Triennial/Provisional/
+    6_Decadal/Provisional/
+    7_Multi-decadal/Provisional/
+    8_Centurial/Provisional/
+  data/Essences/                エッセンスファイル
+    GrandDigest.txt
+    ShadowGrandDigest.txt
+
+【依存関係】
+  - Python 3
+  - jq (オプション)
+    * jqがある場合: 正確なJSON編集
+    * jqがない場合: sedで単純置換（複雑なパスには非推奨）
+
+【セットアップ完了後の確認】
+  python scripts/config.py --show-paths
+
+  出力例:
+    Plugin Root: /path/to/EpisodicRAG
+    Config File: /path/to/EpisodicRAG/.claude-plugin/config.json
+    Base Dir (setting): .
+    Base Dir (resolved): /path/to/EpisodicRAG
+    Loops Path: /path/to/EpisodicRAG/data/Loops
+    Digests Path: /path/to/EpisodicRAG/data/Digests
+    Essences Path: /path/to/EpisodicRAG/data/Essences
+
+================================================================================
+EOF
+    exit 0
+}
+
+# 引数チェック
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    show_help
+fi
 
 # Pluginルート検出（このスクリプトの親ディレクトリ）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

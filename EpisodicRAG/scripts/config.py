@@ -15,7 +15,14 @@ from typing import Dict, Any, Optional, Tuple
 # =============================================================================
 # 共通定数: レベル設定（Single Source of Truth）
 # =============================================================================
-
+#
+# LEVEL_CONFIG フィールド説明:
+#   prefix  - ファイル名プレフィックス（例: W0001, M001, MD01）
+#   digits  - 番号の桁数（例: W0001は4桁）
+#   dir     - digests_path 以下のサブディレクトリ名
+#   source  - この階層を生成する際の入力元（"loops" または下位階層名）
+#   next    - 確定時にカスケードする上位階層（None = 最上位）
+#
 LEVEL_CONFIG: Dict[str, Dict[str, Any]] = {
     "weekly": {"prefix": "W", "digits": 4, "dir": "1_Weekly", "source": "loops", "next": "monthly"},
     "monthly": {"prefix": "M", "digits": 3, "dir": "2_Monthly", "source": "weekly", "next": "quarterly"},
@@ -208,6 +215,38 @@ class DigestConfig:
         """GrandDigest配置先"""
         return self.resolve_path("essences_dir")
 
+    def get_level_dir(self, level: str) -> Path:
+        """
+        指定レベルのRegularDigest格納ディレクトリを取得
+
+        Args:
+            level: 階層名（weekly, monthly, ...）
+
+        Returns:
+            RegularDigest格納ディレクトリの絶対Path
+
+        Raises:
+            ValueError: 不正なレベル名の場合
+        """
+        if level not in LEVEL_CONFIG:
+            raise ValueError(f"Invalid level: {level}. Valid levels: {LEVEL_NAMES}")
+        return self.digests_path / LEVEL_CONFIG[level]["dir"]
+
+    def get_provisional_dir(self, level: str) -> Path:
+        """
+        指定レベルのProvisionalDigest格納ディレクトリを取得
+
+        Args:
+            level: 階層名（weekly, monthly, ...）
+
+        Returns:
+            ProvisionalDigest格納ディレクトリの絶対Path
+            例: digests_path/1_Weekly/Provisional
+
+        Raises:
+            ValueError: 不正なレベル名の場合
+        """
+        return self.get_level_dir(level) / "Provisional"
 
     @property
     def weekly_threshold(self) -> int:
@@ -298,8 +337,9 @@ def main():
             print(json.dumps(config.config, indent=2, ensure_ascii=False))
 
     except FileNotFoundError as e:
-        print(f"[ERROR] {e}", file=sys.stderr)
-        sys.exit(1)
+        # utils.pyとの循環インポートを避けるためローカルインポート
+        from utils import log_error
+        log_error(str(e), exit_code=1)
 
 
 if __name__ == "__main__":

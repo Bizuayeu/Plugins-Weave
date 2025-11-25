@@ -63,14 +63,23 @@
 │   ├── Loops/                      # Loopファイル配置先
 │   ├── Digests/                    # Digest出力先
 │   │   ├── 1_Weekly/
+│   │   │   ├── W0001_タイトル.txt  # RegularDigest
+│   │   │   └── Provisional/        # 次回確定用individual_digests
+│   │   │       └── W0002_Individual.txt
 │   │   ├── 2_Monthly/
+│   │   │   └── Provisional/
 │   │   ├── 3_Quarterly/
+│   │   │   └── Provisional/
 │   │   ├── 4_Annual/
+│   │   │   └── Provisional/
 │   │   ├── 5_Triennial/
+│   │   │   └── Provisional/
 │   │   ├── 6_Decadal/
+│   │   │   └── Provisional/
 │   │   ├── 7_Multi-decadal/
-│   │   ├── 8_Centurial/
-│   │   └── Provisional/           # 一時作業用
+│   │   │   └── Provisional/
+│   │   └── 8_Centurial/
+│   │       └── Provisional/
 │   └── Essences/                   # GrandDigest配置先
 │       ├── GrandDigest.txt
 │       └── ShadowGrandDigest.txt
@@ -175,6 +184,23 @@ class DigestConfig:
     def resolve_path(self, key):
         rel_path = self.config["paths"][key]
         return (self.base_dir / rel_path).resolve()
+
+    # 主要プロパティ
+    @property
+    def loops_path(self) -> Path: ...      # Loopファイル配置先
+    @property
+    def digests_path(self) -> Path: ...    # Digest出力先
+    @property
+    def essences_path(self) -> Path: ...   # GrandDigest配置先
+
+    # 階層別ディレクトリ取得
+    def get_level_dir(self, level: str) -> Path:
+        """指定レベルのRegularDigest格納ディレクトリ"""
+        # 例: get_level_dir("weekly") -> digests_path/1_Weekly
+
+    def get_provisional_dir(self, level: str) -> Path:
+        """指定レベルのProvisionalDigest格納ディレクトリ"""
+        # 例: get_provisional_dir("weekly") -> digests_path/1_Weekly/Provisional
 ```
 
 ### パス解決の例

@@ -49,7 +49,7 @@ from config import DigestConfig, LEVEL_CONFIG, extract_file_number
 # 分割したモジュールをインポート
 from grand_digest import GrandDigestManager
 from digest_times import DigestTimesTracker
-from utils import sanitize_filename, log_error, log_warning, save_json, get_next_digest_number
+from utils import sanitize_filename, log_info, log_error, log_warning, save_json, get_next_digest_number
 from shadow_grand_digest import ShadowGrandDigestManager
 
 
@@ -122,7 +122,7 @@ class DigestFinalizerFromShadow:
                     return False
                 break
 
-        print(f"[OK] Shadow validation passed: {len(source_files)} file(s), range: {numbers[0]}-{numbers[-1]}")
+        log_info(f"Shadow validation passed: {len(source_files)} file(s), range: {numbers[0]}-{numbers[-1]}")
         return True
 
     def finalize_from_shadow(self, level: str, weave_title: str) -> bool:
@@ -151,7 +151,7 @@ class DigestFinalizerFromShadow:
 
         if shadow_digest is None:
             log_error(f"No shadow digest found for level: {level}")
-            print(f"[HINT] Run 'python shadow_grand_digest.py' to update shadow first")
+            log_info("Run 'python shadow_grand_digest.py' to update shadow first")
             return False
 
         if not isinstance(shadow_digest, dict):
@@ -164,7 +164,7 @@ class DigestFinalizerFromShadow:
         if not self.validate_shadow_content(level, source_files):
             return False
 
-        print(f"[INFO] Shadow digest contains {len(source_files)} source file(s)")
+        log_info(f"Shadow digest contains {len(source_files)} source file(s)")
 
         # 次のダイジェスト番号を取得
         config = self.level_config[level]
@@ -192,7 +192,7 @@ class DigestFinalizerFromShadow:
                         log_error(f"Invalid format in {provisional_path.name}: expected dict")
                         return False
                     individual_digests = provisional_data.get("individual_digests", [])
-                print(f"[INFO] Loaded {len(individual_digests)} individual digests from {provisional_path.name}")
+                log_info(f"Loaded {len(individual_digests)} individual digests from {provisional_path.name}")
             except json.JSONDecodeError as e:
                 log_error(f"Invalid JSON in {provisional_path.name}: {e}")
                 return False
@@ -204,7 +204,7 @@ class DigestFinalizerFromShadow:
             provisional_file_to_delete = provisional_path
         else:
             # Provisionalファイルが存在しない場合、source_filesから自動生成（まだらボケ回避）
-            print(f"[INFO] No Provisional digest found, generating from source files...")
+            log_info("No Provisional digest found, generating from source files...")
             provisional_file_to_delete = None
 
             # source_filesからindividual_digestsを自動生成
@@ -232,13 +232,13 @@ class DigestFinalizerFromShadow:
                             }
                             individual_digests.append(individual_entry)
 
-                            print(f"  [INFO] Auto-generated individual digest from {source_file}")
+                            log_info(f"Auto-generated individual digest from {source_file}")
                 except json.JSONDecodeError:
                     log_warning(f"Failed to parse {source_file} as JSON")
                 except Exception as e:
                     log_warning(f"Error reading {source_file}: {e}")
 
-            print(f"[INFO] Auto-generated {len(individual_digests)} individual digests from source files")
+            log_info(f"Auto-generated {len(individual_digests)} individual digests from source files")
 
         # RegularDigestの構造を作成
         regular_digest = {
@@ -274,7 +274,7 @@ class DigestFinalizerFromShadow:
                 if response.lower() != 'y':
                     return False
             except EOFError:
-                print("[INFO] Non-interactive mode: overwriting existing file")
+                log_info("Non-interactive mode: overwriting existing file")
 
         # 保存
         try:
@@ -283,7 +283,7 @@ class DigestFinalizerFromShadow:
             log_error(f"Failed to save RegularDigest: {e}")
             return False
 
-        print(f"[SUCCESS] RegularDigest saved: {final_path}")
+        log_info(f"RegularDigest saved: {final_path}")
 
         # ===== 処理2: GrandDigest更新 =====
         print(f"\n[処理2] Updating GrandDigest.txt for {level}")
@@ -314,7 +314,7 @@ class DigestFinalizerFromShadow:
                 log_warning(f"Failed to remove Provisional digest: {e}")
 
         print(f"\n{'='*60}")
-        print(f"[SUCCESS] Digest finalization completed!")
+        log_info("Digest finalization completed!")
         print(f"{'='*60}")
 
         return True

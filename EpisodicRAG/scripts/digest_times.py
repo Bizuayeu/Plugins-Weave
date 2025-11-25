@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 
 from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES, extract_file_number
-from utils import load_json_with_template, save_json, log_warning
+from utils import log_info, load_json_with_template, save_json, log_warning
 
 
 class DigestTimesTracker:
@@ -98,6 +98,6 @@ class DigestTimesTracker:
 
         save_json(self.last_digest_file, times)
 
-        print(f"[INFO] Updated last_digest_times.json for level: {level}")
+        log_info(f"Updated last_digest_times.json for level: {level}")
         if last_file:
-            print(f"[INFO] Last processed: {last_file}")
+            log_info(f"Last processed: {last_file}")
