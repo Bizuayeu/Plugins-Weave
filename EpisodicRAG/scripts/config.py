@@ -256,42 +256,42 @@ class DigestConfig:
     @property
     def weekly_threshold(self) -> int:
         """Weekly生成に必要なLoop数"""
-        return self.config.get("levels", {}).get("weekly_threshold", 5)
+        return self.get_threshold("weekly")
 
     @property
     def monthly_threshold(self) -> int:
         """Monthly生成に必要なWeekly数"""
-        return self.config.get("levels", {}).get("monthly_threshold", 5)
+        return self.get_threshold("monthly")
 
     @property
     def quarterly_threshold(self) -> int:
         """Quarterly生成に必要なMonthly数"""
-        return self.config.get("levels", {}).get("quarterly_threshold", 3)
+        return self.get_threshold("quarterly")
 
     @property
     def annual_threshold(self) -> int:
         """Annual生成に必要なQuarterly数"""
-        return self.config.get("levels", {}).get("annual_threshold", 4)
+        return self.get_threshold("annual")
 
     @property
     def triennial_threshold(self) -> int:
         """Triennial生成に必要なAnnual数"""
-        return self.config.get("levels", {}).get("triennial_threshold", 3)
+        return self.get_threshold("triennial")
 
     @property
     def decadal_threshold(self) -> int:
         """Decadal生成に必要なTriennial数"""
-        return self.config.get("levels", {}).get("decadal_threshold", 3)
+        return self.get_threshold("decadal")
 
     @property
     def multi_decadal_threshold(self) -> int:
         """Multi-decadal生成に必要なDecadal数"""
-        return self.config.get("levels", {}).get("multi_decadal_threshold", 3)
+        return self.get_threshold("multi_decadal")
 
     @property
     def centurial_threshold(self) -> int:
         """Centurial生成に必要なMulti-decadal数"""
-        return self.config.get("levels", {}).get("centurial_threshold", 4)
+        return self.get_threshold("centurial")
 
     def get_threshold(self, level: str) -> int:
         """

@@ -120,10 +120,6 @@ class ShadowGrandDigestManager:
         level_data = times_data.get(level, {})
         return level_data.get("last_processed")
 
-    def extract_number_from_filename(self, filename: str) -> Optional[int]:
-        """ファイル名から数値部分を抽出（共通関数を使用）"""
-        return extract_number_only(filename)
-
     def find_new_files(self, level: str) -> List[Path]:
         """GrandDigest更新後に作成された新しいファイルを検出"""
         max_file_number = self.get_max_file_number(level)
@@ -134,9 +130,8 @@ class ShadowGrandDigestManager:
             source_dir = self.loops_path
             pattern = "Loop*.txt"
         else:
-            config = self.level_config[source_info]
-            source_dir = self.digests_path / config["dir"]
-            pattern = f"{config['prefix']}*.txt"
+            source_dir = self.config.get_level_dir(source_info)
+            pattern = f"{self.level_config[source_info]['prefix']}*.txt"
 
         if not source_dir.exists():
             return []
@@ -149,7 +144,7 @@ class ShadowGrandDigestManager:
             return all_files
 
         # 最大番号より大きいファイルを抽出
-        max_num = self.extract_number_from_filename(max_file_number)
+        max_num = extract_number_only(max_file_number)
 
         # max_numがNoneの場合（max_file_numberが無効な場合）は全ファイルを返す
         if max_num is None:
@@ -159,7 +154,7 @@ class ShadowGrandDigestManager:
         new_files = []
 
         for file in all_files:
-            file_num = self.extract_number_from_filename(file.name)
+            file_num = extract_number_only(file.name)
             if file_num is not None and file_num > max_num:
                 new_files.append(file)
 
@@ -182,10 +177,9 @@ class ShadowGrandDigestManager:
             return self.loops_path
         else:
             # Monthly以上: 下位レベルのDigestファイルを参照
-            source_config = self.level_config.get(source_type)
-            if source_config:
-                return self.digests_path / source_config["dir"]
-            else:
+            try:
+                return self.config.get_level_dir(source_type)
+            except ValueError:
                 raise ValueError(f"Unknown source type: {source_type}")
 
     def add_files_to_shadow(self, level: str, new_files: List[Path]):

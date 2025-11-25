@@ -32,6 +32,8 @@
 │   ├── config.json                      # 設定ファイル（@digest-setupで生成）
 │   ├── config.template.json             # 設定テンプレート
 │   ├── last_digest_times.template.json  # Digest時刻テンプレート
+│   ├── GrandDigest.template.txt         # GrandDigest初期化テンプレート
+│   ├── ShadowGrandDigest.template.txt   # Shadow初期化テンプレート
 │   └── plugin.json                      # Plugin メタデータ
 ├── agents/
 │   └── digest-analyzer.md               # DigestAnalyzerエージェント
@@ -87,7 +89,6 @@
 │   ├── ARCHITECTURE.md                  # このファイル
 │   ├── ADVANCED.md                      # GitHub連携
 │   └── API_REFERENCE.md                 # API仕様
-├── README.md                            # 一般ユーザー向け
 ├── CONTRIBUTING.md                      # 開発者向け
 └── CHANGELOG.md                         # 変更履歴
 ```
@@ -432,5 +433,5 @@ DigestAnalyzerエージェントをベースに、カスタム分析ロジック
 
 ---
 
-*Last Updated: 2025-11-25*
+*Last Updated: 2025-11-26*
 *Version: 1.1.0*

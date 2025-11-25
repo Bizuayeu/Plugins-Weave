@@ -43,17 +43,24 @@ EpisodicRAGプラグインの開発に興味を持っていただき、ありが
 
 ```
 plugins-weave/
-  ├── .claude-plugin/           # マーケットプレイス設定
-  │   └── marketplace.json
-  └── EpisodicRAG/              # プラグイン本体
-      ├── .claude-plugin/
-      │   ├── plugin.json
-      │   └── config.template.json
-      ├── agents/
-      ├── commands/
-      ├── scripts/
-      ├── skills/
-      └── ...
+├── .claude-plugin/                     # マーケットプレイス設定
+│   └── marketplace.json
+└── EpisodicRAG/                        # プラグイン本体
+    ├── .claude-plugin/
+    │   ├── plugin.json
+    │   ├── config.template.json
+    │   ├── last_digest_times.template.json
+    │   ├── GrandDigest.template.txt
+    │   └── ShadowGrandDigest.template.txt
+    ├── agents/
+    ├── commands/
+    ├── docs/
+    ├── scripts/
+    │   └── test/
+    ├── skills/
+    │   └── shared/
+    ├── CHANGELOG.md
+    └── CONTRIBUTING.md
 ```
 
 `marketplace.json`は既に配置済みです（リポジトリに含まれています）。
@@ -306,7 +313,7 @@ git status
 1. **インストール後は必ずgit statusで確認**
 2. **設定ファイルは開発フォルダにコミットしない**
 3. **設定の編集はインストール済プラグイン側で行う**
-   - インストール先: `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/`
+   - インストール先: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/`
 
 詳細は[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md#開発環境とインストール環境の混在)を参照してください。
 

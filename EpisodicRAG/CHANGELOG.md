@@ -7,13 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.0] - 2025-11-25
+## [1.1.0] - 2025-11-26
 
 ### Added
 - **GLOSSARY.md**: 用語集を新規作成
 - **QUICKSTART.md**: 5分クイックスタートガイドを新規作成
 - **docs/README.md**: ドキュメントハブを新規作成
-- **docs/shared/**: 共通コンポーネントディレクトリを新規作成
+- **skills/shared/**: 共通コンポーネントディレクトリを新規作成
   - `_common-concepts.md`: まだらボケ、記憶定着サイクルの共通定義
   - `_implementation-notes.md`: 実装ガイドラインの共通定義
 - **CHANGELOG.md**: 変更履歴ファイルを新規作成

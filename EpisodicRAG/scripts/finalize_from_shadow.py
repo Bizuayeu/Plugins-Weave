@@ -88,9 +88,6 @@ class DigestFinalizerFromShadow:
         # レベル設定（共通定数を参照）
         self.level_config = LEVEL_CONFIG
 
-        # レベル→Provisionalサブディレクトリのマッピング（level_configのdirと同じ）
-        self.level_to_subdir = {level: cfg["dir"] for level, cfg in self.level_config.items()}
-
 
     def validate_shadow_content(self, level: str, source_files: list) -> bool:
         """
@@ -191,10 +188,9 @@ class DigestFinalizerFromShadow:
         Returns:
             (individual_digests, provisional_file_to_delete) のタプル
         """
-        config = self.level_config[level]
-        subdir = self.level_to_subdir.get(level)
-        provisional_dir = self.digests_path / "Provisional" / subdir
-        provisional_path = provisional_dir / f"{config['prefix']}{digest_num}_Individual.txt"
+        level_cfg = self.level_config[level]
+        provisional_dir = self.config.get_provisional_dir(level)
+        provisional_path = provisional_dir / f"{level_cfg['prefix']}{digest_num}_Individual.txt"
 
         individual_digests = []
         provisional_file_to_delete = None
