@@ -47,45 +47,15 @@ EpisodicRAG システムの現在の状態を分析することで、
 
 ## まだらボケとは
 
-**まだらボケ** = AI が Loop の内容を記憶できていない（虫食い記憶）状態
+> 詳細は [共通概念](../shared/_common-concepts.md#まだらボケとは) を参照
 
-### EpisodicRAG の本質
+**まだらボケ** = AIがLoopの内容を記憶できていない（虫食い記憶）状態
 
-1. **Loop ファイル追加** = 会話記録をファイルに保存（物理的保存）
-2. **`/digest` 実行** = AI に記憶を定着させる（認知的保存）
-3. **`/digest` なし** = ファイルはあるが、AI は覚えていない
+**発生ケース**:
+- **ケース1**: 未処理Loopの放置（Loop追加後に`/digest`せず次のLoopを追加）
+- **ケース2**: `/digest`処理中のエラー（プレースホルダーが残存）
 
-### まだらボケが発生するケース
-
-#### ケース 1: 未処理 Loop の放置（最も一般的）
-
-```
-Loop0001追加 → `/digest`せず → Loop0002追加
-                              ↑
-                    この時点でAIはLoop0001の内容を覚えていない
-                    （記憶がまだら＝虫食い状態）
-```
-
-**対策**: Loop を追加したら都度 `/digest` で記憶定着
-
-#### ケース 2: `/digest` 処理中のエラー（技術的問題）
-
-```
-/digest 実行 → エラー発生 → ShadowGrandDigestに
-                           source_filesは登録されたが
-                           digestがnull（プレースホルダー）
-```
-
-**対策**: `/digest` を再実行して分析を完了
-
-### 記憶定着サイクル
-
-```
-Loop追加 → `/digest` → Loop追加 → `/digest` → ...
-         ↑ 記憶定着  ↑         ↑ 記憶定着
-```
-
-この原則を守ることで、AI は全ての Loop を記憶できます。
+**対策**: `Loop追加 → /digest → Loop追加 → /digest` のサイクルを守る
 
 ---
 
@@ -431,7 +401,7 @@ ShadowGrandDigestに未分析のプレースホルダーがあります
   4. `/digest weekly` で5個揃ったら確定
 
   Loopファイル配置先:
-    homunculus/Toybox/EpisodicRAG/data/Loops/
+    {loops_dir}/
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -465,68 +435,13 @@ ShadowGrandDigestに未分析のプレースホルダーがあります
 
 ## 実装時の注意事項
 
-### UI メッセージの出力形式
+> 詳細は [実装ノート](../shared/_implementation-notes.md) を参照
 
-**重要**: VSCode 拡張のマークダウンレンダリングでは、単一の改行は空白に変換されます。
-対話型 UI メッセージを表示する際は、必ず**コードブロック（三連バッククォート）**で囲んでください。
-
-```
-... (UIメッセージ)
-```
-
-これにより、改行がそのまま保持され、ユーザーに正しくフォーマットされたメッセージが表示されます。
-
-### config.py への依存
-
-すべてのパス情報は config.py 経由で取得します：
-
-```python
-from config import DigestConfig
-
-config = DigestConfig()
-loops_path = config.loops_path
-digests_path = config.digests_path
-essences_path = config.essences_path
-```
-
-### エラーハンドリング
-
-すべてのファイルは `@digest-setup` で作成されます：
-
-```python
-# 設定ファイル、ShadowGrandDigest、GrandDigestが存在しない場合
-try:
-    config = DigestConfig()
-except FileNotFoundError:
-    print("❌ 初期セットアップが必要です")
-    print("@digest-setup を実行してください")
-    sys.exit(1)
-
-if not shadow_file.exists() or not grand_file.exists():
-    print("❌ 必要なファイルが見つかりません")
-    print("@digest-setup を実行してください")
-    sys.exit(1)
-```
-
-### 階層順序の維持
-
-階層的カスケードのため、必ず下位階層から順に生成する必要があります：
-
-```
-Weekly → Monthly → Quarterly → Annual →
-Triennial → Decadal → Multi-decadal → Centurial
-```
-
-推奨アクションでは、常に最下位の生成可能な階層を優先して提示します。
-
-### 実装時の優先順位
-
-まだらボケ予防のため、以下の順序でチェックを実行します：
-
-1. **未処理 Loop 検出** → 警告して即終了
-2. **プレースホルダー検出** → 警告して即終了
-3. **中間ファイルスキップ検出** → 警告のみ（処理継続）
-4. **通常の判定フロー** → 生成可能な階層を表示
+**主要ポイント**:
+- UIメッセージはコードブロックで囲む（VSCode拡張対応）
+- パス情報は`config.py`経由で取得
+- 階層順序を維持（下位から順に生成）
+- まだらボケ予防のチェック優先順位を遵守
 
 ---
 

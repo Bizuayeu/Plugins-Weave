@@ -76,7 +76,7 @@
    ls {digests_dir}/Provisional/1_Weekly/
    ```
 
-2. **Provisional_W00XX.txtファイルが存在するか確認**
+2. **W0001_Individual.txt形式のProvisionalファイルが存在するか確認**
 
 3. **ファイルの内容が正しいか確認**:
    ```bash

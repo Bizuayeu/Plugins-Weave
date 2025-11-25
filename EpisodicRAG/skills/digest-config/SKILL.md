@@ -17,7 +17,7 @@ import json
 import sys
 
 # プラグインルート検出
-plugin_root = Path("homunculus/Toybox/EpisodicRAG")  # 実際のパスに調整
+plugin_root = Path("{plugin_root}")  # 自動検出（実際のパスに調整）
 config_file = plugin_root / ".claude-plugin" / "config.json"
 
 if not config_file.exists():
@@ -88,7 +88,7 @@ base_dirは、すべてのパス解決の基準となるディレクトリです
 プラグインルートからの相対パスで指定します。
 
 現在の設定: .
-解決後の絶対パス: C:\Users\anyth\DEV\homunculus\Toybox\EpisodicRAG
+解決後の絶対パス: {base_dir_resolved}
 
 設定例:
   "." - プラグインルート自身（デフォルト、自己完結）
@@ -428,14 +428,9 @@ Thresholds:
 
 ### UI メッセージの出力形式
 
-**重要**: VSCode 拡張のマークダウンレンダリングでは、単一の改行は空白に変換されます。
-対話型 UI メッセージを表示する際は、必ず**コードブロック（三連バッククォート）**で囲んでください。
+> 詳細は [実装ノート](../shared/_implementation-notes.md#uiメッセージの出力形式) を参照
 
-```
-... (UIメッセージ)
-```
-
-これにより、改行がそのまま保持され、ユーザーに正しくフォーマットされたメッセージが表示されます。
+UIメッセージはコードブロックで囲む（VSCode拡張のマークダウンレンダリング対応）
 
 ## バリデーション
 

@@ -27,7 +27,16 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 
 # Plugin版: config.pyをインポート
-from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES, PLACEHOLDER_LIMITS, extract_number_only
+from config import (
+    DigestConfig,
+    LEVEL_CONFIG,
+    LEVEL_NAMES,
+    PLACEHOLDER_LIMITS,
+    PLACEHOLDER_MARKER,
+    PLACEHOLDER_END,
+    PLACEHOLDER_SIMPLE,
+    extract_number_only,
+)
 from utils import log_info, log_warning, load_json_with_template, save_json
 from digest_times import DigestTimesTracker
 
@@ -70,12 +79,12 @@ class ShadowGrandDigestManager:
         """
         limits = PLACEHOLDER_LIMITS
         return {
-            "timestamp": "<!-- PLACEHOLDER -->",
+            "timestamp": PLACEHOLDER_SIMPLE,
             "source_files": [],
-            "digest_type": "<!-- PLACEHOLDER -->",
-            "keywords": [f"<!-- PLACEHOLDER: keyword{i} -->" for i in range(1, limits["keyword_count"] + 1)],
-            "abstract": f"<!-- PLACEHOLDER: 全体統合分析 ({limits['abstract_chars']}文字程度) -->",
-            "impression": f"<!-- PLACEHOLDER: 所感・展望 ({limits['impression_chars']}文字程度) -->"
+            "digest_type": PLACEHOLDER_SIMPLE,
+            "keywords": [f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}" for i in range(1, limits["keyword_count"] + 1)],
+            "abstract": f"{PLACEHOLDER_MARKER}: 全体統合分析 ({limits['abstract_chars']}文字程度){PLACEHOLDER_END}",
+            "impression": f"{PLACEHOLDER_MARKER}: 所感・展望 ({limits['impression_chars']}文字程度){PLACEHOLDER_END}"
         }
 
     def get_template(self) -> dict:
@@ -245,16 +254,16 @@ class ShadowGrandDigestManager:
         abstract = overall_digest.get("abstract", "")
         is_placeholder = (
             not abstract or  # 空文字列もプレースホルダー扱い
-            (isinstance(abstract, str) and "<!-- PLACEHOLDER" in abstract)
+            (isinstance(abstract, str) and PLACEHOLDER_MARKER in abstract)
         )
 
         if is_placeholder:
             # PLACEHOLDERの場合のみ更新（定数を使用）
             limits = PLACEHOLDER_LIMITS
-            overall_digest["abstract"] = f"<!-- PLACEHOLDER: {total_files}ファイル分の全体統合分析 ({limits['abstract_chars']}文字程度) -->"
-            overall_digest["impression"] = f"<!-- PLACEHOLDER: 所感・展望 ({limits['impression_chars']}文字程度) -->"
+            overall_digest["abstract"] = f"{PLACEHOLDER_MARKER}: {total_files}ファイル分の全体統合分析 ({limits['abstract_chars']}文字程度){PLACEHOLDER_END}"
+            overall_digest["impression"] = f"{PLACEHOLDER_MARKER}: 所感・展望 ({limits['impression_chars']}文字程度){PLACEHOLDER_END}"
             overall_digest["keywords"] = [
-                f"<!-- PLACEHOLDER: keyword{i} -->"
+                f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}"
                 for i in range(1, limits["keyword_count"] + 1)
             ]
             log_info(f"Initialized placeholder for {total_files} file(s)")

@@ -369,7 +369,7 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 - `Plugins/EpisodicRAG/.claude-plugin/config.json`
 
 **要件**:
-- Claude Sonnet 4.5（Task tool, Subagent機能）
+- Claude Opus 4.5（Task tool, Subagent機能）
 - Python 3.x
 - Bash（Git Bash / WSL）
 

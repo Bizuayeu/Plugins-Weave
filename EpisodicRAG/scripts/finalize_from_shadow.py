@@ -56,7 +56,22 @@ from shadow_grand_digest import ShadowGrandDigestManager
 class DigestFinalizerFromShadow:
     """ShadowGrandDigestからRegularDigestを作成するファイナライザー（config.py統合版）"""
 
-    def __init__(self, config: Optional[DigestConfig] = None):
+    def __init__(
+        self,
+        config: Optional[DigestConfig] = None,
+        grand_digest_manager: Optional[GrandDigestManager] = None,
+        shadow_manager: Optional[ShadowGrandDigestManager] = None,
+        times_tracker: Optional[DigestTimesTracker] = None
+    ):
+        """
+        ファイナライザーの初期化
+
+        Args:
+            config: DigestConfig インスタンス（省略時は自動生成）
+            grand_digest_manager: GrandDigestManager インスタンス（省略時は自動生成、テスト時にモック注入可能）
+            shadow_manager: ShadowGrandDigestManager インスタンス（省略時は自動生成、テスト時にモック注入可能）
+            times_tracker: DigestTimesTracker インスタンス（省略時は自動生成、テスト時にモック注入可能）
+        """
         # 設定を読み込み
         if config is None:
             config = DigestConfig()
@@ -65,16 +80,16 @@ class DigestFinalizerFromShadow:
         # パスを設定から取得
         self.digests_path = config.digests_path
 
-        # マネージャー初期化
-        self.grand_digest_manager = GrandDigestManager(config)
-        self.shadow_manager = ShadowGrandDigestManager(config)
-        self.times_tracker = DigestTimesTracker(config)
+        # マネージャー初期化（外部から注入可能）
+        self.grand_digest_manager = grand_digest_manager or GrandDigestManager(config)
+        self.shadow_manager = shadow_manager or ShadowGrandDigestManager(config)
+        self.times_tracker = times_tracker or DigestTimesTracker(config)
 
         # レベル設定（共通定数を参照）
         self.level_config = LEVEL_CONFIG
 
         # レベル→Provisionalサブディレクトリのマッピング（level_configのdirと同じ）
-        self.level_to_subdir = {level: config["dir"] for level, config in self.level_config.items()}
+        self.level_to_subdir = {level: cfg["dir"] for level, cfg in self.level_config.items()}
 
 
     def validate_shadow_content(self, level: str, source_files: list) -> bool:
@@ -125,26 +140,21 @@ class DigestFinalizerFromShadow:
         log_info(f"Shadow validation passed: {len(source_files)} file(s), range: {numbers[0]}-{numbers[-1]}")
         return True
 
-    def finalize_from_shadow(self, level: str, weave_title: str) -> bool:
+    def _validate_and_get_shadow(self, level: str, weave_title: str) -> Optional[Dict[str, Any]]:
         """
-        ShadowGrandDigestからRegularDigestを作成
+        Shadowデータの検証と取得
 
-        処理1: RegularDigest作成
-        処理2: GrandDigest更新
-        処理3: ShadowGrandDigest更新
-        処理4: last_digest_times更新
+        Args:
+            level: ダイジェストレベル
+            weave_title: タイトル
+
+        Returns:
+            検証済みのshadow_digest、失敗時はNone
         """
         # 空文字列チェック
         if not weave_title or not weave_title.strip():
             log_error("weave_title cannot be empty")
-            return False
-
-        print(f"\n{'='*60}")
-        print(f"Finalize Digest from Shadow: {level.upper()}")
-        print(f"{'='*60}\n")
-
-        # ===== 処理1: RegularDigest作成 =====
-        print(f"[処理1] Creating RegularDigest from Shadow...")
+            return None
 
         # Shadowからダイジェスト内容を取得
         shadow_digest = self.shadow_manager.get_shadow_digest_for_level(level)
@@ -152,96 +162,134 @@ class DigestFinalizerFromShadow:
         if shadow_digest is None:
             log_error(f"No shadow digest found for level: {level}")
             log_info("Run 'python shadow_grand_digest.py' to update shadow first")
-            return False
+            return None
 
         if not isinstance(shadow_digest, dict):
             log_error(f"Invalid shadow digest format: expected dict, got {type(shadow_digest).__name__}")
-            return False
+            return None
 
         source_files = shadow_digest.get("source_files", [])
 
         # Shadow内容のバリデーション
         if not self.validate_shadow_content(level, source_files):
-            return False
+            return None
 
         log_info(f"Shadow digest contains {len(source_files)} source file(s)")
+        return shadow_digest
 
-        # 次のダイジェスト番号を取得
+    def _load_provisional_or_generate(
+        self, level: str, shadow_digest: Dict[str, Any], digest_num: str
+    ) -> tuple[list, Optional[Path]]:
+        """
+        Provisionalの読み込みまたはソースから自動生成
+
+        Args:
+            level: ダイジェストレベル
+            shadow_digest: Shadowダイジェストデータ
+            digest_num: ダイジェスト番号（ゼロ埋め済み）
+
+        Returns:
+            (individual_digests, provisional_file_to_delete) のタプル
+        """
         config = self.level_config[level]
-        next_num = get_next_digest_number(self.digests_path, level)
-        digest_num = str(next_num).zfill(config["digits"])
-
-        # ファイル名を生成
-        sanitized_title = sanitize_filename(weave_title)
-        new_digest_name = f"{config['prefix']}{digest_num}_{sanitized_title}"
-
-        # ProvisionalDigestから個別ダイジェストを読み込み
-        # レベルに応じたサブディレクトリを取得
         subdir = self.level_to_subdir.get(level)
         provisional_dir = self.digests_path / "Provisional" / subdir
-
-        # ファイル名検索: {prefix}{digest_num}_Individual.txt
         provisional_path = provisional_dir / f"{config['prefix']}{digest_num}_Individual.txt"
 
         individual_digests = []
+        provisional_file_to_delete = None
+
         if provisional_path.exists():
             try:
                 with open(provisional_path, 'r', encoding='utf-8') as f:
                     provisional_data = json.load(f)
                     if not isinstance(provisional_data, dict):
                         log_error(f"Invalid format in {provisional_path.name}: expected dict")
-                        return False
+                        return [], None
                     individual_digests = provisional_data.get("individual_digests", [])
                 log_info(f"Loaded {len(individual_digests)} individual digests from {provisional_path.name}")
+                provisional_file_to_delete = provisional_path
             except json.JSONDecodeError as e:
                 log_error(f"Invalid JSON in {provisional_path.name}: {e}")
-                return False
+                return [], None
             except IOError as e:
                 log_error(f"Failed to read {provisional_path}: {e}")
-                return False
-
-            # ProvisionalDigest削除フラグ（後でクリーンアップ）
-            provisional_file_to_delete = provisional_path
+                return [], None
         else:
-            # Provisionalファイルが存在しない場合、source_filesから自動生成（まだらボケ回避）
+            # Provisionalファイルが存在しない場合、source_filesから自動生成
             log_info("No Provisional digest found, generating from source files...")
-            provisional_file_to_delete = None
+            individual_digests = self._generate_individual_digests_from_source(level, shadow_digest)
 
-            # source_filesからindividual_digestsを自動生成
-            source_files = shadow_digest.get("source_files", [])
+        return individual_digests, provisional_file_to_delete
 
-            for source_file in source_files:
-                # ソースファイルの実体を探す
-                try:
-                    source_dir = self.shadow_manager._get_source_path(level)
-                    source_path = source_dir / source_file
+    def _generate_individual_digests_from_source(
+        self, level: str, shadow_digest: Dict[str, Any]
+    ) -> list:
+        """
+        ソースファイルからindividual_digestsを自動生成（まだらボケ回避）
 
-                    if source_path.exists() and source_path.suffix == '.txt':
-                        with open(source_path, 'r', encoding='utf-8') as f:
-                            source_data = json.load(f)
-                            overall = source_data.get("overall_digest", {})
+        Args:
+            level: ダイジェストレベル
+            shadow_digest: Shadowダイジェストデータ
 
-                            # individual_digestsエントリ作成
-                            individual_entry = {
-                                "filename": source_file,
-                                "timestamp": overall.get("timestamp", ""),
-                                "digest_type": overall.get("digest_type", ""),
-                                "keywords": overall.get("keywords", []),
-                                "abstract": overall.get("abstract", ""),
-                                "impression": overall.get("impression", "")
-                            }
-                            individual_digests.append(individual_entry)
+        Returns:
+            individual_digestsのリスト
+        """
+        individual_digests = []
+        source_files = shadow_digest.get("source_files", [])
 
-                            log_info(f"Auto-generated individual digest from {source_file}")
-                except json.JSONDecodeError:
-                    log_warning(f"Failed to parse {source_file} as JSON")
-                except Exception as e:
-                    log_warning(f"Error reading {source_file}: {e}")
+        for source_file in source_files:
+            try:
+                source_dir = self.shadow_manager._get_source_path(level)
+                source_path = source_dir / source_file
 
-            log_info(f"Auto-generated {len(individual_digests)} individual digests from source files")
+                if source_path.exists() and source_path.suffix == '.txt':
+                    with open(source_path, 'r', encoding='utf-8') as f:
+                        source_data = json.load(f)
+                        overall = source_data.get("overall_digest", {})
 
-        # RegularDigestの構造を作成
-        regular_digest = {
+                        individual_entry = {
+                            "filename": source_file,
+                            "timestamp": overall.get("timestamp", ""),
+                            "digest_type": overall.get("digest_type", ""),
+                            "keywords": overall.get("keywords", []),
+                            "abstract": overall.get("abstract", ""),
+                            "impression": overall.get("impression", "")
+                        }
+                        individual_digests.append(individual_entry)
+                        log_info(f"Auto-generated individual digest from {source_file}")
+            except json.JSONDecodeError:
+                log_warning(f"Failed to parse {source_file} as JSON")
+            except Exception as e:
+                log_warning(f"Error reading {source_file}: {e}")
+
+        log_info(f"Auto-generated {len(individual_digests)} individual digests from source files")
+        return individual_digests
+
+    def _create_regular_digest(
+        self,
+        level: str,
+        new_digest_name: str,
+        digest_num: str,
+        shadow_digest: Dict[str, Any],
+        individual_digests: list
+    ) -> Dict[str, Any]:
+        """
+        RegularDigest構造を作成
+
+        Args:
+            level: ダイジェストレベル
+            new_digest_name: 新しいダイジェスト名
+            digest_num: ダイジェスト番号
+            shadow_digest: Shadowダイジェストデータ
+            individual_digests: 個別ダイジェストのリスト
+
+        Returns:
+            RegularDigest構造体
+        """
+        source_files = shadow_digest.get("source_files", [])
+
+        return {
             "metadata": {
                 "digest_level": level,
                 "digest_number": digest_num,
@@ -257,10 +305,24 @@ class DigestFinalizerFromShadow:
                 "abstract": shadow_digest.get("abstract", ""),
                 "impression": shadow_digest.get("impression", "")
             },
-            "individual_digests": individual_digests  # ProvisionalDigestから読み込み
+            "individual_digests": individual_digests
         }
 
-        # ファイルパスを決定
+    def _save_regular_digest(
+        self, level: str, regular_digest: Dict[str, Any], new_digest_name: str
+    ) -> Optional[Path]:
+        """
+        RegularDigestをファイルに保存
+
+        Args:
+            level: ダイジェストレベル
+            regular_digest: RegularDigest構造体
+            new_digest_name: 新しいダイジェスト名
+
+        Returns:
+            保存先のPath、失敗時はNone
+        """
+        config = self.level_config[level]
         target_dir = self.digests_path / config["dir"]
         target_dir.mkdir(parents=True, exist_ok=True)
         final_filename = f"{new_digest_name}.txt"
@@ -272,7 +334,7 @@ class DigestFinalizerFromShadow:
             try:
                 response = input("Overwrite? (y/n): ")
                 if response.lower() != 'y':
-                    return False
+                    return None
             except EOFError:
                 log_info("Non-interactive mode: overwriting existing file")
 
@@ -281,37 +343,112 @@ class DigestFinalizerFromShadow:
             save_json(final_path, regular_digest)
         except IOError as e:
             log_error(f"Failed to save RegularDigest: {e}")
-            return False
+            return None
 
         log_info(f"RegularDigest saved: {final_path}")
+        return final_path
 
-        # ===== 処理2: GrandDigest更新 =====
+    def _update_grand_digest(self, level: str, regular_digest: Dict[str, Any], new_digest_name: str) -> bool:
+        """
+        GrandDigestを更新
+
+        Args:
+            level: ダイジェストレベル
+            regular_digest: RegularDigest構造体
+            new_digest_name: 新しいダイジェスト名
+
+        Returns:
+            成功時True
+        """
         print(f"\n[処理2] Updating GrandDigest.txt for {level}")
         overall_digest = regular_digest.get("overall_digest")
         if not overall_digest or not isinstance(overall_digest, dict):
             log_error("RegularDigest has no valid overall_digest")
             return False
         self.grand_digest_manager.update_digest(level, new_digest_name, overall_digest)
+        return True
 
-        # ===== 処理3: ShadowGrandDigest更新 =====
-        # Centurialレベルは最上位のため処理3をスキップ
+    def _process_cascade_and_cleanup(
+        self, level: str, source_files: list, provisional_file_to_delete: Optional[Path]
+    ) -> None:
+        """
+        カスケード処理とProvisional削除
+
+        Args:
+            level: ダイジェストレベル
+            source_files: ソースファイルリスト
+            provisional_file_to_delete: 削除するProvisionalファイル
+        """
+        # ShadowGrandDigest更新（カスケード）
         if level != "centurial":
             print(f"\n[処理3] Processing ShadowGrandDigest cascade")
             self.shadow_manager.cascade_update_on_digest_finalize(level)
         else:
             print(f"\n[処理3] Skipped (Centurial is top level, no cascade needed)")
 
-        # ===== 処理4: last_digest_times更新 =====
+        # last_digest_times更新
         print(f"\n[処理4] Updating last_digest_times.json for {level}")
         self.times_tracker.save(level, source_files)
 
-        # ===== 処理5: ProvisionalDigest削除（クリーンアップ） =====
+        # ProvisionalDigest削除（クリーンアップ）
         if provisional_file_to_delete and provisional_file_to_delete.exists():
             try:
                 provisional_file_to_delete.unlink()
                 print(f"\n[処理5] Removed Provisional digest after merge: {provisional_file_to_delete.name}")
             except Exception as e:
                 log_warning(f"Failed to remove Provisional digest: {e}")
+
+    def finalize_from_shadow(self, level: str, weave_title: str) -> bool:
+        """
+        ShadowGrandDigestからRegularDigestを作成
+
+        処理1: RegularDigest作成
+        処理2: GrandDigest更新
+        処理3: ShadowGrandDigest更新
+        処理4: last_digest_times更新
+        処理5: ProvisionalDigest削除
+        """
+        print(f"\n{'='*60}")
+        print(f"Finalize Digest from Shadow: {level.upper()}")
+        print(f"{'='*60}\n")
+
+        # ===== 処理1: RegularDigest作成 =====
+        print(f"[処理1] Creating RegularDigest from Shadow...")
+
+        # Shadowデータの検証と取得
+        shadow_digest = self._validate_and_get_shadow(level, weave_title)
+        if shadow_digest is None:
+            return False
+
+        # ダイジェスト番号とファイル名を生成
+        config = self.level_config[level]
+        next_num = get_next_digest_number(self.digests_path, level)
+        digest_num = str(next_num).zfill(config["digits"])
+        sanitized_title = sanitize_filename(weave_title)
+        new_digest_name = f"{config['prefix']}{digest_num}_{sanitized_title}"
+
+        # Provisionalの読み込みまたは自動生成
+        individual_digests, provisional_file_to_delete = self._load_provisional_or_generate(
+            level, shadow_digest, digest_num
+        )
+
+        # RegularDigest構造を作成
+        regular_digest = self._create_regular_digest(
+            level, new_digest_name, digest_num, shadow_digest, individual_digests
+        )
+
+        # ファイル保存
+        final_path = self._save_regular_digest(level, regular_digest, new_digest_name)
+        if final_path is None:
+            return False
+
+        # ===== 処理2: GrandDigest更新 =====
+        if not self._update_grand_digest(level, regular_digest, new_digest_name):
+            return False
+
+        # ===== 処理3-5: カスケードとクリーンアップ =====
+        source_files = shadow_digest.get("source_files", [])
+        self._process_cascade_and_cleanup(level, source_files, provisional_file_to_delete)
 
         print(f"\n{'='*60}")
         log_info("Digest finalization completed!")

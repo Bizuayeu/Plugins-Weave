@@ -419,4 +419,4 @@ DigestAnalyzerエージェントをベースに、カスタム分析ロジック
 ---
 
 *Last Updated: 2025-11-25*
-*Version: 1.3.0*
+*Version: 1.1.0*

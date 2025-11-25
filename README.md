@@ -120,7 +120,7 @@ Loop0002_タイトル.txt
 
 ```bash
 # デフォルト設定の場合
-~/.claude/plugins/EpisodicRAG-Plugin@Toybox/data/Loops/
+~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/data/Loops/
 ```
 
 ### 3. 最初の Loop 検出と分析
@@ -264,25 +264,35 @@ Loop0001追加 → `/digest`せず → Loop0002追加
 
 ## 次のステップ
 
+### 🚀 すぐに始める
+
+5分で動作確認できるクイックスタート
+→ [docs/QUICKSTART.md](EpisodicRAG/docs/QUICKSTART.md)
+
+### 📖 用語を理解する
+
+Loop、Digest、まだらボケなどの用語集
+→ [docs/GLOSSARY.md](EpisodicRAG/docs/GLOSSARY.md)
+
 ### 📘 基本を使いこなす
 
 詳しいコマンド解説、設定のカスタマイズ、よくある問題と解決方法
-→ [docs/GUIDE.md](docs/GUIDE.md)
+→ [docs/GUIDE.md](EpisodicRAG/docs/GUIDE.md)
 
 ### 📙 深く理解する
 
 内部構造と技術仕様
-→ [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+→ [docs/ARCHITECTURE.md](EpisodicRAG/docs/ARCHITECTURE.md)
+
+### ❓ よくある質問
+
+FAQとトラブルシューティング
+→ [docs/FAQ.md](EpisodicRAG/docs/FAQ.md)
 
 ### 🔧 GitHub 連携（高度な機能）
 
 セッション間で長期記憶を自動読み込み
-→ [docs/ADVANCED.md](docs/ADVANCED.md)
-
-### 🆘 トラブルシューティング
-
-高度な問題の診断と解決
-→ [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+→ [docs/ADVANCED.md](EpisodicRAG/docs/ADVANCED.md)
 
 ### 🛠️ 開発に参加する
 

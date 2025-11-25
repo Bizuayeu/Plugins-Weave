@@ -43,6 +43,11 @@ PLACEHOLDER_LIMITS: Dict[str, int] = {
     "keyword_count": 5,          # キーワードの個数
 }
 
+# プレースホルダーマーカー（Single Source of Truth）
+PLACEHOLDER_MARKER = "<!-- PLACEHOLDER"
+PLACEHOLDER_END = " -->"
+PLACEHOLDER_SIMPLE = f"{PLACEHOLDER_MARKER}{PLACEHOLDER_END}"  # "<!-- PLACEHOLDER -->"
+
 
 # =============================================================================
 # 共通関数: ファイル番号抽出
@@ -288,6 +293,37 @@ class DigestConfig:
         """Centurial生成に必要なMulti-decadal数"""
         return self.config.get("levels", {}).get("centurial_threshold", 4)
 
+    def get_threshold(self, level: str) -> int:
+        """
+        指定レベルのthresholdを動的に取得（8つのプロパティを統合）
+
+        Args:
+            level: 階層名（weekly, monthly, quarterly, annual, triennial, decadal, multi_decadal, centurial）
+
+        Returns:
+            そのレベルのthreshold値
+
+        Raises:
+            ValueError: 不正なレベル名の場合
+        """
+        if level not in LEVEL_CONFIG:
+            raise ValueError(f"Invalid level: {level}. Valid levels: {LEVEL_NAMES}")
+
+        # デフォルト値
+        defaults = {
+            "weekly": 5,
+            "monthly": 5,
+            "quarterly": 3,
+            "annual": 4,
+            "triennial": 3,
+            "decadal": 3,
+            "multi_decadal": 3,
+            "centurial": 4
+        }
+
+        key = f"{level}_threshold"
+        return self.config.get("levels", {}).get(key, defaults.get(level, 5))
+
     def get_identity_file_path(self) -> Optional[Path]:
         """
         外部identityファイルのパス（設定されている場合のみ）
@@ -337,9 +373,9 @@ def main():
             print(json.dumps(config.config, indent=2, ensure_ascii=False))
 
     except FileNotFoundError as e:
-        # utils.pyとの循環インポートを避けるためローカルインポート
-        from utils import log_error
-        log_error(str(e), exit_code=1)
+        # 循環インポートを避けるため直接出力
+        print(f"[ERROR] {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
