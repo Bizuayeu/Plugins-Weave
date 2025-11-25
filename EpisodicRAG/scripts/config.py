@@ -89,7 +89,7 @@ class DigestConfig:
 
         raise FileNotFoundError(
             f"Config file not found: {self.config_file}\n"
-            f"Run setup first: bash {self.plugin_root}/templates/setup.sh"
+            f"Run setup first: bash {self.plugin_root}/scripts/setup.sh"
         )
 
     def resolve_path(self, key: str) -> Path:

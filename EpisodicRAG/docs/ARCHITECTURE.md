@@ -47,10 +47,8 @@
 │   ├── shadow_grand_digest.py      # Shadow管理
 │   ├── finalize_from_shadow.py     # Shadow確定
 │   ├── save_provisional_digest.py  # Provisional保存
-│   └── generate_digest_auto.sh     # 自動Digest生成
-├── templates/
-│   ├── setup.sh                    # セットアップスクリプト
-│   └── CLAUDE.md.template          # セッション開始時プロトコル
+│   ├── generate_digest_auto.sh     # 自動Digest生成
+│   └── setup.sh                    # セットアップスクリプト
 ├── data/                           # Plugin内データ（@digest-setupで作成）
 │   ├── Loops/                      # Loopファイル配置先
 │   ├── Digests/                    # Digest出力先

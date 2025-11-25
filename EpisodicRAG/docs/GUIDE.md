@@ -598,7 +598,7 @@ Identity File: /Users/username/DEV/homunculus/Weave/Identities/UserIdentity.md
 または手動でセットアップスクリプトを実行：
 ```bash
 cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-bash templates/setup.sh
+bash scripts/setup.sh
 ```
 
 ---

@@ -141,7 +141,7 @@ Claude Codeで以下を実行：
 
 ```bash
 cd plugins-weave/EpisodicRAG
-bash templates/setup.sh
+bash scripts/setup.sh
 ```
 
 #### 2. 設定確認

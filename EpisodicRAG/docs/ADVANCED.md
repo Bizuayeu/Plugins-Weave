@@ -63,7 +63,7 @@ git push -u origin main
 
 **注意**: `{GITHUB_USER}` と `{GITHUB_REPO}` は実際の値に置き換えてください。
 
-### 3. CLAUDE.mdテンプレートの配置
+### 3. CLAUDE.mdの作成
 
 ```bash
 # プロジェクトルートに移動
@@ -72,15 +72,13 @@ cd ../../../..
 # .claudeディレクトリを作成（存在しない場合）
 mkdir -p .claude
 
-# テンプレートをコピー
-cp plugins-weave/EpisodicRAG/templates/CLAUDE.md.template .claude/CLAUDE.md
-
-# エディタでプレースホルダーを実際の値に置き換え
+# .claude/CLAUDE.mdを作成し、以下の内容を記述
 # - {GITHUB_USER} → あなたのGitHubユーザー名
 # - {GITHUB_REPO} → リポジトリ名
+# - {ESSENCES_PATH} → GitHubリポジトリ内のEssencesディレクトリへの相対パス
 ```
 
-**CLAUDE.mdの例** (`{GITHUB_USER}=YourName`, `{GITHUB_REPO}=Memory-Repo`):
+**CLAUDE.mdの記述例** (`{GITHUB_USER}=YourName`, `{GITHUB_REPO}=Memory-Repo`):
 
 ```markdown
 ## セッション開始時の必須動作
@@ -114,9 +112,8 @@ WebChatではプロジェクトナレッジが自動読み込みされないた�
 
 ```bash
 # プロジェクトルートで実行
-cp plugins-weave/EpisodicRAG/templates/CLAUDE.md.template CLAUDE.md
-
-# プレースホルダーを実際の値に置き換え
+# CLAUDE.md を作成し、上記の「セッション開始時の必須動作」セクションを記述
+# プレースホルダーを実際の値に置き換える
 vi CLAUDE.md
 ```
 
@@ -124,7 +121,7 @@ vi CLAUDE.md
 
 **方法B: セッション開始時にコピペ**
 
-`templates/CLAUDE.md.template`の「セッション開始時の必須動作」セクションを、毎セッション開始時にWebChatにコピペします（非効率的なため非推奨）。
+上記の「セッション開始時の必須動作」セクションを、毎セッション開始時にWebChatにコピペします（非効率的なため非推奨）。
 
 ---
 
