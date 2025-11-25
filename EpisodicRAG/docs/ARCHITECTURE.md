@@ -29,68 +29,67 @@
 ```
 ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/
 ├── .claude-plugin/
-│   ├── config.json                 # 設定ファイル（@digest-setupで生成）
-│   ├── config.template.json        # 設定テンプレート
-│   └── plugin.json                 # Plugin メタデータ
+│   ├── config.json                      # 設定ファイル（@digest-setupで生成）
+│   ├── config.template.json             # 設定テンプレート
+│   ├── last_digest_times.template.json  # Digest時刻テンプレート
+│   └── plugin.json                      # Plugin メタデータ
 ├── agents/
-│   └── digest-analyzer.md          # DigestAnalyzerエージェント
+│   └── digest-analyzer.md               # DigestAnalyzerエージェント
 ├── skills/
 │   ├── digest-auto/
-│   │   └── SKILL.md                # システム状態確認スキル
+│   │   └── SKILL.md                     # システム状態確認スキル
 │   ├── digest-setup/
-│   │   └── SKILL.md                # 初期セットアップスキル
-│   └── digest-config/
-│       └── SKILL.md                # 設定変更スキル
+│   │   └── SKILL.md                     # 初期セットアップスキル
+│   ├── digest-config/
+│   │   └── SKILL.md                     # 設定変更スキル
+│   └── shared/                          # 共通コンポーネント
+│       ├── _common-concepts.md          # 共通概念（まだらボケ等）
+│       └── _implementation-notes.md     # 実装ノート
 ├── commands/
-│   └── digest.md                   # /digest コマンド
+│   └── digest.md                        # /digest コマンド
 ├── scripts/
-│   ├── config.py                   # 設定管理クラス（LEVEL_CONFIG, extract_file_number含む）
-│   ├── grand_digest.py             # GrandDigest.txt管理
-│   ├── digest_times.py             # last_digest_times.json管理
-│   ├── utils.py                    # ユーティリティ関数（sanitize_filename等）
-│   ├── shadow_grand_digest.py      # Shadow管理
-│   ├── finalize_from_shadow.py     # Shadow確定
-│   ├── save_provisional_digest.py  # Provisional保存
-│   ├── generate_digest_auto.sh     # 自動Digest生成
-│   ├── setup.sh                    # セットアップスクリプト
-│   └── test/                       # テストディレクトリ
-│       ├── __init__.py
-│       ├── test_config.py          # config.py ユニットテスト
-│       ├── test_utils.py           # utils.py ユニットテスト
-│       ├── test_grand_digest.py    # GrandDigestManager 統合テスト
-│       └── test_digest_times.py    # DigestTimesTracker 統合テスト
-├── data/                           # Plugin内データ（@digest-setupで作成）
-│   ├── Loops/                      # Loopファイル配置先
-│   ├── Digests/                    # Digest出力先
+│   ├── config.py                        # 設定管理クラス（LEVEL_CONFIG含む）
+│   ├── grand_digest.py                  # GrandDigest.txt管理
+│   ├── digest_times.py                  # last_digest_times.json管理
+│   ├── utils.py                         # ユーティリティ関数
+│   ├── shadow_grand_digest.py           # Shadow管理
+│   ├── finalize_from_shadow.py          # Shadow確定
+│   ├── save_provisional_digest.py       # Provisional保存
+│   ├── generate_digest_auto.sh          # 自動Digest生成
+│   ├── setup.sh                         # セットアップスクリプト
+│   └── test/                            # テストディレクトリ
+│       ├── test_config.py
+│       ├── test_utils.py
+│       ├── test_grand_digest.py
+│       ├── test_digest_times.py
+│       ├── test_finalize_from_shadow.py
+│       ├── test_save_provisional_digest.py
+│       └── test_shadow_grand_digest.py
+├── data/                                # Plugin内データ（@digest-setupで作成）
+│   ├── Loops/                           # Loopファイル配置先
+│   ├── Digests/                         # Digest出力先
 │   │   ├── 1_Weekly/
-│   │   │   ├── W0001_タイトル.txt  # RegularDigest
-│   │   │   └── Provisional/        # 次回確定用individual_digests
+│   │   │   ├── W0001_タイトル.txt       # RegularDigest
+│   │   │   └── Provisional/             # 次回確定用
 │   │   │       └── W0002_Individual.txt
-│   │   ├── 2_Monthly/
-│   │   │   └── Provisional/
-│   │   ├── 3_Quarterly/
-│   │   │   └── Provisional/
-│   │   ├── 4_Annual/
-│   │   │   └── Provisional/
-│   │   ├── 5_Triennial/
-│   │   │   └── Provisional/
-│   │   ├── 6_Decadal/
-│   │   │   └── Provisional/
-│   │   ├── 7_Multi-decadal/
-│   │   │   └── Provisional/
-│   │   └── 8_Centurial/
-│   │       └── Provisional/
-│   └── Essences/                   # GrandDigest配置先
+│   │   ├── 2_Monthly/ ... 8_Centurial/  # 同様の構造
+│   │   └── (各階層にProvisional/あり)
+│   └── Essences/                        # GrandDigest配置先
 │       ├── GrandDigest.txt
 │       └── ShadowGrandDigest.txt
-├── docs/                           # ドキュメント
-│   ├── GUIDE.md                    # ユーザーガイド
-│   ├── ADVANCED.md                 # GitHub連携
-│   ├── ARCHITECTURE.md             # このファイル
-│   └── TROUBLESHOOTING.md          # トラブルシューティング
-├── README.md                       # 一般ユーザー向けドキュメント
-├── CONTRIBUTING.md                 # 開発者向けドキュメント
-└── CHANGELOG.md                    # 変更履歴
+├── docs/                                # ドキュメント
+│   ├── README.md                        # ドキュメントハブ
+│   ├── QUICKSTART.md                    # 5分クイックスタート
+│   ├── GUIDE.md                         # ユーザーガイド
+│   ├── GLOSSARY.md                      # 用語集
+│   ├── FAQ.md                           # よくある質問
+│   ├── TROUBLESHOOTING.md               # トラブルシューティング
+│   ├── ARCHITECTURE.md                  # このファイル
+│   ├── ADVANCED.md                      # GitHub連携
+│   └── API_REFERENCE.md                 # API仕様
+├── README.md                            # 一般ユーザー向け
+├── CONTRIBUTING.md                      # 開発者向け
+└── CHANGELOG.md                         # 変更履歴
 ```
 
 ---
@@ -173,8 +172,11 @@ Multi-decadal (4個) → Centurial Digest
 
 ```python
 class DigestConfig:
-    def __init__(self):
-        self.plugin_root = self._find_plugin_root()
+    def __init__(self, plugin_root: Optional[Path] = None):
+        if plugin_root is None:
+            plugin_root = self._find_plugin_root()
+        self.plugin_root = plugin_root
+        self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
         self.config = self.load_config()
         self.base_dir = self._resolve_base_dir()
 
@@ -194,6 +196,11 @@ class DigestConfig:
     @property
     def essences_path(self) -> Path: ...   # GrandDigest配置先
 
+    # Threshold取得（動的）
+    def get_threshold(self, level: str) -> int:
+        """指定レベルのthresholdを取得"""
+        # 例: get_threshold("weekly") -> 5
+
     # 階層別ディレクトリ取得
     def get_level_dir(self, level: str) -> Path:
         """指定レベルのRegularDigest格納ディレクトリ"""
@@ -202,6 +209,9 @@ class DigestConfig:
     def get_provisional_dir(self, level: str) -> Path:
         """指定レベルのProvisionalDigest格納ディレクトリ"""
         # 例: get_provisional_dir("weekly") -> digests_path/1_Weekly/Provisional
+
+    def get_identity_file_path(self) -> Optional[Path]:
+        """外部Identityファイルのパス（設定時のみ）"""
 ```
 
 ### パス解決の例
@@ -301,7 +311,7 @@ loops_path = base_dir / homunculus/Weave/EpisodicRAG/Loops
 #### Provisional Digest
 
 ```
-# Provisional/1_Weekly/W0001_Individual.txt
+# digests_path/1_Weekly/Provisional/W0002_Individual.txt
 
 [Loop0001_タイトル.txt]
 digest_type: ...
@@ -330,7 +340,7 @@ impression: ...（short版: 400文字）
 | `save_provisional_digest.py` | Provisional Digest保存 | DigestAnalyzer分析後 |
 | `finalize_from_shadow.py` | Regular Digest作成、GrandDigest更新、カスケード | `/digest <type>` のタイトル承認後 |
 | `shadow_grand_digest.py` | ShadowGrandDigest管理（CRUD操作） | 各スクリプトから呼び出し |
-| `config.py` | 設定管理、パス解決、LEVEL_CONFIG, PLACEHOLDER_LIMITS定数 | 全スクリプトから参照 |
+| `config.py` | 設定管理、パス解決、LEVEL_CONFIG/PLACEHOLDER_*定数、extract_file_number()、get_threshold() | 全スクリプトから参照 |
 | `grand_digest.py` | GrandDigest.txt管理（CRUD操作） | finalize_from_shadowから呼び出し |
 | `digest_times.py` | last_digest_times.json管理 | finalize_from_shadowから呼び出し |
 | `utils.py` | ユーティリティ関数（sanitize_filename, load_json_with_template, save_json等） | 各スクリプトから参照 |
@@ -356,12 +366,15 @@ python -m unittest discover -s test -v
 
 | ファイル | 種別 | テスト数 |
 |----------|------|---------|
-| test_config.py | Unit | 8 |
+| test_config.py | Unit | 35 |
 | test_utils.py | Unit | 7 |
 | test_grand_digest.py | Integration | 5 |
 | test_digest_times.py | Integration | 4 |
+| test_finalize_from_shadow.py | Integration | 15 |
+| test_save_provisional_digest.py | Integration | 7 |
+| test_shadow_grand_digest.py | Integration | 9 |
 
-**合計**: 24テスト
+**合計**: 82テスト
 
 ---
 
