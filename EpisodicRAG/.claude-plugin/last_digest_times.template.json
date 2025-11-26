@@ -1,34 +1,34 @@
 {
   "weekly": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   },
   "monthly": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   },
   "quarterly": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   },
   "annual": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   },
   "triennial": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   },
   "decadal": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   },
   "multi_decadal": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   },
   "centurial": {
     "timestamp": "",
-    "file_numbers": []
+    "last_processed": null
   }
 }
