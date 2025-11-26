@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 from config import DigestConfig, LEVEL_NAMES
+from digest_types import OverallDigestData, GrandDigestData
 from utils import log_info, log_error, load_json_with_template, save_json
 
 
@@ -21,7 +22,7 @@ class GrandDigestManager:
         self.config = config
         self.grand_digest_file = config.essences_path / "GrandDigest.txt"
 
-    def get_template(self) -> dict:
+    def get_template(self) -> GrandDigestData:
         """GrandDigest.txtのテンプレートを返す（全8レベル対応）"""
         return {
             "metadata": {
@@ -34,7 +35,7 @@ class GrandDigestManager:
             }
         }
 
-    def load_or_create(self) -> dict:
+    def load_or_create(self) -> GrandDigestData:
         """GrandDigest.txtを読み込む。存在しなければテンプレートで作成"""
         return load_json_with_template(
             target_file=self.grand_digest_file,
@@ -42,11 +43,11 @@ class GrandDigestManager:
             log_message="GrandDigest.txt not found. Creating new file."
         )
 
-    def save(self, data: dict):
+    def save(self, data: GrandDigestData) -> None:
         """GrandDigest.txtを保存"""
         save_json(self.grand_digest_file, data)
 
-    def update_digest(self, level: str, digest_name: str, overall_digest: dict) -> bool:
+    def update_digest(self, level: str, digest_name: str, overall_digest: OverallDigestData) -> bool:
         """指定レベルのダイジェストを更新"""
         grand_data = self.load_or_create()
 

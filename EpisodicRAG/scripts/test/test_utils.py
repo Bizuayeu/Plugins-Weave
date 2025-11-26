@@ -56,5 +56,127 @@ class TestSanitizeFilename(unittest.TestCase):
         self.assertEqual(sanitize_filename("テスト 2025"), "テスト_2025")
 
 
+# =============================================================================
+# エッジケーステスト（Phase 0で追加）
+# =============================================================================
+
+class TestSanitizeFilenameEdgeCases(unittest.TestCase):
+    """sanitize_filename() のエッジケーステスト"""
+
+    def test_none_input_raises_typeerror(self):
+        """None入力でTypeError"""
+        with self.assertRaises(TypeError):
+            sanitize_filename(None)
+
+    def test_non_string_input_raises_typeerror(self):
+        """非文字列型入力でTypeError"""
+        with self.assertRaises(TypeError):
+            sanitize_filename(123)
+        with self.assertRaises(TypeError):
+            sanitize_filename(['test'])
+
+    def test_zero_max_length_raises_valueerror(self):
+        """max_length=0でValueError"""
+        with self.assertRaises(ValueError):
+            sanitize_filename("test", max_length=0)
+
+    def test_negative_max_length_raises_valueerror(self):
+        """負のmax_lengthでValueError"""
+        with self.assertRaises(ValueError):
+            sanitize_filename("test", max_length=-1)
+
+    def test_only_dangerous_chars(self):
+        """危険文字のみの入力"""
+        self.assertEqual(sanitize_filename('<>:"/\\|?*'), "untitled")
+
+    def test_empty_string(self):
+        """空文字列入力"""
+        self.assertEqual(sanitize_filename(""), "untitled")
+
+    def test_only_spaces(self):
+        """空白のみの入力"""
+        self.assertEqual(sanitize_filename("   "), "untitled")
+
+    def test_only_underscores(self):
+        """アンダースコアのみの入力"""
+        self.assertEqual(sanitize_filename("___"), "untitled")
+
+    def test_mixed_dangerous_and_valid(self):
+        """危険文字と有効文字の混合"""
+        self.assertEqual(sanitize_filename("test<file>name"), "testfilename")
+        self.assertEqual(sanitize_filename("a:b:c"), "abc")
+
+    def test_max_length_boundary(self):
+        """max_length境界値テスト"""
+        # max_length=1の場合
+        self.assertEqual(len(sanitize_filename("abcde", max_length=1)), 1)
+        # max_length=2の場合
+        self.assertEqual(len(sanitize_filename("abcde", max_length=2)), 2)
+
+    def test_unicode_normalization(self):
+        """Unicode文字の正常処理"""
+        # 絵文字を含む入力
+        result = sanitize_filename("テスト🎉ファイル")
+        self.assertIsInstance(result, str)
+        self.assertGreater(len(result), 0)
+
+    def test_consecutive_dangerous_chars(self):
+        """連続した危険文字"""
+        self.assertEqual(sanitize_filename("test<<<>>>name"), "testname")
+
+
+class TestGetNextDigestNumber(unittest.TestCase):
+    """get_next_digest_number() のテスト"""
+
+    def setUp(self):
+        """テスト用の一時ディレクトリを作成"""
+        import tempfile
+        import shutil
+        self.temp_dir = tempfile.mkdtemp()
+        self.digests_path = Path(self.temp_dir) / "Digests"
+        self.digests_path.mkdir()
+        # 各レベルのディレクトリを作成
+        for level_dir in ["1_Weekly", "2_Monthly", "3_Quarterly"]:
+            (self.digests_path / level_dir).mkdir()
+
+    def tearDown(self):
+        """一時ディレクトリを削除"""
+        import shutil
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_empty_directory_returns_one(self):
+        """空ディレクトリでは1を返す"""
+        from utils import get_next_digest_number
+        result = get_next_digest_number(self.digests_path, "weekly")
+        self.assertEqual(result, 1)
+
+    def test_with_existing_files(self):
+        """既存ファイルがある場合は最大番号+1を返す"""
+        from utils import get_next_digest_number
+        # テストファイルを作成
+        weekly_dir = self.digests_path / "1_Weekly"
+        (weekly_dir / "W0001_test.txt").touch()
+        (weekly_dir / "W0003_test.txt").touch()
+
+        result = get_next_digest_number(self.digests_path, "weekly")
+        self.assertEqual(result, 4)
+
+    def test_invalid_level_raises_valueerror(self):
+        """無効なレベル名でValueError"""
+        from utils import get_next_digest_number
+        with self.assertRaises(ValueError):
+            get_next_digest_number(self.digests_path, "invalid_level")
+
+    def test_nonexistent_level_directory_returns_one(self):
+        """レベルディレクトリが存在しない場合は1を返す"""
+        from utils import get_next_digest_number
+        # 存在しないディレクトリを削除
+        import shutil
+        shutil.rmtree(self.digests_path / "1_Weekly")
+
+        result = get_next_digest_number(self.digests_path, "weekly")
+        self.assertEqual(result, 1)
+
+
 if __name__ == "__main__":
     unittest.main()

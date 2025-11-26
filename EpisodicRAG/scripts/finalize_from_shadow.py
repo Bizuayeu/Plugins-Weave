@@ -256,7 +256,7 @@ class DigestFinalizerFromShadow:
                         log_info(f"Auto-generated individual digest from {source_file}")
             except json.JSONDecodeError:
                 log_warning(f"Failed to parse {source_file} as JSON")
-            except Exception as e:
+            except OSError as e:
                 log_warning(f"Error reading {source_file}: {e}")
 
         log_info(f"Auto-generated {len(individual_digests)} individual digests from source files")
@@ -391,7 +391,7 @@ class DigestFinalizerFromShadow:
             try:
                 provisional_file_to_delete.unlink()
                 print(f"\n[処理5] Removed Provisional digest after merge: {provisional_file_to_delete.name}")
-            except Exception as e:
+            except OSError as e:
                 log_warning(f"Failed to remove Provisional digest: {e}")
 
     def finalize_from_shadow(self, level: str, weave_title: str) -> bool:

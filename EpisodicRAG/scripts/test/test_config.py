@@ -361,5 +361,106 @@ class TestLevelConfig(unittest.TestCase):
                               f"Level '{level}' has invalid next: '{next_level}'")
 
 
+# =============================================================================
+# エッジケーステスト（Phase 0で追加）
+# =============================================================================
+
+from config import format_digest_number
+
+
+class TestExtractFileNumberEdgeCases(unittest.TestCase):
+    """extract_file_number() のエッジケーステスト"""
+
+    def test_non_string_input_returns_none(self):
+        """非文字列型入力はNoneを返す"""
+        self.assertIsNone(extract_file_number(None))
+        self.assertIsNone(extract_file_number(123))
+        self.assertIsNone(extract_file_number(['Loop0001']))
+        self.assertIsNone(extract_file_number({'name': 'Loop0001'}))
+
+    def test_unicode_special_chars(self):
+        """Unicode特殊文字を含むファイル名"""
+        self.assertEqual(extract_file_number("Loop0001_日本語タイトル.txt"), ("Loop", 1))
+        self.assertEqual(extract_file_number("W0001_絵文字🎉.txt"), ("W", 1))
+
+    def test_very_long_filename(self):
+        """極端に長いファイル名"""
+        long_title = "a" * 1000
+        self.assertEqual(extract_file_number(f"Loop0001_{long_title}.txt"), ("Loop", 1))
+
+    def test_number_overflow(self):
+        """大きな番号"""
+        self.assertEqual(extract_file_number("Loop99999999.txt"), ("Loop", 99999999))
+
+    def test_leading_zeros(self):
+        """先頭ゼロのバリエーション"""
+        self.assertEqual(extract_file_number("Loop0000.txt"), ("Loop", 0))
+        self.assertEqual(extract_file_number("W00001.txt"), ("W", 1))
+
+    def test_empty_string(self):
+        """空文字列"""
+        self.assertIsNone(extract_file_number(""))
+
+    def test_only_prefix_no_number(self):
+        """プレフィックスのみで番号なし"""
+        self.assertIsNone(extract_file_number("Loop.txt"))
+        self.assertIsNone(extract_file_number("W_title.txt"))
+
+    def test_number_only_no_prefix(self):
+        """番号のみでプレフィックスなし"""
+        self.assertIsNone(extract_file_number("0001.txt"))
+        self.assertIsNone(extract_file_number("12345.txt"))
+
+
+class TestFormatDigestNumberEdgeCases(unittest.TestCase):
+    """format_digest_number() のエッジケーステスト"""
+
+    def test_zero_number(self):
+        """番号0の処理"""
+        self.assertEqual(format_digest_number("loop", 0), "Loop0000")
+        self.assertEqual(format_digest_number("weekly", 0), "W0000")
+
+    def test_very_large_number(self):
+        """桁数を超える大きな番号"""
+        # 4桁を超える場合でも動作する（桁数は最小桁数）
+        result = format_digest_number("weekly", 99999)
+        self.assertEqual(result, "W99999")
+
+    def test_invalid_level_raises_valueerror(self):
+        """無効なレベル名でValueError"""
+        with self.assertRaises(ValueError):
+            format_digest_number("invalid_level", 1)
+
+    def test_all_valid_levels(self):
+        """すべての有効なレベルで正しく動作"""
+        expected = {
+            "loop": "Loop0001",
+            "weekly": "W0001",
+            "monthly": "M001",
+            "quarterly": "Q001",
+            "annual": "A01",
+            "triennial": "T01",
+            "decadal": "D01",
+            "multi_decadal": "MD01",
+            "centurial": "C01",
+        }
+        for level, expected_result in expected.items():
+            result = format_digest_number(level, 1)
+            self.assertEqual(result, expected_result, f"Failed for level '{level}'")
+
+
+class TestExtractNumberOnlyEdgeCases(unittest.TestCase):
+    """extract_number_only() のエッジケーステスト"""
+
+    def test_non_string_returns_none(self):
+        """非文字列型入力はNoneを返す"""
+        self.assertIsNone(extract_number_only(None))
+        self.assertIsNone(extract_number_only(123))
+
+    def test_zero_number(self):
+        """番号0の抽出"""
+        self.assertEqual(extract_number_only("Loop0000.txt"), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

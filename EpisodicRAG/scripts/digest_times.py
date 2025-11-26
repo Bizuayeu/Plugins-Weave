@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 
 from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES, extract_file_number, format_digest_number
+from digest_types import DigestTimesData
 from utils import log_info, load_json_with_template, save_json, log_warning
 
 
@@ -23,11 +24,11 @@ class DigestTimesTracker:
         self.last_digest_file = config.plugin_root / ".claude-plugin" / "last_digest_times.json"
         self.template_file = config.plugin_root / ".claude-plugin" / "last_digest_times.template.json"
 
-    def _get_default_template(self) -> dict:
+    def _get_default_template(self) -> DigestTimesData:
         """テンプレートがない場合のデフォルト構造を返す"""
         return {level: {"timestamp": "", "last_processed": None} for level in LEVEL_NAMES}
 
-    def load_or_create(self) -> dict:
+    def load_or_create(self) -> DigestTimesData:
         """最終ダイジェスト生成時刻を読み込む（存在しなければテンプレートから初期化）"""
         return load_json_with_template(
             target_file=self.last_digest_file,

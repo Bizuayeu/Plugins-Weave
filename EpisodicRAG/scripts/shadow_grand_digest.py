@@ -182,14 +182,21 @@ class ShadowGrandDigestManager:
             except ValueError:
                 raise ValueError(f"Unknown source type: {source_type}")
 
-    def add_files_to_shadow(self, level: str, new_files: List[Path]):
+    def _ensure_overall_digest_initialized(
+        self,
+        shadow_data: dict,
+        level: str
+    ) -> dict:
         """
-        指定レベルのShadowに新しいファイルを追加（増分更新）
+        overall_digestの初期化を確保
 
-        Weekly: source_filesのみ追加（PLACEHOLDERのまま）→ Claude分析待ち
-        Monthly以上: Digestファイル内容を読み込んでログ出力（まだらボケ回避）
+        Args:
+            shadow_data: ShadowGrandDigestデータ
+            level: レベル名
+
+        Returns:
+            初期化済みのoverall_digest
         """
-        shadow_data = self.load_or_create()
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
         # overall_digestがnullまたは非dict型の場合、初期化
@@ -201,74 +208,114 @@ class ShadowGrandDigestManager:
         if "source_files" not in overall_digest:
             overall_digest["source_files"] = []
 
-        # 既存のファイルリストを取得
-        existing_files = set(overall_digest["source_files"])
+        return overall_digest
 
-        # レベルに応じたソースタイプを取得
-        source_type = self.level_hierarchy[level]["source"]
+    def _log_digest_content(self, file_path: Path, level: str) -> None:
+        """
+        Digestファイルの内容を読み込んでログ出力（Monthly以上用）
 
-        # 新しいファイルだけをsource_filesに追加
-        added_count = 0
-        for file_path in new_files:
-            if file_path.name not in existing_files:
-                overall_digest["source_files"].append(file_path.name)
-                added_count += 1
-                print(f"  + {file_path.name}")
+        Args:
+            file_path: ファイルパス
+            level: レベル名
+        """
+        source_dir = self._get_source_path(level)
+        full_path = source_dir / file_path.name
 
-                # Monthly以上: Digestファイルの内容を読み込んでログ出力（まだらボケ回避）
-                if source_type != "loops":
-                    source_dir = self._get_source_path(level)
-                    full_path = source_dir / file_path.name
+        if not (full_path.exists() and full_path.suffix == '.txt'):
+            return
 
-                    if full_path.exists() and full_path.suffix == '.txt':
-                        try:
-                            with open(full_path, 'r', encoding='utf-8') as f:
-                                digest_data = json.load(f)
-                                # 型チェック
-                                if not isinstance(digest_data, dict):
-                                    log_warning(f"{file_path.name} is not a dict, skipping")
-                                    continue
-                                overall = digest_data.get("overall_digest")
-                                if not isinstance(overall, dict):
-                                    overall = {}
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                digest_data = json.load(f)
 
-                                # ログ出力: Digestファイルから読み込んだ情報
-                                log_info(f"Read digest content from {file_path.name}")
-                                print(f"      - digest_type: {overall.get('digest_type', 'N/A')}")
-                                print(f"      - keywords: {len(overall.get('keywords', []))} items")
-                                print(f"      - abstract: {len(overall.get('abstract', ''))} chars")
-                                print(f"      - impression: {len(overall.get('impression', ''))} chars")
-                        except json.JSONDecodeError:
-                            log_warning(f"Failed to parse {file_path.name} as JSON")
-                        except Exception as e:
-                            log_warning(f"Error reading {file_path.name}: {e}")
+            if not isinstance(digest_data, dict):
+                log_warning(f"{file_path.name} is not a dict, skipping")
+                return
 
-        # 既存分析がPLACEHOLDERかどうか確認
-        total_files = len(overall_digest["source_files"])
+            overall = digest_data.get("overall_digest")
+            if not isinstance(overall, dict):
+                overall = {}
+
+            log_info(f"Read digest content from {file_path.name}")
+            print(f"      - digest_type: {overall.get('digest_type', 'N/A')}")
+            print(f"      - keywords: {len(overall.get('keywords', []))} items")
+            print(f"      - abstract: {len(overall.get('abstract', ''))} chars")
+            print(f"      - impression: {len(overall.get('impression', ''))} chars")
+
+        except json.JSONDecodeError:
+            log_warning(f"Failed to parse {file_path.name} as JSON")
+        except OSError as e:
+            log_warning(f"Error reading {file_path.name}: {e}")
+
+    def _update_placeholder_or_preserve(
+        self,
+        overall_digest: dict,
+        total_files: int
+    ) -> None:
+        """
+        PLACEHOLDERの更新または既存分析の保持
+
+        Args:
+            overall_digest: overall_digestデータ
+            total_files: 総ファイル数
+        """
         abstract = overall_digest.get("abstract", "")
         is_placeholder = (
-            not abstract or  # 空文字列もプレースホルダー扱い
+            not abstract or
             (isinstance(abstract, str) and PLACEHOLDER_MARKER in abstract)
         )
 
         if is_placeholder:
-            # PLACEHOLDERの場合のみ更新（定数を使用）
             limits = PLACEHOLDER_LIMITS
-            overall_digest["abstract"] = f"{PLACEHOLDER_MARKER}: {total_files}ファイル分の全体統合分析 ({limits['abstract_chars']}文字程度){PLACEHOLDER_END}"
-            overall_digest["impression"] = f"{PLACEHOLDER_MARKER}: 所感・展望 ({limits['impression_chars']}文字程度){PLACEHOLDER_END}"
+            overall_digest["abstract"] = (
+                f"{PLACEHOLDER_MARKER}: {total_files}ファイル分の全体統合分析 "
+                f"({limits['abstract_chars']}文字程度){PLACEHOLDER_END}"
+            )
+            overall_digest["impression"] = (
+                f"{PLACEHOLDER_MARKER}: 所感・展望 "
+                f"({limits['impression_chars']}文字程度){PLACEHOLDER_END}"
+            )
             overall_digest["keywords"] = [
                 f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}"
                 for i in range(1, limits["keyword_count"] + 1)
             ]
             log_info(f"Initialized placeholder for {total_files} file(s)")
         else:
-            # 既存の分析を保持
             log_info(f"Preserved existing analysis (now {total_files} file(s) total)")
             log_info(f"Claude should re-analyze all {total_files} files to integrate new content")
 
+    def add_files_to_shadow(self, level: str, new_files: List[Path]) -> None:
+        """
+        指定レベルのShadowに新しいファイルを追加（増分更新）
+
+        Weekly: source_filesのみ追加（PLACEHOLDERのまま）→ Claude分析待ち
+        Monthly以上: Digestファイル内容を読み込んでログ出力（まだらボケ回避）
+
+        Args:
+            level: レベル名
+            new_files: 追加するファイルのリスト
+        """
+        shadow_data = self.load_or_create()
+        overall_digest = self._ensure_overall_digest_initialized(shadow_data, level)
+
+        existing_files = set(overall_digest["source_files"])
+        source_type = self.level_hierarchy[level]["source"]
+
+        # 新しいファイルだけをsource_filesに追加
+        for file_path in new_files:
+            if file_path.name not in existing_files:
+                overall_digest["source_files"].append(file_path.name)
+                print(f"  + {file_path.name}")
+
+                # Monthly以上: Digestファイルの内容を読み込んでログ出力
+                if source_type != "loops":
+                    self._log_digest_content(file_path, level)
+
+        # PLACEHOLDERの更新または既存分析の保持
+        total_files = len(overall_digest["source_files"])
+        self._update_placeholder_or_preserve(overall_digest, total_files)
+
         self.save(shadow_data)
-        log_info(f"Added {added_count} file(s) to ShadowGrandDigest.{level}")
-        log_info(f"Total files in shadow: {total_files}")
 
     def clear_shadow_level(self, level: str):
         """指定レベルのShadowを初期化"""

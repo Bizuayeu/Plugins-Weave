@@ -333,6 +333,8 @@ Examples:
         log_error(f"Invalid JSON format: {e}", exit_code=1)
     except ValueError as e:
         log_error(str(e), exit_code=1)
+    except OSError as e:
+        log_error(f"File I/O error: {e}", exit_code=1)
     except Exception as e:
         import traceback
         traceback.print_exc()

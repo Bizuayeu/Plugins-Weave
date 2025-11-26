@@ -7,47 +7,77 @@ Utility Functions
 finalize_from_shadow.py から分離。
 """
 import json
+import logging
 import re
 import sys
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict, Any
 
 
 # =============================================================================
-# ロギング関数（統一エラーハンドリング）
+# ロギング設定
+# =============================================================================
+
+# モジュールロガー
+logger = logging.getLogger("episodic_rag")
+
+# デフォルトハンドラー設定（未設定の場合のみ）
+if not logger.handlers:
+    # stderrハンドラー（WARNING以上）
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.WARNING)
+    stderr_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+
+    # stdoutハンドラー（INFO）
+    class StdoutFilter(logging.Filter):
+        def filter(self, record: logging.LogRecord) -> bool:
+            return record.levelno == logging.INFO
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+    stdout_handler.addFilter(StdoutFilter())
+    stdout_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+
+    logger.addHandler(stderr_handler)
+    logger.addHandler(stdout_handler)
+    logger.setLevel(logging.INFO)
+
+
+# =============================================================================
+# ロギング関数（後方互換ラッパー）
 # =============================================================================
 
 def log_error(message: str, exit_code: Optional[int] = None) -> None:
     """
-    エラーメッセージをstderrに出力
+    エラーメッセージを出力
 
     Args:
         message: エラーメッセージ
         exit_code: 指定時はこのコードでプログラムを終了
     """
-    print(f"[ERROR] {message}", file=sys.stderr)
+    logger.error(message)
     if exit_code is not None:
         sys.exit(exit_code)
 
 
 def log_warning(message: str) -> None:
     """
-    警告メッセージをstderrに出力
+    警告メッセージを出力
 
     Args:
         message: 警告メッセージ
     """
-    print(f"[WARNING] {message}", file=sys.stderr)
+    logger.warning(message)
 
 
 def log_info(message: str) -> None:
     """
-    情報メッセージをstdoutに出力
+    情報メッセージを出力
 
     Args:
         message: 情報メッセージ
     """
-    print(f"[INFO] {message}")
+    logger.info(message)
 
 
 # =============================================================================
@@ -101,10 +131,10 @@ def sanitize_filename(title: str, max_length: int = 50) -> str:
 def load_json_with_template(
     target_file: Path,
     template_file: Optional[Path] = None,
-    default_factory: Optional[Callable[[], dict]] = None,
+    default_factory: Optional[Callable[[], Dict[str, Any]]] = None,
     save_on_create: bool = True,
     log_message: Optional[str] = None
-) -> dict:
+) -> Dict[str, Any]:
     """
     JSONファイルを読み込む。存在しない場合はテンプレートまたはデフォルトから作成。
 
@@ -158,7 +188,7 @@ def load_json_with_template(
         raise
 
 
-def save_json(file_path: Path, data: dict, indent: int = 2) -> None:
+def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
     """
     dictをJSONファイルに保存（親ディレクトリ自動作成）。
 

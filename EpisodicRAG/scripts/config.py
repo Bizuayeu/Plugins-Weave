@@ -9,7 +9,9 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
+
+from digest_types import LevelConfigData, ConfigData
 
 
 # =============================================================================
@@ -23,7 +25,7 @@ from typing import Dict, Any, Optional, Tuple
 #   source  - この階層を生成する際の入力元（"loops" または下位階層名）
 #   next    - 確定時にカスケードする上位階層（None = 最上位）
 #
-LEVEL_CONFIG: Dict[str, Dict[str, Any]] = {
+LEVEL_CONFIG: Dict[str, LevelConfigData] = {
     "weekly": {"prefix": "W", "digits": 4, "dir": "1_Weekly", "source": "loops", "next": "monthly"},
     "monthly": {"prefix": "M", "digits": 3, "dir": "2_Monthly", "source": "weekly", "next": "quarterly"},
     "quarterly": {"prefix": "Q", "digits": 3, "dir": "3_Quarterly", "source": "monthly", "next": "annual"},
