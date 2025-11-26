@@ -14,6 +14,7 @@ from typing import Dict, Any, Optional, List
 from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES, extract_file_number, format_digest_number
 from digest_types import DigestTimesData
 from utils import log_info, load_json_with_template, save_json, log_warning
+from validators import is_valid_list
 
 
 class DigestTimesTracker:
@@ -44,7 +45,7 @@ class DigestTimesTracker:
             return []
 
         # 型チェック
-        if not isinstance(input_files, list):
+        if not is_valid_list(input_files):
             log_warning(f"input_files is not a list: {type(input_files).__name__}")
             return []
 

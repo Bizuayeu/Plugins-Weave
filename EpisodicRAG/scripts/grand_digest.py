@@ -13,6 +13,8 @@ from typing import Dict, Any
 from config import DigestConfig, LEVEL_NAMES
 from digest_types import OverallDigestData, GrandDigestData
 from utils import log_info, log_error, load_json_with_template, save_json
+from __version__ import DIGEST_FORMAT_VERSION
+from validators import is_valid_dict
 
 
 class GrandDigestManager:
@@ -27,7 +29,7 @@ class GrandDigestManager:
         return {
             "metadata": {
                 "last_updated": datetime.now().isoformat(),
-                "version": "1.0"
+                "version": DIGEST_FORMAT_VERSION
             },
             "major_digests": {
                 level: {"overall_digest": None}
@@ -52,7 +54,7 @@ class GrandDigestManager:
         grand_data = self.load_or_create()
 
         # 型チェック
-        if not isinstance(grand_data, dict):
+        if not is_valid_dict(grand_data):
             log_error("GrandDigest.txt has invalid format: expected dict")
             return False
 

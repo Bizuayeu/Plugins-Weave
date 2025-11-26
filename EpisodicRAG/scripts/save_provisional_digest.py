@@ -30,6 +30,8 @@ if sys.platform == 'win32' and __name__ == "__main__":
 
 from config import DigestConfig, LEVEL_CONFIG, extract_file_number, format_digest_number
 from utils import log_info, log_error, log_warning, save_json, get_next_digest_number
+from __version__ import DIGEST_FORMAT_VERSION
+from validators import is_valid_dict, is_valid_list
 
 
 class ProvisionalDigestSaver:
@@ -130,10 +132,10 @@ class ProvisionalDigestSaver:
         """
         # 入力検証
         for i, d in enumerate(existing_digests):
-            if not isinstance(d, dict) or "source_file" not in d:
+            if not is_valid_dict(d) or "source_file" not in d:
                 raise ValueError(f"Invalid existing digest at index {i}: missing 'source_file' key")
         for i, d in enumerate(new_digests):
-            if not isinstance(d, dict) or "source_file" not in d:
+            if not is_valid_dict(d) or "source_file" not in d:
                 raise ValueError(f"Invalid new digest at index {i}: missing 'source_file' key")
 
         # source_fileをキーとした辞書を作成
@@ -185,12 +187,12 @@ class ProvisionalDigestSaver:
                 existing_data = self.load_existing_provisional(level, digest_num)
                 if existing_data:
                     # 型検証
-                    if not isinstance(existing_data, dict):
+                    if not is_valid_dict(existing_data):
                         log_warning("Invalid existing data format, ignoring")
                         existing_digests = []
                     else:
                         existing_digests = existing_data.get("individual_digests", [])
-                        if not isinstance(existing_digests, list):
+                        if not is_valid_list(existing_digests):
                             log_warning("Invalid individual_digests format, ignoring")
                             existing_digests = []
                     # マージ（重複は上書き）
@@ -215,7 +217,7 @@ class ProvisionalDigestSaver:
                 "digest_level": level,
                 "digest_number": str(digest_num).zfill(digits),  # 純粋な番号のみ
                 "last_updated": datetime.now().isoformat(),
-                "version": "1.0"
+                "version": DIGEST_FORMAT_VERSION
             },
             "individual_digests": individual_digests
         }
@@ -252,11 +254,11 @@ class ProvisionalDigestSaver:
             data = json.loads(input_data)
 
         # dataがリストならそのまま返す
-        if isinstance(data, list):
+        if is_valid_list(data):
             return data
 
         # dataが辞書で"individual_digests"キーを持つ場合
-        if isinstance(data, dict) and "individual_digests" in data:
+        if is_valid_dict(data) and "individual_digests" in data:
             return data["individual_digests"]
 
         # その他の場合はエラー

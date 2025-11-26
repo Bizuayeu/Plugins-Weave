@@ -39,6 +39,8 @@ from config import (
 )
 from utils import log_info, log_warning, load_json_with_template, save_json
 from digest_times import DigestTimesTracker
+from __version__ import DIGEST_FORMAT_VERSION
+from validators import is_valid_dict
 
 
 class ShadowGrandDigestManager:
@@ -92,7 +94,7 @@ class ShadowGrandDigestManager:
         return {
             "metadata": {
                 "last_updated": datetime.now().isoformat(),
-                "version": "1.0",
+                "version": DIGEST_FORMAT_VERSION,
                 "description": "GrandDigest更新後に作成された新しいコンテンツの増分ダイジェスト（下書き帳）"
             },
             "latest_digests": {
@@ -200,7 +202,7 @@ class ShadowGrandDigestManager:
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
         # overall_digestがnullまたは非dict型の場合、初期化
-        if overall_digest is None or not isinstance(overall_digest, dict):
+        if overall_digest is None or not is_valid_dict(overall_digest):
             overall_digest = self._create_empty_overall_digest()
             shadow_data["latest_digests"][level]["overall_digest"] = overall_digest
 
@@ -228,12 +230,12 @@ class ShadowGrandDigestManager:
             with open(full_path, 'r', encoding='utf-8') as f:
                 digest_data = json.load(f)
 
-            if not isinstance(digest_data, dict):
+            if not is_valid_dict(digest_data):
                 log_warning(f"{file_path.name} is not a dict, skipping")
                 return
 
             overall = digest_data.get("overall_digest")
-            if not isinstance(overall, dict):
+            if not is_valid_dict(overall):
                 overall = {}
 
             log_info(f"Read digest content from {file_path.name}")

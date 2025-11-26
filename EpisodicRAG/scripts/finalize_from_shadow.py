@@ -51,6 +51,8 @@ from grand_digest import GrandDigestManager
 from digest_times import DigestTimesTracker
 from utils import sanitize_filename, log_info, log_error, log_warning, save_json, get_next_digest_number
 from shadow_grand_digest import ShadowGrandDigestManager
+from __version__ import DIGEST_FORMAT_VERSION
+from validators import is_valid_dict, is_valid_list
 
 
 class DigestFinalizerFromShadow:
@@ -98,7 +100,7 @@ class DigestFinalizerFromShadow:
         - ファイル名が連番になっていること（警告のみ、継続可能）
         """
         # 型チェック
-        if not isinstance(source_files, list):
+        if not is_valid_list(source_files):
             log_error(f"source_files must be a list, got {type(source_files).__name__}")
             return False
 
@@ -161,7 +163,7 @@ class DigestFinalizerFromShadow:
             log_info("Run 'python shadow_grand_digest.py' to update shadow first")
             return None
 
-        if not isinstance(shadow_digest, dict):
+        if not is_valid_dict(shadow_digest):
             log_error(f"Invalid shadow digest format: expected dict, got {type(shadow_digest).__name__}")
             return None
 
@@ -199,7 +201,7 @@ class DigestFinalizerFromShadow:
             try:
                 with open(provisional_path, 'r', encoding='utf-8') as f:
                     provisional_data = json.load(f)
-                    if not isinstance(provisional_data, dict):
+                    if not is_valid_dict(provisional_data):
                         log_error(f"Invalid format in {provisional_path.name}: expected dict")
                         return [], None
                     individual_digests = provisional_data.get("individual_digests", [])
@@ -290,7 +292,7 @@ class DigestFinalizerFromShadow:
                 "digest_level": level,
                 "digest_number": digest_num,
                 "last_updated": datetime.now().isoformat(),
-                "version": "1.0"
+                "version": DIGEST_FORMAT_VERSION
             },
             "overall_digest": {
                 "name": new_digest_name,
@@ -358,7 +360,7 @@ class DigestFinalizerFromShadow:
         """
         print(f"\n[処理2] Updating GrandDigest.txt for {level}")
         overall_digest = regular_digest.get("overall_digest")
-        if not overall_digest or not isinstance(overall_digest, dict):
+        if not overall_digest or not is_valid_dict(overall_digest):
             log_error("RegularDigest has no valid overall_digest")
             return False
         self.grand_digest_manager.update_digest(level, new_digest_name, overall_digest)

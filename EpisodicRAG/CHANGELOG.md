@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.3] - 2025-11-27
+
+### Added
+- **__version__.py**: バージョン定数のSingle Source of Truth（`DIGEST_FORMAT_VERSION`）を新規作成
+
+### Changed
+- **リファクタリング Phase 1**: バージョン文字列の集約
+  - `grand_digest.py`, `shadow_grand_digest.py`, `finalize_from_shadow.py`, `save_provisional_digest.py` でハードコードされていた `"1.0"` を `DIGEST_FORMAT_VERSION` 定数に置換
+- **リファクタリング Phase 2**: validators.py の段階的採用
+  - `grand_digest.py`: `isinstance()` → `is_valid_dict()` に置換
+  - `digest_times.py`: `isinstance()` → `is_valid_list()` に置換
+  - `shadow_grand_digest.py`: 3箇所の `isinstance()` → `is_valid_dict()` に置換
+  - `save_provisional_digest.py`: 6箇所の `isinstance()` → `is_valid_dict()`/`is_valid_list()` に置換
+  - `finalize_from_shadow.py`: 4箇所の `isinstance()` → `is_valid_dict()`/`is_valid_list()` に置換
+
+### Notes
+- Phase 3（例外処理の完全移行）、Phase 4（Facade分割）は今後のリリースで実施予定
+
+---
+
 ## [1.1.2] - 2025-11-27
 
 ### Fixed
