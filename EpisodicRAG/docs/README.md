@@ -69,6 +69,21 @@ EpisodicRAGプラグインのドキュメントハブです。目的に応じて
 
 ---
 
+## ドキュメント構成（Single Source of Truth）
+
+各概念の情報源となるドキュメントです。詳細な情報が必要な場合は該当ドキュメントを参照してください。
+
+| 概念 | 情報源（SSoT） | 参照元 |
+|------|--------------|--------|
+| まだらボケ | [_common-concepts.md](../skills/shared/_common-concepts.md) | GUIDE, GLOSSARY, FAQ |
+| 8層階層構造 | [GLOSSARY.md](GLOSSARY.md) | ARCHITECTURE, _common-concepts |
+| config.json設定 | [GUIDE.md](GUIDE.md) | GLOSSARY, ARCHITECTURE |
+| DigestConfig API | [API_REFERENCE.md](API_REFERENCE.md) | ARCHITECTURE, _implementation-notes |
+| ファイル形式仕様 | [ARCHITECTURE.md](ARCHITECTURE.md) | GLOSSARY, TROUBLESHOOTING |
+| トラブルシューティング | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | GUIDE, FAQ |
+
+---
+
 ## 関連リンク
 
 - [プロジェクトREADME](../README.md)
@@ -76,5 +91,5 @@ EpisodicRAGプラグインのドキュメントハブです。目的に応じて
 
 ---
 
-*Last Updated: 2025-11-25*
-*Version: 1.1.0*
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2] - 2025-11-27
+
+### Fixed
+- **plugin.json**: バージョン番号を 1.1.2 に更新（CHANGELOGとの整合性確保）
+- **digest-auto/SKILL.md**: パス参照を修正（Toybox → Weave）
+- **save_provisional_digest.py**: Provisional Digestのフィールド名を `source_file` に統一（digest_types.pyとの整合性確保）
+- **ARCHITECTURE.md**: Provisional Digestのフィールド名を `source_file` に統一
+
+### Changed
+- **SKILL.md (3ファイル)**: 実装ガイドラインを共通ファイル（_implementation-notes.md）への参照に変更（重複削減）
+
+---
+
+## [1.1.1] - 2025-11-27
+
+### Changed
+- **ARCHITECTURE.md**: GrandDigest/ShadowGrandDigest/Provisionalのファイル形式をソースコードに合わせて修正
+- **API_REFERENCE.md**: format_digest_number(), PLACEHOLDER_*定数, utils.py関数群を追記
+- **TROUBLESHOOTING.md**: Provisionalパス修正、last_digest_times.jsonパス修正
+- **GUIDE.md**: SSoT参照化によりまだらボケ説明を簡略化、トラブルシューティングをTROUBLESHOOTING.md参照に変更
+- **GLOSSARY.md**: SSoT参照化
+- **FAQ.md**: SSoT参照化
+- **docs/README.md**: SSoTクロスリファレンス表を追加
+- **skills/digest-setup/SKILL.md**: Provisionalディレクトリパス修正
+
+### Fixed
+- 全ドキュメントの日付を2025-11-27に統一
+- ドキュメント間の重複記載を削減（Single Source of Truth確立）
+
+---
+
 ## [1.1.0] - 2025-11-26
 
 ### Added

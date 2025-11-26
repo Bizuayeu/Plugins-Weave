@@ -437,7 +437,7 @@ ShadowGrandDigestに未分析のプレースホルダーがあります
   4. `/digest weekly` で5個揃ったら確定
 
   Loopファイル配置先:
-    homunculus/Toybox/EpisodicRAG/data/Loops/
+    homunculus/Weave/EpisodicRAG/Loops/
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -471,69 +471,18 @@ ShadowGrandDigestに未分析のプレースホルダーがあります
 
 ## 実装時の注意事項
 
-### UI メッセージの出力形式
-
-**重要**: VSCode 拡張のマークダウンレンダリングでは、単一の改行は空白に変換されます。
-対話型 UI メッセージを表示する際は、必ず**コードブロック（三連バッククォート）**で囲んでください。
-
-```
-... (UIメッセージ)
-```
-
-これにより、改行がそのまま保持され、ユーザーに正しくフォーマットされたメッセージが表示されます。
-
-### config.py への依存
-
-すべてのパス情報は config.py 経由で取得します：
-
-```python
-from config import DigestConfig
-
-config = DigestConfig()
-loops_path = config.loops_path
-digests_path = config.digests_path
-essences_path = config.essences_path
-```
-
-### エラーハンドリング
-
-すべてのファイルは `@digest-setup` で作成されます：
-
-```python
-# 設定ファイル、ShadowGrandDigest、GrandDigestが存在しない場合
-try:
-    config = DigestConfig()
-except FileNotFoundError:
-    print("❌ 初期セットアップが必要です")
-    print("@digest-setup を実行してください")
-    sys.exit(1)
-
-if not shadow_file.exists() or not grand_file.exists():
-    print("❌ 必要なファイルが見つかりません")
-    print("@digest-setup を実行してください")
-    sys.exit(1)
-```
-
-### 階層順序の維持
-
-階層的カスケードのため、必ず下位階層から順に生成する必要があります：
-
-```
-Weekly → Monthly → Quarterly → Annual →
-Triennial → Decadal → Multi-decadal → Centurial
-```
-
-推奨アクションでは、常に最下位の生成可能な階層を優先して提示します。
-
-### 実装時の優先順位
-
-まだらボケ予防のため、以下の順序でチェックを実行します：
-
-1. **未処理 Loop 検出** → 警告して即終了
-2. **プレースホルダー検出** → 警告して即終了
-3. **中間ファイルスキップ検出** → 警告のみ（処理継続）
-4. **通常の判定フロー** → 生成可能な階層を表示
+> 📖 共通の実装ガイドラインは [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
+> - UIメッセージの出力形式
+> - config.py への依存
+> - エラーハンドリング
+> - 階層順序の維持
+> - 実装時の優先順位
 
 ---
 
 **このスキルは、EpisodicRAG システムの状態を分析し、最適なアクションを推奨します 📊**
+
+---
+
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

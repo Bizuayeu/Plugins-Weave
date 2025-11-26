@@ -98,21 +98,28 @@ DigestAnalyzerが正しくindividual digestを生成しているか確認して�
 
 ファイル形式が正しいか確認:
 ```bash
-cat {digests_dir}/Provisional/1_Weekly/W0001_Individual.txt
+cat {digests_dir}/1_Weekly/Provisional/W0001_Individual.txt
 ```
 
-期待される形式:
-```
-[Loop0001_タイトル.txt]
-digest_type: ...
-keywords: ...
-abstract: ...
-impression: ...
-
----
-
-[Loop0002_タイトル.txt]
-...
+期待される形式（JSON）:
+```json
+{
+  "metadata": {
+    "digest_level": "weekly",
+    "digest_number": "0001",
+    "last_updated": "2025-11-22T00:00:00",
+    "version": "1.0"
+  },
+  "individual_digests": [
+    {
+      "filename": "Loop0001_タイトル.txt",
+      "digest_type": "...",
+      "keywords": [...],
+      "abstract": "...",
+      "impression": "..."
+    }
+  ]
+}
 ```
 
 **ケースC: finalize_from_shadow.pyの実行エラー**
@@ -134,8 +141,8 @@ python scripts/finalize_from_shadow.py weekly "テストタイトル"
 
 1. **last_digest_times.jsonの内容を確認**
    ```bash
-   python scripts/config.py --show-paths  # digests_dirを確認
-   cat {digests_dir}/last_digest_times.json
+   # .claude-plugin/ 内に配置されています
+   cat ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin/last_digest_times.json
    ```
 
 2. **新しいLoopファイルが検出されているか**
@@ -158,22 +165,25 @@ python scripts/finalize_from_shadow.py weekly "テストタイトル"
 
 2. **last_digest_times.jsonが破損している場合**:
    ```bash
-   # バックアップを取ってから削除
-   cp {digests_dir}/last_digest_times.json {digests_dir}/last_digest_times.json.bak
-   rm {digests_dir}/last_digest_times.json
+   # バックアップを取ってから削除（.claude-plugin/ 内に配置）
+   cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin
+   cp last_digest_times.json last_digest_times.json.bak
+   rm last_digest_times.json
 
-   # 再実行
+   # 再実行（テンプレートから自動再作成されます）
    /digest
    ```
 
 3. **ShadowGrandDigest.txtが破損している場合**:
    ```bash
-   # バックアップを取ってから再初期化
+   # バックアップを取ってから削除
+   python scripts/config.py --show-paths  # essences_dirを確認
    cp {essences_dir}/ShadowGrandDigest.txt {essences_dir}/ShadowGrandDigest.txt.bak
+   rm {essences_dir}/ShadowGrandDigest.txt
 
-   # 手動で shadow_grand_digest.py を実行
+   # 再実行（テンプレートから自動再作成されます）
    cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-   python scripts/shadow_grand_digest.py --init
+   python scripts/shadow_grand_digest.py
    ```
 
 ---
@@ -190,16 +200,21 @@ python scripts/finalize_from_shadow.py weekly "テストタイトル"
    cat {essences_dir}/GrandDigest.txt
    ```
 
-2. **Weekly levelのdigest_nameが正しく設定されているか**
+2. **Weekly levelのoverall_digestが正しく設定されているか**
 
-   期待される形式:
+   期待される形式（[ARCHITECTURE.md](ARCHITECTURE.md) 参照）:
    ```json
    {
-     "latest_digests": {
+     "major_digests": {
        "weekly": {
-         "digest_name": "2025-07-01_W0001_タイトル",
-         "overall_digest": { ... },
-         "individual_digests": [ ... ]
+         "overall_digest": {
+           "timestamp": "...",
+           "source_files": [...],
+           "digest_type": "...",
+           "keywords": [...],
+           "abstract": "...",
+           "impression": "..."
+         }
        }
      }
    }
@@ -368,9 +383,11 @@ Essences Path: /Users/username/DEV/homunculus/Weave/EpisodicRAG/Essences
 # Loopファイル確認
 ls {loops_dir}
 
-# Digestファイル確認
+# Digestファイル確認（RegularDigest）
 ls {digests_dir}/1_Weekly/
-ls {digests_dir}/Provisional/
+
+# Provisionalファイル確認（各レベルディレクトリ内のProvisional/）
+ls {digests_dir}/1_Weekly/Provisional/
 
 # Essencesファイル確認
 ls {essences_dir}
@@ -497,5 +514,5 @@ https://github.com/Bizuayeu/Plugins-Weave/issues
 
 ---
 
-*Last Updated: 2025-11-24*
-*Version: 1.1.0*
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

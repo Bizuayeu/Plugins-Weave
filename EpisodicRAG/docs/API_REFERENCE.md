@@ -53,6 +53,25 @@ PLACEHOLDER_LIMITS: Dict[str, int] = {
 }
 ```
 
+### PLACEHOLDER_MARKER / PLACEHOLDER_END / PLACEHOLDER_SIMPLE
+
+プレースホルダー検出用のマーカー定数。ShadowGrandDigest内の未分析状態を示します。
+
+```python
+PLACEHOLDER_MARKER = "<!-- PLACEHOLDER"
+PLACEHOLDER_END = " -->"
+PLACEHOLDER_SIMPLE = "<!-- PLACEHOLDER -->"  # PLACEHOLDER_MARKER + PLACEHOLDER_END
+```
+
+**使用例**:
+```python
+from config import PLACEHOLDER_MARKER
+
+# プレースホルダーかどうかを判定
+if PLACEHOLDER_MARKER in abstract:
+    print("未分析状態です")
+```
+
 ---
 
 ## 関数
@@ -92,6 +111,32 @@ def extract_number_only(filename: str) -> Optional[int]
 
 **戻り値**:
 - 番号（int）、またはマッチしない場合は `None`
+
+### format_digest_number()
+
+レベルと番号から統一されたフォーマットの文字列を生成。
+
+```python
+def format_digest_number(level: str, number: int) -> str
+```
+
+**パラメータ**:
+- `level`: 階層名（`loop`, `weekly`, `monthly`, ...）
+- `number`: 番号
+
+**戻り値**:
+- ゼロ埋めされた文字列（例: `Loop0186`, `W0001`, `MD01`）
+
+**例外**:
+- `ValueError`: 不正なレベル名の場合
+
+**例**:
+```python
+format_digest_number("loop", 186)         # "Loop0186"
+format_digest_number("weekly", 1)         # "W0001"
+format_digest_number("monthly", 12)       # "M012"
+format_digest_number("multi_decadal", 3)  # "MD03"
+```
 
 ---
 
@@ -241,14 +286,122 @@ def get_identity_file_path(self) -> Optional[Path]
 def show_paths(self) -> None
 ```
 
+#### validate_directory_structure()
+
+ディレクトリ構造の検証。
+
+```python
+def validate_directory_structure(self) -> list
+```
+
+**戻り値**:
+- エラーメッセージのリスト（問題がなければ空リスト）
+
+**検証内容**:
+- `loops_path`, `digests_path`, `essences_path` の存在
+- 各レベルディレクトリ（1_Weekly, 2_Monthly, ...）の存在
+- 各レベルディレクトリ内の `Provisional/` の存在
+
+**例**:
+```python
+errors = config.validate_directory_structure()
+if errors:
+    for err in errors:
+        print(f"Error: {err}")
+```
+
+---
+
+## utils.py 関数
+
+### log_error()
+
+エラーメッセージを出力。
+
+```python
+def log_error(message: str, exit_code: Optional[int] = None) -> None
+```
+
+**パラメータ**:
+- `message`: エラーメッセージ
+- `exit_code`: 指定時はこのコードでプログラムを終了
+
+### log_warning()
+
+警告メッセージを出力。
+
+```python
+def log_warning(message: str) -> None
+```
+
+### log_info()
+
+情報メッセージを出力。
+
+```python
+def log_info(message: str) -> None
+```
+
+### sanitize_filename()
+
+ファイル名として安全な文字列に変換。
+
+```python
+def sanitize_filename(title: str, max_length: int = 50) -> str
+```
+
+**パラメータ**:
+- `title`: 元のタイトル文字列
+- `max_length`: 最大文字数（デフォルト: 50）
+
+**戻り値**:
+- ファイル名として安全な文字列（空の場合は `"untitled"`）
+
+### load_json_with_template()
+
+JSONファイルを読み込む。存在しない場合はテンプレートまたはデフォルトから作成。
+
+```python
+def load_json_with_template(
+    target_file: Path,
+    template_file: Optional[Path] = None,
+    default_factory: Optional[Callable[[], Dict[str, Any]]] = None,
+    save_on_create: bool = True,
+    log_message: Optional[str] = None
+) -> Dict[str, Any]
+```
+
+### save_json()
+
+dictをJSONファイルに保存（親ディレクトリ自動作成）。
+
+```python
+def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None
+```
+
+### get_next_digest_number()
+
+指定レベルの次のDigest番号を取得。
+
+```python
+def get_next_digest_number(digests_path: Path, level: str) -> int
+```
+
+**パラメータ**:
+- `digests_path`: Digestsディレクトリのパス
+- `level`: Digestレベル
+
+**戻り値**:
+- 次の番号（1始まり）
+
 ---
 
 ## スクリプト一覧
 
 | スクリプト | 役割 | 主要関数/クラス |
 |-----------|------|----------------|
-| `config.py` | 設定管理 | `DigestConfig`, `extract_file_number()` |
-| `utils.py` | ユーティリティ | `sanitize_filename()`, `log_error()`, `load_json_with_template()` |
+| `config.py` | 設定管理 | `DigestConfig`, `extract_file_number()`, `format_digest_number()`, `LEVEL_CONFIG`, `PLACEHOLDER_*` |
+| `utils.py` | ユーティリティ | `sanitize_filename()`, `log_error()`, `log_warning()`, `log_info()`, `load_json_with_template()`, `save_json()`, `get_next_digest_number()` |
 | `grand_digest.py` | GrandDigest管理 | `GrandDigestManager` |
 | `shadow_grand_digest.py` | Shadow管理 | `ShadowGrandDigestManager` |
 | `digest_times.py` | 時刻追跡 | `DigestTimesTracker` |
@@ -293,5 +446,5 @@ Essences Path: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/data/Essences
 
 ---
 
-*Last Updated: 2025-11-25*
-*Version: 1.1.0*
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code plugins for hierarchical memory management and long-term knowledge systems",
-    "version": "1.1.0",
+    "version": "1.1.2",
     "pluginRoot": "."
   },
   "plugins": [
@@ -14,7 +14,7 @@
       "name": "EpisodicRAG-Plugin",
       "source": "./EpisodicRAG",
       "description": "Hierarchical memory system for Claude. Digests conversation logs into 8 tiers spanning ~100 years. Prevents memory fragmentation and enables cross-session memory inheritance.",
-      "version": "1.1.0",
+      "version": "1.1.2",
       "author": {
         "name": "Weave @ EpisodicRAG"
       },

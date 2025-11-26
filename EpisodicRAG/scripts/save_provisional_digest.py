@@ -11,8 +11,8 @@ Usage:
 
 Examples:
     python save_provisional_digest.py weekly individual_digests.json
-    python save_provisional_digest.py weekly '[{"filename":"Loop0001.txt",...}]'
-    python save_provisional_digest.py weekly '[{"filename":"Loop0005.txt",...}]' --append
+    python save_provisional_digest.py weekly '[{"source_file":"Loop0001.txt",...}]'
+    python save_provisional_digest.py weekly '[{"source_file":"Loop0005.txt",...}]' --append
 """
 
 import json
@@ -116,7 +116,7 @@ class ProvisionalDigestSaver:
         new_digests: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """
-        既存と新規のindividual_digestsをマージ（重複はfilenameで判定し上書き）
+        既存と新規のindividual_digestsをマージ（重複はsource_fileで判定し上書き）
 
         Args:
             existing_digests: 既存のindividual_digestsリスト
@@ -126,25 +126,25 @@ class ProvisionalDigestSaver:
             マージされたindividual_digestsリスト
 
         Raises:
-            ValueError: digestにfilenameキーがない場合
+            ValueError: digestにsource_fileキーがない場合
         """
         # 入力検証
         for i, d in enumerate(existing_digests):
-            if not isinstance(d, dict) or "filename" not in d:
-                raise ValueError(f"Invalid existing digest at index {i}: missing 'filename' key")
+            if not isinstance(d, dict) or "source_file" not in d:
+                raise ValueError(f"Invalid existing digest at index {i}: missing 'source_file' key")
         for i, d in enumerate(new_digests):
-            if not isinstance(d, dict) or "filename" not in d:
-                raise ValueError(f"Invalid new digest at index {i}: missing 'filename' key")
+            if not isinstance(d, dict) or "source_file" not in d:
+                raise ValueError(f"Invalid new digest at index {i}: missing 'source_file' key")
 
-        # filenameをキーとした辞書を作成
-        merged_dict = {d["filename"]: d for d in existing_digests}
+        # source_fileをキーとした辞書を作成
+        merged_dict = {d["source_file"]: d for d in existing_digests}
 
         # 新規digestsで上書き（重複する場合は最新データを優先）
         for new_digest in new_digests:
-            filename = new_digest["filename"]
-            if filename in merged_dict:
-                log_info(f"Overwriting existing digest: {filename}")
-            merged_dict[filename] = new_digest
+            source_file = new_digest["source_file"]
+            if source_file in merged_dict:
+                log_info(f"Overwriting existing digest: {source_file}")
+            merged_dict[source_file] = new_digest
 
         # リストとして返す
         return list(merged_dict.values())
@@ -273,8 +273,8 @@ def main():
         epilog="""
 Examples:
   python save_provisional_digest.py weekly individual_digests.json
-  python save_provisional_digest.py weekly '[{"filename":"Loop0001.txt",...}]'
-  python save_provisional_digest.py weekly '[{"filename":"Loop0005.txt",...}]' --append
+  python save_provisional_digest.py weekly '[{"source_file":"Loop0001.txt",...}]'
+  python save_provisional_digest.py weekly '[{"source_file":"Loop0005.txt",...}]' --append
         """
     )
     parser.add_argument(

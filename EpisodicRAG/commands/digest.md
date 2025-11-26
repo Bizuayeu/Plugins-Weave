@@ -438,3 +438,8 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 ---
 
 **このコマンドは、EpisodicRAGシステムの基本操作を提供します 🟢**
+
+---
+
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

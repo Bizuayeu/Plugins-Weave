@@ -18,43 +18,15 @@
 
 **まだらボケ** = AIがLoopの内容を記憶できていない（虫食い記憶）状態
 
-#### EpisodicRAG の本質
+**要点:**
+- Loopファイルを追加しただけでは、AIは内容を記憶しません
+- `/digest` を実行することで、記憶が定着します
+- Loopを追加したら都度 `/digest` を実行するのが基本原則です
 
-1. **Loop ファイル追加** = 会話記録をファイルに保存（物理的保存）
-2. **`/digest` 実行** = AI に記憶を定着させる（認知的保存）
-3. **`/digest` なし** = ファイルはあるが、AI は覚えていない
-
-#### まだらボケが発生するケース
-
-**ケース 1: 未処理 Loop の放置**（最も一般的）
-
-```
-Loop0001追加 → `/digest`せず → Loop0002追加
-                              ↑
-                    この時点でAIはLoop0001の内容を覚えていない
-                    （記憶がまだら＝虫食い状態）
-```
-
-**対策**: Loop を追加したら都度 `/digest` で記憶定着
-
-**ケース 2: `/digest` 処理中のエラー**（技術的問題）
-
-```
-/digest 実行 → エラー発生 → ShadowGrandDigestに
-                           source_filesは登録されたが
-                           digestがnull（プレースホルダー）
-```
-
-**対策**: `/digest` を再実行して分析を完了
-
-#### 記憶定着サイクル
-
-```
-Loop追加 → `/digest` → Loop追加 → `/digest` → ...
-         ↑ 記憶定着  ↑         ↑ 記憶定着
-```
-
-この原則を守ることで、AI は全ての Loop を記憶できます。
+> 📖 **詳細な説明**: [_common-concepts.md](../skills/shared/_common-concepts.md) を参照
+> - まだらボケの発生パターン（ケース1: 未処理Loop放置、ケース2: エラー後の未分析状態）
+> - 記憶定着サイクルの詳細
+> - 階層的カスケードの仕組み
 
 ---
 
@@ -164,7 +136,7 @@ ShadowGrandDigest.weekly確認
 DigestAnalyzer 並列起動（各source_fileごと）
   ↓
 long版 → ShadowGrandDigest.weekly.overall_digest更新
-short版 → Provisional/2_Monthly/M001_Individual.txt（新規）
+short版 → 2_Monthly/Provisional/M001_Individual.txt（新規）
   ↓
 タイトル提案 → ユーザー承認
   ↓
@@ -561,175 +533,37 @@ Identity File: /Users/username/DEV/homunculus/Weave/Identities/UserIdentity.md
 
 ## 4. よくある問題と解決方法
 
+> 📖 **高度なトラブルシューティング**: DigestAnalyzer、ShadowGrandDigest、階層カスケードなどの高度な問題については [TROUBLESHOOTING.md](TROUBLESHOOTING.md) を参照してください。
+
 ### インストール・セットアップ
 
-#### プラグインがインストールできない
-
-**症状**: `/plugin install`がエラーになる
-
-**解決方法**:
-1. マーケットプレイスが正しく追加されているか確認
-   ```bash
-   /marketplace list
-   ```
-
-2. マーケットプレイスを追加
-   ```bash
-   /marketplace add https://github.com/Bizuayeu/Plugins-Weave
-   ```
-
-3. 再度インストール
-   ```bash
-   /plugin install EpisodicRAG-Plugin@Plugins-Weave
-   ```
-
----
-
-#### 設定ファイルが見つからない
-
-**症状**: `config.json`が存在しないというエラー
-
-**解決方法**:
-```bash
-# 初期セットアップを実行
-@digest-setup
-```
-
-または手動でセットアップスクリプトを実行：
-```bash
-cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-bash scripts/setup.sh
-```
-
----
+| 問題 | 解決方法 |
+|------|---------|
+| プラグインがインストールできない | `/marketplace add https://github.com/Bizuayeu/Plugins-Weave` → `/plugin install EpisodicRAG-Plugin@Plugins-Weave` |
+| config.jsonが見つからない | `@digest-setup` を実行 |
 
 ### ファイルとパス
 
-#### Loopファイルが検出されない
-
-**症状**: `/digest`を実行してもLoopファイルが検出されない
-
-**確認ポイント**:
-1. Loopファイルが正しいディレクトリに配置されているか
-   ```bash
-   @digest-auto  # 設定されているパスを確認
-   ```
-
-2. ファイル命名規則が正しいか
-   - 形式: `Loop0001_タイトル.txt`
-   - `Loop`で始まり、`.txt`で終わる
-
-3. config.jsonの`loops_dir`が正しいか
-   ```bash
-   python scripts/config.py --show-paths
-   ```
-
-**解決方法**:
-- ファイルを正しいディレクトリに移動
-- ファイル名を正しい形式に変更
-
----
-
-#### パスが正しく解決されない
-
-**症状**: ファイルが見つからない、パスが間違っているというエラー
-
-**解決方法**:
-```bash
-# パス情報を確認
-cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-python scripts/config.py --show-paths
-```
-
-**確認ポイント**:
-- `base_dir`が正しく設定されているか
-- 各パス（loops_dir, digests_dir, essences_dir）が正しいか
-- 解決後の絶対パスが期待通りか
-
----
+| 問題 | 解決方法 |
+|------|---------|
+| Loopファイルが検出されない | ファイル命名規則 (`Loop0001_タイトル.txt`) を確認、`@digest-auto` でパス確認 |
+| パスが正しく解決されない | `python scripts/config.py --show-paths` で確認 |
 
 ### まだらボケ問題
 
-#### 症状
+**症状**: 新しいLoopを追加したが、ShadowGrandDigestに反映されていない
 
-新しいLoopファイルを追加したが、ShadowGrandDigestに反映されていない（プレースホルダーのまま）
+**予防**: Loopを追加したら都度 `/digest` を実行
 
-#### 原因
-
-`/digest`を実行せずに、Loopファイルを追加し続けた場合、記憶に空白が生じます（まだらボケ）。
-
-#### 予防方法
-
-新しいLoopファイルを追加するたびに、必ず`/digest`を実行してください：
-
-```bash
-# Loopファイル追加後
-/digest
-```
-
-これにより、即座にShadowGrandDigestに分析結果が記録され、記憶の断片化を防げます。
-
-#### 回復方法
-
-既にまだらボケが発生している場合：
-
-1. プレースホルダーが残っているLoopを特定
-   ```bash
-   cat ShadowGrandDigest.txt | grep "\"digest\": null"
-   ```
-
-2. 該当Loopに対して`/digest`を再実行
-   ```bash
-   /digest
-   ```
-
-3. DigestAnalyzerで分析を実行
-
----
-
-### 設定のトラブル
-
-#### パスが見つからない
-
-設定を確認：
-```bash
-python scripts/config.py --show-paths
-```
-
-解決後のパスが正しいか確認してください。
-
----
-
-#### 相対パスが解決されない
-
-- `base_dir` がプラグインルートから正しい相対パスになっているか確認
-- 各パス設定が `base_dir` 基準で正しいか確認
-
----
-
-#### 設定変更が反映されない
-
-設定変更後、Claude Codeを再起動してください。
-
----
+**回復**: `/digest` を再実行して未分析ファイルを処理
 
 ### よくある質問
 
-#### Q: プラグインを再インストールしたら設定が消えた
-
-A: `@digest-setup`を実行して再設定してください。設定はプラグインディレクトリ内に保存されるため、アンインストール時に削除されます。
-
----
-
-#### Q: 別の環境で同じ設定を使いたい
-
-A: config.jsonをバックアップし、新しい環境でコピーしてください。ただし、パス設定（特に`base_dir`）は環境に応じて調整が必要です。
-
----
-
-#### Q: GitHubセットアップは必須ですか？
-
-A: いいえ、オプションです。GitHub連携なしでもプラグインは完全に動作します。GitHub連携は、セッション間で長期記憶を引き継ぐための高度な機能です。詳細は[ADVANCED.md](ADVANCED.md)を参照してください。
+| 質問 | 回答 |
+|------|------|
+| 再インストールで設定が消えた | `@digest-setup` で再設定 |
+| 別の環境で同じ設定を使いたい | config.jsonをバックアップしてコピー（パス設定は調整が必要） |
+| GitHubセットアップは必須？ | いいえ。オプション機能です。詳細は [ADVANCED.md](ADVANCED.md) |
 
 ---
 
@@ -787,7 +621,7 @@ A: いいえ、オプションです。GitHub連携なしでもプラグイン�
    ↓
    次階層Shadowカスケード:
      - ShadowGrandDigest.monthly にプレースホルダー追加
-     - 次階層用 Provisional 作成（Provisional/2_Monthly/M001_Individual.txt）
+     - 次階層用 Provisional 作成（2_Monthly/Provisional/M001_Individual.txt）
    ↓
    Provisional/1_Weekly/W0001_Individual.txt 削除（クリーンアップ）
 ```
@@ -802,13 +636,13 @@ A: いいえ、オプションです。GitHub連携なしでもプラグイン�
    DigestAnalyzer並列起動（5つのWeekly Digestを分析）
    ↓
    long版 → ShadowGrandDigest.monthly.overall_digest更新
-   short版 → Provisional/3_Quarterly/Q001_Individual.txt（次階層用）
+   short版 → 3_Quarterly/Provisional/Q001_Individual.txt（次階層用）
    ↓
    タイトル提案 → ユーザー承認
    ↓
    finalize_from_shadow.py monthly "承認されたタイトル"
    ↓
-   Regular Digest作成（Provisional/2_Monthly/M001_Individual.txtをマージ）
+   Regular Digest作成（2_Monthly/Provisional/M001_Individual.txtをマージ）
    ↓
    GrandDigest.txt 更新 + Quarterlyカスケード + Provisionalクリーンアップ
 ```
@@ -860,5 +694,5 @@ A: いいえ、オプションです。GitHub連携なしでもプラグイン�
 
 ---
 
-*Last Updated: 2025-11-24*
-*Version: 1.1.0*
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

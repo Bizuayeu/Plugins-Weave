@@ -224,3 +224,8 @@ curl https://api.github.com/repos/{USER}/{REPO}/git/refs/heads/main
 ---
 
 詳細な技術仕様については [ARCHITECTURE.md](ARCHITECTURE.md) を参照してください。
+
+---
+
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

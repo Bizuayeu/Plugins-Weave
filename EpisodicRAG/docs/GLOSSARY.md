@@ -72,12 +72,14 @@ Digestには以下の種類があります：
 - **内容**: 各階層（Weekly〜Centurial）の最新確定Digest
 - **更新タイミング**: `/digest <type>` で階層を確定した時
 
+> 📖 詳細な形式は [ARCHITECTURE.md](ARCHITECTURE.md#granddigesttxt) を参照
+
 ```json
 {
   "metadata": { "last_updated": "...", "version": "1.0" },
-  "latest_digests": {
-    "weekly": { "digest_name": "...", "overall_digest": {...}, "individual_digests": [...] },
-    "monthly": { ... }
+  "major_digests": {
+    "weekly": { "overall_digest": {...} },
+    "monthly": { "overall_digest": {...} }
   }
 }
 ```
@@ -89,15 +91,17 @@ Digestには以下の種類があります：
 - **用途**: 新しいLoopの分析結果を一時保存し、threshold達成後にRegularに昇格
 - **更新タイミング**: `/digest` で新規Loopを検出・分析した時
 
+> 📖 詳細な形式は [ARCHITECTURE.md](ARCHITECTURE.md#shadowgranddigesttxt) を参照
+
 ```json
 {
-  "shadow_digests": {
+  "latest_digests": {
     "weekly": {
-      "source_files": [
-        { "file": "Loop0001_タイトル.txt", "digest": {...} },
-        { "file": "Loop0002_タイトル.txt", "digest": null }  // プレースホルダー
-      ],
-      "overall_digest": null
+      "overall_digest": {
+        "source_files": ["Loop0001.txt", "Loop0002.txt"],
+        "keywords": ["<!-- PLACEHOLDER -->", ...],
+        "abstract": "<!-- PLACEHOLDER: ... -->"
+      }
     }
   }
 }
@@ -142,11 +146,9 @@ EpisodicRAGは8つの階層で記憶を管理します（約108年分）：
 ### まだらボケ
 **定義**: AIがLoopの内容を記憶できていない（虫食い記憶）状態
 
-**発生ケース**:
-1. **未処理Loopの放置**: Loop追加後に`/digest`を実行せずに次のLoopを追加
-2. **プレースホルダー残存**: `/digest`処理中のエラーで分析が未完了
-
 **予防策**: `Loop追加 → /digest → Loop追加 → /digest` のサイクルを守る
+
+> 📖 発生ケースと詳細な対策は [_common-concepts.md](../skills/shared/_common-concepts.md) を参照
 
 ### Threshold（閾値）
 **定義**: 各階層のDigest生成に必要な最小ファイル数
@@ -247,5 +249,5 @@ Monthly確定 → Quarterly Shadow に追加
 
 ---
 
-*Last Updated: 2025-11-25*
-*Version: 1.1.0*
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

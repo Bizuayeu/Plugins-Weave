@@ -469,6 +469,8 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ### 2. まだらボケ回避
 
+> 📖 まだらボケの詳細定義は [_common-concepts.md](../skills/shared/_common-concepts.md) を参照
+
 **ShadowGrandDigest 特有の重要概念**:
 
 - ShadowGrandDigest のプレースホルダーを**必ず埋める**作業
@@ -488,3 +490,8 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 - Identity file（設定されている場合） - コンテキスト参照
 - `Essences/GrandDigest.txt` - 全 8 レベルの最新状態
 - `Essences/ShadowGrandDigest.txt` - 未確定の最新記憶
+
+---
+
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

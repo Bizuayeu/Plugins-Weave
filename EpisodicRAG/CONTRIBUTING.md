@@ -334,3 +334,8 @@ git status
 質問や問題がある場合は、GitHub Issuesで報告してください。
 
 ご協力ありがとうございます！
+
+---
+
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

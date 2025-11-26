@@ -61,6 +61,8 @@ Loop0001追加 → `/digest`せず → Loop0002追加
 
 ## 階層的カスケード
 
+> 📖 完全な8階層テーブル（プレフィックス・時間スケール含む）は [GLOSSARY.md](../../docs/GLOSSARY.md#8階層構造) を参照
+
 ```
 Loop (5個) → Weekly Digest
   ↓ (5個蓄積)

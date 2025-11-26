@@ -241,7 +241,11 @@ loops_path = base_dir / homunculus/Weave/EpisodicRAG/Loops
 
 ### ファイル形式
 
+> **Note**: 各ファイル形式の詳細なAPI仕様は [API_REFERENCE.md](API_REFERENCE.md) を参照してください。
+
 #### GrandDigest.txt
+
+確定済みダイジェストの集約ファイル。各レベルの`overall_digest`のみを保持します。
 
 ```json
 {
@@ -249,86 +253,109 @@ loops_path = base_dir / homunculus/Weave/EpisodicRAG/Loops
     "last_updated": "2025-11-22T00:00:00",
     "version": "1.0"
   },
-  "latest_digests": {
+  "major_digests": {
     "weekly": {
-      "digest_name": "Weekly-2025W47",
       "overall_digest": {
-        "digest_type": "...",
-        "keywords": [...],
-        "abstract": "...",
-        "impression": "..."
-      },
-      "individual_digests": [
-        {
-          "source_file": "Loop0001_タイトル.txt",
-          "digest": {
-            "digest_type": "...",
-            "keywords": [...],
-            "abstract": "...",
-            "impression": "..."
-          }
-        }
-      ]
+        "timestamp": "2025-11-22T00:00:00",
+        "source_files": ["Loop0001_xxx.txt", "Loop0002_xxx.txt", ...],
+        "digest_type": "技術探求",
+        "keywords": ["キーワード1", "キーワード2", ...],
+        "abstract": "全体統合分析（2400文字程度）...",
+        "impression": "所感・展望（800文字程度）..."
+      }
     },
-    "monthly": { ... },
-    ...
+    "monthly": { "overall_digest": {...} },
+    "quarterly": { "overall_digest": {...} },
+    "annual": { "overall_digest": {...} },
+    "triennial": { "overall_digest": {...} },
+    "decadal": { "overall_digest": {...} },
+    "multi_decadal": { "overall_digest": {...} },
+    "centurial": { "overall_digest": {...} }
   }
 }
 ```
 
 #### ShadowGrandDigest.txt
 
+未確定（下書き）のダイジェスト。新しいファイルが追加されるとプレースホルダーが設定されます。
+
 ```json
 {
   "metadata": {
     "last_updated": "2025-11-22T00:00:00",
     "version": "1.0",
-    "description": "GrandDigest更新後に作成された新しいコンテンツの増分ダイジェスト"
+    "description": "GrandDigest更新後に作成された新しいコンテンツの増分ダイジェスト（下書き帳）"
   },
-  "shadow_digests": {
+  "latest_digests": {
     "weekly": {
-      "source_files": [
-        {
-          "file": "Loop0001_タイトル.txt",
-          "digest": {
-            "digest_type": "...",
-            "keywords": [...],
-            "abstract": "...",
-            "impression": "..."
-          }
-        },
-        {
-          "file": "Loop0002_タイトル.txt",
-          "digest": null  // プレースホルダー（未分析状態）
-        }
-      ],
-      "overall_digest": null  // 確定前はnull
+      "overall_digest": {
+        "timestamp": "<!-- PLACEHOLDER -->",
+        "source_files": ["Loop0003_xxx.txt", "Loop0004_xxx.txt"],
+        "digest_type": "<!-- PLACEHOLDER -->",
+        "keywords": ["<!-- PLACEHOLDER: keyword1 -->", "<!-- PLACEHOLDER: keyword2 -->", ...],
+        "abstract": "<!-- PLACEHOLDER: 2ファイル分の全体統合分析 (2400文字程度) -->",
+        "impression": "<!-- PLACEHOLDER: 所感・展望 (800文字程度) -->"
+      }
     },
+    "monthly": { "overall_digest": {...} },
     ...
   }
 }
 ```
 
+**プレースホルダー**: `<!-- PLACEHOLDER ... -->`形式のマーカーは、Claudeによる分析が必要な状態を示します。
+
 #### Provisional Digest
 
+DigestAnalyzerが生成した個別ダイジェストの中間ファイル（JSON形式）。
+
+```json
+// digests_path/1_Weekly/Provisional/W0002_Individual.txt
+
+{
+  "metadata": {
+    "digest_level": "weekly",
+    "digest_number": "0002",
+    "last_updated": "2025-11-22T00:00:00",
+    "version": "1.0"
+  },
+  "individual_digests": [
+    {
+      "source_file": "Loop0003_タイトル.txt",
+      "digest_type": "技術探求",
+      "keywords": ["キーワード1", "キーワード2", ...],
+      "abstract": "...(short版: 1200文字程度)",
+      "impression": "...(short版: 400文字程度)"
+    },
+    {
+      "source_file": "Loop0004_タイトル.txt",
+      "digest_type": "...",
+      "keywords": [...],
+      "abstract": "...",
+      "impression": "..."
+    }
+  ]
+}
 ```
-# digests_path/1_Weekly/Provisional/W0002_Individual.txt
 
-[Loop0001_タイトル.txt]
-digest_type: ...
-keywords: ...
-abstract: ...（short版: 1200文字）
-impression: ...（short版: 400文字）
+#### last_digest_times.json
 
----
+各レベルの最終処理ファイルを追跡する状態ファイル。
 
-[Loop0002_タイトル.txt]
-digest_type: ...
-keywords: ...
-abstract: ...（short版: 1200文字）
-impression: ...（short版: 400文字）
+```json
+// .claude-plugin/last_digest_times.json
 
----
+{
+  "weekly": {
+    "timestamp": "2025-11-22T00:00:00",
+    "last_processed": "Loop0186"
+  },
+  "monthly": {
+    "timestamp": "2025-11-20T00:00:00",
+    "last_processed": "W0037"
+  },
+  ...
+}
 ```
 
 ---
@@ -433,5 +460,5 @@ DigestAnalyzerエージェントをベースに、カスタム分析ロジック
 
 ---
 
-*Last Updated: 2025-11-26*
-*Version: 1.1.0*
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

@@ -36,43 +36,31 @@ digests_path = config.digests_path
 essences_path = config.essences_path
 ```
 
-### 主要プロパティ
-
-| プロパティ | 説明 |
-|-----------|------|
-| `plugin_root` | プラグインルートディレクトリ |
-| `loops_path` | Loopファイル配置先 |
-| `digests_path` | Digest出力先 |
-| `essences_path` | GrandDigest配置先 |
-| `*_threshold` | 各階層の閾値（weekly_threshold等） |
-
-### 主要メソッド
-
-| メソッド | 説明 |
-|---------|------|
-| `get_level_dir(level)` | 階層ディレクトリ取得 |
-| `get_provisional_dir(level)` | Provisionalディレクトリ取得 |
-| `get_identity_file_path()` | Identityファイルパス取得 |
+> 📖 DigestConfigの全プロパティ・メソッドは [API_REFERENCE.md](../../docs/API_REFERENCE.md#クラス-digestconfig) を参照
 
 ---
 
 ## エラーハンドリング
 
-すべてのファイルは`@digest-setup`で作成されます：
+### 設定ファイル
+config.jsonは `@digest-setup` で作成されます：
 
 ```python
-# 設定ファイル、ShadowGrandDigest、GrandDigestが存在しない場合
 try:
     config = DigestConfig()
 except FileNotFoundError:
     print("❌ 初期セットアップが必要です")
     print("@digest-setup を実行してください")
     sys.exit(1)
+```
 
-if not shadow_file.exists() or not grand_file.exists():
-    print("❌ 必要なファイルが見つかりません")
-    print("@digest-setup を実行してください")
-    sys.exit(1)
+### データファイル
+GrandDigest.txt / ShadowGrandDigest.txt は `load_or_create()` パターンで自動作成されます：
+
+```python
+# マネージャークラスが自動的にテンプレートから作成
+manager = ShadowGrandDigestManager(config)
+data = manager.load_or_create()  # 存在しなければ作成
 ```
 
 ---

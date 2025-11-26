@@ -239,15 +239,14 @@ directories = [
     digests_path / "6_Decadal",
     digests_path / "7_Multi-decadal",
     digests_path / "8_Centurial",
-    digests_path / "Provisional",
-    digests_path / "Provisional" / "1_Weekly",
-    digests_path / "Provisional" / "2_Monthly",
-    digests_path / "Provisional" / "3_Quarterly",
-    digests_path / "Provisional" / "4_Annual",
-    digests_path / "Provisional" / "5_Triennial",
-    digests_path / "Provisional" / "6_Decadal",
-    digests_path / "Provisional" / "7_Multi-decadal",
-    digests_path / "Provisional" / "8_Centurial",
+    digests_path / "1_Weekly" / "Provisional",
+    digests_path / "2_Monthly" / "Provisional",
+    digests_path / "3_Quarterly" / "Provisional",
+    digests_path / "4_Annual" / "Provisional",
+    digests_path / "5_Triennial" / "Provisional",
+    digests_path / "6_Decadal" / "Provisional",
+    digests_path / "7_Multi-decadal" / "Provisional",
+    digests_path / "8_Centurial" / "Provisional",
     essences_path,
 ]
 
@@ -426,16 +425,9 @@ EpisodicRAGの最も重要な機能は、**セッション間で記憶を引き�
 
 ## 実装時の注意事項
 
-### UI メッセージの出力形式
+> 📖 共通の実装ガイドラインは [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
 
-**重要**: VSCode 拡張のマークダウンレンダリングでは、単一の改行は空白に変換されます。
-対話型 UI メッセージを表示する際は、必ず**コードブロック（三連バッククォート）**で囲んでください。
-
-```
-... (UIメッセージ)
-```
-
-これにより、改行がそのまま保持され、ユーザーに正しくフォーマットされたメッセージが表示されます。
+### 本スキル固有の注意点
 
 ### エラーハンドリング
 
@@ -535,3 +527,8 @@ if customize_thresholds:
 ---
 
 **このスキルは、EpisodicRAG プラグインの初期セットアップを対話的に実行します 🛠️**
+
+---
+
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

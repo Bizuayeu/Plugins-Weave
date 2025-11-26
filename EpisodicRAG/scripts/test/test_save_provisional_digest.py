@@ -48,16 +48,16 @@ class TestProvisionalDigestSaver(unittest.TestCase):
 
     def test_load_individual_digests_from_list(self):
         """JSON文字列（リスト形式）からの読み込み"""
-        json_str = '[{"filename": "Loop0001.txt", "keywords": ["test"]}]'
+        json_str = '[{"source_file": "Loop0001.txt", "keywords": ["test"]}]'
         result = self.saver.load_individual_digests(json_str)
 
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]["filename"], "Loop0001.txt")
+        self.assertEqual(result[0]["source_file"], "Loop0001.txt")
 
     def test_load_individual_digests_from_dict(self):
         """JSON文字列（dict形式）からの読み込み"""
-        json_str = '{"individual_digests": [{"filename": "Loop0001.txt"}]}'
+        json_str = '{"individual_digests": [{"source_file": "Loop0001.txt"}]}'
         result = self.saver.load_individual_digests(json_str)
 
         self.assertIsInstance(result, list)
@@ -71,25 +71,25 @@ class TestProvisionalDigestSaver(unittest.TestCase):
     def test_merge_individual_digests(self):
         """マージ処理（重複は上書き）"""
         existing = [
-            {"filename": "Loop0001.txt", "keywords": ["old"]},
-            {"filename": "Loop0002.txt", "keywords": ["keep"]}
+            {"source_file": "Loop0001.txt", "keywords": ["old"]},
+            {"source_file": "Loop0002.txt", "keywords": ["keep"]}
         ]
         new = [
-            {"filename": "Loop0001.txt", "keywords": ["new"]},
-            {"filename": "Loop0003.txt", "keywords": ["added"]}
+            {"source_file": "Loop0001.txt", "keywords": ["new"]},
+            {"source_file": "Loop0003.txt", "keywords": ["added"]}
         ]
 
         result = self.saver.merge_individual_digests(existing, new)
 
         self.assertEqual(len(result), 3)
         # Loop0001は上書きされる
-        loop1 = next(d for d in result if d["filename"] == "Loop0001.txt")
+        loop1 = next(d for d in result if d["source_file"] == "Loop0001.txt")
         self.assertEqual(loop1["keywords"], ["new"])
 
     def test_merge_individual_digests_missing_filename_raises(self):
-        """filenameキーがない場合ValueError"""
-        existing = [{"keywords": ["test"]}]  # filenameなし
-        new = [{"filename": "Loop0001.txt"}]
+        """source_fileキーがない場合ValueError"""
+        existing = [{"keywords": ["test"]}]  # source_fileなし
+        new = [{"source_file": "Loop0001.txt"}]
 
         with self.assertRaises(ValueError):
             self.saver.merge_individual_digests(existing, new)
@@ -97,7 +97,7 @@ class TestProvisionalDigestSaver(unittest.TestCase):
     def test_save_provisional_new_file(self):
         """新規Provisionalファイルの保存"""
         individual_digests = [
-            {"filename": "Loop0001.txt", "keywords": ["test"]}
+            {"source_file": "Loop0001.txt", "keywords": ["test"]}
         ]
 
         saved_path = self.saver.save_provisional("weekly", individual_digests)
@@ -116,11 +116,11 @@ class TestProvisionalDigestSaver(unittest.TestCase):
     def test_save_provisional_append_mode(self):
         """追加モードでの保存"""
         # 最初の保存
-        first_digests = [{"filename": "Loop0001.txt", "keywords": ["first"]}]
+        first_digests = [{"source_file": "Loop0001.txt", "keywords": ["first"]}]
         first_path = self.saver.save_provisional("weekly", first_digests)
 
         # 追加保存
-        second_digests = [{"filename": "Loop0002.txt", "keywords": ["second"]}]
+        second_digests = [{"source_file": "Loop0002.txt", "keywords": ["second"]}]
         second_path = self.saver.save_provisional("weekly", second_digests, append=True)
 
         # 同じファイルに追加されている

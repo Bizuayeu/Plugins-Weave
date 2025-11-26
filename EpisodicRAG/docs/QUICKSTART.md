@@ -150,5 +150,5 @@ ShadowGrandDigest.txt を更新しました
 
 ---
 
-*Last Updated: 2025-11-25*
-*Version: 1.1.0*
+*Last Updated: 2025-11-27*
+*Version: 1.1.2*

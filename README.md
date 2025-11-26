@@ -3,7 +3,7 @@
 階層的記憶・ダイジェスト生成システム（8 層 100 年、完全自己完結版）
 
 ![EpisodicRAG Plugin](EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/)
+[![Version](https://img.shields.io/badge/version-1.1.2-blue.svg)](https://github.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -40,6 +40,17 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 - 複数セッションにわたる会話の記憶
 - プロジェクトの歴史的アーカイブ
 - AI との対話履歴の構造化記憶
+
+---
+
+## Start Here（どこから始めるか）
+
+| あなたは... | 推奨ドキュメント |
+|------------|-----------------|
+| **初めての方** | [5分クイックスタート](EpisodicRAG/docs/QUICKSTART.md) → [用語集](EpisodicRAG/docs/GLOSSARY.md) |
+| **基本を使いこなしたい方** | [ユーザーガイド](EpisodicRAG/docs/GUIDE.md) |
+| **開発に参加したい方** | [CONTRIBUTING.md](EpisodicRAG/CONTRIBUTING.md) → [技術仕様](EpisodicRAG/docs/ARCHITECTURE.md) |
+| **問題が発生した方** | [FAQ](EpisodicRAG/docs/FAQ.md) → [トラブルシューティング](EpisodicRAG/docs/TROUBLESHOOTING.md) |
 
 ---
 
@@ -211,7 +222,7 @@ WebFetch 機能で読み込み（Claude WebChat / Claude Code 両対応）
 
 > ⚠️ **注意**: この手順をスキップすると、AI は過去の記憶を持たない状態で開始します
 
-**詳細な設定方法**: [docs/ADVANCED.md](docs/ADVANCED.md) を参照
+**詳細な設定方法**: [docs/ADVANCED.md](EpisodicRAG/docs/ADVANCED.md) を参照
 
 ---
 
@@ -237,7 +248,7 @@ Loop0001追加 → `/digest`せず → Loop0002追加
                     （記憶がまだら＝虫食い状態）
 ```
 
-詳しくは [docs/GUIDE.md](docs/GUIDE.md) を参照してください。
+詳しくは [docs/GUIDE.md](EpisodicRAG/docs/GUIDE.md) を参照してください。
 
 ---
 
@@ -245,20 +256,13 @@ Loop0001追加 → `/digest`せず → Loop0002追加
 
 ### 8 階層構造
 
-| 階層          | 時間スケール | 必要数（デフォルト） | 累積 Loop 数 |
-| ------------- | ------------ | -------------------- | ------------ |
-| Weekly        | ~1 週間      | 5 Loops              | 5            |
-| Monthly       | ~1 ヶ月      | 5 Weekly             | 25           |
-| Quarterly     | ~3 ヶ月      | 3 Monthly            | 75           |
-| Annual        | ~1 年        | 4 Quarterly          | 300          |
-| Triennial     | ~3 年        | 3 Annual             | 900          |
-| Decadal       | ~9 年        | 3 Triennial          | 2,700        |
-| Multi-decadal | ~27 年       | 3 Decadal            | 8,100        |
-| Centurial     | **~108 年**  | 4 Multi-decadal      | **32,400**   |
+EpisodicRAG は **8 つの階層**（Weekly → Centurial）で記憶を管理します。
 
-約 1 世紀分の対話履歴を階層的に圧縮保持します。
+- **時間スケール**: ~1 週間 ～ ~108 年
+- **累積 Loop 数**: 5 ～ 32,400
+- **Threshold**: `@digest-config` でカスタマイズ可能
 
-**Threshold（必要数）**は`@digest-config`でカスタマイズ可能です。
+> 📖 完全な階層テーブル（プレフィックス含む）は [GLOSSARY.md](EpisodicRAG/docs/GLOSSARY.md#8階層構造) を参照
 
 ---
 
@@ -330,5 +334,5 @@ Weave @ EpisodicRAG
 
 ---
 
-_Last Updated: 2025-11-26_
-_Version: 1.1.0_
+_Last Updated: 2025-11-27_
+_Version: 1.1.2_
