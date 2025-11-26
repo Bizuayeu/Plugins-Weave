@@ -73,14 +73,14 @@
    python scripts/config.py --show-paths
 
    # Provisionalディレクトリの内容確認
-   ls {digests_dir}/Provisional/1_Weekly/
+   ls {digests_dir}/1_Weekly/Provisional/
    ```
 
 2. **W0001_Individual.txt形式のProvisionalファイルが存在するか確認**
 
 3. **ファイルの内容が正しいか確認**:
    ```bash
-   cat {digests_dir}/Provisional/1_Weekly/W0001_Individual.txt
+   cat {digests_dir}/1_Weekly/Provisional/W0001_Individual.txt
    ```
 
 **解決方法**:

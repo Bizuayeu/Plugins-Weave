@@ -86,6 +86,38 @@ def extract_number_only(filename: str) -> Optional[int]:
     return result[1] if result else None
 
 
+def format_digest_number(level: str, number: int) -> str:
+    """
+    レベルと番号から統一されたフォーマットの文字列を生成
+
+    Args:
+        level: 階層名（"loop", "weekly", "monthly", ...）
+        number: 番号
+
+    Returns:
+        ゼロ埋めされた文字列（例: "Loop0186", "W0001", "MD01"）
+
+    Raises:
+        ValueError: 不正なレベル名の場合
+
+    Examples:
+        >>> format_digest_number("loop", 186)
+        'Loop0186'
+        >>> format_digest_number("weekly", 1)
+        'W0001'
+        >>> format_digest_number("multi_decadal", 3)
+        'MD03'
+    """
+    if level == "loop":
+        return f"Loop{number:04d}"
+
+    if level not in LEVEL_CONFIG:
+        raise ValueError(f"Invalid level: {level}. Valid levels: {LEVEL_NAMES + ['loop']}")
+
+    config = LEVEL_CONFIG[level]
+    return f"{config['prefix']}{number:0{config['digits']}d}"
+
+
 # =============================================================================
 # DigestConfig クラス
 # =============================================================================
@@ -252,6 +284,44 @@ class DigestConfig:
             ValueError: 不正なレベル名の場合
         """
         return self.get_level_dir(level) / "Provisional"
+
+    def validate_directory_structure(self) -> list:
+        """
+        ディレクトリ構造の検証
+
+        期待される構造:
+          - loops_path が存在
+          - digests_path が存在
+          - essences_path が存在
+          - 各レベルディレクトリ (1_Weekly, 2_Monthly, ...) が存在
+          - 各レベルディレクトリ内にProvisionalが存在
+
+        Returns:
+            エラーメッセージのリスト（問題がなければ空リスト）
+        """
+        errors = []
+
+        # 基本ディレクトリのチェック
+        for path, name in [
+            (self.loops_path, "Loops"),
+            (self.digests_path, "Digests"),
+            (self.essences_path, "Essences"),
+        ]:
+            if not path.exists():
+                errors.append(f"{name} directory missing: {path}")
+
+        # 各レベルディレクトリとProvisionalのチェック
+        for level in LEVEL_NAMES:
+            level_dir = self.get_level_dir(level)
+            prov_dir = self.get_provisional_dir(level)
+
+            if not level_dir.exists():
+                errors.append(f"{level} directory missing: {level_dir}")
+            elif not prov_dir.exists():
+                # レベルディレクトリがある場合のみProvisionalをチェック
+                errors.append(f"{level} Provisional missing: {prov_dir}")
+
+        return errors
 
     @property
     def weekly_threshold(self) -> int:

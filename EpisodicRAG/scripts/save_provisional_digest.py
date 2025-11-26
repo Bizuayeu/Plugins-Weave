@@ -28,7 +28,7 @@ if sys.platform == 'win32' and __name__ == "__main__":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-from config import DigestConfig, LEVEL_CONFIG, extract_file_number
+from config import DigestConfig, LEVEL_CONFIG, extract_file_number, format_digest_number
 from utils import log_info, log_error, log_warning, save_json, get_next_digest_number
 
 
@@ -92,9 +92,8 @@ class ProvisionalDigestSaver:
         if not level_cfg:
             raise ValueError(f"Invalid level: {level}")
 
-        prefix = level_cfg["prefix"]
-        digits = level_cfg["digits"]
-        filename = f"{prefix}{str(digest_num).zfill(digits)}_Individual.txt"
+        # format_digest_number を使用して統一されたファイル名を生成
+        filename = f"{format_digest_number(level, digest_num)}_Individual.txt"
         provisional_dir = self.config.get_provisional_dir(level)
         file_path = provisional_dir / filename
 
@@ -180,7 +179,7 @@ class ProvisionalDigestSaver:
             current_num = self.get_current_digest_number(level)
             if current_num is not None:
                 digest_num = current_num
-                log_info(f"Appending to existing Provisional: {prefix}{str(digest_num).zfill(digits)}_Individual.txt")
+                log_info(f"Appending to existing Provisional: {format_digest_number(level, digest_num)}_Individual.txt")
 
                 # 既存データを読み込み
                 existing_data = self.load_existing_provisional(level, digest_num)
@@ -203,8 +202,9 @@ class ProvisionalDigestSaver:
             # 通常モード: 次のダイジェスト番号を取得
             digest_num = get_next_digest_number(self.digests_path, level)
 
-        # ファイル名: {prefix}{digest_num}_Individual.txt
-        filename = f"{prefix}{str(digest_num).zfill(digits)}_Individual.txt"
+        # ファイル名: format_digest_number を使用して統一フォーマット
+        formatted_num = format_digest_number(level, digest_num)
+        filename = f"{formatted_num}_Individual.txt"
         provisional_dir = self.config.get_provisional_dir(level)
         provisional_dir.mkdir(parents=True, exist_ok=True)
         file_path = provisional_dir / filename
@@ -213,7 +213,7 @@ class ProvisionalDigestSaver:
         provisional_data = {
             "metadata": {
                 "digest_level": level,
-                "digest_number": str(digest_num).zfill(digits),
+                "digest_number": str(digest_num).zfill(digits),  # 純粋な番号のみ
                 "last_updated": datetime.now().isoformat(),
                 "version": "1.0"
             },

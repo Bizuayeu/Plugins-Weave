@@ -44,7 +44,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Plugin版: config.pyをインポート
-from config import DigestConfig, LEVEL_CONFIG, extract_file_number
+from config import DigestConfig, LEVEL_CONFIG, extract_file_number, format_digest_number
 
 # 分割したモジュールをインポート
 from grand_digest import GrandDigestManager
@@ -416,12 +416,13 @@ class DigestFinalizerFromShadow:
         if shadow_digest is None:
             return False
 
-        # ダイジェスト番号とファイル名を生成
+        # ダイジェスト番号とファイル名を生成（format_digest_number を使用）
         config = self.level_config[level]
         next_num = get_next_digest_number(self.digests_path, level)
-        digest_num = str(next_num).zfill(config["digits"])
+        formatted_num = format_digest_number(level, next_num)
+        digest_num = str(next_num).zfill(config["digits"])  # 純粋な番号（メタデータ用）
         sanitized_title = sanitize_filename(weave_title)
-        new_digest_name = f"{config['prefix']}{digest_num}_{sanitized_title}"
+        new_digest_name = f"{formatted_num}_{sanitized_title}"
 
         # Provisionalの読み込みまたは自動生成
         individual_digests, provisional_file_to_delete = self._load_provisional_or_generate(

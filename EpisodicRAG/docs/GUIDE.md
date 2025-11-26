@@ -63,7 +63,7 @@ Loop追加 → `/digest` → Loop追加 → `/digest` → ...
 #### Provisional Digest（仮ダイジェスト）
 
 - DigestAnalyzer が生成した individual_digests を一時保存
-- `Digests/Provisional/1_Weekly/W0001_Individual.txt` のように配置
+- `Digests/1_Weekly/Provisional/W0001_Individual.txt` のように配置
 - 複数回の `/digest` で追加可能（`--append` モード）
 - `/digest <type>` 実行時に Regular Digest にマージされる
 

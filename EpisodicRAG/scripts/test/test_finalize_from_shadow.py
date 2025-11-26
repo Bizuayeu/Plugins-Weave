@@ -81,12 +81,11 @@ class TestDigestFinalizerFromShadow(unittest.TestCase):
         self.essences_path.mkdir(parents=True)
         self.config_dir.mkdir(parents=True)
 
-        # Digestのサブディレクトリ
+        # Digestのサブディレクトリ（各レベル内にProvisionalを配置）
         for subdir in ["1_Weekly", "2_Monthly", "3_Quarterly", "4_Annual",
                        "5_Triennial", "6_Decadal", "7_Multi-decadal", "8_Centurial"]:
             (self.digests_path / subdir).mkdir()
-        (self.digests_path / "Provisional").mkdir()
-        (self.digests_path / "Provisional" / "1_Weekly").mkdir(parents=True)
+            (self.digests_path / subdir / "Provisional").mkdir()
 
         # config.json作成
         config_data = {
@@ -176,12 +175,11 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         self.essences_path.mkdir(parents=True)
         self.config_dir.mkdir(parents=True)
 
-        # Digestのサブディレクトリ
+        # Digestのサブディレクトリ（各レベル内にProvisionalを配置）
         for subdir in ["1_Weekly", "2_Monthly", "3_Quarterly", "4_Annual",
                        "5_Triennial", "6_Decadal", "7_Multi-decadal", "8_Centurial"]:
             (self.digests_path / subdir).mkdir()
-        (self.digests_path / "Provisional").mkdir()
-        (self.digests_path / "Provisional" / "1_Weekly").mkdir(parents=True)
+            (self.digests_path / subdir / "Provisional").mkdir()
 
         # config.json作成
         config_data = {

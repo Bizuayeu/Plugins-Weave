@@ -222,26 +222,25 @@ essences_path = Path(essences_dir)
 if not essences_path.is_absolute():
     essences_path = plugin_root / essences_dir
 
-# ディレクトリリスト
+# ディレクトリリスト（各レベル内にProvisionalを配置）
 directories = [
     loops_path,
     digests_path / "1_Weekly",
+    digests_path / "1_Weekly" / "Provisional",
     digests_path / "2_Monthly",
+    digests_path / "2_Monthly" / "Provisional",
     digests_path / "3_Quarterly",
+    digests_path / "3_Quarterly" / "Provisional",
     digests_path / "4_Annual",
+    digests_path / "4_Annual" / "Provisional",
     digests_path / "5_Triennial",
+    digests_path / "5_Triennial" / "Provisional",
     digests_path / "6_Decadal",
+    digests_path / "6_Decadal" / "Provisional",
     digests_path / "7_Multi-decadal",
+    digests_path / "7_Multi-decadal" / "Provisional",
     digests_path / "8_Centurial",
-    digests_path / "Provisional",
-    digests_path / "Provisional" / "1_Weekly",
-    digests_path / "Provisional" / "2_Monthly",
-    digests_path / "Provisional" / "3_Quarterly",
-    digests_path / "Provisional" / "4_Annual",
-    digests_path / "Provisional" / "5_Triennial",
-    digests_path / "Provisional" / "6_Decadal",
-    digests_path / "Provisional" / "7_Multi-decadal",
-    digests_path / "Provisional" / "8_Centurial",
+    digests_path / "8_Centurial" / "Provisional",
     essences_path,
 ]
 
