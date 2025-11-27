@@ -5,16 +5,11 @@ config.py のユニットテスト
 
 extract_file_number(), extract_number_only(), DigestConfig クラスのテスト
 
-Note:
-    pytestとunittestの両方で実行可能。
-    pytest実行時はpytest.mark.unitマーカーを使用。
+pytestスタイルで実装。conftest.pyのフィクスチャを活用。
 """
 import json
 import sys
-import tempfile
-import unittest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -24,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import (
     extract_file_number,
     extract_number_only,
+    format_digest_number,
     DigestConfig,
     LEVEL_CONFIG,
     LEVEL_NAMES,
@@ -31,77 +27,181 @@ from config import (
 from domain.exceptions import ConfigError
 
 
-class TestExtractFileNumber(unittest.TestCase):
+# =============================================================================
+# テスト用定数
+# =============================================================================
+# 長い文字列テスト用: ファイルシステムの制限を超えるサイズ
+VERY_LONG_STRING_LENGTH = 1000
+
+
+# =============================================================================
+# extract_file_number テスト
+# =============================================================================
+
+class TestExtractFileNumber:
     """extract_file_number() のテスト"""
 
-    def test_loop_prefix(self):
-        """Loopプレフィックス"""
-        self.assertEqual(extract_file_number("Loop0001_タイトル.txt"), ("Loop", 1))
-        self.assertEqual(extract_file_number("Loop0186_xxx.txt"), ("Loop", 186))
+    @pytest.mark.unit
+    @pytest.mark.parametrize("filename,expected", [
+        ("Loop0001_タイトル.txt", ("Loop", 1)),
+        ("Loop0186_xxx.txt", ("Loop", 186)),
+        ("W0001_タイトル.txt", ("W", 1)),
+        ("W0047_xxx.txt", ("W", 47)),
+        ("M001_タイトル.txt", ("M", 1)),
+        ("M012_xxx.txt", ("M", 12)),
+        ("MD01_タイトル.txt", ("MD", 1)),
+        ("MD03_xxx.txt", ("MD", 3)),
+        ("Q001_タイトル.txt", ("Q", 1)),
+        ("A01_タイトル.txt", ("A", 1)),
+        ("T01_タイトル.txt", ("T", 1)),
+        ("D01_タイトル.txt", ("D", 1)),
+        ("C01_タイトル.txt", ("C", 1)),
+    ])
+    def test_valid_filenames(self, filename, expected):
+        """有効なファイル名からプレフィックスと番号を抽出"""
+        assert extract_file_number(filename) == expected
 
-    def test_weekly_prefix(self):
-        """Wプレフィックス（Weekly）"""
-        self.assertEqual(extract_file_number("W0001_タイトル.txt"), ("W", 1))
-        self.assertEqual(extract_file_number("W0047_xxx.txt"), ("W", 47))
-
-    def test_monthly_prefix(self):
-        """Mプレフィックス（Monthly）"""
-        self.assertEqual(extract_file_number("M001_タイトル.txt"), ("M", 1))
-        self.assertEqual(extract_file_number("M012_xxx.txt"), ("M", 12))
-
-    def test_multi_decadal_prefix(self):
-        """MDプレフィックス（Multi-decadal）- 2文字プレフィックスのテスト"""
-        self.assertEqual(extract_file_number("MD01_タイトル.txt"), ("MD", 1))
-        self.assertEqual(extract_file_number("MD03_xxx.txt"), ("MD", 3))
-
-    def test_other_prefixes(self):
-        """その他のプレフィックス（Q, A, T, D, C）"""
-        self.assertEqual(extract_file_number("Q001_タイトル.txt"), ("Q", 1))
-        self.assertEqual(extract_file_number("A01_タイトル.txt"), ("A", 1))
-        self.assertEqual(extract_file_number("T01_タイトル.txt"), ("T", 1))
-        self.assertEqual(extract_file_number("D01_タイトル.txt"), ("D", 1))
-        self.assertEqual(extract_file_number("C01_タイトル.txt"), ("C", 1))
-
-    def test_invalid_format(self):
-        """無効な形式"""
-        self.assertIsNone(extract_file_number("invalid.txt"))
-        self.assertIsNone(extract_file_number(""))
-        self.assertIsNone(extract_file_number("no_number.txt"))
+    @pytest.mark.unit
+    @pytest.mark.parametrize("invalid_input", [
+        "invalid.txt",
+        "",
+        "no_number.txt",
+        None,
+        123,
+        ['Loop0001'],
+        {'name': 'Loop0001'},
+    ])
+    def test_invalid_input_returns_none(self, invalid_input):
+        """無効な入力はNoneを返す"""
+        assert extract_file_number(invalid_input) is None
 
 
-class TestExtractNumberOnly(unittest.TestCase):
+class TestExtractFileNumberEdgeCases:
+    """extract_file_number() のエッジケーステスト"""
+
+    @pytest.mark.unit
+    def test_unicode_special_chars(self):
+        """Unicode特殊文字を含むファイル名"""
+        assert extract_file_number("Loop0001_日本語タイトル.txt") == ("Loop", 1)
+        assert extract_file_number("W0001_絵文字🎉.txt") == ("W", 1)
+
+    @pytest.mark.unit
+    def test_very_long_filename(self):
+        """極端に長いファイル名"""
+        long_title = "a" * VERY_LONG_STRING_LENGTH
+        assert extract_file_number(f"Loop0001_{long_title}.txt") == ("Loop", 1)
+
+    @pytest.mark.unit
+    def test_number_overflow(self):
+        """大きな番号"""
+        assert extract_file_number("Loop99999999.txt") == ("Loop", 99999999)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("filename,expected", [
+        ("Loop0000.txt", ("Loop", 0)),
+        ("W00001.txt", ("W", 1)),
+    ])
+    def test_leading_zeros(self, filename, expected):
+        """先頭ゼロのバリエーション"""
+        assert extract_file_number(filename) == expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("invalid_input", [
+        "Loop.txt",
+        "W_title.txt",
+        "0001.txt",
+        "12345.txt",
+    ])
+    def test_invalid_patterns(self, invalid_input):
+        """無効なパターン"""
+        assert extract_file_number(invalid_input) is None
+
+
+# =============================================================================
+# extract_number_only テスト
+# =============================================================================
+
+class TestExtractNumberOnly:
     """extract_number_only() のテスト"""
 
-    def test_returns_number(self):
+    @pytest.mark.unit
+    @pytest.mark.parametrize("filename,expected", [
+        ("Loop0001_xxx.txt", 1),
+        ("MD03_xxx.txt", 3),
+        ("Loop0000.txt", 0),
+    ])
+    def test_returns_number(self, filename, expected):
         """番号のみ返す"""
-        self.assertEqual(extract_number_only("Loop0001_xxx.txt"), 1)
-        self.assertEqual(extract_number_only("MD03_xxx.txt"), 3)
+        assert extract_number_only(filename) == expected
 
-    def test_invalid_returns_none(self):
+    @pytest.mark.unit
+    @pytest.mark.parametrize("invalid_input", [
+        "invalid.txt",
+        None,
+        123,
+    ])
+    def test_invalid_returns_none(self, invalid_input):
         """無効な形式はNone"""
-        self.assertIsNone(extract_number_only("invalid.txt"))
+        assert extract_number_only(invalid_input) is None
 
 
-class TestDigestConfig(unittest.TestCase):
+# =============================================================================
+# format_digest_number テスト
+# =============================================================================
+
+class TestFormatDigestNumber:
+    """format_digest_number() のテスト"""
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("level,number,expected", [
+        ("loop", 1, "Loop0001"),
+        ("weekly", 1, "W0001"),
+        ("monthly", 1, "M001"),
+        ("quarterly", 1, "Q001"),
+        ("annual", 1, "A01"),
+        ("triennial", 1, "T01"),
+        ("decadal", 1, "D01"),
+        ("multi_decadal", 1, "MD01"),
+        ("centurial", 1, "C01"),
+    ])
+    def test_all_valid_levels(self, level, number, expected):
+        """すべての有効なレベルで正しく動作"""
+        assert format_digest_number(level, number) == expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("level,number,expected", [
+        ("loop", 0, "Loop0000"),
+        ("weekly", 0, "W0000"),
+    ])
+    def test_zero_number(self, level, number, expected):
+        """番号0の処理"""
+        assert format_digest_number(level, number) == expected
+
+    @pytest.mark.unit
+    def test_very_large_number(self):
+        """桁数を超える大きな番号"""
+        result = format_digest_number("weekly", 99999)
+        assert result == "W99999"
+
+    @pytest.mark.unit
+    def test_invalid_level_raises_valueerror(self):
+        """無効なレベル名でValueError"""
+        with pytest.raises(ValueError):
+            format_digest_number("invalid_level", 1)
+
+
+# =============================================================================
+# DigestConfig テスト
+# =============================================================================
+
+class TestDigestConfig:
     """DigestConfig クラスのテスト"""
 
-    def setUp(self):
-        """テスト用の一時ディレクトリとconfig.jsonを作成"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.plugin_root = Path(self.temp_dir)
-
-        # .claude-plugin ディレクトリ作成
-        self.config_dir = self.plugin_root / ".claude-plugin"
-        self.config_dir.mkdir(parents=True)
-
-        # データディレクトリ作成
-        self.data_dir = self.plugin_root / "data"
-        (self.data_dir / "Loops").mkdir(parents=True)
-        (self.data_dir / "Digests").mkdir(parents=True)
-        (self.data_dir / "Essences").mkdir(parents=True)
-
+    @pytest.fixture
+    def config_env(self, temp_plugin_env):
+        """テスト用の設定環境を構築"""
         # config.json 作成
-        self.config_data = {
+        config_data = {
             "base_dir": ".",
             "paths": {
                 "loops_dir": "data/Loops",
@@ -120,374 +220,317 @@ class TestDigestConfig(unittest.TestCase):
                 "centurial_threshold": 4
             }
         }
-        self.config_file = self.config_dir / "config.json"
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
+        config_file = temp_plugin_env.config_dir / "config.json"
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
 
-    def tearDown(self):
-        """一時ディレクトリを削除"""
-        import shutil
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+        return {
+            "env": temp_plugin_env,
+            "config_data": config_data,
+            "config_file": config_file,
+        }
 
-    def test_init_with_explicit_plugin_root(self):
+    @pytest.mark.unit
+    def test_init_with_explicit_plugin_root(self, config_env):
         """明示的なplugin_rootで初期化"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertEqual(config.plugin_root, self.plugin_root)
-        self.assertEqual(config.config_file, self.config_file)
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        assert config.plugin_root == env.plugin_root
+        assert config.config_file == config_env["config_file"]
 
-    def test_load_config_success(self):
+    @pytest.mark.unit
+    def test_load_config_success(self, config_env):
         """設定ファイルの読み込み成功"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertEqual(config.config["base_dir"], ".")
-        self.assertIn("paths", config.config)
-        self.assertIn("levels", config.config)
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        assert config.config["base_dir"] == "."
+        assert "paths" in config.config
+        assert "levels" in config.config
 
-    def test_load_config_not_found(self):
+    @pytest.mark.unit
+    def test_load_config_not_found(self, config_env):
         """設定ファイルが見つからない場合"""
-        # config.jsonを削除
-        self.config_file.unlink()
-        with self.assertRaises(ConfigError):
-            DigestConfig(plugin_root=self.plugin_root)
+        config_env["config_file"].unlink()
+        with pytest.raises(ConfigError):
+            DigestConfig(plugin_root=config_env["env"].plugin_root)
 
-    def test_load_config_invalid_json(self):
+    @pytest.mark.unit
+    def test_load_config_invalid_json(self, config_env):
         """無効なJSONの場合"""
-        with open(self.config_file, 'w', encoding='utf-8') as f:
+        with open(config_env["config_file"], 'w', encoding='utf-8') as f:
             f.write("invalid json {")
-        with self.assertRaises(ConfigError):
-            DigestConfig(plugin_root=self.plugin_root)
+        with pytest.raises(ConfigError):
+            DigestConfig(plugin_root=config_env["env"].plugin_root)
 
-    def test_resolve_base_dir_dot(self):
+    @pytest.mark.unit
+    def test_resolve_base_dir_dot(self, config_env):
         """base_dir="." の場合はplugin_rootと同じ"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertEqual(config.base_dir, self.plugin_root.resolve())
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        assert config.base_dir == env.plugin_root.resolve()
 
-    def test_resolve_base_dir_relative(self):
+    @pytest.mark.unit
+    def test_resolve_base_dir_relative(self, config_env):
         """相対パスのbase_dir"""
-        # base_dirを変更
-        self.config_data["base_dir"] = "data"
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
+        config_data = config_env["config_data"]
+        config_data["base_dir"] = "data"
+        with open(config_env["config_file"], 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
 
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertEqual(config.base_dir, (self.plugin_root / "data").resolve())
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        assert config.base_dir == (env.plugin_root / "data").resolve()
 
-    def test_loops_path(self):
-        """loops_pathプロパティ"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        expected = (self.plugin_root / "data" / "Loops").resolve()
-        self.assertEqual(config.loops_path, expected)
+    @pytest.mark.unit
+    def test_path_properties(self, config_env):
+        """パスプロパティ（loops_path, digests_path, essences_path）"""
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
 
-    def test_digests_path(self):
-        """digests_pathプロパティ"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        expected = (self.plugin_root / "data" / "Digests").resolve()
-        self.assertEqual(config.digests_path, expected)
+        assert config.loops_path == (env.plugin_root / "data" / "Loops").resolve()
+        assert config.digests_path == (env.plugin_root / "data" / "Digests").resolve()
+        assert config.essences_path == (env.plugin_root / "data" / "Essences").resolve()
 
-    def test_essences_path(self):
-        """essences_pathプロパティ"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        expected = (self.plugin_root / "data" / "Essences").resolve()
-        self.assertEqual(config.essences_path, expected)
-
-    def test_resolve_path_missing_key(self):
+    @pytest.mark.unit
+    def test_resolve_path_missing_key(self, config_env):
         """存在しないキーの場合"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        with self.assertRaises(ConfigError):
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        with pytest.raises(ConfigError):
             config.resolve_path("nonexistent_key")
 
-    def test_resolve_path_missing_paths_section(self):
+    @pytest.mark.unit
+    def test_resolve_path_missing_paths_section(self, config_env):
         """pathsセクションがない場合"""
-        del self.config_data["paths"]
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
+        config_data = config_env["config_data"]
+        del config_data["paths"]
+        with open(config_env["config_file"], 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
 
-        config = DigestConfig(plugin_root=self.plugin_root)
-        with self.assertRaises(ConfigError):
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        with pytest.raises(ConfigError):
             config.resolve_path("loops_dir")
 
-    def test_get_level_dir_all_levels(self):
+    @pytest.mark.unit
+    def test_get_level_dir_all_levels(self, config_env):
         """全レベルのディレクトリ取得"""
-        config = DigestConfig(plugin_root=self.plugin_root)
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
         for level in LEVEL_NAMES:
             level_dir = config.get_level_dir(level)
             expected_subdir = LEVEL_CONFIG[level]["dir"]
-            self.assertTrue(str(level_dir).endswith(expected_subdir))
+            assert str(level_dir).endswith(expected_subdir)
 
-    def test_get_level_dir_invalid_level(self):
+    @pytest.mark.unit
+    def test_get_level_dir_invalid_level(self, config_env):
         """無効なレベル名の場合"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        with self.assertRaises(ValueError):
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        with pytest.raises(ValueError):
             config.get_level_dir("invalid_level")
 
-    def test_get_provisional_dir_all_levels(self):
+    @pytest.mark.unit
+    def test_get_provisional_dir_all_levels(self, config_env):
         """全レベルのProvisionalディレクトリ取得"""
-        config = DigestConfig(plugin_root=self.plugin_root)
+        env = config_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
         for level in LEVEL_NAMES:
             prov_dir = config.get_provisional_dir(level)
-            self.assertTrue(str(prov_dir).endswith("Provisional"))
+            assert str(prov_dir).endswith("Provisional")
 
-    def test_threshold_properties_all_levels(self):
+
+class TestDigestConfigThresholds:
+    """DigestConfig thresholdプロパティのテスト"""
+
+    @pytest.fixture
+    def threshold_env(self, temp_plugin_env):
+        """threshold テスト用の設定環境"""
+        config_data = {
+            "base_dir": ".",
+            "paths": {
+                "loops_dir": "data/Loops",
+                "digests_dir": "data/Digests",
+                "essences_dir": "data/Essences",
+                "identity_file_path": None
+            },
+            "levels": {
+                "weekly_threshold": 5,
+                "monthly_threshold": 5,
+                "quarterly_threshold": 3,
+                "annual_threshold": 4,
+                "triennial_threshold": 3,
+                "decadal_threshold": 3,
+                "multi_decadal_threshold": 3,
+                "centurial_threshold": 4
+            }
+        }
+        config_file = temp_plugin_env.config_dir / "config.json"
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
+
+        return {
+            "env": temp_plugin_env,
+            "config_data": config_data,
+            "config_file": config_file,
+        }
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("level,expected", [
+        ("weekly", 5),
+        ("monthly", 5),
+        ("quarterly", 3),
+        ("annual", 4),
+        ("triennial", 3),
+        ("decadal", 3),
+        ("multi_decadal", 3),
+        ("centurial", 4),
+    ])
+    def test_threshold_properties(self, threshold_env, level, expected):
         """全レベルのthresholdプロパティ"""
-        config = DigestConfig(plugin_root=self.plugin_root)
+        env = threshold_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        assert config.get_threshold(level) == expected
 
-        # 設定ファイルの値と一致することを確認
-        self.assertEqual(config.weekly_threshold, 5)
-        self.assertEqual(config.monthly_threshold, 5)
-        self.assertEqual(config.quarterly_threshold, 3)
-        self.assertEqual(config.annual_threshold, 4)
-        self.assertEqual(config.triennial_threshold, 3)
-        self.assertEqual(config.decadal_threshold, 3)
-        self.assertEqual(config.multi_decadal_threshold, 3)
-        self.assertEqual(config.centurial_threshold, 4)
-
-    def test_threshold_properties_default_values(self):
+    @pytest.mark.unit
+    def test_threshold_properties_default_values(self, threshold_env):
         """thresholdのデフォルト値"""
-        # levelsセクションを削除
-        del self.config_data["levels"]
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
+        config_data = threshold_env["config_data"]
+        del config_data["levels"]
+        with open(threshold_env["config_file"], 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        env = threshold_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
 
         # デフォルト値が返されることを確認
-        self.assertEqual(config.weekly_threshold, 5)
-        self.assertEqual(config.monthly_threshold, 5)
-        self.assertEqual(config.quarterly_threshold, 3)
-        self.assertEqual(config.annual_threshold, 4)
-        self.assertEqual(config.triennial_threshold, 3)
-        self.assertEqual(config.decadal_threshold, 3)
-        self.assertEqual(config.multi_decadal_threshold, 3)
-        self.assertEqual(config.centurial_threshold, 4)
+        assert config.weekly_threshold == 5
+        assert config.monthly_threshold == 5
+        assert config.quarterly_threshold == 3
+        assert config.annual_threshold == 4
 
-    def test_threshold_properties_custom_values(self):
+    @pytest.mark.unit
+    def test_threshold_custom_values(self, threshold_env):
         """カスタムthreshold値"""
-        self.config_data["levels"]["weekly_threshold"] = 10
-        self.config_data["levels"]["monthly_threshold"] = 8
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
+        config_data = threshold_env["config_data"]
+        config_data["levels"]["weekly_threshold"] = 10
+        config_data["levels"]["monthly_threshold"] = 8
+        with open(threshold_env["config_file"], 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
 
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertEqual(config.weekly_threshold, 10)
-        self.assertEqual(config.monthly_threshold, 8)
+        env = threshold_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        assert config.weekly_threshold == 10
+        assert config.monthly_threshold == 8
 
-    def test_get_identity_file_path_none(self):
-        """identity_file_pathがNoneの場合"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertIsNone(config.get_identity_file_path())
-
-    def test_get_identity_file_path_configured(self):
-        """identity_file_pathが設定されている場合"""
-        self.config_data["paths"]["identity_file_path"] = "Identity.md"
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
-
-        config = DigestConfig(plugin_root=self.plugin_root)
-        identity_path = config.get_identity_file_path()
-        self.assertIsNotNone(identity_path)
-        self.assertTrue(str(identity_path).endswith("Identity.md"))
-
-    # ===== get_threshold() メソッドのテスト =====
-
-    def test_get_threshold_all_levels(self):
-        """get_threshold()が全レベルで正しい値を返す"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-
-        # 設定ファイルの値と一致することを確認
-        self.assertEqual(config.get_threshold("weekly"), 5)
-        self.assertEqual(config.get_threshold("monthly"), 5)
-        self.assertEqual(config.get_threshold("quarterly"), 3)
-        self.assertEqual(config.get_threshold("annual"), 4)
-        self.assertEqual(config.get_threshold("triennial"), 3)
-        self.assertEqual(config.get_threshold("decadal"), 3)
-        self.assertEqual(config.get_threshold("multi_decadal"), 3)
-        self.assertEqual(config.get_threshold("centurial"), 4)
-
-    def test_get_threshold_invalid_level(self):
+    @pytest.mark.unit
+    def test_get_threshold_invalid_level(self, threshold_env):
         """get_threshold()が無効なレベルでConfigErrorを発生させる"""
-        config = DigestConfig(plugin_root=self.plugin_root)
-        with self.assertRaises(ConfigError):
+        env = threshold_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        with pytest.raises(ConfigError):
             config.get_threshold("invalid_level")
 
-    def test_get_threshold_default_values(self):
-        """get_threshold()がlevelsセクションがない場合もデフォルト値を返す"""
-        del self.config_data["levels"]
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
-
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertEqual(config.get_threshold("weekly"), 5)
-        self.assertEqual(config.get_threshold("quarterly"), 3)
-        self.assertEqual(config.get_threshold("annual"), 4)
-
-    def test_get_threshold_custom_values(self):
-        """get_threshold()がカスタム値を正しく返す"""
-        self.config_data["levels"]["weekly_threshold"] = 10
-        self.config_data["levels"]["monthly_threshold"] = 8
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
-
-        config = DigestConfig(plugin_root=self.plugin_root)
-        self.assertEqual(config.get_threshold("weekly"), 10)
-        self.assertEqual(config.get_threshold("monthly"), 8)
-
-    def test_get_threshold_matches_properties(self):
+    @pytest.mark.unit
+    def test_get_threshold_matches_properties(self, threshold_env):
         """get_threshold()と既存プロパティが同じ値を返す"""
-        config = DigestConfig(plugin_root=self.plugin_root)
+        env = threshold_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
 
-        # 全レベルでプロパティとget_threshold()が一致することを確認
-        self.assertEqual(config.get_threshold("weekly"), config.weekly_threshold)
-        self.assertEqual(config.get_threshold("monthly"), config.monthly_threshold)
-        self.assertEqual(config.get_threshold("quarterly"), config.quarterly_threshold)
-        self.assertEqual(config.get_threshold("annual"), config.annual_threshold)
-        self.assertEqual(config.get_threshold("triennial"), config.triennial_threshold)
-        self.assertEqual(config.get_threshold("decadal"), config.decadal_threshold)
-        self.assertEqual(config.get_threshold("multi_decadal"), config.multi_decadal_threshold)
-        self.assertEqual(config.get_threshold("centurial"), config.centurial_threshold)
+        assert config.get_threshold("weekly") == config.weekly_threshold
+        assert config.get_threshold("monthly") == config.monthly_threshold
+        assert config.get_threshold("quarterly") == config.quarterly_threshold
 
 
-class TestLevelConfig(unittest.TestCase):
+class TestDigestConfigIdentityFile:
+    """DigestConfig identity_file_path のテスト"""
+
+    @pytest.fixture
+    def identity_env(self, temp_plugin_env):
+        """identity_file テスト用の設定環境"""
+        config_data = {
+            "base_dir": ".",
+            "paths": {
+                "loops_dir": "data/Loops",
+                "digests_dir": "data/Digests",
+                "essences_dir": "data/Essences",
+                "identity_file_path": None
+            },
+            "levels": {}
+        }
+        config_file = temp_plugin_env.config_dir / "config.json"
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
+
+        return {
+            "env": temp_plugin_env,
+            "config_data": config_data,
+            "config_file": config_file,
+        }
+
+    @pytest.mark.unit
+    def test_get_identity_file_path_none(self, identity_env):
+        """identity_file_pathがNoneの場合"""
+        env = identity_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        assert config.get_identity_file_path() is None
+
+    @pytest.mark.unit
+    def test_get_identity_file_path_configured(self, identity_env):
+        """identity_file_pathが設定されている場合"""
+        config_data = identity_env["config_data"]
+        config_data["paths"]["identity_file_path"] = "Identity.md"
+        with open(identity_env["config_file"], 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
+
+        env = identity_env["env"]
+        config = DigestConfig(plugin_root=env.plugin_root)
+        identity_path = config.get_identity_file_path()
+        assert identity_path is not None
+        assert str(identity_path).endswith("Identity.md")
+
+
+# =============================================================================
+# LEVEL_CONFIG テスト
+# =============================================================================
+
+class TestLevelConfig:
     """LEVEL_CONFIG 定数のテスト"""
 
+    @pytest.mark.unit
     def test_all_levels_have_required_keys(self):
         """全レベルに必要なキーが存在"""
         required_keys = {"prefix", "digits", "dir", "source", "next"}
         for level, config in LEVEL_CONFIG.items():
             for key in required_keys:
-                self.assertIn(key, config, f"Level '{level}' missing key '{key}'")
+                assert key in config, f"Level '{level}' missing key '{key}'"
 
+    @pytest.mark.unit
     def test_level_names_matches_config_keys(self):
         """LEVEL_NAMESとLEVEL_CONFIGのキーが一致"""
-        self.assertEqual(set(LEVEL_NAMES), set(LEVEL_CONFIG.keys()))
+        assert set(LEVEL_NAMES) == set(LEVEL_CONFIG.keys())
 
+    @pytest.mark.unit
     def test_level_chain_is_valid(self):
         """レベルチェーンが有効（nextが正しく設定されている）"""
         for level, config in LEVEL_CONFIG.items():
             next_level = config["next"]
             if next_level is not None:
-                self.assertIn(next_level, LEVEL_CONFIG,
-                              f"Level '{level}' has invalid next: '{next_level}'")
+                assert next_level in LEVEL_CONFIG, \
+                    f"Level '{level}' has invalid next: '{next_level}'"
 
 
 # =============================================================================
-# エッジケーステスト（Phase 0で追加）
+# validate_directory_structure テスト
 # =============================================================================
 
-from config import format_digest_number
-
-
-class TestExtractFileNumberEdgeCases(unittest.TestCase):
-    """extract_file_number() のエッジケーステスト"""
-
-    def test_non_string_input_returns_none(self):
-        """非文字列型入力はNoneを返す"""
-        self.assertIsNone(extract_file_number(None))
-        self.assertIsNone(extract_file_number(123))
-        self.assertIsNone(extract_file_number(['Loop0001']))
-        self.assertIsNone(extract_file_number({'name': 'Loop0001'}))
-
-    def test_unicode_special_chars(self):
-        """Unicode特殊文字を含むファイル名"""
-        self.assertEqual(extract_file_number("Loop0001_日本語タイトル.txt"), ("Loop", 1))
-        self.assertEqual(extract_file_number("W0001_絵文字🎉.txt"), ("W", 1))
-
-    def test_very_long_filename(self):
-        """極端に長いファイル名"""
-        long_title = "a" * 1000
-        self.assertEqual(extract_file_number(f"Loop0001_{long_title}.txt"), ("Loop", 1))
-
-    def test_number_overflow(self):
-        """大きな番号"""
-        self.assertEqual(extract_file_number("Loop99999999.txt"), ("Loop", 99999999))
-
-    def test_leading_zeros(self):
-        """先頭ゼロのバリエーション"""
-        self.assertEqual(extract_file_number("Loop0000.txt"), ("Loop", 0))
-        self.assertEqual(extract_file_number("W00001.txt"), ("W", 1))
-
-    def test_empty_string(self):
-        """空文字列"""
-        self.assertIsNone(extract_file_number(""))
-
-    def test_only_prefix_no_number(self):
-        """プレフィックスのみで番号なし"""
-        self.assertIsNone(extract_file_number("Loop.txt"))
-        self.assertIsNone(extract_file_number("W_title.txt"))
-
-    def test_number_only_no_prefix(self):
-        """番号のみでプレフィックスなし"""
-        self.assertIsNone(extract_file_number("0001.txt"))
-        self.assertIsNone(extract_file_number("12345.txt"))
-
-
-class TestFormatDigestNumberEdgeCases(unittest.TestCase):
-    """format_digest_number() のエッジケーステスト"""
-
-    def test_zero_number(self):
-        """番号0の処理"""
-        self.assertEqual(format_digest_number("loop", 0), "Loop0000")
-        self.assertEqual(format_digest_number("weekly", 0), "W0000")
-
-    def test_very_large_number(self):
-        """桁数を超える大きな番号"""
-        # 4桁を超える場合でも動作する（桁数は最小桁数）
-        result = format_digest_number("weekly", 99999)
-        self.assertEqual(result, "W99999")
-
-    def test_invalid_level_raises_valueerror(self):
-        """無効なレベル名でValueError"""
-        with self.assertRaises(ValueError):
-            format_digest_number("invalid_level", 1)
-
-    def test_all_valid_levels(self):
-        """すべての有効なレベルで正しく動作"""
-        expected = {
-            "loop": "Loop0001",
-            "weekly": "W0001",
-            "monthly": "M001",
-            "quarterly": "Q001",
-            "annual": "A01",
-            "triennial": "T01",
-            "decadal": "D01",
-            "multi_decadal": "MD01",
-            "centurial": "C01",
-        }
-        for level, expected_result in expected.items():
-            result = format_digest_number(level, 1)
-            self.assertEqual(result, expected_result, f"Failed for level '{level}'")
-
-
-class TestExtractNumberOnlyEdgeCases(unittest.TestCase):
-    """extract_number_only() のエッジケーステスト"""
-
-    def test_non_string_returns_none(self):
-        """非文字列型入力はNoneを返す"""
-        self.assertIsNone(extract_number_only(None))
-        self.assertIsNone(extract_number_only(123))
-
-    def test_zero_number(self):
-        """番号0の抽出"""
-        self.assertEqual(extract_number_only("Loop0000.txt"), 0)
-
-
-# =============================================================================
-# validate_directory_structure() テスト（Phase 0で追加）
-# =============================================================================
-
-
-class TestValidateDirectoryStructure(unittest.TestCase):
+class TestValidateDirectoryStructure:
     """validate_directory_structure() のテスト"""
 
-    def setUp(self):
-        """テスト用の一時ディレクトリとconfig.jsonを作成"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.plugin_root = Path(self.temp_dir)
-
-        # .claude-plugin ディレクトリ作成
-        self.config_dir = self.plugin_root / ".claude-plugin"
-        self.config_dir.mkdir(parents=True)
-
-        # config.json 作成
-        self.config_data = {
+    @pytest.fixture
+    def validate_env(self, temp_plugin_env):
+        """validate_directory_structure テスト用の設定環境"""
+        config_data = {
             "base_dir": ".",
             "paths": {
                 "loops_dir": "data/Loops",
@@ -495,129 +538,123 @@ class TestValidateDirectoryStructure(unittest.TestCase):
                 "essences_dir": "data/Essences",
                 "identity_file_path": None
             },
-            "levels": {
-                "weekly_threshold": 5,
-                "monthly_threshold": 5,
-                "quarterly_threshold": 3,
-                "annual_threshold": 4,
-                "triennial_threshold": 3,
-                "decadal_threshold": 3,
-                "multi_decadal_threshold": 3,
-                "centurial_threshold": 4
-            }
+            "levels": {}
         }
-        self.config_file = self.config_dir / "config.json"
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.config_data, f)
+        config_file = temp_plugin_env.config_dir / "config.json"
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f)
 
-    def tearDown(self):
-        """一時ディレクトリを削除"""
-        import shutil
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+        return {
+            "env": temp_plugin_env,
+            "config_file": config_file,
+        }
 
-    def _create_full_directory_structure(self):
+    def _create_full_directory_structure(self, plugin_root):
         """完全なディレクトリ構造を作成"""
-        data_dir = self.plugin_root / "data"
+        data_dir = plugin_root / "data"
         (data_dir / "Loops").mkdir(parents=True, exist_ok=True)
         (data_dir / "Digests").mkdir(parents=True, exist_ok=True)
         (data_dir / "Essences").mkdir(parents=True, exist_ok=True)
 
-        # 各レベルディレクトリとProvisionalを作成
         for level in LEVEL_NAMES:
             level_subdir = LEVEL_CONFIG[level]["dir"]
             level_dir = data_dir / "Digests" / level_subdir
             level_dir.mkdir(parents=True, exist_ok=True)
             (level_dir / "Provisional").mkdir(exist_ok=True)
 
-    def test_validate_directory_structure_all_present(self):
+    @pytest.mark.integration
+    def test_validate_directory_structure_all_present(self, validate_env):
         """全ディレクトリ存在時はエラーなし"""
-        self._create_full_directory_structure()
-        config = DigestConfig(plugin_root=self.plugin_root)
+        env = validate_env["env"]
+        self._create_full_directory_structure(env.plugin_root)
+        config = DigestConfig(plugin_root=env.plugin_root)
         errors = config.validate_directory_structure()
-        self.assertEqual(errors, [])
+        assert errors == []
 
-    def test_validate_directory_structure_missing_loops(self):
+    @pytest.mark.integration
+    def test_validate_directory_structure_missing_loops(self, validate_env):
         """Loopsディレクトリ欠落"""
-        self._create_full_directory_structure()
-        # Loopsを削除
         import shutil
-        shutil.rmtree(self.plugin_root / "data" / "Loops")
+        env = validate_env["env"]
+        self._create_full_directory_structure(env.plugin_root)
+        shutil.rmtree(env.plugin_root / "data" / "Loops")
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        config = DigestConfig(plugin_root=env.plugin_root)
         errors = config.validate_directory_structure()
 
-        self.assertEqual(len(errors), 1)
-        self.assertIn("Loops", errors[0])
+        assert len(errors) == 1
+        assert "Loops" in errors[0]
 
-    def test_validate_directory_structure_missing_digests(self):
+    @pytest.mark.integration
+    def test_validate_directory_structure_missing_digests(self, validate_env):
         """Digestsディレクトリ欠落"""
-        data_dir = self.plugin_root / "data"
-        (data_dir / "Loops").mkdir(parents=True, exist_ok=True)
-        (data_dir / "Essences").mkdir(parents=True, exist_ok=True)
-        # Digestsを作成しない
+        import shutil
+        env = validate_env["env"]
+        # temp_plugin_envが既にDigestsを作成しているので削除する
+        shutil.rmtree(env.plugin_root / "data" / "Digests")
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        config = DigestConfig(plugin_root=env.plugin_root)
         errors = config.validate_directory_structure()
 
-        # Digestsが無いので、Digests自体 + 全レベルディレクトリのエラー
-        self.assertGreater(len(errors), 0)
-        self.assertTrue(any("Digests" in e for e in errors))
+        assert len(errors) > 0
+        assert any("Digests" in e for e in errors)
 
-    def test_validate_directory_structure_missing_essences(self):
+    @pytest.mark.integration
+    def test_validate_directory_structure_missing_essences(self, validate_env):
         """Essencesディレクトリ欠落"""
-        self._create_full_directory_structure()
-        # Essencesを削除
         import shutil
-        shutil.rmtree(self.plugin_root / "data" / "Essences")
+        env = validate_env["env"]
+        self._create_full_directory_structure(env.plugin_root)
+        shutil.rmtree(env.plugin_root / "data" / "Essences")
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        config = DigestConfig(plugin_root=env.plugin_root)
         errors = config.validate_directory_structure()
 
-        self.assertEqual(len(errors), 1)
-        self.assertIn("Essences", errors[0])
+        assert len(errors) == 1
+        assert "Essences" in errors[0]
 
-    def test_validate_directory_structure_missing_level_dir(self):
+    @pytest.mark.integration
+    def test_validate_directory_structure_missing_level_dir(self, validate_env):
         """レベルディレクトリ（1_Weekly等）欠落"""
-        self._create_full_directory_structure()
-        # 1_Weeklyを削除
         import shutil
-        weekly_dir = self.plugin_root / "data" / "Digests" / "1_Weekly"
+        env = validate_env["env"]
+        self._create_full_directory_structure(env.plugin_root)
+        weekly_dir = env.plugin_root / "data" / "Digests" / "1_Weekly"
         shutil.rmtree(weekly_dir)
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        config = DigestConfig(plugin_root=env.plugin_root)
         errors = config.validate_directory_structure()
 
-        self.assertEqual(len(errors), 1)
-        self.assertIn("weekly", errors[0].lower())
+        assert len(errors) == 1
+        assert "weekly" in errors[0].lower()
 
-    def test_validate_directory_structure_missing_provisional(self):
+    @pytest.mark.integration
+    def test_validate_directory_structure_missing_provisional(self, validate_env):
         """Provisionalディレクトリ欠落"""
-        self._create_full_directory_structure()
-        # 1_Weekly/Provisionalを削除
         import shutil
-        prov_dir = self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional"
+        env = validate_env["env"]
+        self._create_full_directory_structure(env.plugin_root)
+        prov_dir = env.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional"
         shutil.rmtree(prov_dir)
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        config = DigestConfig(plugin_root=env.plugin_root)
         errors = config.validate_directory_structure()
 
-        self.assertEqual(len(errors), 1)
-        self.assertIn("Provisional", errors[0])
+        assert len(errors) == 1
+        assert "Provisional" in errors[0]
 
-    def test_validate_directory_structure_multiple_errors(self):
+    @pytest.mark.integration
+    def test_validate_directory_structure_multiple_errors(self, validate_env):
         """複数エラーの集約"""
-        data_dir = self.plugin_root / "data"
-        # Loopsのみ作成（Digests, Essencesなし）
-        (data_dir / "Loops").mkdir(parents=True, exist_ok=True)
+        import shutil
+        env = validate_env["env"]
+        # temp_plugin_envが既に全ディレクトリを作成しているので削除する
+        shutil.rmtree(env.plugin_root / "data" / "Digests")
+        shutil.rmtree(env.plugin_root / "data" / "Essences")
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        config = DigestConfig(plugin_root=env.plugin_root)
         errors = config.validate_directory_structure()
 
-        # Digests, Essences, + 全レベルディレクトリのエラー
-        self.assertGreater(len(errors), 2)
-        self.assertTrue(any("Digests" in e for e in errors))
-        self.assertTrue(any("Essences" in e for e in errors))
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert len(errors) > 2
+        assert any("Digests" in e for e in errors)
+        assert any("Essences" in e for e in errors)

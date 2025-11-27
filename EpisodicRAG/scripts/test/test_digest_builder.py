@@ -17,6 +17,13 @@ from domain.version import DIGEST_FORMAT_VERSION
 
 
 # =============================================================================
+# テスト用定数
+# =============================================================================
+# 大容量テキスト: 通常の制限を超えるサイズでの動作確認
+LARGE_TEXT_LENGTH = 5000
+
+
+# =============================================================================
 # RegularDigestBuilder.build テスト
 # =============================================================================
 
@@ -278,7 +285,7 @@ class TestRegularDigestBuilderBuild:
     @pytest.mark.unit
     def test_very_long_abstract_preserved(self, individual_digests):
         """非常に長いabstractがそのまま保持される（builderは切り捨てない）"""
-        long_abstract = "あ" * 5000  # 5000文字
+        long_abstract = "あ" * LARGE_TEXT_LENGTH
         shadow_with_long_abstract = {
             "source_files": ["Loop0001.txt"],
             "digest_type": "テスト",
@@ -293,7 +300,7 @@ class TestRegularDigestBuilderBuild:
             shadow_digest=shadow_with_long_abstract,
             individual_digests=individual_digests
         )
-        assert len(result["overall_digest"]["abstract"]) == 5000
+        assert len(result["overall_digest"]["abstract"]) == LARGE_TEXT_LENGTH
         assert result["overall_digest"]["abstract"] == long_abstract
 
     @pytest.mark.unit

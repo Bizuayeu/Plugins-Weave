@@ -26,6 +26,7 @@ from domain.constants import (
     PLACEHOLDER_END,
     PLACEHOLDER_SIMPLE,
     DEFAULT_THRESHOLDS,
+    SOURCE_TYPE_LOOPS,
 )
 from domain.types import LevelConfigData, ConfigData
 
@@ -168,7 +169,7 @@ class DigestConfig:
 
         source_type = LEVEL_CONFIG[level]["source"]
 
-        if source_type == "loops":
+        if source_type == SOURCE_TYPE_LOOPS:
             return self.loops_path
         else:
             return self.get_level_dir(source_type)
@@ -191,7 +192,7 @@ class DigestConfig:
 
         source_type = LEVEL_CONFIG[level]["source"]
 
-        if source_type == "loops":
+        if source_type == SOURCE_TYPE_LOOPS:
             return "Loop*.txt"
         else:
             source_prefix = LEVEL_CONFIG[source_type]["prefix"]

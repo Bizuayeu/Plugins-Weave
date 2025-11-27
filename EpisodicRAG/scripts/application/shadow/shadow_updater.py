@@ -20,7 +20,23 @@ from .cascade_processor import CascadeProcessor
 
 
 class ShadowUpdater:
-    """ShadowGrandDigest更新クラス（Facade）"""
+    """
+    ShadowGrandDigest更新クラス（Facade）
+
+    このクラスはFacadeパターンを採用し、複数の内部コンポーネント
+    （FileAppender, CascadeProcessor, PlaceholderManager）を統合して
+    シンプルなAPIを提供します。
+
+    設計意図:
+    - 呼び出し側は内部コンポーネントの存在を意識せずにShadow操作が可能
+    - 内部コンポーネントの変更が外部に影響しない（カプセル化）
+    - テスト時はこのクラスをモックするだけで済む
+
+    内部コンポーネント:
+    - FileAppender: ファイル追加処理
+    - CascadeProcessor: カスケード処理（階層間の連携）
+    - PlaceholderManager: プレースホルダー管理
+    """
 
     def __init__(
         self,

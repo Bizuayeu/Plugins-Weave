@@ -40,9 +40,9 @@ def load_json(file_path: Path) -> Dict[str, Any]:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except json.JSONDecodeError as e:
-        raise FileIOError(f"Invalid JSON in {file_path}: {e}")
+        raise FileIOError(f"Invalid JSON in {file_path}: {e}") from e
     except IOError as e:
-        raise FileIOError(f"Failed to read {file_path}: {e}")
+        raise FileIOError(f"Failed to read {file_path}: {e}") from e
 
 
 def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
@@ -62,7 +62,7 @@ def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=indent)
     except IOError as e:
-        raise FileIOError(f"Failed to write {file_path}: {e}")
+        raise FileIOError(f"Failed to write {file_path}: {e}") from e
 
 
 def load_json_with_template(
@@ -88,38 +88,50 @@ def load_json_with_template(
     Raises:
         FileIOError: JSONのパース失敗またはファイルI/Oエラーの場合
     """
+    logger.debug(f"load_json_with_template called: target={target_file}, template={template_file}")
+
     try:
         # ファイルが存在する場合はそのまま読み込み
         if target_file.exists():
+            logger.debug(f"Loading existing file: {target_file}")
             with open(target_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+            logger.debug(f"Loaded {len(data)} keys from {target_file.name}")
+            return data
 
         # テンプレートファイルが存在する場合はそこから初期化
         if template_file and template_file.exists():
+            logger.debug(f"Target not found, loading from template: {template_file}")
             with open(template_file, 'r', encoding='utf-8') as f:
                 template = json.load(f)
             if save_on_create:
                 save_json(target_file, template)
+                logger.debug(f"Saved initialized file to: {target_file}")
             msg = log_message or f"Initialized {target_file.name} from template"
             logger.info(msg)
             return template
 
         # デフォルトファクトリーがある場合はそれを使用
         if default_factory:
+            logger.debug(f"No template found, using default_factory")
             template = default_factory()
             if save_on_create:
                 save_json(target_file, template)
+                logger.debug(f"Saved default template to: {target_file}")
             msg = log_message or f"Created {target_file.name} with default template"
             logger.info(msg)
             return template
 
         # どちらもない場合は空のdictを返す
+        logger.debug(f"No template or factory provided, returning empty dict")
         return {}
 
     except json.JSONDecodeError as e:
-        raise FileIOError(f"Invalid JSON in {target_file}: {e}")
+        logger.debug(f"JSON decode error in {target_file}: {e}")
+        raise FileIOError(f"Invalid JSON in {target_file}: {e}") from e
     except IOError as e:
-        raise FileIOError(f"Failed to read {target_file}: {e}")
+        logger.debug(f"IO error reading {target_file}: {e}")
+        raise FileIOError(f"Failed to read {target_file}: {e}") from e
 
 
 def file_exists(file_path: Path) -> bool:
@@ -148,4 +160,111 @@ def ensure_directory(dir_path: Path) -> None:
     try:
         dir_path.mkdir(parents=True, exist_ok=True)
     except OSError as e:
-        raise FileIOError(f"Failed to create directory {dir_path}: {e}")
+        raise FileIOError(f"Failed to create directory {dir_path}: {e}") from e
+
+
+def safe_load_json(
+    file_path: Path,
+    default: Optional[Dict[str, Any]] = None,
+    log_on_error: bool = True
+) -> Optional[Dict[str, Any]]:
+    """
+    JSONファイルを安全に読み込む（エラー時はデフォルト値を返す）
+
+    エラーが発生しても例外を投げず、デフォルト値を返す。
+    グレースフルデグラデーションが必要な場合に使用。
+
+    Args:
+        file_path: 読み込むJSONファイルのパス
+        default: エラー時に返すデフォルト値（デフォルト: None）
+        log_on_error: エラー時にログを出力するかどうか
+
+    Returns:
+        読み込んだdict、またはエラー時はdefault値
+
+    Example:
+        # ファイルがなければ空dictを返す
+        data = safe_load_json(path, default={})
+
+        # ファイルがなければNoneを返す
+        data = safe_load_json(path)
+        if data is None:
+            # 初期化処理
+    """
+    if not file_path.exists():
+        return default
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError) as e:
+        if log_on_error:
+            logger.warning(f"Failed to load JSON from {file_path}: {e}")
+        return default
+
+
+def confirm_file_overwrite(file_path: Path, force: bool = False) -> bool:
+    """
+    ファイルの上書き確認を行う
+
+    既存ファイルがある場合の上書き可否を判定する。
+    CLIツールでの対話的確認には使用せず、プログラム的な判定に使用。
+
+    Args:
+        file_path: 確認するファイルのパス
+        force: 強制上書きフラグ（Trueなら常に上書き可）
+
+    Returns:
+        上書き可能ならTrue、不可ならFalse
+
+    Example:
+        if not confirm_file_overwrite(output_path):
+            raise FileIOError(f"File already exists: {output_path}")
+    """
+    if not file_path.exists():
+        return True
+    return force
+
+
+def read_json_from_file_safe(
+    file_path: Path,
+    log_on_error: bool = True
+) -> Optional[Dict[str, Any]]:
+    """
+    JSONファイルを安全に読み込む（個別ファイル処理用）
+
+    ループ内で複数ファイルを処理する際に使用。
+    エラー時はスキップしてNoneを返す。
+
+    Args:
+        file_path: 読み込むファイルパス
+        log_on_error: エラー時にログ出力するか
+
+    Returns:
+        読み込んだdict、またはエラー時はNone
+
+    Example:
+        for source_file in source_files:
+            data = read_json_from_file_safe(source_path / source_file)
+            if data is None:
+                skipped_count += 1
+                continue
+            # 処理を続行
+    """
+    if not file_path.exists():
+        return None
+
+    if file_path.suffix != '.txt':
+        return None
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        if log_on_error:
+            logger.warning(f"Failed to parse {file_path.name} as JSON (skipped)")
+        return None
+    except OSError as e:
+        if log_on_error:
+            logger.warning(f"Error reading {file_path.name}: {e} (skipped)")
+        return None

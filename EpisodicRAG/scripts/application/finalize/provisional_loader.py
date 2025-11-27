@@ -6,7 +6,6 @@ Provisional Loader
 ProvisionalDigestの読み込みまたはソースファイルからの自動生成
 """
 
-import json
 from pathlib import Path
 from typing import Optional, Tuple, List
 
@@ -14,7 +13,7 @@ from config import DigestConfig, LEVEL_CONFIG
 from application.validators import is_valid_dict
 from domain.types import OverallDigestData, IndividualDigestData
 from domain.exceptions import DigestError, FileIOError
-from infrastructure import log_info, log_warning, load_json
+from infrastructure import log_info, log_warning, load_json, read_json_from_file_safe
 from application.grand import ShadowGrandDigestManager
 
 
@@ -98,31 +97,30 @@ class ProvisionalLoader:
         """
         individual_digests: List[IndividualDigestData] = []
         source_files = shadow_digest.get("source_files", [])
+        skipped_count = 0
 
         for source_file in source_files:
-            try:
-                source_dir = self._get_source_path_for_level(level)
-                source_path = source_dir / source_file
+            source_dir = self._get_source_path_for_level(level)
+            source_path = source_dir / source_file
 
-                if source_path.exists() and source_path.suffix == '.txt':
-                    with open(source_path, 'r', encoding='utf-8') as f:
-                        source_data = json.load(f)
-                        overall = source_data.get("overall_digest", {})
+            source_data = read_json_from_file_safe(source_path)
+            if source_data is None:
+                skipped_count += 1
+                continue
 
-                        individual_entry = {
-                            "filename": source_file,
-                            "timestamp": overall.get("timestamp", ""),
-                            "digest_type": overall.get("digest_type", ""),
-                            "keywords": overall.get("keywords", []),
-                            "abstract": overall.get("abstract", ""),
-                            "impression": overall.get("impression", "")
-                        }
-                        individual_digests.append(individual_entry)
-                        log_info(f"Auto-generated individual digest from {source_file}")
-            except json.JSONDecodeError:
-                log_warning(f"Failed to parse {source_file} as JSON")
-            except OSError as e:
-                log_warning(f"Error reading {source_file}: {e}")
+            overall = source_data.get("overall_digest", {})
+            individual_entry = {
+                "filename": source_file,
+                "timestamp": overall.get("timestamp", ""),
+                "digest_type": overall.get("digest_type", ""),
+                "keywords": overall.get("keywords", []),
+                "abstract": overall.get("abstract", ""),
+                "impression": overall.get("impression", "")
+            }
+            individual_digests.append(individual_entry)
+            log_info(f"Auto-generated individual digest from {source_file}")
 
+        if skipped_count > 0:
+            log_warning(f"Skipped {skipped_count}/{len(source_files)} files due to errors")
         log_info(f"Auto-generated {len(individual_digests)} individual digests from source files")
         return individual_digests

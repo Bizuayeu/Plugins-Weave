@@ -156,11 +156,11 @@ class TestShadowValidatorInit:
 
 
 # =============================================================================
-# 非連続ファイル（ユーザー入力）テスト
+# 非連続ファイル（ユーザー入力）テスト（レガシー: monkeypatch方式）
 # =============================================================================
 
 class TestShadowValidatorNonConsecutiveFiles:
-    """非連続ファイル検出時のユーザー入力テスト"""
+    """非連続ファイル検出時のユーザー入力テスト（レガシー）"""
 
     @pytest.mark.unit
     def test_non_consecutive_files_user_continues(self, validator, monkeypatch):
@@ -213,6 +213,100 @@ class TestShadowValidatorNonConsecutiveFiles:
 
         # エラーなく完了
         validator.validate_shadow_content("weekly", source_files)
+
+
+# =============================================================================
+# コールバック注入テスト（推奨: confirm_callback方式）
+# =============================================================================
+
+class TestShadowValidatorConfirmCallback:
+    """confirm_callback注入方式のテスト"""
+
+    @pytest.mark.unit
+    def test_non_consecutive_cancelled_via_callback(self, shadow_manager):
+        """コールバックでキャンセル時にValidationErrorが発生"""
+        # 常にキャンセルするコールバック
+        validator = ShadowValidator(
+            shadow_manager,
+            confirm_callback=lambda msg: False
+        )
+
+        # 非連続ファイル
+        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+
+        with pytest.raises(ValidationError) as exc_info:
+            validator.validate_shadow_content("weekly", source_files)
+        assert "User cancelled" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_non_consecutive_continued_via_callback(self, shadow_manager):
+        """コールバックで承認時に正常に継続される"""
+        # 常に承認するコールバック
+        validator = ShadowValidator(
+            shadow_manager,
+            confirm_callback=lambda msg: True
+        )
+
+        # 非連続ファイル
+        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+
+        # 例外が発生しないことを確認
+        validator.validate_shadow_content("weekly", source_files)
+
+    @pytest.mark.unit
+    def test_callback_receives_correct_message(self, shadow_manager):
+        """コールバックが正しいメッセージを受け取る"""
+        received_messages = []
+
+        def capture_callback(msg):
+            received_messages.append(msg)
+            return True
+
+        validator = ShadowValidator(
+            shadow_manager,
+            confirm_callback=capture_callback
+        )
+
+        # 非連続ファイル
+        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+        validator.validate_shadow_content("weekly", source_files)
+
+        assert len(received_messages) == 1
+        assert "Continue anyway?" in received_messages[0]
+
+    @pytest.mark.unit
+    def test_default_callback_used_when_none_provided(self, shadow_manager):
+        """confirm_callbackがNoneの場合、デフォルトコールバックが使用される"""
+        validator = ShadowValidator(shadow_manager, confirm_callback=None)
+
+        # _default_confirmメソッドが設定されていることを確認
+        assert validator.confirm_callback == ShadowValidator._default_confirm
+
+    @pytest.mark.unit
+    def test_custom_callback_stored(self, shadow_manager):
+        """カスタムコールバックが正しく保存される"""
+        custom_callback = lambda msg: True
+        validator = ShadowValidator(shadow_manager, confirm_callback=custom_callback)
+
+        assert validator.confirm_callback is custom_callback
+
+    @pytest.mark.unit
+    def test_consecutive_files_no_callback(self, shadow_manager):
+        """連続ファイルの場合はコールバックが呼ばれない"""
+        callback_called = []
+
+        def detect_callback(msg):
+            callback_called.append(True)
+            return True
+
+        validator = ShadowValidator(shadow_manager, confirm_callback=detect_callback)
+
+        # 連続ファイル
+        source_files = ["Loop0001_test.txt", "Loop0002_test.txt", "Loop0003_test.txt"]
+        validator.validate_shadow_content("weekly", source_files)
+
+        # コールバックは呼ばれていない
+        assert len(callback_called) == 0
 
 
 # =============================================================================
@@ -282,3 +376,109 @@ class TestShadowValidatorEdgeCases:
 
         assert result is not None
         assert len(result["source_files"]) == 3
+
+
+# =============================================================================
+# プライベートメソッドの単体テスト（Phase 6: カバレッジ向上）
+# =============================================================================
+
+class TestShadowValidatorPrivateMethods:
+    """プライベートメソッドの単体テスト"""
+
+    # -------------------------------------------------------------------------
+    # _validate_title() テスト
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.unit
+    def test_validate_title_empty_string_raises(self, validator):
+        """_validate_title: 空文字列でValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_title("")
+        assert "cannot be empty" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_title_whitespace_only_raises(self, validator):
+        """_validate_title: 空白のみでValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_title("   ")
+        assert "cannot be empty" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_title_none_raises(self, validator):
+        """_validate_title: NoneでValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_title(None)
+        assert "cannot be empty" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_title_valid_string_passes(self, validator):
+        """_validate_title: 正常な文字列でエラーなし"""
+        # 例外が発生しなければOK
+        validator._validate_title("Valid Title")
+
+    @pytest.mark.unit
+    def test_validate_title_unicode_passes(self, validator):
+        """_validate_title: 日本語タイトルでエラーなし"""
+        validator._validate_title("テストタイトル")
+
+    # -------------------------------------------------------------------------
+    # _fetch_shadow_digest() テスト
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.integration
+    def test_fetch_shadow_digest_none_raises(self, validator):
+        """_fetch_shadow_digest: Noneの場合DigestError"""
+        with pytest.raises(DigestError) as exc_info:
+            validator._fetch_shadow_digest("weekly")
+        assert "No shadow digest found" in str(exc_info.value)
+
+    @pytest.mark.integration
+    def test_fetch_shadow_digest_returns_data(
+        self, validator, shadow_manager, temp_plugin_env
+    ):
+        """_fetch_shadow_digest: 正常なデータを返す"""
+        # Loopファイルを作成してShadowに追加
+        create_test_loop_file(temp_plugin_env.loops_path, 1)
+        shadow_manager.update_shadow_for_new_loops()
+
+        result = validator._fetch_shadow_digest("weekly")
+
+        assert result is not None
+        assert isinstance(result, dict)
+        assert "source_files" in result
+
+    # -------------------------------------------------------------------------
+    # _validate_shadow_format() テスト
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.unit
+    def test_validate_shadow_format_none_raises(self, validator):
+        """_validate_shadow_format: NoneでValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_shadow_format(None)
+        assert "Invalid shadow digest format" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_shadow_format_list_raises(self, validator):
+        """_validate_shadow_format: listでValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_shadow_format([1, 2, 3])
+        assert "Invalid shadow digest format" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_shadow_format_string_raises(self, validator):
+        """_validate_shadow_format: 文字列でValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_shadow_format("not a dict")
+        assert "Invalid shadow digest format" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_shadow_format_valid_dict_passes(self, validator):
+        """_validate_shadow_format: 正常なdictでエラーなし"""
+        # 例外が発生しなければOK
+        validator._validate_shadow_format({"source_files": []})
+
+    @pytest.mark.unit
+    def test_validate_shadow_format_empty_dict_passes(self, validator):
+        """_validate_shadow_format: 空のdictでもエラーなし"""
+        validator._validate_shadow_format({})

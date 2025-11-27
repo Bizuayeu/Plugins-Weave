@@ -5,12 +5,12 @@ File Appender
 
 ファイル追加処理（Shadowへの増分追加）
 """
-import json
 from pathlib import Path
 from typing import Dict, List
 
 from domain.types import ShadowDigestData, OverallDigestData, LevelHierarchyEntry
-from infrastructure import log_info, log_warning
+from domain.constants import SOURCE_TYPE_LOOPS
+from infrastructure import log_info, log_warning, read_json_from_file_safe
 from application.validators import is_valid_dict
 
 from .template import ShadowTemplate
@@ -85,31 +85,23 @@ class FileAppender:
         source_dir = self.file_detector.get_source_path(level)
         full_path = source_dir / file_path.name
 
-        if not (full_path.exists() and full_path.suffix == '.txt'):
+        digest_data = read_json_from_file_safe(full_path)
+        if digest_data is None:
             return
 
-        try:
-            with open(full_path, 'r', encoding='utf-8') as f:
-                digest_data = json.load(f)
+        if not is_valid_dict(digest_data):
+            log_warning(f"{file_path.name} is not a dict, skipping")
+            return
 
-            if not is_valid_dict(digest_data):
-                log_warning(f"{file_path.name} is not a dict, skipping")
-                return
+        overall = digest_data.get("overall_digest")
+        if not is_valid_dict(overall):
+            overall = {}
 
-            overall = digest_data.get("overall_digest")
-            if not is_valid_dict(overall):
-                overall = {}
-
-            log_info(f"Read digest content from {file_path.name}")
-            log_info(f"      - digest_type: {overall.get('digest_type', 'N/A')}")
-            log_info(f"      - keywords: {len(overall.get('keywords', []))} items")
-            log_info(f"      - abstract: {len(overall.get('abstract', ''))} chars")
-            log_info(f"      - impression: {len(overall.get('impression', ''))} chars")
-
-        except json.JSONDecodeError:
-            log_warning(f"Failed to parse {file_path.name} as JSON")
-        except OSError as e:
-            log_warning(f"Error reading {file_path.name}: {e}")
+        log_info(f"Read digest content from {file_path.name}")
+        log_info(f"      - digest_type: {overall.get('digest_type', 'N/A')}")
+        log_info(f"      - keywords: {len(overall.get('keywords', []))} items")
+        log_info(f"      - abstract: {len(overall.get('abstract', ''))} chars")
+        log_info(f"      - impression: {len(overall.get('impression', ''))} chars")
 
     def add_files_to_shadow(self, level: str, new_files: List[Path]) -> None:
         """
@@ -135,7 +127,7 @@ class FileAppender:
                 log_info(f"  + {file_path.name}")
 
                 # Monthly以上: Digestファイルの内容を読み込んでログ出力
-                if source_type != "loops":
+                if source_type != SOURCE_TYPE_LOOPS:
                     self._log_digest_content(file_path, level)
 
         # PLACEHOLDERの更新または既存分析の保持

@@ -21,11 +21,18 @@ from typing import Dict, Optional
 
 
 # =============================================================================
+# ソースタイプ定数
+# =============================================================================
+
+SOURCE_TYPE_LOOPS = "loops"  # Loopファイルをソースとするレベル（weekly）
+
+
+# =============================================================================
 # 共通定数: レベル設定（Single Source of Truth）
 # =============================================================================
 
 LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
-    "weekly": {"prefix": "W", "digits": 4, "dir": "1_Weekly", "source": "loops", "next": "monthly"},
+    "weekly": {"prefix": "W", "digits": 4, "dir": "1_Weekly", "source": SOURCE_TYPE_LOOPS, "next": "monthly"},
     "monthly": {"prefix": "M", "digits": 3, "dir": "2_Monthly", "source": "weekly", "next": "quarterly"},
     "quarterly": {"prefix": "Q", "digits": 3, "dir": "3_Quarterly", "source": "monthly", "next": "annual"},
     "annual": {"prefix": "A", "digits": 2, "dir": "4_Annual", "source": "quarterly", "next": "triennial"},
@@ -69,3 +76,52 @@ DEFAULT_THRESHOLDS: Dict[str, int] = {
     "multi_decadal": 3,
     "centurial": 4
 }
+
+
+# =============================================================================
+# ログ出力用定数
+# =============================================================================
+
+LOG_SEPARATOR = "=" * 60  # ログ出力用のセパレータ
+
+
+# =============================================================================
+# プレースホルダーファクトリー関数（SSoT）
+# =============================================================================
+
+def create_placeholder_text(content_type: str, char_limit: int) -> str:
+    """
+    プレースホルダーテキストを生成（Single Source of Truth）
+
+    Args:
+        content_type: コンテンツタイプ（例: "全体統合分析", "所感・展望"）
+        char_limit: 文字数制限
+
+    Returns:
+        プレースホルダー文字列
+
+    Example:
+        create_placeholder_text("全体統合分析", 2400)
+        # -> "<!-- PLACEHOLDER: 全体統合分析 (2400文字程度) -->"
+    """
+    return f"{PLACEHOLDER_MARKER}: {content_type} ({char_limit}文字程度){PLACEHOLDER_END}"
+
+
+def create_placeholder_keywords(count: int) -> list:
+    """
+    キーワードプレースホルダーリストを生成（Single Source of Truth）
+
+    Args:
+        count: キーワード数
+
+    Returns:
+        プレースホルダーキーワードのリスト
+
+    Example:
+        create_placeholder_keywords(5)
+        # -> ["<!-- PLACEHOLDER: keyword1 -->", ..., "<!-- PLACEHOLDER: keyword5 -->"]
+    """
+    return [
+        f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}"
+        for i in range(1, count + 1)
+    ]

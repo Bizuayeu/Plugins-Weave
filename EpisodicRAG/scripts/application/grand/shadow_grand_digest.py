@@ -27,6 +27,7 @@ from domain.types import OverallDigestData, ShadowDigestData
 
 # Plugin版: config.pyをインポート
 from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES
+from domain.constants import LOG_SEPARATOR
 from infrastructure import log_info, log_warning
 from application.tracking import DigestTimesTracker
 
@@ -109,19 +110,19 @@ def main():
     config = DigestConfig()
     manager = ShadowGrandDigestManager(config)
 
-    log_info("=" * 60)
+    log_info(LOG_SEPARATOR)
     log_info("ShadowGrandDigest Update - New Loop Detection")
-    log_info("=" * 60)
+    log_info(LOG_SEPARATOR)
 
     # 新しいLoopファイルの検出と追加
     manager.update_shadow_for_new_loops()
 
-    log_info("=" * 60)
+    log_info(LOG_SEPARATOR)
     log_info("Placeholder added to ShadowGrandDigest.weekly")
-    log_info("=" * 60)
+    log_info(LOG_SEPARATOR)
     log_warning("[!] WARNING: Claude analysis required immediately!")
     log_warning("Without analysis, memory fragmentation (madaraboke) occurs.")
-    log_info("=" * 60)
+    log_info(LOG_SEPARATOR)
 
 
 if __name__ == "__main__":

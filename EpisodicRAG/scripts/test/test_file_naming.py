@@ -31,23 +31,28 @@ from domain.file_naming import (
 class TestExtractFileNumber:
     """extract_file_number のテスト"""
 
-    def test_loop_file(self):
-        """Loopファイルからプレフィックスと番号を抽出"""
-        assert extract_file_number("Loop0186_test.txt") == ("Loop", 186)
+    @pytest.mark.parametrize("filename,expected", [
+        ("Loop0186_test.txt", ("Loop", 186)),
+        ("W0001_weekly.txt", ("W", 1)),
+        ("MD03_decadal.txt", ("MD", 3)),
+        ("M001_monthly.txt", ("M", 1)),
+        ("Q003_quarterly.txt", ("Q", 3)),
+        ("A01_annual.txt", ("A", 1)),
+    ])
+    def test_valid_files(self, filename, expected):
+        """有効なファイル名からプレフィックスと番号を抽出"""
+        assert extract_file_number(filename) == expected
 
-    def test_weekly_file(self):
-        """Weeklyファイルからプレフィックスと番号を抽出"""
-        assert extract_file_number("W0001_weekly.txt") == ("W", 1)
-
-    def test_multi_decadal_file(self):
-        """Multi-decadalファイル（MD）からプレフィックスと番号を抽出"""
-        assert extract_file_number("MD03_decadal.txt") == ("MD", 3)
-
-    def test_invalid_input(self):
+    @pytest.mark.parametrize("invalid_input", [
+        "invalid.txt",
+        None,
+        123,
+        "",
+        "no_numbers.txt",
+    ])
+    def test_invalid_input(self, invalid_input):
         """無効な入力はNoneを返す"""
-        assert extract_file_number("invalid.txt") is None
-        assert extract_file_number(None) is None
-        assert extract_file_number(123) is None
+        assert extract_file_number(invalid_input) is None
 
 
 class TestExtractNumberOnly:
@@ -65,17 +70,20 @@ class TestExtractNumberOnly:
 class TestFormatDigestNumber:
     """format_digest_number のテスト"""
 
-    def test_loop_format(self):
-        """Loop番号のフォーマット"""
-        assert format_digest_number("loop", 186) == "Loop0186"
-
-    def test_weekly_format(self):
-        """Weekly番号のフォーマット"""
-        assert format_digest_number("weekly", 1) == "W0001"
-
-    def test_multi_decadal_format(self):
-        """Multi-decadal番号のフォーマット"""
-        assert format_digest_number("multi_decadal", 3) == "MD03"
+    @pytest.mark.parametrize("level,number,expected", [
+        ("loop", 186, "Loop0186"),
+        ("weekly", 1, "W0001"),
+        ("monthly", 12, "M012"),
+        ("quarterly", 3, "Q003"),
+        ("annual", 5, "A05"),
+        ("triennial", 2, "T02"),
+        ("decadal", 1, "D01"),
+        ("multi_decadal", 3, "MD03"),
+        ("centurial", 1, "C01"),
+    ])
+    def test_format_levels(self, level, number, expected):
+        """各レベルの番号フォーマット"""
+        assert format_digest_number(level, number) == expected
 
     def test_invalid_level(self):
         """無効なレベルはValueErrorを発生"""

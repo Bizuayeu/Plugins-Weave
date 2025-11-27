@@ -56,7 +56,7 @@ class DigestTimesTracker:
         # 統一関数を使用して抽出・フォーマット
         return extract_numbers_formatted(input_files)
 
-    def save(self, level: str, input_files: List[str] = None):
+    def save(self, level: str, input_files: Optional[List[str]] = None) -> None:
         """最終ダイジェスト生成時刻と最新処理済みファイル番号を保存"""
         # 空リスト警告
         if input_files is not None and len(input_files) == 0:

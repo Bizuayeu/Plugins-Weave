@@ -14,29 +14,35 @@
 
 ## Architecture (Clean Architecture)
 
-v2.0.0 より、Clean Architecture（4層構造）を採用しています。
+v2.0.0 より、Clean Architecture（4層 + config層）を採用しています。
 
 ```
 scripts/
 ├── domain/           # コアビジネスロジック（最内層）
-├── infrastructure/   # 外部関心事
+├── infrastructure/   # 外部関心事（I/O、ロギング）
+├── config/           # 設定管理（パス解決、閾値管理）
 ├── application/      # ユースケース
 ├── interfaces/       # エントリーポイント
-├── config.py         # 設定管理クラス
-└── test/             # テスト（407テスト）
+└── test/             # テスト（556テスト）
 ```
 
 ### 依存関係ルール
 
 ```
-domain/           ← 何にも依存しない
+domain/           ← 何にも依存しない（純粋なビジネスロジック）
     ↑
 infrastructure/   ← domain/ のみ
     ↑
-application/      ← domain/ + infrastructure/
+config/           ← domain/ + infrastructure/（設定管理層）
+    ↑
+application/      ← domain/ + infrastructure/ + config/
     ↑
 interfaces/       ← application/
 ```
+
+> **Note**: `config/` 層は設定管理を担当し、`DigestConfig` クラスやパス解決、
+> 閾値管理などを提供します。`application/` 層が設定にアクセスする際は
+> この層を経由します。
 
 ---
 
@@ -133,7 +139,7 @@ print(config.get_threshold("weekly"))
 
 ## Tests
 
-`test/` ディレクトリにユニットテストがあります（**407テスト**）。
+`test/` ディレクトリにユニットテストがあります（**556テスト**）。
 
 ```bash
 # 全テスト実行
@@ -154,8 +160,8 @@ python -c "from interfaces import DigestFinalizerFromShadow; print('OK')"
 
 ## See Also
 
-- [ARCHITECTURE.md](../docs/ARCHITECTURE.md) - 技術仕様
-- [API_REFERENCE.md](../docs/API_REFERENCE.md) - API リファレンス
+- [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md) - 技術仕様
+- [API_REFERENCE.md](../docs/dev/API_REFERENCE.md) - API リファレンス
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - 開発参加ガイド
 
 ---

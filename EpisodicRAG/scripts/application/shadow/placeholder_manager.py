@@ -5,7 +5,12 @@ Placeholder Manager
 
 PLACEHOLDER管理（更新・保持判定）
 """
-from domain.constants import PLACEHOLDER_LIMITS, PLACEHOLDER_MARKER, PLACEHOLDER_END
+from domain.constants import (
+    PLACEHOLDER_LIMITS,
+    PLACEHOLDER_MARKER,
+    create_placeholder_text,
+    create_placeholder_keywords,
+)
 from domain.types import OverallDigestData
 from infrastructure import log_info
 
@@ -33,18 +38,15 @@ class PlaceholderManager:
 
         if is_placeholder:
             limits = PLACEHOLDER_LIMITS
-            overall_digest["abstract"] = (
-                f"{PLACEHOLDER_MARKER}: {total_files}ファイル分の全体統合分析 "
-                f"({limits['abstract_chars']}文字程度){PLACEHOLDER_END}"
+            overall_digest["abstract"] = create_placeholder_text(
+                f"{total_files}ファイル分の全体統合分析",
+                limits['abstract_chars']
             )
-            overall_digest["impression"] = (
-                f"{PLACEHOLDER_MARKER}: 所感・展望 "
-                f"({limits['impression_chars']}文字程度){PLACEHOLDER_END}"
+            overall_digest["impression"] = create_placeholder_text(
+                "所感・展望",
+                limits['impression_chars']
             )
-            overall_digest["keywords"] = [
-                f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}"
-                for i in range(1, limits["keyword_count"] + 1)
-            ]
+            overall_digest["keywords"] = create_placeholder_keywords(limits["keyword_count"])
             log_info(f"Initialized placeholder for {total_files} file(s)")
         else:
             log_info(f"Preserved existing analysis (now {total_files} file(s) total)")

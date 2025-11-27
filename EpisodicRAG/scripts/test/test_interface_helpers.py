@@ -15,6 +15,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
 
 
+# =============================================================================
+# テスト用定数
+# =============================================================================
+# 長い文字列テスト用: max_length を超えるサイズ
+LONG_TITLE_LENGTH = 100
+DEFAULT_MAX_LENGTH = 50
+
+
 class TestSanitizeFilename(unittest.TestCase):
     """sanitize_filename() のテスト"""
 
@@ -40,14 +48,14 @@ class TestSanitizeFilename(unittest.TestCase):
 
     def test_max_length(self):
         """長さ制限"""
-        long_title = "a" * 100
-        result = sanitize_filename(long_title, max_length=50)
-        self.assertEqual(len(result), 50)
+        long_title = "a" * LONG_TITLE_LENGTH
+        result = sanitize_filename(long_title, max_length=DEFAULT_MAX_LENGTH)
+        self.assertEqual(len(result), DEFAULT_MAX_LENGTH)
 
     def test_max_length_no_trailing_underscore(self):
         """長さ制限後に末尾アンダースコアなし"""
-        # 50文字目がアンダースコアになるケース
-        result = sanitize_filename("a" * 49 + " b", max_length=50)
+        # 50文字目がアンダースコアになるケース (49文字 + 空白 + "b")
+        result = sanitize_filename("a" * (DEFAULT_MAX_LENGTH - 1) + " b", max_length=DEFAULT_MAX_LENGTH)
         self.assertFalse(result.endswith("_"))
 
     def test_japanese(self):

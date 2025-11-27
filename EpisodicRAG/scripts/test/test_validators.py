@@ -55,35 +55,19 @@ class TestValidateDict:
         assert result == data
 
     @pytest.mark.unit
-    def test_with_list_raises_error(self):
-        """listを渡すとValidationError"""
+    @pytest.mark.parametrize("invalid_input,expected_type", [
+        (["item"], "list"),
+        ("string", "str"),
+        (None, "NoneType"),
+        (123, "int"),
+        ((1, 2), "tuple"),
+    ])
+    def test_with_invalid_type_raises_error(self, invalid_input, expected_type):
+        """dict以外の型を渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
-            validate_dict(["item"], "test context")
-        assert "test context" in str(exc_info.value)
+            validate_dict(invalid_input, "test context")
+        assert expected_type in str(exc_info.value)
         assert "expected dict" in str(exc_info.value)
-        assert "list" in str(exc_info.value)
-
-    @pytest.mark.unit
-    def test_with_string_raises_error(self):
-        """文字列を渡すとValidationError"""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_dict("string", "config.json")
-        assert "config.json" in str(exc_info.value)
-        assert "str" in str(exc_info.value)
-
-    @pytest.mark.unit
-    def test_with_none_raises_error(self):
-        """Noneを渡すとValidationError"""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_dict(None, "test context")
-        assert "NoneType" in str(exc_info.value)
-
-    @pytest.mark.unit
-    def test_with_int_raises_error(self):
-        """intを渡すとValidationError"""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_dict(123, "test context")
-        assert "int" in str(exc_info.value)
 
 
 # =============================================================================
@@ -116,33 +100,19 @@ class TestValidateList:
         assert result == data
 
     @pytest.mark.unit
-    def test_with_dict_raises_error(self):
-        """dictを渡すとValidationError"""
+    @pytest.mark.parametrize("invalid_input,expected_type", [
+        ({"key": "value"}, "dict"),
+        ("string", "str"),
+        (None, "NoneType"),
+        ((1, 2, 3), "tuple"),
+        (123, "int"),
+    ])
+    def test_with_invalid_type_raises_error(self, invalid_input, expected_type):
+        """list以外の型を渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
-            validate_list({"key": "value"}, "test context")
+            validate_list(invalid_input, "test context")
+        assert expected_type in str(exc_info.value)
         assert "expected list" in str(exc_info.value)
-        assert "dict" in str(exc_info.value)
-
-    @pytest.mark.unit
-    def test_with_string_raises_error(self):
-        """文字列を渡すとValidationError"""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_list("string", "source_files")
-        assert "source_files" in str(exc_info.value)
-
-    @pytest.mark.unit
-    def test_with_none_raises_error(self):
-        """Noneを渡すとValidationError"""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_list(None, "test context")
-        assert "NoneType" in str(exc_info.value)
-
-    @pytest.mark.unit
-    def test_with_tuple_raises_error(self):
-        """tupleを渡すとValidationError（listではない）"""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_list((1, 2, 3), "test context")
-        assert "tuple" in str(exc_info.value)
 
 
 # =============================================================================
@@ -228,24 +198,17 @@ class TestIsValidDict:
         assert is_valid_dict({}) is True
 
     @pytest.mark.unit
-    def test_with_list_returns_false(self):
-        """listを渡すとFalse"""
-        assert is_valid_dict([1, 2, 3]) is False
-
-    @pytest.mark.unit
-    def test_with_none_returns_false(self):
-        """Noneを渡すとFalse"""
-        assert is_valid_dict(None) is False
-
-    @pytest.mark.unit
-    def test_with_string_returns_false(self):
-        """文字列を渡すとFalse"""
-        assert is_valid_dict("string") is False
-
-    @pytest.mark.unit
-    def test_with_int_returns_false(self):
-        """intを渡すとFalse"""
-        assert is_valid_dict(123) is False
+    @pytest.mark.parametrize("invalid_input", [
+        [1, 2, 3],
+        None,
+        "string",
+        123,
+        (1, 2),
+        3.14,
+    ])
+    def test_with_non_dict_returns_false(self, invalid_input):
+        """dict以外を渡すとFalse"""
+        assert is_valid_dict(invalid_input) is False
 
 
 # =============================================================================
@@ -266,24 +229,17 @@ class TestIsValidList:
         assert is_valid_list([]) is True
 
     @pytest.mark.unit
-    def test_with_dict_returns_false(self):
-        """dictを渡すとFalse"""
-        assert is_valid_list({"key": "value"}) is False
-
-    @pytest.mark.unit
-    def test_with_none_returns_false(self):
-        """Noneを渡すとFalse"""
-        assert is_valid_list(None) is False
-
-    @pytest.mark.unit
-    def test_with_tuple_returns_false(self):
-        """tupleを渡すとFalse"""
-        assert is_valid_list((1, 2, 3)) is False
-
-    @pytest.mark.unit
-    def test_with_string_returns_false(self):
-        """文字列を渡すとFalse（iterableだがlistではない）"""
-        assert is_valid_list("string") is False
+    @pytest.mark.parametrize("invalid_input", [
+        {"key": "value"},
+        None,
+        (1, 2, 3),
+        "string",
+        123,
+        3.14,
+    ])
+    def test_with_non_list_returns_false(self, invalid_input):
+        """list以外を渡すとFalse"""
+        assert is_valid_list(invalid_input) is False
 
 
 # =============================================================================

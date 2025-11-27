@@ -40,7 +40,7 @@ import sys
 from typing import Optional
 
 # Domain層
-from domain.constants import LEVEL_CONFIG
+from domain.constants import LEVEL_CONFIG, LOG_SEPARATOR
 from domain.exceptions import EpisodicRAGError
 
 # Infrastructure層
@@ -129,9 +129,9 @@ class DigestFinalizerFromShadow:
             DigestError: ダイジェスト処理に失敗した場合
             FileIOError: ファイルI/Oに失敗した場合
         """
-        log_info("=" * 60)
+        log_info(LOG_SEPARATOR)
         log_info(f"Finalize Digest from Shadow: {level.upper()}")
-        log_info("=" * 60)
+        log_info(LOG_SEPARATOR)
 
         # ===== 処理1: RegularDigest作成 =====
         log_info("[Step 1] Creating RegularDigest from Shadow...")
@@ -167,9 +167,9 @@ class DigestFinalizerFromShadow:
         source_files = shadow_digest.get("source_files", [])
         self._persistence.process_cascade_and_cleanup(level, source_files, provisional_file_to_delete)
 
-        log_info("=" * 60)
+        log_info(LOG_SEPARATOR)
         log_info("Digest finalization completed!")
-        log_info("=" * 60)
+        log_info(LOG_SEPARATOR)
 
 
 def main():

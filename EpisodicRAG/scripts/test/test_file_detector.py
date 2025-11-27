@@ -39,31 +39,26 @@ class TestFileDetectorGetSourcePath:
         return FileDetector(config, times_tracker)
 
     @pytest.mark.unit
+    @pytest.mark.parametrize("level,expected_subdir", [
+        ("monthly", "1_Weekly"),
+        ("quarterly", "2_Monthly"),
+        ("annual", "3_Quarterly"),
+        ("triennial", "4_Annual"),
+        ("decadal", "5_Triennial"),
+        ("multi_decadal", "6_Decadal"),
+        ("centurial", "7_Multi-decadal"),
+    ])
+    def test_levels_return_correct_source_dir(self, detector, temp_plugin_env, level, expected_subdir):
+        """各レベルが正しいソースディレクトリを返す"""
+        result = detector.get_source_path(level)
+        expected = temp_plugin_env.digests_path / expected_subdir
+        assert result == expected
+
+    @pytest.mark.unit
     def test_weekly_returns_loops_path(self, detector, temp_plugin_env):
         """weeklyのソースはloops_path"""
         result = detector.get_source_path("weekly")
         assert result == temp_plugin_env.loops_path
-
-    @pytest.mark.unit
-    def test_monthly_returns_weekly_dir(self, detector, temp_plugin_env):
-        """monthlyのソースはweekly（1_Weekly）ディレクトリ"""
-        result = detector.get_source_path("monthly")
-        expected = temp_plugin_env.digests_path / "1_Weekly"
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_quarterly_returns_monthly_dir(self, detector, temp_plugin_env):
-        """quarterlyのソースはmonthly（2_Monthly）ディレクトリ"""
-        result = detector.get_source_path("quarterly")
-        expected = temp_plugin_env.digests_path / "2_Monthly"
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_annual_returns_quarterly_dir(self, detector, temp_plugin_env):
-        """annualのソースはquarterly（3_Quarterly）ディレクトリ"""
-        result = detector.get_source_path("annual")
-        expected = temp_plugin_env.digests_path / "3_Quarterly"
-        assert result == expected
 
     @pytest.mark.unit
     def test_all_levels_have_valid_source(self, detector):

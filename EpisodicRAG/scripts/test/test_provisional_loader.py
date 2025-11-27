@@ -240,3 +240,95 @@ class TestProvisionalLoaderEdgeCases:
         assert result[0]["filename"] == loop_file.name
         assert result[0]["abstract"] == ""
         assert result[0]["keywords"] == []
+
+
+# =============================================================================
+# skipped_count 集計テスト（Phase 6: カバレッジ向上）
+# =============================================================================
+
+class TestProvisionalLoaderSkippedCount:
+    """generate_from_source の skipped_count 集計テスト"""
+
+    @pytest.mark.integration
+    def test_skipped_count_on_json_decode_error(self, loader, temp_plugin_env, caplog):
+        """JSONDecodeError発生時にskipped_countが増加し、警告ログが出力される"""
+        import logging
+        caplog.set_level(logging.WARNING)
+
+        # 不正なJSONファイルを作成
+        invalid_loop = temp_plugin_env.loops_path / "Loop0001_invalid.txt"
+        invalid_loop.write_text("{ invalid json }")
+
+        shadow_digest = {"source_files": [invalid_loop.name]}
+        result = loader.generate_from_source("weekly", shadow_digest)
+
+        # 結果は空
+        assert len(result) == 0
+
+        # 警告ログが出力されている
+        assert "Failed to parse" in caplog.text
+        assert "(skipped)" in caplog.text
+
+    @pytest.mark.integration
+    def test_skipped_count_summary_log_on_multiple_errors(
+        self, loader, temp_plugin_env, caplog
+    ):
+        """複数エラー発生時に集計ログが出力される"""
+        import logging
+        caplog.set_level(logging.WARNING)
+
+        # 複数の不正なJSONファイルを作成
+        invalid1 = temp_plugin_env.loops_path / "Loop0001_bad1.txt"
+        invalid1.write_text("{ bad json 1 }")
+
+        invalid2 = temp_plugin_env.loops_path / "Loop0002_bad2.txt"
+        invalid2.write_text("{ bad json 2 }")
+
+        shadow_digest = {"source_files": [invalid1.name, invalid2.name]}
+        result = loader.generate_from_source("weekly", shadow_digest)
+
+        # 結果は空
+        assert len(result) == 0
+
+        # 集計ログが出力されている
+        assert "Skipped 2/2 files due to errors" in caplog.text
+
+    @pytest.mark.integration
+    def test_skipped_count_partial_success(self, loader, temp_plugin_env, caplog):
+        """一部成功、一部失敗の場合の集計ログ"""
+        import logging
+        caplog.set_level(logging.WARNING)
+
+        # 不正なJSONファイル
+        invalid_loop = temp_plugin_env.loops_path / "Loop0001_invalid.txt"
+        invalid_loop.write_text("{ invalid }")
+
+        # 正常なLoopファイル
+        valid_loop = create_test_loop_file(temp_plugin_env.loops_path, 2)
+
+        shadow_digest = {"source_files": [invalid_loop.name, valid_loop.name]}
+        result = loader.generate_from_source("weekly", shadow_digest)
+
+        # 正常なファイルのみ処理される
+        assert len(result) == 1
+        assert result[0]["filename"] == valid_loop.name
+
+        # 1/2がスキップされた集計ログ
+        assert "Skipped 1/2 files due to errors" in caplog.text
+
+    @pytest.mark.integration
+    def test_no_summary_log_when_no_errors(self, loader, temp_plugin_env, caplog):
+        """エラーがない場合は集計ログが出力されない"""
+        import logging
+        caplog.set_level(logging.WARNING)
+
+        # 正常なLoopファイルのみ
+        valid_loop = create_test_loop_file(temp_plugin_env.loops_path, 1)
+
+        shadow_digest = {"source_files": [valid_loop.name]}
+        result = loader.generate_from_source("weekly", shadow_digest)
+
+        assert len(result) == 1
+
+        # "Skipped"という警告ログはない
+        assert "Skipped" not in caplog.text

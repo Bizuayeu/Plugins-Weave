@@ -7,7 +7,7 @@ RegularDigestの保存、GrandDigest更新、カスケード処理を担当
 """
 
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 from config import DigestConfig, LEVEL_CONFIG
 from application.validators import is_valid_dict
@@ -26,7 +26,8 @@ class DigestPersistence:
         config: DigestConfig,
         grand_digest_manager: GrandDigestManager,
         shadow_manager: ShadowGrandDigestManager,
-        times_tracker: DigestTimesTracker
+        times_tracker: DigestTimesTracker,
+        confirm_callback: Optional[Callable[[str], bool]] = None
     ):
         """
         Args:
@@ -34,6 +35,7 @@ class DigestPersistence:
             grand_digest_manager: GrandDigestManager インスタンス
             shadow_manager: ShadowGrandDigestManager インスタンス
             times_tracker: DigestTimesTracker インスタンス
+            confirm_callback: 確認コールバック関数（テスト用にモック可能）
         """
         self.config = config
         self.digests_path = config.digests_path
@@ -41,6 +43,24 @@ class DigestPersistence:
         self.shadow_manager = shadow_manager
         self.times_tracker = times_tracker
         self.level_config = LEVEL_CONFIG
+        self.confirm_callback = confirm_callback or self._default_confirm
+
+    @staticmethod
+    def _default_confirm(message: str) -> bool:
+        """
+        デフォルトの確認コールバック（対話的）
+
+        Args:
+            message: 確認メッセージ
+
+        Returns:
+            ユーザーが承認した場合True
+        """
+        try:
+            response = input(f"{message} (y/n): ")
+            return response.lower() == 'y'
+        except EOFError:
+            return True  # 非対話環境では自動承認
 
     def save_regular_digest(
         self, level: str, regular_digest: RegularDigestData, new_digest_name: str
@@ -69,12 +89,8 @@ class DigestPersistence:
         # 既存ファイルチェック
         if final_path.exists():
             log_warning(f"File already exists: {final_path}")
-            try:
-                response = input("Overwrite? (y/n): ")
-                if response.lower() != 'y':
-                    raise ValidationError("User cancelled overwrite")
-            except EOFError:
-                log_info("Non-interactive mode: overwriting existing file")
+            if not self.confirm_callback("Overwrite?"):
+                raise ValidationError("User cancelled overwrite")
 
         # 保存
         try:
@@ -133,5 +149,8 @@ class DigestPersistence:
             try:
                 provisional_file_to_delete.unlink()
                 log_info(f"[Step 5] Removed Provisional digest after merge: {provisional_file_to_delete.name}")
-            except OSError as e:
+            except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+                # FileNotFoundError: 競合状態でファイルが既に削除された場合
+                # PermissionError: ファイルがロックされている場合
+                # IsADirectoryError: パスがディレクトリを指している場合
                 log_warning(f"Failed to remove Provisional digest: {e}")

@@ -36,6 +36,9 @@ from infrastructure.json_repository import (
     load_json_with_template,
     file_exists,
     ensure_directory,
+    safe_load_json,
+    confirm_file_overwrite,
+    read_json_from_file_safe,
 )
 
 # File Scanner
@@ -63,6 +66,9 @@ __all__ = [
     "load_json_with_template",
     "file_exists",
     "ensure_directory",
+    "safe_load_json",
+    "confirm_file_overwrite",
+    "read_json_from_file_safe",
     # File Scanner
     "scan_files",
     "get_files_by_pattern",

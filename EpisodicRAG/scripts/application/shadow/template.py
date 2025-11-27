@@ -12,9 +12,9 @@ from typing import Dict, Any, List
 from domain.types import OverallDigestData, ShadowDigestData
 from domain.constants import (
     PLACEHOLDER_LIMITS,
-    PLACEHOLDER_MARKER,
-    PLACEHOLDER_END,
     PLACEHOLDER_SIMPLE,
+    create_placeholder_text,
+    create_placeholder_keywords,
 )
 from domain.version import DIGEST_FORMAT_VERSION
 
@@ -47,12 +47,9 @@ class ShadowTemplate:
             "timestamp": PLACEHOLDER_SIMPLE,
             "source_files": [],
             "digest_type": PLACEHOLDER_SIMPLE,
-            "keywords": [
-                f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}"
-                for i in range(1, limits["keyword_count"] + 1)
-            ],
-            "abstract": f"{PLACEHOLDER_MARKER}: 全体統合分析 ({limits['abstract_chars']}文字程度){PLACEHOLDER_END}",
-            "impression": f"{PLACEHOLDER_MARKER}: 所感・展望 ({limits['impression_chars']}文字程度){PLACEHOLDER_END}"
+            "keywords": create_placeholder_keywords(limits["keyword_count"]),
+            "abstract": create_placeholder_text("全体統合分析", limits['abstract_chars']),
+            "impression": create_placeholder_text("所感・展望", limits['impression_chars'])
         }
 
     def get_template(self) -> ShadowDigestData:

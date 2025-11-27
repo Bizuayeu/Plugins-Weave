@@ -242,11 +242,11 @@ class TestDigestPersistenceInit:
 
 
 # =============================================================================
-# ユーザー入力テスト
+# ユーザー入力テスト（レガシー: monkeypatch方式）
 # =============================================================================
 
 class TestDigestPersistenceUserInput:
-    """ユーザー入力関連のテスト"""
+    """ユーザー入力関連のテスト（レガシー）"""
 
     @pytest.mark.integration
     def test_overwrite_user_cancels(self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch):
@@ -304,6 +304,88 @@ class TestDigestPersistenceUserInput:
         with open(result_path2, 'r', encoding='utf-8') as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["abstract"] == "Non-interactive update"
+
+
+# =============================================================================
+# コールバック注入テスト（推奨: confirm_callback方式）
+# =============================================================================
+
+class TestDigestPersistenceConfirmCallback:
+    """confirm_callback注入方式のテスト"""
+
+    @pytest.mark.integration
+    def test_overwrite_cancelled_via_callback(
+        self, config, grand_digest_manager, shadow_manager, times_tracker,
+        valid_regular_digest, temp_plugin_env
+    ):
+        """コールバックでキャンセル時にValidationErrorが発生"""
+        from domain.exceptions import ValidationError
+
+        # 常にキャンセルするコールバック
+        persistence = DigestPersistence(
+            config, grand_digest_manager, shadow_manager, times_tracker,
+            confirm_callback=lambda msg: False
+        )
+
+        # 先にファイルを作成
+        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        assert result_path.exists()
+
+        # 同じファイルに上書き試行
+        with pytest.raises(ValidationError) as exc_info:
+            persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        assert "User cancelled" in str(exc_info.value)
+
+    @pytest.mark.integration
+    def test_overwrite_confirmed_via_callback(
+        self, config, grand_digest_manager, shadow_manager, times_tracker,
+        valid_regular_digest, temp_plugin_env
+    ):
+        """コールバックで承認時に正常に上書きされる"""
+        # 常に承認するコールバック
+        persistence = DigestPersistence(
+            config, grand_digest_manager, shadow_manager, times_tracker,
+            confirm_callback=lambda msg: True
+        )
+
+        # 先にファイルを作成
+        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        assert result_path.exists()
+
+        # 内容を変更して上書き
+        valid_regular_digest["overall_digest"]["abstract"] = "Callback updated"
+        result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+
+        assert result_path2.exists()
+        with open(result_path2, 'r', encoding='utf-8') as f:
+            saved_data = json.load(f)
+        assert saved_data["overall_digest"]["abstract"] == "Callback updated"
+
+    @pytest.mark.unit
+    def test_default_callback_used_when_none_provided(
+        self, config, grand_digest_manager, shadow_manager, times_tracker
+    ):
+        """confirm_callbackがNoneの場合、デフォルトコールバックが使用される"""
+        persistence = DigestPersistence(
+            config, grand_digest_manager, shadow_manager, times_tracker,
+            confirm_callback=None
+        )
+
+        # _default_confirmメソッドが設定されていることを確認
+        assert persistence.confirm_callback == DigestPersistence._default_confirm
+
+    @pytest.mark.unit
+    def test_custom_callback_stored(
+        self, config, grand_digest_manager, shadow_manager, times_tracker
+    ):
+        """カスタムコールバックが正しく保存される"""
+        custom_callback = lambda msg: True
+        persistence = DigestPersistence(
+            config, grand_digest_manager, shadow_manager, times_tracker,
+            confirm_callback=custom_callback
+        )
+
+        assert persistence.confirm_callback is custom_callback
 
 
 # =============================================================================
