@@ -160,13 +160,36 @@ print(config.get_threshold("weekly"))
 
 `test/` ディレクトリにユニットテストがあります（**847テスト**）。
 
+### テストディレクトリ構造
+
+```
+test/
+├── conftest.py              # 共通フィクスチャ
+├── test_constants.py        # 定数テスト
+├── test_helpers.py          # ヘルパーテスト
+├── domain_tests/            # domain層テスト
+├── infrastructure_tests/    # infrastructure層テスト
+├── config_tests/            # config層テスト
+├── application_tests/       # application層テスト
+├── interfaces_tests/        # interfaces層テスト
+├── integration_tests/       # 統合テスト
+└── performance_tests/       # パフォーマンステスト
+```
+
+### テスト実行
+
 ```bash
 # 全テスト実行
 cd scripts
 python -m pytest test/ -v
 
-# 特定テストファイル実行
-python -m pytest test/test_validators.py -v
+# 層別テスト実行
+python -m pytest test/domain_tests/ -v
+python -m pytest test/application_tests/ -v
+python -m pytest test/integration_tests/ -v
+
+# パフォーマンステスト
+python -m pytest test/performance_tests/ -v
 
 # 層別インポート確認
 python -c "from domain import LEVEL_CONFIG, __version__; print(__version__)"
