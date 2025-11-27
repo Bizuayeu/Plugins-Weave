@@ -1,5 +1,7 @@
 [Home](../README.md) > [Docs](README.md) > GLOSSARY
 
+[English](GLOSSARY.en.md) | 日本語
+
 # 用語集 (Glossary)
 
 EpisodicRAGプラグインで使用される専門用語の定義集です。

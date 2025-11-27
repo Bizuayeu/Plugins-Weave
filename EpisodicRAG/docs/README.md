@@ -87,6 +87,7 @@ AI エージェントが参照すべき共通概念の Single Source of Truth:
 
 - [プロジェクト README](../README.md)
 - [CONTRIBUTING.md](../CONTRIBUTING.md)
+- [CHANGELOG.md](../CHANGELOG.md) - 変更履歴
 - [GitHub Repository](https://github.com/Bizuayeu/Plugins-Weave)
 
 ---

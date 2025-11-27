@@ -332,37 +332,10 @@ python scripts/config.py --show-paths
 
 ## 4. よくある問題と解決方法
 
-> 📖 **高度なトラブルシューティング**: DigestAnalyzer、ShadowGrandDigest、階層カスケードなどの高度な問題については [TROUBLESHOOTING.md](TROUBLESHOOTING.md) を参照してください。
+一般的な問題と解決方法については以下を参照してください：
 
-### インストール・セットアップ
-
-| 問題 | 解決方法 |
-|------|---------|
-| プラグインがインストールできない | `/marketplace add https://github.com/Bizuayeu/Plugins-Weave` → `/plugin install EpisodicRAG-Plugin@Plugins-Weave` |
-| config.jsonが見つからない | `@digest-setup` を実行 |
-
-### ファイルとパス
-
-| 問題 | 解決方法 |
-|------|---------|
-| Loopファイルが検出されない | ファイル命名規則 (`Loop0001_タイトル.txt`) を確認、`@digest-auto` でパス確認 |
-| パスが正しく解決されない | `python scripts/config.py --show-paths` で確認 |
-
-### まだらボケ問題
-
-**症状**: 新しいLoopを追加したが、ShadowGrandDigestに反映されていない
-
-**予防**: Loopを追加したら都度 `/digest` を実行
-
-**回復**: `/digest` を再実行して未分析ファイルを処理
-
-### よくある質問
-
-| 質問 | 回答 |
-|------|------|
-| 再インストールで設定が消えた | `@digest-setup` で再設定 |
-| 別の環境で同じ設定を使いたい | config.jsonをバックアップしてコピー（パス設定は調整が必要） |
-| GitHubセットアップは必須？ | いいえ。オプション機能です。詳細は [ADVANCED.md](ADVANCED.md) |
+- **[FAQ.md](FAQ.md)** - よくある質問と回答
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - 高度なトラブルシューティング（DigestAnalyzer、ShadowGrandDigest、階層カスケードなど）
 
 ---
 

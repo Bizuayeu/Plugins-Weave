@@ -32,6 +32,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 | ❓ **問題が発生した** | [FAQ](EpisodicRAG/docs/user/FAQ.md) → [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
 | 🛠️ **開発に参加する** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) → [ARCHITECTURE](EpisodicRAG/docs/dev/ARCHITECTURE.md) |
 | 🤖 **AI/Claude 仕様** | [AI Spec Hub](EpisodicRAG/docs/README.md) |
+| 📋 **変更履歴を確認** | [CHANGELOG](EpisodicRAG/CHANGELOG.md) |
 
 ---
 
