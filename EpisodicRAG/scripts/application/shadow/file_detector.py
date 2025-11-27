@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import List, Optional
 
 from application.tracking import DigestTimesTracker
-from config import LEVEL_CONFIG, DigestConfig
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG
 from domain.file_naming import extract_number_only, filter_files_after
 from infrastructure import log_warning
 

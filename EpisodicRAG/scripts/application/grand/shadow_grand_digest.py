@@ -28,8 +28,8 @@ from application.shadow import FileDetector, ShadowIO, ShadowTemplate, ShadowUpd
 from application.tracking import DigestTimesTracker
 
 # Plugin版: config.pyをインポート
-from config import LEVEL_CONFIG, LEVEL_NAMES, DigestConfig
-from domain.constants import LOG_SEPARATOR
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, LOG_SEPARATOR
 from domain.types import OverallDigestData
 from infrastructure import log_info, log_warning
 

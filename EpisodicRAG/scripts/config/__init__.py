@@ -6,11 +6,9 @@ Digest Plugin Configuration Manager
 Plugin自己完結版：Plugin内の.claude-plugin/config.jsonから設定を読み込む
 
 Usage:
-    # 推奨（新しいインポートパス）
+    from config import DigestConfig
     from domain.file_naming import extract_file_number, format_digest_number
-
-    # 後方互換（従来のインポートパス）
-    from config import extract_file_number, format_digest_number
+    from domain.types import ConfigData
 """
 
 import json
@@ -18,25 +16,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Domain層から定数をインポート（Single Source of Truth）
-# 明示的な再エクスポート（ruff F401対応）
-from domain.constants import DEFAULT_THRESHOLDS as DEFAULT_THRESHOLDS
-from domain.constants import LEVEL_CONFIG as LEVEL_CONFIG
-from domain.constants import LEVEL_NAMES as LEVEL_NAMES
-from domain.constants import PLACEHOLDER_END as PLACEHOLDER_END
-from domain.constants import PLACEHOLDER_LIMITS as PLACEHOLDER_LIMITS
-from domain.constants import PLACEHOLDER_MARKER as PLACEHOLDER_MARKER
-from domain.constants import PLACEHOLDER_SIMPLE as PLACEHOLDER_SIMPLE
-from domain.constants import SOURCE_TYPE_LOOPS as SOURCE_TYPE_LOOPS
+# Domain層からインポート
+from domain.constants import LEVEL_CONFIG, SOURCE_TYPE_LOOPS
 from domain.exceptions import ConfigError
-
-# Domain層からファイル命名関数を再エクスポート（後方互換性）
-# 明示的な再エクスポート（ruff F401対応）
-from domain.file_naming import extract_file_number as extract_file_number
-from domain.file_naming import extract_number_only as extract_number_only
-from domain.file_naming import format_digest_number as format_digest_number
-from domain.types import ConfigData as ConfigData
-from domain.types import LevelConfigData as LevelConfigData
 
 from .config_repository import load_config
 from .directory_validator import DirectoryValidator
@@ -46,6 +28,9 @@ from .path_resolver import PathResolver
 # 分割されたモジュールをインポート
 from .plugin_root_resolver import find_plugin_root
 from .threshold_provider import ThresholdProvider
+
+# Infrastructure層からログ関数をインポート（show_paths用）
+from infrastructure import log_info
 
 # =============================================================================
 # DigestConfig クラス（Facade）
@@ -74,36 +59,22 @@ class DigestConfig:
             self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
             self.config = self.load_config()
 
-            # 各コンポーネントを初期化（遅延初期化用のキャッシュ）
+            # 各コンポーネントを即時初期化（軽量オブジェクトのため遅延不要）
             self._path_resolver = PathResolver(self.plugin_root, self.config)
             self._threshold_provider = ThresholdProvider(self.config)
-            self._level_path_service_cache: Optional[LevelPathService] = None
-            self._directory_validator_cache: Optional[DirectoryValidator] = None
+            self._level_path_service = LevelPathService(self._path_resolver.digests_path)
+            self._directory_validator = DirectoryValidator(
+                self._path_resolver.loops_path,
+                self._path_resolver.digests_path,
+                self._path_resolver.essences_path,
+                self._level_path_service,
+            )
 
             # 後方互換性のためbase_dirを公開
             self.base_dir = self._path_resolver.base_dir
 
         except (PermissionError, OSError) as e:
             raise ConfigError(f"Failed to initialize configuration: {e}") from e
-
-    @property
-    def _level_path_service(self) -> LevelPathService:
-        """LevelPathServiceの遅延初期化"""
-        if self._level_path_service_cache is None:
-            self._level_path_service_cache = LevelPathService(self._path_resolver.digests_path)
-        return self._level_path_service_cache
-
-    @property
-    def _directory_validator(self) -> DirectoryValidator:
-        """DirectoryValidatorの遅延初期化"""
-        if self._directory_validator_cache is None:
-            self._directory_validator_cache = DirectoryValidator(
-                self._path_resolver.loops_path,
-                self._path_resolver.digests_path,
-                self._path_resolver.essences_path,
-                self._level_path_service,
-            )
-        return self._directory_validator_cache
 
     def _find_plugin_root(self) -> Path:
         """
@@ -214,50 +185,33 @@ class DigestConfig:
         """指定レベルのthresholdを動的に取得"""
         return self._threshold_provider.get_threshold(level)
 
-    @property
-    def weekly_threshold(self) -> int:
-        """Weekly生成に必要なLoop数"""
-        return self._threshold_provider.weekly_threshold
+    def __getattr__(self, name: str) -> Any:
+        """
+        動的なthresholdプロパティアクセス
 
-    @property
-    def monthly_threshold(self) -> int:
-        """Monthly生成に必要なWeekly数"""
-        return self._threshold_provider.monthly_threshold
+        例: config.weekly_threshold -> _threshold_provider.weekly_threshold
 
-    @property
-    def quarterly_threshold(self) -> int:
-        """Quarterly生成に必要なMonthly数"""
-        return self._threshold_provider.quarterly_threshold
+        サポートするプロパティ:
+            - weekly_threshold, monthly_threshold, quarterly_threshold
+            - annual_threshold, triennial_threshold, decadal_threshold
+            - multi_decadal_threshold, centurial_threshold
 
-    @property
-    def annual_threshold(self) -> int:
-        """Annual生成に必要なQuarterly数"""
-        return self._threshold_provider.annual_threshold
+        Args:
+            name: アトリビュート名
 
-    @property
-    def triennial_threshold(self) -> int:
-        """Triennial生成に必要なAnnual数"""
-        return self._threshold_provider.triennial_threshold
+        Returns:
+            threshold値
 
-    @property
-    def decadal_threshold(self) -> int:
-        """Decadal生成に必要なTriennial数"""
-        return self._threshold_provider.decadal_threshold
-
-    @property
-    def multi_decadal_threshold(self) -> int:
-        """Multi-decadal生成に必要なDecadal数"""
-        return self._threshold_provider.multi_decadal_threshold
-
-    @property
-    def centurial_threshold(self) -> int:
-        """Centurial生成に必要なMulti-decadal数"""
-        return self._threshold_provider.centurial_threshold
+        Raises:
+            AttributeError: 無効なアトリビュート名の場合
+        """
+        if name.endswith("_threshold"):
+            # ThresholdProviderに委譲
+            return getattr(self._threshold_provider, name)
+        raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}'")
 
     def show_paths(self):
         """パス設定を表示（デバッグ用）"""
-        from infrastructure import log_info
-
         log_info(f"Plugin Root: {self.plugin_root}")
         log_info(f"Config File: {self.config_file}")
         log_info(f"Base Dir (setting): {self.config.get('base_dir', '.')}")

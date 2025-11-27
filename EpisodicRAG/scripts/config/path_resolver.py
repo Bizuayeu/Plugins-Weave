@@ -7,21 +7,24 @@ base_dir基準のパス解決
 """
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from domain.exceptions import ConfigError
+from domain.types import ConfigData
+
+__all__ = ["PathResolver"]
 
 
 class PathResolver:
     """パス解決クラス"""
 
-    def __init__(self, plugin_root: Path, config: Dict[str, Any]):
+    def __init__(self, plugin_root: Path, config: ConfigData):
         """
         初期化
 
         Args:
             plugin_root: Pluginルート
-            config: 設定辞書
+            config: 設定辞書（ConfigData型）
         """
         self.plugin_root = plugin_root
         self.config = config

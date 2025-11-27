@@ -50,8 +50,9 @@ from application.finalize import (
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
 
-# 設定（config.pyはまだ移行していない）
-from config import DigestConfig, format_digest_number
+# 設定
+from config import DigestConfig
+from domain.file_naming import format_digest_number
 
 # Domain層
 from domain.constants import LEVEL_CONFIG, LOG_SEPARATOR

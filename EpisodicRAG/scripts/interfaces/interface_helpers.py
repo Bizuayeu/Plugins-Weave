@@ -72,7 +72,7 @@ def get_next_digest_number(digests_path: Path, level: str) -> int:
         ValueError: 無効なlevelが指定された場合
     """
     # 循環インポートを避けるためローカルインポート
-    from config import LEVEL_CONFIG
+    from domain.constants import LEVEL_CONFIG
     from domain.file_naming import find_max_number
 
     config = LEVEL_CONFIG.get(level)

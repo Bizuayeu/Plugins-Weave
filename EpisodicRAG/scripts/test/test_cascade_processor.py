@@ -22,7 +22,8 @@ from application.shadow.cascade_processor import CascadeProcessor
 from application.shadow.file_appender import FileAppender
 from application.shadow.placeholder_manager import PlaceholderManager
 from application.tracking import DigestTimesTracker
-from config import LEVEL_CONFIG, DigestConfig
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG
 
 # =============================================================================
 # フィクスチャ

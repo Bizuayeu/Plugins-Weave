@@ -17,7 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from test_helpers import TempPluginEnvironment
 
-from config import LEVEL_CONFIG, DigestConfig
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG
 from domain.exceptions import ConfigError
 
 # =============================================================================

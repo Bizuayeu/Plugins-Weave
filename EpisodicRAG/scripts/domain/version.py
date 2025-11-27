@@ -7,7 +7,7 @@ EpisodicRAG バージョン定義
 """
 
 # プラグインバージョン (plugin.json と同期)
-__version__ = "2.1.0"
+__version__ = "2.3.0"
 
 # データフォーマットバージョン (GrandDigest, ShadowGrandDigest, RegularDigest用)
 # プラグインバージョンとは独立して管理

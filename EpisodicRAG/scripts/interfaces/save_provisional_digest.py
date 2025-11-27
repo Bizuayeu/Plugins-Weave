@@ -32,8 +32,9 @@ if sys.platform == 'win32' and __name__ == "__main__":
 # Application層
 from application.validators import is_valid_dict, is_valid_list
 
-# 設定（config.pyはまだ移行していない）
-from config import DigestConfig, format_digest_number
+# 設定
+from config import DigestConfig
+from domain.file_naming import format_digest_number
 from domain.constants import LEVEL_CONFIG
 from domain.exceptions import ConfigError, EpisodicRAGError, ValidationError
 from domain.file_naming import find_max_number

@@ -16,7 +16,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from test_helpers import LEVEL_DIRS, TempPluginEnvironment
 
-from config import LEVEL_CONFIG, LEVEL_NAMES, DigestConfig, format_digest_number
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
+from domain.file_naming import format_digest_number
 
 
 class TestProvisionalDirectoryStructure(unittest.TestCase):

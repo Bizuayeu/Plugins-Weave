@@ -10,7 +10,8 @@ finalize_from_shadow.py から分離。
 from datetime import datetime
 
 from application.validators import is_valid_dict
-from config import LEVEL_NAMES, DigestConfig
+from config import DigestConfig
+from domain.constants import LEVEL_NAMES
 from domain.exceptions import DigestError
 from domain.types import GrandDigestData, OverallDigestData
 from domain.version import DIGEST_FORMAT_VERSION

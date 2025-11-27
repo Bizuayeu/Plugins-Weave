@@ -27,3 +27,5 @@ AI専門エージェント仕様書
 新しいエージェントを追加する場合は [CONTRIBUTING.md](../CONTRIBUTING.md) を参照してください。
 
 ---
+
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)

@@ -11,7 +11,8 @@ from datetime import datetime
 from typing import List, Optional
 
 from application.validators import is_valid_list
-from config import LEVEL_NAMES, DigestConfig
+from config import DigestConfig
+from domain.constants import LEVEL_NAMES
 from domain.file_naming import extract_numbers_formatted
 from domain.types import DigestTimesData
 from infrastructure import load_json_with_template, log_info, log_warning, save_json

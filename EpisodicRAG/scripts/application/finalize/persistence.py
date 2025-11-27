@@ -12,7 +12,8 @@ from typing import Callable, List, Optional
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
 from application.validators import is_valid_dict
-from config import LEVEL_CONFIG, DigestConfig
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG
 from domain.exceptions import DigestError, FileIOError, ValidationError
 from domain.types import RegularDigestData
 from infrastructure import log_info, log_warning, save_json

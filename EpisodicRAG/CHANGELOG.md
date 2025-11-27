@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2025-11-28
+
+### Breaking Changes
+
+- **config/__init__.py: 後方互換性用の再エクスポートを完全削除**
+  - `extract_file_number`, `extract_number_only`, `format_digest_number` → `domain.file_naming`から直接インポート
+  - `ConfigData`, `LevelConfigData` → `domain.types`から直接インポート
+
+  ```python
+  # 旧（動作しない）
+  from config import extract_file_number, ConfigData
+
+  # 新（推奨）
+  from domain.file_naming import extract_file_number
+  from domain.types import ConfigData
+  ```
+
+---
+
+## [2.2.0] - 2025-11-28
+
+### Changed
+
+- **型安全性向上**: `Dict[str, Any]` → `ConfigData` (TypedDict) への移行
+  - `config/path_resolver.py`: パラメータ型を `ConfigData` に変更
+  - `config/threshold_provider.py`: パラメータ型を `ConfigData` に変更
+- **config/__init__.py リファクタリング**:
+  - domain定数の再エクスポートを削除（直接 `from domain.constants import ...` を使用）
+  - 初期化パターンを即時初期化に統一（遅延初期化を廃止）
+  - ローカルインポートをモジュールレベルに移動
+- **infrastructure/json_repository.py**: エラーハンドリングを `_safe_read_json()` ヘルパー関数に共通化
+- **反復プロパティの動的化**:
+  - `ThresholdProvider`: `__getattr__` を使用した動的プロパティアクセス
+  - `DigestConfig`: threshold委譲を動的化
+
+### Added
+
+- **GrandDigestManager のユニットテスト追加** (11件):
+  - `get_template()` の構造・バージョン・レベル検証
+  - `load_or_create()` の新規作成・既存読み込み・破損ファイル処理
+  - `update_digest()` の正常更新・レベル保持・タイムスタンプ更新
+- **`__all__` エクスポートの追加**:
+  - `config/path_resolver.py`
+  - `config/threshold_provider.py`
+  - `infrastructure/json_repository.py`
+  - `infrastructure/logging_config.py`
+  - `application/shadow/cascade_processor.py`
+- `agents/README.md` にフッターを追加
+
+### Fixed
+
+- `config/__init__.py`: ローカルインポート (`show_paths` メソッド内) をモジュールトップレベルに移動
+- インポートパスの統一: `from config import LEVEL_CONFIG` → `from domain.constants import LEVEL_CONFIG`
+
+---
+
 ## [2.1.0] - 2025-11-27
 
 ### Changed
@@ -302,6 +358,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 *For more details, see [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md)*
 
 <!-- Version comparison links -->
+[2.3.0]: https://github.com/Bizuayeu/Plugins-Weave/compare/v2.2.0...v2.3.0
+[2.2.0]: https://github.com/Bizuayeu/Plugins-Weave/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/Bizuayeu/Plugins-Weave/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/Bizuayeu/Plugins-Weave/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/Bizuayeu/Plugins-Weave/compare/v1.1.8...v2.0.0

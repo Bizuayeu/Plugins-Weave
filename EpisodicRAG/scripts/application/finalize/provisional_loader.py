@@ -11,7 +11,8 @@ from typing import List, Optional, Tuple
 
 from application.grand import ShadowGrandDigestManager
 from application.validators import is_valid_dict
-from config import LEVEL_CONFIG, DigestConfig
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG
 from domain.exceptions import DigestError
 from domain.types import IndividualDigestData, OverallDigestData
 from infrastructure import load_json, log_info, log_warning, try_read_json_from_file

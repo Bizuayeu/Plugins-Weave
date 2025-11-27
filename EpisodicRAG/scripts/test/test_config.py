@@ -23,11 +23,8 @@ import pytest
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import (
-    LEVEL_CONFIG,
-    LEVEL_NAMES,
-    DigestConfig,
-)
+from config import DigestConfig
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
 
 # =============================================================================
@@ -142,16 +139,16 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_resolve_path_missing_paths_section(self, config_env):
-        """pathsセクションがない場合"""
+        """pathsセクションがない場合、初期化時にエラー"""
         config_data = config_env["config_data"]
         del config_data["paths"]
         with open(config_env["config_file"], 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        # 即時初期化により、DigestConfigコンストラクタでエラーが発生
         with pytest.raises(ConfigError):
-            config.resolve_path("loops_dir")
+            DigestConfig(plugin_root=env.plugin_root)
 
     @pytest.mark.unit
     def test_get_level_dir_all_levels(self, config_env):

@@ -8,6 +8,8 @@ Cascade Processor
 
 from typing import TYPE_CHECKING, Dict, Optional
 
+__all__ = ["CascadeProcessor"]
+
 from application.validators import is_valid_dict
 from domain.types import LevelHierarchyEntry, OverallDigestData
 from infrastructure import log_info

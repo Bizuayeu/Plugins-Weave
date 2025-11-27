@@ -21,6 +21,44 @@ from domain.exceptions import FileIOError
 # モジュールロガー
 logger = logging.getLogger("episodic_rag")
 
+__all__ = [
+    "load_json",
+    "save_json",
+    "load_json_with_template",
+    "file_exists",
+    "ensure_directory",
+    "try_load_json",
+    "confirm_file_overwrite",
+    "try_read_json_from_file",
+]
+
+
+def _safe_read_json(file_path: Path, raise_on_error: bool = True) -> Optional[Dict[str, Any]]:
+    """
+    JSONファイルを安全に読み込む共通ヘルパー
+
+    Args:
+        file_path: 読み込むJSONファイルのパス
+        raise_on_error: エラー時に例外を発生させるか（Falseの場合はNoneを返す）
+
+    Returns:
+        読み込んだdict、またはエラー時はNone（raise_on_error=Falseの場合）
+
+    Raises:
+        FileIOError: raise_on_error=Trueの場合、JSONパースまたはI/Oエラー時
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        if raise_on_error:
+            raise FileIOError(f"Invalid JSON in {file_path}: {e}") from e
+        return None
+    except IOError as e:
+        if raise_on_error:
+            raise FileIOError(f"Failed to read {file_path}: {e}") from e
+        return None
+
 
 def load_json(file_path: Path) -> Dict[str, Any]:
     """
@@ -38,13 +76,10 @@ def load_json(file_path: Path) -> Dict[str, Any]:
     if not file_path.exists():
         raise FileIOError(f"File not found: {file_path}")
 
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except json.JSONDecodeError as e:
-        raise FileIOError(f"Invalid JSON in {file_path}: {e}") from e
-    except IOError as e:
-        raise FileIOError(f"Failed to read {file_path}: {e}") from e
+    result = _safe_read_json(file_path, raise_on_error=True)
+    # _safe_read_jsonがraise_on_error=Trueで呼ばれた場合、Noneは返らない
+    assert result is not None  # 型チェッカー用
+    return result
 
 
 def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
@@ -92,48 +127,40 @@ def load_json_with_template(
     """
     logger.debug(f"load_json_with_template called: target={target_file}, template={template_file}")
 
-    try:
-        # ファイルが存在する場合はそのまま読み込み
-        if target_file.exists():
-            logger.debug(f"Loading existing file: {target_file}")
-            with open(target_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            logger.debug(f"Loaded {len(data)} keys from {target_file.name}")
-            return data
+    # ファイルが存在する場合はそのまま読み込み
+    if target_file.exists():
+        logger.debug(f"Loading existing file: {target_file}")
+        data = _safe_read_json(target_file, raise_on_error=True)
+        assert data is not None  # 型チェッカー用
+        logger.debug(f"Loaded {len(data)} keys from {target_file.name}")
+        return data
 
-        # テンプレートファイルが存在する場合はそこから初期化
-        if template_file and template_file.exists():
-            logger.debug(f"Target not found, loading from template: {template_file}")
-            with open(template_file, 'r', encoding='utf-8') as f:
-                template = json.load(f)
-            if save_on_create:
-                save_json(target_file, template)
-                logger.debug(f"Saved initialized file to: {target_file}")
-            msg = log_message or f"Initialized {target_file.name} from template"
-            logger.info(msg)
-            return template
+    # テンプレートファイルが存在する場合はそこから初期化
+    if template_file and template_file.exists():
+        logger.debug(f"Target not found, loading from template: {template_file}")
+        template = _safe_read_json(template_file, raise_on_error=True)
+        assert template is not None  # 型チェッカー用
+        if save_on_create:
+            save_json(target_file, template)
+            logger.debug(f"Saved initialized file to: {target_file}")
+        msg = log_message or f"Initialized {target_file.name} from template"
+        logger.info(msg)
+        return template
 
-        # デフォルトファクトリーがある場合はそれを使用
-        if default_factory:
-            logger.debug("No template found, using default_factory")
-            template = default_factory()
-            if save_on_create:
-                save_json(target_file, template)
-                logger.debug(f"Saved default template to: {target_file}")
-            msg = log_message or f"Created {target_file.name} with default template"
-            logger.info(msg)
-            return template
+    # デフォルトファクトリーがある場合はそれを使用
+    if default_factory:
+        logger.debug("No template found, using default_factory")
+        template = default_factory()
+        if save_on_create:
+            save_json(target_file, template)
+            logger.debug(f"Saved default template to: {target_file}")
+        msg = log_message or f"Created {target_file.name} with default template"
+        logger.info(msg)
+        return template
 
-        # どちらもない場合は空のdictを返す
-        logger.debug("No template or factory provided, returning empty dict")
-        return {}
-
-    except json.JSONDecodeError as e:
-        logger.debug(f"JSON decode error in {target_file}: {e}")
-        raise FileIOError(f"Invalid JSON in {target_file}: {e}") from e
-    except IOError as e:
-        logger.debug(f"IO error reading {target_file}: {e}")
-        raise FileIOError(f"Failed to read {target_file}: {e}") from e
+    # どちらもない場合は空のdictを返す
+    logger.debug("No template or factory provided, returning empty dict")
+    return {}
 
 
 def file_exists(file_path: Path) -> bool:
@@ -194,13 +221,10 @@ def try_load_json(
     if not file_path.exists():
         return default
 
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError) as e:
-        if log_on_error:
-            logger.warning(f"Failed to load JSON from {file_path}: {e}")
-        return default
+    result = _safe_read_json(file_path, raise_on_error=False)
+    if result is None and log_on_error:
+        logger.warning(f"Failed to load JSON from {file_path}")
+    return result if result is not None else default
 
 
 def confirm_file_overwrite(file_path: Path, force: bool = False) -> bool:
@@ -254,14 +278,7 @@ def try_read_json_from_file(file_path: Path, log_on_error: bool = True) -> Optio
     if file_path.suffix != '.txt':
         return None
 
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except json.JSONDecodeError:
-        if log_on_error:
-            logger.warning(f"Failed to parse {file_path.name} as JSON (skipped)")
-        return None
-    except OSError as e:
-        if log_on_error:
-            logger.warning(f"Error reading {file_path.name}: {e} (skipped)")
-        return None
+    result = _safe_read_json(file_path, raise_on_error=False)
+    if result is None and log_on_error:
+        logger.warning(f"Failed to parse {file_path.name} as JSON (skipped)")
+    return result

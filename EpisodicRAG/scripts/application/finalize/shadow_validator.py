@@ -10,7 +10,7 @@ from typing import Callable, List, Optional
 
 from application.grand import ShadowGrandDigestManager
 from application.validators import is_valid_dict, is_valid_list
-from config import extract_file_number
+from domain.file_naming import extract_file_number
 from domain.exceptions import DigestError, ValidationError
 from domain.types import OverallDigestData
 from infrastructure import log_info, log_warning
