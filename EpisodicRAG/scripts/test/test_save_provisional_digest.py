@@ -34,7 +34,8 @@ class TestProvisionalDigestSaver(unittest.TestCase):
         self.weekly_provisional.mkdir(parents=True, exist_ok=True)
 
         # テスト用のsaverを作成（configをモック）
-        with patch('save_provisional_digest.DigestConfig') as mock_config_class:
+        # interfaces層に移動したため、パッチ先を変更
+        with patch('interfaces.save_provisional_digest.DigestConfig') as mock_config_class:
             mock_config = MagicMock()
             mock_config.digests_path = self.digests_path
             # get_provisional_dir をモック

@@ -2,19 +2,23 @@
 Shadow Package - ShadowGrandDigest management components
 =========================================================
 
-ShadowGrandDigestの管理コンポーネント群
+後方互換性レイヤー - application.shadow層から再エクスポート
 
-Components:
-    - ShadowTemplate: テンプレート生成
-    - FileDetector: 新規ファイル検出
-    - ShadowIO: Shadow I/O処理
-    - ShadowUpdater: Shadow更新・カスケード処理
+Usage:
+    # 推奨（新しいインポートパス）
+    from application.shadow import ShadowTemplate, FileDetector, ShadowIO, ShadowUpdater
+
+    # 後方互換（従来のインポートパス）
+    from shadow import ShadowTemplate, FileDetector, ShadowIO, ShadowUpdater
 """
 
-from .template import ShadowTemplate
-from .file_detector import FileDetector
-from .shadow_io import ShadowIO
-from .shadow_updater import ShadowUpdater
+# Application層から再エクスポート
+from application.shadow import (
+    ShadowTemplate,
+    FileDetector,
+    ShadowIO,
+    ShadowUpdater,
+)
 
 __all__ = [
     "ShadowTemplate",

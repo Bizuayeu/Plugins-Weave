@@ -3,74 +3,31 @@
 EpisodicRAG カスタム例外
 ========================
 
-プロジェクト固有の例外クラス階層。
-汎用Exceptionを具体的な例外に置き換え、デバッグを容易にする。
+後方互換性レイヤー - domain.exceptions から再エクスポート
 
 Usage:
-    from exceptions import ConfigError, DigestError, ValidationError, FileIOError
+    # 推奨（新しいインポートパス）
+    from domain import ConfigError, DigestError, ValidationError, FileIOError
 
-    raise ConfigError("Invalid config.json format")
-    raise ValidationError("source_files must be a list")
+    # 後方互換（従来のインポートパス）
+    from exceptions import ConfigError, DigestError, ValidationError, FileIOError
 """
 
+# Re-export from domain layer
+from domain.exceptions import (
+    EpisodicRAGError,
+    ConfigError,
+    DigestError,
+    ValidationError,
+    FileIOError,
+    CorruptedDataError,
+)
 
-class EpisodicRAGError(Exception):
-    """
-    EpisodicRAG 基底例外クラス
-
-    すべてのプロジェクト固有例外の親クラス。
-    `except EpisodicRAGError` で全ての固有例外をキャッチ可能。
-    """
-    pass
-
-
-class ConfigError(EpisodicRAGError):
-    """
-    設定関連エラー
-
-    Examples:
-        - config.json が見つからない
-        - config.json のフォーマットが不正
-        - 必須の設定キーが存在しない
-    """
-    pass
-
-
-class DigestError(EpisodicRAGError):
-    """
-    ダイジェスト処理エラー
-
-    Examples:
-        - Shadow/GrandDigest の読み込み失敗
-        - ダイジェスト生成中のエラー
-        - ダイジェストファイルの保存失敗
-    """
-    pass
-
-
-class ValidationError(EpisodicRAGError):
-    """
-    バリデーションエラー
-
-    Examples:
-        - データ型が期待と異なる（dict が必要なのに list）
-        - 必須フィールドが欠落
-        - source_files が空
-    """
-    pass
-
-
-class FileIOError(EpisodicRAGError):
-    """
-    ファイルI/Oエラー
-
-    Examples:
-        - ファイルの読み込み失敗
-        - ファイルの書き込み失敗
-        - ディレクトリの作成失敗
-
-    Note:
-        Python組み込みの IOError/OSError と区別するため、
-        EpisodicRAGError を継承。
-    """
-    pass
+__all__ = [
+    "EpisodicRAGError",
+    "ConfigError",
+    "DigestError",
+    "ValidationError",
+    "FileIOError",
+    "CorruptedDataError",
+]

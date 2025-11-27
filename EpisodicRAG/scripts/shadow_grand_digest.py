@@ -3,152 +3,33 @@
 ShadowGrandDigest Manager (Facade)
 ===================================
 
-GrandDigest更新後に作成された新しいコンテンツを保持し、
-常に最新の知識にアクセス可能にするシステム
+後方互換性レイヤー - application.grand層から再エクスポート
 
-使用方法:
+Usage:
+    # 推奨（新しいインポートパス）
+    from application.grand import ShadowGrandDigestManager
+
+    # 後方互換（従来のインポートパス）
     from shadow_grand_digest import ShadowGrandDigestManager
-    from config import DigestConfig
-
-    config = DigestConfig()
-    manager = ShadowGrandDigestManager(config)
-
-    # 新しいLoopファイルを検出してShadowを更新
-    manager.update_shadow_for_new_loops()
-
-    # Weeklyダイジェスト確定時のカスケード処理
-    manager.cascade_update_on_digest_finalize("weekly")
 """
 
-from pathlib import Path
-from typing import List, Dict, Any, Optional
+# Application層から再エクスポート
+from application.grand import ShadowGrandDigestManager
 
-# Plugin版: config.pyをインポート
-from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES
-from digest_times import DigestTimesTracker
+# main関数も再エクスポート
+from application.grand.shadow_grand_digest import main
 
-# 分割したモジュールをインポート
-from shadow import ShadowTemplate, FileDetector, ShadowIO, ShadowUpdater
+# 後方互換性：テストでpatchされる依存モジュール
+from config import DigestConfig
+from application.tracking import DigestTimesTracker
 
-
-class ShadowGrandDigestManager:
-    """ShadowGrandDigest管理クラス（Facade）"""
-
-    def __init__(self, config: Optional[DigestConfig] = None):
-        """
-        初期化
-
-        Args:
-            config: DigestConfig インスタンス（省略時は自動生成）
-        """
-        # 設定を読み込み
-        if config is None:
-            config = DigestConfig()
-        self.config = config
-
-        # パスを設定から取得
-        self.digests_path = config.digests_path
-        self.loops_path = config.loops_path
-        self.essences_path = config.essences_path
-
-        # ファイルパスを設定
-        self.grand_digest_file = self.essences_path / "GrandDigest.txt"
-        self.shadow_digest_file = self.essences_path / "ShadowGrandDigest.txt"
-
-        # レベル設定（共通定数を参照）
-        self.levels = LEVEL_NAMES
-        self.level_hierarchy = {
-            level: {"source": cfg["source"], "next": cfg["next"]}
-            for level, cfg in LEVEL_CONFIG.items()
-        }
-        self.level_config = LEVEL_CONFIG
-
-        # コンポーネント初期化
-        self._template = ShadowTemplate(self.levels)
-        self.digest_times_tracker = DigestTimesTracker(config)
-        self._detector = FileDetector(config, self.digest_times_tracker)
-        self._io = ShadowIO(self.shadow_digest_file, self._template.get_template)
-        self._updater = ShadowUpdater(
-            self._io, self._detector, self._template, self.level_hierarchy
-        )
-
-    # ========================================
-    # 後方互換性のためのメソッド委譲
-    # ========================================
-
-    def _create_empty_overall_digest(self) -> dict:
-        """プレースホルダー付きoverall_digestを生成（後方互換性）"""
-        return self._template.create_empty_overall_digest()
-
-    def get_template(self) -> dict:
-        """ShadowGrandDigest.txtのテンプレートを返す"""
-        return self._template.get_template()
-
-    def load_or_create(self) -> dict:
-        """ShadowGrandDigestを読み込む。存在しなければ作成"""
-        return self._io.load_or_create()
-
-    def save(self, data: dict):
-        """ShadowGrandDigestを保存"""
-        return self._io.save(data)
-
-    def get_max_file_number(self, level: str) -> Optional[str]:
-        """指定レベルの最大ファイル番号を取得"""
-        return self._detector.get_max_file_number(level)
-
-    def find_new_files(self, level: str) -> List[Path]:
-        """GrandDigest更新後に作成された新しいファイルを検出"""
-        return self._detector.find_new_files(level)
-
-    def _get_source_path(self, level: str) -> Path:
-        """指定レベルのソースファイルが格納されているディレクトリを返す"""
-        return self._detector.get_source_path(level)
-
-    def add_files_to_shadow(self, level: str, new_files: List[Path]) -> None:
-        """指定レベルのShadowに新しいファイルを追加（増分更新）"""
-        return self._updater.add_files_to_shadow(level, new_files)
-
-    def clear_shadow_level(self, level: str):
-        """指定レベルのShadowを初期化"""
-        return self._updater.clear_shadow_level(level)
-
-    def get_shadow_digest_for_level(self, level: str) -> Optional[Dict[str, Any]]:
-        """指定レベルのShadowダイジェストを取得"""
-        return self._updater.get_shadow_digest_for_level(level)
-
-    def promote_shadow_to_grand(self, level: str):
-        """ShadowのレベルをGrandDigestに昇格（確認のみ）"""
-        return self._updater.promote_shadow_to_grand(level)
-
-    def update_shadow_for_new_loops(self):
-        """新しいLoopファイルを検出してShadowを増分更新"""
-        return self._updater.update_shadow_for_new_loops()
-
-    def cascade_update_on_digest_finalize(self, level: str):
-        """ダイジェスト確定時のカスケード処理"""
-        return self._updater.cascade_update_on_digest_finalize(level)
-
-
-def main():
-    """新しいLoopファイルを検出してShadowGrandDigest.weeklyに増分追加"""
-    config = DigestConfig()
-    manager = ShadowGrandDigestManager(config)
-
-    print("="*60)
-    print("ShadowGrandDigest Update - New Loop Detection")
-    print("="*60)
-
-    # 新しいLoopファイルの検出と追加
-    manager.update_shadow_for_new_loops()
-
-    print("\n" + "="*60)
-    print("Placeholder added to ShadowGrandDigest.weekly")
-    print("="*60)
-    print("")
-    print("[!] WARNING: Claude analysis required immediately!")
-    print("Without analysis, memory fragmentation (madaraboke) occurs.")
-    print("="*60)
-
+# 後方互換性のための公開API
+__all__ = [
+    "ShadowGrandDigestManager",
+    "DigestConfig",
+    "DigestTimesTracker",
+    "main",
+]
 
 if __name__ == "__main__":
     main()

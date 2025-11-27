@@ -206,17 +206,19 @@ WebFetchでのアクセスには、プライベートリポジトリのraw URL�
 
 ### バックアップ対象ファイル
 
-EpisodicRAGの長期記憶は以下の4層で構成されます：
+EpisodicRAGの長期記憶は以下の4層で構成されます。**再構築可能性**に基づいて優先度を設定：
 
-| カテゴリ | ファイル/ディレクトリ | 説明 | 優先度 |
-|----------|----------------------|------|--------|
-| **Loop** | `Loops/Loop*.txt` | 会話記録（原本） | **必須** |
-| **Provisional** | `Digests/0_Provisional/` | 個別Loop分析結果 | **必須** |
-| **階層Digest** | `Digests/1_Weekly/` 〜 `8_Centurial/` | 確定済み階層Digest | **必須** |
-| **Essence** | `Essences/GrandDigest.txt` | 統合ビュー（確定済み） | **必須** |
-| **Essence** | `Essences/ShadowGrandDigest.txt` | 統合ビュー（未確定） | **必須** |
-| 設定 | `.claude-plugin/config.json` | プラグイン設定 | 推奨 |
-| 設定 | `.claude-plugin/last_digest_times.json` | 最終処理日時 | 推奨 |
+| カテゴリ | ファイル/ディレクトリ | 説明 | 再構築 | 優先度 |
+|----------|----------------------|------|--------|--------|
+| **Loop** | `Loops/Loop*.txt` | 会話記録（原本） | 不可 | **必須** |
+| **Provisional** | `Digests/0_Provisional/` | 個別Loop分析結果 | Loopから `/digest` | 推奨 |
+| **階層Digest** | `Digests/1_Weekly/` 〜 `8_Centurial/` | 確定済み階層Digest | 下位階層から再生成 | 推奨 |
+| **Essence** | `Essences/GrandDigest.txt` | 統合ビュー（確定済み） | 階層Digestから再構築 | 任意 |
+| **Essence** | `Essences/ShadowGrandDigest.txt` | 統合ビュー（未確定） | Provisionalから再構築 | 任意 |
+| 設定 | `.claude-plugin/config.json` | プラグイン設定 | - | 推奨 |
+| 設定 | `.claude-plugin/last_digest_times.json` | 最終処理日時 | - | 任意 |
+
+**ポイント**: Loopファイルだけが真に必須です。他のファイルは再構築可能なため、バックアップ容量を節約したい場合はLoopのみでも復旧可能です。
 
 ### バックアップ戦略
 

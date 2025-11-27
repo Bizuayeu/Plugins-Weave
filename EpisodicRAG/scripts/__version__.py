@@ -3,12 +3,17 @@
 EpisodicRAG バージョン定義
 =========================
 
-プロジェクト全体で使用するバージョン定数のSingle Source of Truth。
+後方互換性レイヤー - domain.version から再エクスポート
+
+Usage:
+    # 推奨（新しいインポートパス）
+    from domain import __version__, DIGEST_FORMAT_VERSION
+
+    # 後方互換（従来のインポートパス）
+    from __version__ import __version__, DIGEST_FORMAT_VERSION
 """
 
-# プラグインバージョン (plugin.json と同期)
-__version__ = "1.1.7"
+# Re-export from domain layer
+from domain.version import __version__, DIGEST_FORMAT_VERSION
 
-# データフォーマットバージョン (GrandDigest, ShadowGrandDigest, RegularDigest用)
-# プラグインバージョンとは独立して管理
-DIGEST_FORMAT_VERSION = "1.0"
+__all__ = ["__version__", "DIGEST_FORMAT_VERSION"]

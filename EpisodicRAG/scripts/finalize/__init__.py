@@ -2,19 +2,23 @@
 Finalize Package - Digest finalization components
 =================================================
 
-ShadowGrandDigestからRegularDigestを作成するためのコンポーネント群
+後方互換性レイヤー - application.finalize層から再エクスポート
 
-Components:
-    - ShadowValidator: Shadow内容の検証
-    - ProvisionalLoader: Provisional読み込みまたは自動生成
-    - RegularDigestBuilder: RegularDigest構造の構築
-    - DigestPersistence: 保存・更新・クリーンアップ処理
+Usage:
+    # 推奨（新しいインポートパス）
+    from application.finalize import ShadowValidator, ProvisionalLoader
+
+    # 後方互換（従来のインポートパス）
+    from finalize import ShadowValidator, ProvisionalLoader
 """
 
-from .shadow_validator import ShadowValidator
-from .provisional_loader import ProvisionalLoader
-from .digest_builder import RegularDigestBuilder
-from .persistence import DigestPersistence
+# Application層から再エクスポート
+from application.finalize import (
+    ShadowValidator,
+    ProvisionalLoader,
+    RegularDigestBuilder,
+    DigestPersistence,
+)
 
 __all__ = [
     "ShadowValidator",

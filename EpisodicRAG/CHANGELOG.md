@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 用語統一ルール（Loop, Digest, GrandDigest）
 - **バックアップ＆リカバリ**: ADVANCED.md にセクション追加
   - 長期記憶の4層構造（Loop/Provisional/階層Digest/Essence）
-  - バックアップ対象ファイルと優先度
+  - 再構築可能性に基づくバックアップ優先度（Loopのみ必須）
   - Git連携/手動/クラウド同期の3つの方法
   - リカバリ手順（各層別）と推奨頻度
 

@@ -3,85 +3,34 @@
 Utility Functions
 =================
 
-共通ユーティリティ関数を提供するモジュール。
-finalize_from_shadow.py から分離。
+後方互換性レイヤー - infrastructure層から再エクスポート
+
+Usage:
+    # 推奨（新しいインポートパス）
+    from infrastructure import load_json, save_json, log_info
+
+    # 後方互換（従来のインポートパス）
+    from utils import load_json_with_template, save_json, log_info
 """
-import json
-import logging
 import re
-import sys
 from pathlib import Path
 from typing import Optional, Callable, Dict, Any
 
-
-# =============================================================================
-# ロギング設定
-# =============================================================================
-
-# モジュールロガー
-logger = logging.getLogger("episodic_rag")
-
-# デフォルトハンドラー設定（未設定の場合のみ）
-if not logger.handlers:
-    # stderrハンドラー（WARNING以上）
-    stderr_handler = logging.StreamHandler(sys.stderr)
-    stderr_handler.setLevel(logging.WARNING)
-    stderr_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
-
-    # stdoutハンドラー（INFO）
-    class StdoutFilter(logging.Filter):
-        def filter(self, record: logging.LogRecord) -> bool:
-            return record.levelno == logging.INFO
-
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.INFO)
-    stdout_handler.addFilter(StdoutFilter())
-    stdout_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
-
-    logger.addHandler(stderr_handler)
-    logger.addHandler(stdout_handler)
-    logger.setLevel(logging.INFO)
+# Infrastructure層から再エクスポート
+from infrastructure.json_repository import (
+    load_json_with_template,
+    save_json,
+)
+from infrastructure.logging_config import (
+    logger,
+    log_error,
+    log_warning,
+    log_info,
+)
 
 
 # =============================================================================
-# ロギング関数（後方互換ラッパー）
-# =============================================================================
-
-def log_error(message: str, exit_code: Optional[int] = None) -> None:
-    """
-    エラーメッセージを出力
-
-    Args:
-        message: エラーメッセージ
-        exit_code: 指定時はこのコードでプログラムを終了
-    """
-    logger.error(message)
-    if exit_code is not None:
-        sys.exit(exit_code)
-
-
-def log_warning(message: str) -> None:
-    """
-    警告メッセージを出力
-
-    Args:
-        message: 警告メッセージ
-    """
-    logger.warning(message)
-
-
-def log_info(message: str) -> None:
-    """
-    情報メッセージを出力
-
-    Args:
-        message: 情報メッセージ
-    """
-    logger.info(message)
-
-
-# =============================================================================
-# ファイル名処理
+# ファイル名処理（utils固有 - infrastructure層に移動しない）
 # =============================================================================
 
 
@@ -124,93 +73,7 @@ def sanitize_filename(title: str, max_length: int = 50) -> str:
 
 
 # =============================================================================
-# JSON ファイル操作
-# =============================================================================
-
-
-def load_json_with_template(
-    target_file: Path,
-    template_file: Optional[Path] = None,
-    default_factory: Optional[Callable[[], Dict[str, Any]]] = None,
-    save_on_create: bool = True,
-    log_message: Optional[str] = None
-) -> Dict[str, Any]:
-    """
-    JSONファイルを読み込む。存在しない場合はテンプレートまたはデフォルトから作成。
-
-    Args:
-        target_file: 読み込むJSONファイルのパス
-        template_file: テンプレートファイルのパス（オプション）
-        default_factory: テンプレートがない場合のデフォルト生成関数
-        save_on_create: 作成時に保存するかどうか
-        log_message: 作成時のログメッセージ（Noneの場合はデフォルトメッセージ）
-
-    Returns:
-        読み込んだまたは作成したdict
-
-    Raises:
-        json.JSONDecodeError: JSONのパースに失敗した場合
-        IOError: ファイルの読み込みに失敗した場合
-    """
-    try:
-        # ファイルが存在する場合はそのまま読み込み
-        if target_file.exists():
-            with open(target_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
-
-        # テンプレートファイルが存在する場合はそこから初期化
-        if template_file and template_file.exists():
-            with open(template_file, 'r', encoding='utf-8') as f:
-                template = json.load(f)
-            if save_on_create:
-                save_json(target_file, template)
-            msg = log_message or f"Initialized {target_file.name} from template"
-            log_info(msg)
-            return template
-
-        # デフォルトファクトリーがある場合はそれを使用
-        if default_factory:
-            template = default_factory()
-            if save_on_create:
-                save_json(target_file, template)
-            msg = log_message or f"Created {target_file.name} with default template"
-            log_info(msg)
-            return template
-
-        # どちらもない場合は空のdictを返す
-        return {}
-
-    except json.JSONDecodeError as e:
-        log_error(f"Invalid JSON in {target_file}: {e}")
-        raise
-    except IOError as e:
-        log_error(f"Failed to read {target_file}: {e}")
-        raise
-
-
-def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
-    """
-    dictをJSONファイルに保存（親ディレクトリ自動作成）。
-
-    Args:
-        file_path: 保存先のパス
-        data: 保存するdict
-        indent: インデント幅（デフォルト: 2）
-
-    Raises:
-        IOError: ファイルの書き込みに失敗した場合
-    """
-    try:
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=indent)
-    except IOError as e:
-        log_error(f"Failed to write {file_path}: {e}")
-        raise
-
-
-# =============================================================================
-# Digest番号操作
+# Digest番号操作（utils固有 - infrastructure層に移動しない）
 # =============================================================================
 
 
@@ -255,3 +118,20 @@ def get_next_digest_number(digests_path: Path, level: str) -> int:
             max_num = max(max_num, result[1])
 
     return max_num + 1
+
+
+# 後方互換性のための公開API
+__all__ = [
+    # Logging
+    "logger",
+    "log_error",
+    "log_warning",
+    "log_info",
+    # JSON
+    "load_json_with_template",
+    "save_json",
+    # Filename
+    "sanitize_filename",
+    # Digest number
+    "get_next_digest_number",
+]
