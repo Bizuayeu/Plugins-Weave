@@ -40,6 +40,7 @@ AIスキル仕様書
 |------|---------|
 | [_common-concepts.md](shared/_common-concepts.md) | まだらボケ概念定義（SSoT） |
 | [_implementation-notes.md](shared/_implementation-notes.md) | 実装ガイドライン |
+| [_footer.md](shared/_footer.md) | 共通フッター（SSoT） |
 
 ---
 
