@@ -148,6 +148,55 @@ class DigestConfig:
         """指定レベルのProvisionalDigest格納ディレクトリを取得"""
         return self._level_path_service.get_provisional_dir(level)
 
+    def get_source_dir(self, level: str) -> Path:
+        """
+        指定レベルのソースファイルディレクトリを取得
+
+        Args:
+            level: ダイジェストレベル (weekly, monthly, quarterly, etc.)
+
+        Returns:
+            ソースファイルのディレクトリパス
+            - weeklyの場合: loops_path
+            - その他: 下位レベルのDigestディレクトリ
+
+        Raises:
+            ValueError: 無効なlevelが指定された場合
+        """
+        if level not in LEVEL_CONFIG:
+            raise ValueError(f"Invalid level: {level}")
+
+        source_type = LEVEL_CONFIG[level]["source"]
+
+        if source_type == "loops":
+            return self.loops_path
+        else:
+            return self.get_level_dir(source_type)
+
+    def get_source_pattern(self, level: str) -> str:
+        """
+        指定レベルのソースファイルパターンを取得
+
+        Args:
+            level: ダイジェストレベル (weekly, monthly, quarterly, etc.)
+
+        Returns:
+            ファイル検索パターン (例: "Loop*.txt", "W*.txt")
+
+        Raises:
+            ValueError: 無効なlevelが指定された場合
+        """
+        if level not in LEVEL_CONFIG:
+            raise ValueError(f"Invalid level: {level}")
+
+        source_type = LEVEL_CONFIG[level]["source"]
+
+        if source_type == "loops":
+            return "Loop*.txt"
+        else:
+            source_prefix = LEVEL_CONFIG[source_type]["prefix"]
+            return f"{source_prefix}*.txt"
+
     def validate_directory_structure(self) -> List[str]:
         """ディレクトリ構造の検証"""
         return self._directory_validator.validate_directory_structure()

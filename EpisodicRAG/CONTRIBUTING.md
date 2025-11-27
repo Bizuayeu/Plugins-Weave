@@ -2,6 +2,8 @@
 
 EpisodicRAGプラグインの開発に興味を持っていただき、ありがとうございます！
 
+> **対応バージョン**: EpisodicRAG Plugin（[version.py](scripts/domain/version.py) 参照）
+
 このドキュメントでは、開発環境のセットアップ方法、コード変更のテスト方法、プルリクエストの作成方法について説明します。
 
 ---

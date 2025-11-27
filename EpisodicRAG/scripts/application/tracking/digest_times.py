@@ -11,7 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
-from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES, extract_file_number, format_digest_number
+from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES
+from domain.file_naming import extract_numbers_formatted
 from domain.types import DigestTimesData
 from infrastructure import log_info, load_json_with_template, save_json, log_warning
 from application.validators import is_valid_list
@@ -52,30 +53,8 @@ class DigestTimesTracker:
         if not input_files:
             return []
 
-        # プレフィックス→レベル の逆引きマップ
-        prefix_to_level = {cfg["prefix"]: lvl for lvl, cfg in LEVEL_CONFIG.items()}
-
-        numbers = []
-        for file in input_files:
-            # 各要素の型チェック
-            if not isinstance(file, str):
-                log_warning(f"Skipping non-string file: {file}")
-                continue
-            result = extract_file_number(file)
-            if result:
-                prefix, num = result
-                # format_digest_number を使用して統一されたフォーマットを生成
-                if prefix == "Loop":
-                    numbers.append(format_digest_number("loop", num))
-                else:
-                    source_level = prefix_to_level.get(prefix)
-                    if source_level:
-                        numbers.append(format_digest_number(source_level, num))
-                    else:
-                        # 未知のプレフィックス: 元の形式を維持（フォールバック）
-                        numbers.append(f"{prefix}{num:04d}")
-
-        return sorted(numbers)
+        # 統一関数を使用して抽出・フォーマット
+        return extract_numbers_formatted(input_files)
 
     def save(self, level: str, input_files: List[str] = None):
         """最終ダイジェスト生成時刻と最新処理済みファイル番号を保存"""

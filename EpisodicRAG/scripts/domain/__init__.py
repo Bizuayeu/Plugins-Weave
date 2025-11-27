@@ -66,6 +66,9 @@ from domain.file_naming import (
     extract_file_number,
     extract_number_only,
     format_digest_number,
+    find_max_number,
+    filter_files_after,
+    extract_numbers_formatted,
 )
 
 # Types
@@ -117,6 +120,9 @@ __all__ = [
     "extract_file_number",
     "extract_number_only",
     "format_digest_number",
+    "find_max_number",
+    "filter_files_after",
+    "extract_numbers_formatted",
     # Types - Metadata
     "BaseMetadata",
     "DigestMetadata",

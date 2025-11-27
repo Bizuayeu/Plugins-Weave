@@ -4,7 +4,7 @@
 
 EpisodicRAGプラグインのPython API仕様書です。
 
-> **対応バージョン**: EpisodicRAG Plugin v2.0.0+ / ファイルフォーマット 1.0
+> **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 
 ---
 

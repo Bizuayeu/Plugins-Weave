@@ -41,13 +41,8 @@ class ProvisionalLoader:
         Returns:
             ソースファイルのディレクトリパス
         """
-        source_type = self.level_config[level]["source"]
-        if source_type == "loops":
-            return self.config.loops_path
-        else:
-            # 下位レベルのDigestディレクトリ
-            source_level_config = self.level_config[source_type]
-            return self.config.digests_path / source_level_config["dir"]
+        # 統一メソッドを使用
+        return self.config.get_source_dir(level)
 
     def load_or_generate(
         self, level: str, shadow_digest: OverallDigestData, digest_num: str

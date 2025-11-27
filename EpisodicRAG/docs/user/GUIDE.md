@@ -28,6 +28,8 @@
 
 ### Provisional vs Regular Digest
 
+> 📖 用語定義: [GLOSSARY.md](../GLOSSARY.md#provisional-digest) を参照
+
 #### Provisional Digest（仮ダイジェスト）
 
 - DigestAnalyzer が生成した individual_digests を一時保存

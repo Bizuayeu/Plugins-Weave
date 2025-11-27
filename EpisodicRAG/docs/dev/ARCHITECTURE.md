@@ -4,7 +4,7 @@
 
 このドキュメントでは、EpisodicRAGプラグインの技術仕様とアーキテクチャについて説明します。
 
-> **対応バージョン**: EpisodicRAG Plugin v2.0.0+ / ファイルフォーマット 1.0
+> **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 
 ---
 

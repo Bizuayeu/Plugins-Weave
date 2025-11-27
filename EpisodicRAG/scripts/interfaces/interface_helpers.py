@@ -69,7 +69,8 @@ def get_next_digest_number(digests_path: Path, level: str) -> int:
         ValueError: 無効なlevelが指定された場合
     """
     # 循環インポートを避けるためローカルインポート
-    from config import LEVEL_CONFIG, extract_file_number
+    from config import LEVEL_CONFIG
+    from domain.file_naming import find_max_number
 
     config = LEVEL_CONFIG.get(level)
     if not config:
@@ -81,16 +82,12 @@ def get_next_digest_number(digests_path: Path, level: str) -> int:
     if not level_dir.exists():
         return 1
 
-    # 既存ファイルから最大番号を取得
-    max_num = 0
+    # 統一関数を使用して最大番号を取得
     pattern = f"{prefix}*_*.txt"
+    existing_files = list(level_dir.glob(pattern))
+    max_num = find_max_number(existing_files, prefix)
 
-    for f in level_dir.glob(pattern):
-        result = extract_file_number(f.name)
-        if result and result[0] == prefix:
-            max_num = max(max_num, result[1])
-
-    return max_num + 1
+    return (max_num or 0) + 1
 
 
 __all__ = [

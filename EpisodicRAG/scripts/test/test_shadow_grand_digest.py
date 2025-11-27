@@ -49,6 +49,9 @@ class TestShadowGrandDigestManager(unittest.TestCase):
         mock_config.loops_path = self.loops_path
         mock_config.essences_path = self.essences_path
         mock_config.plugin_root = Path(self.temp_dir)
+        # 新しいメソッドをモックに追加
+        mock_config.get_source_dir.return_value = self.loops_path
+        mock_config.get_source_pattern.return_value = "Loop*.txt"
 
         with patch('application.grand.shadow_grand_digest.DigestConfig') as mock_config_class, \
              patch('application.grand.shadow_grand_digest.DigestTimesTracker') as mock_tracker_class:

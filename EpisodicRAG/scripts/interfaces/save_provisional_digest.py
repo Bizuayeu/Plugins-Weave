@@ -44,7 +44,8 @@ from application.validators import is_valid_dict, is_valid_list
 from interfaces.interface_helpers import get_next_digest_number
 
 # 設定（config.pyはまだ移行していない）
-from config import DigestConfig, extract_file_number, format_digest_number
+from config import DigestConfig, format_digest_number
+from domain.file_naming import find_max_number, extract_file_number
 
 
 class ProvisionalDigestSaver:
@@ -83,14 +84,8 @@ class ProvisionalDigestSaver:
         if not existing_files:
             return None
 
-        # 最新のファイル番号を取得（共通関数を使用）
-        max_num = 0
-        for file_path in existing_files:
-            result = extract_file_number(file_path.stem)
-            if result and result[0] == prefix:
-                max_num = max(max_num, result[1])
-
-        return max_num if max_num > 0 else None
+        # 統一関数を使用して最大番号を取得
+        return find_max_number(existing_files, prefix)
 
     def load_existing_provisional(self, level: str, digest_num: int) -> Optional[ProvisionalDigestFile]:
         """
