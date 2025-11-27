@@ -886,4 +886,4 @@ python -c "from interfaces import DigestFinalizerFromShadow; print('OK')"
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - 開発参加ガイド
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

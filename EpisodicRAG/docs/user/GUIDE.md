@@ -465,4 +465,4 @@ python scripts/config.py --show-paths
 - 🛠️ **開発に参加したい**: [CONTRIBUTING.md](../../CONTRIBUTING.md)
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

@@ -261,4 +261,4 @@ Monthly確定 → Quarterly Shadow に追加
 - [ARCHITECTURE.md](dev/ARCHITECTURE.md) - 技術仕様
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

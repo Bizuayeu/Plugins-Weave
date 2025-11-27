@@ -65,19 +65,19 @@ Loop0001追加 → `/digest`せず → Loop0002追加
 
 ```
 Loop (5個) → Weekly Digest
-  ↓ (5個蓄積)
+  ↓
 Weekly (5個) → Monthly Digest
-  ↓ (3個蓄積)
+  ↓
 Monthly (3個) → Quarterly Digest
-  ↓ (4個蓄積)
+  ↓
 Quarterly (4個) → Annual Digest
-  ↓ (3個蓄積)
+  ↓
 Annual (3個) → Triennial Digest
-  ↓ (3個蓄積)
+  ↓
 Triennial (3個) → Decadal Digest
-  ↓ (3個蓄積)
+  ↓
 Decadal (3個) → Multi-decadal Digest
-  ↓ (4個蓄積)
+  ↓
 Multi-decadal (4個) → Centurial Digest
 ```
 

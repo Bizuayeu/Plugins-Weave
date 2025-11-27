@@ -261,4 +261,4 @@ Examples: 2025-07-01_W0001_CognitiveArchitecture.txt
 - [ARCHITECTURE.md](dev/ARCHITECTURE.md) - Technical Specifications
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

@@ -91,4 +91,4 @@ AI エージェントが参照すべき共通概念の Single Source of Truth:
 - [GitHub Repository](https://github.com/Bizuayeu/Plugins-Weave)
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

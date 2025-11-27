@@ -5,7 +5,7 @@ English | [日本語](README.md)
 Hierarchical Memory & Digest Generation System (8 Layers, 100 Years, Fully Self-Contained)
 
 ![EpisodicRAG Plugin](EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -116,7 +116,7 @@ With GitHub integration, you can retain and inherit long-term memory after sessi
 
 ## Author
 
-**Weave** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**Weave** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

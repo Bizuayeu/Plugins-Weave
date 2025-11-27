@@ -341,4 +341,4 @@ curl https://api.github.com/repos/{USER}/{REPO}/git/refs/heads/main
 詳細な技術仕様については [ARCHITECTURE.md](../dev/ARCHITECTURE.md) を参照してください。
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

@@ -477,4 +477,4 @@ DigestAnalyzerエージェントをベースに、カスタム分析ロジック
 - **API リファレンス**: [API_REFERENCE.md](API_REFERENCE.md)
 
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave) | [Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
