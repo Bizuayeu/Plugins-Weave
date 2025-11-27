@@ -37,6 +37,7 @@ from config import DigestConfig
 from domain.file_naming import format_digest_number
 from domain.constants import LEVEL_CONFIG
 from domain.exceptions import ConfigError, EpisodicRAGError, ValidationError
+from domain.level_registry import get_level_registry
 from domain.file_naming import find_max_number
 from domain.types import IndividualDigestData, ProvisionalDigestFile
 from domain.version import DIGEST_FORMAT_VERSION
@@ -282,18 +283,11 @@ Examples:
   python save_provisional_digest.py weekly '[{"source_file":"Loop0005.txt",...}]' --append
         """,
     )
+    # Registry経由でレベル一覧を動的に取得（OCP準拠）
+    registry = get_level_registry()
     parser.add_argument(
         "level",
-        choices=[
-            "weekly",
-            "monthly",
-            "quarterly",
-            "annual",
-            "triennial",
-            "decadal",
-            "multi_decadal",
-            "centurial",
-        ],
+        choices=registry.get_level_names(),
         help="ダイジェストレベル",
     )
     parser.add_argument("input_data", help="JSONファイルパスまたはJSON文字列")
@@ -341,11 +335,12 @@ Examples:
         log_error(str(e), exit_code=1)
     except OSError as e:
         log_error(f"File I/O error: {e}", exit_code=1)
-    except Exception as e:
+    except (RuntimeError, TypeError, KeyError, AttributeError) as e:
+        # プログラミングエラーを明示的にキャッチ
         import traceback
 
         traceback.print_exc()
-        log_error(f"Unexpected error: {e}", exit_code=1)
+        log_error(f"Unexpected programming error: {e}", exit_code=1)
 
 
 if __name__ == "__main__":

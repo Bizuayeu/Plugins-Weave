@@ -13,7 +13,7 @@ from application.validators import is_valid_dict, is_valid_list
 from domain.file_naming import extract_file_number
 from domain.exceptions import DigestError, ValidationError
 from domain.types import OverallDigestData
-from infrastructure import log_info, log_warning
+from infrastructure import get_default_confirm_callback, log_info, log_warning
 
 
 class ShadowValidator:
@@ -30,24 +30,7 @@ class ShadowValidator:
             confirm_callback: 確認コールバック関数（テスト用にモック可能）
         """
         self.shadow_manager = shadow_manager
-        self.confirm_callback = confirm_callback or self._default_confirm
-
-    @staticmethod
-    def _default_confirm(message: str) -> bool:
-        """
-        デフォルトの確認コールバック（対話的）
-
-        Args:
-            message: 確認メッセージ
-
-        Returns:
-            ユーザーが承認した場合True
-        """
-        try:
-            response = input(f"{message} (y/n): ")
-            return response.lower() == 'y'
-        except EOFError:
-            return True  # 非対話環境では自動承認
+        self.confirm_callback = confirm_callback or get_default_confirm_callback()
 
     def validate_shadow_content(self, level: str, source_files: List[str]) -> None:
         """

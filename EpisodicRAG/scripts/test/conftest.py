@@ -50,7 +50,8 @@ def pytest_configure(config):
     """カスタムマーカーを登録"""
     config.addinivalue_line("markers", "unit: 単体テスト（高速、外部依存なし）")
     config.addinivalue_line("markers", "integration: 統合テスト（ファイルI/O）")
-    config.addinivalue_line("markers", "slow: 時間のかかるテスト")
+    config.addinivalue_line("markers", "slow: 時間のかかるテスト（ファイルI/O、複数コンポーネント連携）")
+    config.addinivalue_line("markers", "fast: 高速テスト（純粋ロジック、I/Oなし）")
     config.addinivalue_line("markers", "property: Property-based tests using hypothesis")
 
 

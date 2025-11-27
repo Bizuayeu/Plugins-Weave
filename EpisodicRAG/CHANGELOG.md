@@ -190,11 +190,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `FAQ.md`: 「まだらボケ」回答をSSoT参照に簡略化
 - **バージョン情報統一**:
   - `ARCHITECTURE.md`, `TROUBLESHOOTING.md`, `API_REFERENCE.md` にバージョンヘッダー追加
-
-### Documentation
-- ドキュメント健全性診断に基づく改善
-- 重複コンテンツ削減
-- ADVANCED.md 目次更新
+- **ドキュメント改善**:
+  - ドキュメント健全性診断に基づく改善
+  - 重複コンテンツ削減
+  - ADVANCED.md 目次更新
 
 ---
 
@@ -212,11 +211,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **パス参照修正**: `homunculus/Toybox` → プレースホルダーに変更
   - `skills/digest-config/SKILL.md` (line 26, 97)
   - `skills/digest-setup/SKILL.md` (line 27)
-
-### Documentation
-- ARCHITECTURE.md: カスケードフローのSSoT参照を追加
-- 全docsファイルにブレッドクラムナビゲーション追加
-- ペルソナベースのナビゲーションテーブル導入
+- **ドキュメント整備**:
+  - ARCHITECTURE.md: カスケードフローのSSoT参照を追加
+  - 全docsファイルにブレッドクラムナビゲーション追加
+  - ペルソナベースのナビゲーションテーブル導入
 
 ---
 

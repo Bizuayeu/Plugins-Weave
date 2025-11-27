@@ -5,6 +5,14 @@ Digest Plugin Configuration Manager
 
 Plugin自己完結版：Plugin内の.claude-plugin/config.jsonから設定を読み込む
 
+Architecture:
+    DigestConfig は薄い Facade として機能し、以下のコンポーネントに委譲:
+    - ConfigLoader: 設定ファイルの読み込み
+    - PathResolver: パス解決
+    - ThresholdProvider: 閾値管理
+    - LevelPathService: レベル別パス管理
+    - ConfigValidator: 設定とディレクトリ構造の検証
+
 Usage:
     from config import DigestConfig
     from domain.file_naming import extract_file_number, format_digest_number
@@ -20,17 +28,22 @@ from typing import Any, Dict, List, Optional
 from domain.constants import LEVEL_CONFIG, SOURCE_TYPE_LOOPS
 from domain.exceptions import ConfigError
 
-from .config_repository import load_config
-from .directory_validator import DirectoryValidator
+# 内部コンポーネント
+from .config_loader import ConfigLoader
+from .config_validator import ConfigValidator
 from .level_path_service import LevelPathService
 from .path_resolver import PathResolver
-
-# 分割されたモジュールをインポート
 from .plugin_root_resolver import find_plugin_root
 from .threshold_provider import ThresholdProvider
 
 # Infrastructure層からログ関数をインポート（show_paths用）
 from infrastructure import log_info
+
+# 後方互換性のため config_repository からも load_config をエクスポート
+from .config_repository import load_config
+
+# 後方互換性のため DirectoryValidator も公開（ConfigValidatorへのエイリアス）
+from .config_validator import DirectoryValidator
 
 # =============================================================================
 # DigestConfig クラス（Facade）
@@ -38,7 +51,19 @@ from infrastructure import log_info
 
 
 class DigestConfig:
-    """設定管理クラス（Plugin自己完結版）- Facade"""
+    """
+    設定管理クラス（Plugin自己完結版）- Facade
+
+    薄い Facade として機能し、各コンポーネントに責任を委譲。
+    後方互換性を維持しつつ、内部実装を分離。
+
+    Components:
+        - _config_loader: ConfigLoader - 設定ファイルの読み込み
+        - _path_resolver: PathResolver - パス解決
+        - _threshold_provider: ThresholdProvider - 閾値管理
+        - _level_path_service: LevelPathService - レベル別パス管理
+        - _config_validator: ConfigValidator - 設定とディレクトリ構造の検証
+    """
 
     def __init__(self, plugin_root: Optional[Path] = None):
         """
@@ -57,13 +82,19 @@ class DigestConfig:
 
             self.plugin_root = plugin_root
             self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
-            self.config = self.load_config()
+
+            # ConfigLoader を使用して設定を読み込み
+            self._config_loader = ConfigLoader(self.config_file)
+            self.config = self._config_loader.load()
 
             # 各コンポーネントを即時初期化（軽量オブジェクトのため遅延不要）
             self._path_resolver = PathResolver(self.plugin_root, self.config)
             self._threshold_provider = ThresholdProvider(self.config)
             self._level_path_service = LevelPathService(self._path_resolver.digests_path)
-            self._directory_validator = DirectoryValidator(
+
+            # ConfigValidator を使用（DirectoryValidator を統合）
+            self._config_validator = ConfigValidator(
+                self.config,
                 self._path_resolver.loops_path,
                 self._path_resolver.digests_path,
                 self._path_resolver.essences_path,
@@ -72,6 +103,9 @@ class DigestConfig:
 
             # 後方互換性のためbase_dirを公開
             self.base_dir = self._path_resolver.base_dir
+
+            # 後方互換性のため _directory_validator も公開（_config_validator へのエイリアス）
+            self._directory_validator = self._config_validator
 
         except (PermissionError, OSError) as e:
             raise ConfigError(f"Failed to initialize configuration: {e}") from e
@@ -94,8 +128,17 @@ class DigestConfig:
         return find_plugin_root(current_file)
 
     def load_config(self) -> Dict[str, Any]:
-        """設定読み込み"""
-        return load_config(self.config_file)
+        """
+        設定読み込み
+
+        Returns:
+            設定データ辞書
+
+        Note:
+            内部では ConfigLoader に委譲。reload が必要な場合は
+            _config_loader.reload() を直接呼び出す。
+        """
+        return self._config_loader.load()
 
     def resolve_path(self, key: str) -> Path:
         """相対パスを絶対パスに解決（base_dir基準）"""

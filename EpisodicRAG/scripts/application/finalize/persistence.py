@@ -15,8 +15,9 @@ from application.validators import is_valid_dict
 from config import DigestConfig
 from domain.constants import LEVEL_CONFIG
 from domain.exceptions import DigestError, FileIOError, ValidationError
+from domain.level_registry import get_level_registry
 from domain.types import RegularDigestData
-from infrastructure import log_info, log_warning, save_json
+from infrastructure import get_default_confirm_callback, log_info, log_warning, save_json
 
 
 class DigestPersistence:
@@ -44,24 +45,7 @@ class DigestPersistence:
         self.shadow_manager = shadow_manager
         self.times_tracker = times_tracker
         self.level_config = LEVEL_CONFIG
-        self.confirm_callback = confirm_callback or self._default_confirm
-
-    @staticmethod
-    def _default_confirm(message: str) -> bool:
-        """
-        デフォルトの確認コールバック（対話的）
-
-        Args:
-            message: 確認メッセージ
-
-        Returns:
-            ユーザーが承認した場合True
-        """
-        try:
-            response = input(f"{message} (y/n): ")
-            return response.lower() == 'y'
-        except EOFError:
-            return True  # 非対話環境では自動承認
+        self.confirm_callback = confirm_callback or get_default_confirm_callback()
 
     def save_regular_digest(
         self, level: str, regular_digest: RegularDigestData, new_digest_name: str
@@ -127,14 +111,17 @@ class DigestPersistence:
         """
         ShadowGrandDigestのカスケード更新を実行
 
+        Registry経由でカスケード判定（OCP準拠）。
+
         Args:
             level: ダイジェストレベル
         """
-        if level != "centurial":
+        registry = get_level_registry()
+        if registry.should_cascade(level):
             log_info("[Step 3] Processing ShadowGrandDigest cascade")
             self.shadow_manager.cascade_update_on_digest_finalize(level)
         else:
-            log_info("[Step 3] Skipped (Centurial is top level, no cascade needed)")
+            log_info(f"[Step 3] Skipped ({level} is top level, no cascade needed)")
 
     def _update_digest_times(self, level: str, source_files: List[str]) -> None:
         """

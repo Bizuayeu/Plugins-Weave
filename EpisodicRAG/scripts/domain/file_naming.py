@@ -8,18 +8,39 @@ File Naming Utilities
 Usage:
     from domain.file_naming import extract_file_number, format_digest_number
     from domain.file_naming import find_max_number, filter_files_after
+
+Note:
+    このモジュールはLevelRegistryを使用してOCP (Open/Closed Principle) を実現。
+    新しいレベル追加時にこのファイルの修正は不要。
 """
 
 import re
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
+
+if TYPE_CHECKING:
+    from domain.level_registry import LevelRegistry
+
+
+def _get_registry() -> "LevelRegistry":
+    """
+    LevelRegistryを遅延インポートで取得（循環インポート回避）
+
+    Returns:
+        LevelRegistryインスタンス
+    """
+    from domain.level_registry import get_level_registry
+
+    return get_level_registry()
 
 
 def extract_file_number(filename: str) -> Optional[Tuple[str, int]]:
     """
     ファイル名からプレフィックスと番号を抽出
+
+    Registry経由で動的にプレフィックスパターンを生成（OCP準拠）。
 
     Args:
         filename: ファイル名（例: "Loop0186_xxx.txt", "MD01_xxx.txt"）
@@ -39,13 +60,11 @@ def extract_file_number(filename: str) -> Optional[Tuple[str, int]]:
     if not isinstance(filename, str):
         return None
 
-    # MDプレフィックス（2文字）を先にチェック（M単独より優先）
-    match = re.search(r'(Loop|MD)(\d+)', filename)
-    if match:
-        return (match.group(1), int(match.group(2)))
+    # Registry経由で動的にプレフィックスパターンを取得
+    registry = _get_registry()
+    pattern = registry.build_prefix_pattern()
 
-    # 1文字プレフィックス
-    match = re.search(r'([WMQATDC])(\d+)', filename)
+    match = re.search(rf"({pattern})(\d+)", filename)
     if match:
         return (match.group(1), int(match.group(2)))
 
@@ -74,6 +93,8 @@ def format_digest_number(level: str, number: int) -> str:
     """
     レベルと番号から統一されたフォーマットの文字列を生成
 
+    Registry経由でStrategy patternを使用（OCP準拠）。
+
     Args:
         level: 階層名（"loop", "weekly", "monthly", ...）
         number: 番号
@@ -92,14 +113,9 @@ def format_digest_number(level: str, number: int) -> str:
         >>> format_digest_number("multi_decadal", 3)
         'MD03'
     """
-    if level == "loop":
-        return f"Loop{number:04d}"
-
-    if level not in LEVEL_CONFIG:
-        raise ValueError(f"Invalid level: {level}. Valid levels: {LEVEL_NAMES + ['loop']}")
-
-    config = LEVEL_CONFIG[level]
-    return f"{config['prefix']}{number:0{config['digits']}d}"
+    registry = _get_registry()
+    behavior = registry.get_behavior(level)
+    return behavior.format_number(number)
 
 
 def find_max_number(files: List[Union[Path, str]], prefix: str) -> Optional[int]:
@@ -174,7 +190,7 @@ def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
     ファイル名リストからフォーマット済み番号リストを抽出
 
     各ファイル名からプレフィックスと番号を抽出し、
-    format_digest_number()を使用して統一フォーマットに変換。
+    Registry経由で統一フォーマットに変換（OCP準拠）。
     結果はソートされて返される。
 
     Args:
@@ -190,8 +206,7 @@ def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
     if not files:
         return []
 
-    # プレフィックス→レベル の逆引きマップ
-    prefix_to_level = {cfg["prefix"]: lvl for lvl, cfg in LEVEL_CONFIG.items()}
+    registry = _get_registry()
 
     numbers = []
     for file in files:
@@ -202,16 +217,14 @@ def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
         result = extract_file_number(file)
         if result:
             prefix, num = result
-            # format_digest_number を使用して統一されたフォーマットを生成
-            if prefix == "Loop":
-                numbers.append(format_digest_number("loop", num))
+            # Registry経由でプレフィックスからレベルを逆引き
+            level = registry.get_level_by_prefix(prefix)
+            if level:
+                behavior = registry.get_behavior(level)
+                numbers.append(behavior.format_number(num))
             else:
-                source_level = prefix_to_level.get(prefix)
-                if source_level:
-                    numbers.append(format_digest_number(source_level, num))
-                else:
-                    # 未知のプレフィックス: 元の形式を維持（フォールバック）
-                    numbers.append(f"{prefix}{num:04d}")
+                # 未知のプレフィックス: 元の形式を維持（フォールバック）
+                numbers.append(f"{prefix}{num:04d}")
 
     return sorted(numbers)
 

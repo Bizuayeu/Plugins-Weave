@@ -69,6 +69,17 @@ from domain.file_naming import (
     format_digest_number,
 )
 
+# Level registry (Strategy pattern for OCP)
+from domain.level_registry import (
+    LevelBehavior,
+    LevelMetadata,
+    LevelRegistry,
+    LoopLevelBehavior,
+    StandardLevelBehavior,
+    get_level_registry,
+    reset_level_registry,
+)
+
 # Types
 from domain.types import (
     # Metadata
@@ -144,4 +155,12 @@ __all__ = [
     "DigestTimesData",
     # Types - Provisional
     "ProvisionalDigestEntry",
+    # Level registry
+    "LevelMetadata",
+    "LevelBehavior",
+    "StandardLevelBehavior",
+    "LoopLevelBehavior",
+    "LevelRegistry",
+    "get_level_registry",
+    "reset_level_registry",
 ]

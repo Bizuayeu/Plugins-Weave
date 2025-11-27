@@ -160,3 +160,13 @@ def log_info(message: str) -> None:
         message: 情報メッセージ
     """
     _logger.info(message)
+
+
+def log_debug(message: str) -> None:
+    """
+    デバッグメッセージを出力
+
+    Args:
+        message: デバッグメッセージ
+    """
+    _logger.debug(message)

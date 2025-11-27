@@ -57,6 +57,7 @@ from domain.file_naming import format_digest_number
 # Domain層
 from domain.constants import LEVEL_CONFIG, LOG_SEPARATOR
 from domain.exceptions import EpisodicRAGError
+from domain.level_registry import get_level_registry
 
 # Infrastructure層
 from infrastructure import log_error, log_info
@@ -196,18 +197,11 @@ Example:
         """,
     )
 
+    # Registry経由でレベル一覧を動的に取得（OCP準拠）
+    registry = get_level_registry()
     parser.add_argument(
         "level",
-        choices=[
-            "weekly",
-            "monthly",
-            "quarterly",
-            "annual",
-            "triennial",
-            "decadal",
-            "multi_decadal",
-            "centurial",
-        ],
+        choices=registry.get_level_names(),
         help="Digest level to finalize",
     )
     parser.add_argument("weave_title", help="Title decided by Claude")

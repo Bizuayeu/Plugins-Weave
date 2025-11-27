@@ -214,27 +214,7 @@ bash scripts/generate_digest_auto.sh
 
 v2.0.0 より、`scripts/` は Clean Architecture（4層構造）を採用しています。
 
-```
-scripts/
-├── domain/           # コアビジネスロジック（最内層）
-├── infrastructure/   # 外部関心事（ファイルI/O、ロギング）
-├── application/      # ユースケース（ビジネスロジック実装）
-├── interfaces/       # エントリーポイント
-├── config.py         # 設定管理クラス
-└── test/             # テスト（CIバッジ参照）
-```
-
-### 依存関係ルール
-
-```
-domain/           ← 何にも依存しない
-    ↑
-infrastructure/   ← domain/ のみ
-    ↑
-application/      ← domain/ + infrastructure/
-    ↑
-interfaces/       ← application/
-```
+> 📖 **詳細仕様**: 層構造・依存関係ルール・推奨インポートパスは [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md#clean-architecture) を参照
 
 ### 新機能追加時のガイド
 
@@ -244,18 +224,6 @@ interfaces/       ← application/
 | ファイルI/O・ロギング | `infrastructure/` |
 | ビジネスロジック | `application/` |
 | 外部エントリーポイント | `interfaces/` |
-
-### 推奨インポートパス
-
-```python
-from domain import LEVEL_CONFIG, __version__, ValidationError
-from infrastructure import load_json, save_json, log_info
-from application.shadow import ShadowUpdater
-from application.grand import ShadowGrandDigestManager
-from interfaces import DigestFinalizerFromShadow
-```
-
-詳細は [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md) を参照してください。
 
 ---
 

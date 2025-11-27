@@ -52,11 +52,15 @@ from infrastructure.json_repository import (
 # Logging
 from infrastructure.logging_config import (
     get_logger,
+    log_debug,
     log_error,
     log_info,
     log_warning,
     setup_logging,
 )
+
+# User Interaction
+from infrastructure.user_interaction import get_default_confirm_callback
 
 __all__ = [
     # JSON Repository
@@ -80,4 +84,7 @@ __all__ = [
     "log_info",
     "log_warning",
     "log_error",
+    "log_debug",
+    # User Interaction
+    "get_default_confirm_callback",
 ]
