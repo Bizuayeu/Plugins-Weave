@@ -6,6 +6,7 @@ DigestTimesTracker 統合テスト
 一時ディレクトリを使用したファイルI/Oテスト
 pytestスタイルに移行済み
 """
+
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -77,8 +78,14 @@ class TestDigestTimesTracker:
         data = tracker.load_or_create()
 
         expected_levels = [
-            "weekly", "monthly", "quarterly", "annual",
-            "triennial", "decadal", "multi_decadal", "centurial"
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "multi_decadal",
+            "centurial",
         ]
         for level in expected_levels:
             assert level in data

@@ -6,23 +6,25 @@ test_json_repository.py
 infrastructure/json_repository.py の単体テスト。
 JSON読み書き、テンプレート処理、ディレクトリ作成をテスト。
 """
+
 import json
-import pytest
 from pathlib import Path
 
-from infrastructure.json_repository import (
-    load_json,
-    save_json,
-    load_json_with_template,
-    file_exists,
-    ensure_directory,
-)
-from domain.exceptions import FileIOError
+import pytest
 
+from domain.exceptions import FileIOError
+from infrastructure.json_repository import (
+    ensure_directory,
+    file_exists,
+    load_json,
+    load_json_with_template,
+    save_json,
+)
 
 # =============================================================================
 # load_json テスト
 # =============================================================================
+
 
 class TestLoadJson:
     """load_json() 関数のテスト"""
@@ -68,13 +70,7 @@ class TestLoadJson:
     def test_nested_json_structure(self, tmp_path):
         """ネストされたJSON構造"""
         nested_file = tmp_path / "nested.json"
-        test_data = {
-            "level1": {
-                "level2": {
-                    "level3": ["a", "b", "c"]
-                }
-            }
-        }
+        test_data = {"level1": {"level2": {"level3": ["a", "b", "c"]}}}
         nested_file.write_text(json.dumps(test_data))
 
         result = load_json(nested_file)
@@ -84,6 +80,7 @@ class TestLoadJson:
 # =============================================================================
 # save_json テスト
 # =============================================================================
+
 
 class TestSaveJson:
     """save_json() 関数のテスト"""
@@ -155,6 +152,7 @@ class TestSaveJson:
 # load_json_with_template テスト
 # =============================================================================
 
+
 class TestLoadJsonWithTemplate:
     """load_json_with_template() 関数のテスト"""
 
@@ -191,11 +189,7 @@ class TestLoadJsonWithTemplate:
         def factory():
             return {"source": "factory", "created": True}
 
-        result = load_json_with_template(
-            target_file,
-            template_file=None,
-            default_factory=factory
-        )
+        result = load_json_with_template(target_file, template_file=None, default_factory=factory)
         assert result["source"] == "factory"
         assert result["created"] is True
 
@@ -253,6 +247,7 @@ class TestLoadJsonWithTemplate:
 # file_exists テスト
 # =============================================================================
 
+
 class TestFileExists:
     """file_exists() 関数のテスト"""
 
@@ -286,6 +281,7 @@ class TestFileExists:
 # =============================================================================
 # ensure_directory テスト
 # =============================================================================
+
 
 class TestEnsureDirectory:
     """ensure_directory() 関数のテスト"""

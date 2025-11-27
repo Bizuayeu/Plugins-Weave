@@ -6,16 +6,15 @@ Digest Times Tracker
 last_digest_times.json の管理を担当するモジュール。
 finalize_from_shadow.py から分離。
 """
-import json
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any, Optional, List
 
-from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES
+from datetime import datetime
+from typing import List, Optional
+
+from application.validators import is_valid_list
+from config import LEVEL_NAMES, DigestConfig
 from domain.file_naming import extract_numbers_formatted
 from domain.types import DigestTimesData
-from infrastructure import log_info, load_json_with_template, save_json, log_warning
-from application.validators import is_valid_list
+from infrastructure import load_json_with_template, log_info, log_warning, save_json
 
 
 class DigestTimesTracker:
@@ -24,7 +23,9 @@ class DigestTimesTracker:
     def __init__(self, config: DigestConfig):
         self.config = config
         self.last_digest_file = config.plugin_root / ".claude-plugin" / "last_digest_times.json"
-        self.template_file = config.plugin_root / ".claude-plugin" / "last_digest_times.template.json"
+        self.template_file = (
+            config.plugin_root / ".claude-plugin" / "last_digest_times.template.json"
+        )
 
     def _get_default_template(self) -> DigestTimesData:
         """テンプレートがない場合のデフォルト構造を返す"""
@@ -36,7 +37,7 @@ class DigestTimesTracker:
             target_file=self.last_digest_file,
             template_file=self.template_file,
             default_factory=self._get_default_template,
-            log_message="Initialized last_digest_times.json from template"
+            log_message="Initialized last_digest_times.json from template",
         )
 
     def extract_file_numbers(self, level: str, input_files: List[str]) -> List[str]:
@@ -71,10 +72,7 @@ class DigestTimesTracker:
         last_file = file_numbers[-1] if file_numbers else None
 
         # 保存
-        times[level] = {
-            "timestamp": datetime.now().isoformat(),
-            "last_processed": last_file
-        }
+        times[level] = {"timestamp": datetime.now().isoformat(), "last_processed": last_file}
 
         save_json(self.last_digest_file, times)
 

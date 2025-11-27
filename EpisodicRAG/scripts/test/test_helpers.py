@@ -6,12 +6,12 @@ Test Helpers Module
 共通テストヘルパー関数とフィクスチャを提供。
 本番環境と同一のディレクトリ構造を作成し、テスト間で一貫性を確保。
 """
+
 import json
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Any, Optional
-
+from typing import Any, Dict, Optional
 
 # 本番環境と同じディレクトリ構造定義
 LEVEL_DIRS = [
@@ -94,7 +94,7 @@ def create_default_config(config_dir: Path, base_dir: str = ".") -> Path:
             "loops_dir": "data/Loops",
             "digests_dir": "data/Digests",
             "essences_dir": "data/Essences",
-            "identity_file_path": None
+            "identity_file_path": None,
         },
         "levels": {
             "weekly_threshold": 5,
@@ -104,8 +104,8 @@ def create_default_config(config_dir: Path, base_dir: str = ".") -> Path:
             "triennial_threshold": 3,
             "decadal_threshold": 3,
             "multi_decadal_threshold": 3,
-            "centurial_threshold": 4
-        }
+            "centurial_threshold": 4,
+        },
     }
 
     config_file = config_dir / "config.json"
@@ -125,8 +125,16 @@ def create_default_templates(config_dir: Path) -> None:
     # last_digest_times.template.json
     times_template = {
         level: {"timestamp": "", "last_processed": None}
-        for level in ["weekly", "monthly", "quarterly", "annual",
-                      "triennial", "decadal", "multi_decadal", "centurial"]
+        for level in [
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "multi_decadal",
+            "centurial",
+        ]
     }
     with open(config_dir / "last_digest_times.template.json", 'w', encoding='utf-8') as f:
         json.dump(times_template, f, indent=2, ensure_ascii=False)
@@ -136,9 +144,17 @@ def create_default_templates(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "major_digests": {
             level: {"overall_digest": None}
-            for level in ["weekly", "monthly", "quarterly", "annual",
-                          "triennial", "decadal", "multi_decadal", "centurial"]
-        }
+            for level in [
+                "weekly",
+                "monthly",
+                "quarterly",
+                "annual",
+                "triennial",
+                "decadal",
+                "multi_decadal",
+                "centurial",
+            ]
+        },
     }
     with open(config_dir / "GrandDigest.template.txt", 'w', encoding='utf-8') as f:
         json.dump(grand_template, f, indent=2, ensure_ascii=False)
@@ -148,9 +164,17 @@ def create_default_templates(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "latest_digests": {
             level: {"overall_digest": None}
-            for level in ["weekly", "monthly", "quarterly", "annual",
-                          "triennial", "decadal", "multi_decadal", "centurial"]
-        }
+            for level in [
+                "weekly",
+                "monthly",
+                "quarterly",
+                "annual",
+                "triennial",
+                "decadal",
+                "multi_decadal",
+                "centurial",
+            ]
+        },
     }
     with open(config_dir / "ShadowGrandDigest.template.txt", 'w', encoding='utf-8') as f:
         json.dump(shadow_template, f, indent=2, ensure_ascii=False)
@@ -177,7 +201,7 @@ def create_test_loop_file(loops_path: Path, loop_num: int, title: str = "test") 
             "digest_type": "テスト",
             "keywords": ["test", "sample"],
             "abstract": f"Loop{loop_num:04d}のテスト内容です。",
-            "impression": "テスト用の所感です。"
+            "impression": "テスト用の所感です。",
         }
     }
 

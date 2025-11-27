@@ -5,12 +5,14 @@ Property-Based Tests for JSON Repository
 
 Testing JSON I/O roundtrip invariants.
 """
+
 import sys
 import tempfile
 from pathlib import Path
 
 import pytest
-from hypothesis import given, strategies as st, settings, HealthCheck
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
 # パス設定
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -20,7 +22,6 @@ from infrastructure.json_repository import (
     save_json,
     try_load_json,
 )
-
 
 # =============================================================================
 # Strategies for JSON-serializable data
@@ -35,13 +36,14 @@ simple_json_dicts = st.dictionaries(
         st.integers(),
         st.text(max_size=50),
     ),
-    max_size=5
+    max_size=5,
 )
 
 
 # =============================================================================
 # Roundtrip Properties
 # =============================================================================
+
 
 class TestJsonRoundtripProperties:
     """Test save/load roundtrip properties"""
@@ -68,12 +70,7 @@ class TestJsonRoundtripProperties:
         """Unicode characters are preserved in roundtrip"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Add unicode content to data
-            unicode_data = {
-                "japanese": "こんにちは",
-                "korean": "안녕하세요",
-                "emoji": "🎉",
-                **data
-            }
+            unicode_data = {"japanese": "こんにちは", "korean": "안녕하세요", "emoji": "🎉", **data}
             file_path = Path(tmp_dir) / "unicode.json"
 
             save_json(file_path, unicode_data)
@@ -87,6 +84,7 @@ class TestJsonRoundtripProperties:
 # =============================================================================
 # try_load_json Properties
 # =============================================================================
+
 
 class TestTryLoadJsonProperties:
     """Test try_load_json never raises"""
@@ -146,6 +144,7 @@ class TestTryLoadJsonProperties:
 # Edge Cases
 # =============================================================================
 
+
 class TestJsonEdgeCases:
     """Test edge cases in JSON handling"""
 
@@ -164,7 +163,7 @@ class TestJsonEdgeCases:
     @pytest.mark.integration
     @given(
         key=st.text(min_size=1, max_size=20).filter(lambda x: x.strip()),
-        value=st.one_of(st.integers(), st.text(max_size=50), st.booleans(), st.none())
+        value=st.one_of(st.integers(), st.text(max_size=50), st.booleans(), st.none()),
     )
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_single_key_value_roundtrip(self, key, value):

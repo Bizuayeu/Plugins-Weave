@@ -5,8 +5,10 @@ test_plugin_root_resolver.py
 
 config/plugin_root_resolver.py のテスト
 """
-import pytest
+
 from pathlib import Path
+
+import pytest
 
 from config.plugin_root_resolver import find_plugin_root
 

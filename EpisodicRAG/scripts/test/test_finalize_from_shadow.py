@@ -5,6 +5,7 @@ DigestFinalizerFromShadow 統合テスト
 
 一時ディレクトリを使用したファイルI/Oテスト
 """
+
 import json
 import shutil
 import sys
@@ -17,10 +18,9 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Interfaces層
-from interfaces import DigestFinalizerFromShadow
-
 # Domain層
-from domain.exceptions import ValidationError, DigestError, ConfigError
+from domain.exceptions import ConfigError, DigestError, ValidationError
+from interfaces import DigestFinalizerFromShadow
 
 # Helpers
 from interfaces.interface_helpers import get_next_digest_number
@@ -88,8 +88,16 @@ class TestDigestFinalizerFromShadow(unittest.TestCase):
         self.config_dir.mkdir(parents=True)
 
         # Digestのサブディレクトリ（各レベル内にProvisionalを配置）
-        for subdir in ["1_Weekly", "2_Monthly", "3_Quarterly", "4_Annual",
-                       "5_Triennial", "6_Decadal", "7_Multi-decadal", "8_Centurial"]:
+        for subdir in [
+            "1_Weekly",
+            "2_Monthly",
+            "3_Quarterly",
+            "4_Annual",
+            "5_Triennial",
+            "6_Decadal",
+            "7_Multi-decadal",
+            "8_Centurial",
+        ]:
             (self.digests_path / subdir).mkdir()
             (self.digests_path / subdir / "Provisional").mkdir()
 
@@ -100,7 +108,7 @@ class TestDigestFinalizerFromShadow(unittest.TestCase):
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
                 "essences_dir": "data/Essences",
-                "identity_file_path": None
+                "identity_file_path": None,
             },
             "levels": {
                 "weekly_threshold": 5,
@@ -110,8 +118,8 @@ class TestDigestFinalizerFromShadow(unittest.TestCase):
                 "triennial_threshold": 3,
                 "decadal_threshold": 3,
                 "multi_decadal_threshold": 3,
-                "centurial_threshold": 4
-            }
+                "centurial_threshold": 4,
+            },
         }
         with open(self.config_dir / "config.json", 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
@@ -182,8 +190,16 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         self.config_dir.mkdir(parents=True)
 
         # Digestのサブディレクトリ（各レベル内にProvisionalを配置）
-        for subdir in ["1_Weekly", "2_Monthly", "3_Quarterly", "4_Annual",
-                       "5_Triennial", "6_Decadal", "7_Multi-decadal", "8_Centurial"]:
+        for subdir in [
+            "1_Weekly",
+            "2_Monthly",
+            "3_Quarterly",
+            "4_Annual",
+            "5_Triennial",
+            "6_Decadal",
+            "7_Multi-decadal",
+            "8_Centurial",
+        ]:
             (self.digests_path / subdir).mkdir()
             (self.digests_path / subdir / "Provisional").mkdir()
 
@@ -194,7 +210,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
                 "essences_dir": "data/Essences",
-                "identity_file_path": None
+                "identity_file_path": None,
             },
             "levels": {
                 "weekly_threshold": 5,
@@ -204,8 +220,8 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                 "triennial_threshold": 3,
                 "decadal_threshold": 3,
                 "multi_decadal_threshold": 3,
-                "centurial_threshold": 4
-            }
+                "centurial_threshold": 4,
+            },
         }
         with open(self.config_dir / "config.json", 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
@@ -221,8 +237,8 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                 "triennial": {"overall_digest": None},
                 "decadal": {"overall_digest": None},
                 "multi_decadal": {"overall_digest": None},
-                "centurial": {"overall_digest": None}
-            }
+                "centurial": {"overall_digest": None},
+            },
         }
         with open(self.essences_path / "GrandDigest.txt", 'w', encoding='utf-8') as f:
             json.dump(grand_digest_data, f)
@@ -237,7 +253,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                         "digest_type": "テスト",
                         "keywords": ["keyword1", "keyword2"],
                         "abstract": "テスト用の要約です。",
-                        "impression": "テスト用の所感です。"
+                        "impression": "テスト用の所感です。",
                     }
                 },
                 "monthly": {"overall_digest": None},
@@ -246,8 +262,8 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                 "triennial": {"overall_digest": None},
                 "decadal": {"overall_digest": None},
                 "multi_decadal": {"overall_digest": None},
-                "centurial": {"overall_digest": None}
-            }
+                "centurial": {"overall_digest": None},
+            },
         }
         with open(self.essences_path / "ShadowGrandDigest.txt", 'w', encoding='utf-8') as f:
             json.dump(shadow_digest_data, f)
@@ -261,7 +277,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
             "triennial": {"timestamp": "", "last_processed": None},
             "decadal": {"timestamp": "", "last_processed": None},
             "multi_decadal": {"timestamp": "", "last_processed": None},
-            "centurial": {"timestamp": "", "last_processed": None}
+            "centurial": {"timestamp": "", "last_processed": None},
         }
         with open(self.config_dir / "last_digest_times.json", 'w', encoding='utf-8') as f:
             json.dump(times_data, f)
@@ -273,7 +289,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                 "digest_type": "対話",
                 "keywords": ["key1"],
                 "abstract": "Loop1の内容",
-                "impression": "所感1"
+                "impression": "所感1",
             }
         }
         loop2_data = {
@@ -282,7 +298,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                 "digest_type": "実装",
                 "keywords": ["key2"],
                 "abstract": "Loop2の内容",
-                "impression": "所感2"
+                "impression": "所感2",
             }
         }
         with open(self.loops_path / "Loop0001_test.txt", 'w', encoding='utf-8') as f:
@@ -297,6 +313,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
     def _create_finalizer(self):
         """DigestConfigとFinalizerを作成"""
         from config import DigestConfig
+
         config = DigestConfig(plugin_root=self.plugin_root)
         return DigestFinalizerFromShadow(config)
 
@@ -360,9 +377,9 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
             shadow_data = json.load(f)
 
         # weeklyレベルのShadowがクリアされていることを確認
-        weekly_shadow = shadow_data["latest_digests"]["weekly"]["overall_digest"]
         # カスケード後はweeklyがクリアまたは更新されている
         # 具体的な動作はcascade_update_on_digest_finalizeの実装による
+        _ = shadow_data["latest_digests"]["weekly"]["overall_digest"]
 
     def test_finalize_without_provisional_auto_generates(self):
         """Provisionalがない場合、source_filesから自動生成する"""

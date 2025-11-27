@@ -5,18 +5,19 @@ File Appender
 
 ファイル追加処理（Shadowへの増分追加）
 """
+
 from pathlib import Path
 from typing import Dict, List
 
-from domain.types import ShadowDigestData, OverallDigestData, LevelHierarchyEntry
-from domain.constants import SOURCE_TYPE_LOOPS
-from infrastructure import log_info, log_warning, try_read_json_from_file
 from application.validators import is_valid_dict
+from domain.constants import SOURCE_TYPE_LOOPS
+from domain.types import LevelHierarchyEntry, OverallDigestData, ShadowDigestData
+from infrastructure import log_info, log_warning, try_read_json_from_file
 
-from .template import ShadowTemplate
 from .file_detector import FileDetector
-from .shadow_io import ShadowIO
 from .placeholder_manager import PlaceholderManager
+from .shadow_io import ShadowIO
+from .template import ShadowTemplate
 
 
 class FileAppender:
@@ -28,7 +29,7 @@ class FileAppender:
         file_detector: FileDetector,
         template: ShadowTemplate,
         level_hierarchy: Dict[str, LevelHierarchyEntry],
-        placeholder_manager: PlaceholderManager
+        placeholder_manager: PlaceholderManager,
     ):
         """
         初期化
@@ -47,9 +48,7 @@ class FileAppender:
         self.placeholder_manager = placeholder_manager
 
     def _ensure_overall_digest_initialized(
-        self,
-        shadow_data: ShadowDigestData,
-        level: str
+        self, shadow_data: ShadowDigestData, level: str
     ) -> OverallDigestData:
         """
         overall_digestの初期化を確保

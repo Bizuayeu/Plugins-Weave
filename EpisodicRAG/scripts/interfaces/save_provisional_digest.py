@@ -15,12 +15,12 @@ Examples:
     python save_provisional_digest.py weekly '[{"source_file":"Loop0005.txt",...}]' --append
 """
 
+import argparse
+import io
 import json
 import sys
-import io
-import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional
 
 # Windows環境でUTF-8出力を有効化（CLI実行時のみ）
@@ -29,23 +29,22 @@ if sys.platform == 'win32' and __name__ == "__main__":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Domain層
-from domain.constants import LEVEL_CONFIG
-from domain.version import DIGEST_FORMAT_VERSION
-from domain.exceptions import EpisodicRAGError, FileIOError, ConfigError, ValidationError
-from domain.types import IndividualDigestData, ProvisionalDigestFile
-
-# Infrastructure層
-from infrastructure import log_info, log_error, log_warning, save_json, load_json
-
 # Application層
 from application.validators import is_valid_dict, is_valid_list
 
-# Helpers
-from interfaces.interface_helpers import get_next_digest_number
-
 # 設定（config.pyはまだ移行していない）
 from config import DigestConfig, format_digest_number
-from domain.file_naming import find_max_number, extract_file_number
+from domain.constants import LEVEL_CONFIG
+from domain.exceptions import ConfigError, EpisodicRAGError, ValidationError
+from domain.file_naming import find_max_number
+from domain.types import IndividualDigestData, ProvisionalDigestFile
+from domain.version import DIGEST_FORMAT_VERSION
+
+# Infrastructure層
+from infrastructure import load_json, log_error, log_info, log_warning, save_json
+
+# Helpers
+from interfaces.interface_helpers import get_next_digest_number
 
 
 class ProvisionalDigestSaver:
@@ -57,7 +56,6 @@ class ProvisionalDigestSaver:
 
         # レベル設定（共通定数を参照）
         self.level_config = LEVEL_CONFIG
-
 
     def get_current_digest_number(self, level: str) -> Optional[int]:
         """
@@ -87,7 +85,9 @@ class ProvisionalDigestSaver:
         # 統一関数を使用して最大番号を取得
         return find_max_number(existing_files, prefix)
 
-    def load_existing_provisional(self, level: str, digest_num: int) -> Optional[ProvisionalDigestFile]:
+    def load_existing_provisional(
+        self, level: str, digest_num: int
+    ) -> Optional[ProvisionalDigestFile]:
         """
         既存のProvisionalDigestファイルを読み込み
 
@@ -113,9 +113,7 @@ class ProvisionalDigestSaver:
         return load_json(file_path)
 
     def merge_individual_digests(
-        self,
-        existing_digests: List[IndividualDigestData],
-        new_digests: List[IndividualDigestData]
+        self, existing_digests: List[IndividualDigestData], new_digests: List[IndividualDigestData]
     ) -> List[IndividualDigestData]:
         """
         既存と新規のindividual_digestsをマージ（重複はsource_fileで判定し上書き）
@@ -133,7 +131,9 @@ class ProvisionalDigestSaver:
         # 入力検証
         for i, d in enumerate(existing_digests):
             if not is_valid_dict(d) or "source_file" not in d:
-                raise ValidationError(f"Invalid existing digest at index {i}: missing 'source_file' key")
+                raise ValidationError(
+                    f"Invalid existing digest at index {i}: missing 'source_file' key"
+                )
         for i, d in enumerate(new_digests):
             if not is_valid_dict(d) or "source_file" not in d:
                 raise ValidationError(f"Invalid new digest at index {i}: missing 'source_file' key")
@@ -152,10 +152,7 @@ class ProvisionalDigestSaver:
         return list(merged_dict.values())
 
     def save_provisional(
-        self,
-        level: str,
-        individual_digests: List[IndividualDigestData],
-        append: bool = False
+        self, level: str, individual_digests: List[IndividualDigestData], append: bool = False
     ) -> Path:
         """
         ProvisionalDigestファイルを保存
@@ -173,7 +170,6 @@ class ProvisionalDigestSaver:
         if not level_cfg:
             raise ConfigError(f"Invalid level: {level}")
 
-        prefix = level_cfg["prefix"]
         digits = level_cfg["digits"]
 
         # 追加モードの場合、既存番号を使用。なければ警告して新規作成
@@ -181,7 +177,9 @@ class ProvisionalDigestSaver:
             current_num = self.get_current_digest_number(level)
             if current_num is not None:
                 digest_num = current_num
-                log_info(f"Appending to existing Provisional: {format_digest_number(level, digest_num)}_Individual.txt")
+                log_info(
+                    f"Appending to existing Provisional: {format_digest_number(level, digest_num)}_Individual.txt"
+                )
 
                 # 既存データを読み込み
                 existing_data = self.load_existing_provisional(level, digest_num)
@@ -196,9 +194,13 @@ class ProvisionalDigestSaver:
                             log_warning("Invalid individual_digests format, ignoring")
                             existing_digests = []
                     # マージ（重複は上書き）
-                    individual_digests = self.merge_individual_digests(existing_digests, individual_digests)
+                    individual_digests = self.merge_individual_digests(
+                        existing_digests, individual_digests
+                    )
             else:
-                log_warning("--append specified but no existing Provisional found. Creating new file.")
+                log_warning(
+                    "--append specified but no existing Provisional found. Creating new file."
+                )
                 digest_num = get_next_digest_number(self.digests_path, level)
         else:
             # 通常モード: 次のダイジェスト番号を取得
@@ -217,9 +219,9 @@ class ProvisionalDigestSaver:
                 "digest_level": level,
                 "digest_number": str(digest_num).zfill(digits),  # 純粋な番号のみ
                 "last_updated": datetime.now().isoformat(),
-                "version": DIGEST_FORMAT_VERSION
+                "version": DIGEST_FORMAT_VERSION,
             },
-            "individual_digests": individual_digests
+            "individual_digests": individual_digests,
         }
 
         # JSON形式で保存
@@ -277,22 +279,25 @@ Examples:
   python save_provisional_digest.py weekly individual_digests.json
   python save_provisional_digest.py weekly '[{"source_file":"Loop0001.txt",...}]'
   python save_provisional_digest.py weekly '[{"source_file":"Loop0005.txt",...}]' --append
-        """
+        """,
     )
     parser.add_argument(
         "level",
-        choices=["weekly", "monthly", "quarterly", "annual",
-                 "triennial", "decadal", "multi_decadal", "centurial"],
-        help="ダイジェストレベル"
+        choices=[
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "multi_decadal",
+            "centurial",
+        ],
+        help="ダイジェストレベル",
     )
+    parser.add_argument("input_data", help="JSONファイルパスまたはJSON文字列")
     parser.add_argument(
-        "input_data",
-        help="JSONファイルパスまたはJSON文字列"
-    )
-    parser.add_argument(
-        "--append",
-        action="store_true",
-        help="既存のProvisionalファイルに追加（新規作成ではなく）"
+        "--append", action="store_true", help="既存のProvisionalファイルに追加（新規作成ではなく）"
     )
 
     args = parser.parse_args()
@@ -337,6 +342,7 @@ Examples:
         log_error(f"File I/O error: {e}", exit_code=1)
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         log_error(f"Unexpected error: {e}", exit_code=1)
 

@@ -5,26 +5,27 @@ Property-Based Tests for Validators
 
 Using hypothesis to test type validation invariants.
 """
+
 import sys
 from pathlib import Path
 
 import pytest
-from hypothesis import given, strategies as st, settings, HealthCheck
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
 # パス設定
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from application.validators import (
+    get_dict_or_default,
+    get_list_or_default,
+    is_valid_dict,
+    is_valid_list,
     validate_dict,
     validate_list,
     validate_source_files,
-    is_valid_dict,
-    is_valid_list,
-    get_dict_or_default,
-    get_list_or_default,
 )
 from domain.exceptions import ValidationError
-
 
 # =============================================================================
 # Strategies
@@ -58,26 +59,20 @@ non_list_values = st.one_of(
 valid_dicts = st.dictionaries(
     st.text(min_size=1, max_size=20),
     st.one_of(st.integers(), st.text(), st.booleans()),
-    max_size=10
+    max_size=10,
 )
 
 # Valid lists (any structure)
-valid_lists = st.lists(
-    st.one_of(st.integers(), st.text(), st.booleans()),
-    max_size=20
-)
+valid_lists = st.lists(st.one_of(st.integers(), st.text(), st.booleans()), max_size=20)
 
 # Non-empty lists of strings (valid source files)
-valid_source_files = st.lists(
-    st.text(min_size=1, max_size=50),
-    min_size=1,
-    max_size=20
-)
+valid_source_files = st.lists(st.text(min_size=1, max_size=50), min_size=1, max_size=20)
 
 
 # =============================================================================
 # validate_dict Properties
 # =============================================================================
+
 
 class TestValidateDictProperties:
     """Property-based tests for validate_dict"""
@@ -104,6 +99,7 @@ class TestValidateDictProperties:
 # validate_list Properties
 # =============================================================================
 
+
 class TestValidateListProperties:
     """Property-based tests for validate_list"""
 
@@ -128,6 +124,7 @@ class TestValidateListProperties:
 # =============================================================================
 # is_valid_dict / is_valid_list Properties
 # =============================================================================
+
 
 class TestIsValidProperties:
     """Property-based tests for is_valid_* functions"""
@@ -164,6 +161,7 @@ class TestIsValidProperties:
 # =============================================================================
 # get_dict_or_default / get_list_or_default Properties
 # =============================================================================
+
 
 class TestGetOrDefaultProperties:
     """Property-based tests for get_*_or_default functions"""
@@ -221,6 +219,7 @@ class TestGetOrDefaultProperties:
 # =============================================================================
 # validate_source_files Properties
 # =============================================================================
+
 
 class TestValidateSourceFilesProperties:
     """Property-based tests for validate_source_files"""

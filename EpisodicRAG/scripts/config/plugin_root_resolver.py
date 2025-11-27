@@ -5,6 +5,7 @@ Plugin Root Resolver
 
 Pluginルートディレクトリの検出
 """
+
 from pathlib import Path
 
 

@@ -11,6 +11,7 @@ E2E Workflow Tests
 2. Shadow → Regular → Grand の昇格フロー
 3. カスケード処理の検証
 """
+
 import json
 import sys
 from pathlib import Path
@@ -22,25 +23,25 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Application層
+# テストヘルパー
+from test_helpers import create_test_loop_file
+
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
-
-# Interfaces層
-from interfaces import DigestFinalizerFromShadow
-
-# Domain層
-from domain.constants import LEVEL_NAMES
 
 # 設定
 from config import DigestConfig
 
-# テストヘルパー
-from test_helpers import create_test_loop_file
+# Domain層
+from domain.constants import LEVEL_NAMES
 
+# Interfaces層
+from interfaces import DigestFinalizerFromShadow
 
 # =============================================================================
 # E2E: Loop検出からShadow更新
 # =============================================================================
+
 
 class TestE2ELoopDetectionToShadow:
     """新規Loopファイル検出 → Shadow更新のE2Eテスト"""
@@ -127,6 +128,7 @@ class TestE2ELoopDetectionToShadow:
 # E2E: Shadow → Regular → Grand 昇格フロー
 # =============================================================================
 
+
 class TestE2EDigestPromotion:
     """ダイジェスト昇格フロー（Shadow → Regular → Grand）のE2Eテスト"""
 
@@ -149,7 +151,7 @@ class TestE2EDigestPromotion:
         grand_file = temp_plugin_env.essences_path / "GrandDigest.txt"
         grand_template = {
             "metadata": {"version": "test"},
-            "major_digests": {level: {"overall_digest": None} for level in LEVEL_NAMES}
+            "major_digests": {level: {"overall_digest": None} for level in LEVEL_NAMES},
         }
         with open(grand_file, 'w', encoding='utf-8') as f:
             json.dump(grand_template, f, ensure_ascii=False, indent=2)
@@ -218,6 +220,7 @@ class TestE2EDigestPromotion:
 # E2E: カスケード処理
 # =============================================================================
 
+
 class TestE2ECascadeProcessing:
     """カスケード処理のE2Eテスト"""
 
@@ -269,6 +272,7 @@ class TestE2ECascadeProcessing:
 # E2E: フルワークフロー
 # =============================================================================
 
+
 class TestE2EFullWorkflow:
     """完全なワークフローのE2Eテスト"""
 
@@ -292,7 +296,7 @@ class TestE2EFullWorkflow:
         grand_file = temp_plugin_env.essences_path / "GrandDigest.txt"
         grand_template = {
             "metadata": {"version": "test"},
-            "major_digests": {level: {"overall_digest": None} for level in LEVEL_NAMES}
+            "major_digests": {level: {"overall_digest": None} for level in LEVEL_NAMES},
         }
         with open(grand_file, 'w', encoding='utf-8') as f:
             json.dump(grand_template, f, ensure_ascii=False, indent=2)
@@ -326,14 +330,16 @@ class TestE2EFullWorkflow:
 
         # Step 4: Shadowデータを完成させる（Claude分析をシミュレート）
         shadow_data = shadow_manager._io.load_or_create()
-        shadow_data["latest_digests"]["weekly"]["overall_digest"].update({
-            "abstract": "Complete workflow test abstract",
-            "keywords": ["workflow", "e2e", "complete"],
-            "key_insights": ["Full workflow works"],
-            "learning_points": ["E2E testing is valuable"],
-            "emotional_context": {"primary": "confident"},
-            "connections": {"technical": ["testing"]},
-        })
+        shadow_data["latest_digests"]["weekly"]["overall_digest"].update(
+            {
+                "abstract": "Complete workflow test abstract",
+                "keywords": ["workflow", "e2e", "complete"],
+                "key_insights": ["Full workflow works"],
+                "learning_points": ["E2E testing is valuable"],
+                "emotional_context": {"primary": "confident"},
+                "connections": {"technical": ["testing"]},
+            }
+        )
         shadow_manager._io.save(shadow_data)
 
         # Step 5: Grandを更新
@@ -382,14 +388,16 @@ class TestE2EFullWorkflow:
 
         # Shadowを完成させる
         shadow_data = shadow_manager._io.load_or_create()
-        shadow_data["latest_digests"]["weekly"]["overall_digest"].update({
-            "abstract": "Cycle 1 abstract",
-            "keywords": ["cycle1"],
-            "key_insights": ["insight1"],
-            "learning_points": ["point1"],
-            "emotional_context": {"primary": "neutral"},
-            "connections": {"technical": []},
-        })
+        shadow_data["latest_digests"]["weekly"]["overall_digest"].update(
+            {
+                "abstract": "Cycle 1 abstract",
+                "keywords": ["cycle1"],
+                "key_insights": ["insight1"],
+                "learning_points": ["point1"],
+                "emotional_context": {"primary": "neutral"},
+                "connections": {"technical": []},
+            }
+        )
         shadow_manager._io.save(shadow_data)
 
         # サイクル1を確定
@@ -420,14 +428,16 @@ class TestE2EFullWorkflow:
 
         # Shadowを完成させる
         shadow_data2 = shadow_manager2._io.load_or_create()
-        shadow_data2["latest_digests"]["weekly"]["overall_digest"].update({
-            "abstract": "Cycle 2 abstract",
-            "keywords": ["cycle2"],
-            "key_insights": ["insight2"],
-            "learning_points": ["point2"],
-            "emotional_context": {"primary": "curious"},
-            "connections": {"technical": []},
-        })
+        shadow_data2["latest_digests"]["weekly"]["overall_digest"].update(
+            {
+                "abstract": "Cycle 2 abstract",
+                "keywords": ["cycle2"],
+                "key_insights": ["insight2"],
+                "learning_points": ["point2"],
+                "emotional_context": {"primary": "curious"},
+                "connections": {"technical": []},
+            }
+        )
         shadow_manager2._io.save(shadow_data2)
 
         # サイクル2を確定

@@ -5,6 +5,7 @@ ShadowGrandDigestManager 統合テスト
 
 一時ディレクトリを使用したファイルI/Oテスト
 """
+
 import json
 import sys
 from pathlib import Path
@@ -34,8 +35,10 @@ def shadow_manager(temp_plugin_env):
     times_file = temp_plugin_env.config_dir / "last_digest_times.json"
     times_file.write_text("{}")
 
-    with patch('application.grand.shadow_grand_digest.DigestConfig') as mock_config_class, \
-         patch('application.grand.shadow_grand_digest.DigestTimesTracker') as mock_tracker_class:
+    with (
+        patch('application.grand.shadow_grand_digest.DigestConfig') as mock_config_class,
+        patch('application.grand.shadow_grand_digest.DigestTimesTracker') as mock_tracker_class,
+    ):
         mock_config_class.return_value = mock_config
         mock_tracker = MagicMock()
         mock_tracker.load_or_create.return_value = {}
@@ -65,7 +68,7 @@ class TestShadowGrandDigestManager:
         # テストデータを作成
         test_data = {
             "metadata": {"version": "test"},
-            "latest_digests": {"weekly": {"overall_digest": {"test": True}}}
+            "latest_digests": {"weekly": {"overall_digest": {"test": True}}},
         }
         with open(shadow_manager.shadow_digest_file, 'w', encoding='utf-8') as f:
             json.dump(test_data, f)

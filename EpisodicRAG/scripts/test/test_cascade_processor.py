@@ -5,34 +5,35 @@ CascadeProcessor テスト
 
 cascade_processor.py のユニットテスト・統合テスト
 """
+
 import json
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from config import DigestConfig, LEVEL_CONFIG
+import pytest
+
 from application.shadow import (
-    ShadowTemplate,
     FileDetector,
     ShadowIO,
+    ShadowTemplate,
     ShadowUpdater,
 )
 from application.shadow.cascade_processor import CascadeProcessor
 from application.shadow.file_appender import FileAppender
 from application.shadow.placeholder_manager import PlaceholderManager
 from application.tracking import DigestTimesTracker
-
+from config import LEVEL_CONFIG, DigestConfig
 
 # =============================================================================
 # フィクスチャ
 # =============================================================================
 
+
 @pytest.fixture
 def level_hierarchy():
     """レベル階層情報"""
     return {
-        level: {"source": cfg["source"], "next": cfg["next"]}
-        for level, cfg in LEVEL_CONFIG.items()
+        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
     }
 
 
@@ -50,14 +51,13 @@ def cascade_processor(temp_plugin_env, level_hierarchy):
     file_appender = FileAppender(
         shadow_io, file_detector, template, level_hierarchy, placeholder_manager
     )
-    return CascadeProcessor(
-        shadow_io, file_detector, template, level_hierarchy, file_appender
-    )
+    return CascadeProcessor(shadow_io, file_detector, template, level_hierarchy, file_appender)
 
 
 # =============================================================================
 # get_shadow_digest_for_level テスト
 # =============================================================================
+
 
 class TestGetShadowDigestForLevel:
     """get_shadow_digest_for_level メソッドのテスト"""
@@ -108,6 +108,7 @@ class TestGetShadowDigestForLevel:
 # promote_shadow_to_grand テスト
 # =============================================================================
 
+
 class TestPromoteShadowToGrand:
     """promote_shadow_to_grand メソッドのテスト"""
 
@@ -135,6 +136,7 @@ class TestPromoteShadowToGrand:
 # =============================================================================
 # clear_shadow_level テスト
 # =============================================================================
+
 
 class TestClearShadowLevel:
     """clear_shadow_level メソッドのテスト"""
@@ -170,6 +172,7 @@ class TestClearShadowLevel:
 # =============================================================================
 # cascade_update_on_digest_finalize テスト
 # =============================================================================
+
 
 class TestCascadeUpdateOnDigestFinalize:
     """cascade_update_on_digest_finalize メソッドのテスト"""
@@ -231,16 +234,15 @@ class TestCascadeUpdateOnDigestFinalize:
 
         # monthlyのShadowにファイルが追加されたか確認
         shadow_data = cascade_processor.shadow_io.load_or_create()
-        monthly_files = shadow_data["latest_digests"]["monthly"]["overall_digest"].get(
-            "source_files", []
-        )
         # 新しいWeeklyファイルがmonthlyのsource_filesに追加されているはず
         # （ただしtimes_trackerの状態による）
+        _ = shadow_data["latest_digests"]["monthly"]["overall_digest"].get("source_files", [])
 
 
 # =============================================================================
 # エッジケーステスト
 # =============================================================================
+
 
 class TestCascadeProcessorEdgeCases:
     """CascadeProcessor のエッジケーステスト"""
@@ -267,6 +269,7 @@ class TestCascadeProcessorEdgeCases:
 # =============================================================================
 # 型チェックバグ修正テスト（is_valid_dict対応）
 # =============================================================================
+
 
 class TestGetShadowDigestTypeChecks:
     """get_shadow_digest_for_level の型チェックテスト"""

@@ -7,8 +7,10 @@ ShadowTemplateクラスの動作を検証。
 - create_empty_overall_digest: プレースホルダー付きoverall_digest生成
 - get_template: ShadowGrandDigestテンプレート生成
 """
-import pytest
+
 from datetime import datetime
+
+import pytest
 
 # Application層
 from application.shadow import ShadowTemplate
@@ -16,17 +18,17 @@ from application.shadow import ShadowTemplate
 # Domain層
 from domain.constants import (
     LEVEL_NAMES,
+    PLACEHOLDER_END,
     PLACEHOLDER_LIMITS,
     PLACEHOLDER_MARKER,
-    PLACEHOLDER_END,
     PLACEHOLDER_SIMPLE,
 )
 from domain.version import DIGEST_FORMAT_VERSION
 
-
 # =============================================================================
 # ShadowTemplate.create_empty_overall_digest テスト
 # =============================================================================
+
 
 class TestCreateEmptyOverallDigest:
     """create_empty_overall_digest メソッドのテスト"""
@@ -46,7 +48,14 @@ class TestCreateEmptyOverallDigest:
     def test_has_all_required_fields(self, template):
         """必須フィールドがすべて存在する"""
         result = template.create_empty_overall_digest()
-        required_fields = ["timestamp", "source_files", "digest_type", "keywords", "abstract", "impression"]
+        required_fields = [
+            "timestamp",
+            "source_files",
+            "digest_type",
+            "keywords",
+            "abstract",
+            "impression",
+        ]
         for field in required_fields:
             assert field in result, f"Missing field: {field}"
 
@@ -123,6 +132,7 @@ class TestCreateEmptyOverallDigest:
 # =============================================================================
 # ShadowTemplate.get_template テスト
 # =============================================================================
+
 
 class TestGetTemplate:
     """get_template メソッドのテスト"""
@@ -222,6 +232,7 @@ class TestGetTemplate:
 # =============================================================================
 # ShadowTemplate 初期化テスト
 # =============================================================================
+
 
 class TestShadowTemplateInit:
     """ShadowTemplate 初期化のテスト"""

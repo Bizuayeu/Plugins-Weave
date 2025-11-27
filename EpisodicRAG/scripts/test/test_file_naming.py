@@ -6,6 +6,7 @@ File Naming Utilities Tests
 domain/file_naming.py のテスト。
 特に新規追加のユーティリティ関数をテスト。
 """
+
 import sys
 from pathlib import Path
 
@@ -17,39 +18,45 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from domain.file_naming import (
     extract_file_number,
     extract_number_only,
-    format_digest_number,
-    find_max_number,
-    filter_files_after,
     extract_numbers_formatted,
+    filter_files_after,
+    find_max_number,
+    format_digest_number,
 )
-
 
 # =============================================================================
 # 既存関数のテスト（回帰テスト）
 # =============================================================================
 
+
 class TestExtractFileNumber:
     """extract_file_number のテスト"""
 
-    @pytest.mark.parametrize("filename,expected", [
-        ("Loop0186_test.txt", ("Loop", 186)),
-        ("W0001_weekly.txt", ("W", 1)),
-        ("MD03_decadal.txt", ("MD", 3)),
-        ("M001_monthly.txt", ("M", 1)),
-        ("Q003_quarterly.txt", ("Q", 3)),
-        ("A01_annual.txt", ("A", 1)),
-    ])
+    @pytest.mark.parametrize(
+        "filename,expected",
+        [
+            ("Loop0186_test.txt", ("Loop", 186)),
+            ("W0001_weekly.txt", ("W", 1)),
+            ("MD03_decadal.txt", ("MD", 3)),
+            ("M001_monthly.txt", ("M", 1)),
+            ("Q003_quarterly.txt", ("Q", 3)),
+            ("A01_annual.txt", ("A", 1)),
+        ],
+    )
     def test_valid_files(self, filename, expected):
         """有効なファイル名からプレフィックスと番号を抽出"""
         assert extract_file_number(filename) == expected
 
-    @pytest.mark.parametrize("invalid_input", [
-        "invalid.txt",
-        None,
-        123,
-        "",
-        "no_numbers.txt",
-    ])
+    @pytest.mark.parametrize(
+        "invalid_input",
+        [
+            "invalid.txt",
+            None,
+            123,
+            "",
+            "no_numbers.txt",
+        ],
+    )
     def test_invalid_input(self, invalid_input):
         """無効な入力はNoneを返す"""
         assert extract_file_number(invalid_input) is None
@@ -70,17 +77,20 @@ class TestExtractNumberOnly:
 class TestFormatDigestNumber:
     """format_digest_number のテスト"""
 
-    @pytest.mark.parametrize("level,number,expected", [
-        ("loop", 186, "Loop0186"),
-        ("weekly", 1, "W0001"),
-        ("monthly", 12, "M012"),
-        ("quarterly", 3, "Q003"),
-        ("annual", 5, "A05"),
-        ("triennial", 2, "T02"),
-        ("decadal", 1, "D01"),
-        ("multi_decadal", 3, "MD03"),
-        ("centurial", 1, "C01"),
-    ])
+    @pytest.mark.parametrize(
+        "level,number,expected",
+        [
+            ("loop", 186, "Loop0186"),
+            ("weekly", 1, "W0001"),
+            ("monthly", 12, "M012"),
+            ("quarterly", 3, "Q003"),
+            ("annual", 5, "A05"),
+            ("triennial", 2, "T02"),
+            ("decadal", 1, "D01"),
+            ("multi_decadal", 3, "MD03"),
+            ("centurial", 1, "C01"),
+        ],
+    )
     def test_format_levels(self, level, number, expected):
         """各レベルの番号フォーマット"""
         assert format_digest_number(level, number) == expected
@@ -94,6 +104,7 @@ class TestFormatDigestNumber:
 # =============================================================================
 # 新規追加関数のテスト
 # =============================================================================
+
 
 class TestFindMaxNumber:
     """find_max_number のテスト"""
@@ -244,6 +255,7 @@ class TestExtractNumbersFormatted:
 # =============================================================================
 # エッジケースのテスト
 # =============================================================================
+
 
 class TestEdgeCases:
     """エッジケースのテスト"""

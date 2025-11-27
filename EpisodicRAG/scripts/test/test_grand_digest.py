@@ -5,6 +5,7 @@ GrandDigestManager 統合テスト
 
 一時ディレクトリを使用したファイルI/Oテスト
 """
+
 import json
 import sys
 from pathlib import Path

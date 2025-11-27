@@ -5,6 +5,7 @@ Level Path Service
 
 レベル固有パス（level_dir, provisional_dir）
 """
+
 from pathlib import Path
 
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES

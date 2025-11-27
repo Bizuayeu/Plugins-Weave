@@ -8,26 +8,27 @@ validators.py のユニットテスト
 - is_valid_dict, is_valid_list
 - get_dict_or_default, get_list_or_default
 """
+
 import pytest
 
 # Application層
 from application.validators import (
+    get_dict_or_default,
+    get_list_or_default,
+    is_valid_dict,
+    is_valid_list,
     validate_dict,
     validate_list,
     validate_source_files,
-    is_valid_dict,
-    is_valid_list,
-    get_dict_or_default,
-    get_list_or_default,
 )
 
 # Domain層
 from domain.exceptions import ValidationError
 
-
 # =============================================================================
 # validate_dict テスト
 # =============================================================================
+
 
 class TestValidateDict:
     """validate_dict 関数のテスト"""
@@ -55,13 +56,16 @@ class TestValidateDict:
         assert result == data
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("invalid_input,expected_type", [
-        (["item"], "list"),
-        ("string", "str"),
-        (None, "NoneType"),
-        (123, "int"),
-        ((1, 2), "tuple"),
-    ])
+    @pytest.mark.parametrize(
+        "invalid_input,expected_type",
+        [
+            (["item"], "list"),
+            ("string", "str"),
+            (None, "NoneType"),
+            (123, "int"),
+            ((1, 2), "tuple"),
+        ],
+    )
     def test_with_invalid_type_raises_error(self, invalid_input, expected_type):
         """dict以外の型を渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
@@ -73,6 +77,7 @@ class TestValidateDict:
 # =============================================================================
 # validate_list テスト
 # =============================================================================
+
 
 class TestValidateList:
     """validate_list 関数のテスト"""
@@ -100,13 +105,16 @@ class TestValidateList:
         assert result == data
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("invalid_input,expected_type", [
-        ({"key": "value"}, "dict"),
-        ("string", "str"),
-        (None, "NoneType"),
-        ((1, 2, 3), "tuple"),
-        (123, "int"),
-    ])
+    @pytest.mark.parametrize(
+        "invalid_input,expected_type",
+        [
+            ({"key": "value"}, "dict"),
+            ("string", "str"),
+            (None, "NoneType"),
+            ((1, 2, 3), "tuple"),
+            (123, "int"),
+        ],
+    )
     def test_with_invalid_type_raises_error(self, invalid_input, expected_type):
         """list以外の型を渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
@@ -118,6 +126,7 @@ class TestValidateList:
 # =============================================================================
 # validate_source_files テスト
 # =============================================================================
+
 
 class TestValidateSourceFiles:
     """validate_source_files 関数のテスト"""
@@ -184,6 +193,7 @@ class TestValidateSourceFiles:
 # is_valid_dict テスト
 # =============================================================================
 
+
 class TestIsValidDict:
     """is_valid_dict 関数のテスト"""
 
@@ -198,14 +208,17 @@ class TestIsValidDict:
         assert is_valid_dict({}) is True
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("invalid_input", [
-        [1, 2, 3],
-        None,
-        "string",
-        123,
-        (1, 2),
-        3.14,
-    ])
+    @pytest.mark.parametrize(
+        "invalid_input",
+        [
+            [1, 2, 3],
+            None,
+            "string",
+            123,
+            (1, 2),
+            3.14,
+        ],
+    )
     def test_with_non_dict_returns_false(self, invalid_input):
         """dict以外を渡すとFalse"""
         assert is_valid_dict(invalid_input) is False
@@ -214,6 +227,7 @@ class TestIsValidDict:
 # =============================================================================
 # is_valid_list テスト
 # =============================================================================
+
 
 class TestIsValidList:
     """is_valid_list 関数のテスト"""
@@ -229,14 +243,17 @@ class TestIsValidList:
         assert is_valid_list([]) is True
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("invalid_input", [
-        {"key": "value"},
-        None,
-        (1, 2, 3),
-        "string",
-        123,
-        3.14,
-    ])
+    @pytest.mark.parametrize(
+        "invalid_input",
+        [
+            {"key": "value"},
+            None,
+            (1, 2, 3),
+            "string",
+            123,
+            3.14,
+        ],
+    )
     def test_with_non_list_returns_false(self, invalid_input):
         """list以外を渡すとFalse"""
         assert is_valid_list(invalid_input) is False
@@ -245,6 +262,7 @@ class TestIsValidList:
 # =============================================================================
 # get_dict_or_default テスト
 # =============================================================================
+
 
 class TestGetDictOrDefault:
     """get_dict_or_default 関数のテスト"""
@@ -300,6 +318,7 @@ class TestGetDictOrDefault:
 # =============================================================================
 # get_list_or_default テスト
 # =============================================================================
+
 
 class TestGetListOrDefault:
     """get_list_or_default 関数のテスト"""

@@ -39,28 +39,29 @@ import argparse
 import sys
 from typing import Optional
 
+from application.finalize import (
+    DigestPersistence,
+    ProvisionalLoader,
+    RegularDigestBuilder,
+    ShadowValidator,
+)
+
+# Application層
+from application.grand import GrandDigestManager, ShadowGrandDigestManager
+from application.tracking import DigestTimesTracker
+
+# 設定（config.pyはまだ移行していない）
+from config import DigestConfig, format_digest_number
+
 # Domain層
 from domain.constants import LEVEL_CONFIG, LOG_SEPARATOR
 from domain.exceptions import EpisodicRAGError
 
 # Infrastructure層
-from infrastructure import log_info, log_error
+from infrastructure import log_error, log_info
 
 # Helpers
-from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
-
-# Application層
-from application.grand import GrandDigestManager, ShadowGrandDigestManager
-from application.tracking import DigestTimesTracker
-from application.finalize import (
-    ShadowValidator,
-    ProvisionalLoader,
-    RegularDigestBuilder,
-    DigestPersistence,
-)
-
-# 設定（config.pyはまだ移行していない）
-from config import DigestConfig, format_digest_number
+from interfaces.interface_helpers import get_next_digest_number, sanitize_filename
 
 
 class DigestFinalizerFromShadow:
@@ -71,7 +72,7 @@ class DigestFinalizerFromShadow:
         config: Optional[DigestConfig] = None,
         grand_digest_manager: Optional[GrandDigestManager] = None,
         shadow_manager: Optional[ShadowGrandDigestManager] = None,
-        times_tracker: Optional[DigestTimesTracker] = None
+        times_tracker: Optional[DigestTimesTracker] = None,
     ):
         """
         ファイナライザーの初期化
@@ -165,7 +166,9 @@ class DigestFinalizerFromShadow:
 
         # ===== 処理3-5: カスケードとクリーンアップ =====
         source_files = shadow_digest.get("source_files", [])
-        self._persistence.process_cascade_and_cleanup(level, source_files, provisional_file_to_delete)
+        self._persistence.process_cascade_and_cleanup(
+            level, source_files, provisional_file_to_delete
+        )
 
         log_info(LOG_SEPARATOR)
         log_info("Digest finalization completed!")
@@ -189,14 +192,24 @@ Process flow:
 
 Example:
   python finalize_from_shadow.py weekly "知性射程理論と協働AI実現"
-        """
+        """,
     )
 
-    parser.add_argument("level",
-                       choices=["weekly", "monthly", "quarterly", "annual", "triennial", "decadal", "multi_decadal", "centurial"],
-                       help="Digest level to finalize")
-    parser.add_argument("weave_title",
-                       help="Title decided by Claude")
+    parser.add_argument(
+        "level",
+        choices=[
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "multi_decadal",
+            "centurial",
+        ],
+        help="Digest level to finalize",
+    )
+    parser.add_argument("weave_title", help="Title decided by Claude")
 
     args = parser.parse_args()
 

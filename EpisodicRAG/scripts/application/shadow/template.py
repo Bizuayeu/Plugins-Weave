@@ -7,15 +7,15 @@ ShadowGrandDigestのテンプレートとプレースホルダー生成を担当
 """
 
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import List
 
-from domain.types import OverallDigestData, ShadowDigestData
 from domain.constants import (
     PLACEHOLDER_LIMITS,
     PLACEHOLDER_SIMPLE,
-    create_placeholder_text,
     create_placeholder_keywords,
+    create_placeholder_text,
 )
+from domain.types import OverallDigestData, ShadowDigestData
 from domain.version import DIGEST_FORMAT_VERSION
 
 
@@ -49,7 +49,7 @@ class ShadowTemplate:
             "digest_type": PLACEHOLDER_SIMPLE,
             "keywords": create_placeholder_keywords(limits["keyword_count"]),
             "abstract": create_placeholder_text("全体統合分析", limits['abstract_chars']),
-            "impression": create_placeholder_text("所感・展望", limits['impression_chars'])
+            "impression": create_placeholder_text("所感・展望", limits['impression_chars']),
         }
 
     def get_template(self) -> ShadowDigestData:
@@ -63,10 +63,10 @@ class ShadowTemplate:
             "metadata": {
                 "last_updated": datetime.now().isoformat(),
                 "version": DIGEST_FORMAT_VERSION,
-                "description": "GrandDigest更新後に作成された新しいコンテンツの増分ダイジェスト（下書き帳）"
+                "description": "GrandDigest更新後に作成された新しいコンテンツの増分ダイジェスト（下書き帳）",
             },
             "latest_digests": {
                 level: {"overall_digest": self.create_empty_overall_digest()}
                 for level in self.levels
-            }
+            },
         }

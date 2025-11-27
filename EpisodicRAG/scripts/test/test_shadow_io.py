@@ -7,10 +7,12 @@ ShadowIOクラスの動作を検証。
 - load_or_create: 読み込みまたは新規作成
 - save: 保存とタイムスタンプ更新
 """
+
 import json
-import pytest
 from datetime import datetime
 from pathlib import Path
+
+import pytest
 
 # Application層
 from application.shadow import ShadowIO, ShadowTemplate
@@ -18,10 +20,10 @@ from application.shadow import ShadowIO, ShadowTemplate
 # Domain層
 from domain.constants import LEVEL_NAMES
 
-
 # =============================================================================
 # ShadowIO.load_or_create テスト
 # =============================================================================
+
 
 class TestShadowIOLoadOrCreate:
     """load_or_create メソッドのテスト"""
@@ -29,9 +31,11 @@ class TestShadowIOLoadOrCreate:
     @pytest.fixture
     def template_factory(self):
         """テスト用テンプレートファクトリ"""
+
         def factory():
             template = ShadowTemplate(levels=LEVEL_NAMES)
             return template.get_template()
+
         return factory
 
     @pytest.mark.integration
@@ -55,13 +59,8 @@ class TestShadowIOLoadOrCreate:
 
         # 既存ファイルを作成
         existing_data = {
-            "metadata": {
-                "last_updated": "2024-01-01T00:00:00",
-                "version": "1.0.0"
-            },
-            "latest_digests": {
-                "weekly": {"overall_digest": {"custom": "data"}}
-            }
+            "metadata": {"last_updated": "2024-01-01T00:00:00", "version": "1.0.0"},
+            "latest_digests": {"weekly": {"overall_digest": {"custom": "data"}}},
         }
         with open(shadow_file, 'w', encoding='utf-8') as f:
             json.dump(existing_data, f)
@@ -99,6 +98,7 @@ class TestShadowIOLoadOrCreate:
             json.dump(existing_data, f)
 
         call_count = 0
+
         def counting_factory():
             nonlocal call_count
             call_count += 1
@@ -114,15 +114,18 @@ class TestShadowIOLoadOrCreate:
 # ShadowIO.save テスト
 # =============================================================================
 
+
 class TestShadowIOSave:
     """save メソッドのテスト"""
 
     @pytest.fixture
     def template_factory(self):
         """テスト用テンプレートファクトリ"""
+
         def factory():
             template = ShadowTemplate(levels=LEVEL_NAMES)
             return template.get_template()
+
         return factory
 
     @pytest.mark.integration
@@ -131,10 +134,7 @@ class TestShadowIOSave:
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
         io = ShadowIO(shadow_file, template_factory)
-        data = {
-            "metadata": {"version": "1.0.0"},
-            "latest_digests": {"weekly": {"test": "data"}}
-        }
+        data = {"metadata": {"version": "1.0.0"}, "latest_digests": {"weekly": {"test": "data"}}}
         io.save(data)
 
         assert shadow_file.exists()
@@ -151,7 +151,7 @@ class TestShadowIOSave:
         before_save = datetime.now()
         data = {
             "metadata": {"last_updated": "2020-01-01T00:00:00", "version": "1.0.0"},
-            "latest_digests": {}
+            "latest_digests": {},
         }
         io.save(data)
         after_save = datetime.now()
@@ -173,10 +173,7 @@ class TestShadowIOSave:
             json.dump({"old": "data", "metadata": {}}, f)
 
         io = ShadowIO(shadow_file, template_factory)
-        new_data = {
-            "metadata": {"version": "2.0.0"},
-            "latest_digests": {"new": "content"}
-        }
+        new_data = {"metadata": {"version": "2.0.0"}, "latest_digests": {"new": "content"}}
         io.save(new_data)
 
         with open(shadow_file, 'r', encoding='utf-8') as f:
@@ -194,9 +191,9 @@ class TestShadowIOSave:
             "metadata": {
                 "version": "1.0.0",
                 "description": "Test description",
-                "last_updated": "old_value"
+                "last_updated": "old_value",
             },
-            "latest_digests": {}
+            "latest_digests": {},
         }
         io.save(data)
 
@@ -212,6 +209,7 @@ class TestShadowIOSave:
 # ShadowIO 初期化テスト
 # =============================================================================
 
+
 class TestShadowIOInit:
     """ShadowIO 初期化のテスト"""
 
@@ -219,7 +217,10 @@ class TestShadowIOInit:
     def test_stores_shadow_digest_file(self, temp_plugin_env):
         """shadow_digest_fileが正しく保存される"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
-        factory = lambda: {}
+
+        def factory():
+            return {}
+
         io = ShadowIO(shadow_file, factory)
         assert io.shadow_digest_file == shadow_file
 
@@ -227,6 +228,9 @@ class TestShadowIOInit:
     def test_stores_template_factory(self, temp_plugin_env):
         """template_factoryが正しく保存される"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
-        factory = lambda: {"test": "template"}
+
+        def factory():
+            return {"test": "template"}
+
         io = ShadowIO(shadow_file, factory)
         assert io.template_factory is factory

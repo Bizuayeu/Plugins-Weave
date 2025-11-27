@@ -5,10 +5,11 @@ test_threshold_provider.py
 
 config/threshold_provider.py のテスト
 """
+
 import pytest
 
 from config.threshold_provider import ThresholdProvider
-from domain.constants import LEVEL_NAMES, DEFAULT_THRESHOLDS
+from domain.constants import DEFAULT_THRESHOLDS, LEVEL_NAMES
 from domain.exceptions import ConfigError
 
 
@@ -24,11 +25,7 @@ class TestThresholdProvider:
     def custom_config(self):
         """カスタム設定"""
         return {
-            "levels": {
-                "weekly_threshold": 10,
-                "monthly_threshold": 8,
-                "quarterly_threshold": 6
-            }
+            "levels": {"weekly_threshold": 10, "monthly_threshold": 8, "quarterly_threshold": 6}
         }
 
     @pytest.mark.unit

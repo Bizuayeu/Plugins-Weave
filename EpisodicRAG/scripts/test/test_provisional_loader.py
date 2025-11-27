@@ -7,25 +7,27 @@ ProvisionalLoaderクラスの動作を検証。
 - load_or_generate: Provisionalの読み込みまたは自動生成
 - generate_from_source: ソースファイルからの自動生成
 """
+
 import json
-import pytest
 from pathlib import Path
+
+import pytest
+from test_helpers import create_test_loop_file
 
 # Application層
 from application.finalize import ProvisionalLoader
 from application.grand import ShadowGrandDigestManager
 
-# Domain層
-from domain.exceptions import DigestError, FileIOError
-
 # 設定
 from config import DigestConfig
-from test_helpers import create_test_loop_file
 
+# Domain層
+from domain.exceptions import DigestError, FileIOError
 
 # =============================================================================
 # フィクスチャ
 # =============================================================================
+
 
 @pytest.fixture
 def config(temp_plugin_env):
@@ -49,6 +51,7 @@ def loader(config, shadow_manager):
 # ProvisionalLoader.load_or_generate テスト
 # =============================================================================
 
+
 class TestProvisionalLoaderLoadOrGenerate:
     """load_or_generate メソッドのテスト"""
 
@@ -62,14 +65,16 @@ class TestProvisionalLoaderLoadOrGenerate:
         provisional_data = {
             "individual_digests": [
                 {"filename": "Loop0001.txt", "content": "Test 1"},
-                {"filename": "Loop0002.txt", "content": "Test 2"}
+                {"filename": "Loop0002.txt", "content": "Test 2"},
             ]
         }
         with open(provisional_path, 'w', encoding='utf-8') as f:
             json.dump(provisional_data, f)
 
         shadow_digest = {"source_files": ["Loop0001.txt", "Loop0002.txt"]}
-        individual_digests, provisional_file = loader.load_or_generate("weekly", shadow_digest, "0001")
+        individual_digests, provisional_file = loader.load_or_generate(
+            "weekly", shadow_digest, "0001"
+        )
 
         assert len(individual_digests) == 2
         assert provisional_file == provisional_path
@@ -81,7 +86,9 @@ class TestProvisionalLoaderLoadOrGenerate:
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
 
         shadow_digest = {"source_files": [loop1.name]}
-        individual_digests, provisional_file = loader.load_or_generate("weekly", shadow_digest, "0001")
+        individual_digests, provisional_file = loader.load_or_generate(
+            "weekly", shadow_digest, "0001"
+        )
 
         # 自動生成されたindividual_digestsがある
         assert len(individual_digests) == 1
@@ -121,6 +128,7 @@ class TestProvisionalLoaderLoadOrGenerate:
 # =============================================================================
 # ProvisionalLoader.generate_from_source テスト
 # =============================================================================
+
 
 class TestProvisionalLoaderGenerateFromSource:
     """generate_from_source メソッドのテスト"""
@@ -177,6 +185,7 @@ class TestProvisionalLoaderGenerateFromSource:
 # ProvisionalLoader 初期化テスト
 # =============================================================================
 
+
 class TestProvisionalLoaderInit:
     """ProvisionalLoader 初期化のテスト"""
 
@@ -191,6 +200,7 @@ class TestProvisionalLoaderInit:
 # =============================================================================
 # エッジケーステスト
 # =============================================================================
+
 
 class TestProvisionalLoaderEdgeCases:
     """ProvisionalLoader エッジケースのテスト"""
@@ -246,6 +256,7 @@ class TestProvisionalLoaderEdgeCases:
 # skipped_count 集計テスト（Phase 6: カバレッジ向上）
 # =============================================================================
 
+
 class TestProvisionalLoaderSkippedCount:
     """generate_from_source の skipped_count 集計テスト"""
 
@@ -253,6 +264,7 @@ class TestProvisionalLoaderSkippedCount:
     def test_skipped_count_on_json_decode_error(self, loader, temp_plugin_env, caplog):
         """JSONDecodeError発生時にskipped_countが増加し、警告ログが出力される"""
         import logging
+
         caplog.set_level(logging.WARNING)
 
         # 不正なJSONファイルを作成
@@ -270,11 +282,10 @@ class TestProvisionalLoaderSkippedCount:
         assert "(skipped)" in caplog.text
 
     @pytest.mark.integration
-    def test_skipped_count_summary_log_on_multiple_errors(
-        self, loader, temp_plugin_env, caplog
-    ):
+    def test_skipped_count_summary_log_on_multiple_errors(self, loader, temp_plugin_env, caplog):
         """複数エラー発生時に集計ログが出力される"""
         import logging
+
         caplog.set_level(logging.WARNING)
 
         # 複数の不正なJSONファイルを作成
@@ -297,6 +308,7 @@ class TestProvisionalLoaderSkippedCount:
     def test_skipped_count_partial_success(self, loader, temp_plugin_env, caplog):
         """一部成功、一部失敗の場合の集計ログ"""
         import logging
+
         caplog.set_level(logging.WARNING)
 
         # 不正なJSONファイル
@@ -320,6 +332,7 @@ class TestProvisionalLoaderSkippedCount:
     def test_no_summary_log_when_no_errors(self, loader, temp_plugin_env, caplog):
         """エラーがない場合は集計ログが出力されない"""
         import logging
+
         caplog.set_level(logging.WARNING)
 
         # 正常なLoopファイルのみ

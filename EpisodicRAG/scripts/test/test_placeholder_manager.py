@@ -5,10 +5,11 @@ test_placeholder_manager.py
 
 application/shadow/placeholder_manager.py のテスト
 """
+
 import pytest
 
 from application.shadow.placeholder_manager import PlaceholderManager
-from domain.constants import PLACEHOLDER_MARKER, PLACEHOLDER_END, PLACEHOLDER_LIMITS
+from domain.constants import PLACEHOLDER_END, PLACEHOLDER_LIMITS, PLACEHOLDER_MARKER
 
 
 class TestPlaceholderManager:
@@ -28,7 +29,7 @@ class TestPlaceholderManager:
             "digest_type": "test",
             "keywords": [],
             "abstract": "",
-            "impression": ""
+            "impression": "",
         }
 
     @pytest.fixture
@@ -40,7 +41,7 @@ class TestPlaceholderManager:
             "digest_type": "test",
             "keywords": [],
             "abstract": f"{PLACEHOLDER_MARKER}: existing{PLACEHOLDER_END}",
-            "impression": ""
+            "impression": "",
         }
 
     @pytest.fixture
@@ -52,7 +53,7 @@ class TestPlaceholderManager:
             "digest_type": "test",
             "keywords": ["keyword1", "keyword2"],
             "abstract": "This is an actual analysis of the content.",
-            "impression": "This is an actual impression."
+            "impression": "This is an actual impression.",
         }
 
     @pytest.mark.unit
@@ -135,7 +136,7 @@ class TestPlaceholderManager:
             "digest_type": "",
             "keywords": [],
             "abstract": None,
-            "impression": ""
+            "impression": "",
         }
 
         manager.update_or_preserve(digest, total_files=3)

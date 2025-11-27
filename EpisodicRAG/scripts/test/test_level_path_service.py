@@ -5,10 +5,11 @@ test_level_path_service.py
 
 config/level_path_service.py のテスト
 """
+
 import pytest
 
 from config.level_path_service import LevelPathService
-from domain.constants import LEVEL_NAMES, LEVEL_CONFIG
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
 
 

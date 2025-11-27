@@ -9,6 +9,7 @@ Usage:
     from domain.file_naming import extract_file_number, format_digest_number
     from domain.file_naming import find_max_number, filter_files_after
 """
+
 import re
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
@@ -101,9 +102,7 @@ def format_digest_number(level: str, number: int) -> str:
     return f"{config['prefix']}{number:0{config['digits']}d}"
 
 
-def find_max_number(
-    files: List[Union[Path, str]], prefix: str
-) -> Optional[int]:
+def find_max_number(files: List[Union[Path, str]], prefix: str) -> Optional[int]:
     """
     ファイルリストから指定プレフィックスの最大番号を取得
 
@@ -143,9 +142,7 @@ def find_max_number(
     return max_num
 
 
-def filter_files_after(
-    files: List[Path], threshold: int
-) -> List[Path]:
+def filter_files_after(files: List[Path], threshold: int) -> List[Path]:
     """
     閾値より大きい番号のファイルをフィルタ
 
@@ -172,9 +169,7 @@ def filter_files_after(
     return result
 
 
-def extract_numbers_formatted(
-    files: List[Union[str, None]]
-) -> List[str]:
+def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
     """
     ファイル名リストからフォーマット済み番号リストを抽出
 

@@ -5,8 +5,10 @@ test_directory_validator.py
 
 config/directory_validator.py のテスト
 """
-import pytest
+
 import shutil
+
+import pytest
 
 from config.directory_validator import DirectoryValidator
 from config.level_path_service import LevelPathService
@@ -28,7 +30,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
     @pytest.mark.integration
@@ -48,7 +50,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
         errors = validator.validate_directory_structure()
@@ -66,7 +68,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
         errors = validator.validate_directory_structure()
@@ -84,7 +86,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
         errors = validator.validate_directory_structure()
@@ -103,7 +105,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
         errors = validator.validate_directory_structure()
@@ -122,7 +124,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
         errors = validator.validate_directory_structure()
@@ -142,7 +144,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
         errors = validator.validate_directory_structure()
@@ -164,7 +166,7 @@ class TestDirectoryValidator:
             loops_path=temp_plugin_env.loops_path,
             digests_path=temp_plugin_env.digests_path,
             essences_path=temp_plugin_env.essences_path,
-            level_path_service=level_path_service
+            level_path_service=level_path_service,
         )
 
         assert validator.loops_path == temp_plugin_env.loops_path

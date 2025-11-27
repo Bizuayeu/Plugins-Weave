@@ -11,10 +11,10 @@ Components:
     - ShadowUpdater: Shadow更新・カスケード処理
 """
 
-from .template import ShadowTemplate
 from .file_detector import FileDetector
 from .shadow_io import ShadowIO
 from .shadow_updater import ShadowUpdater
+from .template import ShadowTemplate
 
 __all__ = [
     "ShadowTemplate",

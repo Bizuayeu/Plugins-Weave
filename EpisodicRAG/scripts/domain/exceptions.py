@@ -21,6 +21,7 @@ class EpisodicRAGError(Exception):
     すべてのプロジェクト固有例外の親クラス。
     `except EpisodicRAGError` で全ての固有例外をキャッチ可能。
     """
+
     pass
 
 
@@ -33,6 +34,7 @@ class ConfigError(EpisodicRAGError):
         - config.json のフォーマットが不正
         - 必須の設定キーが存在しない
     """
+
     pass
 
 
@@ -45,6 +47,7 @@ class DigestError(EpisodicRAGError):
         - ダイジェスト生成中のエラー
         - ダイジェストファイルの保存失敗
     """
+
     pass
 
 
@@ -57,6 +60,7 @@ class ValidationError(EpisodicRAGError):
         - 必須フィールドが欠落
         - source_files が空
     """
+
     pass
 
 
@@ -73,6 +77,7 @@ class FileIOError(EpisodicRAGError):
         Python組み込みの IOError/OSError と区別するため、
         EpisodicRAGError を継承。
     """
+
     pass
 
 
@@ -89,4 +94,5 @@ class CorruptedDataError(EpisodicRAGError):
         ValidationError（入力値エラー）とは異なり、
         保存済みデータの破損を示す。
     """
+
     pass

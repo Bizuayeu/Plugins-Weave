@@ -8,9 +8,11 @@ TypedDict定義の構造と型互換性を検証。
 - TypedDict継承関係
 - 型構造の検証
 """
+
 import sys
+from typing import Dict, List, Optional, get_args, get_origin, get_type_hints
+
 import pytest
-from typing import get_type_hints, get_origin, get_args, Dict, List, Optional
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(__file__).rsplit('test', 1)[0])
@@ -18,35 +20,35 @@ sys.path.insert(0, str(__file__).rsplit('test', 1)[0])
 from domain.types import (
     # メタデータ型
     BaseMetadata,
+    ConfigData,
     DigestMetadata,
     DigestMetadataComplete,
-    # レベル設定型
-    LevelConfigData,
-    LevelHierarchyEntry,
-    # Digest データ型
-    OverallDigestData,
-    IndividualDigestData,
-    ShadowLevelData,
-    ShadowDigestData,
-    GrandDigestLevelData,
-    GrandDigestData,
-    RegularDigestData,
-    # 設定ファイル型
-    PathsConfigData,
-    LevelsConfigData,
-    ConfigData,
     # DigestTimes型
     DigestTimeData,
     DigestTimesData,
+    GrandDigestData,
+    GrandDigestLevelData,
+    IndividualDigestData,
+    # レベル設定型
+    LevelConfigData,
+    LevelHierarchyEntry,
+    LevelsConfigData,
+    # Digest データ型
+    OverallDigestData,
+    # 設定ファイル型
+    PathsConfigData,
     # Provisional型
     ProvisionalDigestEntry,
     ProvisionalDigestFile,
+    RegularDigestData,
+    ShadowDigestData,
+    ShadowLevelData,
 )
-
 
 # =============================================================================
 # メタデータ型テスト
 # =============================================================================
+
 
 class TestBaseMetadata:
     """BaseMetadata 型のテスト"""
@@ -56,14 +58,14 @@ class TestBaseMetadata:
         """version フィールドを持つ"""
         hints = get_type_hints(BaseMetadata)
         assert "version" in hints
-        assert hints["version"] == str
+        assert hints["version"] is str
 
     @pytest.mark.unit
     def test_has_last_updated_field(self):
         """last_updated フィールドを持つ"""
         hints = get_type_hints(BaseMetadata)
         assert "last_updated" in hints
-        assert hints["last_updated"] == str
+        assert hints["last_updated"] is str
 
     @pytest.mark.unit
     def test_is_total_false(self):
@@ -102,8 +104,14 @@ class TestDigestMetadataComplete:
     def test_has_all_metadata_fields(self):
         """すべてのメタデータフィールドを持つ"""
         hints = get_type_hints(DigestMetadataComplete)
-        expected_fields = ["version", "last_updated", "digest_level",
-                          "digest_number", "source_count", "description"]
+        expected_fields = [
+            "version",
+            "last_updated",
+            "digest_level",
+            "digest_number",
+            "source_count",
+            "description",
+        ]
         for field in expected_fields:
             assert field in hints, f"Missing field: {field}"
 
@@ -111,6 +119,7 @@ class TestDigestMetadataComplete:
 # =============================================================================
 # レベル設定型テスト
 # =============================================================================
+
 
 class TestLevelConfigData:
     """LevelConfigData 型のテスト"""
@@ -127,13 +136,13 @@ class TestLevelConfigData:
     def test_prefix_is_string(self):
         """prefix は文字列型"""
         hints = get_type_hints(LevelConfigData)
-        assert hints["prefix"] == str
+        assert hints["prefix"] is str
 
     @pytest.mark.unit
     def test_digits_is_int(self):
         """digits は整数型"""
         hints = get_type_hints(LevelConfigData)
-        assert hints["digits"] == int
+        assert hints["digits"] is int
 
     @pytest.mark.unit
     def test_next_is_optional_string(self):
@@ -162,6 +171,7 @@ class TestLevelHierarchyEntry:
 # Digest データ型テスト
 # =============================================================================
 
+
 class TestOverallDigestData:
     """OverallDigestData 型のテスト"""
 
@@ -170,7 +180,7 @@ class TestOverallDigestData:
         """timestamp フィールドを持つ"""
         hints = get_type_hints(OverallDigestData)
         assert "timestamp" in hints
-        assert hints["timestamp"] == str
+        assert hints["timestamp"] is str
 
     @pytest.mark.unit
     def test_has_source_files_field(self):
@@ -275,6 +285,7 @@ class TestRegularDigestData:
 # 設定ファイル型テスト
 # =============================================================================
 
+
 class TestPathsConfigData:
     """PathsConfigData 型のテスト"""
 
@@ -295,9 +306,14 @@ class TestLevelsConfigData:
         """しきい値フィールドを持つ"""
         hints = get_type_hints(LevelsConfigData)
         threshold_fields = [
-            "weekly_threshold", "monthly_threshold", "quarterly_threshold",
-            "annual_threshold", "triennial_threshold", "decadal_threshold",
-            "multi_decadal_threshold", "centurial_threshold"
+            "weekly_threshold",
+            "monthly_threshold",
+            "quarterly_threshold",
+            "annual_threshold",
+            "triennial_threshold",
+            "decadal_threshold",
+            "multi_decadal_threshold",
+            "centurial_threshold",
         ]
         for field in threshold_fields:
             assert field in hints, f"Missing field: {field}"
@@ -328,6 +344,7 @@ class TestConfigData:
 # =============================================================================
 # DigestTimes 型テスト
 # =============================================================================
+
 
 class TestDigestTimeData:
     """DigestTimeData 型のテスト"""
@@ -360,6 +377,7 @@ class TestDigestTimesData:
 # Provisional Digest 型テスト
 # =============================================================================
 
+
 class TestProvisionalDigestEntry:
     """ProvisionalDigestEntry 型のテスト"""
 
@@ -391,6 +409,7 @@ class TestProvisionalDigestFile:
 # =============================================================================
 # 型互換性テスト
 # =============================================================================
+
 
 class TestTypeCompatibility:
     """型互換性のテスト"""

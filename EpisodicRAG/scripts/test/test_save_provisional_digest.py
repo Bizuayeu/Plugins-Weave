@@ -5,6 +5,7 @@ ProvisionalDigestSaver 統合テスト
 
 一時ディレクトリを使用したファイルI/Oテスト
 """
+
 import json
 import sys
 from pathlib import Path
@@ -16,8 +17,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Interfaces層
-from interfaces import ProvisionalDigestSaver
 from domain.exceptions import ValidationError
+from interfaces import ProvisionalDigestSaver
 
 
 @pytest.fixture
@@ -70,11 +71,11 @@ class TestProvisionalDigestSaver:
         """マージ処理（重複は上書き）"""
         existing = [
             {"source_file": "Loop0001.txt", "keywords": ["old"]},
-            {"source_file": "Loop0002.txt", "keywords": ["keep"]}
+            {"source_file": "Loop0002.txt", "keywords": ["keep"]},
         ]
         new = [
             {"source_file": "Loop0001.txt", "keywords": ["new"]},
-            {"source_file": "Loop0003.txt", "keywords": ["added"]}
+            {"source_file": "Loop0003.txt", "keywords": ["added"]},
         ]
 
         result = provisional_saver.merge_individual_digests(existing, new)
@@ -96,9 +97,7 @@ class TestProvisionalDigestSaver:
     @pytest.mark.integration
     def test_save_provisional_new_file(self, provisional_saver):
         """新規Provisionalファイルの保存"""
-        individual_digests = [
-            {"source_file": "Loop0001.txt", "keywords": ["test"]}
-        ]
+        individual_digests = [{"source_file": "Loop0001.txt", "keywords": ["test"]}]
 
         saved_path = provisional_saver.save_provisional("weekly", individual_digests)
 

@@ -5,8 +5,9 @@ Path Resolver
 
 base_dir基準のパス解決
 """
+
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from domain.exceptions import ConfigError
 

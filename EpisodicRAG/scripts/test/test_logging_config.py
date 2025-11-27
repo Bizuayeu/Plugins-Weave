@@ -8,33 +8,35 @@ infrastructure/logging_config.py のユニットテスト
 - log_info/log_warning/log_error: ログ出力関数
 - 環境変数によるカスタマイズ
 """
+
 import logging
 import os
 import sys
-import pytest
 from io import StringIO
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(__file__).rsplit('test', 1)[0])
 
 from infrastructure.logging_config import (
+    FORMAT_DETAILED,
+    FORMAT_SIMPLE,
+    LOG_LEVELS,
+    _get_log_format_from_env,
+    _get_log_level_from_env,
     get_logger,
-    setup_logging,
+    log_error,
     log_info,
     log_warning,
-    log_error,
-    _get_log_level_from_env,
-    _get_log_format_from_env,
-    LOG_LEVELS,
-    FORMAT_SIMPLE,
-    FORMAT_DETAILED,
+    setup_logging,
 )
-
 
 # =============================================================================
 # get_logger テスト
 # =============================================================================
+
 
 class TestGetLogger:
     """get_logger 関数のテスト"""
@@ -61,6 +63,7 @@ class TestGetLogger:
 # =============================================================================
 # _get_log_level_from_env テスト
 # =============================================================================
+
 
 class TestGetLogLevelFromEnv:
     """_get_log_level_from_env 関数のテスト"""
@@ -115,6 +118,7 @@ class TestGetLogLevelFromEnv:
 # _get_log_format_from_env テスト
 # =============================================================================
 
+
 class TestGetLogFormatFromEnv:
     """_get_log_format_from_env 関数のテスト"""
 
@@ -152,6 +156,7 @@ class TestGetLogFormatFromEnv:
 # =============================================================================
 # setup_logging テスト
 # =============================================================================
+
 
 class TestSetupLogging:
     """setup_logging 関数のテスト"""
@@ -208,6 +213,7 @@ class TestSetupLogging:
 # log_info テスト
 # =============================================================================
 
+
 class TestLogInfo:
     """log_info 関数のテスト"""
 
@@ -232,6 +238,7 @@ class TestLogInfo:
 # log_warning テスト
 # =============================================================================
 
+
 class TestLogWarning:
     """log_warning 関数のテスト"""
 
@@ -255,6 +262,7 @@ class TestLogWarning:
 # =============================================================================
 # log_error テスト
 # =============================================================================
+
 
 class TestLogError:
     """log_error 関数のテスト"""
@@ -295,6 +303,7 @@ class TestLogError:
 # =============================================================================
 # LOG_LEVELS 定数テスト
 # =============================================================================
+
 
 class TestLogLevelsConstant:
     """LOG_LEVELS 定数のテスト"""

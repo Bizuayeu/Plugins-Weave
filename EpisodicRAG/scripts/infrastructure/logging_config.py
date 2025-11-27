@@ -12,11 +12,11 @@ Usage:
     EPISODIC_RAG_LOG_LEVEL: ログレベル (DEBUG, INFO, WARNING, ERROR)
     EPISODIC_RAG_LOG_FORMAT: ログフォーマット (simple, detailed)
 """
+
 import logging
 import os
 import sys
 from typing import Optional
-
 
 # =============================================================================
 # 定数
@@ -37,6 +37,7 @@ FORMAT_DETAILED = "[%(levelname)s] %(name)s: %(message)s"
 # =============================================================================
 # ロガー設定
 # =============================================================================
+
 
 def get_logger(name: str = "episodic_rag") -> logging.Logger:
     """

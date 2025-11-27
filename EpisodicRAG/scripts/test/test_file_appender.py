@@ -11,16 +11,17 @@ Note:
     これらのテストは元々test_shadow_updater.pyにあったものを移動。
     ShadowUpdaterのDEPRECATEDメソッド削除に伴い、直接FileAppenderをテスト。
 """
+
 import json
-import pytest
 from pathlib import Path
 
-# Application層
-from application.shadow.file_appender import FileAppender
+import pytest
 
 # テストヘルパー
 from test_helpers import create_test_loop_file
 
+# Application層
+from application.shadow.file_appender import FileAppender
 
 # =============================================================================
 # フィクスチャ
@@ -38,6 +39,7 @@ def file_appender(shadow_io, file_detector, template, level_hierarchy, placehold
 # =============================================================================
 # _ensure_overall_digest_initialized テスト
 # =============================================================================
+
 
 class TestEnsureOverallDigestInitialized:
     """_ensure_overall_digest_initialized メソッドのテスト"""
@@ -69,10 +71,7 @@ class TestEnsureOverallDigestInitialized:
     def test_preserves_existing_valid_digest(self, file_appender, shadow_io):
         """有効なoverall_digestは保持される"""
         shadow_data = shadow_io.load_or_create()
-        existing_digest = {
-            "source_files": ["Loop0001_test.txt"],
-            "abstract": "Existing content"
-        }
+        existing_digest = {"source_files": ["Loop0001_test.txt"], "abstract": "Existing content"}
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = existing_digest
 
         result = file_appender._ensure_overall_digest_initialized(shadow_data, "weekly")
@@ -99,6 +98,7 @@ class TestEnsureOverallDigestInitialized:
 # _log_digest_content テスト
 # =============================================================================
 
+
 class TestLogDigestContent:
     """_log_digest_content メソッドのテスト"""
 
@@ -113,7 +113,7 @@ class TestLogDigestContent:
                 "digest_type": "weekly",
                 "keywords": ["test", "keyword"],
                 "abstract": "Test abstract content",
-                "impression": "Test impression"
+                "impression": "Test impression",
             }
         }
         with open(weekly_file, 'w', encoding='utf-8') as f:

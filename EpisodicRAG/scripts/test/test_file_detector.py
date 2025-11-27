@@ -8,25 +8,27 @@ FileDetectorクラスの動作を検証。
 - get_max_file_number: 最大処理済みファイル番号取得
 - find_new_files: 新規ファイル検出
 """
+
 import json
-import pytest
 from pathlib import Path
+
+import pytest
+from test_helpers import create_test_loop_file
 
 # Application層
 from application.shadow import FileDetector
 from application.tracking import DigestTimesTracker
 
-# Domain層
-from domain.constants import LEVEL_CONFIG
-
 # 設定
 from config import DigestConfig
-from test_helpers import create_test_loop_file
 
+# Domain層
+from domain.constants import LEVEL_CONFIG
 
 # =============================================================================
 # FileDetector.get_source_path テスト
 # =============================================================================
+
 
 class TestFileDetectorGetSourcePath:
     """get_source_path メソッドのテスト"""
@@ -39,16 +41,21 @@ class TestFileDetectorGetSourcePath:
         return FileDetector(config, times_tracker)
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("level,expected_subdir", [
-        ("monthly", "1_Weekly"),
-        ("quarterly", "2_Monthly"),
-        ("annual", "3_Quarterly"),
-        ("triennial", "4_Annual"),
-        ("decadal", "5_Triennial"),
-        ("multi_decadal", "6_Decadal"),
-        ("centurial", "7_Multi-decadal"),
-    ])
-    def test_levels_return_correct_source_dir(self, detector, temp_plugin_env, level, expected_subdir):
+    @pytest.mark.parametrize(
+        "level,expected_subdir",
+        [
+            ("monthly", "1_Weekly"),
+            ("quarterly", "2_Monthly"),
+            ("annual", "3_Quarterly"),
+            ("triennial", "4_Annual"),
+            ("decadal", "5_Triennial"),
+            ("multi_decadal", "6_Decadal"),
+            ("centurial", "7_Multi-decadal"),
+        ],
+    )
+    def test_levels_return_correct_source_dir(
+        self, detector, temp_plugin_env, level, expected_subdir
+    ):
         """各レベルが正しいソースディレクトリを返す"""
         result = detector.get_source_path(level)
         expected = temp_plugin_env.digests_path / expected_subdir
@@ -71,6 +78,7 @@ class TestFileDetectorGetSourcePath:
 # =============================================================================
 # FileDetector.get_max_file_number テスト
 # =============================================================================
+
 
 class TestFileDetectorGetMaxFileNumber:
     """get_max_file_number メソッドのテスト"""
@@ -120,6 +128,7 @@ class TestFileDetectorGetMaxFileNumber:
 # FileDetector.find_new_files テスト
 # =============================================================================
 
+
 class TestFileDetectorFindNewFiles:
     """find_new_files メソッドのテスト"""
 
@@ -155,7 +164,9 @@ class TestFileDetectorFindNewFiles:
         assert len(result) == 3
 
     @pytest.mark.integration
-    def test_returns_only_new_files_after_last_processed(self, detector, temp_plugin_env, times_tracker):
+    def test_returns_only_new_files_after_last_processed(
+        self, detector, temp_plugin_env, times_tracker
+    ):
         """last_processedより大きい番号のファイルのみ返す"""
         # Loopファイルを作成（1-5）
         for i in range(1, 6):
@@ -204,6 +215,7 @@ class TestFileDetectorFindNewFiles:
         """ソースディレクトリが存在しない場合は空リストを返す"""
         # loops_pathを削除
         import shutil
+
         shutil.rmtree(temp_plugin_env.loops_path)
 
         result = detector.find_new_files("weekly")
@@ -228,6 +240,7 @@ class TestFileDetectorFindNewFiles:
 # =============================================================================
 # FileDetector 初期化テスト
 # =============================================================================
+
 
 class TestFileDetectorInit:
     """FileDetector 初期化のテスト"""

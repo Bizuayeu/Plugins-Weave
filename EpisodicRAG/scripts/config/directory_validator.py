@@ -5,6 +5,7 @@ Directory Validator
 
 ディレクトリ構造検証
 """
+
 from pathlib import Path
 from typing import List
 
@@ -21,7 +22,7 @@ class DirectoryValidator:
         loops_path: Path,
         digests_path: Path,
         essences_path: Path,
-        level_path_service: LevelPathService
+        level_path_service: LevelPathService,
     ):
         """
         初期化

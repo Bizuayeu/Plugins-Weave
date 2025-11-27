@@ -6,6 +6,7 @@ pytest 共通設定
 共通フィクスチャとマーカー定義を提供。
 既存の test_helpers.py と連携し、テスト環境の一貫性を確保。
 """
+
 import os
 import sys
 from pathlib import Path
@@ -17,7 +18,7 @@ import pytest
 # =============================================================================
 
 try:
-    from hypothesis import settings, Verbosity
+    from hypothesis import Verbosity, settings
 
     # Default profile for local development
     settings.register_profile("default", max_examples=100)
@@ -40,10 +41,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from test_helpers import TempPluginEnvironment, create_test_loop_file
 
-
 # =============================================================================
 # pytestマーカー定義
 # =============================================================================
+
 
 def pytest_configure(config):
     """カスタムマーカーを登録"""
@@ -56,6 +57,7 @@ def pytest_configure(config):
 # =============================================================================
 # 共通フィクスチャ
 # =============================================================================
+
 
 @pytest.fixture
 def temp_plugin_env():
@@ -94,11 +96,7 @@ def sample_loop_files(temp_plugin_env):
     """
     loop_files = []
     for i in range(1, 6):
-        loop_file = create_test_loop_file(
-            temp_plugin_env.loops_path,
-            i,
-            f"test_loop_{i}"
-        )
+        loop_file = create_test_loop_file(temp_plugin_env.loops_path, i, f"test_loop_{i}")
         loop_files.append(loop_file)
     return temp_plugin_env, loop_files
 
@@ -107,12 +105,14 @@ def sample_loop_files(temp_plugin_env):
 # DigestConfig関連フィクスチャ
 # =============================================================================
 
+
 @pytest.fixture
 def digest_config(temp_plugin_env):
     """
     初期化済みのDigestConfigインスタンスを提供
     """
     from config import DigestConfig
+
     return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
 
@@ -125,6 +125,7 @@ def config(temp_plugin_env):
         新規テストではdigest_configを使用することを推奨。
     """
     from config import DigestConfig
+
     return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
 
@@ -132,10 +133,12 @@ def config(temp_plugin_env):
 # Shadow関連共通フィクスチャ
 # =============================================================================
 
+
 @pytest.fixture
 def times_tracker(config):
     """テスト用DigestTimesTracker"""
     from application.tracking import DigestTimesTracker
+
     return DigestTimesTracker(config)
 
 
@@ -144,6 +147,7 @@ def template():
     """テスト用ShadowTemplate"""
     from application.shadow import ShadowTemplate
     from domain.constants import LEVEL_NAMES
+
     return ShadowTemplate(levels=LEVEL_NAMES)
 
 
@@ -151,6 +155,7 @@ def template():
 def shadow_io(temp_plugin_env, template):
     """テスト用ShadowIO"""
     from application.shadow import ShadowIO
+
     shadow_file = temp_plugin_env.plugin_root / ".claude-plugin" / "ShadowGrandDigest.txt"
     return ShadowIO(shadow_file, template.get_template)
 
@@ -159,6 +164,7 @@ def shadow_io(temp_plugin_env, template):
 def file_detector(config, times_tracker):
     """テスト用FileDetector"""
     from application.shadow import FileDetector
+
     return FileDetector(config, times_tracker)
 
 
@@ -166,9 +172,9 @@ def file_detector(config, times_tracker):
 def level_hierarchy():
     """レベル階層情報"""
     from domain.constants import LEVEL_CONFIG
+
     return {
-        level: {"source": cfg["source"], "next": cfg["next"]}
-        for level, cfg in LEVEL_CONFIG.items()
+        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
     }
 
 
@@ -176,12 +182,14 @@ def level_hierarchy():
 def placeholder_manager():
     """テスト用PlaceholderManager"""
     from application.shadow.placeholder_manager import PlaceholderManager
+
     return PlaceholderManager()
 
 
 # =============================================================================
 # モックフィクスチャ
 # =============================================================================
+
 
 @pytest.fixture
 def mock_digest_config(temp_plugin_env):

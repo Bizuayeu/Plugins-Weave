@@ -8,6 +8,7 @@ Interfaces層で使用するヘルパー関数。
 - sanitize_filename: ファイル名のサニタイズ
 - get_next_digest_number: 次のDigest番号を取得
 """
+
 import re
 from pathlib import Path
 

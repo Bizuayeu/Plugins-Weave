@@ -12,40 +12,40 @@ Usage:
     # 後方互換（従来のインポートパス）
     from config import extract_file_number, format_digest_number
 """
+
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
 # Domain層から定数をインポート（Single Source of Truth）
-from domain.constants import (
-    LEVEL_CONFIG,
-    LEVEL_NAMES,
-    PLACEHOLDER_LIMITS,
-    PLACEHOLDER_MARKER,
-    PLACEHOLDER_END,
-    PLACEHOLDER_SIMPLE,
-    DEFAULT_THRESHOLDS,
-    SOURCE_TYPE_LOOPS,
-)
-from domain.types import LevelConfigData, ConfigData
+# 明示的な再エクスポート（ruff F401対応）
+from domain.constants import DEFAULT_THRESHOLDS as DEFAULT_THRESHOLDS
+from domain.constants import LEVEL_CONFIG as LEVEL_CONFIG
+from domain.constants import LEVEL_NAMES as LEVEL_NAMES
+from domain.constants import PLACEHOLDER_END as PLACEHOLDER_END
+from domain.constants import PLACEHOLDER_LIMITS as PLACEHOLDER_LIMITS
+from domain.constants import PLACEHOLDER_MARKER as PLACEHOLDER_MARKER
+from domain.constants import PLACEHOLDER_SIMPLE as PLACEHOLDER_SIMPLE
+from domain.constants import SOURCE_TYPE_LOOPS as SOURCE_TYPE_LOOPS
 from domain.exceptions import ConfigError
 
 # Domain層からファイル命名関数を再エクスポート（後方互換性）
-from domain.file_naming import (
-    extract_file_number,
-    extract_number_only,
-    format_digest_number,
-)
+# 明示的な再エクスポート（ruff F401対応）
+from domain.file_naming import extract_file_number as extract_file_number
+from domain.file_naming import extract_number_only as extract_number_only
+from domain.file_naming import format_digest_number as format_digest_number
+from domain.types import ConfigData as ConfigData
+from domain.types import LevelConfigData as LevelConfigData
+
+from .config_repository import load_config
+from .directory_validator import DirectoryValidator
+from .level_path_service import LevelPathService
+from .path_resolver import PathResolver
 
 # 分割されたモジュールをインポート
 from .plugin_root_resolver import find_plugin_root
-from .config_repository import load_config
-from .path_resolver import PathResolver
-from .level_path_service import LevelPathService
 from .threshold_provider import ThresholdProvider
-from .directory_validator import DirectoryValidator
-
 
 # =============================================================================
 # DigestConfig クラス（Facade）
@@ -61,23 +61,30 @@ class DigestConfig:
 
         Args:
             plugin_root: Pluginルート（省略時は自動検出）
+
+        Raises:
+            ConfigError: 設定の読み込みまたは初期化に失敗した場合
         """
-        # Pluginルート検出
-        if plugin_root is None:
-            plugin_root = self._find_plugin_root()
+        try:
+            # Pluginルート検出
+            if plugin_root is None:
+                plugin_root = self._find_plugin_root()
 
-        self.plugin_root = plugin_root
-        self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
-        self.config = self.load_config()
+            self.plugin_root = plugin_root
+            self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
+            self.config = self.load_config()
 
-        # 各コンポーネントを初期化（遅延初期化用のキャッシュ）
-        self._path_resolver = PathResolver(self.plugin_root, self.config)
-        self._threshold_provider = ThresholdProvider(self.config)
-        self._level_path_service_cache: Optional[LevelPathService] = None
-        self._directory_validator_cache: Optional[DirectoryValidator] = None
+            # 各コンポーネントを初期化（遅延初期化用のキャッシュ）
+            self._path_resolver = PathResolver(self.plugin_root, self.config)
+            self._threshold_provider = ThresholdProvider(self.config)
+            self._level_path_service_cache: Optional[LevelPathService] = None
+            self._directory_validator_cache: Optional[DirectoryValidator] = None
 
-        # 後方互換性のためbase_dirを公開
-        self.base_dir = self._path_resolver.base_dir
+            # 後方互換性のためbase_dirを公開
+            self.base_dir = self._path_resolver.base_dir
+
+        except (PermissionError, OSError) as e:
+            raise ConfigError(f"Failed to initialize configuration: {e}") from e
 
     @property
     def _level_path_service(self) -> LevelPathService:
@@ -94,7 +101,7 @@ class DigestConfig:
                 self._path_resolver.loops_path,
                 self._path_resolver.digests_path,
                 self._path_resolver.essences_path,
-                self._level_path_service
+                self._level_path_service,
             )
         return self._directory_validator_cache
 
@@ -250,6 +257,7 @@ class DigestConfig:
     def show_paths(self):
         """パス設定を表示（デバッグ用）"""
         from infrastructure import log_info
+
         log_info(f"Plugin Root: {self.plugin_root}")
         log_info(f"Config File: {self.config_file}")
         log_info(f"Base Dir (setting): {self.config.get('base_dir', '.')}")

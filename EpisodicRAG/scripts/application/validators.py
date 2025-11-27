@@ -12,9 +12,73 @@ Usage:
     data = validate_dict(raw_data, "config.json")
     files = validate_list(source_files, "source_files")
 """
-from typing import Any, Dict, List, Optional
+
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from domain.exceptions import ValidationError
+
+# =============================================================================
+# 汎用ヘルパー関数（内部使用）
+# =============================================================================
+
+T = TypeVar('T')
+
+
+def _validate_type(data: Any, expected_type: Type[T], context: str, type_name: str) -> T:
+    """
+    汎用型検証ヘルパー
+
+    Args:
+        data: 検証対象のデータ
+        expected_type: 期待する型
+        context: エラーメッセージに含める文脈情報
+        type_name: 表示用の型名
+
+    Returns:
+        検証済みのデータ
+
+    Raises:
+        ValidationError: dataが期待する型でない場合
+    """
+    if not isinstance(data, expected_type):
+        raise ValidationError(f"{context}: expected {type_name}, got {type(data).__name__}")
+    return data
+
+
+def _is_valid_type(data: Any, expected_type: Type[T]) -> bool:
+    """
+    汎用型チェックヘルパー（例外を投げない）
+
+    Args:
+        data: 検証対象のデータ
+        expected_type: 期待する型
+
+    Returns:
+        dataが期待する型ならTrue
+    """
+    return isinstance(data, expected_type)
+
+
+def _get_or_default(data: Any, expected_type: Type[T], default_factory: Callable[[], T]) -> T:
+    """
+    汎用デフォルト取得ヘルパー
+
+    Args:
+        data: 検証対象のデータ
+        expected_type: 期待する型
+        default_factory: デフォルト値を生成する関数
+
+    Returns:
+        dataが期待する型ならdata、そうでなければdefault_factory()の結果
+    """
+    if isinstance(data, expected_type):
+        return data
+    return default_factory()
+
+
+# =============================================================================
+# 公開API（後方互換性維持）
+# =============================================================================
 
 
 def validate_dict(data: Any, context: str) -> Dict[str, Any]:
@@ -31,11 +95,7 @@ def validate_dict(data: Any, context: str) -> Dict[str, Any]:
     Raises:
         ValidationError: dataがdictでない場合
     """
-    if not isinstance(data, dict):
-        raise ValidationError(
-            f"{context}: expected dict, got {type(data).__name__}"
-        )
-    return data
+    return _validate_type(data, dict, context, "dict")
 
 
 def validate_list(data: Any, context: str) -> List[Any]:
@@ -52,11 +112,7 @@ def validate_list(data: Any, context: str) -> List[Any]:
     Raises:
         ValidationError: dataがlistでない場合
     """
-    if not isinstance(data, list):
-        raise ValidationError(
-            f"{context}: expected list, got {type(data).__name__}"
-        )
-    return data
+    return _validate_type(data, list, context, "list")
 
 
 def validate_source_files(files: Any, context: str = "source_files") -> List[str]:
@@ -77,9 +133,7 @@ def validate_source_files(files: Any, context: str = "source_files") -> List[str
         raise ValidationError(f"{context}: cannot be None")
 
     if not isinstance(files, list):
-        raise ValidationError(
-            f"{context}: expected list, got {type(files).__name__}"
-        )
+        raise ValidationError(f"{context}: expected list, got {type(files).__name__}")
 
     if not files:
         raise ValidationError(f"{context}: cannot be empty")
@@ -97,7 +151,7 @@ def is_valid_dict(data: Any) -> bool:
     Returns:
         dataがdictならTrue
     """
-    return isinstance(data, dict)
+    return _is_valid_type(data, dict)
 
 
 def is_valid_list(data: Any) -> bool:
@@ -110,7 +164,7 @@ def is_valid_list(data: Any) -> bool:
     Returns:
         dataがlistならTrue
     """
-    return isinstance(data, list)
+    return _is_valid_type(data, list)
 
 
 def get_dict_or_default(data: Any, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -124,9 +178,7 @@ def get_dict_or_default(data: Any, default: Optional[Dict[str, Any]] = None) -> 
     Returns:
         dataがdictならdata、そうでなければdefault
     """
-    if isinstance(data, dict):
-        return data
-    return default if default is not None else {}
+    return _get_or_default(data, dict, lambda: default if default is not None else {})
 
 
 def get_list_or_default(data: Any, default: Optional[List[Any]] = None) -> List[Any]:
@@ -140,6 +192,4 @@ def get_list_or_default(data: Any, default: Optional[List[Any]] = None) -> List[
     Returns:
         dataがlistならdata、そうでなければdefault
     """
-    if isinstance(data, list):
-        return data
-    return default if default is not None else []
+    return _get_or_default(data, list, lambda: default if default is not None else [])

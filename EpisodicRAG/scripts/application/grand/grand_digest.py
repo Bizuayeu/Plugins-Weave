@@ -6,16 +6,15 @@ GrandDigest Manager
 GrandDigest.txt の管理を担当するモジュール。
 finalize_from_shadow.py から分離。
 """
-import json
-from datetime import datetime
-from typing import Dict, Any
 
-from config import DigestConfig, LEVEL_NAMES
-from domain.types import OverallDigestData, GrandDigestData
-from domain.version import DIGEST_FORMAT_VERSION
-from domain.exceptions import DigestError
-from infrastructure import log_info, load_json_with_template, save_json
+from datetime import datetime
+
 from application.validators import is_valid_dict
+from config import LEVEL_NAMES, DigestConfig
+from domain.exceptions import DigestError
+from domain.types import GrandDigestData, OverallDigestData
+from domain.version import DIGEST_FORMAT_VERSION
+from infrastructure import load_json_with_template, log_info, save_json
 
 
 class GrandDigestManager:
@@ -30,12 +29,9 @@ class GrandDigestManager:
         return {
             "metadata": {
                 "last_updated": datetime.now().isoformat(),
-                "version": DIGEST_FORMAT_VERSION
+                "version": DIGEST_FORMAT_VERSION,
             },
-            "major_digests": {
-                level: {"overall_digest": None}
-                for level in LEVEL_NAMES
-            }
+            "major_digests": {level: {"overall_digest": None} for level in LEVEL_NAMES},
         }
 
     def load_or_create(self) -> GrandDigestData:
@@ -43,14 +39,16 @@ class GrandDigestManager:
         return load_json_with_template(
             target_file=self.grand_digest_file,
             default_factory=self.get_template,
-            log_message="GrandDigest.txt not found. Creating new file."
+            log_message="GrandDigest.txt not found. Creating new file.",
         )
 
     def save(self, data: GrandDigestData) -> None:
         """GrandDigest.txtを保存"""
         save_json(self.grand_digest_file, data)
 
-    def update_digest(self, level: str, digest_name: str, overall_digest: OverallDigestData) -> None:
+    def update_digest(
+        self, level: str, digest_name: str, overall_digest: OverallDigestData
+    ) -> None:
         """
         指定レベルのダイジェストを更新
 

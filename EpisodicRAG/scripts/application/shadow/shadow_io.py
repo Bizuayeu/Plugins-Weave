@@ -38,7 +38,7 @@ class ShadowIO:
         return load_json_with_template(
             target_file=self.shadow_digest_file,
             default_factory=self.template_factory,
-            log_message="ShadowGrandDigest.txt not found. Creating new file."
+            log_message="ShadowGrandDigest.txt not found. Creating new file.",
         )
 
     def save(self, data: ShadowDigestData) -> None:

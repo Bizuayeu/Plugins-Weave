@@ -13,19 +13,20 @@ Note:
     _ensure_overall_digest_initialized, _log_digest_content のテストは
     test_file_appender.py に移動しました。
 """
+
 import json
-import pytest
 from pathlib import Path
+
+import pytest
+
+# テストヘルパー
+from test_helpers import create_test_loop_file
 
 # Application層
 from application.shadow import ShadowUpdater
 
 # Domain層
 from domain.constants import PLACEHOLDER_MARKER
-
-# テストヘルパー
-from test_helpers import create_test_loop_file
-
 
 # =============================================================================
 # フィクスチャ
@@ -43,6 +44,7 @@ def updater(shadow_io, file_detector, template, level_hierarchy):
 # =============================================================================
 # add_files_to_shadow テスト
 # =============================================================================
+
 
 class TestAddFilesToShadow:
     """add_files_to_shadow メソッドのテスト"""
@@ -110,6 +112,7 @@ class TestAddFilesToShadow:
 # clear_shadow_level テスト
 # =============================================================================
 
+
 class TestClearShadowLevel:
     """clear_shadow_level メソッドのテスト"""
 
@@ -166,6 +169,7 @@ class TestClearShadowLevel:
 # get_shadow_digest_for_level テスト
 # =============================================================================
 
+
 class TestGetShadowDigestForLevel:
     """get_shadow_digest_for_level メソッドのテスト"""
 
@@ -202,6 +206,7 @@ class TestGetShadowDigestForLevel:
 # update_shadow_for_new_loops テスト
 # =============================================================================
 
+
 class TestUpdateShadowForNewLoops:
     """update_shadow_for_new_loops メソッドのテスト"""
 
@@ -231,6 +236,7 @@ class TestUpdateShadowForNewLoops:
 # =============================================================================
 # cascade_update_on_digest_finalize テスト
 # =============================================================================
+
 
 class TestCascadeUpdateOnDigestFinalize:
     """cascade_update_on_digest_finalize メソッドのテスト"""
@@ -262,6 +268,7 @@ class TestCascadeUpdateOnDigestFinalize:
 # ShadowUpdater 初期化テスト
 # =============================================================================
 
+
 class TestShadowUpdaterInit:
     """ShadowUpdater 初期化のテスト"""
 
@@ -279,6 +286,7 @@ class TestShadowUpdaterInit:
 # =============================================================================
 # promote_shadow_to_grand テスト（Phase 0で追加）
 # =============================================================================
+
 
 class TestPromoteShadowToGrand:
     """promote_shadow_to_grand メソッドのテスト"""
@@ -303,7 +311,7 @@ class TestPromoteShadowToGrand:
         updater.promote_shadow_to_grand("weekly")
 
         # エラーなく完了すること
-        captured = capsys.readouterr()
+        _ = capsys.readouterr()
         # "No shadow digest" が含まれることを確認（または何も出力しない）
 
     @pytest.mark.integration

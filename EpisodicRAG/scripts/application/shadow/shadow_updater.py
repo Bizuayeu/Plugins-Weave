@@ -5,18 +5,19 @@ Shadow Updater
 
 ShadowGrandDigestの更新、カスケード処理を担当（Facade）
 """
+
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from domain.types import ShadowDigestData, OverallDigestData, LevelHierarchyEntry
+from domain.types import LevelHierarchyEntry, OverallDigestData
 from infrastructure import log_info
 
-from .template import ShadowTemplate
-from .file_detector import FileDetector
-from .shadow_io import ShadowIO
-from .placeholder_manager import PlaceholderManager
-from .file_appender import FileAppender
 from .cascade_processor import CascadeProcessor
+from .file_appender import FileAppender
+from .file_detector import FileDetector
+from .placeholder_manager import PlaceholderManager
+from .shadow_io import ShadowIO
+from .template import ShadowTemplate
 
 
 class ShadowUpdater:
@@ -43,7 +44,7 @@ class ShadowUpdater:
         shadow_io: ShadowIO,
         file_detector: FileDetector,
         template: ShadowTemplate,
-        level_hierarchy: Dict[str, LevelHierarchyEntry]
+        level_hierarchy: Dict[str, LevelHierarchyEntry],
     ):
         """
         初期化

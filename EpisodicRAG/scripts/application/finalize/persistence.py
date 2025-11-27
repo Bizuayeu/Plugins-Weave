@@ -7,15 +7,15 @@ RegularDigestの保存、GrandDigest更新、カスケード処理を担当
 """
 
 from pathlib import Path
-from typing import Optional, List, Callable
+from typing import Callable, List, Optional
 
-from config import DigestConfig, LEVEL_CONFIG
-from application.validators import is_valid_dict
-from domain.types import RegularDigestData
-from domain.exceptions import DigestError, FileIOError, ValidationError
-from infrastructure import log_info, log_warning, save_json
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
+from application.validators import is_valid_dict
+from config import LEVEL_CONFIG, DigestConfig
+from domain.exceptions import DigestError, FileIOError, ValidationError
+from domain.types import RegularDigestData
+from infrastructure import log_info, log_warning, save_json
 
 
 class DigestPersistence:
@@ -27,7 +27,7 @@ class DigestPersistence:
         grand_digest_manager: GrandDigestManager,
         shadow_manager: ShadowGrandDigestManager,
         times_tracker: DigestTimesTracker,
-        confirm_callback: Optional[Callable[[str], bool]] = None
+        confirm_callback: Optional[Callable[[str], bool]] = None,
     ):
         """
         Args:
@@ -122,35 +122,60 @@ class DigestPersistence:
         # GrandDigestManager.update_digestは例外を投げる（失敗時）
         self.grand_digest_manager.update_digest(level, new_digest_name, overall_digest)
 
-    def process_cascade_and_cleanup(
-        self, level: str, source_files: List[str], provisional_file_to_delete: Optional[Path]
-    ) -> None:
+    def _update_shadow_cascade(self, level: str) -> None:
         """
-        カスケード処理とProvisional削除
+        ShadowGrandDigestのカスケード更新を実行
 
         Args:
             level: ダイジェストレベル
-            source_files: ソースファイルリスト
-            provisional_file_to_delete: 削除するProvisionalファイル
         """
-        # ShadowGrandDigest更新（カスケード）
         if level != "centurial":
             log_info("[Step 3] Processing ShadowGrandDigest cascade")
             self.shadow_manager.cascade_update_on_digest_finalize(level)
         else:
             log_info("[Step 3] Skipped (Centurial is top level, no cascade needed)")
 
-        # last_digest_times更新
+    def _update_digest_times(self, level: str, source_files: List[str]) -> None:
+        """
+        last_digest_timesを更新
+
+        Args:
+            level: ダイジェストレベル
+            source_files: ソースファイルリスト
+        """
         log_info(f"[Step 4] Updating last_digest_times.json for {level}")
         self.times_tracker.save(level, source_files)
 
-        # ProvisionalDigest削除（クリーンアップ）
-        if provisional_file_to_delete and provisional_file_to_delete.exists():
+    def _cleanup_provisional_file(self, provisional_file: Optional[Path]) -> None:
+        """
+        ProvisionalDigestファイルを削除
+
+        Args:
+            provisional_file: 削除するファイル（Noneの場合はスキップ）
+        """
+        if provisional_file and provisional_file.exists():
             try:
-                provisional_file_to_delete.unlink()
-                log_info(f"[Step 5] Removed Provisional digest after merge: {provisional_file_to_delete.name}")
+                provisional_file.unlink()
+                log_info(
+                    f"[Step 5] Removed Provisional digest after merge: {provisional_file.name}"
+                )
             except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
                 # FileNotFoundError: 競合状態でファイルが既に削除された場合
                 # PermissionError: ファイルがロックされている場合
                 # IsADirectoryError: パスがディレクトリを指している場合
                 log_warning(f"Failed to remove Provisional digest: {e}")
+
+    def process_cascade_and_cleanup(
+        self, level: str, source_files: List[str], provisional_file_to_delete: Optional[Path]
+    ) -> None:
+        """
+        カスケード処理とProvisional削除（オーケストレーター）
+
+        Args:
+            level: ダイジェストレベル
+            source_files: ソースファイルリスト
+            provisional_file_to_delete: 削除するProvisionalファイル
+        """
+        self._update_shadow_cascade(level)
+        self._update_digest_times(level, source_files)
+        self._cleanup_provisional_file(provisional_file_to_delete)

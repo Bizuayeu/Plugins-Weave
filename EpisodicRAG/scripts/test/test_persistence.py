@@ -8,26 +8,28 @@ DigestPersistenceクラスの動作を検証。
 - update_grand_digest: GrandDigest更新
 - process_cascade_and_cleanup: カスケード処理とクリーンアップ
 """
+
 import json
-import pytest
 from pathlib import Path
+
+import pytest
+from test_helpers import create_test_loop_file
 
 # Application層
 from application.finalize import DigestPersistence
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
 
-# Domain層
-from domain.exceptions import DigestError
-
 # 設定
 from config import DigestConfig
-from test_helpers import create_test_loop_file
 
+# Domain層
+from domain.exceptions import DigestError
 
 # =============================================================================
 # フィクスチャ
 # =============================================================================
+
 
 @pytest.fixture
 def config(temp_plugin_env):
@@ -67,7 +69,7 @@ def valid_regular_digest():
             "digest_level": "weekly",
             "digest_number": "W0001",
             "last_updated": "2025-01-01T00:00:00",
-            "version": "1.0"
+            "version": "1.0",
         },
         "overall_digest": {
             "name": "W0001_Test",
@@ -76,15 +78,16 @@ def valid_regular_digest():
             "digest_type": "週次統合",
             "keywords": ["test"],
             "abstract": "Test abstract",
-            "impression": "Test impression"
+            "impression": "Test impression",
         },
-        "individual_digests": []
+        "individual_digests": [],
     }
 
 
 # =============================================================================
 # DigestPersistence.save_regular_digest テスト
 # =============================================================================
+
 
 class TestDigestPersistenceSaveRegularDigest:
     """save_regular_digest メソッドのテスト"""
@@ -103,10 +106,13 @@ class TestDigestPersistenceSaveRegularDigest:
         assert saved_data["overall_digest"]["name"] == "W0001_Test"
 
     @pytest.mark.integration
-    def test_creates_directory_if_not_exists(self, persistence, valid_regular_digest, temp_plugin_env):
+    def test_creates_directory_if_not_exists(
+        self, persistence, valid_regular_digest, temp_plugin_env
+    ):
         """ディレクトリがなければ作成"""
         # 1_Weeklyディレクトリを削除
         import shutil
+
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         shutil.rmtree(weekly_dir)
 
@@ -116,7 +122,9 @@ class TestDigestPersistenceSaveRegularDigest:
         assert weekly_dir.exists()
 
     @pytest.mark.integration
-    def test_saves_to_correct_level_directory(self, persistence, valid_regular_digest, temp_plugin_env):
+    def test_saves_to_correct_level_directory(
+        self, persistence, valid_regular_digest, temp_plugin_env
+    ):
         """正しいレベルディレクトリに保存"""
         # monthlyに保存
         valid_regular_digest["metadata"]["digest_level"] = "monthly"
@@ -129,6 +137,7 @@ class TestDigestPersistenceSaveRegularDigest:
 # =============================================================================
 # DigestPersistence.update_grand_digest テスト
 # =============================================================================
+
 
 class TestDigestPersistenceUpdateGrandDigest:
     """update_grand_digest メソッドのテスト"""
@@ -150,7 +159,7 @@ class TestDigestPersistenceUpdateGrandDigest:
         invalid_digest = {
             "metadata": {},
             "overall_digest": None,  # 無効
-            "individual_digests": []
+            "individual_digests": [],
         }
 
         with pytest.raises(DigestError) as exc_info:
@@ -163,7 +172,7 @@ class TestDigestPersistenceUpdateGrandDigest:
         invalid_digest = {
             "metadata": {},
             # overall_digestがない
-            "individual_digests": []
+            "individual_digests": [],
         }
 
         with pytest.raises(DigestError) as exc_info:
@@ -174,6 +183,7 @@ class TestDigestPersistenceUpdateGrandDigest:
 # =============================================================================
 # DigestPersistence.process_cascade_and_cleanup テスト
 # =============================================================================
+
 
 class TestDigestPersistenceProcessCascadeAndCleanup:
     """process_cascade_and_cleanup メソッドのテスト"""
@@ -220,6 +230,7 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
 # DigestPersistence 初期化テスト
 # =============================================================================
 
+
 class TestDigestPersistenceInit:
     """DigestPersistence 初期化のテスト"""
 
@@ -245,11 +256,14 @@ class TestDigestPersistenceInit:
 # ユーザー入力テスト（レガシー: monkeypatch方式）
 # =============================================================================
 
+
 class TestDigestPersistenceUserInput:
     """ユーザー入力関連のテスト（レガシー）"""
 
     @pytest.mark.integration
-    def test_overwrite_user_cancels(self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch):
+    def test_overwrite_user_cancels(
+        self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch
+    ):
         """既存ファイル上書き時、ユーザーがキャンセル"""
         from domain.exceptions import ValidationError
 
@@ -265,7 +279,9 @@ class TestDigestPersistenceUserInput:
         assert "User cancelled" in str(exc_info.value)
 
     @pytest.mark.integration
-    def test_overwrite_user_confirms(self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch):
+    def test_overwrite_user_confirms(
+        self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch
+    ):
         """既存ファイル上書き時、ユーザーが確認"""
         # 先にファイルを作成
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
@@ -284,7 +300,9 @@ class TestDigestPersistenceUserInput:
         assert saved_data["overall_digest"]["abstract"] == "Updated abstract"
 
     @pytest.mark.integration
-    def test_overwrite_eoferror_continues(self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch):
+    def test_overwrite_eoferror_continues(
+        self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch
+    ):
         """非対話モード（EOFError）では上書きを続行"""
         # 先にファイルを作成
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
@@ -310,21 +328,30 @@ class TestDigestPersistenceUserInput:
 # コールバック注入テスト（推奨: confirm_callback方式）
 # =============================================================================
 
+
 class TestDigestPersistenceConfirmCallback:
     """confirm_callback注入方式のテスト"""
 
     @pytest.mark.integration
     def test_overwrite_cancelled_via_callback(
-        self, config, grand_digest_manager, shadow_manager, times_tracker,
-        valid_regular_digest, temp_plugin_env
+        self,
+        config,
+        grand_digest_manager,
+        shadow_manager,
+        times_tracker,
+        valid_regular_digest,
+        temp_plugin_env,
     ):
         """コールバックでキャンセル時にValidationErrorが発生"""
         from domain.exceptions import ValidationError
 
         # 常にキャンセルするコールバック
         persistence = DigestPersistence(
-            config, grand_digest_manager, shadow_manager, times_tracker,
-            confirm_callback=lambda msg: False
+            config,
+            grand_digest_manager,
+            shadow_manager,
+            times_tracker,
+            confirm_callback=lambda msg: False,
         )
 
         # 先にファイルを作成
@@ -338,14 +365,22 @@ class TestDigestPersistenceConfirmCallback:
 
     @pytest.mark.integration
     def test_overwrite_confirmed_via_callback(
-        self, config, grand_digest_manager, shadow_manager, times_tracker,
-        valid_regular_digest, temp_plugin_env
+        self,
+        config,
+        grand_digest_manager,
+        shadow_manager,
+        times_tracker,
+        valid_regular_digest,
+        temp_plugin_env,
     ):
         """コールバックで承認時に正常に上書きされる"""
         # 常に承認するコールバック
         persistence = DigestPersistence(
-            config, grand_digest_manager, shadow_manager, times_tracker,
-            confirm_callback=lambda msg: True
+            config,
+            grand_digest_manager,
+            shadow_manager,
+            times_tracker,
+            confirm_callback=lambda msg: True,
         )
 
         # 先にファイルを作成
@@ -367,8 +402,7 @@ class TestDigestPersistenceConfirmCallback:
     ):
         """confirm_callbackがNoneの場合、デフォルトコールバックが使用される"""
         persistence = DigestPersistence(
-            config, grand_digest_manager, shadow_manager, times_tracker,
-            confirm_callback=None
+            config, grand_digest_manager, shadow_manager, times_tracker, confirm_callback=None
         )
 
         # _default_confirmメソッドが設定されていることを確認
@@ -379,10 +413,16 @@ class TestDigestPersistenceConfirmCallback:
         self, config, grand_digest_manager, shadow_manager, times_tracker
     ):
         """カスタムコールバックが正しく保存される"""
-        custom_callback = lambda msg: True
+
+        def custom_callback(msg):
+            return True
+
         persistence = DigestPersistence(
-            config, grand_digest_manager, shadow_manager, times_tracker,
-            confirm_callback=custom_callback
+            config,
+            grand_digest_manager,
+            shadow_manager,
+            times_tracker,
+            confirm_callback=custom_callback,
         )
 
         assert persistence.confirm_callback is custom_callback
@@ -391,6 +431,7 @@ class TestDigestPersistenceConfirmCallback:
 # =============================================================================
 # カスケード処理詳細テスト
 # =============================================================================
+
 
 class TestDigestPersistenceCascadeDetails:
     """カスケード処理の詳細テスト"""
@@ -413,8 +454,15 @@ class TestDigestPersistenceCascadeDetails:
     @pytest.mark.integration
     def test_cascade_for_all_non_centurial_levels(self, persistence, shadow_manager):
         """centurial以外の全レベルでカスケードが実行される"""
-        levels_with_cascade = ["weekly", "monthly", "quarterly", "annual",
-                               "triennial", "decadal", "multi_decadal"]
+        levels_with_cascade = [
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "multi_decadal",
+        ]
 
         for level in levels_with_cascade:
             # エラーなく完了することを確認

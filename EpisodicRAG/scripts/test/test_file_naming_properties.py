@@ -5,27 +5,27 @@ Property-Based Tests for File Naming
 
 Using hypothesis to test invariants and edge cases in file_naming.py
 """
+
 import sys
+import tempfile
 from pathlib import Path
 
-import tempfile
-
 import pytest
-from hypothesis import given, strategies as st, assume, settings, HealthCheck
+from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import strategies as st
 
 # パス設定
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.file_naming import (
     extract_file_number,
     extract_number_only,
-    format_digest_number,
-    find_max_number,
-    filter_files_after,
     extract_numbers_formatted,
+    filter_files_after,
+    find_max_number,
+    format_digest_number,
 )
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-
 
 # =============================================================================
 # Strategies for generating valid EpisodicRAG data
@@ -39,9 +39,7 @@ all_levels = st.sampled_from(LEVEL_NAMES + ["loop"])
 
 # Arbitrary filenames (for robustness testing)
 arbitrary_filenames = st.text(
-    alphabet=st.characters(whitelist_categories=("L", "N", "P", "S")),
-    min_size=0,
-    max_size=100
+    alphabet=st.characters(whitelist_categories=("L", "N", "P", "S")), min_size=0, max_size=100
 )
 
 # Valid prefixes
@@ -51,6 +49,7 @@ valid_prefixes = st.sampled_from(["Loop", "W", "M", "Q", "A", "T", "D", "MD", "C
 # =============================================================================
 # Roundtrip Properties
 # =============================================================================
+
 
 class TestFileNamingRoundtrip:
     """Test roundtrip properties: format then extract"""
@@ -63,7 +62,7 @@ class TestFileNamingRoundtrip:
         # Skip numbers too large for the level's digit count
         if level != "loop":
             config = LEVEL_CONFIG[level]
-            max_val = 10**config["digits"] - 1
+            max_val = 10 ** config["digits"] - 1
             assume(number <= max_val)
 
         formatted = format_digest_number(level, number)
@@ -88,6 +87,7 @@ class TestFileNamingRoundtrip:
 # Robustness Properties
 # =============================================================================
 
+
 class TestExtractFileNumberRobustness:
     """Test that extract_file_number handles arbitrary input gracefully"""
 
@@ -99,20 +99,22 @@ class TestExtractFileNumberRobustness:
         result = extract_file_number(filename)
         # Result should be None or a valid tuple
         assert result is None or (
-            isinstance(result, tuple) and
-            len(result) == 2 and
-            isinstance(result[0], str) and
-            isinstance(result[1], int)
+            isinstance(result, tuple)
+            and len(result) == 2
+            and isinstance(result[0], str)
+            and isinstance(result[1], int)
         )
 
     @pytest.mark.property
-    @given(value=st.one_of(
-        st.none(),
-        st.integers(),
-        st.floats(allow_nan=False),
-        st.lists(st.text()),
-        st.dictionaries(st.text(), st.text())
-    ))
+    @given(
+        value=st.one_of(
+            st.none(),
+            st.integers(),
+            st.floats(allow_nan=False),
+            st.lists(st.text()),
+            st.dictionaries(st.text(), st.text()),
+        )
+    )
     @settings(max_examples=100)
     def test_handles_non_string_input(self, value):
         """extract_file_number should return None for non-string input"""
@@ -124,13 +126,14 @@ class TestExtractFileNumberRobustness:
 # Mathematical Properties
 # =============================================================================
 
+
 class TestFindMaxNumberProperties:
     """Test mathematical properties of find_max_number"""
 
     @pytest.mark.property
     @given(
         numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=1, max_size=20),
-        prefix=valid_prefixes
+        prefix=valid_prefixes,
     )
     @settings(max_examples=200)
     def test_result_is_max_of_matching_files(self, numbers, prefix):
@@ -143,9 +146,7 @@ class TestFindMaxNumberProperties:
         assert result == max(numbers), f"Expected {max(numbers)}, got {result}"
 
     @pytest.mark.property
-    @given(
-        files=st.lists(arbitrary_filenames, min_size=0, max_size=20)
-    )
+    @given(files=st.lists(arbitrary_filenames, min_size=0, max_size=20))
     @settings(max_examples=100)
     def test_returns_none_or_positive_integer(self, files):
         """Result should be None or a non-negative integer"""
@@ -153,9 +154,7 @@ class TestFindMaxNumberProperties:
         assert result is None or (isinstance(result, int) and result >= 0)
 
     @pytest.mark.property
-    @given(
-        numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=10)
-    )
+    @given(numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=10))
     @settings(max_examples=100)
     def test_empty_list_returns_none(self, numbers):
         """Empty list should return None"""
@@ -169,7 +168,7 @@ class TestFilterFilesAfterProperties:
     @pytest.mark.property
     @given(
         numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20),
-        threshold=st.integers(min_value=0, max_value=10000)
+        threshold=st.integers(min_value=0, max_value=10000),
     )
     @settings(max_examples=100)
     def test_all_results_above_threshold(self, numbers, threshold):
@@ -189,7 +188,7 @@ class TestFilterFilesAfterProperties:
     @pytest.mark.property
     @given(
         numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20),
-        threshold=st.integers(min_value=0, max_value=10000)
+        threshold=st.integers(min_value=0, max_value=10000),
     )
     @settings(max_examples=100)
     def test_result_length_invariant(self, numbers, threshold):
@@ -210,9 +209,7 @@ class TestExtractNumbersFormattedProperties:
     """Test properties of extract_numbers_formatted"""
 
     @pytest.mark.property
-    @given(
-        numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20)
-    )
+    @given(numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20))
     @settings(max_examples=200)
     def test_output_is_sorted(self, numbers):
         """Output should always be sorted"""

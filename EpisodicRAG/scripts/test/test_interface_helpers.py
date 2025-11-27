@@ -5,6 +5,7 @@ interfaces/interface_helpers.py のユニットテスト
 
 sanitize_filename(), get_next_digest_number() のテスト
 """
+
 import sys
 import unittest
 from pathlib import Path
@@ -12,9 +13,8 @@ from pathlib import Path
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
 from domain.exceptions import ConfigError, ValidationError
-
+from interfaces.interface_helpers import get_next_digest_number, sanitize_filename
 
 # =============================================================================
 # テスト用定数
@@ -56,7 +56,9 @@ class TestSanitizeFilename(unittest.TestCase):
     def test_max_length_no_trailing_underscore(self):
         """長さ制限後に末尾アンダースコアなし"""
         # 50文字目がアンダースコアになるケース (49文字 + 空白 + "b")
-        result = sanitize_filename("a" * (DEFAULT_MAX_LENGTH - 1) + " b", max_length=DEFAULT_MAX_LENGTH)
+        result = sanitize_filename(
+            "a" * (DEFAULT_MAX_LENGTH - 1) + " b", max_length=DEFAULT_MAX_LENGTH
+        )
         self.assertFalse(result.endswith("_"))
 
     def test_japanese(self):
@@ -68,6 +70,7 @@ class TestSanitizeFilename(unittest.TestCase):
 # =============================================================================
 # エッジケーステスト（Phase 0で追加）
 # =============================================================================
+
 
 class TestSanitizeFilenameEdgeCases(unittest.TestCase):
     """sanitize_filename() のエッジケーステスト"""
@@ -139,8 +142,9 @@ class TestGetNextDigestNumber(unittest.TestCase):
 
     def setUp(self):
         """テスト用の一時ディレクトリを作成"""
-        import tempfile
         import shutil
+        import tempfile
+
         self.temp_dir = tempfile.mkdtemp()
         self.digests_path = Path(self.temp_dir) / "Digests"
         self.digests_path.mkdir()
@@ -151,6 +155,7 @@ class TestGetNextDigestNumber(unittest.TestCase):
     def tearDown(self):
         """一時ディレクトリを削除"""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_empty_directory_returns_one(self):
@@ -177,6 +182,7 @@ class TestGetNextDigestNumber(unittest.TestCase):
         """レベルディレクトリが存在しない場合は1を返す"""
         # 存在しないディレクトリを削除
         import shutil
+
         shutil.rmtree(self.digests_path / "1_Weekly")
 
         result = get_next_digest_number(self.digests_path, "weekly")

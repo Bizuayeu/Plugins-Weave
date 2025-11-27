@@ -10,10 +10,11 @@ Usage:
     from infrastructure.json_repository import load_json, save_json, load_json_with_template
     from infrastructure.json_repository import try_load_json, try_read_json_from_file
 """
+
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, Callable
+from typing import Any, Callable, Dict, Optional
 
 from domain.exceptions import FileIOError
 
@@ -71,7 +72,7 @@ def load_json_with_template(
     template_file: Optional[Path] = None,
     default_factory: Optional[Callable[[], Dict[str, Any]]] = None,
     save_on_create: bool = True,
-    log_message: Optional[str] = None
+    log_message: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     JSONファイルを読み込む。存在しない場合はテンプレートまたはデフォルトから作成。
@@ -114,7 +115,7 @@ def load_json_with_template(
 
         # デフォルトファクトリーがある場合はそれを使用
         if default_factory:
-            logger.debug(f"No template found, using default_factory")
+            logger.debug("No template found, using default_factory")
             template = default_factory()
             if save_on_create:
                 save_json(target_file, template)
@@ -124,7 +125,7 @@ def load_json_with_template(
             return template
 
         # どちらもない場合は空のdictを返す
-        logger.debug(f"No template or factory provided, returning empty dict")
+        logger.debug("No template or factory provided, returning empty dict")
         return {}
 
     except json.JSONDecodeError as e:
@@ -165,9 +166,7 @@ def ensure_directory(dir_path: Path) -> None:
 
 
 def try_load_json(
-    file_path: Path,
-    default: Optional[Dict[str, Any]] = None,
-    log_on_error: bool = True
+    file_path: Path, default: Optional[Dict[str, Any]] = None, log_on_error: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     JSONファイルを安全に読み込む（エラー時はデフォルト値を返す）
@@ -227,10 +226,7 @@ def confirm_file_overwrite(file_path: Path, force: bool = False) -> bool:
     return force
 
 
-def try_read_json_from_file(
-    file_path: Path,
-    log_on_error: bool = True
-) -> Optional[Dict[str, Any]]:
+def try_read_json_from_file(file_path: Path, log_on_error: bool = True) -> Optional[Dict[str, Any]]:
     """
     JSONファイルを安全に読み込む（個別ファイル処理用）
 

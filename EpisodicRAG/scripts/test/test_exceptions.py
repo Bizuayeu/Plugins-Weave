@@ -8,25 +8,27 @@ domain/exceptions.py のユニットテスト
 - 各例外クラスのメッセージフォーマット
 - 例外チェーン（from e）の動作確認
 """
+
 import sys
+
 import pytest
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(__file__).rsplit('test', 1)[0])
 
 from domain.exceptions import (
-    EpisodicRAGError,
     ConfigError,
-    DigestError,
-    ValidationError,
-    FileIOError,
     CorruptedDataError,
+    DigestError,
+    EpisodicRAGError,
+    FileIOError,
+    ValidationError,
 )
-
 
 # =============================================================================
 # 例外階層テスト
 # =============================================================================
+
 
 class TestExceptionHierarchy:
     """例外階層の継承関係テスト"""
@@ -66,6 +68,7 @@ class TestExceptionHierarchy:
 # EpisodicRAGError テスト
 # =============================================================================
 
+
 class TestEpisodicRAGError:
     """EpisodicRAGError のテスト"""
 
@@ -101,6 +104,7 @@ class TestEpisodicRAGError:
 # =============================================================================
 # ConfigError テスト
 # =============================================================================
+
 
 class TestConfigError:
     """ConfigError のテスト"""
@@ -138,6 +142,7 @@ class TestConfigError:
 # DigestError テスト
 # =============================================================================
 
+
 class TestDigestError:
     """DigestError のテスト"""
 
@@ -159,6 +164,7 @@ class TestDigestError:
 # =============================================================================
 # ValidationError テスト
 # =============================================================================
+
 
 class TestValidationError:
     """ValidationError のテスト"""
@@ -189,6 +195,7 @@ class TestValidationError:
 # =============================================================================
 # FileIOError テスト
 # =============================================================================
+
 
 class TestFileIOError:
     """FileIOError のテスト"""
@@ -224,6 +231,7 @@ class TestFileIOError:
 # CorruptedDataError テスト
 # =============================================================================
 
+
 class TestCorruptedDataError:
     """CorruptedDataError のテスト"""
 
@@ -245,6 +253,7 @@ class TestCorruptedDataError:
 # =============================================================================
 # 例外チェーンテスト
 # =============================================================================
+
 
 class TestExceptionChaining:
     """例外チェーン（from e）のテスト"""
@@ -277,6 +286,7 @@ class TestExceptionChaining:
     def test_corrupted_data_error_chaining(self):
         """CorruptedDataError で例外チェーンが機能する"""
         import json
+
         original = json.JSONDecodeError("Expecting value", "", 0)
         try:
             try:
@@ -308,6 +318,7 @@ class TestExceptionChaining:
 # =============================================================================
 # 実用パターンテスト
 # =============================================================================
+
 
 class TestPracticalUsagePatterns:
     """実用的な使用パターンのテスト"""

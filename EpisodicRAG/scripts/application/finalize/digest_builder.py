@@ -9,7 +9,7 @@ RegularDigest構造を構築するクラス
 from datetime import datetime
 from typing import List
 
-from domain.types import OverallDigestData, IndividualDigestData, RegularDigestData
+from domain.types import IndividualDigestData, OverallDigestData, RegularDigestData
 from domain.version import DIGEST_FORMAT_VERSION
 
 
@@ -22,7 +22,7 @@ class RegularDigestBuilder:
         new_digest_name: str,
         digest_num: str,
         shadow_digest: OverallDigestData,
-        individual_digests: List[IndividualDigestData]
+        individual_digests: List[IndividualDigestData],
     ) -> RegularDigestData:
         """
         RegularDigest構造を作成
@@ -44,7 +44,7 @@ class RegularDigestBuilder:
                 "digest_level": level,
                 "digest_number": digest_num,
                 "last_updated": datetime.now().isoformat(),
-                "version": DIGEST_FORMAT_VERSION
+                "version": DIGEST_FORMAT_VERSION,
             },
             "overall_digest": {
                 "name": new_digest_name,
@@ -53,7 +53,7 @@ class RegularDigestBuilder:
                 "digest_type": shadow_digest.get("digest_type", "統合"),
                 "keywords": shadow_digest.get("keywords", []),
                 "abstract": shadow_digest.get("abstract", ""),
-                "impression": shadow_digest.get("impression", "")
+                "impression": shadow_digest.get("impression", ""),
             },
-            "individual_digests": individual_digests
+            "individual_digests": individual_digests,
         }

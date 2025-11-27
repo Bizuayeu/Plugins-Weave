@@ -23,16 +23,15 @@ GrandDigest更新後に作成された新しいコンテンツを保持し、
 from pathlib import Path
 from typing import List, Optional
 
-from domain.types import OverallDigestData, ShadowDigestData
-
-# Plugin版: config.pyをインポート
-from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES
-from domain.constants import LOG_SEPARATOR
-from infrastructure import log_info, log_warning
+# 分割したモジュールをインポート
+from application.shadow import FileDetector, ShadowIO, ShadowTemplate, ShadowUpdater
 from application.tracking import DigestTimesTracker
 
-# 分割したモジュールをインポート
-from application.shadow import ShadowTemplate, FileDetector, ShadowIO, ShadowUpdater
+# Plugin版: config.pyをインポート
+from config import LEVEL_CONFIG, LEVEL_NAMES, DigestConfig
+from domain.constants import LOG_SEPARATOR
+from domain.types import OverallDigestData
+from infrastructure import log_info, log_warning
 
 
 class ShadowGrandDigestManager:

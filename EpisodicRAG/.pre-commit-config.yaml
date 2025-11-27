@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.0
+    rev: v0.11.12
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
@@ -9,7 +9,7 @@ repos:
         types_or: [python, pyi]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
@@ -18,6 +18,15 @@ repos:
       - id: check-json
       - id: check-added-large-files
         args: [--maxkb=1000]
+
+  - repo: local
+    hooks:
+      - id: check-version
+        name: Check version consistency
+        entry: python EpisodicRAG/scripts/check_version.py
+        language: python
+        pass_filenames: false
+        files: EpisodicRAG/(scripts/domain/version\.py|\.claude-plugin/plugin\.json|pyproject\.toml)$
 
 default_install_hook_types: [pre-commit]
 default_stages: [pre-commit]

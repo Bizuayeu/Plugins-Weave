@@ -5,6 +5,7 @@ test_path_resolver.py
 
 config/path_resolver.py のテスト
 """
+
 import pytest
 
 from config.path_resolver import PathResolver
@@ -22,8 +23,8 @@ class TestPathResolver:
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
-                "essences_dir": "data/Essences"
-            }
+                "essences_dir": "data/Essences",
+            },
         }
 
     @pytest.mark.unit
@@ -78,12 +79,7 @@ class TestPathResolver:
     @pytest.mark.unit
     def test_base_dir_resolution(self, temp_plugin_env):
         """base_dir設定の解決"""
-        config = {
-            "base_dir": "..",
-            "paths": {
-                "loops_dir": "data/Loops"
-            }
-        }
+        config = {"base_dir": "..", "paths": {"loops_dir": "data/Loops"}}
         resolver = PathResolver(temp_plugin_env.plugin_root, config)
 
         # base_dirが..なので、plugin_rootの親からの相対パスになる
@@ -94,11 +90,7 @@ class TestPathResolver:
     @pytest.mark.unit
     def test_default_base_dir(self, temp_plugin_env):
         """base_dir未指定時のデフォルト"""
-        config = {
-            "paths": {
-                "loops_dir": "data/Loops"
-            }
-        }
+        config = {"paths": {"loops_dir": "data/Loops"}}
         resolver = PathResolver(temp_plugin_env.plugin_root, config)
 
         # デフォルトは "." なのでplugin_root自身
@@ -113,8 +105,8 @@ class TestPathResolver:
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
                 "essences_dir": "data/Essences",
-                "identity_file_path": "identity.md"
-            }
+                "identity_file_path": "identity.md",
+            },
         }
         resolver = PathResolver(temp_plugin_env.plugin_root, config)
 

@@ -7,14 +7,14 @@ ProvisionalDigestの読み込みまたはソースファイルからの自動生
 """
 
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
-from config import DigestConfig, LEVEL_CONFIG
-from application.validators import is_valid_dict
-from domain.types import OverallDigestData, IndividualDigestData
-from domain.exceptions import DigestError, FileIOError
-from infrastructure import log_info, log_warning, load_json, try_read_json_from_file
 from application.grand import ShadowGrandDigestManager
+from application.validators import is_valid_dict
+from config import LEVEL_CONFIG, DigestConfig
+from domain.exceptions import DigestError
+from domain.types import IndividualDigestData, OverallDigestData
+from infrastructure import load_json, log_info, log_warning, try_read_json_from_file
 
 
 class ProvisionalLoader:
@@ -73,7 +73,9 @@ class ProvisionalLoader:
             if not is_valid_dict(provisional_data):
                 raise DigestError(f"Invalid format in {provisional_path.name}: expected dict")
             individual_digests = provisional_data.get("individual_digests", [])
-            log_info(f"Loaded {len(individual_digests)} individual digests from {provisional_path.name}")
+            log_info(
+                f"Loaded {len(individual_digests)} individual digests from {provisional_path.name}"
+            )
             provisional_file_to_delete = provisional_path
         else:
             # Provisionalファイルが存在しない場合、source_filesから自動生成
@@ -115,7 +117,7 @@ class ProvisionalLoader:
                 "digest_type": overall.get("digest_type", ""),
                 "keywords": overall.get("keywords", []),
                 "abstract": overall.get("abstract", ""),
-                "impression": overall.get("impression", "")
+                "impression": overall.get("impression", ""),
             }
             individual_digests.append(individual_entry)
             log_info(f"Auto-generated individual digest from {source_file}")

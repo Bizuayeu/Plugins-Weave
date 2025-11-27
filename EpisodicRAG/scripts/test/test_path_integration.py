@@ -6,6 +6,7 @@ Path Integration Tests
 パス構造の一貫性を検証する統合テスト。
 Provisionalディレクトリが各レベルディレクトリ内に正しく配置されることを確認。
 """
+
 import sys
 import unittest
 from pathlib import Path
@@ -13,8 +14,9 @@ from pathlib import Path
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import DigestConfig, LEVEL_CONFIG, LEVEL_NAMES, format_digest_number
-from test_helpers import TempPluginEnvironment, LEVEL_DIRS
+from test_helpers import LEVEL_DIRS, TempPluginEnvironment
+
+from config import LEVEL_CONFIG, LEVEL_NAMES, DigestConfig, format_digest_number
 
 
 class TestProvisionalDirectoryStructure(unittest.TestCase):
@@ -117,7 +119,7 @@ class TestFormatDigestNumber(unittest.TestCase):
             # プレフィックスが正しいか
             self.assertTrue(formatted.startswith(cfg["prefix"]))
             # 桁数が正しいか（プレフィックス除く）
-            number_part = formatted[len(cfg["prefix"]):]
+            number_part = formatted[len(cfg["prefix"]) :]
             self.assertEqual(len(number_part), cfg["digits"])
 
 
@@ -137,6 +139,7 @@ class TestValidateDirectoryStructure(unittest.TestCase):
             config = DigestConfig(plugin_root=env.plugin_root)
             # Loopsを削除
             import shutil
+
             shutil.rmtree(env.loops_path)
 
             errors = config.validate_directory_structure()
@@ -148,6 +151,7 @@ class TestValidateDirectoryStructure(unittest.TestCase):
             config = DigestConfig(plugin_root=env.plugin_root)
             # 1_Weekly/Provisionalを削除
             import shutil
+
             shutil.rmtree(env.digests_path / "1_Weekly" / "Provisional")
 
             errors = config.validate_directory_structure()

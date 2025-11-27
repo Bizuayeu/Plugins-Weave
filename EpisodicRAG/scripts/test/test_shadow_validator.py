@@ -7,23 +7,24 @@ ShadowValidatorクラスの動作を検証。
 - validate_shadow_content: Shadowコンテンツの検証
 - validate_and_get_shadow: 検証済みShadowの取得
 """
+
 import pytest
+from test_helpers import create_test_loop_file
 
 # Application層
 from application.finalize import ShadowValidator
 from application.grand import ShadowGrandDigestManager
 
-# Domain層
-from domain.exceptions import ValidationError, DigestError
-
 # 設定
 from config import DigestConfig
-from test_helpers import create_test_loop_file
 
+# Domain層
+from domain.exceptions import DigestError, ValidationError
 
 # =============================================================================
 # フィクスチャ
 # =============================================================================
+
 
 @pytest.fixture
 def config(temp_plugin_env):
@@ -46,6 +47,7 @@ def validator(shadow_manager):
 # =============================================================================
 # ShadowValidator.validate_shadow_content テスト
 # =============================================================================
+
 
 class TestShadowValidatorValidateShadowContent:
     """validate_shadow_content メソッドのテスト"""
@@ -103,6 +105,7 @@ class TestShadowValidatorValidateShadowContent:
 # ShadowValidator.validate_and_get_shadow テスト
 # =============================================================================
 
+
 class TestShadowValidatorValidateAndGetShadow:
     """validate_and_get_shadow メソッドのテスト"""
 
@@ -131,7 +134,7 @@ class TestShadowValidatorValidateAndGetShadow:
     def test_returns_valid_shadow(self, validator, shadow_manager, temp_plugin_env):
         """有効なshadow_digestを返す"""
         # Loopファイルを作成してShadowに追加
-        loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
+        _ = create_test_loop_file(temp_plugin_env.loops_path, 1)
         shadow_manager.update_shadow_for_new_loops()
 
         result = validator.validate_and_get_shadow("weekly", "Test Title")
@@ -144,6 +147,7 @@ class TestShadowValidatorValidateAndGetShadow:
 # =============================================================================
 # ShadowValidator 初期化テスト
 # =============================================================================
+
 
 class TestShadowValidatorInit:
     """ShadowValidator 初期化のテスト"""
@@ -158,6 +162,7 @@ class TestShadowValidatorInit:
 # =============================================================================
 # 非連続ファイル（ユーザー入力）テスト（レガシー: monkeypatch方式）
 # =============================================================================
+
 
 class TestShadowValidatorNonConsecutiveFiles:
     """非連続ファイル検出時のユーザー入力テスト（レガシー）"""
@@ -202,6 +207,7 @@ class TestShadowValidatorNonConsecutiveFiles:
     @pytest.mark.unit
     def test_consecutive_files_no_prompt(self, validator, monkeypatch):
         """連続ファイルの場合はinput()が呼ばれない"""
+
         # input()が呼ばれたらエラーを発生させる
         def raise_if_called(_):
             raise AssertionError("input() should not be called for consecutive files")
@@ -219,6 +225,7 @@ class TestShadowValidatorNonConsecutiveFiles:
 # コールバック注入テスト（推奨: confirm_callback方式）
 # =============================================================================
 
+
 class TestShadowValidatorConfirmCallback:
     """confirm_callback注入方式のテスト"""
 
@@ -226,10 +233,7 @@ class TestShadowValidatorConfirmCallback:
     def test_non_consecutive_cancelled_via_callback(self, shadow_manager):
         """コールバックでキャンセル時にValidationErrorが発生"""
         # 常にキャンセルするコールバック
-        validator = ShadowValidator(
-            shadow_manager,
-            confirm_callback=lambda msg: False
-        )
+        validator = ShadowValidator(shadow_manager, confirm_callback=lambda msg: False)
 
         # 非連続ファイル
         source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
@@ -242,10 +246,7 @@ class TestShadowValidatorConfirmCallback:
     def test_non_consecutive_continued_via_callback(self, shadow_manager):
         """コールバックで承認時に正常に継続される"""
         # 常に承認するコールバック
-        validator = ShadowValidator(
-            shadow_manager,
-            confirm_callback=lambda msg: True
-        )
+        validator = ShadowValidator(shadow_manager, confirm_callback=lambda msg: True)
 
         # 非連続ファイル
         source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
@@ -262,10 +263,7 @@ class TestShadowValidatorConfirmCallback:
             received_messages.append(msg)
             return True
 
-        validator = ShadowValidator(
-            shadow_manager,
-            confirm_callback=capture_callback
-        )
+        validator = ShadowValidator(shadow_manager, confirm_callback=capture_callback)
 
         # 非連続ファイル
         source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
@@ -285,7 +283,10 @@ class TestShadowValidatorConfirmCallback:
     @pytest.mark.unit
     def test_custom_callback_stored(self, shadow_manager):
         """カスタムコールバックが正しく保存される"""
-        custom_callback = lambda msg: True
+
+        def custom_callback(msg):
+            return True
+
         validator = ShadowValidator(shadow_manager, confirm_callback=custom_callback)
 
         assert validator.confirm_callback is custom_callback
@@ -312,6 +313,7 @@ class TestShadowValidatorConfirmCallback:
 # =============================================================================
 # エッジケーステスト（追加）
 # =============================================================================
+
 
 class TestShadowValidatorEdgeCases:
     """ShadowValidator のエッジケーステスト"""
@@ -382,6 +384,7 @@ class TestShadowValidatorEdgeCases:
 # プライベートメソッドの単体テスト（Phase 6: カバレッジ向上）
 # =============================================================================
 
+
 class TestShadowValidatorPrivateMethods:
     """プライベートメソッドの単体テスト"""
 
@@ -433,9 +436,7 @@ class TestShadowValidatorPrivateMethods:
         assert "No shadow digest found" in str(exc_info.value)
 
     @pytest.mark.integration
-    def test_fetch_shadow_digest_returns_data(
-        self, validator, shadow_manager, temp_plugin_env
-    ):
+    def test_fetch_shadow_digest_returns_data(self, validator, shadow_manager, temp_plugin_env):
         """_fetch_shadow_digest: 正常なデータを返す"""
         # Loopファイルを作成してShadowに追加
         create_test_loop_file(temp_plugin_env.loops_path, 1)

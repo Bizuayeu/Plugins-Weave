@@ -6,14 +6,14 @@ Shadow Validator
 ShadowGrandDigestの内容を検証するクラス
 """
 
-from typing import Optional, Callable, List
+from typing import Callable, List, Optional
 
-from config import extract_file_number
-from application.validators import is_valid_dict, is_valid_list
-from domain.types import OverallDigestData
-from domain.exceptions import ValidationError, DigestError
-from infrastructure import log_info, log_warning
 from application.grand import ShadowGrandDigestManager
+from application.validators import is_valid_dict, is_valid_list
+from config import extract_file_number
+from domain.exceptions import DigestError, ValidationError
+from domain.types import OverallDigestData
+from infrastructure import log_info, log_warning
 
 
 class ShadowValidator:
@@ -22,7 +22,7 @@ class ShadowValidator:
     def __init__(
         self,
         shadow_manager: ShadowGrandDigestManager,
-        confirm_callback: Optional[Callable[[str], bool]] = None
+        confirm_callback: Optional[Callable[[str], bool]] = None,
     ):
         """
         Args:
@@ -70,7 +70,9 @@ class ShadowValidator:
         # ファイル名の型チェック
         for i, filename in enumerate(source_files):
             if not isinstance(filename, str):
-                raise ValidationError(f"Invalid filename at index {i}: expected str, got {type(filename).__name__}")
+                raise ValidationError(
+                    f"Invalid filename at index {i}: expected str, got {type(filename).__name__}"
+                )
 
         # ファイル名から番号を抽出（共通関数を使用）
         numbers = []
@@ -92,7 +94,9 @@ class ShadowValidator:
                     raise ValidationError("User cancelled due to non-consecutive files")
                 break
 
-        log_info(f"Shadow validation passed: {len(source_files)} file(s), range: {numbers[0]}-{numbers[-1]}")
+        log_info(
+            f"Shadow validation passed: {len(source_files)} file(s), range: {numbers[0]}-{numbers[-1]}"
+        )
 
     def _validate_title(self, weave_title: str) -> None:
         """
@@ -139,7 +143,9 @@ class ShadowValidator:
             ValidationError: 形式が不正な場合
         """
         if not is_valid_dict(shadow_digest):
-            raise ValidationError(f"Invalid shadow digest format: expected dict, got {type(shadow_digest).__name__}")
+            raise ValidationError(
+                f"Invalid shadow digest format: expected dict, got {type(shadow_digest).__name__}"
+            )
 
     def validate_and_get_shadow(self, level: str, weave_title: str) -> OverallDigestData:
         """

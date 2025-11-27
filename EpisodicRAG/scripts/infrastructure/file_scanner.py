@@ -9,15 +9,12 @@ File Scanner
 Usage:
     from infrastructure.file_scanner import scan_files, get_files_by_pattern
 """
+
 from pathlib import Path
-from typing import List, Optional, Callable
+from typing import Callable, List, Optional
 
 
-def scan_files(
-    directory: Path,
-    pattern: str = "*.txt",
-    sort: bool = True
-) -> List[Path]:
+def scan_files(directory: Path, pattern: str = "*.txt", sort: bool = True) -> List[Path]:
     """
     指定ディレクトリ内のファイルをスキャン
 
@@ -41,9 +38,7 @@ def scan_files(
 
 
 def get_files_by_pattern(
-    directory: Path,
-    pattern: str,
-    filter_func: Optional[Callable[[Path], bool]] = None
+    directory: Path, pattern: str, filter_func: Optional[Callable[[Path], bool]] = None
 ) -> List[Path]:
     """
     パターンとフィルタ関数でファイルを取得
@@ -65,9 +60,7 @@ def get_files_by_pattern(
 
 
 def get_max_numbered_file(
-    directory: Path,
-    pattern: str,
-    number_extractor: Callable[[str], Optional[int]]
+    directory: Path, pattern: str, number_extractor: Callable[[str], Optional[int]]
 ) -> Optional[int]:
     """
     ディレクトリ内の最大番号を取得
@@ -95,9 +88,7 @@ def get_max_numbered_file(
 
 
 def filter_files_after_number(
-    files: List[Path],
-    threshold: int,
-    number_extractor: Callable[[str], Optional[int]]
+    files: List[Path], threshold: int, number_extractor: Callable[[str], Optional[int]]
 ) -> List[Path]:
     """
     指定番号より大きいファイルのみをフィルタ

@@ -5,7 +5,9 @@ test_config_repository.py
 
 config/config_repository.py のテスト
 """
+
 import json
+
 import pytest
 
 from config.config_repository import load_config
@@ -72,11 +74,9 @@ class TestLoadConfig:
             "paths": {
                 "loops_dir": "custom/Loops",
                 "digests_dir": "custom/Digests",
-                "essences_dir": "custom/Essences"
+                "essences_dir": "custom/Essences",
             },
-            "levels": {
-                "weekly_threshold": 10
-            }
+            "levels": {"weekly_threshold": 10},
         }
         config_file.write_text(json.dumps(custom_config), encoding='utf-8')
 
@@ -100,15 +100,9 @@ class TestLoadConfig:
     def test_load_config_unicode_content(self, temp_plugin_env):
         """Unicode文字を含むJSONファイル"""
         unicode_json_file = temp_plugin_env.config_dir / "unicode.json"
-        unicode_config = {
-            "description": "日本語テスト 🎉",
-            "paths": {
-                "loops_dir": "データ/ループ"
-            }
-        }
+        unicode_config = {"description": "日本語テスト 🎉", "paths": {"loops_dir": "データ/ループ"}}
         unicode_json_file.write_text(
-            json.dumps(unicode_config, ensure_ascii=False),
-            encoding='utf-8'
+            json.dumps(unicode_config, ensure_ascii=False), encoding='utf-8'
         )
 
         result = load_config(unicode_json_file)

@@ -6,22 +6,24 @@ test_file_scanner.py
 infrastructure/file_scanner.py の単体テスト。
 ファイルスキャン、パターンマッチング、番号抽出機能をテスト。
 """
-import pytest
+
 from pathlib import Path
 from typing import Optional
 
+import pytest
+
 from infrastructure.file_scanner import (
-    scan_files,
+    count_files,
+    filter_files_after_number,
     get_files_by_pattern,
     get_max_numbered_file,
-    filter_files_after_number,
-    count_files,
+    scan_files,
 )
-
 
 # =============================================================================
 # scan_files テスト
 # =============================================================================
+
 
 class TestScanFiles:
     """scan_files() 関数のテスト"""
@@ -101,6 +103,7 @@ class TestScanFiles:
 # get_files_by_pattern テスト
 # =============================================================================
 
+
 class TestGetFilesByPattern:
     """get_files_by_pattern() 関数のテスト"""
 
@@ -121,9 +124,7 @@ class TestGetFilesByPattern:
         (tmp_path / "remove_c.txt").write_text("")
 
         result = get_files_by_pattern(
-            tmp_path,
-            "*.txt",
-            filter_func=lambda p: p.name.startswith("keep_")
+            tmp_path, "*.txt", filter_func=lambda p: p.name.startswith("keep_")
         )
         assert len(result) == 2
         assert all("keep_" in f.name for f in result)
@@ -134,11 +135,7 @@ class TestGetFilesByPattern:
         (tmp_path / "a.txt").write_text("")
         (tmp_path / "b.txt").write_text("")
 
-        result = get_files_by_pattern(
-            tmp_path,
-            "*.txt",
-            filter_func=lambda p: False
-        )
+        result = get_files_by_pattern(tmp_path, "*.txt", filter_func=lambda p: False)
         assert result == []
 
     @pytest.mark.integration
@@ -158,6 +155,7 @@ class TestGetFilesByPattern:
 # get_max_numbered_file テスト
 # =============================================================================
 
+
 class TestGetMaxNumberedFile:
     """get_max_numbered_file() 関数のテスト"""
 
@@ -175,11 +173,7 @@ class TestGetMaxNumberedFile:
     def test_nonexistent_directory_returns_none(self, tmp_path):
         """存在しないディレクトリ → None"""
         nonexistent = tmp_path / "nonexistent"
-        result = get_max_numbered_file(
-            nonexistent,
-            "Loop*.txt",
-            self.extract_loop_number
-        )
+        result = get_max_numbered_file(nonexistent, "Loop*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
@@ -187,33 +181,21 @@ class TestGetMaxNumberedFile:
         """空ディレクトリ → None"""
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
-        result = get_max_numbered_file(
-            empty_dir,
-            "Loop*.txt",
-            self.extract_loop_number
-        )
+        result = get_max_numbered_file(empty_dir, "Loop*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
     def test_no_matching_files_returns_none(self, tmp_path):
         """マッチするファイルなし → None"""
         (tmp_path / "other.txt").write_text("")
-        result = get_max_numbered_file(
-            tmp_path,
-            "Loop*.txt",
-            self.extract_loop_number
-        )
+        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
     def test_single_file_returns_number(self, tmp_path):
         """単一ファイル → その番号"""
         (tmp_path / "Loop0042.txt").write_text("")
-        result = get_max_numbered_file(
-            tmp_path,
-            "Loop*.txt",
-            self.extract_loop_number
-        )
+        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
         assert result == 42
 
     @pytest.mark.integration
@@ -223,11 +205,7 @@ class TestGetMaxNumberedFile:
         (tmp_path / "Loop0050.txt").write_text("")
         (tmp_path / "Loop0030.txt").write_text("")
 
-        result = get_max_numbered_file(
-            tmp_path,
-            "Loop*.txt",
-            self.extract_loop_number
-        )
+        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
         assert result == 50
 
     @pytest.mark.integration
@@ -237,17 +215,14 @@ class TestGetMaxNumberedFile:
         (tmp_path / "LoopXXXX.txt").write_text("")
         (tmp_path / "Loop.txt").write_text("")
 
-        result = get_max_numbered_file(
-            tmp_path,
-            "Loop*.txt",
-            self.extract_loop_number
-        )
+        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
         assert result == 20
 
 
 # =============================================================================
 # filter_files_after_number テスト
 # =============================================================================
+
 
 class TestFilterFilesAfterNumber:
     """filter_files_after_number() 関数のテスト"""
@@ -294,10 +269,10 @@ class TestFilterFilesAfterNumber:
     def test_mixed_files_filters_correctly(self, tmp_path):
         """混在ファイル → 正しくフィルタ"""
         files = [
-            tmp_path / "Loop0005.txt",   # below
-            tmp_path / "Loop0010.txt",   # equal (not above)
-            tmp_path / "Loop0015.txt",   # above
-            tmp_path / "Loop0020.txt",   # above
+            tmp_path / "Loop0005.txt",  # below
+            tmp_path / "Loop0010.txt",  # equal (not above)
+            tmp_path / "Loop0015.txt",  # above
+            tmp_path / "Loop0020.txt",  # above
         ]
         result = filter_files_after_number(files, 10, self.extract_number)
         assert len(result) == 2
@@ -307,9 +282,9 @@ class TestFilterFilesAfterNumber:
     def test_invalid_number_files_excluded(self, tmp_path):
         """無効な番号のファイルは除外"""
         files = [
-            tmp_path / "Loop0015.txt",    # valid, above
-            tmp_path / "LoopXXXX.txt",    # invalid
-            tmp_path / "other.txt",       # invalid
+            tmp_path / "Loop0015.txt",  # valid, above
+            tmp_path / "LoopXXXX.txt",  # invalid
+            tmp_path / "other.txt",  # invalid
         ]
         result = filter_files_after_number(files, 10, self.extract_number)
         assert len(result) == 1
@@ -319,6 +294,7 @@ class TestFilterFilesAfterNumber:
 # =============================================================================
 # count_files テスト
 # =============================================================================
+
 
 class TestCountFiles:
     """count_files() 関数のテスト"""

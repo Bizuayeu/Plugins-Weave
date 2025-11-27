@@ -5,15 +5,16 @@ Cascade Processor
 
 ダイジェスト確定時のカスケード処理
 """
-from typing import Dict, Optional, TYPE_CHECKING
 
+from typing import TYPE_CHECKING, Dict, Optional
+
+from application.validators import is_valid_dict
 from domain.types import LevelHierarchyEntry, OverallDigestData
 from infrastructure import log_info
-from application.validators import is_valid_dict
 
-from .template import ShadowTemplate
 from .file_detector import FileDetector
 from .shadow_io import ShadowIO
+from .template import ShadowTemplate
 
 if TYPE_CHECKING:
     from .file_appender import FileAppender
@@ -28,7 +29,7 @@ class CascadeProcessor:
         file_detector: FileDetector,
         template: ShadowTemplate,
         level_hierarchy: Dict[str, LevelHierarchyEntry],
-        file_appender: "FileAppender"
+        file_appender: "FileAppender",
     ):
         """
         初期化
@@ -97,7 +98,9 @@ class CascadeProcessor:
         shadow_data = self.shadow_io.load_or_create()
 
         # overall_digestを空のプレースホルダーにリセット
-        shadow_data["latest_digests"][level]["overall_digest"] = self.template.create_empty_overall_digest()
+        shadow_data["latest_digests"][level]["overall_digest"] = (
+            self.template.create_empty_overall_digest()
+        )
 
         self.shadow_io.save(shadow_data)
         log_info(f"Cleared ShadowGrandDigest for level: {level}")

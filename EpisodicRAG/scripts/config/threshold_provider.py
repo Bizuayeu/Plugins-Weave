@@ -5,9 +5,10 @@ Threshold Provider
 
 しきい値管理
 """
-from typing import Dict, Any
 
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, DEFAULT_THRESHOLDS
+from typing import Any, Dict
+
+from domain.constants import DEFAULT_THRESHOLDS, LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
 
 
