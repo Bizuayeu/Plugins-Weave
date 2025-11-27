@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2025-11-27
+
+### Changed
+
+- **DEPRECATED メソッド完全削除**:
+  - `load_or_create`, `save`, `find_new_files` を削除
+  - ShadowGrandDigestManager: 9 → 6メソッド
+
+### Added
+
+- **型安全性向上**:
+  - `ProvisionalDigestFile` 型追加
+  - `provisional_loader.py`: 6箇所の型置換
+  - `save_provisional_digest.py`: 7箇所の型置換
+  - `Dict[str, Any]` 使用箇所: ~23 → ~10（汎用関数のみ）
+
+---
+
+## [2.0.1] - 2025-11-27
+
+### Changed
+
+- **ログ統一**: `print` → `logger` に44箇所置換
+- **Facade簡潔化**: 13 → 9メソッド（6 public + 3 DEPRECATED）
+
+### Added
+
+- **テストカバレッジ拡大**: 384 → 407テスト
+- **型定義統一**: `DigestMetadataComplete` 追加
+
+### Fixed
+
+- `cascade_processor.py`: 型チェック漏れ修正
+
+---
+
 ## [2.0.0] - 2025-11-27
 
 ### Breaking Changes

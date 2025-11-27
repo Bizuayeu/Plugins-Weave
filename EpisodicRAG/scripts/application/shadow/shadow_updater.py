@@ -53,41 +53,6 @@ class ShadowUpdater:
         )
 
     # =========================================================================
-    # 後方互換性のためのプライベートメソッド委譲
-    # DEPRECATED: これらのメソッドは将来のバージョンで削除される予定です。
-    # 直接 FileAppender または PlaceholderManager を使用してください。
-    # =========================================================================
-
-    def _ensure_overall_digest_initialized(
-        self,
-        shadow_data: ShadowDigestData,
-        level: str
-    ) -> OverallDigestData:
-        """overall_digestの初期化を確保
-
-        DEPRECATED: FileAppender._ensure_overall_digest_initialized を使用してください。
-        """
-        return self._file_appender._ensure_overall_digest_initialized(shadow_data, level)
-
-    def _log_digest_content(self, file_path: Path, level: str) -> None:
-        """Digestファイルの内容をログ出力
-
-        DEPRECATED: FileAppender._log_digest_content を使用してください。
-        """
-        return self._file_appender._log_digest_content(file_path, level)
-
-    def _update_placeholder_or_preserve(
-        self,
-        overall_digest: OverallDigestData,
-        total_files: int
-    ) -> None:
-        """PLACEHOLDERの更新または既存分析の保持
-
-        DEPRECATED: PlaceholderManager.update_or_preserve を使用してください。
-        """
-        return self._placeholder_manager.update_or_preserve(overall_digest, total_files)
-
-    # =========================================================================
     # パブリックメソッド委譲
     # =========================================================================
 

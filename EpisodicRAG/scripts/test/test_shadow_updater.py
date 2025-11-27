@@ -4,11 +4,14 @@ shadow/shadow_updater.py のユニットテスト
 =========================================
 
 ShadowUpdaterクラスの動作を検証。
-- _ensure_overall_digest_initialized: overall_digestの初期化
 - add_files_to_shadow: ファイル追加
 - clear_shadow_level: レベルクリア
 - get_shadow_digest_for_level: Shadow取得
 - cascade_update_on_digest_finalize: カスケード処理
+
+Note:
+    _ensure_overall_digest_initialized, _log_digest_content のテストは
+    test_file_appender.py に移動しました。
 """
 import json
 import pytest
@@ -74,66 +77,6 @@ def level_hierarchy():
 def updater(shadow_io, file_detector, template, level_hierarchy):
     """テスト用ShadowUpdater"""
     return ShadowUpdater(shadow_io, file_detector, template, level_hierarchy)
-
-
-# =============================================================================
-# _ensure_overall_digest_initialized テスト
-# =============================================================================
-
-class TestEnsureOverallDigestInitialized:
-    """_ensure_overall_digest_initialized メソッドのテスト"""
-
-    @pytest.mark.integration
-    def test_initializes_null_overall_digest(self, updater, shadow_io):
-        """overall_digestがnullの場合、初期化される"""
-        shadow_data = shadow_io.load_or_create()
-        shadow_data["latest_digests"]["weekly"]["overall_digest"] = None
-
-        result = updater._ensure_overall_digest_initialized(shadow_data, "weekly")
-
-        assert result is not None
-        assert isinstance(result, dict)
-        assert "source_files" in result
-
-    @pytest.mark.integration
-    def test_initializes_non_dict_overall_digest(self, updater, shadow_io):
-        """overall_digestがdict以外の場合、初期化される"""
-        shadow_data = shadow_io.load_or_create()
-        shadow_data["latest_digests"]["weekly"]["overall_digest"] = "invalid"
-
-        result = updater._ensure_overall_digest_initialized(shadow_data, "weekly")
-
-        assert isinstance(result, dict)
-        assert "source_files" in result
-
-    @pytest.mark.integration
-    def test_preserves_existing_valid_digest(self, updater, shadow_io):
-        """有効なoverall_digestは保持される"""
-        shadow_data = shadow_io.load_or_create()
-        existing_digest = {
-            "source_files": ["Loop0001_test.txt"],
-            "abstract": "Existing content"
-        }
-        shadow_data["latest_digests"]["weekly"]["overall_digest"] = existing_digest
-
-        result = updater._ensure_overall_digest_initialized(shadow_data, "weekly")
-
-        assert result["abstract"] == "Existing content"
-        assert "Loop0001_test.txt" in result["source_files"]
-
-    @pytest.mark.integration
-    def test_adds_source_files_if_missing(self, updater, shadow_io):
-        """source_filesがない場合、追加される"""
-        shadow_data = shadow_io.load_or_create()
-        shadow_data["latest_digests"]["weekly"]["overall_digest"] = {
-            "abstract": "Some content"
-            # source_filesがない
-        }
-
-        result = updater._ensure_overall_digest_initialized(shadow_data, "weekly")
-
-        assert "source_files" in result
-        assert result["source_files"] == []
 
 
 # =============================================================================
@@ -370,82 +313,6 @@ class TestShadowUpdaterInit:
         assert updater.file_detector is file_detector
         assert updater.template is template
         assert updater.level_hierarchy is level_hierarchy
-
-
-# =============================================================================
-# _log_digest_content テスト（Phase 0で追加）
-# =============================================================================
-
-class TestLogDigestContent:
-    """_log_digest_content メソッドのテスト"""
-
-    @pytest.mark.integration
-    def test_log_digest_content_valid_json(self, updater, temp_plugin_env, caplog):
-        """有効なJSONファイルの内容をログ出力"""
-        # Weekly Digestファイルを作成
-        weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
-        weekly_file = weekly_dir / "W0001_test.txt"
-        digest_content = {
-            "overall_digest": {
-                "digest_type": "weekly",
-                "keywords": ["test", "keyword"],
-                "abstract": "Test abstract content",
-                "impression": "Test impression"
-            }
-        }
-        with open(weekly_file, 'w', encoding='utf-8') as f:
-            json.dump(digest_content, f)
-
-        # _log_digest_contentを呼び出し（monthlyレベルでweeklyファイルを読む）
-        updater._log_digest_content(weekly_file, "monthly")
-
-        # ログ出力を検証（print→log_infoに変更されたため、caplogを使用）
-        assert "digest_type" in caplog.text or "Read digest content" in caplog.text
-
-    @pytest.mark.integration
-    def test_log_digest_content_json_decode_error(self, updater, temp_plugin_env, capsys):
-        """無効なJSONファイルの場合、警告を出力"""
-        weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
-        weekly_file = weekly_dir / "W0001_invalid.txt"
-        with open(weekly_file, 'w', encoding='utf-8') as f:
-            f.write("{ invalid json content")
-
-        # エラーなく完了すること
-        updater._log_digest_content(weekly_file, "monthly")
-
-        # 警告が出力されていることを確認（ログ出力の内容は実装依存）
-        # エラーで落ちないことが重要
-
-    @pytest.mark.integration
-    def test_log_digest_content_file_not_found(self, updater, temp_plugin_env):
-        """存在しないファイルの場合、エラーなく終了"""
-        nonexistent_file = temp_plugin_env.digests_path / "1_Weekly" / "W9999_nonexistent.txt"
-
-        # エラーなく完了すること
-        updater._log_digest_content(nonexistent_file, "monthly")
-
-    @pytest.mark.integration
-    def test_log_digest_content_non_txt_file(self, updater, temp_plugin_env):
-        """非テキストファイル（.json等）は無視される"""
-        weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
-        json_file = weekly_dir / "W0001_test.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
-            json.dump({"test": "data"}, f)
-
-        # .txt以外は無視されるので、エラーなく完了
-        updater._log_digest_content(json_file, "monthly")
-
-    @pytest.mark.integration
-    def test_log_digest_content_non_dict_digest(self, updater, temp_plugin_env, capsys):
-        """overall_digestがdict以外の場合、警告を出力"""
-        weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
-        weekly_file = weekly_dir / "W0001_non_dict.txt"
-        with open(weekly_file, 'w', encoding='utf-8') as f:
-            json.dump({"overall_digest": "not a dict"}, f)
-
-        updater._log_digest_content(weekly_file, "monthly")
-
-        # 警告が出力されていることを確認
 
 
 # =============================================================================

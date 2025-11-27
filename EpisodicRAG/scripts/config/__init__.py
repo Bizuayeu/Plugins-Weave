@@ -233,7 +233,7 @@ def main():
 
     except FileNotFoundError as e:
         # 循環インポートを避けるため直接出力
-        print(f"[ERROR] {e}", file=sys.stderr)
+        sys.stderr.write(f"[ERROR] {e}\n")
         sys.exit(1)
 
 

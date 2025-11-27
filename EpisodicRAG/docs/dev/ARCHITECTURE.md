@@ -53,7 +53,7 @@
 │   ├── application/                     # ユースケース
 │   ├── interfaces/                      # エントリーポイント
 │   ├── config.py                        # 設定管理クラス
-│   └── test/                            # テスト（301テスト）
+│   └── test/                            # テスト（407テスト）
 ├── data/                                # Plugin内データ（@digest-setupで作成）
 │   ├── Loops/                           # Loopファイル配置先
 │   ├── Digests/                         # Digest出力先
@@ -357,7 +357,7 @@ python -m unittest discover -s test -v
 | Interfaces層 | 3 | 40+ |
 | Integration | 2 | 60+ |
 
-**合計**: **301テスト**
+**合計**: **407テスト**
 
 ---
 

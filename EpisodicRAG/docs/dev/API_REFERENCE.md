@@ -88,6 +88,45 @@ PLACEHOLDER_LIMITS: Dict[str, int] = {
 | `FileIOError` | ファイルI/Oエラー |
 | `CorruptedDataError` | データ破損エラー |
 
+### 型定義（domain/types.py）
+
+TypedDictを使用した型安全な定義。`Dict[str, Any]`の置き換え用。
+
+```python
+from domain.types import DigestMetadataComplete, ProvisionalDigestFile
+```
+
+#### DigestMetadataComplete
+
+すべてのダイジェストファイルで使用される統一メタデータ型。
+
+```python
+class DigestMetadataComplete(TypedDict, total=False):
+    version: str           # フォーマットバージョン（"1.0"）
+    last_updated: str      # ISO 8601形式のタイムスタンプ
+    digest_level: str      # "weekly", "monthly" など
+    digest_number: str     # "W0001", "M001" など
+    source_count: int      # ソースファイル数
+    description: str       # 説明（オプション）
+```
+
+#### ProvisionalDigestFile
+
+Provisional Digestファイル（`_Individual.txt`）の全体構造。
+
+```python
+class ProvisionalDigestFile(TypedDict):
+    metadata: DigestMetadataComplete
+    individual_digests: List[IndividualDigestData]
+```
+
+その他の型定義:
+- `OverallDigestData` - overall_digestの構造
+- `IndividualDigestData` - individual_digestsの各要素
+- `ShadowDigestData` - ShadowGrandDigest.txtの全体構造
+- `GrandDigestData` - GrandDigest.txtの全体構造
+- `RegularDigestData` - Regular Digestファイルの構造
+
 ### 関数（domain/file_naming.py）
 
 #### extract_file_number()
