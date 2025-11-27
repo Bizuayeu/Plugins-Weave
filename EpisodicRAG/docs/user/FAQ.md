@@ -102,9 +102,9 @@ Loop[連番]_[タイトル].txt
 
 ### Q: まだらボケとは何ですか？
 
-**A**: AIがLoopの内容を記憶できていない（虫食い記憶）状態のことです。`Loop追加 → /digest`のサイクルを守ることで予防できます。
+**A**: AIがLoopの内容を記憶できていない状態です。`Loop追加 → /digest`のサイクルで予防できます。
 
-> 📖 発生ケース・対策・記憶定着サイクルの詳細は [_common-concepts.md](../../skills/shared/_common-concepts.md#まだらボケとは) を参照
+> 📖 **SSoT**: 発生パターン・対策・記憶定着サイクルの詳細は [_common-concepts.md](../../skills/shared/_common-concepts.md#まだらボケとは) を参照
 
 ### Q: threshold（閾値）を変更したい
 

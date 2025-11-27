@@ -14,8 +14,9 @@ EpisodicRAGプラグインのPython API仕様書です。
 2. [Infrastructure層](#infrastructure層)
 3. [Application層](#application層)
 4. [Interfaces層](#interfaces層)
-5. [設定（config）](#設定configinitpy)
-6. [CLI使用方法](#cli使用方法)
+5. [config.json 詳細仕様](#configjson-詳細仕様)
+6. [設定（config/__init__.py）](#設定configinitpy)
+7. [CLI使用方法](#cli使用方法)
 
 ---
 

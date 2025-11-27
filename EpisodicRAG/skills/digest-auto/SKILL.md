@@ -51,9 +51,7 @@ EpisodicRAG システムの現在の状態を分析することで、
 
 ## まだらボケとは
 
-**まだらボケ** = AIがLoopの内容を記憶できていない（虫食い記憶）状態
-
-> 📖 **SSoT**: 発生パターン・記憶定着サイクル・対策の詳細は [_common-concepts.md](../shared/_common-concepts.md#まだらボケとは) を参照
+> 📖 **SSoT**: まだらボケの定義・発生パターン・記憶定着サイクル・対策は [_common-concepts.md](../shared/_common-concepts.md#まだらボケとは) を参照
 
 ---
 
