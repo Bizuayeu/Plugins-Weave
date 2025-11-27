@@ -53,7 +53,7 @@
 │   ├── application/                     # ユースケース
 │   ├── interfaces/                      # エントリーポイント
 │   ├── config.py                        # 設定管理クラス
-│   └── test/                            # テスト（407テスト）
+│   └── test/                            # テスト（496テスト）
 ├── data/                                # Plugin内データ（@digest-setupで作成）
 │   ├── Loops/                           # Loopファイル配置先
 │   ├── Digests/                         # Digest出力先
@@ -210,7 +210,7 @@ ShadowGrandDigest.<type> 初期化
 
 ### 3. 階層的カスケード
 
-> SSoT: [_common-concepts.md](../skills/shared/_common-concepts.md#階層的カスケード)
+> SSoT: [_common-concepts.md](../../skills/shared/_common-concepts.md#階層的カスケード)
 
 ```
 Loop (5個) → Weekly Digest
@@ -357,7 +357,7 @@ python -m unittest discover -s test -v
 | Interfaces層 | 3 | 40+ |
 | Integration | 2 | 60+ |
 
-**合計**: **407テスト**
+**合計**: **496テスト**
 
 ---
 
