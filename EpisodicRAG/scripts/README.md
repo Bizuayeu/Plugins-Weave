@@ -60,10 +60,13 @@ interfaces/       ← application/
 | `exceptions.py` | カスタム例外（`EpisodicRAGError`, `ValidationError`, etc.） |
 | `types.py` | TypedDict定義（`BaseMetadata`, `DigestMetadata`, etc.） |
 | `file_naming.py` | ファイル命名ユーティリティ（`extract_file_number()`, `format_digest_number()`） |
+| `error_formatter.py` | エラーメッセージの標準化（`ErrorFormatter`） |
+| `level_registry.py` | レベル固有振る舞いのRegistry（Strategy Pattern） |
 
 ```python
 from domain import LEVEL_CONFIG, __version__, ValidationError
 from domain.file_naming import extract_file_number, format_digest_number
+from domain.level_registry import get_level_registry
 ```
 
 ### infrastructure/ - 外部関心事
@@ -75,10 +78,12 @@ from domain.file_naming import extract_file_number, format_digest_number
 | `json_repository.py` | JSON読み書き（`load_json`, `save_json`, `load_json_with_template`） |
 | `file_scanner.py` | ファイルスキャン（`scan_files`, `get_max_numbered_file`） |
 | `logging_config.py` | ロギング設定（`log_info`, `log_warning`, `log_error`） |
+| `user_interaction.py` | ユーザー確認プロンプト（`get_default_confirm_callback`） |
 
 ```python
 from infrastructure import load_json, save_json, log_info, log_error
 from infrastructure.file_scanner import scan_files, get_max_numbered_file
+from infrastructure.user_interaction import get_default_confirm_callback
 ```
 
 ### application/ - ユースケース
@@ -109,15 +114,28 @@ from application.validators import validate_dict, is_valid_list
 | `finalize_from_shadow.py` | `DigestFinalizerFromShadow` | メインエントリーポイント |
 | `save_provisional_digest.py` | `ProvisionalDigestSaver` | Provisional保存 |
 | `interface_helpers.py` | - | ヘルパー関数（`sanitize_filename`, `get_next_digest_number`） |
+| `provisional/` | - | Provisionalマージ処理（`file_manager`, `input_loader`, `merger`, `validator`） |
 
 ```python
 from interfaces import DigestFinalizerFromShadow, ProvisionalDigestSaver
 from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
+from interfaces.provisional import ProvisionalMerger
 ```
 
-### config.py - 設定管理
+### config/ - 設定管理
 
-`DigestConfig` クラスを提供。Plugin自己完結版の設定管理。
+設定管理パッケージ。`DigestConfig` クラスやパス解決、閾値管理などを提供。
+
+| Module | Purpose |
+|--------|---------|
+| `config_loader.py` | 設定ファイル読み込み |
+| `config_repository.py` | 設定データアクセス |
+| `config_validator.py` | 設定値バリデーション |
+| `directory_validator.py` | ディレクトリ存在確認 |
+| `level_path_service.py` | レベル別パス生成 |
+| `path_resolver.py` | パス解決ユーティリティ |
+| `plugin_root_resolver.py` | プラグインルート検出 |
+| `threshold_provider.py` | 閾値提供 |
 
 ```python
 from config import DigestConfig
