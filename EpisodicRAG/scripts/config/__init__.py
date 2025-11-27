@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional
 # Domain層からインポート
 from domain.constants import LEVEL_CONFIG, SOURCE_TYPE_LOOPS
 from domain.exceptions import ConfigError
+from domain.types import ConfigData
 
 # 内部コンポーネント
 from .config_loader import ConfigLoader
@@ -127,7 +128,7 @@ class DigestConfig:
 
         return find_plugin_root(current_file)
 
-    def load_config(self) -> Dict[str, Any]:
+    def load_config(self) -> ConfigData:
         """
         設定読み込み
 
@@ -189,7 +190,7 @@ class DigestConfig:
         if level not in LEVEL_CONFIG:
             raise ConfigError(f"Invalid level: {level}")
 
-        source_type = LEVEL_CONFIG[level]["source"]
+        source_type = str(LEVEL_CONFIG[level]["source"])
 
         if source_type == SOURCE_TYPE_LOOPS:
             return self.loops_path
@@ -212,12 +213,12 @@ class DigestConfig:
         if level not in LEVEL_CONFIG:
             raise ConfigError(f"Invalid level: {level}")
 
-        source_type = LEVEL_CONFIG[level]["source"]
+        source_type = str(LEVEL_CONFIG[level]["source"])
 
         if source_type == SOURCE_TYPE_LOOPS:
             return "Loop*.txt"
         else:
-            source_prefix = LEVEL_CONFIG[source_type]["prefix"]
+            source_prefix = str(LEVEL_CONFIG[source_type]["prefix"])
             return f"{source_prefix}*.txt"
 
     def validate_directory_structure(self) -> List[str]:

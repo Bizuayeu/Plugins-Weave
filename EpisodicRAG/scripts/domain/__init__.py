@@ -47,6 +47,7 @@ from domain.constants import (
     PLACEHOLDER_LIMITS,
     PLACEHOLDER_MARKER,
     PLACEHOLDER_SIMPLE,
+    build_level_hierarchy,
 )
 
 # Exceptions
@@ -119,6 +120,7 @@ __all__ = [
     "PLACEHOLDER_END",
     "PLACEHOLDER_SIMPLE",
     "DEFAULT_THRESHOLDS",
+    "build_level_hierarchy",
     # Exceptions
     "EpisodicRAGError",
     "ConfigError",

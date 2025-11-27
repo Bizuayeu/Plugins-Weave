@@ -172,3 +172,27 @@ def create_placeholder_keywords(count: int) -> list:
         # -> ["<!-- PLACEHOLDER: keyword1 -->", ..., "<!-- PLACEHOLDER: keyword5 -->"]
     """
     return [f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}" for i in range(1, count + 1)]
+
+
+def build_level_hierarchy() -> Dict[str, Dict[str, object]]:
+    """
+    LEVEL_CONFIGからレベル階層辞書を構築（Single Source of Truth）
+
+    カスケード処理に必要なsourceとnext情報のみを抽出した辞書を返す。
+    複数箇所で同一パターンの辞書構築が必要な場合はこの関数を使用する。
+
+    Returns:
+        Dict[str, Dict[str, object]]: レベル名をキー、{"source": str, "next": Optional[str]}を値とする辞書
+
+    Example:
+        hierarchy = build_level_hierarchy()
+        # -> {
+        #     "weekly": {"source": "loops", "next": "monthly"},
+        #     "monthly": {"source": "weekly", "next": "quarterly"},
+        #     ...
+        # }
+    """
+    return {
+        level: {"source": cfg["source"], "next": cfg["next"]}
+        for level, cfg in LEVEL_CONFIG.items()
+    }

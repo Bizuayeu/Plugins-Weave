@@ -6,7 +6,7 @@ Threshold Provider
 しきい値管理
 """
 
-from typing import Any
+from typing import Any, Dict, cast
 
 from domain.constants import DEFAULT_THRESHOLDS, LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
@@ -55,7 +55,13 @@ class ThresholdProvider:
             raise ConfigError(f"Invalid level: {level}. Valid levels: {LEVEL_NAMES}")
 
         key = f"{level}_threshold"
-        return self.config.get("levels", {}).get(key, DEFAULT_THRESHOLDS.get(level, 5))
+        default = DEFAULT_THRESHOLDS.get(level, 5)
+        # Cast to Dict for dynamic key access
+        levels_dict = cast(Dict[str, Any], self.config.get("levels", {}))
+        if key in levels_dict:
+            value = levels_dict[key]
+            return int(value) if isinstance(value, (int, str, float)) else default
+        return default
 
     def __getattr__(self, name: str) -> Any:
         """

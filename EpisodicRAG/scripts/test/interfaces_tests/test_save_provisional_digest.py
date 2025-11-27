@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 # Interfaces層
 from domain.exceptions import ValidationError
 from interfaces import ProvisionalDigestSaver
+from interfaces.provisional import InputLoader, DigestMerger
 
 
 @pytest.fixture
@@ -38,36 +39,40 @@ def provisional_saver(temp_plugin_env):
         yield saver
 
 
-class TestProvisionalDigestSaver:
-    """ProvisionalDigestSaver の統合テスト"""
+class TestInputLoader:
+    """InputLoader のテスト"""
 
     @pytest.mark.integration
-    def test_load_individual_digests_from_list(self, provisional_saver):
+    def test_load_individual_digests_from_list(self, temp_plugin_env):
         """JSON文字列（リスト形式）からの読み込み"""
         json_str = '[{"source_file": "Loop0001.txt", "keywords": ["test"]}]'
-        result = provisional_saver.load_individual_digests(json_str)
+        result = InputLoader.load(json_str)
 
         assert isinstance(result, list)
         assert len(result) == 1
         assert result[0]["source_file"] == "Loop0001.txt"
 
     @pytest.mark.integration
-    def test_load_individual_digests_from_dict(self, provisional_saver):
+    def test_load_individual_digests_from_dict(self, temp_plugin_env):
         """JSON文字列（dict形式）からの読み込み"""
         json_str = '{"individual_digests": [{"source_file": "Loop0001.txt"}]}'
-        result = provisional_saver.load_individual_digests(json_str)
+        result = InputLoader.load(json_str)
 
         assert isinstance(result, list)
         assert len(result) == 1
 
     @pytest.mark.integration
-    def test_load_individual_digests_empty_raises(self, provisional_saver):
+    def test_load_individual_digests_empty_raises(self, temp_plugin_env):
         """空文字列でValidationError"""
         with pytest.raises(ValidationError):
-            provisional_saver.load_individual_digests("")
+            InputLoader.load("")
+
+
+class TestDigestMerger:
+    """DigestMerger のテスト"""
 
     @pytest.mark.integration
-    def test_merge_individual_digests(self, provisional_saver):
+    def test_merge_individual_digests(self, temp_plugin_env):
         """マージ処理（重複は上書き）"""
         existing = [
             {"source_file": "Loop0001.txt", "keywords": ["old"]},
@@ -78,7 +83,7 @@ class TestProvisionalDigestSaver:
             {"source_file": "Loop0003.txt", "keywords": ["added"]},
         ]
 
-        result = provisional_saver.merge_individual_digests(existing, new)
+        result = DigestMerger.merge(existing, new)
 
         assert len(result) == 3
         # Loop0001は上書きされる
@@ -86,13 +91,17 @@ class TestProvisionalDigestSaver:
         assert loop1["keywords"] == ["new"]
 
     @pytest.mark.integration
-    def test_merge_individual_digests_missing_filename_raises(self, provisional_saver):
+    def test_merge_individual_digests_missing_filename_raises(self, temp_plugin_env):
         """source_fileキーがない場合ValidationError"""
         existing = [{"keywords": ["test"]}]  # source_fileなし
         new = [{"source_file": "Loop0001.txt"}]
 
         with pytest.raises(ValidationError):
-            provisional_saver.merge_individual_digests(existing, new)
+            DigestMerger.merge(existing, new)
+
+
+class TestProvisionalDigestSaver:
+    """ProvisionalDigestSaver の統合テスト"""
 
     @pytest.mark.integration
     def test_save_provisional_new_file(self, provisional_saver):

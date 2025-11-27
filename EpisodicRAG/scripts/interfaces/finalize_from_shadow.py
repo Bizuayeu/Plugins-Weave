@@ -146,7 +146,8 @@ class DigestFinalizerFromShadow:
         config = self.level_config[level]
         next_num = get_next_digest_number(self.digests_path, level)
         formatted_num = format_digest_number(level, next_num)
-        digest_num = str(next_num).zfill(config["digits"])  # 純粋な番号（メタデータ用）
+        digits = int(str(config["digits"]))  # Ensure int for zfill
+        digest_num = str(next_num).zfill(digits)  # 純粋な番号（メタデータ用）
         sanitized_title = sanitize_filename(weave_title)
         new_digest_name = f"{formatted_num}_{sanitized_title}"
 

@@ -166,7 +166,7 @@ class LevelRegistry:
     Singleton: get_level_registry()でアクセス
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Registryを初期化し、LEVEL_CONFIGからレベルを登録"""
         self._levels: Dict[str, tuple[LevelMetadata, LevelBehavior]] = {}
         self._prefix_to_level: Dict[str, str] = {}
@@ -175,13 +175,16 @@ class LevelRegistry:
     def _initialize_from_config(self) -> None:
         """LEVEL_CONFIGからレベルを登録"""
         for level_name, config in LEVEL_CONFIG.items():
+            # Extract values with proper type casting
+            next_val = config["next"]
+            next_level: Optional[str] = str(next_val) if next_val else None
             metadata = LevelMetadata(
                 name=level_name,
                 prefix=str(config["prefix"]),
-                digits=int(config["digits"]),
+                digits=int(str(config["digits"])),
                 dir=str(config["dir"]),
                 source=str(config["source"]),
-                next_level=config["next"] if config["next"] else None,
+                next_level=next_level,
             )
             behavior = StandardLevelBehavior(metadata)
             self._register(level_name, metadata, behavior)

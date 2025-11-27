@@ -115,12 +115,47 @@ python_version = "3.10"
 mypy_path = "scripts"
 warn_redundant_casts = true
 warn_unused_configs = true
+warn_no_return = true
+check_untyped_defs = true
 ignore_missing_imports = true
+exclude = ["scripts/test/"]
 
+# Domain layer: strict mode (already compliant)
 [[tool.mypy.overrides]]
 module = "domain.*"
 disallow_untyped_defs = true
+disallow_incomplete_defs = true
 
+# Application layer: enable strict typing for compliant modules
 [[tool.mypy.overrides]]
-module = "scripts.test.*"
-ignore_errors = true
+module = [
+    "application.validators",
+    "application.finalize.digest_builder",
+]
+disallow_untyped_defs = true
+
+# Config layer: enable strict typing for compliant modules
+[[tool.mypy.overrides]]
+module = [
+    "config.config_repository",
+    "config.directory_validator",
+]
+disallow_untyped_defs = true
+
+# Infrastructure layer: enable strict typing
+[[tool.mypy.overrides]]
+module = [
+    "infrastructure.json_repository",
+    "infrastructure.file_scanner",
+    "infrastructure.logging_config",
+]
+disallow_untyped_defs = true
+
+# Interfaces layer: enable strict typing for new modules
+[[tool.mypy.overrides]]
+module = [
+    "interfaces.provisional.*",
+]
+disallow_untyped_defs = true
+
+# Test layer: excluded via exclude = ["scripts/test/"] in [tool.mypy]

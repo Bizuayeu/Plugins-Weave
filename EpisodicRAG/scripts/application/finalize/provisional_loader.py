@@ -7,7 +7,7 @@ ProvisionalDigestの読み込みまたはソースファイルからの自動生
 """
 
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from application.grand import ShadowGrandDigestManager
 from application.validators import is_valid_dict
@@ -85,6 +85,28 @@ class ProvisionalLoader:
 
         return individual_digests, provisional_file_to_delete
 
+    def _build_individual_entry(
+        self, source_file: str, source_data: Dict[str, Any]
+    ) -> IndividualDigestData:
+        """
+        ソースデータから個別ダイジェストエントリを構築
+
+        Args:
+            source_file: ソースファイル名
+            source_data: ソースファイルから読み込んだJSONデータ
+
+        Returns:
+            個別ダイジェストエントリ
+        """
+        overall = source_data.get("overall_digest", {})
+        return {
+            "source_file": source_file,
+            "digest_type": overall.get("digest_type", ""),
+            "keywords": overall.get("keywords", []),
+            "abstract": overall.get("abstract", ""),
+            "impression": overall.get("impression", ""),
+        }
+
     def generate_from_source(
         self, level: str, shadow_digest: OverallDigestData
     ) -> List[IndividualDigestData]:
@@ -101,25 +123,17 @@ class ProvisionalLoader:
         individual_digests: List[IndividualDigestData] = []
         source_files = shadow_digest.get("source_files", [])
         skipped_count = 0
+        source_dir = self._get_source_path_for_level(level)
 
         for source_file in source_files:
-            source_dir = self._get_source_path_for_level(level)
             source_path = source_dir / source_file
-
             source_data = try_read_json_from_file(source_path)
+
             if source_data is None:
                 skipped_count += 1
                 continue
 
-            overall = source_data.get("overall_digest", {})
-            individual_entry = {
-                "filename": source_file,
-                "timestamp": overall.get("timestamp", ""),
-                "digest_type": overall.get("digest_type", ""),
-                "keywords": overall.get("keywords", []),
-                "abstract": overall.get("abstract", ""),
-                "impression": overall.get("impression", ""),
-            }
+            individual_entry = self._build_individual_entry(source_file, source_data)
             individual_digests.append(individual_entry)
             log_info(f"Auto-generated individual digest from {source_file}")
 

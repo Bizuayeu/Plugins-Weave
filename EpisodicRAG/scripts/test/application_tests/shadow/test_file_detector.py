@@ -114,7 +114,8 @@ class TestFileDetectorGetMaxFileNumber:
         times_tracker.save("weekly", ["Loop0005_test.txt"])
 
         result = detector.get_max_file_number("weekly")
-        assert result == "Loop0005"
+        # last_processed is now stored as int (extracted number)
+        assert result == 5
 
     @pytest.mark.integration
     def test_returns_correct_value_for_different_levels(self, detector, times_tracker):
@@ -122,8 +123,9 @@ class TestFileDetectorGetMaxFileNumber:
         times_tracker.save("weekly", ["Loop0010_test.txt"])
         times_tracker.save("monthly", ["W0003_test.txt"])
 
-        assert detector.get_max_file_number("weekly") == "Loop0010"
-        assert detector.get_max_file_number("monthly") == "W0003"
+        # last_processed is now stored as int (extracted number)
+        assert detector.get_max_file_number("weekly") == 10
+        assert detector.get_max_file_number("monthly") == 3
         assert detector.get_max_file_number("quarterly") is None
 
 

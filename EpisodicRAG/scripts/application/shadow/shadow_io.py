@@ -8,7 +8,7 @@ ShadowGrandDigest.txtの読み書きを担当
 
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, Dict, cast
 
 from domain.types import ShadowDigestData
 from infrastructure import load_json_with_template, save_json
@@ -35,11 +35,14 @@ class ShadowIO:
         Returns:
             ShadowGrandDigestのデータ構造
         """
-        return load_json_with_template(
+        # Cast factory to Dict[str, Any] for infrastructure compatibility
+        factory = cast(Callable[[], Dict[str, Any]], self.template_factory)
+        result = load_json_with_template(
             target_file=self.shadow_digest_file,
-            default_factory=self.template_factory,
+            default_factory=factory,
             log_message="ShadowGrandDigest.txt not found. Creating new file.",
         )
+        return cast(ShadowDigestData, result)
 
     def save(self, data: ShadowDigestData) -> None:
         """
@@ -49,4 +52,5 @@ class ShadowIO:
             data: 保存するデータ
         """
         data["metadata"]["last_updated"] = datetime.now().isoformat()
-        save_json(self.shadow_digest_file, data)
+        # Cast TypedDict to Dict for infrastructure compatibility
+        save_json(self.shadow_digest_file, cast(Dict[str, Any], data))

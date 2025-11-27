@@ -29,21 +29,25 @@ if sys.platform == 'win32' and __name__ == "__main__":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Domain層
-# Application層
-from application.validators import is_valid_dict, is_valid_list
-
-# 設定
-from config import DigestConfig
+from domain.exceptions import EpisodicRAGError
 from domain.file_naming import format_digest_number
-from domain.constants import LEVEL_CONFIG
-from domain.exceptions import ConfigError, EpisodicRAGError, ValidationError
 from domain.level_registry import get_level_registry
-from domain.file_naming import find_max_number
-from domain.types import IndividualDigestData, ProvisionalDigestFile
+from domain.types import IndividualDigestData
 from domain.version import DIGEST_FORMAT_VERSION
 
 # Infrastructure層
-from infrastructure import load_json, log_error, log_info, log_warning, save_json
+from infrastructure import log_error, log_info, log_warning, save_json
+
+# Config
+from config import DigestConfig
+
+# Provisional submodule
+from interfaces.provisional import (
+    DigestMerger,
+    InputLoader,
+    ProvisionalFileManager,
+)
+from interfaces.provisional.validator import validate_provisional_structure
 
 # Helpers
 from interfaces.interface_helpers import get_next_digest_number
@@ -52,106 +56,16 @@ from interfaces.interface_helpers import get_next_digest_number
 class ProvisionalDigestSaver:
     """ProvisionalDigest保存クラス"""
 
-    def __init__(self):
-        self.config = DigestConfig()
-        self.digests_path = self.config.digests_path
-
-        # レベル設定（共通定数を参照）
-        self.level_config = LEVEL_CONFIG
-
-    def get_current_digest_number(self, level: str) -> Optional[int]:
+    def __init__(self, config: Optional[DigestConfig] = None):
         """
-        既存のProvisionalDigestファイルの番号を取得
+        Initialize the saver.
 
         Args:
-            level: ダイジェストレベル（weekly, monthly等）
-
-        Returns:
-            既存のProvisionalファイルがあればその番号、なければNone
+            config: DigestConfig instance (injected for testability)
         """
-        # レベル設定を取得
-        level_cfg = self.level_config.get(level)
-        if not level_cfg:
-            raise ConfigError(f"Invalid level: {level}")
-
-        prefix = level_cfg["prefix"]
-        provisional_dir = self.config.get_provisional_dir(level)
-
-        # ProvisionalディレクトリのIndividualファイルを検索
-        pattern = f"{prefix}[0-9]*_Individual.txt"
-        existing_files = list(provisional_dir.glob(pattern))
-
-        if not existing_files:
-            return None
-
-        # 統一関数を使用して最大番号を取得
-        return find_max_number(existing_files, prefix)
-
-    def load_existing_provisional(
-        self, level: str, digest_num: int
-    ) -> Optional[ProvisionalDigestFile]:
-        """
-        既存のProvisionalDigestファイルを読み込み
-
-        Args:
-            level: ダイジェストレベル
-            digest_num: ダイジェスト番号
-
-        Returns:
-            既存のProvisionalデータ、存在しなければNone
-        """
-        level_cfg = self.level_config.get(level)
-        if not level_cfg:
-            raise ConfigError(f"Invalid level: {level}")
-
-        # format_digest_number を使用して統一されたファイル名を生成
-        filename = f"{format_digest_number(level, digest_num)}_Individual.txt"
-        provisional_dir = self.config.get_provisional_dir(level)
-        file_path = provisional_dir / filename
-
-        if not file_path.exists():
-            return None
-
-        return load_json(file_path)
-
-    def merge_individual_digests(
-        self, existing_digests: List[IndividualDigestData], new_digests: List[IndividualDigestData]
-    ) -> List[IndividualDigestData]:
-        """
-        既存と新規のindividual_digestsをマージ（重複はsource_fileで判定し上書き）
-
-        Args:
-            existing_digests: 既存のindividual_digestsリスト
-            new_digests: 新規のindividual_digestsリスト
-
-        Returns:
-            マージされたindividual_digestsリスト
-
-        Raises:
-            ValueError: digestにsource_fileキーがない場合
-        """
-        # 入力検証
-        for i, d in enumerate(existing_digests):
-            if not is_valid_dict(d) or "source_file" not in d:
-                raise ValidationError(
-                    f"Invalid existing digest at index {i}: missing 'source_file' key"
-                )
-        for i, d in enumerate(new_digests):
-            if not is_valid_dict(d) or "source_file" not in d:
-                raise ValidationError(f"Invalid new digest at index {i}: missing 'source_file' key")
-
-        # source_fileをキーとした辞書を作成
-        merged_dict = {d["source_file"]: d for d in existing_digests}
-
-        # 新規digestsで上書き（重複する場合は最新データを優先）
-        for new_digest in new_digests:
-            source_file = new_digest["source_file"]
-            if source_file in merged_dict:
-                log_info(f"Overwriting existing digest: {source_file}")
-            merged_dict[source_file] = new_digest
-
-        # リストとして返す
-        return list(merged_dict.values())
+        self.config = config or DigestConfig()
+        self.file_manager = ProvisionalFileManager(self.config)
+        self.merger = DigestMerger()
 
     def save_provisional(
         self, level: str, individual_digests: List[IndividualDigestData], append: bool = False
@@ -167,108 +81,71 @@ class ProvisionalDigestSaver:
         Returns:
             保存したファイルのPath
         """
-        # レベル設定を取得
-        level_cfg = self.level_config.get(level)
-        if not level_cfg:
-            raise ConfigError(f"Invalid level: {level}")
+        digits = self.file_manager.get_digits_for_level(level)
 
-        digits = level_cfg["digits"]
+        # Determine digest number and handle append mode
+        digest_num, individual_digests = self._resolve_digest_number_and_data(
+            level, individual_digests, append
+        )
 
-        # 追加モードの場合、既存番号を使用。なければ警告して新規作成
-        if append:
-            current_num = self.get_current_digest_number(level)
-            if current_num is not None:
-                digest_num = current_num
-                log_info(
-                    f"Appending to existing Provisional: {format_digest_number(level, digest_num)}_Individual.txt"
-                )
+        # Build and save the provisional file
+        file_path = self.file_manager.get_provisional_path(level, digest_num)
+        provisional_data = self._build_provisional_data(level, digest_num, digits, individual_digests)
+        save_json(file_path, provisional_data)
 
-                # 既存データを読み込み
-                existing_data = self.load_existing_provisional(level, digest_num)
-                if existing_data:
-                    # 型検証
-                    if not is_valid_dict(existing_data):
-                        log_warning("Invalid existing data format, ignoring")
-                        existing_digests = []
-                    else:
-                        existing_digests = existing_data.get("individual_digests", [])
-                        if not is_valid_list(existing_digests):
-                            log_warning("Invalid individual_digests format, ignoring")
-                            existing_digests = []
-                    # マージ（重複は上書き）
-                    individual_digests = self.merge_individual_digests(
-                        existing_digests, individual_digests
-                    )
-            else:
-                log_warning(
-                    "--append specified but no existing Provisional found. Creating new file."
-                )
-                digest_num = get_next_digest_number(self.digests_path, level)
-        else:
-            # 通常モード: 次のダイジェスト番号を取得
-            digest_num = get_next_digest_number(self.digests_path, level)
+        return file_path
 
-        # ファイル名: format_digest_number を使用して統一フォーマット
-        formatted_num = format_digest_number(level, digest_num)
-        filename = f"{formatted_num}_Individual.txt"
-        provisional_dir = self.config.get_provisional_dir(level)
-        provisional_dir.mkdir(parents=True, exist_ok=True)
-        file_path = provisional_dir / filename
+    def _resolve_digest_number_and_data(
+        self,
+        level: str,
+        individual_digests: List[IndividualDigestData],
+        append: bool,
+    ) -> tuple[int, List[IndividualDigestData]]:
+        """
+        Resolve digest number and merge data if in append mode.
 
-        # ProvisionalDigest構造
-        provisional_data = {
+        Returns:
+            Tuple of (digest_number, final_individual_digests)
+        """
+        if not append:
+            return get_next_digest_number(self.config.digests_path, level), individual_digests
+
+        # Append mode: try to use existing file
+        current_num = self.file_manager.get_current_digest_number(level)
+
+        if current_num is None:
+            log_warning("--append specified but no existing Provisional found. Creating new file.")
+            return get_next_digest_number(self.config.digests_path, level), individual_digests
+
+        log_info(
+            f"Appending to existing Provisional: {format_digest_number(level, current_num)}_Individual.txt"
+        )
+
+        # Load and merge with existing data
+        existing_data = self.file_manager.load_existing_provisional(level, current_num)
+        if existing_data:
+            existing_digests = validate_provisional_structure(existing_data)
+            individual_digests = self.merger.merge(existing_digests, individual_digests)
+
+        return current_num, individual_digests
+
+    def _build_provisional_data(
+        self,
+        level: str,
+        digest_num: int,
+        digits: int,
+        individual_digests: List[IndividualDigestData],
+    ) -> dict:
+        """Build the provisional digest data structure."""
+        return {
             "metadata": {
                 "digest_level": level,
-                "digest_number": str(digest_num).zfill(digits),  # 純粋な番号のみ
+                "digest_number": str(digest_num).zfill(digits),
                 "last_updated": datetime.now().isoformat(),
                 "version": DIGEST_FORMAT_VERSION,
             },
             "individual_digests": individual_digests,
         }
-
-        # JSON形式で保存
-        save_json(file_path, provisional_data)
-
-        return file_path
-
-    def load_individual_digests(self, input_data: str) -> List[IndividualDigestData]:
-        """
-        individual_digestsをJSONファイルまたはJSON文字列から読み込む
-
-        Args:
-            input_data: JSONファイルパスまたはJSON文字列
-
-        Returns:
-            individual_digestsのリスト
-
-        Raises:
-            ValueError: input_dataが空の場合
-        """
-        # 空文字列チェック
-        if not input_data or not input_data.strip():
-            raise ValidationError("input_data cannot be empty")
-
-        # ファイルパスとして試行
-        input_path = Path(input_data)
-        if input_path.exists():
-            with open(input_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        else:
-            # JSON文字列として解析
-            data = json.loads(input_data)
-
-        # dataがリストならそのまま返す
-        if is_valid_list(data):
-            return data
-
-        # dataが辞書で"individual_digests"キーを持つ場合
-        if is_valid_dict(data) and "individual_digests" in data:
-            return data["individual_digests"]
-
-        # その他の場合はエラー
-        raise ValidationError(
-            f"Invalid input format. Expected list or dict with 'individual_digests' key. Got: {type(data)}"
-        )
 
 
 def main():
@@ -300,16 +177,16 @@ Examples:
     try:
         saver = ProvisionalDigestSaver()
 
-        # individual_digestsを読み込み
-        individual_digests = saver.load_individual_digests(args.input_data)
+        # Load individual digests using InputLoader
+        individual_digests = InputLoader.load(args.input_data)
 
-        # 空リスト警告
+        # Empty list warning
         if len(individual_digests) == 0:
             log_warning("No individual digests to save. Creating empty Provisional file.")
 
         log_info(f"Loaded {len(individual_digests)} individual digests")
 
-        # ProvisionalDigestを保存
+        # Save ProvisionalDigest
         saved_path = saver.save_provisional(args.level, individual_digests, append=args.append)
 
         log_info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -329,18 +206,10 @@ Examples:
         log_error(f"File not found: {e}", exit_code=1)
     except json.JSONDecodeError as e:
         log_error(f"Invalid JSON format: {e}", exit_code=1)
-    except ValueError as e:
-        log_error(str(e), exit_code=1)
     except EpisodicRAGError as e:
         log_error(str(e), exit_code=1)
     except OSError as e:
         log_error(f"File I/O error: {e}", exit_code=1)
-    except (RuntimeError, TypeError, KeyError, AttributeError) as e:
-        # プログラミングエラーを明示的にキャッチ
-        import traceback
-
-        traceback.print_exc()
-        log_error(f"Unexpected programming error: {e}", exit_code=1)
 
 
 if __name__ == "__main__":

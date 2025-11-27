@@ -16,7 +16,7 @@ Usage:
 
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Dict, Optional, cast
 
 from domain.exceptions import ConfigError
 from domain.types import ConfigData
@@ -152,9 +152,11 @@ class ConfigLoader:
             ConfigError: キーが存在しない場合
         """
         config = self.load()
-        if key not in config:
+        # Use dict view for dynamic key access
+        config_dict = cast(Dict[str, Any], config)
+        if key not in config_dict:
             raise ConfigError(f"Required configuration key missing: '{key}'")
-        return config[key]
+        return config_dict[key]
 
     @property
     def is_loaded(self) -> bool:

@@ -46,10 +46,10 @@ class DigestMetadataComplete(BaseMetadata, total=False):
 
     すべてのダイジェストファイルで使用される統一メタデータ型。
     Dict[str, Any] の置き換え用。
+
+    Note: version, last_updated are inherited from BaseMetadata
     """
 
-    version: str
-    last_updated: str
     digest_level: str
     digest_number: str
     source_count: int
@@ -93,13 +93,15 @@ class LevelHierarchyEntry(TypedDict):
 # =============================================================================
 
 
-class OverallDigestData(TypedDict):
+class OverallDigestData(TypedDict, total=False):
     """
     overall_digest の構造
 
     Loop分析結果やDigest統合分析の共通フォーマット。
+    Note: total=False allows optional fields (name is only used in RegularDigest)
     """
 
+    name: str
     timestamp: str
     source_files: List[str]
     digest_type: str

@@ -147,8 +147,9 @@ class TestProvisionalLoaderGenerateFromSource:
         result = loader.generate_from_source("weekly", shadow_digest)
 
         assert len(result) == 2
-        assert result[0]["filename"] == loop1.name
-        assert result[1]["filename"] == loop2.name
+        # Changed from "filename" to "source_file" to match IndividualDigestData TypedDict
+        assert result[0]["source_file"] == loop1.name
+        assert result[1]["source_file"] == loop2.name
 
     @pytest.mark.integration
     def test_handles_missing_source_files(self, loader):
@@ -168,8 +169,9 @@ class TestProvisionalLoaderGenerateFromSource:
 
         assert len(result) == 1
         entry = result[0]
-        assert "filename" in entry
-        assert "timestamp" in entry
+        # Changed from "filename" to "source_file" to match IndividualDigestData TypedDict
+        # Note: "timestamp" was also removed from IndividualDigestData
+        assert "source_file" in entry
         assert "digest_type" in entry
         assert "keywords" in entry
         assert "abstract" in entry
@@ -223,7 +225,8 @@ class TestProvisionalLoaderEdgeCases:
 
         # 不正なファイルはスキップされ、正常なファイルのみ処理される
         assert len(result) == 1
-        assert result[0]["filename"] == valid_loop.name
+        # Changed from "filename" to "source_file"
+        assert result[0]["source_file"] == valid_loop.name
 
     @pytest.mark.integration
     def test_source_file_non_txt_extension_skipped(self, loader, temp_plugin_env):
@@ -250,7 +253,8 @@ class TestProvisionalLoaderEdgeCases:
 
         # 処理は成功するが、フィールドは空/デフォルト値
         assert len(result) == 1
-        assert result[0]["filename"] == loop_file.name
+        # Changed from "filename" to "source_file"
+        assert result[0]["source_file"] == loop_file.name
         assert result[0]["abstract"] == ""
         assert result[0]["keywords"] == []
 
@@ -326,7 +330,8 @@ class TestProvisionalLoaderSkippedCount:
 
         # 正常なファイルのみ処理される
         assert len(result) == 1
-        assert result[0]["filename"] == valid_loop.name
+        # Changed from "filename" to "source_file"
+        assert result[0]["source_file"] == valid_loop.name
 
         # 1/2がスキップされた集計ログ
         assert "Skipped 1/2 files due to errors" in caplog.text

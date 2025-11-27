@@ -64,7 +64,11 @@ class CascadeProcessor:
         shadow_data = self.shadow_io.load_or_create()
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
-        if not is_valid_dict(overall_digest) or not overall_digest.get("source_files"):
+        if overall_digest is None or not is_valid_dict(overall_digest):
+            log_info(f"No shadow digest for level: {level}")
+            return None
+
+        if not overall_digest.get("source_files"):
             log_info(f"No shadow digest for level: {level}")
             return None
 

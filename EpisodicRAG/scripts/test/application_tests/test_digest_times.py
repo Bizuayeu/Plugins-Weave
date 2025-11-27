@@ -53,7 +53,8 @@ class TestDigestTimesTracker:
         data = tracker.load_or_create()
 
         assert "timestamp" in data["weekly"]
-        assert data["weekly"]["last_processed"] == "Loop0002"
+        # last_processed is now stored as int (extracted number only)
+        assert data["weekly"]["last_processed"] == 2
 
     @pytest.mark.unit
     def test_extract_file_numbers(self, tracker):

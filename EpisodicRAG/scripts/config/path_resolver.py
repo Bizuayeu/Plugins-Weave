@@ -7,7 +7,7 @@ base_dir基準のパス解決
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional, cast
 
 from domain.exceptions import ConfigError
 from domain.types import ConfigData
@@ -63,9 +63,10 @@ class PathResolver:
         """
         if "paths" not in self.config:
             raise ConfigError("'paths' section missing in config.json")
-        if key not in self.config["paths"]:
+        paths = cast(Dict[str, Any], self.config["paths"])
+        if key not in paths:
             raise ConfigError(f"Path key '{key}' not found in config.json")
-        rel_path = self.config["paths"][key]
+        rel_path = str(paths[key])
         return (self.base_dir / rel_path).resolve()
 
     @property

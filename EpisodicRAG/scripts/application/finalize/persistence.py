@@ -7,7 +7,7 @@ RegularDigestの保存、GrandDigest更新、カスケード処理を担当
 """
 
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
@@ -66,7 +66,7 @@ class DigestPersistence:
             ValidationError: ユーザーが上書きをキャンセルした場合
         """
         config = self.level_config[level]
-        target_dir = self.digests_path / config["dir"]
+        target_dir = self.digests_path / str(config["dir"])
         target_dir.mkdir(parents=True, exist_ok=True)
         final_filename = f"{new_digest_name}.txt"
         final_path = target_dir / final_filename
@@ -79,7 +79,7 @@ class DigestPersistence:
 
         # 保存
         try:
-            save_json(final_path, regular_digest)
+            save_json(final_path, cast(Dict[str, Any], regular_digest))
         except IOError as e:
             raise FileIOError(f"Failed to save RegularDigest: {e}")
 

@@ -219,7 +219,7 @@ def generate_module_markdown(module: ModuleInfo) -> str:
 
 def scan_layer(layer_path: Path) -> List[ModuleInfo]:
     """レイヤーディレクトリをスキャンしてモジュール情報を収集"""
-    modules = []
+    modules: List[ModuleInfo] = []
     if not layer_path.exists():
         return modules
 

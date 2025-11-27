@@ -92,9 +92,8 @@ class FileAppender:
             log_warning(f"{file_path.name} is not a dict, skipping")
             return
 
-        overall = digest_data.get("overall_digest")
-        if not is_valid_dict(overall):
-            overall = {}
+        overall_raw = digest_data.get("overall_digest")
+        overall = overall_raw if isinstance(overall_raw, dict) else {}
 
         log_info(f"Read digest content from {file_path.name}")
         log_info(f"      - digest_type: {overall.get('digest_type', 'N/A')}")

@@ -363,7 +363,8 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
             times_data = json.load(f)
 
         self.assertNotEqual(times_data["weekly"]["timestamp"], "")
-        self.assertEqual(times_data["weekly"]["last_processed"], "Loop0002")
+        # last_processed is now stored as int (extracted number only)
+        self.assertEqual(times_data["weekly"]["last_processed"], 2)
 
     def test_finalize_cascade_shadow_update(self):
         """finalize_from_shadowがShadowカスケード更新を実行する"""

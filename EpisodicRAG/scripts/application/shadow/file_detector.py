@@ -11,7 +11,7 @@ from typing import List, Optional
 
 from application.tracking import DigestTimesTracker
 from config import DigestConfig
-from domain.constants import LEVEL_CONFIG
+from domain.constants import LEVEL_CONFIG, build_level_hierarchy
 from domain.file_naming import extract_number_only, filter_files_after
 from infrastructure import log_warning
 
@@ -31,13 +31,10 @@ class FileDetector:
         self.times_tracker = times_tracker
         self.level_config = LEVEL_CONFIG
 
-        # レベル階層情報を構築
-        self.level_hierarchy = {
-            level: {"source": cfg["source"], "next": cfg["next"]}
-            for level, cfg in LEVEL_CONFIG.items()
-        }
+        # レベル階層情報を構築（SSoT関数を使用）
+        self.level_hierarchy = build_level_hierarchy()
 
-    def get_max_file_number(self, level: str) -> Optional[str]:
+    def get_max_file_number(self, level: str) -> Optional[int]:
         """
         指定レベルの最大ファイル番号を取得
 
@@ -45,7 +42,7 @@ class FileDetector:
             level: レベル名
 
         Returns:
-            最大ファイル番号（文字列）またはNone
+            最大ファイル番号（整数）またはNone
         """
         times_data = self.times_tracker.load_or_create()
         level_data = times_data.get(level, {})
@@ -93,13 +90,8 @@ class FileDetector:
             # 初回は全ファイルを検出
             return all_files
 
-        # 最大番号を取得
-        max_num = extract_number_only(max_file_number)
-
-        # max_numがNoneの場合（max_file_numberが無効な場合）は全ファイルを返す
-        if max_num is None:
-            log_warning(f"Invalid max_file_number format: {max_file_number}, returning all files")
-            return all_files
+        # max_file_number is already int (from DigestTimesData)
+        max_num = max_file_number
 
         # 統一関数を使用してフィルタリング
         return filter_files_after(all_files, max_num)

@@ -53,6 +53,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: 時間のかかるテスト（ファイルI/O、複数コンポーネント連携）")
     config.addinivalue_line("markers", "fast: 高速テスト（純粋ロジック、I/Oなし）")
     config.addinivalue_line("markers", "property: Property-based tests using hypothesis")
+    config.addinivalue_line("markers", "performance: パフォーマンス・ベンチマークテスト")
 
 
 # =============================================================================
@@ -171,12 +172,10 @@ def file_detector(config, times_tracker):
 
 @pytest.fixture
 def level_hierarchy():
-    """レベル階層情報"""
-    from domain.constants import LEVEL_CONFIG
+    """レベル階層情報（SSoT関数を使用）"""
+    from domain.constants import build_level_hierarchy
 
-    return {
-        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
-    }
+    return build_level_hierarchy()
 
 
 @pytest.fixture

@@ -39,7 +39,7 @@ class LevelPathService:
         """
         if level not in LEVEL_CONFIG:
             raise ConfigError(f"Invalid level: {level}. Valid levels: {LEVEL_NAMES}")
-        return self.digests_path / LEVEL_CONFIG[level]["dir"]
+        return self.digests_path / str(LEVEL_CONFIG[level]["dir"])
 
     def get_provisional_dir(self, level: str) -> Path:
         """

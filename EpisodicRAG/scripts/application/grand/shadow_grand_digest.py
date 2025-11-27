@@ -21,15 +21,16 @@ GrandDigest更新後に作成された新しいコンテンツを保持し、
 """
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, cast
 
 # 分割したモジュールをインポート
 from application.shadow import FileDetector, ShadowIO, ShadowTemplate, ShadowUpdater
 from application.tracking import DigestTimesTracker
+from domain.types import LevelHierarchyEntry
 
 # Plugin版: config.pyをインポート
 from config import DigestConfig
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, LOG_SEPARATOR
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, LOG_SEPARATOR, build_level_hierarchy
 from domain.types import OverallDigestData
 from infrastructure import log_info, log_warning
 
@@ -60,10 +61,7 @@ class ShadowGrandDigestManager:
 
         # レベル設定（共通定数を参照）
         self.levels = LEVEL_NAMES
-        self.level_hierarchy = {
-            level: {"source": cfg["source"], "next": cfg["next"]}
-            for level, cfg in LEVEL_CONFIG.items()
-        }
+        self.level_hierarchy = build_level_hierarchy()  # SSoT関数を使用
         self.level_config = LEVEL_CONFIG
 
         # コンポーネント初期化
@@ -71,8 +69,10 @@ class ShadowGrandDigestManager:
         self.digest_times_tracker = DigestTimesTracker(config)
         self._detector = FileDetector(config, self.digest_times_tracker)
         self._io = ShadowIO(self.shadow_digest_file, self._template.get_template)
+        # Cast level_hierarchy for type compatibility
+        hierarchy = cast(Dict[str, LevelHierarchyEntry], self.level_hierarchy)
         self._updater = ShadowUpdater(
-            self._io, self._detector, self._template, self.level_hierarchy
+            self._io, self._detector, self._template, hierarchy
         )
 
     # ========================================

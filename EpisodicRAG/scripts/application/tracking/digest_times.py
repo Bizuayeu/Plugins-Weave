@@ -8,12 +8,12 @@ finalize_from_shadow.py から分離。
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union, cast
 
 from application.validators import is_valid_list
 from config import DigestConfig
 from domain.constants import LEVEL_NAMES
-from domain.file_naming import extract_numbers_formatted
+from domain.file_naming import extract_number_only, extract_numbers_formatted
 from domain.types import DigestTimesData
 from infrastructure import load_json_with_template, log_info, log_warning, save_json
 
@@ -56,7 +56,9 @@ class DigestTimesTracker:
             return []
 
         # 統一関数を使用して抽出・フォーマット
-        return extract_numbers_formatted(input_files)
+        # Cast to satisfy List[Union[str, None]] signature (List invariance)
+        files_with_optional = cast(List[Union[str, None]], input_files)
+        return extract_numbers_formatted(files_with_optional)
 
     def save(self, level: str, input_files: Optional[List[str]] = None) -> None:
         """最終ダイジェスト生成時刻と最新処理済みファイル番号を保存"""
@@ -67,16 +69,19 @@ class DigestTimesTracker:
         times = self.load_or_create()
 
         # 連番を抽出
-        file_numbers = self.extract_file_numbers(level, input_files)
+        files_for_extract = input_files if input_files is not None else []
+        file_numbers = self.extract_file_numbers(level, files_for_extract)
 
-        # 最後の要素のみを保存
-        last_file = file_numbers[-1] if file_numbers else None
+        # 最後の要素のみを保存 (as int for TypedDict compatibility)
+        # file_numbers contains formatted strings like "Loop0005", extract number only
+        last_file_str = file_numbers[-1] if file_numbers else None
+        last_processed: Optional[int] = extract_number_only(last_file_str) if last_file_str else None
 
         # 保存
-        times[level] = {"timestamp": datetime.now().isoformat(), "last_processed": last_file}
+        times[level] = {"timestamp": datetime.now().isoformat(), "last_processed": last_processed}
 
         save_json(self.last_digest_file, times)
 
         log_info(f"Updated last_digest_times.json for level: {level}")
-        if last_file:
-            log_info(f"Last processed: {last_file}")
+        if last_processed:
+            log_info(f"Last processed: {last_processed}")
