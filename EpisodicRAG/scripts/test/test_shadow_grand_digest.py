@@ -16,8 +16,11 @@ from unittest.mock import MagicMock, patch
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import LEVEL_NAMES
-from shadow_grand_digest import ShadowGrandDigestManager
+# Application層
+from application.grand import ShadowGrandDigestManager
+
+# Domain層
+from domain.constants import LEVEL_NAMES
 
 
 class TestShadowGrandDigestManager(unittest.TestCase):
@@ -47,8 +50,8 @@ class TestShadowGrandDigestManager(unittest.TestCase):
         mock_config.essences_path = self.essences_path
         mock_config.plugin_root = Path(self.temp_dir)
 
-        with patch('shadow_grand_digest.DigestConfig') as mock_config_class, \
-             patch('shadow_grand_digest.DigestTimesTracker') as mock_tracker_class:
+        with patch('application.grand.shadow_grand_digest.DigestConfig') as mock_config_class, \
+             patch('application.grand.shadow_grand_digest.DigestTimesTracker') as mock_tracker_class:
             mock_config_class.return_value = mock_config
             mock_tracker = MagicMock()
             mock_tracker.load_or_create.return_value = {}

@@ -4,12 +4,18 @@ Digest Plugin Configuration Manager
 ====================================
 
 Plugin自己完結版：Plugin内の.claude-plugin/config.jsonから設定を読み込む
+
+Usage:
+    # 推奨（新しいインポートパス）
+    from domain.file_naming import extract_file_number, format_digest_number
+
+    # 後方互換（従来のインポートパス）
+    from config import extract_file_number, format_digest_number
 """
 import json
-import re
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Dict, Any, Optional
 
 # Domain層から定数をインポート（Single Source of Truth）
 from domain.constants import (
@@ -23,74 +29,12 @@ from domain.constants import (
 )
 from domain.types import LevelConfigData, ConfigData
 
-
-# =============================================================================
-# 共通関数: ファイル番号抽出
-# =============================================================================
-
-def extract_file_number(filename: str) -> Optional[Tuple[str, int]]:
-    """
-    ファイル名からプレフィックスと番号を抽出
-
-    Args:
-        filename: ファイル名（例: "Loop0186_xxx.txt", "MD01_xxx.txt"）
-
-    Returns:
-        (prefix, number) のタプル、またはNone
-    """
-    # 型チェック
-    if not isinstance(filename, str):
-        return None
-
-    # MDプレフィックス（2文字）を先にチェック（M単独より優先）
-    match = re.search(r'(Loop|MD)(\d+)', filename)
-    if match:
-        return (match.group(1), int(match.group(2)))
-
-    # 1文字プレフィックス
-    match = re.search(r'([WMQATDC])(\d+)', filename)
-    if match:
-        return (match.group(1), int(match.group(2)))
-
-    return None
-
-
-def extract_number_only(filename: str) -> Optional[int]:
-    """番号のみを抽出（後方互換性用）"""
-    result = extract_file_number(filename)
-    return result[1] if result else None
-
-
-def format_digest_number(level: str, number: int) -> str:
-    """
-    レベルと番号から統一されたフォーマットの文字列を生成
-
-    Args:
-        level: 階層名（"loop", "weekly", "monthly", ...）
-        number: 番号
-
-    Returns:
-        ゼロ埋めされた文字列（例: "Loop0186", "W0001", "MD01"）
-
-    Raises:
-        ValueError: 不正なレベル名の場合
-
-    Examples:
-        >>> format_digest_number("loop", 186)
-        'Loop0186'
-        >>> format_digest_number("weekly", 1)
-        'W0001'
-        >>> format_digest_number("multi_decadal", 3)
-        'MD03'
-    """
-    if level == "loop":
-        return f"Loop{number:04d}"
-
-    if level not in LEVEL_CONFIG:
-        raise ValueError(f"Invalid level: {level}. Valid levels: {LEVEL_NAMES + ['loop']}")
-
-    config = LEVEL_CONFIG[level]
-    return f"{config['prefix']}{number:0{config['digits']}d}"
+# Domain層からファイル命名関数を再エクスポート（後方互換性）
+from domain.file_naming import (
+    extract_file_number,
+    extract_number_only,
+    format_digest_number,
+)
 
 
 # =============================================================================

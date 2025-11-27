@@ -12,12 +12,16 @@ import json
 import pytest
 from pathlib import Path
 
-from finalize.persistence import DigestPersistence
+# Application層
+from application.finalize import DigestPersistence
+from application.grand import GrandDigestManager, ShadowGrandDigestManager
+from application.tracking import DigestTimesTracker
+
+# Domain層
+from domain.exceptions import DigestError
+
+# 設定
 from config import DigestConfig
-from grand_digest import GrandDigestManager
-from shadow_grand_digest import ShadowGrandDigestManager
-from digest_times import DigestTimesTracker
-from exceptions import DigestError
 from test_helpers import create_test_loop_file
 
 

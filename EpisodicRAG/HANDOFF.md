@@ -7,8 +7,9 @@
 **Phase 2: Infrastructure Layer構築 - 完了** ✅
 **Phase 3: Application Layer構築 - 完了** ✅
 **Phase 4: Interfaces Layer構築 - 完了** ✅
+**Phase 5: テスト更新 & クリーンアップ - 完了** ✅
 
-Clean Architecture リファクタリングの第4フェーズが完了しました。
+**Clean Architecture リファクタリング 全フェーズ完了！** 🎉
 
 ---
 
@@ -128,12 +129,49 @@ Clean Architecture リファクタリングの第4フェーズが完了しまし
 | `finalize/digest_builder.py` | `application.finalize.digest_builder` から再エクスポート |
 | `finalize/persistence.py` | `application.finalize.persistence` から再エクスポート |
 
+### Phase 5: テスト更新 & クリーンアップ
+
+#### 5.1 テストのインポートパス更新（14ファイル）
+
+| テストファイル | 更新内容 |
+|--------------|---------|
+| `test_template.py` | `shadow.template` → `application.shadow` |
+| `test_shadow_io.py` | `shadow.shadow_io` → `application.shadow` |
+| `test_file_detector.py` | `shadow.file_detector` → `application.shadow` |
+| `test_shadow_updater.py` | `shadow.*` → `application.shadow` |
+| `test_validators.py` | `validators` → `application.validators` |
+| `test_digest_builder.py` | `finalize.digest_builder` → `application.finalize` |
+| `test_provisional_loader.py` | `finalize.provisional_loader` → `application.finalize` |
+| `test_shadow_validator.py` | `finalize.shadow_validator` → `application.finalize` |
+| `test_persistence.py` | `finalize.persistence` → `application.finalize` |
+| `test_digest_times.py` | `digest_times` → `application.tracking` |
+| `test_grand_digest.py` | `grand_digest` → `application.grand` |
+| `test_shadow_grand_digest.py` | `shadow_grand_digest` → `application.grand` |
+| `test_finalize_from_shadow.py` | `finalize_from_shadow` → `interfaces` |
+| `test_save_provisional_digest.py` | `save_provisional_digest` → `interfaces` |
+
+#### 5.2 config.py の整理
+
+| 移動元 | 移動先 |
+|-------|-------|
+| `config.py: extract_file_number()` | `domain/file_naming.py` |
+| `config.py: extract_number_only()` | `domain/file_naming.py` |
+| `config.py: format_digest_number()` | `domain/file_naming.py` |
+
+**新規作成**: `domain/file_naming.py` - ファイル命名ユーティリティ
+
+**後方互換性**: `config.py` から `domain.file_naming` を再エクスポート
+
+#### 5.3 後方互換性レイヤー
+
+現在の後方互換性レイヤーは維持。将来的に非推奨警告を追加して段階的に廃止予定。
+
 ### テスト実行結果
 
 ```bash
 cd c:\Users\anyth\DEV\plugins-weave\EpisodicRAG\scripts
 python -m pytest test/ -v
-# 結果: 301 passed in 5.68s
+# 結果: 301 passed in 5.02s
 ```
 
 ---
@@ -147,7 +185,8 @@ scripts/
 │   ├── types.py                     # TypedDict定義
 │   ├── exceptions.py                # ドメイン例外
 │   ├── constants.py                 # LEVEL_CONFIG等
-│   └── version.py                   # バージョン
+│   ├── version.py                   # バージョン
+│   └── file_naming.py               # ファイル命名ユーティリティ (Phase 5で追加)
 │
 ├── infrastructure/                  # ✅ 完了 - 外部関心事
 │   ├── __init__.py                  # 公開API
@@ -216,42 +255,48 @@ interfaces/       ← application/ ✅ 完了
 
 ---
 
-## 残りフェーズ
+## 完了フェーズ一覧
 
-| Phase | 内容 | 見積もり | 状態 |
-|-------|------|---------|------|
-| ~~0~~ | ~~テスト強化~~ | ~~完了~~ | ✅ |
-| ~~1~~ | ~~Domain Layer構築~~ | ~~完了~~ | ✅ |
-| ~~2~~ | ~~Infrastructure Layer構築~~ | ~~完了~~ | ✅ |
-| ~~3~~ | ~~Application Layer構築~~ | ~~完了~~ | ✅ |
-| ~~4~~ | ~~Interfaces Layer構築~~ | ~~完了~~ | ✅ |
-| **5** | テスト更新 & クリーンアップ | 1-2時間 | 🔲 次 |
+| Phase | 内容 | 状態 |
+|-------|------|------|
+| 0 | テスト強化 | ✅ 完了 |
+| 1 | Domain Layer構築 | ✅ 完了 |
+| 2 | Infrastructure Layer構築 | ✅ 完了 |
+| 3 | Application Layer構築 | ✅ 完了 |
+| 4 | Interfaces Layer構築 | ✅ 完了 |
+| 5 | テスト更新 & クリーンアップ | ✅ 完了 |
 
 ---
 
-## Phase 5 詳細（次に実行）
+## 今後のオプション作業
 
-### 5.1 テストのインポートパス更新（オプション）
+### 後方互換性レイヤーの廃止
 
-テストファイルで新しいインポートパスを使用するよう更新：
-- `from shadow.template import ShadowTemplate` → `from application.shadow import ShadowTemplate`
-- `from finalize.digest_builder import RegularDigestBuilder` → `from application.finalize import RegularDigestBuilder`
+現在は後方互換性を維持するため、旧インポートパスのファイルを残しています。
+将来的に以下の手順で廃止可能：
 
-**注意**: 現在は後方互換性レイヤーがあるため、この更新は任意です。
+1. `warnings.warn()` で非推奨警告を追加
+2. 一定期間後に再エクスポートファイルを削除
 
-### 5.2 config.py の整理（オプション）
+### 対象ファイル（削除候補）
 
-`config.py` に残っている関数を適切な層に移動：
-- `extract_file_number`, `extract_number_only`, `format_digest_number` → `infrastructure/` または `domain/`
-
-### 5.3 未使用コードの削除（オプション）
-
-後方互換性が不要になった時点で、古い再エクスポートレイヤーを削除可能。
-
-### 5.4 チェックポイント
-
-```bash
-python -m pytest test/ -v --tb=short
+```
+validators.py
+digest_times.py
+shadow/__init__.py
+shadow/template.py
+shadow/file_detector.py
+shadow/shadow_io.py
+shadow/shadow_updater.py
+grand_digest.py
+shadow_grand_digest.py
+finalize/__init__.py
+finalize/shadow_validator.py
+finalize/provisional_loader.py
+finalize/digest_builder.py
+finalize/persistence.py
+finalize_from_shadow.py
+save_provisional_digest.py
 ```
 
 ---
@@ -316,7 +361,34 @@ mypy domain/ infrastructure/ application/ interfaces/ --ignore-missing-imports
 - 2025-11-27: Phase 2完了、Infrastructure Layer構築完了
 - 2025-11-27: Phase 3完了、Application Layer構築完了
 - 2025-11-27: Phase 4完了、Interfaces Layer構築完了
+- 2025-11-27: Phase 5完了、テスト更新 & クリーンアップ完了 🎉
 
-## 次のアクション
+## リファクタリング完了
 
-Phase 5: テスト更新 & クリーンアップ を開始（オプション）
+Clean Architecture リファクタリング全フェーズが完了しました。
+
+### 成果
+- **301テスト** すべてパス
+- **4層アーキテクチャ** 実装完了（domain → infrastructure → application → interfaces）
+- **後方互換性** 維持（旧インポートパスも動作）
+- **Single Source of Truth** 実現（定数・型・例外がdomain層に集約）
+
+### 推奨インポートパス
+
+```python
+# Domain層（定数・型・例外）
+from domain import LEVEL_CONFIG, __version__, ValidationError
+from domain.file_naming import extract_file_number, format_digest_number
+
+# Application層（ビジネスロジック）
+from application.shadow import ShadowTemplate, ShadowUpdater
+from application.grand import GrandDigestManager, ShadowGrandDigestManager
+from application.finalize import RegularDigestBuilder, DigestPersistence
+from application.validators import validate_dict, is_valid_list
+
+# Interfaces層（エントリーポイント）
+from interfaces import DigestFinalizerFromShadow, ProvisionalDigestSaver
+
+# 設定（DigestConfigクラス）
+from config import DigestConfig
+```

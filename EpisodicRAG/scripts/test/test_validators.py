@@ -10,7 +10,8 @@ validators.py のユニットテスト
 """
 import pytest
 
-from validators import (
+# Application層
+from application.validators import (
     validate_dict,
     validate_list,
     validate_source_files,
@@ -19,7 +20,9 @@ from validators import (
     get_dict_or_default,
     get_list_or_default,
 )
-from exceptions import ValidationError
+
+# Domain層
+from domain.exceptions import ValidationError
 
 
 # =============================================================================

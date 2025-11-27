@@ -10,15 +10,18 @@ ShadowTemplateクラスの動作を検証。
 import pytest
 from datetime import datetime
 
-from shadow.template import ShadowTemplate
-from config import (
+# Application層
+from application.shadow import ShadowTemplate
+
+# Domain層
+from domain.constants import (
     LEVEL_NAMES,
     PLACEHOLDER_LIMITS,
     PLACEHOLDER_MARKER,
     PLACEHOLDER_END,
     PLACEHOLDER_SIMPLE,
 )
-from __version__ import DIGEST_FORMAT_VERSION
+from domain.version import DIGEST_FORMAT_VERSION
 
 
 # =============================================================================

@@ -9,10 +9,15 @@ ShadowValidatorクラスの動作を検証。
 """
 import pytest
 
-from finalize.shadow_validator import ShadowValidator
+# Application層
+from application.finalize import ShadowValidator
+from application.grand import ShadowGrandDigestManager
+
+# Domain層
+from domain.exceptions import ValidationError, DigestError
+
+# 設定
 from config import DigestConfig
-from shadow_grand_digest import ShadowGrandDigestManager
-from exceptions import ValidationError, DigestError
 from test_helpers import create_test_loop_file
 
 

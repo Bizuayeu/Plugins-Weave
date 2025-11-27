@@ -15,7 +15,8 @@ from unittest.mock import MagicMock
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from digest_times import DigestTimesTracker
+# Application層
+from application.tracking import DigestTimesTracker
 
 
 class TestDigestTimesTracker(unittest.TestCase):

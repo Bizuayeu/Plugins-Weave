@@ -16,8 +16,11 @@ from unittest.mock import MagicMock, patch
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from save_provisional_digest import ProvisionalDigestSaver
-from config import LEVEL_CONFIG
+# Interfaces層
+from interfaces import ProvisionalDigestSaver
+
+# Domain層
+from domain.constants import LEVEL_CONFIG
 
 
 class TestProvisionalDigestSaver(unittest.TestCase):

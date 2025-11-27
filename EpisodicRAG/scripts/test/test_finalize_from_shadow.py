@@ -16,9 +16,14 @@ from unittest.mock import MagicMock, patch
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from finalize_from_shadow import DigestFinalizerFromShadow
+# Interfaces層
+from interfaces import DigestFinalizerFromShadow
+
+# Domain層
+from domain.exceptions import ValidationError, DigestError
+
+# Utils
 from utils import get_next_digest_number
-from exceptions import ValidationError, DigestError
 
 
 class TestGetNextDigestNumber(unittest.TestCase):

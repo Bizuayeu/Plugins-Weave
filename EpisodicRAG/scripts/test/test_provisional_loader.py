@@ -11,10 +11,15 @@ import json
 import pytest
 from pathlib import Path
 
-from finalize.provisional_loader import ProvisionalLoader
+# Application層
+from application.finalize import ProvisionalLoader
+from application.grand import ShadowGrandDigestManager
+
+# Domain層
+from domain.exceptions import DigestError, FileIOError
+
+# 設定
 from config import DigestConfig
-from shadow_grand_digest import ShadowGrandDigestManager
-from exceptions import DigestError, FileIOError
 from test_helpers import create_test_loop_file
 
 

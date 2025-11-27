@@ -14,12 +14,15 @@ import json
 import pytest
 from pathlib import Path
 
-from shadow.shadow_updater import ShadowUpdater
-from shadow.shadow_io import ShadowIO
-from shadow.template import ShadowTemplate
-from shadow.file_detector import FileDetector
-from config import DigestConfig, LEVEL_NAMES, LEVEL_CONFIG, PLACEHOLDER_MARKER
-from digest_times import DigestTimesTracker
+# Application層
+from application.shadow import ShadowUpdater, ShadowIO, ShadowTemplate, FileDetector
+from application.tracking import DigestTimesTracker
+
+# Domain層
+from domain.constants import LEVEL_NAMES, LEVEL_CONFIG, PLACEHOLDER_MARKER
+
+# 設定
+from config import DigestConfig
 from test_helpers import create_test_loop_file
 
 

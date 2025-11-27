@@ -12,9 +12,11 @@ import pytest
 from datetime import datetime
 from pathlib import Path
 
-from shadow.shadow_io import ShadowIO
-from shadow.template import ShadowTemplate
-from config import LEVEL_NAMES
+# Application層
+from application.shadow import ShadowIO, ShadowTemplate
+
+# Domain層
+from domain.constants import LEVEL_NAMES
 
 
 # =============================================================================

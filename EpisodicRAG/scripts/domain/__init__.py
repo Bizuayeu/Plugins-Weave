@@ -61,6 +61,13 @@ from domain.exceptions import (
     CorruptedDataError,
 )
 
+# File naming utilities
+from domain.file_naming import (
+    extract_file_number,
+    extract_number_only,
+    format_digest_number,
+)
+
 # Types
 from domain.types import (
     # Metadata
@@ -106,6 +113,10 @@ __all__ = [
     "ValidationError",
     "FileIOError",
     "CorruptedDataError",
+    # File naming utilities
+    "extract_file_number",
+    "extract_number_only",
+    "format_digest_number",
     # Types - Metadata
     "BaseMetadata",
     "DigestMetadata",

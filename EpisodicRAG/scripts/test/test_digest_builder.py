@@ -9,8 +9,11 @@ RegularDigestBuilderクラスの動作を検証。
 import pytest
 from datetime import datetime
 
-from finalize.digest_builder import RegularDigestBuilder
-from __version__ import DIGEST_FORMAT_VERSION
+# Application層
+from application.finalize import RegularDigestBuilder
+
+# Domain層
+from domain.version import DIGEST_FORMAT_VERSION
 
 
 # =============================================================================

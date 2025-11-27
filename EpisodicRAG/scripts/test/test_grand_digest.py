@@ -16,9 +16,12 @@ from unittest.mock import MagicMock
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import LEVEL_NAMES
-from grand_digest import GrandDigestManager
-from exceptions import DigestError
+# Application層
+from application.grand import GrandDigestManager
+
+# Domain層
+from domain.constants import LEVEL_NAMES
+from domain.exceptions import DigestError
 
 
 class TestGrandDigestManager(unittest.TestCase):
