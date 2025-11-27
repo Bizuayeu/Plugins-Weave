@@ -47,6 +47,3 @@ AIスキル仕様書
 - [GLOSSARY.md](../docs/GLOSSARY.md) - 用語集
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

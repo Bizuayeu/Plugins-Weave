@@ -1,65 +1,64 @@
-# EpisodicRAG Documentation
+# EpisodicRAG AI Specification Hub
 
-EpisodicRAGプラグインのドキュメントハブです。目的に応じて適切なドキュメントを参照してください。
+Claude/AI エージェント向けの技術仕様ハブです。
 
----
-
-## For Users（ユーザー向け）
-
-| ドキュメント | 説明 |
-|-------------|------|
-| [QUICKSTART.md](QUICKSTART.md) | 5分で始めるクイックスタート |
-| [GUIDE.md](GUIDE.md) | 詳細なユーザーガイド |
-| [GLOSSARY.md](GLOSSARY.md) | 用語集 |
-| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | トラブルシューティング |
-
-**推奨順序**: QUICKSTART → GUIDE → TROUBLESHOOTING（必要時）
+> 📖 **ユーザー向けドキュメント**は [プロジェクト README](../README.md) を参照してください。
 
 ---
 
-## For Developers（開発者向け）
+## Command Specifications
 
-| ドキュメント | 説明 |
-|-------------|------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | 技術仕様・アーキテクチャ |
-| [ADVANCED.md](ADVANCED.md) | GitHub連携・高度な機能 |
-| [CONTRIBUTING.md](../CONTRIBUTING.md) | 開発参加ガイド |
+| コマンド | 仕様書 | 概要 |
+|---------|--------|------|
+| `/digest` | [digest.md](../commands/digest.md) | 新規 Loop 検出・分析・階層確定 |
 
 ---
 
-## For AI（Claude向け仕様書）
+## Skill Specifications
 
-### コマンド仕様
-| ファイル | 説明 |
-|---------|------|
-| [../commands/digest.md](../commands/digest.md) | `/digest` コマンド仕様 |
-
-### スキル仕様
-| ファイル | 説明 |
-|---------|------|
-| [../skills/digest-setup/SKILL.md](../skills/digest-setup/SKILL.md) | `@digest-setup` スキル仕様 |
-| [../skills/digest-config/SKILL.md](../skills/digest-config/SKILL.md) | `@digest-config` スキル仕様 |
-| [../skills/digest-auto/SKILL.md](../skills/digest-auto/SKILL.md) | `@digest-auto` スキル仕様 |
-
-### エージェント仕様
-| ファイル | 説明 |
-|---------|------|
-| [../agents/digest-analyzer.md](../agents/digest-analyzer.md) | DigestAnalyzerエージェント仕様 |
+| スキル | 仕様書 | 概要 |
+|--------|--------|------|
+| `@digest-setup` | [SKILL.md](../skills/digest-setup/SKILL.md) | 初期セットアップ（対話的） |
+| `@digest-config` | [SKILL.md](../skills/digest-config/SKILL.md) | 設定変更（対話的） |
+| `@digest-auto` | [SKILL.md](../skills/digest-auto/SKILL.md) | システム診断・推奨アクション |
 
 ---
 
-## クイックリファレンス
+## Agent Specifications
 
-### コマンド一覧
+| エージェント | 仕様書 | 概要 |
+|-------------|--------|------|
+| DigestAnalyzer | [digest-analyzer.md](../agents/digest-analyzer.md) | Loop/Digest 並列分析 |
+
+---
+
+## Shared Concepts (SSoT)
+
+AI エージェントが参照すべき共通概念の Single Source of Truth:
+
+| 概念 | SSoT ファイル |
+|------|--------------|
+| まだらボケ・記憶定着サイクル | [_common-concepts.md](../skills/shared/_common-concepts.md) |
+| 実装ガイドライン | [_implementation-notes.md](../skills/shared/_implementation-notes.md) |
+| 8 層階層構造 | [GLOSSARY.md](GLOSSARY.md#8階層構造) |
+| DigestConfig API | [API_REFERENCE.md](API_REFERENCE.md) |
+| ファイル形式仕様 | [ARCHITECTURE.md](ARCHITECTURE.md) |
+
+---
+
+## Quick Reference
+
+### コマンド
 
 ```bash
 /digest              # 新規Loop検出と分析
 /digest weekly       # Weekly Digest確定
 /digest monthly      # Monthly Digest確定
 /digest quarterly    # Quarterly Digest確定
+# ... (annual, triennial, decadal, multi_decadal, centurial)
 ```
 
-### スキル一覧
+### スキル
 
 ```bash
 @digest-setup        # 初期セットアップ
@@ -69,27 +68,25 @@ EpisodicRAGプラグインのドキュメントハブです。目的に応じて
 
 ---
 
-## ドキュメント構成（Single Source of Truth）
+## User Documentation
 
-各概念の情報源となるドキュメントです。詳細な情報が必要な場合は該当ドキュメントを参照してください。
-
-| 概念 | 情報源（SSoT） | 参照元 |
-|------|--------------|--------|
-| まだらボケ | [_common-concepts.md](../skills/shared/_common-concepts.md) | GUIDE, GLOSSARY, FAQ |
-| 8層階層構造 | [GLOSSARY.md](GLOSSARY.md) | ARCHITECTURE, _common-concepts |
-| config.json設定 | [GUIDE.md](GUIDE.md) | GLOSSARY, ARCHITECTURE |
-| DigestConfig API | [API_REFERENCE.md](API_REFERENCE.md) | ARCHITECTURE, _implementation-notes |
-| ファイル形式仕様 | [ARCHITECTURE.md](ARCHITECTURE.md) | GLOSSARY, TROUBLESHOOTING |
-| トラブルシューティング | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | GUIDE, FAQ |
+| ドキュメント | 対象 | 概要 |
+|-------------|------|------|
+| [QUICKSTART.md](QUICKSTART.md) | 新規ユーザー | 5 分で始める |
+| [GUIDE.md](GUIDE.md) | 一般ユーザー | 詳細ガイド |
+| [GLOSSARY.md](GLOSSARY.md) | 全員 | 用語集 |
+| [FAQ.md](FAQ.md) | 問題解決 | よくある質問 |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 問題解決 | 詳細トラブルシューティング |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | 開発者 | 技術仕様 |
+| [ADVANCED.md](ADVANCED.md) | 上級者 | GitHub 連携 |
+| [API_REFERENCE.md](API_REFERENCE.md) | 開発者 | API リファレンス |
 
 ---
 
-## 関連リンク
+## Related Links
 
-- [プロジェクトREADME](../README.md)
+- [プロジェクト README](../README.md)
+- [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [GitHub Repository](https://github.com/Bizuayeu/Plugins-Weave)
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

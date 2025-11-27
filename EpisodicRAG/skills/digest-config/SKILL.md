@@ -23,7 +23,8 @@ import json
 import sys
 
 # プラグインルート検出
-plugin_root = Path("homunculus/Toybox/EpisodicRAG")  # 実際のパスに調整
+plugin_root = Path("{PLUGIN_ROOT}")  # 実際のパスに調整
+# 例: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
 config_file = plugin_root / ".claude-plugin" / "config.json"
 
 if not config_file.exists():
@@ -94,7 +95,7 @@ base_dirは、すべてのパス解決の基準となるディレクトリです
 プラグインルートからの相対パスで指定します。
 
 現在の設定: .
-解決後の絶対パス: C:\Users\anyth\DEV\homunculus\Toybox\EpisodicRAG
+解決後の絶対パス: {PLUGIN_ROOT}  # 実際のインストール先パス
 
 設定例:
   "." - プラグインルート自身（デフォルト、自己完結）
@@ -539,5 +540,3 @@ except Exception as e:
 
 ---
 
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

@@ -492,6 +492,3 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 - `Essences/ShadowGrandDigest.txt` - 未確定の最新記憶
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

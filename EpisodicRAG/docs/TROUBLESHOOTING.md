@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > TROUBLESHOOTING
+
 # Troubleshooting - EpisodicRAG Plugin
 
 このドキュメントでは、EpisodicRAGプラグインで発生する可能性のある**高度な問題**と、その解決方法について説明します。
@@ -513,6 +515,3 @@ https://github.com/Bizuayeu/Plugins-Weave/issues
 - 🔧 **GitHub連携**: [ADVANCED.md](ADVANCED.md)
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

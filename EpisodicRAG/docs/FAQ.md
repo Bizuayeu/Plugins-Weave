@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > FAQ
+
 # よくある質問 (FAQ)
 
 EpisodicRAGプラグインに関するよくある質問と回答集です。
@@ -174,6 +176,3 @@ python -m pytest test/ -v
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

@@ -336,6 +336,3 @@ git status
 ご協力ありがとうございます！
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

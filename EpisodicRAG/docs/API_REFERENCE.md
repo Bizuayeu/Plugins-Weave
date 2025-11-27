@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > API_REFERENCE
+
 # API リファレンス
 
 EpisodicRAGプラグインのPython API仕様書です。
@@ -445,6 +447,3 @@ Essences Path: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/data/Essences
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - 開発参加ガイド
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

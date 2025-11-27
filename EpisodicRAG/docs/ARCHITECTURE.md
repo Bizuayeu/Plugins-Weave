@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > ARCHITECTURE
+
 # Architecture - EpisodicRAG Plugin
 
 このドキュメントでは、EpisodicRAGプラグインの技術仕様とアーキテクチャについて説明します。
@@ -144,6 +146,8 @@ ShadowGrandDigest.<type> 初期化
 ```
 
 ### 3. 階層的カスケード
+
+> 📖 SSoT: [_common-concepts.md](../skills/shared/_common-concepts.md#階層的カスケード)
 
 ```
 Loop (5個) → Weekly Digest
@@ -459,6 +463,3 @@ DigestAnalyzerエージェントをベースに、カスタム分析ロジック
 - 🆘 **トラブルシューティング**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

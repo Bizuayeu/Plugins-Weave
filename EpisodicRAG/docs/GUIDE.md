@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > GUIDE
+
 # EpisodicRAG Plugin ユーザーガイド
 
 このガイドでは、EpisodicRAGを日常的に使いこなすための実践的な知識を提供します。
@@ -693,6 +695,3 @@ Identity File: /Users/username/DEV/homunculus/Weave/Identities/UserIdentity.md
 - 🛠️ **開発に参加したい**: [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

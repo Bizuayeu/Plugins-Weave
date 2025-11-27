@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.7] - 2025-11-27
+
+### Changed
+- **ドキュメントリファクタリング**: 大規模なドキュメント整理
+  - README.md: トラフィックディレクター化（339行 → 120行）
+  - docs/README.md: AI Specification Hub に特化
+  - バージョンフッター削除（21ファイル）- SSoTに集約
+  - ブレッドクラム追加（docs/配下8ファイル）
+  - scripts/README.md: shadow/, finalize/, __version__.py を追記
+
+### Fixed
+- **パス参照修正**: `homunculus/Toybox` → プレースホルダーに変更
+  - `skills/digest-config/SKILL.md` (line 26, 97)
+  - `skills/digest-setup/SKILL.md` (line 27)
+
+### Documentation
+- ARCHITECTURE.md: カスケードフローのSSoT参照を追加
+- 全docsファイルにブレッドクラムナビゲーション追加
+- ペルソナベースのナビゲーションテーブル導入
+
+---
+
 ## [1.1.6] - 2025-11-27
 
 ### Added

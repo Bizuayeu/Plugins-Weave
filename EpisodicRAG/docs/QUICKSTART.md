@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > QUICKSTART
+
 # 5分クイックスタート
 
 EpisodicRAGを最速でセットアップし、動作確認するためのガイドです。
@@ -149,6 +151,3 @@ ShadowGrandDigest.txt を更新しました
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

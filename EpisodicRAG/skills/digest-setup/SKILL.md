@@ -24,7 +24,8 @@ from pathlib import Path
 import sys
 
 # プラグインルートの検出
-plugin_root = Path("homunculus/Toybox/EpisodicRAG")  # 実際のパスに調整
+plugin_root = Path("{PLUGIN_ROOT}")  # 実際のパスに調整
+# 例: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
 config_file = plugin_root / ".claude-plugin" / "config.json"
 
 if config_file.exists():
@@ -529,6 +530,3 @@ if customize_thresholds:
 **このスキルは、EpisodicRAG プラグインの初期セットアップを対話的に実行します 🛠️**
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

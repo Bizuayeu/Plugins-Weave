@@ -19,6 +19,3 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
-
-# Development (CHANGELOG反映後にコメント解除)
-# IMPLEMENTATION_PLAN.md

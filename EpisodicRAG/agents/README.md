@@ -25,6 +25,3 @@ AI専門エージェント仕様書
 新しいエージェントを追加する場合は [CONTRIBUTING.md](../CONTRIBUTING.md) を参照してください。
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

@@ -483,6 +483,3 @@ ShadowGrandDigestに未分析のプレースホルダーがあります
 **このスキルは、EpisodicRAG システムの状態を分析し、最適なアクションを推奨します 📊**
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

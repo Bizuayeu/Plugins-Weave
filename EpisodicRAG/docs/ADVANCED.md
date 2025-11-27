@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > ADVANCED
+
 # Advanced Features - EpisodicRAG Plugin
 
 このドキュメントでは、EpisodicRAGプラグインの高度な機能について説明します。
@@ -226,6 +228,3 @@ curl https://api.github.com/repos/{USER}/{REPO}/git/refs/heads/main
 詳細な技術仕様については [ARCHITECTURE.md](ARCHITECTURE.md) を参照してください。
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*

@@ -1,3 +1,5 @@
+[Home](../README.md) > [Docs](README.md) > GLOSSARY
+
 # 用語集 (Glossary)
 
 EpisodicRAGプラグインで使用される専門用語の定義集です。
@@ -248,6 +250,3 @@ Monthly確定 → Quarterly Shadow に追加
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様
 
 ---
-
-*Last Updated: 2025-11-27*
-*Version: 1.1.2*
