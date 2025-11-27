@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.5] - 2025-11-27
+
+### Added
+- **finalize/ パッケージ**: `finalize_from_shadow.py` を4つのモジュールに分割
+  - `finalize/shadow_validator.py`: Shadow検証（ShadowValidator クラス）
+  - `finalize/provisional_loader.py`: Provisional読込（ProvisionalLoader クラス）
+  - `finalize/digest_builder.py`: Digest構築（RegularDigestBuilder クラス）
+  - `finalize/persistence.py`: 永続化処理（DigestPersistence クラス）
+  - `finalize/__init__.py`: 公開API
+
+### Changed
+- **リファクタリング Phase 4**: finalize_from_shadow.py のFacade分割
+  - 497行 → 203行に削減（約59%削減）
+  - 元ファイルはFacadeとして後方互換性を維持
+  - 既存APIに変更なし（全129テストがパス）
+
+---
+
 ## [1.1.4] - 2025-11-27
 
 ### Changed
@@ -17,9 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `save_provisional_digest.py`: 2箇所の `log_error()` → `raise FileIOError()` に置換、`EpisodicRAGError` ハンドラ追加
   - 各メソッドの戻り値を `bool`/`Optional` から例外ベースに変更
   - 関連テストを `assertFalse()` → `assertRaises()` に更新
-
-### Notes
-- Phase 4（finalize_from_shadow.py のFacade分割）は今後のリリースで実施予定
 
 ---
 
