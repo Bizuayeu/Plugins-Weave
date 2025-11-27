@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.6] - 2025-11-27
+
+### Added
+- **shadow/ パッケージ**: `shadow_grand_digest.py` を4つのモジュールに分割
+  - `shadow/template.py`: テンプレート生成（ShadowTemplate クラス）
+  - `shadow/file_detector.py`: ファイル検出（FileDetector クラス）
+  - `shadow/shadow_io.py`: Shadow I/O（ShadowIO クラス）
+  - `shadow/shadow_updater.py`: Shadow更新（ShadowUpdater クラス）
+  - `shadow/__init__.py`: 公開API
+
+### Changed
+- **リファクタリング Phase 5**: shadow_grand_digest.py のFacade分割
+  - 438行 → 154行に削減（約65%削減）
+  - 元ファイルはFacadeとして後方互換性を維持
+  - 既存APIに変更なし（全129テストがパス）
+
+---
+
 ## [1.1.5] - 2025-11-27
 
 ### Added
