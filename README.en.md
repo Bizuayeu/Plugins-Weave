@@ -27,11 +27,12 @@ EpisodicRAG is a system that hierarchically digests conversation logs (Loop file
 
 | You are... | Documents to Read |
 |------------|-------------------|
-| **Getting Started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [GLOSSARY](EpisodicRAG/docs/GLOSSARY.md) |
-| **Daily User** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) |
-| **Troubleshooting** | [FAQ](EpisodicRAG/docs/user/FAQ.md) → [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
-| **Contributing** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) → [ARCHITECTURE](EpisodicRAG/docs/dev/ARCHITECTURE.md) |
-| **AI/Claude Specs** | [AI Spec Hub](EpisodicRAG/docs/README.md) |
+| 🚀 **Getting Started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [GLOSSARY](EpisodicRAG/docs/GLOSSARY.md) |
+| 📘 **Daily User** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) |
+| ❓ **Troubleshooting** | [FAQ](EpisodicRAG/docs/user/FAQ.md) → [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
+| 🛠️ **Contributing** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) → [ARCHITECTURE](EpisodicRAG/docs/dev/ARCHITECTURE.md) |
+| 🤖 **AI/Claude Specs** | [AI Spec Hub](EpisodicRAG/docs/README.md) |
+| 📋 **Changelog** | [CHANGELOG](EpisodicRAG/CHANGELOG.md) |
 
 ---
 
