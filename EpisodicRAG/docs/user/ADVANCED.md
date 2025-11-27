@@ -1,4 +1,4 @@
-[Home](../README.md) > [Docs](README.md) > ADVANCED
+[Home](../../README.md) > [Docs](../README.md) > ADVANCED
 
 # Advanced Features - EpisodicRAG Plugin
 
@@ -338,6 +338,6 @@ curl https://api.github.com/repos/{USER}/{REPO}/git/refs/heads/main
 
 ---
 
-詳細な技術仕様については [ARCHITECTURE.md](ARCHITECTURE.md) を参照してください。
+詳細な技術仕様については [ARCHITECTURE.md](../dev/ARCHITECTURE.md) を参照してください。
 
 ---

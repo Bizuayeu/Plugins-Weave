@@ -41,8 +41,8 @@ AI エージェントが参照すべき共通概念の Single Source of Truth:
 | まだらボケ・記憶定着サイクル | [_common-concepts.md](../skills/shared/_common-concepts.md) |
 | 実装ガイドライン | [_implementation-notes.md](../skills/shared/_implementation-notes.md) |
 | 8 層階層構造 | [GLOSSARY.md](GLOSSARY.md#8階層構造) |
-| DigestConfig API | [API_REFERENCE.md](API_REFERENCE.md) |
-| ファイル形式仕様 | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| DigestConfig API | [API_REFERENCE.md](dev/API_REFERENCE.md) |
+| ファイル形式仕様 | [ARCHITECTURE.md](dev/ARCHITECTURE.md) |
 
 ---
 
@@ -72,14 +72,14 @@ AI エージェントが参照すべき共通概念の Single Source of Truth:
 
 | ドキュメント | 対象 | 概要 |
 |-------------|------|------|
-| [QUICKSTART.md](QUICKSTART.md) | 新規ユーザー | 5 分で始める |
-| [GUIDE.md](GUIDE.md) | 一般ユーザー | 詳細ガイド |
+| [QUICKSTART.md](user/QUICKSTART.md) | 新規ユーザー | 5 分で始める |
+| [GUIDE.md](user/GUIDE.md) | 一般ユーザー | 詳細ガイド |
 | [GLOSSARY.md](GLOSSARY.md) | 全員 | 用語集 |
-| [FAQ.md](FAQ.md) | 問題解決 | よくある質問 |
-| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 問題解決 | 詳細トラブルシューティング |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | 開発者 | 技術仕様 |
-| [ADVANCED.md](ADVANCED.md) | 上級者 | GitHub 連携 |
-| [API_REFERENCE.md](API_REFERENCE.md) | 開発者 | API リファレンス |
+| [FAQ.md](user/FAQ.md) | 問題解決 | よくある質問 |
+| [TROUBLESHOOTING.md](user/TROUBLESHOOTING.md) | 問題解決 | 詳細トラブルシューティング |
+| [ARCHITECTURE.md](dev/ARCHITECTURE.md) | 開発者 | 技術仕様 |
+| [ADVANCED.md](user/ADVANCED.md) | 上級者 | GitHub 連携 |
+| [API_REFERENCE.md](dev/API_REFERENCE.md) | 開発者 | API リファレンス |
 
 ---
 

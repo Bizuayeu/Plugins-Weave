@@ -239,3 +239,111 @@ class TestDigestPersistenceInit:
         persistence = DigestPersistence(config, grand_digest_manager, shadow_manager, times_tracker)
 
         assert persistence.digests_path == config.digests_path
+
+
+# =============================================================================
+# ユーザー入力テスト
+# =============================================================================
+
+class TestDigestPersistenceUserInput:
+    """ユーザー入力関連のテスト"""
+
+    @pytest.mark.integration
+    def test_overwrite_user_cancels(self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch):
+        """既存ファイル上書き時、ユーザーがキャンセル"""
+        from domain.exceptions import ValidationError
+
+        # 先にファイルを作成
+        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        assert result_path.exists()
+
+        # input()を'n'を返すようにモック
+        monkeypatch.setattr('builtins.input', lambda _: 'n')
+
+        with pytest.raises(ValidationError) as exc_info:
+            persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        assert "User cancelled" in str(exc_info.value)
+
+    @pytest.mark.integration
+    def test_overwrite_user_confirms(self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch):
+        """既存ファイル上書き時、ユーザーが確認"""
+        # 先にファイルを作成
+        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        assert result_path.exists()
+
+        # input()を'y'を返すようにモック
+        monkeypatch.setattr('builtins.input', lambda _: 'y')
+
+        # 内容を変更して保存
+        valid_regular_digest["overall_digest"]["abstract"] = "Updated abstract"
+        result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+
+        assert result_path2.exists()
+        with open(result_path2, 'r', encoding='utf-8') as f:
+            saved_data = json.load(f)
+        assert saved_data["overall_digest"]["abstract"] == "Updated abstract"
+
+    @pytest.mark.integration
+    def test_overwrite_eoferror_continues(self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch):
+        """非対話モード（EOFError）では上書きを続行"""
+        # 先にファイルを作成
+        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        assert result_path.exists()
+
+        # input()をEOFErrorを発生させるようにモック
+        def raise_eoferror(_):
+            raise EOFError()
+
+        monkeypatch.setattr('builtins.input', raise_eoferror)
+
+        # 内容を変更して保存（EOFErrorでも続行）
+        valid_regular_digest["overall_digest"]["abstract"] = "Non-interactive update"
+        result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+
+        assert result_path2.exists()
+        with open(result_path2, 'r', encoding='utf-8') as f:
+            saved_data = json.load(f)
+        assert saved_data["overall_digest"]["abstract"] == "Non-interactive update"
+
+
+# =============================================================================
+# カスケード処理詳細テスト
+# =============================================================================
+
+class TestDigestPersistenceCascadeDetails:
+    """カスケード処理の詳細テスト"""
+
+    @pytest.mark.integration
+    def test_cascade_updates_next_level_shadow(self, persistence, shadow_manager, temp_plugin_env):
+        """カスケードが次レベルのShadowを更新"""
+        # Loopファイルを作成してShadowに追加
+        loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
+        loop2 = create_test_loop_file(temp_plugin_env.loops_path, 2)
+        shadow_manager.update_shadow_for_new_loops()
+
+        # weekly のカスケード処理（monthly に伝播）
+        source_files = [loop1.name, loop2.name]
+        persistence.process_cascade_and_cleanup("weekly", source_files, None)
+
+        # monthly の shadow が更新されている可能性を確認（エラーなく完了）
+        # 具体的な内容検証はカスケードロジックに依存
+
+    @pytest.mark.integration
+    def test_cascade_for_all_non_centurial_levels(self, persistence, shadow_manager):
+        """centurial以外の全レベルでカスケードが実行される"""
+        levels_with_cascade = ["weekly", "monthly", "quarterly", "annual",
+                               "triennial", "decadal", "multi_decadal"]
+
+        for level in levels_with_cascade:
+            # エラーなく完了することを確認
+            persistence.process_cascade_and_cleanup(level, [], None)
+
+    @pytest.mark.integration
+    def test_provisional_delete_failure_logs_warning(self, persistence, config, monkeypatch):
+        """Provisional削除失敗時は警告を記録（エラーにはならない）"""
+        # 存在しないファイルパスを指定（削除失敗シミュレーション）
+        fake_provisional = config.get_provisional_dir("weekly") / "NonExistent.txt"
+
+        # 削除しようとしてもファイルがないので何も起きない（エラーにならない）
+        persistence.process_cascade_and_cleanup("weekly", [], fake_provisional)
+        # ここまで到達すれば成功

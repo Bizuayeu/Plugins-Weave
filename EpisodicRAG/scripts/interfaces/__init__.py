@@ -17,8 +17,11 @@ Usage:
 
 from interfaces.finalize_from_shadow import DigestFinalizerFromShadow
 from interfaces.save_provisional_digest import ProvisionalDigestSaver
+from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
 
 __all__ = [
     "DigestFinalizerFromShadow",
     "ProvisionalDigestSaver",
+    "sanitize_filename",
+    "get_next_digest_number",
 ]

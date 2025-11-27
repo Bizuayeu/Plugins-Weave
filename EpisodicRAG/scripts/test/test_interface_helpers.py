@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-utils.py のユニットテスト
-=========================
+interfaces/interface_helpers.py のユニットテスト
+================================================
 
-sanitize_filename() のテスト
+sanitize_filename(), get_next_digest_number() のテスト
 """
 import sys
 import unittest
@@ -12,7 +12,7 @@ from pathlib import Path
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from utils import sanitize_filename
+from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
 
 
 class TestSanitizeFilename(unittest.TestCase):
@@ -146,13 +146,11 @@ class TestGetNextDigestNumber(unittest.TestCase):
 
     def test_empty_directory_returns_one(self):
         """空ディレクトリでは1を返す"""
-        from utils import get_next_digest_number
         result = get_next_digest_number(self.digests_path, "weekly")
         self.assertEqual(result, 1)
 
     def test_with_existing_files(self):
         """既存ファイルがある場合は最大番号+1を返す"""
-        from utils import get_next_digest_number
         # テストファイルを作成
         weekly_dir = self.digests_path / "1_Weekly"
         (weekly_dir / "W0001_test.txt").touch()
@@ -163,13 +161,11 @@ class TestGetNextDigestNumber(unittest.TestCase):
 
     def test_invalid_level_raises_valueerror(self):
         """無効なレベル名でValueError"""
-        from utils import get_next_digest_number
         with self.assertRaises(ValueError):
             get_next_digest_number(self.digests_path, "invalid_level")
 
     def test_nonexistent_level_directory_returns_one(self):
         """レベルディレクトリが存在しない場合は1を返す"""
-        from utils import get_next_digest_number
         # 存在しないディレクトリを削除
         import shutil
         shutil.rmtree(self.digests_path / "1_Weekly")

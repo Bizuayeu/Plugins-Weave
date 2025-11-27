@@ -186,3 +186,57 @@ class TestProvisionalLoaderInit:
         loader = ProvisionalLoader(config, shadow_manager)
         assert loader.config is config
         assert loader.shadow_manager is shadow_manager
+
+
+# =============================================================================
+# エッジケーステスト
+# =============================================================================
+
+class TestProvisionalLoaderEdgeCases:
+    """ProvisionalLoader エッジケースのテスト"""
+
+    @pytest.mark.integration
+    def test_source_file_with_invalid_json_skipped(self, loader, temp_plugin_env):
+        """ソースファイルが不正なJSONの場合はスキップ（警告のみ）"""
+        # 不正なJSONを持つLoopファイルを作成
+        invalid_loop = temp_plugin_env.loops_path / "Loop0001_invalid.txt"
+        invalid_loop.write_text("{ invalid json content }")
+
+        # 正常なLoopファイルも作成
+        valid_loop = create_test_loop_file(temp_plugin_env.loops_path, 2)
+
+        shadow_digest = {"source_files": [invalid_loop.name, valid_loop.name]}
+        result = loader.generate_from_source("weekly", shadow_digest)
+
+        # 不正なファイルはスキップされ、正常なファイルのみ処理される
+        assert len(result) == 1
+        assert result[0]["filename"] == valid_loop.name
+
+    @pytest.mark.integration
+    def test_source_file_non_txt_extension_skipped(self, loader, temp_plugin_env):
+        """txtでないソースファイルはスキップ"""
+        # .jsonファイルを作成（txtではない）
+        json_file = temp_plugin_env.loops_path / "Loop0001_test.json"
+        json_file.write_text('{"overall_digest": {"abstract": "test"}}')
+
+        shadow_digest = {"source_files": [json_file.name]}
+        result = loader.generate_from_source("weekly", shadow_digest)
+
+        # txtでないファイルはスキップ
+        assert len(result) == 0
+
+    @pytest.mark.integration
+    def test_source_file_missing_overall_digest(self, loader, temp_plugin_env):
+        """overall_digestがないソースファイルでもエラーにならない"""
+        # overall_digestがないLoopファイル
+        loop_file = temp_plugin_env.loops_path / "Loop0001_no_overall.txt"
+        loop_file.write_text('{"metadata": {"version": "1.0"}}')
+
+        shadow_digest = {"source_files": [loop_file.name]}
+        result = loader.generate_from_source("weekly", shadow_digest)
+
+        # 処理は成功するが、フィールドは空/デフォルト値
+        assert len(result) == 1
+        assert result[0]["filename"] == loop_file.name
+        assert result[0]["abstract"] == ""
+        assert result[0]["keywords"] == []

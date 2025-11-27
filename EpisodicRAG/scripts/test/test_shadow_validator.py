@@ -153,3 +153,63 @@ class TestShadowValidatorInit:
         """shadow_managerが正しく保存される"""
         validator = ShadowValidator(shadow_manager)
         assert validator.shadow_manager is shadow_manager
+
+
+# =============================================================================
+# 非連続ファイル（ユーザー入力）テスト
+# =============================================================================
+
+class TestShadowValidatorNonConsecutiveFiles:
+    """非連続ファイル検出時のユーザー入力テスト"""
+
+    @pytest.mark.unit
+    def test_non_consecutive_files_user_continues(self, validator, monkeypatch):
+        """非連続ファイル検出時、ユーザーが'y'で続行"""
+        # input()を'y'を返すようにモック
+        monkeypatch.setattr('builtins.input', lambda _: 'y')
+
+        # 非連続ファイル（1, 3 で 2 が抜けている）
+        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+
+        # 'y'入力で例外なく完了
+        validator.validate_shadow_content("weekly", source_files)
+
+    @pytest.mark.unit
+    def test_non_consecutive_files_user_cancels(self, validator, monkeypatch):
+        """非連続ファイル検出時、ユーザーが'n'でキャンセル"""
+        # input()を'n'を返すようにモック
+        monkeypatch.setattr('builtins.input', lambda _: 'n')
+
+        # 非連続ファイル
+        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+
+        with pytest.raises(ValidationError) as exc_info:
+            validator.validate_shadow_content("weekly", source_files)
+        assert "User cancelled" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_non_consecutive_files_user_empty_input_cancels(self, validator, monkeypatch):
+        """非連続ファイル検出時、空入力でもキャンセル"""
+        # input()を空文字を返すようにモック
+        monkeypatch.setattr('builtins.input', lambda _: '')
+
+        source_files = ["Loop0001_test.txt", "Loop0005_test.txt"]
+
+        with pytest.raises(ValidationError) as exc_info:
+            validator.validate_shadow_content("weekly", source_files)
+        assert "User cancelled" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_consecutive_files_no_prompt(self, validator, monkeypatch):
+        """連続ファイルの場合はinput()が呼ばれない"""
+        # input()が呼ばれたらエラーを発生させる
+        def raise_if_called(_):
+            raise AssertionError("input() should not be called for consecutive files")
+
+        monkeypatch.setattr('builtins.input', raise_if_called)
+
+        # 連続ファイル
+        source_files = ["Loop0001_test.txt", "Loop0002_test.txt", "Loop0003_test.txt"]
+
+        # エラーなく完了
+        validator.validate_shadow_content("weekly", source_files)

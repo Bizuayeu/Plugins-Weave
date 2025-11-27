@@ -1,4 +1,4 @@
-[Home](../README.md) > [Docs](README.md) > QUICKSTART
+[Home](../../README.md) > [Docs](../README.md) > QUICKSTART
 
 # 5分クイックスタート
 
@@ -146,8 +146,8 @@ ShadowGrandDigest.txt を更新しました
 
 ## 関連ドキュメント
 
-- [GLOSSARY.md](GLOSSARY.md) - 用語集
+- [GLOSSARY.md](../GLOSSARY.md) - 用語集
 - [GUIDE.md](GUIDE.md) - ユーザーガイド
-- [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様
+- [ARCHITECTURE.md](../dev/ARCHITECTURE.md) - 技術仕様
 
 ---

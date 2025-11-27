@@ -22,8 +22,8 @@ from interfaces import DigestFinalizerFromShadow
 # Domain層
 from domain.exceptions import ValidationError, DigestError
 
-# Utils
-from utils import get_next_digest_number
+# Helpers
+from interfaces.interface_helpers import get_next_digest_number
 
 
 class TestGetNextDigestNumber(unittest.TestCase):

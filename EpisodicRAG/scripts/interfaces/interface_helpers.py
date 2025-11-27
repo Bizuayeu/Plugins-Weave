@@ -1,37 +1,15 @@
 #!/usr/bin/env python3
 """
-Utility Functions
-=================
+Interface Helper Functions
+==========================
 
-後方互換性レイヤー - infrastructure層から再エクスポート
+Interfaces層で使用するヘルパー関数。
 
-Usage:
-    # 推奨（新しいインポートパス）
-    from infrastructure import load_json, save_json, log_info
-
-    # 後方互換（従来のインポートパス）
-    from utils import load_json_with_template, save_json, log_info
+- sanitize_filename: ファイル名のサニタイズ
+- get_next_digest_number: 次のDigest番号を取得
 """
 import re
 from pathlib import Path
-from typing import Optional, Callable, Dict, Any
-
-# Infrastructure層から再エクスポート
-from infrastructure.json_repository import (
-    load_json_with_template,
-    save_json,
-)
-from infrastructure.logging_config import (
-    logger,
-    log_error,
-    log_warning,
-    log_info,
-)
-
-
-# =============================================================================
-# ファイル名処理（utils固有 - infrastructure層に移動しない）
-# =============================================================================
 
 
 def sanitize_filename(title: str, max_length: int = 50) -> str:
@@ -70,11 +48,6 @@ def sanitize_filename(title: str, max_length: int = 50) -> str:
         return "untitled"
 
     return sanitized
-
-
-# =============================================================================
-# Digest番号操作（utils固有 - infrastructure層に移動しない）
-# =============================================================================
 
 
 def get_next_digest_number(digests_path: Path, level: str) -> int:
@@ -120,18 +93,7 @@ def get_next_digest_number(digests_path: Path, level: str) -> int:
     return max_num + 1
 
 
-# 後方互換性のための公開API
 __all__ = [
-    # Logging
-    "logger",
-    "log_error",
-    "log_warning",
-    "log_info",
-    # JSON
-    "load_json_with_template",
-    "save_json",
-    # Filename
     "sanitize_filename",
-    # Digest number
     "get_next_digest_number",
 ]

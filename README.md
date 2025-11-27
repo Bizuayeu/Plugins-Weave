@@ -3,7 +3,7 @@
 階層的記憶・ダイジェスト生成システム（8 層 100 年、完全自己完結版）
 
 ![EpisodicRAG Plugin](EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-1.1.8-blue.svg)](https://github.com/)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -25,10 +25,10 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 
 | あなたは... | 読むべきドキュメント |
 |------------|---------------------|
-| 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/QUICKSTART.md) → [GLOSSARY](EpisodicRAG/docs/GLOSSARY.md) |
-| 📘 **日常的に使う** | [GUIDE](EpisodicRAG/docs/GUIDE.md) |
-| ❓ **問題が発生した** | [FAQ](EpisodicRAG/docs/FAQ.md) → [TROUBLESHOOTING](EpisodicRAG/docs/TROUBLESHOOTING.md) |
-| 🛠️ **開発に参加する** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) → [ARCHITECTURE](EpisodicRAG/docs/ARCHITECTURE.md) |
+| 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [GLOSSARY](EpisodicRAG/docs/GLOSSARY.md) |
+| 📘 **日常的に使う** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) |
+| ❓ **問題が発生した** | [FAQ](EpisodicRAG/docs/user/FAQ.md) → [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
+| 🛠️ **開発に参加する** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) → [ARCHITECTURE](EpisodicRAG/docs/dev/ARCHITECTURE.md) |
 | 🤖 **AI/Claude 仕様** | [AI Spec Hub](EpisodicRAG/docs/README.md) |
 
 ---
@@ -46,7 +46,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 @digest-setup
 ```
 
-詳細なセットアップ手順は [QUICKSTART.md](EpisodicRAG/docs/QUICKSTART.md) を参照してください。
+詳細なセットアップ手順は [QUICKSTART.md](EpisodicRAG/docs/user/QUICKSTART.md) を参照してください。
 
 ---
 
@@ -70,7 +70,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 | `@digest-setup` | 初期セットアップ |
 | `@digest-config` | 設定変更 |
 
-詳細は [GUIDE.md](EpisodicRAG/docs/GUIDE.md) を参照してください。
+詳細は [GUIDE.md](EpisodicRAG/docs/user/GUIDE.md) を参照してください。
 
 ---
 
@@ -95,7 +95,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 
 GitHub 連携により、セッション終了後も長期記憶を保持・継承できます。
 
-→ [ADVANCED.md](EpisodicRAG/docs/ADVANCED.md)
+→ [ADVANCED.md](EpisodicRAG/docs/user/ADVANCED.md)
 
 ---
 

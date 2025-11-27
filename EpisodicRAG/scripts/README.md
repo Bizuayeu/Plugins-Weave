@@ -6,73 +6,119 @@
 
 ## Overview
 
-このディレクトリには、プラグインの内部処理に使用するPython/Bashスクリプトが含まれています。
+このディレクトリには、EpisodicRAGプラグインのPython実装が含まれています。
 
 **通常のユーザーはこれらのスクリプトを直接実行する必要はありません。**
 
 ---
 
-## Version Management
+## Architecture (Clean Architecture)
 
-| File | Purpose |
-|------|---------|
-| `__version__.py` | バージョン定数（SSoT） |
+v2.0.0 より、Clean Architecture（4層構造）を採用しています。
 
-```python
-from __version__ import __version__, DIGEST_FORMAT_VERSION
+```
+scripts/
+├── domain/           # コアビジネスロジック（最内層）
+├── infrastructure/   # 外部関心事
+├── application/      # ユースケース
+├── interfaces/       # エントリーポイント
+├── config.py         # 設定管理クラス
+└── test/             # テスト（301テスト）
+```
+
+### 依存関係ルール
+
+```
+domain/           ← 何にも依存しない
+    ↑
+infrastructure/   ← domain/ のみ
+    ↑
+application/      ← domain/ + infrastructure/
+    ↑
+interfaces/       ← application/
 ```
 
 ---
 
-## Core Modules
+## Layers
+
+### domain/ - コアビジネスロジック（最内層）
+
+外部に依存しない純粋なビジネスロジック。
 
 | Module | Purpose |
 |--------|---------|
-| `config.py` | 設定管理・パス解決 |
-| `shadow_grand_digest.py` | ShadowGrandDigest管理（Facade） |
-| `finalize_from_shadow.py` | Digest確定処理（Facade） |
-| `grand_digest.py` | GrandDigest.txt CRUD操作 |
-| `digest_times.py` | last_digest_times.json管理 |
-| `save_provisional_digest.py` | Provisional Digest保存 |
+| `version.py` | バージョン定数（`__version__`, `DIGEST_FORMAT_VERSION`） |
+| `constants.py` | `LEVEL_CONFIG`, `PLACEHOLDER_*`, `DEFAULT_THRESHOLDS` |
+| `exceptions.py` | カスタム例外（`EpisodicRAGError`, `ValidationError`, etc.） |
+| `types.py` | TypedDict定義（`BaseMetadata`, `DigestMetadata`, etc.） |
+| `file_naming.py` | ファイル命名ユーティリティ（`extract_file_number()`, `format_digest_number()`） |
 
----
+```python
+from domain import LEVEL_CONFIG, __version__, ValidationError
+from domain.file_naming import extract_file_number, format_digest_number
+```
 
-## Packages (v1.1.5+)
+### infrastructure/ - 外部関心事
 
-### shadow/ Package
-
-ShadowGrandDigest管理の内部モジュール群（`shadow_grand_digest.py` のFacade実装）
-
-| Module | Class | Purpose |
-|--------|-------|---------|
-| `template.py` | ShadowTemplate | テンプレート生成 |
-| `file_detector.py` | FileDetector | ファイル検出 |
-| `shadow_io.py` | ShadowIO | I/O操作 |
-| `shadow_updater.py` | ShadowUpdater | Shadow更新 |
-
-### finalize/ Package
-
-Digest確定処理の内部モジュール群（`finalize_from_shadow.py` のFacade実装）
-
-| Module | Class | Purpose |
-|--------|-------|---------|
-| `shadow_validator.py` | ShadowValidator | Shadow検証 |
-| `provisional_loader.py` | ProvisionalLoader | Provisional読込 |
-| `digest_builder.py` | RegularDigestBuilder | Digest構築 |
-| `persistence.py` | DigestPersistence | 永続化処理 |
-
-> **Note**: これらのパッケージは内部実装です。外部からは `shadow_grand_digest.py` / `finalize_from_shadow.py` のFacadeインターフェースを使用してください。
-
----
-
-## Utility Modules
+ファイルI/O、ロギングなどの外部関心事。
 
 | Module | Purpose |
 |--------|---------|
-| `utils.py` | ユーティリティ関数 |
-| `validators.py` | バリデーション |
-| `exceptions.py` | カスタム例外 |
-| `digest_types.py` | 型定義 |
+| `json_repository.py` | JSON読み書き（`load_json`, `save_json`, `load_json_with_template`） |
+| `file_scanner.py` | ファイルスキャン（`scan_files`, `get_max_numbered_file`） |
+| `logging_config.py` | ロギング設定（`log_info`, `log_warning`, `log_error`） |
+
+```python
+from infrastructure import load_json, save_json, log_info, log_error
+from infrastructure.file_scanner import scan_files, get_max_numbered_file
+```
+
+### application/ - ユースケース
+
+ビジネスロジックの実装。
+
+| Package | Purpose |
+|---------|---------|
+| `validators.py` | バリデーション関数（`validate_dict`, `is_valid_list`） |
+| `tracking/` | 時間追跡（`DigestTimesTracker`） |
+| `shadow/` | Shadow管理（`ShadowTemplate`, `ShadowUpdater`, `ShadowIO`, `FileDetector`） |
+| `grand/` | GrandDigest管理（`GrandDigestManager`, `ShadowGrandDigestManager`） |
+| `finalize/` | Finalize処理（`ShadowValidator`, `ProvisionalLoader`, `RegularDigestBuilder`, `DigestPersistence`） |
+
+```python
+from application.shadow import ShadowTemplate, ShadowUpdater
+from application.grand import GrandDigestManager, ShadowGrandDigestManager
+from application.finalize import RegularDigestBuilder, DigestPersistence
+from application.validators import validate_dict, is_valid_list
+```
+
+### interfaces/ - エントリーポイント
+
+外部からのエントリーポイント。
+
+| Module | Class | Purpose |
+|--------|-------|---------|
+| `finalize_from_shadow.py` | `DigestFinalizerFromShadow` | メインエントリーポイント |
+| `save_provisional_digest.py` | `ProvisionalDigestSaver` | Provisional保存 |
+| `interface_helpers.py` | - | ヘルパー関数（`sanitize_filename`, `get_next_digest_number`） |
+
+```python
+from interfaces import DigestFinalizerFromShadow, ProvisionalDigestSaver
+from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
+```
+
+### config.py - 設定管理
+
+`DigestConfig` クラスを提供。Plugin自己完結版の設定管理。
+
+```python
+from config import DigestConfig
+
+config = DigestConfig()
+print(config.loops_path)
+print(config.get_threshold("weekly"))
+```
 
 ---
 
@@ -87,14 +133,21 @@ Digest確定処理の内部モジュール群（`finalize_from_shadow.py` のFac
 
 ## Tests
 
-`test/` ディレクトリにユニットテストがあります（129テスト）。
+`test/` ディレクトリにユニットテストがあります（**301テスト**）。
 
 ```bash
 # 全テスト実行
+cd scripts
 python -m pytest test/ -v
 
-# 個別実行
-python test/test_config.py
+# 特定テストファイル実行
+python -m pytest test/test_validators.py -v
+
+# 層別インポート確認
+python -c "from domain import LEVEL_CONFIG, __version__; print(__version__)"
+python -c "from infrastructure import load_json, log_info; print('OK')"
+python -c "from application import ShadowGrandDigestManager; print('OK')"
+python -c "from interfaces import DigestFinalizerFromShadow; print('OK')"
 ```
 
 ---
@@ -104,5 +157,6 @@ python test/test_config.py
 - [ARCHITECTURE.md](../docs/ARCHITECTURE.md) - 技術仕様
 - [API_REFERENCE.md](../docs/API_REFERENCE.md) - API リファレンス
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - 開発参加ガイド
+- [HANDOFF.md](../HANDOFF.md) - リファクタリング引継ぎドキュメント
 
 ---

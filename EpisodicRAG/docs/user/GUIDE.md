@@ -1,4 +1,4 @@
-[Home](../README.md) > [Docs](README.md) > GUIDE
+[Home](../../README.md) > [Docs](../README.md) > GUIDE
 
 # EpisodicRAG Plugin ユーザーガイド
 
@@ -25,7 +25,7 @@
 - `/digest` を実行することで、記憶が定着します
 - Loopを追加したら都度 `/digest` を実行するのが基本原則です
 
-> 📖 **詳細な説明**: [_common-concepts.md](../skills/shared/_common-concepts.md) を参照
+> 📖 **詳細な説明**: [_common-concepts.md](../../skills/shared/_common-concepts.md) を参照
 > - まだらボケの発生パターン（ケース1: 未処理Loop放置、ケース2: エラー後の未分析状態）
 > - 記憶定着サイクルの詳細
 > - 階層的カスケードの仕組み
@@ -256,7 +256,7 @@ for source_file in source_files:
     )
 ```
 
-詳細は [agents/digest-analyzer.md](../agents/digest-analyzer.md) を参照してください。
+詳細は [agents/digest-analyzer.md](../../agents/digest-analyzer.md) を参照してください。
 
 ---
 
@@ -689,9 +689,9 @@ Identity File: /Users/username/DEV/homunculus/Weave/Identities/UserIdentity.md
 
 ## 次のステップ
 
-- 📙 **技術仕様を理解したい**: [ARCHITECTURE.md](ARCHITECTURE.md)
+- 📙 **技術仕様を理解したい**: [ARCHITECTURE.md](../dev/ARCHITECTURE.md)
 - 🔧 **GitHub連携を設定したい**: [ADVANCED.md](ADVANCED.md)
 - 🆘 **高度な問題に直面した**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- 🛠️ **開発に参加したい**: [CONTRIBUTING.md](../CONTRIBUTING.md)
+- 🛠️ **開発に参加したい**: [CONTRIBUTING.md](../../CONTRIBUTING.md)
 
 ---

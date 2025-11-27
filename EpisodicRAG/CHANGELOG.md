@@ -7,6 +7,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2025-11-27
+
+### Breaking Changes
+
+**Clean Architecture リファクタリング完了** - 内部構造を4層アーキテクチャに全面移行
+
+- **後方互換性レイヤー削除**: 旧インポートパス（`from validators import ...`, `from finalize_from_shadow import ...`等）は動作しなくなりました
+- **推奨インポートパス変更**:
+  ```python
+  # 旧（動作しない）
+  from validators import validate_dict
+  from finalize_from_shadow import DigestFinalizerFromShadow
+
+  # 新（推奨）
+  from application.validators import validate_dict
+  from interfaces import DigestFinalizerFromShadow
+  ```
+
+### Added
+
+- **Clean Architecture 4層構造**:
+  - `domain/` - コアビジネスロジック（定数、型、例外、ファイル命名）
+  - `infrastructure/` - 外部関心事（JSON操作、ファイルスキャン、ロギング）
+  - `application/` - ユースケース（Shadow管理、GrandDigest管理、Finalize処理）
+  - `interfaces/` - エントリーポイント（DigestFinalizerFromShadow, ProvisionalDigestSaver）
+
+- **テスト大幅拡充**: 129テスト → **301テスト**（+172テスト）
+  - Phase 0で新規テストファイル9個追加
+  - 全テストが新アーキテクチャに対応
+
+- **ドキュメント更新**:
+  - ARCHITECTURE.md - 4層構造の詳細説明追加
+  - API_REFERENCE.md - 層別に再構成
+  - scripts/README.md - 4層構造に全面更新
+  - CONTRIBUTING.md - 新機能追加ガイド追加
+
+### Changed
+
+- **依存関係の明確化**: 循環参照を解消し、層的依存関係を確立
+  - `domain/` ← 何にも依存しない
+  - `infrastructure/` ← domain/ のみ
+  - `application/` ← domain/ + infrastructure/
+  - `interfaces/` ← application/
+
+### Removed
+
+- **後方互換性レイヤー（19ファイル削除）**:
+  - `scripts/finalize/` (5ファイル)
+  - `scripts/shadow/` (5ファイル)
+  - ルートレベルファイル: `validators.py`, `digest_times.py`, `grand_digest.py`, `shadow_grand_digest.py`, `finalize_from_shadow.py`, `save_provisional_digest.py`, `__version__.py`, `digest_types.py`, `exceptions.py`, `utils.py`
+
+### Migration Guide
+
+開発者向け移行ガイド:
+
+1. **インポートパスの更新**:
+   ```python
+   # Domain層
+   from domain import LEVEL_CONFIG, __version__, ValidationError
+   from domain.file_naming import extract_file_number
+
+   # Application層
+   from application.shadow import ShadowUpdater
+   from application.grand import ShadowGrandDigestManager
+
+   # Interfaces層
+   from interfaces import DigestFinalizerFromShadow
+   from interfaces.interface_helpers import sanitize_filename
+   ```
+
+2. **詳細**: [HANDOFF.md](HANDOFF.md) を参照
+
+---
+
 ## [1.1.8] - 2025-11-27
 
 ### Added

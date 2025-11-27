@@ -1,4 +1,4 @@
-[Home](../README.md) > [Docs](README.md) > FAQ
+[Home](../../README.md) > [Docs](../README.md) > FAQ
 
 # よくある質問 (FAQ)
 
@@ -167,10 +167,10 @@ python -m pytest test/ -v
 
 ## 関連ドキュメント
 
-- [GLOSSARY.md](GLOSSARY.md) - 用語集
+- [GLOSSARY.md](../GLOSSARY.md) - 用語集
 - [QUICKSTART.md](QUICKSTART.md) - 5分チュートリアル
 - [GUIDE.md](GUIDE.md) - ユーザーガイド
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - 詳細なトラブルシューティング
-- [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様
+- [ARCHITECTURE.md](../dev/ARCHITECTURE.md) - 技術仕様
 
 ---

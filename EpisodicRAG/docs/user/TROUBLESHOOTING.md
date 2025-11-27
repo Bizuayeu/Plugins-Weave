@@ -1,4 +1,4 @@
-[Home](../README.md) > [Docs](README.md) > TROUBLESHOOTING
+[Home](../../README.md) > [Docs](../README.md) > TROUBLESHOOTING
 
 # Troubleshooting - EpisodicRAG Plugin
 
@@ -206,7 +206,7 @@ python scripts/finalize_from_shadow.py weekly "テストタイトル"
 
 2. **Weekly levelのoverall_digestが正しく設定されているか**
 
-   期待される形式（[ARCHITECTURE.md](ARCHITECTURE.md) 参照）:
+   期待される形式（[ARCHITECTURE.md](../dev/ARCHITECTURE.md) 参照）:
    ```json
    {
      "major_digests": {
@@ -513,7 +513,7 @@ https://github.com/Bizuayeu/Plugins-Weave/issues
 ## 次のステップ
 
 - 📘 **基本的な使い方**: [GUIDE.md](GUIDE.md)
-- 📙 **技術仕様**: [ARCHITECTURE.md](ARCHITECTURE.md)
+- 📙 **技術仕様**: [ARCHITECTURE.md](../dev/ARCHITECTURE.md)
 - 🔧 **GitHub連携**: [ADVANCED.md](ADVANCED.md)
 
 ---

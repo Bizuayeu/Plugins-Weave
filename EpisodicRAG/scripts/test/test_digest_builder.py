@@ -274,3 +274,44 @@ class TestRegularDigestBuilderBuild:
 
         timestamp = datetime.fromisoformat(result["overall_digest"]["timestamp"])
         assert before <= timestamp <= after
+
+    @pytest.mark.unit
+    def test_very_long_abstract_preserved(self, individual_digests):
+        """非常に長いabstractがそのまま保持される（builderは切り捨てない）"""
+        long_abstract = "あ" * 5000  # 5000文字
+        shadow_with_long_abstract = {
+            "source_files": ["Loop0001.txt"],
+            "digest_type": "テスト",
+            "keywords": [],
+            "abstract": long_abstract,
+            "impression": ""
+        }
+        result = RegularDigestBuilder.build(
+            level="weekly",
+            new_digest_name="W0001",
+            digest_num="W0001",
+            shadow_digest=shadow_with_long_abstract,
+            individual_digests=individual_digests
+        )
+        assert len(result["overall_digest"]["abstract"]) == 5000
+        assert result["overall_digest"]["abstract"] == long_abstract
+
+    @pytest.mark.unit
+    def test_empty_source_files_list(self, individual_digests):
+        """空のsource_filesリストを正しく処理"""
+        shadow_with_empty_sources = {
+            "source_files": [],
+            "digest_type": "空テスト",
+            "keywords": ["empty"],
+            "abstract": "No sources",
+            "impression": ""
+        }
+        result = RegularDigestBuilder.build(
+            level="weekly",
+            new_digest_name="W0001",
+            digest_num="W0001",
+            shadow_digest=shadow_with_empty_sources,
+            individual_digests=individual_digests
+        )
+        assert result["overall_digest"]["source_files"] == []
+        assert result["overall_digest"]["digest_type"] == "空テスト"

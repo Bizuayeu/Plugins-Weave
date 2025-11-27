@@ -206,31 +206,54 @@ python scripts/config.py
 bash scripts/generate_digest_auto.sh
 ```
 
-### shadow_grand_digest.py - Shadow管理
+---
 
-未確定のLoop分析結果を管理します。
+## Clean Architecture（4層構造）
 
-```bash
-python scripts/shadow_grand_digest.py
+v2.0.0 より、`scripts/` は Clean Architecture（4層構造）を採用しています。
+
+```
+scripts/
+├── domain/           # コアビジネスロジック（最内層）
+├── infrastructure/   # 外部関心事（ファイルI/O、ロギング）
+├── application/      # ユースケース（ビジネスロジック実装）
+├── interfaces/       # エントリーポイント
+├── config.py         # 設定管理クラス
+└── test/             # テスト（301テスト）
 ```
 
-### finalize_from_shadow.py - Shadow確定
+### 依存関係ルール
 
-ShadowをGrandDigestに統合します。
-
-```bash
-python scripts/finalize_from_shadow.py
+```
+domain/           ← 何にも依存しない
+    ↑
+infrastructure/   ← domain/ のみ
+    ↑
+application/      ← domain/ + infrastructure/
+    ↑
+interfaces/       ← application/
 ```
 
-### 分割モジュール（内部使用）
+### 新機能追加時のガイド
 
-以下のモジュールは `finalize_from_shadow.py` から分割されたもので、直接実行することはありません。
+| 追加する機能 | 配置先 |
+|-------------|--------|
+| 定数・型定義・例外 | `domain/` |
+| ファイルI/O・ロギング | `infrastructure/` |
+| ビジネスロジック | `application/` |
+| 外部エントリーポイント | `interfaces/` |
 
-| モジュール | 役割 |
-|-----------|------|
-| `grand_digest.py` | GrandDigest.txt の CRUD 操作 |
-| `digest_times.py` | last_digest_times.json の管理 |
-| `utils.py` | ユーティリティ関数（sanitize_filename 等） |
+### 推奨インポートパス
+
+```python
+from domain import LEVEL_CONFIG, __version__, ValidationError
+from infrastructure import load_json, save_json, log_info
+from application.shadow import ShadowUpdater
+from application.grand import ShadowGrandDigestManager
+from interfaces import DigestFinalizerFromShadow
+```
+
+詳細は [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md) を参照してください。
 
 ---
 
@@ -264,22 +287,22 @@ python scripts/finalize_from_shadow.py
 
 ## テスト
 
-### ユニット/統合テスト実行
+### ユニット/統合テスト実行（301テスト）
 
 ```bash
 cd plugins-weave/EpisodicRAG/scripts
 
-# 全テスト実行（pytest）
+# 全テスト実行（pytest）- 推奨
 python -m pytest test/ -v
 
 # unittest形式
 python -m unittest discover -s test -v
 
-# 個別実行
-python test/test_config.py
-python test/test_utils.py
-python test/test_grand_digest.py
-python test/test_digest_times.py
+# 層別インポート確認
+python -c "from domain import LEVEL_CONFIG, __version__; print(__version__)"
+python -c "from infrastructure import load_json; print('OK')"
+python -c "from application import ShadowGrandDigestManager; print('OK')"
+python -c "from interfaces import DigestFinalizerFromShadow; print('OK')"
 ```
 
 ### 手動テスト
@@ -315,7 +338,7 @@ git status
 3. **設定の編集はインストール済プラグイン側で行う**
    - インストール先: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/`
 
-詳細は[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md#開発環境とインストール環境の混在)を参照してください。
+詳細は[TROUBLESHOOTING.md](docs/user/TROUBLESHOOTING.md#開発環境とインストール環境の混在)を参照してください。
 
 ---
 

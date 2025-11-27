@@ -46,8 +46,8 @@ from domain.exceptions import EpisodicRAGError
 # Infrastructure層
 from infrastructure import log_info, log_error
 
-# Utils（まだinfrastructureに移動していない関数）
-from utils import sanitize_filename, get_next_digest_number
+# Helpers
+from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
 
 # Application層
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
