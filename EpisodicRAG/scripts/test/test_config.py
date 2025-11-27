@@ -4,6 +4,10 @@ config.py のユニットテスト
 ==========================
 
 extract_file_number(), extract_number_only(), DigestConfig クラスのテスト
+
+Note:
+    pytestとunittestの両方で実行可能。
+    pytest実行時はpytest.mark.unitマーカーを使用。
 """
 import json
 import sys
@@ -11,6 +15,8 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+
+import pytest
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -22,6 +28,7 @@ from config import (
     LEVEL_CONFIG,
     LEVEL_NAMES,
 )
+from domain.exceptions import ConfigError
 
 
 class TestExtractFileNumber(unittest.TestCase):
@@ -139,14 +146,14 @@ class TestDigestConfig(unittest.TestCase):
         """設定ファイルが見つからない場合"""
         # config.jsonを削除
         self.config_file.unlink()
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(ConfigError):
             DigestConfig(plugin_root=self.plugin_root)
 
     def test_load_config_invalid_json(self):
         """無効なJSONの場合"""
         with open(self.config_file, 'w', encoding='utf-8') as f:
             f.write("invalid json {")
-        with self.assertRaises(json.JSONDecodeError):
+        with self.assertRaises(ConfigError):
             DigestConfig(plugin_root=self.plugin_root)
 
     def test_resolve_base_dir_dot(self):
@@ -185,7 +192,7 @@ class TestDigestConfig(unittest.TestCase):
     def test_resolve_path_missing_key(self):
         """存在しないキーの場合"""
         config = DigestConfig(plugin_root=self.plugin_root)
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ConfigError):
             config.resolve_path("nonexistent_key")
 
     def test_resolve_path_missing_paths_section(self):
@@ -195,7 +202,7 @@ class TestDigestConfig(unittest.TestCase):
             json.dump(self.config_data, f)
 
         config = DigestConfig(plugin_root=self.plugin_root)
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ConfigError):
             config.resolve_path("loops_dir")
 
     def test_get_level_dir_all_levels(self):
@@ -296,9 +303,9 @@ class TestDigestConfig(unittest.TestCase):
         self.assertEqual(config.get_threshold("centurial"), 4)
 
     def test_get_threshold_invalid_level(self):
-        """get_threshold()が無効なレベルでValueErrorを発生させる"""
+        """get_threshold()が無効なレベルでConfigErrorを発生させる"""
         config = DigestConfig(plugin_root=self.plugin_root)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ConfigError):
             config.get_threshold("invalid_level")
 
     def test_get_threshold_default_values(self):

@@ -8,6 +8,8 @@ base_dir基準のパス解決
 from pathlib import Path
 from typing import Dict, Any, Optional
 
+from domain.exceptions import ConfigError
+
 
 class PathResolver:
     """パス解決クラス"""
@@ -53,12 +55,12 @@ class PathResolver:
             解決された絶対Path
 
         Raises:
-            KeyError: pathsセクションまたはキーが存在しない場合
+            ConfigError: pathsセクションまたはキーが存在しない場合
         """
         if "paths" not in self.config:
-            raise KeyError("'paths' section missing in config.json")
+            raise ConfigError("'paths' section missing in config.json")
         if key not in self.config["paths"]:
-            raise KeyError(f"Path key '{key}' not found in config.json")
+            raise ConfigError(f"Path key '{key}' not found in config.json")
         rel_path = self.config["paths"][key]
         return (self.base_dir / rel_path).resolve()
 
