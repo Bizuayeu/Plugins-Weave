@@ -52,7 +52,7 @@
 │   ├── infrastructure/                  # 外部関心事
 │   ├── application/                     # ユースケース
 │   ├── interfaces/                      # エントリーポイント
-│   ├── config.py                        # 設定管理クラス
+│   ├── config/                          # 設定管理パッケージ
 │   └── test/                            # テスト（CIバッジ参照）
 ├── data/                                # Plugin内データ（@digest-setupで作成）
 │   ├── Loops/                           # Loopファイル配置先
@@ -85,13 +85,15 @@ scripts/
 │   ├── exceptions.py                # ドメイン例外
 │   ├── constants.py                 # LEVEL_CONFIG等
 │   ├── version.py                   # バージョン
-│   └── file_naming.py               # ファイル命名ユーティリティ
+│   ├── file_naming.py               # ファイル命名ユーティリティ
+│   └── level_registry.py            # LevelRegistry（階層設定管理）
 │
 ├── infrastructure/                  # 外部関心事
 │   ├── __init__.py                  # 公開API
 │   ├── json_repository.py           # JSON操作
 │   ├── file_scanner.py              # ファイル検出
-│   └── logging_config.py            # ロギング設定
+│   ├── logging_config.py            # ロギング設定
+│   └── user_interaction.py          # ユーザー確認コールバック
 │
 ├── application/                     # ユースケース
 │   ├── __init__.py                  # 公開API（全コンポーネント）
@@ -102,7 +104,10 @@ scripts/
 │   │   ├── template.py              # ShadowTemplate
 │   │   ├── file_detector.py         # FileDetector
 │   │   ├── shadow_io.py             # ShadowIO
-│   │   └── shadow_updater.py        # ShadowUpdater
+│   │   ├── shadow_updater.py        # ShadowUpdater
+│   │   ├── cascade_processor.py     # CascadeProcessor
+│   │   ├── file_appender.py         # FileAppender
+│   │   └── placeholder_manager.py   # PlaceholderManager
 │   ├── grand/                       # GrandDigest
 │   │   ├── grand_digest.py          # GrandDigestManager
 │   │   └── shadow_grand_digest.py   # ShadowGrandDigestManager
@@ -116,9 +121,21 @@ scripts/
 │   ├── __init__.py                  # 公開API
 │   ├── finalize_from_shadow.py      # DigestFinalizerFromShadow
 │   ├── save_provisional_digest.py   # ProvisionalDigestSaver
-│   └── interface_helpers.py         # sanitize_filename, get_next_digest_number
+│   ├── interface_helpers.py         # sanitize_filename, get_next_digest_number
+│   └── provisional/                 # Provisionalサブパッケージ
+│       ├── __init__.py
+│       ├── input_loader.py          # InputLoader
+│       ├── merger.py                # DigestMerger
+│       └── validator.py             # バリデーション関数
 │
-└── config.py                        # DigestConfig クラス
+└── config/                          # 設定管理パッケージ
+    ├── __init__.py                  # DigestConfig (Facade)
+    ├── config_loader.py             # ConfigLoader
+    ├── config_validator.py          # ConfigValidator
+    ├── level_path_service.py        # LevelPathService
+    ├── path_resolver.py             # PathResolver
+    ├── plugin_root_resolver.py      # find_plugin_root
+    └── threshold_provider.py        # ThresholdProvider
 ```
 
 ### 依存関係ルール
@@ -160,13 +177,15 @@ graph BT
 # Domain層（定数・型・例外）
 from domain import LEVEL_CONFIG, __version__, ValidationError
 from domain.file_naming import extract_file_number, format_digest_number
+from domain.level_registry import get_level_registry
 
 # Infrastructure層（外部I/O）
 from infrastructure import load_json, save_json, log_info, log_error
 from infrastructure.file_scanner import scan_files
+from infrastructure.user_interaction import get_default_confirm_callback
 
 # Application層（ビジネスロジック）
-from application.shadow import ShadowTemplate, ShadowUpdater
+from application.shadow import ShadowTemplate, ShadowUpdater, CascadeProcessor
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.finalize import RegularDigestBuilder, DigestPersistence
 from application.validators import validate_dict, is_valid_list
@@ -174,8 +193,9 @@ from application.validators import validate_dict, is_valid_list
 # Interfaces層（エントリーポイント）
 from interfaces import DigestFinalizerFromShadow, ProvisionalDigestSaver
 from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
+from interfaces.provisional import InputLoader, DigestMerger
 
-# 設定（DigestConfigクラス）
+# 設定（configパッケージ）
 from config import DigestConfig
 ```
 
@@ -261,29 +281,33 @@ flowchart LR
 
 > 📖 パス用語の定義は [GLOSSARY.md](../GLOSSARY.md#基本概念) を参照。ここでは実装詳細を説明します。
 
-### config.pyの役割
+### configパッケージの役割
 
-`scripts/config.py`は、すべてのパス設定を一元管理し、Plugin自己完結性を保証します。
+`scripts/config/`パッケージは、すべてのパス設定を一元管理し、Plugin自己完結性を保証します。
+
+**内部コンポーネント構成:**
+
+| コンポーネント | 責務 |
+|---------------|------|
+| `DigestConfig` | Facade - 外部インターフェース |
+| `PathResolver` | パス解決ロジック |
+| `ThresholdProvider` | 閾値管理 |
+| `LevelPathService` | レベル別パス管理 |
+| `ConfigValidator` | 設定とディレクトリ構造の検証 |
 
 ```python
+# scripts/config/__init__.py
 class DigestConfig:
+    """設定管理クラス（Facade）"""
+
     def __init__(self, plugin_root: Optional[Path] = None):
-        if plugin_root is None:
-            plugin_root = self._find_plugin_root()
-        self.plugin_root = plugin_root
-        self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
-        self.config = self.load_config()
-        self.base_dir = self._resolve_base_dir()
+        # 内部コンポーネントに責任を委譲
+        self._path_resolver = PathResolver(plugin_root, config)
+        self._threshold_provider = ThresholdProvider(config)
+        self._level_path_service = LevelPathService(digests_path)
+        self._config_validator = ConfigValidator(...)
 
-    def _resolve_base_dir(self):
-        base_dir_setting = self.config.get("base_dir", ".")
-        return (self.plugin_root / base_dir_setting).resolve()
-
-    def resolve_path(self, key):
-        rel_path = self.config["paths"][key]
-        return (self.base_dir / rel_path).resolve()
-
-    # 主要プロパティ
+    # 主要プロパティ（PathResolverに委譲）
     @property
     def loops_path(self) -> Path: ...      # Loopファイル配置先
     @property
@@ -291,6 +315,8 @@ class DigestConfig:
     @property
     def essences_path(self) -> Path: ...   # GrandDigest配置先
 ```
+
+> **詳細なAPI仕様**: [API_REFERENCE.md#設定configinitpy](API_REFERENCE.md#設定configinitpy) を参照
 
 ### パス解決の例
 
@@ -336,70 +362,23 @@ loops_path = base_dir / project/data/Loops
 
 ### ファイル形式
 
-> **Note**: 各ファイル形式の詳細なAPI仕様は [API_REFERENCE.md](API_REFERENCE.md) を参照してください。
+> **Note**: 各ファイル形式の詳細なJSON構造とAPI仕様は [API_REFERENCE.md](API_REFERENCE.md) を参照してください。
 
-### テンプレートフィールド名の違い
+| ファイル種別 | 説明 | 詳細 |
+|-------------|------|------|
+| GrandDigest.txt | 確定済み長期記憶 | [API_REFERENCE.md#granddigest](API_REFERENCE.md) |
+| ShadowGrandDigest.txt | 未確定増分ダイジェスト | [API_REFERENCE.md#shadowgranddigest](API_REFERENCE.md) |
+| Provisional Digest | 次階層用個別ダイジェスト | [API_REFERENCE.md#provisional](API_REFERENCE.md) |
+| Regular Digest | 確定済み正式ダイジェスト | [API_REFERENCE.md#regulardigest](API_REFERENCE.md) |
 
-GrandDigest.txt と ShadowGrandDigest.txt では、トップレベルのフィールド名が異なります。
+### フィールド名の設計意図
 
-| ファイル | フィールド名 | 用途 |
+GrandDigest.txt と ShadowGrandDigest.txt では、トップレベルのフィールド名が意図的に異なります：
+
+| ファイル | フィールド名 | 意図 |
 |----------|--------------|------|
-| GrandDigest.txt | `major_digests` | 確定済みダイジェストの参照 |
-| ShadowGrandDigest.txt | `latest_digests` | 仮ダイジェストの最新状態 |
-
-**この命名の違いは意図的です**：
-- `major_digests`: 「主要な」確定済みダイジェストを強調
-- `latest_digests`: 「最新の」仮状態であることを強調
-
-```json
-// GrandDigest.txt
-{
-  "metadata": {...},
-  "major_digests": {
-    "weekly": {"overall_digest": {...}},
-    ...
-  }
-}
-
-// ShadowGrandDigest.txt
-{
-  "metadata": {...},
-  "latest_digests": {
-    "weekly": {"overall_digest": {...}},
-    ...
-  }
-}
-```
-
-#### GrandDigest.txt
-
-確定済みダイジェストの集約ファイル。各レベルの`overall_digest`のみを保持します。
-
-```json
-{
-  "metadata": {
-    "last_updated": "2025-11-22T00:00:00",
-    "version": "1.0"
-  },
-  "major_digests": {
-    "weekly": {
-      "overall_digest": {
-        "timestamp": "2025-11-22T00:00:00",
-        "source_files": ["Loop0001_xxx.txt", "Loop0002_xxx.txt", ...],
-        "digest_type": "技術探求",
-        "keywords": ["キーワード1", "キーワード2", ...],
-        "abstract": "全体統合分析（2400文字程度）...",
-        "impression": "所感・展望（800文字程度）..."
-      }
-    },
-    ...
-  }
-}
-```
-
-#### ShadowGrandDigest.txt
-
-未確定（下書き）のダイジェスト。プレースホルダー（`<!-- PLACEHOLDER ... -->`）は未分析状態を示します。
+| GrandDigest.txt | `major_digests` | 「主要な」確定済みダイジェストを強調 |
+| ShadowGrandDigest.txt | `latest_digests` | 「最新の」仮状態であることを強調 |
 
 #### Provisional Digest
 
