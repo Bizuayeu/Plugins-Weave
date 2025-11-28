@@ -135,7 +135,7 @@ class TestDigestFinalizerFromShadow(unittest.TestCase):
 
     def test_validate_shadow_content_valid(self):
         """正常なsource_filesの検証（例外なしで成功）"""
-        source_files = ["Loop0001_test.txt", "Loop0002_test.txt"]
+        source_files = ["L00001_test.txt", "L00002_test.txt"]
         # 例外が発生しなければ成功
         self.finalizer.validate_shadow_content("weekly", source_files)
 
@@ -245,7 +245,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
             "latest_digests": {
                 "weekly": {
                     "overall_digest": {
-                        "source_files": ["Loop0001_test.txt", "Loop0002_test.txt"],
+                        "source_files": ["L00001_test.txt", "L00002_test.txt"],
                         "digest_type": "テスト",
                         "keywords": ["keyword1", "keyword2"],
                         "abstract": "テスト用の要約です。",
@@ -297,9 +297,9 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
                 "impression": "所感2",
             }
         }
-        with open(self.loops_path / "Loop0001_test.txt", 'w', encoding='utf-8') as f:
+        with open(self.loops_path / "L00001_test.txt", 'w', encoding='utf-8') as f:
             json.dump(loop1_data, f)
-        with open(self.loops_path / "Loop0002_test.txt", 'w', encoding='utf-8') as f:
+        with open(self.loops_path / "L00002_test.txt", 'w', encoding='utf-8') as f:
             json.dump(loop2_data, f)
 
     def tearDown(self):
@@ -396,7 +396,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
             digest_data = json.load(f)
 
         individual_digests = digest_data.get("individual_digests", [])
-        self.assertEqual(len(individual_digests), 2)  # Loop0001, Loop0002
+        self.assertEqual(len(individual_digests), 2)  # L00001, L00002
 
 
 if __name__ == "__main__":

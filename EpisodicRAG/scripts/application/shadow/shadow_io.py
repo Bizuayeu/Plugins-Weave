@@ -8,7 +8,7 @@ ShadowGrandDigest.txtの読み書きを担当
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, cast
+from typing import Callable
 
 from domain.constants import LOG_PREFIX_FILE, LOG_PREFIX_STATE, LOG_PREFIX_VALIDATE
 from domain.types import ShadowDigestData, as_dict
@@ -39,16 +39,14 @@ class ShadowIO:
         log_debug(f"{LOG_PREFIX_FILE} load_or_create: {self.shadow_digest_file}")
         log_debug(f"{LOG_PREFIX_FILE} file_exists: {self.shadow_digest_file.exists()}")
 
-        # Cast factory to Dict[str, Any] for infrastructure compatibility
-        factory = cast(Callable[[], Dict[str, Any]], self.template_factory)
         result = load_json_with_template(
             target_file=self.shadow_digest_file,
-            default_factory=factory,
+            default_factory=self.template_factory,
             log_message="ShadowGrandDigest.txt not found. Creating new file.",
         )
 
         log_debug(f"{LOG_PREFIX_VALIDATE} loaded_data: keys={list(result.keys())}")
-        return cast(ShadowDigestData, result)
+        return result
 
     def save(self, data: ShadowDigestData) -> None:
         """

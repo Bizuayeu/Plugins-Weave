@@ -73,9 +73,9 @@ class TestFormatDigestNumber(unittest.TestCase):
 
     def test_format_loop_number(self):
         """Loop番号のフォーマット検証"""
-        self.assertEqual(format_digest_number("loop", 1), "Loop0001")
-        self.assertEqual(format_digest_number("loop", 186), "Loop0186")
-        self.assertEqual(format_digest_number("loop", 9999), "Loop9999")
+        self.assertEqual(format_digest_number("loop", 1), "L00001")
+        self.assertEqual(format_digest_number("loop", 186), "L00186")
+        self.assertEqual(format_digest_number("loop", 9999), "L09999")
 
     def test_format_weekly_number(self):
         """Weekly番号のフォーマット検証（4桁）"""
@@ -83,18 +83,18 @@ class TestFormatDigestNumber(unittest.TestCase):
         self.assertEqual(format_digest_number("weekly", 123), "W0123")
 
     def test_format_monthly_number(self):
-        """Monthly番号のフォーマット検証（3桁）"""
-        self.assertEqual(format_digest_number("monthly", 1), "M001")
-        self.assertEqual(format_digest_number("monthly", 12), "M012")
+        """Monthly番号のフォーマット検証（4桁）"""
+        self.assertEqual(format_digest_number("monthly", 1), "M0001")
+        self.assertEqual(format_digest_number("monthly", 12), "M0012")
 
     def test_format_quarterly_number(self):
         """Quarterly番号のフォーマット検証（3桁）"""
         self.assertEqual(format_digest_number("quarterly", 1), "Q001")
 
     def test_format_annual_number(self):
-        """Annual番号のフォーマット検証（2桁）"""
-        self.assertEqual(format_digest_number("annual", 1), "A01")
-        self.assertEqual(format_digest_number("annual", 99), "A99")
+        """Annual番号のフォーマット検証（3桁）"""
+        self.assertEqual(format_digest_number("annual", 1), "A001")
+        self.assertEqual(format_digest_number("annual", 99), "A099")
 
     def test_format_multi_decadal_number(self):
         """Multi-decadal番号のフォーマット検証（MD + 2桁）"""

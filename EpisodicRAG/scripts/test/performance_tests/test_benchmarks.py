@@ -31,7 +31,7 @@ def large_loop_files(temp_plugin_env) -> List[Path]:
 
     # Create 100 Loop files
     for i in range(1, 101):
-        filename = f"Loop{i:04d}.txt"
+        filename = f"L{i:05d}.txt"
         file_path = loops_path / filename
         content = {
             "metadata": {
@@ -56,7 +56,7 @@ def large_individual_digests() -> List[dict]:
     """Create a large list of individual digests for performance testing."""
     return [
         {
-            "source_file": f"Loop{i:04d}.txt",
+            "source_file": f"L{i:05d}.txt",
             "keywords": [f"keyword{j}" for j in range(5)],
             "summary": f"Summary for Loop {i}. " * 5,
         }
@@ -126,7 +126,7 @@ class TestFileScanningPerformance:
 
         # Run glob 10 times to get stable measurement
         for _ in range(10):
-            files = list(loops_dir.glob("Loop*.txt"))
+            files = list(loops_dir.glob("L*.txt"))
 
         elapsed = time.perf_counter() - start
 

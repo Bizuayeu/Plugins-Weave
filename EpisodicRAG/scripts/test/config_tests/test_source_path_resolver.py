@@ -71,10 +71,10 @@ class TestGetSourcePattern:
     """get_source_pattern のテスト"""
 
     def test_weekly_returns_loop_pattern(self, temp_plugin_env):
-        """weeklyレベルはLoop*.txtパターンを返す"""
+        """weeklyレベルはL*.txtパターンを返す"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         result = config.get_source_pattern("weekly")
-        assert result == "Loop*.txt"
+        assert result == "L*.txt"
 
     def test_monthly_returns_weekly_pattern(self, temp_plugin_env):
         """monthlyレベルはW*.txtパターンを返す"""

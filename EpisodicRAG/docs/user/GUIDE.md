@@ -31,7 +31,7 @@
 #### Provisional Digest（仮ダイジェスト）
 
 - DigestAnalyzer が生成した individual_digests を一時保存
-- `Digests/1_Weekly/Provisional/W0001_Individual.txt` のように配置
+- `Digests/1_Weekly/Provisional/W0001_Individual.txt` のように配置（Loopファイルは `L00001` 形式）
 - 複数回の `/digest` で追加可能（`--append` モード）
 - `/digest <type>` 実行時に Regular Digest にマージされる
 
@@ -174,7 +174,7 @@ GrandDigest更新 + 次階層Shadowカスケード + Provisionalクリーンア�
 未処理のLoopファイルが 1個 あります
 
   📝 未処理Loop:
-     - Loop0001_認知アーキテクチャ論
+     - L00001_認知アーキテクチャ論
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔴 先に `/digest` を実行してください
@@ -329,15 +329,15 @@ python scripts/config.py --show-paths
 #### Phase 1: Loop追加と即時分析（まだらボケ回避）
 
 ```
-1. Loop0001_タイトル.txt を Loops/ に配置
+1. L00001_タイトル.txt を Loops/ に配置
 
 2. `/digest` 実行
    ↓
-   未処理Loop検出 → Loop0001
+   未処理Loop検出 → L00001
    ↓
    ShadowGrandDigest.weekly にプレースホルダー追加
    ↓
-   DigestAnalyzer起動（Loop0001を分析）
+   DigestAnalyzer起動（L00001を分析）
    ↓
    long版 → ShadowGrandDigest.weekly のプレースホルダー置換
    short版 → save_provisional_digest.py weekly '<JSON>' --append
@@ -347,7 +347,7 @@ python scripts/config.py --show-paths
    ↓
    「あと4個のLoopが必要です」
 
-3. Loop0002-0005 を同様に追加・分析
+3. L00002-L00005 を同様に追加・分析
    各Loopごとに `/digest` を実行
    ↓
    Provisional/1_Weekly/W0001_Individual.txt に蓄積
@@ -409,7 +409,7 @@ python scripts/config.py --show-paths
 **毎日（1日1-2回）:**
 ```bash
 # 新しい会話があったら
-1. Loop0XXX_タイトル.txt を配置
+1. LXXXXX_タイトル.txt を配置
 2. /digest  # 即座に記憶定着
 ```
 

@@ -60,8 +60,8 @@ class TestAddFilesToShadow:
         shadow_data = shadow_io.load_or_create()
         overall = shadow_data["latest_digests"]["weekly"]["overall_digest"]
         assert len(overall["source_files"]) == 2
-        assert "Loop0001_test.txt" in overall["source_files"]
-        assert "Loop0002_test.txt" in overall["source_files"]
+        assert "L00001_test.txt" in overall["source_files"]
+        assert "L00002_test.txt" in overall["source_files"]
 
     @pytest.mark.integration
     def test_does_not_add_duplicate_files(self, updater, temp_plugin_env, shadow_io):

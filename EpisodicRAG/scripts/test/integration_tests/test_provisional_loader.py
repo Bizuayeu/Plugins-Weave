@@ -51,14 +51,14 @@ class TestProvisionalLoaderLoadOrGenerate:
 
         provisional_data = {
             "individual_digests": [
-                {"filename": "Loop0001.txt", "content": "Test 1"},
-                {"filename": "Loop0002.txt", "content": "Test 2"},
+                {"filename": "L00001.txt", "content": "Test 1"},
+                {"filename": "L00002.txt", "content": "Test 2"},
             ]
         }
         with open(provisional_path, 'w', encoding='utf-8') as f:
             json.dump(provisional_data, f)
 
-        shadow_digest = {"source_files": ["Loop0001.txt", "Loop0002.txt"]}
+        shadow_digest = {"source_files": ["L00001.txt", "L00002.txt"]}
         individual_digests, provisional_file = loader.load_or_generate(
             "weekly", shadow_digest, "0001"
         )
@@ -198,7 +198,7 @@ class TestProvisionalLoaderEdgeCases:
     def test_source_file_with_invalid_json_skipped(self, loader, temp_plugin_env):
         """ソースファイルが不正なJSONの場合はスキップ（警告のみ）"""
         # 不正なJSONを持つLoopファイルを作成
-        invalid_loop = temp_plugin_env.loops_path / "Loop0001_invalid.txt"
+        invalid_loop = temp_plugin_env.loops_path / "L00001_invalid.txt"
         invalid_loop.write_text("{ invalid json content }")
 
         # 正常なLoopファイルも作成
@@ -216,7 +216,7 @@ class TestProvisionalLoaderEdgeCases:
     def test_source_file_non_txt_extension_skipped(self, loader, temp_plugin_env):
         """txtでないソースファイルはスキップ"""
         # .jsonファイルを作成（txtではない）
-        json_file = temp_plugin_env.loops_path / "Loop0001_test.json"
+        json_file = temp_plugin_env.loops_path / "L00001_test.json"
         json_file.write_text('{"overall_digest": {"abstract": "test"}}')
 
         shadow_digest = {"source_files": [json_file.name]}
@@ -229,7 +229,7 @@ class TestProvisionalLoaderEdgeCases:
     def test_source_file_missing_overall_digest(self, loader, temp_plugin_env):
         """overall_digestがないソースファイルでもエラーにならない"""
         # overall_digestがないLoopファイル
-        loop_file = temp_plugin_env.loops_path / "Loop0001_no_overall.txt"
+        loop_file = temp_plugin_env.loops_path / "L00001_no_overall.txt"
         loop_file.write_text('{"metadata": {"version": "1.0"}}')
 
         shadow_digest = {"source_files": [loop_file.name]}
@@ -259,7 +259,7 @@ class TestProvisionalLoaderSkippedCount:
         caplog.set_level(logging.WARNING)
 
         # 不正なJSONファイルを作成
-        invalid_loop = temp_plugin_env.loops_path / "Loop0001_invalid.txt"
+        invalid_loop = temp_plugin_env.loops_path / "L00001_invalid.txt"
         invalid_loop.write_text("{ invalid json }")
 
         shadow_digest = {"source_files": [invalid_loop.name]}
@@ -280,10 +280,10 @@ class TestProvisionalLoaderSkippedCount:
         caplog.set_level(logging.WARNING)
 
         # 複数の不正なJSONファイルを作成
-        invalid1 = temp_plugin_env.loops_path / "Loop0001_bad1.txt"
+        invalid1 = temp_plugin_env.loops_path / "L00001_bad1.txt"
         invalid1.write_text("{ bad json 1 }")
 
-        invalid2 = temp_plugin_env.loops_path / "Loop0002_bad2.txt"
+        invalid2 = temp_plugin_env.loops_path / "L00002_bad2.txt"
         invalid2.write_text("{ bad json 2 }")
 
         shadow_digest = {"source_files": [invalid1.name, invalid2.name]}
@@ -303,7 +303,7 @@ class TestProvisionalLoaderSkippedCount:
         caplog.set_level(logging.WARNING)
 
         # 不正なJSONファイル
-        invalid_loop = temp_plugin_env.loops_path / "Loop0001_invalid.txt"
+        invalid_loop = temp_plugin_env.loops_path / "L00001_invalid.txt"
         invalid_loop.write_text("{ invalid }")
 
         # 正常なLoopファイル

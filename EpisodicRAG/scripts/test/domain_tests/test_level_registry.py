@@ -140,9 +140,9 @@ class TestLoopLevelBehavior:
     def test_format_number(self):
         """Loopファイルのフォーマット"""
         behavior = LoopLevelBehavior()
-        assert behavior.format_number(1) == "Loop0001"
-        assert behavior.format_number(186) == "Loop0186"
-        assert behavior.format_number(9999) == "Loop9999"
+        assert behavior.format_number(1) == "L00001"
+        assert behavior.format_number(186) == "L00186"
+        assert behavior.format_number(9999) == "L09999"
 
     @pytest.mark.unit
     def test_should_not_cascade(self):
@@ -183,8 +183,8 @@ class TestLevelRegistry:
         """Loopレベルが登録されている"""
         registry = get_level_registry()
         metadata = registry.get_metadata("loop")
-        assert metadata.prefix == "Loop"
-        assert metadata.digits == 4
+        assert metadata.prefix == "L"
+        assert metadata.digits == 5
 
     @pytest.mark.unit
     def test_get_level_names_excludes_loop(self):
@@ -227,8 +227,8 @@ class TestLevelRegistry:
         """プレフィックスは長さ降順でソート"""
         registry = get_level_registry()
         prefixes = registry.get_all_prefixes()
-        # 最初の要素は最長（Loop, MD）
-        assert prefixes[0] in ["Loop", "MD"]
+        # 最初の要素は最長（MD）
+        assert prefixes[0] == "MD"
         # 長いものが先
         for i in range(len(prefixes) - 1):
             assert len(prefixes[i]) >= len(prefixes[i + 1])
@@ -240,7 +240,7 @@ class TestLevelRegistry:
         assert registry.get_level_by_prefix("W") == "weekly"
         assert registry.get_level_by_prefix("M") == "monthly"
         assert registry.get_level_by_prefix("MD") == "multi_decadal"
-        assert registry.get_level_by_prefix("Loop") == "loop"
+        assert registry.get_level_by_prefix("L") == "loop"
 
     @pytest.mark.unit
     def test_get_level_by_prefix_unknown(self):
@@ -255,7 +255,7 @@ class TestLevelRegistry:
         registry = get_level_registry()
         pattern = registry.build_prefix_pattern()
         # 主要なプレフィックスが含まれている
-        assert "Loop" in pattern
+        assert "L" in pattern
         assert "MD" in pattern
         assert "W" in pattern
         assert "C" in pattern
@@ -318,7 +318,7 @@ class TestFormatDigestNumberIntegration:
         """Registry経由でフォーマット"""
         from domain.file_naming import format_digest_number
 
-        assert format_digest_number("loop", 186) == "Loop0186"
+        assert format_digest_number("loop", 186) == "L00186"
         assert format_digest_number("weekly", 1) == "W0001"
         assert format_digest_number("multi_decadal", 3) == "MD03"
 
@@ -330,7 +330,7 @@ class TestFormatDigestNumberIntegration:
         registry = get_level_registry()
 
         test_cases = [
-            ("Loop0186_test.txt", "loop", 186),
+            ("L00186_test.txt", "loop", 186),
             ("W0001_weekly.txt", "weekly", 1),
             ("MD03_multi.txt", "multi_decadal", 3),
         ]

@@ -192,7 +192,7 @@ def create_test_loop_file(loops_path: Path, loop_num: int, title: str = "test") 
     Returns:
         作成されたLoopファイルのPath
     """
-    filename = f"Loop{loop_num:04d}_{title}.txt"
+    filename = f"L{loop_num:05d}_{title}.txt"
     file_path = loops_path / filename
 
     loop_data = {
@@ -200,7 +200,7 @@ def create_test_loop_file(loops_path: Path, loop_num: int, title: str = "test") 
             "timestamp": "2025-01-01T00:00:00",
             "digest_type": "テスト",
             "keywords": ["test", "sample"],
-            "abstract": f"Loop{loop_num:04d}のテスト内容です。",
+            "abstract": f"L{loop_num:05d}のテスト内容です。",
             "impression": "テスト用の所感です。",
         }
     }

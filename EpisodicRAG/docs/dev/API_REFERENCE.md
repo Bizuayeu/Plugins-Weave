@@ -64,12 +64,14 @@ from domain import (
 
 階層ごとの設定を定義する辞書。Single Source of Truth（唯一の真実の情報源）。
 
+> 📖 8階層のプレフィックス・桁数・時間スケールは [GLOSSARY.md](../GLOSSARY.md#8階層構造) を参照
+
 ```python
 LEVEL_CONFIG: Dict[str, Dict[str, Any]] = {
     "weekly": {"prefix": "W", "digits": 4, "dir": "1_Weekly", "source": "loops", "next": "monthly"},
-    "monthly": {"prefix": "M", "digits": 3, "dir": "2_Monthly", "source": "weekly", "next": "quarterly"},
+    "monthly": {"prefix": "M", "digits": 4, "dir": "2_Monthly", "source": "weekly", "next": "quarterly"},
     "quarterly": {"prefix": "Q", "digits": 3, "dir": "3_Quarterly", "source": "monthly", "next": "annual"},
-    "annual": {"prefix": "A", "digits": 2, "dir": "4_Annual", "source": "quarterly", "next": "triennial"},
+    "annual": {"prefix": "A", "digits": 3, "dir": "4_Annual", "source": "quarterly", "next": "triennial"},
     "triennial": {"prefix": "T", "digits": 2, "dir": "5_Triennial", "source": "annual", "next": "decadal"},
     "decadal": {"prefix": "D", "digits": 2, "dir": "6_Decadal", "source": "triennial", "next": "multi_decadal"},
     "multi_decadal": {"prefix": "MD", "digits": 2, "dir": "7_Multi-decadal", "source": "decadal", "next": "centurial"},
@@ -182,10 +184,10 @@ def extract_file_number(filename: str) -> Optional[Tuple[str, int]]
 ファイル名からプレフィックスと番号を抽出。
 
 ```python
-extract_file_number("Loop0186_認知アーキテクチャ.txt")  # ("Loop", 186)
-extract_file_number("W0001_Individual.txt")             # ("W", 1)
-extract_file_number("MD01_xxx.txt")                     # ("MD", 1)
-extract_file_number("invalid.txt")                      # None
+extract_file_number("L00186_認知アーキテクチャ.txt")  # ("L", 186)
+extract_file_number("W0001_Individual.txt")           # ("W", 1)
+extract_file_number("MD01_xxx.txt")                   # ("MD", 1)
+extract_file_number("invalid.txt")                    # None
 ```
 
 #### extract_number_only()
@@ -197,7 +199,7 @@ def extract_number_only(filename: str) -> Optional[int]
 ファイル名から番号のみを抽出（後方互換性用）。
 
 ```python
-extract_number_only("Loop0186_test.txt")  # 186
+extract_number_only("L00186_test.txt")  # 186
 extract_number_only("W0001_weekly.txt")   # 1
 extract_number_only("invalid.txt")        # None
 ```
@@ -211,7 +213,7 @@ def format_digest_number(level: str, number: int) -> str
 レベルと番号から統一されたフォーマットの文字列を生成。
 
 ```python
-format_digest_number("loop", 186)         # "Loop0186"
+format_digest_number("loop", 186)         # "L00186"
 format_digest_number("weekly", 1)         # "W0001"
 format_digest_number("multi_decadal", 3)  # "MD03"
 ```
@@ -246,7 +248,7 @@ def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]
 ファイル名リストからプレフィックス付き番号を抽出（ゼロ埋め維持）。
 
 ```python
-extract_numbers_formatted(["Loop0001.txt", "Loop0005.txt"])  # ["Loop0001", "Loop0005"]
+extract_numbers_formatted(["L00001.txt", "L00005.txt"])  # ["L00001", "L00005"]
 ```
 
 ### レベルレジストリ（domain/level_registry.py）
@@ -280,7 +282,7 @@ class LevelBehavior(ABC):
 | 実装クラス | 説明 |
 |-----------|------|
 | `StandardLevelBehavior` | 通常階層（weekly〜centurial） |
-| `LoopLevelBehavior` | Loopファイル用（4桁、カスケードなし） |
+| `LoopLevelBehavior` | Loopファイル用（5桁、カスケードなし） |
 
 #### LevelRegistry
 
@@ -469,7 +471,7 @@ from domain.file_naming import extract_number_only
 # Loopファイルの最大番号を取得
 max_loop = get_max_numbered_file(
     loops_path,
-    "Loop*.txt",
+    "L*.txt",
     extract_number_only
 )  # 186
 ```
@@ -1146,16 +1148,7 @@ loops_dir = "homunculus/Weave/EpisodicRAG/Loops"
 
 **Provisionalファイル命名規則:**
 
-| 階層 | プレフィックス | 桁数 | ファイル名例 |
-|------|---------------|------|-------------|
-| Weekly | W | 4 | `W0001_Individual.txt` |
-| Monthly | M | 3 | `M001_Individual.txt` |
-| Quarterly | Q | 3 | `Q001_Individual.txt` |
-| Annual | A | 2 | `A01_Individual.txt` |
-| Triennial | T | 2 | `T01_Individual.txt` |
-| Decadal | D | 2 | `D01_Individual.txt` |
-| Multi-decadal | MD | 2 | `MD01_Individual.txt` |
-| Centurial | C | 2 | `C01_Individual.txt` |
+> 📖 ID桁数一覧（プレフィックス・桁数・例）は [GLOSSARY.md > ID桁数一覧](../GLOSSARY.md#id桁数一覧) を参照
 
 ---
 

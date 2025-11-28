@@ -403,7 +403,7 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
        subagent_type="EpisodicRAG-Plugin:DigestAnalyzer",
        description="Analyze Loop0001 for Weekly digest",
        prompt="""
-分析対象ファイル: C:\\Users\\anyth\\DEV\\homunculus\\Weave\\EpisodicRAG\\Loops\\Loop0001_認知アーキテクチャ論.txt
+分析対象ファイル: C:\\Users\\anyth\\DEV\\homunculus\\Weave\\EpisodicRAG\\Loops\\L00001_認知アーキテクチャ論.txt
 
 このLoopファイルを深層分析し、以下の形式でJSON出力してください：
 {{

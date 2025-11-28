@@ -49,9 +49,9 @@ EpisodicRAGプラグインで使用される専門用語の定義集です。
 ### Loop
 **定義**: AI との会話セッション全体を記録したテキストファイル
 
-- **形式**: `Loop[連番]_[タイトル].txt`
-- **例**: `Loop0001_認知アーキテクチャ論.txt`
-- **正規表現**: `^Loop[0-9]+_[\p{L}\p{N}ー・\w]+\.txt$`
+- **形式**: `L[連番]_[タイトル].txt`
+- **例**: `L00001_認知アーキテクチャ論.txt`
+- **正規表現**: `^L[0-9]+_[\p{L}\p{N}ー・\w]+\.txt$`
 - **配置先**: `{loops_dir}/`
 
 Loopは EpisodicRAG システムの最小単位であり、すべてのDigest生成の基礎データとなります。
@@ -113,7 +113,7 @@ Digestには以下の種類があります：
   "latest_digests": {
     "weekly": {
       "overall_digest": {
-        "source_files": ["Loop0001.txt", "Loop0002.txt"],
+        "source_files": ["L00001.txt", "L00002.txt"],
         "keywords": ["<!-- PLACEHOLDER -->", ...],
         "abstract": "<!-- PLACEHOLDER: ... -->"
       }
@@ -188,19 +188,33 @@ Monthly確定 → Quarterly Shadow に追加
 
 ## ファイル命名規則
 
+### ID桁数一覧
+
+| レベル | プレフィックス | 桁数 | 例 |
+|--------|----------------|------|-----|
+| Loop | L | 5 | L00001 |
+| Weekly | W | 4 | W0001 |
+| Monthly | M | 4 | M0001 |
+| Quarterly | Q | 3 | Q001 |
+| Annual | A | 3 | A001 |
+| Triennial | T | 2 | T01 |
+| Decadal | D | 2 | D01 |
+| Multi-Decadal | MD | 2 | MD01 |
+| Centurial | C | 2 | C01 |
+
 ### Loopファイル
 ```
-形式: Loop[連番]_[タイトル].txt
-連番: 4桁以上の数字（大きいほど新しい）
-例:   Loop0001_初回セッション.txt
-      Loop0186_認知アーキテクチャ論.txt
+形式: L[連番]_[タイトル].txt
+連番: 5桁の数字（大きいほど新しい）
+例:   L00001_初回セッション.txt
+      L00186_認知アーキテクチャ論.txt
 ```
 
 ### Provisionalファイル
 ```
 形式: {prefix}{番号}_Individual.txt
 例:   W0001_Individual.txt
-      M001_Individual.txt
+      M0001_Individual.txt
 ```
 
 ### Regularファイル

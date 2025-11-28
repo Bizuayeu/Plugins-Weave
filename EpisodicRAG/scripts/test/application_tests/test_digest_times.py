@@ -43,7 +43,7 @@ class TestDigestTimesTracker:
     @pytest.mark.integration
     def test_save_and_load(self, tracker):
         """保存と読み込み"""
-        input_files = ["Loop0001_Test.txt", "Loop0002_Test.txt"]
+        input_files = ["L00001_Test.txt", "L00002_Test.txt"]
         tracker.save("weekly", input_files)
 
         data = tracker.load_or_create()
@@ -55,10 +55,10 @@ class TestDigestTimesTracker:
     @pytest.mark.unit
     def test_extract_file_numbers(self, tracker):
         """ファイル番号抽出"""
-        files = ["Loop0001_A.txt", "Loop0003_B.txt"]
+        files = ["L00001_A.txt", "L00003_B.txt"]
         numbers = tracker.extract_file_numbers("weekly", files)
 
-        assert numbers == ["Loop0001", "Loop0003"]
+        assert numbers == ["L00001", "L00003"]
 
     @pytest.mark.unit
     def test_extract_file_numbers_monthly(self, tracker):
@@ -90,7 +90,7 @@ class TestDigestTimesTracker:
     @pytest.mark.integration
     def test_save_updates_timestamp(self, tracker):
         """saveがtimestampを更新"""
-        input_files = ["Loop0001_Test.txt"]
+        input_files = ["L00001_Test.txt"]
         tracker.save("weekly", input_files)
 
         data = tracker.load_or_create()

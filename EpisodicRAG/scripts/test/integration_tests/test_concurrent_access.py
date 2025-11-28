@@ -234,7 +234,7 @@ class TestShadowUpdateConcurrency:
 
         initial_shadow = {
             "metadata": {"version": "1.0"},
-            "pending_sources": ["Loop0001.txt", "Loop0002.txt"],
+            "pending_sources": ["L00001.txt", "L00002.txt"],
         }
 
         # Write initial state
@@ -246,9 +246,9 @@ class TestShadowUpdateConcurrency:
             with open(shadow_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
-            # Idempotent update: add Loop0003.txt if not present
-            if "Loop0003.txt" not in data["pending_sources"]:
-                data["pending_sources"].append("Loop0003.txt")
+            # Idempotent update: add L00003.txt if not present
+            if "L00003.txt" not in data["pending_sources"]:
+                data["pending_sources"].append("L00003.txt")
 
             with open(shadow_path, "w", encoding="utf-8") as f:
                 json.dump(data, f)
@@ -258,4 +258,4 @@ class TestShadowUpdateConcurrency:
             final_data = json.load(f)
 
         assert len(final_data["pending_sources"]) == 3
-        assert "Loop0003.txt" in final_data["pending_sources"]
+        assert "L00003.txt" in final_data["pending_sources"]

@@ -12,6 +12,8 @@ EpisodicRAG システムの現在の状態を分析することで、
 ## 用語説明
 
 > 📖 パス用語（plugin_root / base_dir / paths）は [_common-concepts.md](../shared/_common-concepts.md#パス用語) を参照
+>
+> 📖 ID桁数・命名規則は [GLOSSARY.md](../../docs/GLOSSARY.md#id桁数一覧) を参照
 
 ## 目次
 
@@ -76,7 +78,7 @@ thresholds = {level: getattr(config, f"{level}_threshold") for level in levels}
 
 ```python
 # Loopファイルと処理済みLoopを取得
-loop_files = list(config.loops_path.glob("Loop*.txt"))
+loop_files = list(config.loops_path.glob("L*.txt"))
 last_digest_file = config.plugin_root / ".claude-plugin" / "last_digest_times.json"
 last_processed = json.load(open(last_digest_file)).get("weekly", {}).get("last_processed") \
                  if last_digest_file.exists() else None
@@ -259,7 +261,7 @@ ShadowGrandDigest.txt が存在しない場合のエラー出力です。
 未処理のLoopファイルが 1個 あります
 
   📝 未処理Loop:
-     - Loop0001_認知アーキテクチャ論
+     - L00001_認知アーキテクチャ論
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔴 先に `/digest` を実行してください
@@ -277,7 +279,7 @@ ShadowGrandDigest.txt が存在しない場合のエラー出力です。
 
 次のステップ:
 
-1. `/digest` でLoop0001を分析・記憶定着
+1. `/digest` でL00001を分析・記憶定着
 2. 新しいLoopを追加
 3. `/digest` で記憶定着（毎回）
 4. 5個揃ったら `/digest weekly` で階層化
@@ -304,9 +306,9 @@ ShadowGrandDigest.txt が存在しない場合のエラー出力です。
 ShadowGrandDigestに未分析のプレースホルダーがあります
 
   ⚠️ Weekly (3個のファイル):
-     - Loop0196
-     - Loop0197
-     - Loop0198
+     - L00196
+     - L00197
+     - L00198
 
 これらのファイルは検出されましたが、
 `/digest` 処理中にエラーが発生して分析が未完了です
@@ -335,8 +337,8 @@ ShadowGrandDigestに未分析のプレースホルダーがあります
 
 次回確定予定のファイルに欠番が検出されました
 
-📝 Loop: Loop0006～Loop0009
-  - Loop0007 が欠番
+📝 Loop: L00006～L00009
+  - L00007 が欠番
 
 📝 Weekly: W0001～W0005
   - W0003 が欠番

@@ -39,7 +39,7 @@ arbitrary_filenames = st.text(
 )
 
 # Valid prefixes
-valid_prefixes = st.sampled_from(["Loop", "W", "M", "Q", "A", "T", "D", "MD", "C"])
+valid_prefixes = st.sampled_from(["L", "W", "M", "Q", "A", "T", "D", "MD", "C"])
 
 
 # =============================================================================
@@ -171,7 +171,7 @@ class TestFilterFilesAfterProperties:
         """All returned files should have numbers > threshold"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
-            files = [tmp_path / f"Loop{n:04d}_test.txt" for n in numbers]
+            files = [tmp_path / f"L{n:05d}_test.txt" for n in numbers]
             for f in files:
                 f.touch()
 
@@ -191,7 +191,7 @@ class TestFilterFilesAfterProperties:
         """Result length should equal count of numbers > threshold"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
-            files = [tmp_path / f"Loop{n:04d}_test.txt" for n in numbers]
+            files = [tmp_path / f"L{n:05d}_test.txt" for n in numbers]
             for f in files:
                 f.touch()
 
@@ -209,7 +209,7 @@ class TestExtractNumbersFormattedProperties:
     @settings(max_examples=200)
     def test_output_is_sorted(self, numbers):
         """Output should always be sorted"""
-        files = [f"Loop{n:04d}_test.txt" for n in numbers]
+        files = [f"L{n:05d}_test.txt" for n in numbers]
 
         result = extract_numbers_formatted(files)
 
@@ -222,13 +222,13 @@ class TestExtractNumbersFormattedProperties:
     @settings(max_examples=100)
     def test_output_contains_only_valid_entries(self, valid_numbers):
         """Output should only contain formatted entries from valid input files"""
-        files = [f"Loop{n:04d}_test.txt" for n in valid_numbers]
+        files = [f"L{n:05d}_test.txt" for n in valid_numbers]
 
         result = extract_numbers_formatted(files)
 
         # Each result should match the formatted pattern
         for entry in result:
-            # Should start with "Loop" and be followed by digits
-            assert entry.startswith("Loop") or any(
+            # Should start with "L" and be followed by digits
+            assert entry.startswith("L") or any(
                 entry.startswith(LEVEL_CONFIG[lvl]["prefix"]) for lvl in LEVEL_NAMES
             )

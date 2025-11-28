@@ -42,7 +42,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
     },
     "monthly": {
         "prefix": "M",
-        "digits": 3,
+        "digits": 4,
         "dir": "2_Monthly",
         "source": "weekly",
         "next": "quarterly",
@@ -56,7 +56,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
     },
     "annual": {
         "prefix": "A",
-        "digits": 2,
+        "digits": 3,
         "dir": "4_Annual",
         "source": "quarterly",
         "next": "triennial",

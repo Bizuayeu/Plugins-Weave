@@ -6,6 +6,7 @@
 
 - **概念的な疑問**（〜とは何か、なぜ〜か）→ [FAQ.md](FAQ.md)
 - **具体的な解決手順**（〜が動かない、〜を修復したい）→ このドキュメント
+- **用語・命名規則**（ID桁数、ファイル形式）→ [GLOSSARY.md](../GLOSSARY.md)
 
 > **対応バージョン**: EpisodicRAG Plugin v2.0.0+ / ファイルフォーマット 1.0
 
@@ -118,7 +119,7 @@ cat {digests_dir}/1_Weekly/Provisional/W0001_Individual.txt
   },
   "individual_digests": [
     {
-      "filename": "Loop0001_タイトル.txt",
+      "filename": "L00001_タイトル.txt",
       "digest_type": "...",
       "keywords": [...],
       "abstract": "...",
@@ -291,7 +292,7 @@ JSON形式を厳密に守ってください
 
 **方法3: 大規模Loopファイルの場合**
 
-- Loopファイルを分割（Loop0001a, Loop0001b など）
+- Loopファイルを分割（L00001a, L00001b など）
 - または段階的読み込みを指示:
   ```
   まず前半を読み込んで分析し、

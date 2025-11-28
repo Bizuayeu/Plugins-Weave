@@ -88,7 +88,7 @@ class LevelBehavior(ABC):
             number: フォーマットする番号
 
         Returns:
-            フォーマットされた文字列（例: "W0042", "Loop0186"）
+            フォーマットされた文字列（例: "W0042", "L00186"）
         """
         pass
 
@@ -136,13 +136,13 @@ class LoopLevelBehavior(LevelBehavior):
     """
     Loopファイル専用の振る舞い
 
-    Loopファイルは特殊なフォーマット（Loop0001）を持ち、
+    Loopファイルは特殊なフォーマット（L00001）を持ち、
     カスケードは行わない。
     """
 
     def format_number(self, number: int) -> str:
-        """Loop + 4桁ゼロパディング"""
-        return f"Loop{number:04d}"
+        """L + 5桁ゼロパディング"""
+        return f"L{number:05d}"
 
     def should_cascade(self) -> bool:
         """Loopはカスケードしない"""
@@ -191,8 +191,8 @@ class LevelRegistry:
         # 特殊レベル: Loop
         loop_metadata = LevelMetadata(
             name="loop",
-            prefix="Loop",
-            digits=4,
+            prefix="L",
+            digits=5,
             dir="",
             source="",
             next_level="weekly",
@@ -308,7 +308,7 @@ class LevelRegistry:
         長いプレフィックスを先にして、"MD"が"M"より先にマッチするようにする。
 
         Returns:
-            正規表現パターン文字列（例: "Loop|MD|W|M|Q|A|T|D|C"）
+            正規表現パターン文字列（例: "MD|W|M|Q|A|T|D|C|L"）
         """
         prefixes = self.get_all_prefixes()
         return "|".join(re.escape(p) for p in prefixes)

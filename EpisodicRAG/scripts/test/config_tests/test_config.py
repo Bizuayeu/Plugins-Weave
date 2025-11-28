@@ -421,19 +421,17 @@ class TestDigestConfigShowPaths:
         }
 
     @pytest.mark.unit
-    def test_show_paths_logs_all_paths(self, show_paths_env, caplog):
-        """show_paths()が全パスをログ出力"""
-        import logging
-
+    def test_show_paths_logs_all_paths(self, show_paths_env, capsys):
+        """show_paths()が全パスを標準出力に出力"""
         env = show_paths_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
 
-        with caplog.at_level(logging.INFO, logger="episodic_rag"):
-            config.show_paths()
+        config.show_paths()
 
-        # パス情報がログに出力されている
-        assert "loops_path" in caplog.text or "Loops" in caplog.text
-        assert "digests_path" in caplog.text or "Digests" in caplog.text
+        captured = capsys.readouterr()
+        # パス情報が標準出力されている
+        assert "Loops" in captured.out
+        assert "Digests" in captured.out
 
     @pytest.mark.unit
     def test_show_paths_returns_none(self, show_paths_env):

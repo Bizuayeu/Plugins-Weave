@@ -25,7 +25,7 @@ def many_loop_files(temp_plugin_env) -> List[Path]:
 
     # Create 500 Loop files (representing significant history)
     for i in range(1, 501):
-        filename = f"Loop{i:04d}.txt"
+        filename = f"L{i:05d}.txt"
         file_path = loops_path / filename
         content = {
             "metadata": {
@@ -85,7 +85,7 @@ class TestLargeDataVolumes:
         start = time.perf_counter()
 
         # Enumerate all Loop files
-        loop_files = list(loops_dir.glob("Loop*.txt"))
+        loop_files = list(loops_dir.glob("L*.txt"))
 
         elapsed = time.perf_counter() - start
 
@@ -114,11 +114,11 @@ class TestLargeDataVolumes:
 
         # Create large digest lists
         digests_a = [
-            {"source_file": f"Loop{i:04d}.txt", "keywords": [f"kw{i}"]}
+            {"source_file": f"L{i:05d}.txt", "keywords": [f"kw{i}"]}
             for i in range(1, 251)
         ]
         digests_b = [
-            {"source_file": f"Loop{i:04d}.txt", "keywords": [f"new_kw{i}"]}
+            {"source_file": f"L{i:05d}.txt", "keywords": [f"new_kw{i}"]}
             for i in range(200, 501)
         ]
 
@@ -286,11 +286,11 @@ class TestThroughput:
 
         # Prepare test data
         base_digests = [
-            {"source_file": f"Loop{i:04d}.txt", "keywords": ["a", "b"]}
+            {"source_file": f"L{i:05d}.txt", "keywords": ["a", "b"]}
             for i in range(100)
         ]
         new_digests = [
-            {"source_file": f"Loop{i:04d}.txt", "keywords": ["c", "d"]}
+            {"source_file": f"L{i:05d}.txt", "keywords": ["c", "d"]}
             for i in range(50, 150)
         ]
 

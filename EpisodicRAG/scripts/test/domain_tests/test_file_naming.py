@@ -31,12 +31,12 @@ class TestExtractFileNumber:
     @pytest.mark.parametrize(
         "filename,expected",
         [
-            ("Loop0186_test.txt", ("Loop", 186)),
+            ("L00186_test.txt", ("L", 186)),
             ("W0001_weekly.txt", ("W", 1)),
             ("MD03_decadal.txt", ("MD", 3)),
-            ("M001_monthly.txt", ("M", 1)),
+            ("M0001_monthly.txt", ("M", 1)),
             ("Q003_quarterly.txt", ("Q", 3)),
-            ("A01_annual.txt", ("A", 1)),
+            ("A001_annual.txt", ("A", 1)),
         ],
     )
     def test_valid_files(self, filename, expected):
@@ -63,7 +63,7 @@ class TestExtractNumberOnly:
 
     def test_loop_file(self):
         """Loopファイルから番号のみを抽出"""
-        assert extract_number_only("Loop0186_test.txt") == 186
+        assert extract_number_only("L00186_test.txt") == 186
 
     def test_invalid_input(self):
         """無効な入力はNoneを返す"""
@@ -76,11 +76,11 @@ class TestFormatDigestNumber:
     @pytest.mark.parametrize(
         "level,number,expected",
         [
-            ("loop", 186, "Loop0186"),
+            ("loop", 186, "L00186"),
             ("weekly", 1, "W0001"),
-            ("monthly", 12, "M012"),
+            ("monthly", 12, "M0012"),
             ("quarterly", 3, "Q003"),
-            ("annual", 5, "A05"),
+            ("annual", 5, "A005"),
             ("triennial", 2, "T02"),
             ("decadal", 1, "D01"),
             ("multi_decadal", 3, "MD03"),
@@ -123,8 +123,8 @@ class TestFindMaxNumber:
 
     def test_find_max_from_strings(self):
         """文字列リストから最大番号を取得"""
-        files = ["Loop0001_a.txt", "Loop0005_b.txt", "Loop0003_c.txt"]
-        result = find_max_number(files, "Loop")
+        files = ["L00001_a.txt", "L00005_b.txt", "L00003_c.txt"]
+        result = find_max_number(files, "L")
         assert result == 5
 
     def test_empty_list(self):
@@ -155,10 +155,10 @@ class TestFilterFilesAfter:
     def test_filter_files_after_threshold(self, tmp_path):
         """閾値より大きい番号のファイルをフィルタ"""
         files = [
-            tmp_path / "Loop0001_a.txt",
-            tmp_path / "Loop0003_b.txt",
-            tmp_path / "Loop0005_c.txt",
-            tmp_path / "Loop0002_d.txt",
+            tmp_path / "L00001_a.txt",
+            tmp_path / "L00003_b.txt",
+            tmp_path / "L00005_c.txt",
+            tmp_path / "L00002_d.txt",
         ]
         for f in files:
             f.touch()
@@ -167,8 +167,8 @@ class TestFilterFilesAfter:
         filenames = [f.name for f in result]
 
         assert len(result) == 2
-        assert "Loop0003_b.txt" in filenames
-        assert "Loop0005_c.txt" in filenames
+        assert "L00003_b.txt" in filenames
+        assert "L00005_c.txt" in filenames
 
     def test_filter_with_zero_threshold(self, tmp_path):
         """閾値0の場合は全ファイルを返す"""
@@ -190,8 +190,8 @@ class TestFilterFilesAfter:
     def test_filter_no_files_above_threshold(self, tmp_path):
         """閾値より大きいファイルがない場合"""
         files = [
-            tmp_path / "Loop0001_a.txt",
-            tmp_path / "Loop0002_b.txt",
+            tmp_path / "L00001_a.txt",
+            tmp_path / "L00002_b.txt",
         ]
         for f in files:
             f.touch()
@@ -205,13 +205,13 @@ class TestExtractNumbersFormatted:
 
     def test_extract_and_format_loop_files(self):
         """Loopファイルからフォーマット済み番号を抽出"""
-        files = ["Loop0001_a.txt", "Loop0003_b.txt", "Loop0002_c.txt"]
+        files = ["L00001_a.txt", "L00003_b.txt", "L00002_c.txt"]
         result = extract_numbers_formatted(files)
 
         assert len(result) == 3
-        assert "Loop0001" in result
-        assert "Loop0002" in result
-        assert "Loop0003" in result
+        assert "L00001" in result
+        assert "L00002" in result
+        assert "L00003" in result
 
     def test_extract_and_format_weekly_files(self):
         """Weeklyファイルからフォーマット済み番号を抽出"""
@@ -223,10 +223,10 @@ class TestExtractNumbersFormatted:
 
     def test_sorted_output(self):
         """結果はソートされている"""
-        files = ["Loop0003_c.txt", "Loop0001_a.txt", "Loop0002_b.txt"]
+        files = ["L00003_c.txt", "L00001_a.txt", "L00002_b.txt"]
         result = extract_numbers_formatted(files)
 
-        assert result == ["Loop0001", "Loop0002", "Loop0003"]
+        assert result == ["L00001", "L00002", "L00003"]
 
     def test_empty_list(self):
         """空のリストは空のリストを返す"""
@@ -235,16 +235,16 @@ class TestExtractNumbersFormatted:
 
     def test_skip_invalid_files(self):
         """無効なファイル名はスキップ"""
-        files = ["Loop0001_a.txt", "invalid.txt", "Loop0002_b.txt"]
+        files = ["L00001_a.txt", "invalid.txt", "L00002_b.txt"]
         result = extract_numbers_formatted(files)
 
         assert len(result) == 2
-        assert "Loop0001" in result
-        assert "Loop0002" in result
+        assert "L00001" in result
+        assert "L00002" in result
 
     def test_skip_non_string_elements(self):
         """文字列以外の要素はスキップ"""
-        files = ["Loop0001_a.txt", None, 123, "Loop0002_b.txt"]
+        files = ["L00001_a.txt", None, 123, "L00002_b.txt"]
         result = extract_numbers_formatted(files)
 
         assert len(result) == 2
@@ -269,8 +269,8 @@ class TestEdgeCases:
 
     def test_large_numbers(self):
         """大きな番号の処理"""
-        files = ["Loop9999_a.txt", "Loop0001_b.txt"]
-        assert find_max_number(files, "Loop") == 9999
+        files = ["L09999_a.txt", "L00001_b.txt"]
+        assert find_max_number(files, "L") == 9999
 
     def test_leading_zeros_preserved(self):
         """ゼロ埋めが維持される"""

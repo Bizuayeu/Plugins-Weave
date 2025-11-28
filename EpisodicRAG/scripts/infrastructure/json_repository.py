@@ -35,9 +35,12 @@ Usage:
 import json
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, cast
+from typing import Any, Callable, Dict, Optional, TypeVar, cast, overload
 
 from domain.exceptions import FileIOError
+
+# Generic type for load_json_with_template
+T = TypeVar("T", bound=Dict[str, Any])
 
 # モジュールロガー
 logger = logging.getLogger("episodic_rag")
@@ -125,12 +128,14 @@ def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
 def load_json_with_template(
     target_file: Path,
     template_file: Optional[Path] = None,
-    default_factory: Optional[Callable[[], Dict[str, Any]]] = None,
+    default_factory: Optional[Callable[[], T]] = None,
     save_on_create: bool = True,
     log_message: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> T:
     """
     JSONファイルを読み込む。存在しない場合はテンプレートまたはデフォルトから作成。
+
+    Generic type T allows callers to avoid explicit casts when using TypedDict.
 
     Args:
         target_file: 読み込むJSONファイルのパス
@@ -140,10 +145,18 @@ def load_json_with_template(
         log_message: 作成時のログメッセージ（Noneの場合はデフォルトメッセージ）
 
     Returns:
-        読み込んだまたは作成したdict
+        読み込んだまたは作成したdict (type T)
 
     Raises:
         FileIOError: JSONのパース失敗またはファイルI/Oエラーの場合
+
+    Example:
+        # With TypedDict, the factory type determines the return type:
+        def get_template() -> MyTypedDict:
+            return {"key": "value"}
+
+        data = load_json_with_template(path, default_factory=get_template)
+        # data is inferred as MyTypedDict
     """
     logger.debug(f"load_json_with_template called: target={target_file}, template={template_file}")
 
@@ -151,7 +164,7 @@ def load_json_with_template(
     if target_file.exists():
         logger.debug(f"Loading existing file: {target_file}")
         data = _safe_read_json(target_file, raise_on_error=True)
-        data = cast(Dict[str, Any], data)
+        data = cast(T, data)
         logger.debug(f"Loaded {len(data)} keys from {target_file.name}")
         return data
 
@@ -159,7 +172,7 @@ def load_json_with_template(
     if template_file and template_file.exists():
         logger.debug(f"Target not found, loading from template: {template_file}")
         template = _safe_read_json(template_file, raise_on_error=True)
-        template = cast(Dict[str, Any], template)
+        template = cast(T, template)
         if save_on_create:
             save_json(target_file, template)
             logger.debug(f"Saved initialized file to: {target_file}")
@@ -180,7 +193,7 @@ def load_json_with_template(
 
     # どちらもない場合は空のdictを返す
     logger.debug("No template or factory provided, returning empty dict")
-    return {}
+    return cast(T, {})
 
 
 def file_exists(file_path: Path) -> bool:

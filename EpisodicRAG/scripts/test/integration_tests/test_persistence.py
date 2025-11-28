@@ -49,7 +49,7 @@ def valid_regular_digest():
         "overall_digest": {
             "name": "W0001_Test",
             "timestamp": "2025-01-01T00:00:00",
-            "source_files": ["Loop0001_test.txt"],
+            "source_files": ["L00001_test.txt"],
             "digest_type": "週次統合",
             "keywords": ["test"],
             "abstract": "Test abstract",
@@ -166,14 +166,14 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
     @pytest.mark.integration
     def test_updates_times_tracker(self, persistence, times_tracker, temp_plugin_env):
         """times_trackerが更新される"""
-        source_files = ["Loop0001_test.txt", "Loop0002_test.txt"]
+        source_files = ["L00001_test.txt", "L00002_test.txt"]
         persistence.process_cascade_and_cleanup("weekly", source_files, None)
 
         # times_trackerを確認
         times_data = times_tracker.load_or_create()
         # last_processed は整数で、処理されたLoop番号を表す
         assert isinstance(times_data["weekly"]["last_processed"], int)
-        assert times_data["weekly"]["last_processed"] == 2  # Loop0002が最後
+        assert times_data["weekly"]["last_processed"] == 2  # L00002が最後
 
     @pytest.mark.integration
     def test_removes_provisional_file(self, persistence, config):
@@ -186,7 +186,7 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
 
         assert provisional_path.exists()
 
-        persistence.process_cascade_and_cleanup("weekly", ["Loop0001.txt"], provisional_path)
+        persistence.process_cascade_and_cleanup("weekly", ["L00001.txt"], provisional_path)
 
         assert not provisional_path.exists()
 
@@ -194,7 +194,7 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
     def test_handles_none_provisional_file(self, persistence):
         """Provisionalファイルがない場合も正常に動作"""
         # エラーなく完了すればOK
-        persistence.process_cascade_and_cleanup("weekly", ["Loop0001.txt"], None)
+        persistence.process_cascade_and_cleanup("weekly", ["L00001.txt"], None)
 
     @pytest.mark.integration
     def test_skips_cascade_for_centurial(self, persistence, shadow_manager, temp_plugin_env):

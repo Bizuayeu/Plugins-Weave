@@ -98,7 +98,7 @@ class TestFileDetectorGetMaxFileNumber:
     def test_returns_last_processed_when_exists(self, detector, times_tracker):
         """last_processedが存在する場合はその値を返す"""
         # last_processedを設定（input_filesを渡すことで内部でlast_processedが設定される）
-        times_tracker.save("weekly", ["Loop0005_test.txt"])
+        times_tracker.save("weekly", ["L00005_test.txt"])
 
         result = detector.get_max_file_number("weekly")
         # last_processed is now stored as int (extracted number)
@@ -107,7 +107,7 @@ class TestFileDetectorGetMaxFileNumber:
     @pytest.mark.integration
     def test_returns_correct_value_for_different_levels(self, detector, times_tracker):
         """各レベルごとに正しい値を返す"""
-        times_tracker.save("weekly", ["Loop0010_test.txt"])
+        times_tracker.save("weekly", ["L00010_test.txt"])
         times_tracker.save("monthly", ["W0003_test.txt"])
 
         # last_processed is now stored as int (extracted number)
@@ -156,17 +156,17 @@ class TestFileDetectorFindNewFiles:
         for i in range(1, 6):
             create_test_loop_file(temp_plugin_env.loops_path, i)
 
-        # last_processedをLoop0003に設定
-        times_tracker.save("weekly", ["Loop0003_test.txt"])
+        # last_processedをL00003に設定
+        times_tracker.save("weekly", ["L00003_test.txt"])
 
         result = detector.find_new_files("weekly")
 
-        # Loop0004, Loop0005のみが返される
+        # L00004, L00005のみが返される
         assert len(result) == 2
         filenames = [f.name for f in result]
-        assert any("Loop0004" in name for name in filenames)
-        assert any("Loop0005" in name for name in filenames)
-        assert not any("Loop0003" in name for name in filenames)
+        assert any("L00004" in name for name in filenames)
+        assert any("L00005" in name for name in filenames)
+        assert not any("L00003" in name for name in filenames)
 
     @pytest.mark.integration
     def test_returns_empty_when_no_new_files(self, detector, temp_plugin_env, times_tracker):
@@ -175,8 +175,8 @@ class TestFileDetectorFindNewFiles:
         for i in range(1, 4):
             create_test_loop_file(temp_plugin_env.loops_path, i)
 
-        # last_processedをLoop0003に設定（最後のファイル）
-        times_tracker.save("weekly", ["Loop0003_test.txt"])
+        # last_processedをL00003に設定（最後のファイル）
+        times_tracker.save("weekly", ["L00003_test.txt"])
 
         result = detector.find_new_files("weekly")
         assert result == []

@@ -147,7 +147,7 @@ class TestOrphanedFileDetection:
         provisional_data = {
             "metadata": {"digest_number": "0001"},
             "individual_digests": [
-                {"source_file": "Loop0001.txt", "keywords": ["test"]}
+                {"source_file": "L00001.txt", "keywords": ["test"]}
             ],
         }
         with open(provisional_file, "w", encoding="utf-8") as f:

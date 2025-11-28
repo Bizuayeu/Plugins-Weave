@@ -82,25 +82,25 @@ class ShadowGrandDigestManager:
         """指定レベルのShadowに新しいファイルを追加（増分更新）"""
         return self._updater.add_files_to_shadow(level, new_files)
 
-    def clear_shadow_level(self, level: str):
+    def clear_shadow_level(self, level: str) -> None:
         """指定レベルのShadowを初期化"""
-        return self._updater.clear_shadow_level(level)
+        self._updater.clear_shadow_level(level)
 
     def get_shadow_digest_for_level(self, level: str) -> Optional[OverallDigestData]:
         """指定レベルのShadowダイジェストを取得"""
         return self._updater.get_shadow_digest_for_level(level)
 
-    def promote_shadow_to_grand(self, level: str):
+    def promote_shadow_to_grand(self, level: str) -> None:
         """ShadowのレベルをGrandDigestに昇格（確認のみ）"""
-        return self._updater.promote_shadow_to_grand(level)
+        self._updater.promote_shadow_to_grand(level)
 
-    def update_shadow_for_new_loops(self):
+    def update_shadow_for_new_loops(self) -> None:
         """新しいLoopファイルを検出してShadowを増分更新"""
-        return self._updater.update_shadow_for_new_loops()
+        self._updater.update_shadow_for_new_loops()
 
-    def cascade_update_on_digest_finalize(self, level: str):
+    def cascade_update_on_digest_finalize(self, level: str) -> None:
         """ダイジェスト確定時のカスケード処理"""
-        return self._updater.cascade_update_on_digest_finalize(level)
+        self._updater.cascade_update_on_digest_finalize(level)
 
 
 def main():

@@ -66,14 +66,14 @@ Q5〜Q12: 各階層のthreshold → [1] デフォルト値
 
 以下の内容でファイルを作成します：
 
-**ファイル名**: `Loop0001_テスト会話.txt`
+**ファイル名**: `L00001_テスト会話.txt`
 
 **配置先**: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/data/Loops/`
 
 **内容**（コピペ可能）:
 
 ```
-# Loop0001: テスト会話
+# L00001: テスト会話
 
 User: こんにちは、EpisodicRAGのテストです。
 Assistant: こんにちは！EpisodicRAGのテストですね。何かお手伝いできることはありますか？
@@ -94,7 +94,7 @@ Assistant: EpisodicRAGは8階層の長期記憶システムです。会話をLoo
 ```
 未処理のLoopファイルを検出しました: 1個
 
-  - Loop0001_テスト会話.txt
+  - L00001_テスト会話.txt
 
 DigestAnalyzerで分析を開始します...
 

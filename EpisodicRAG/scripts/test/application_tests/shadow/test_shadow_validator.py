@@ -42,7 +42,7 @@ class TestShadowValidatorValidateShadowContent:
     @pytest.mark.unit
     def test_valid_consecutive_files(self, validator):
         """連続したファイルは検証通過"""
-        source_files = ["Loop0001_test.txt", "Loop0002_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00002_test.txt", "L00003_test.txt"]
         # エラーなく完了すればOK
         validator.validate_shadow_content("weekly", source_files)
 
@@ -84,7 +84,7 @@ class TestShadowValidatorValidateShadowContent:
     @pytest.mark.unit
     def test_single_file_passes(self, validator):
         """1ファイルでも検証通過"""
-        source_files = ["Loop0001_test.txt"]
+        source_files = ["L00001_test.txt"]
         validator.validate_shadow_content("weekly", source_files)
 
 
@@ -161,7 +161,7 @@ class TestShadowValidatorNonConsecutiveFiles:
         monkeypatch.setattr('builtins.input', lambda _: 'y')
 
         # 非連続ファイル（1, 3 で 2 が抜けている）
-        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00003_test.txt"]
 
         # 'y'入力で例外なく完了
         validator.validate_shadow_content("weekly", source_files)
@@ -173,7 +173,7 @@ class TestShadowValidatorNonConsecutiveFiles:
         monkeypatch.setattr('builtins.input', lambda _: 'n')
 
         # 非連続ファイル
-        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00003_test.txt"]
 
         with pytest.raises(ValidationError) as exc_info:
             validator.validate_shadow_content("weekly", source_files)
@@ -185,7 +185,7 @@ class TestShadowValidatorNonConsecutiveFiles:
         # input()を空文字を返すようにモック
         monkeypatch.setattr('builtins.input', lambda _: '')
 
-        source_files = ["Loop0001_test.txt", "Loop0005_test.txt"]
+        source_files = ["L00001_test.txt", "L00005_test.txt"]
 
         with pytest.raises(ValidationError) as exc_info:
             validator.validate_shadow_content("weekly", source_files)
@@ -202,7 +202,7 @@ class TestShadowValidatorNonConsecutiveFiles:
         monkeypatch.setattr('builtins.input', raise_if_called)
 
         # 連続ファイル
-        source_files = ["Loop0001_test.txt", "Loop0002_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00002_test.txt", "L00003_test.txt"]
 
         # エラーなく完了
         validator.validate_shadow_content("weekly", source_files)
@@ -223,7 +223,7 @@ class TestShadowValidatorConfirmCallback:
         validator = ShadowValidator(shadow_manager, confirm_callback=lambda msg: False)
 
         # 非連続ファイル
-        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00003_test.txt"]
 
         with pytest.raises(ValidationError) as exc_info:
             validator.validate_shadow_content("weekly", source_files)
@@ -236,7 +236,7 @@ class TestShadowValidatorConfirmCallback:
         validator = ShadowValidator(shadow_manager, confirm_callback=lambda msg: True)
 
         # 非連続ファイル
-        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00003_test.txt"]
 
         # 例外が発生しないことを確認
         validator.validate_shadow_content("weekly", source_files)
@@ -253,7 +253,7 @@ class TestShadowValidatorConfirmCallback:
         validator = ShadowValidator(shadow_manager, confirm_callback=capture_callback)
 
         # 非連続ファイル
-        source_files = ["Loop0001_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00003_test.txt"]
         validator.validate_shadow_content("weekly", source_files)
 
         assert len(received_messages) == 1
@@ -290,7 +290,7 @@ class TestShadowValidatorConfirmCallback:
         validator = ShadowValidator(shadow_manager, confirm_callback=detect_callback)
 
         # 連続ファイル
-        source_files = ["Loop0001_test.txt", "Loop0002_test.txt", "Loop0003_test.txt"]
+        source_files = ["L00001_test.txt", "L00002_test.txt", "L00003_test.txt"]
         validator.validate_shadow_content("weekly", source_files)
 
         # コールバックは呼ばれていない
@@ -307,8 +307,8 @@ class TestShadowValidatorEdgeCases:
 
     @pytest.mark.unit
     def test_different_file_prefixes_weekly(self, validator):
-        """Weekly用: Loopプレフィックスのファイル"""
-        source_files = ["Loop0001_test.txt", "Loop0002_another.txt"]
+        """Weekly用: Lプレフィックスのファイル"""
+        source_files = ["L00001_test.txt", "L00002_another.txt"]
         validator.validate_shadow_content("weekly", source_files)
 
     @pytest.mark.unit
@@ -320,33 +320,33 @@ class TestShadowValidatorEdgeCases:
     @pytest.mark.unit
     def test_different_file_prefixes_quarterly(self, validator):
         """Quarterly用: Mプレフィックスのファイル"""
-        source_files = ["M001_digest1.txt", "M002_digest2.txt"]
+        source_files = ["M0001_digest1.txt", "M0002_digest2.txt"]
         validator.validate_shadow_content("quarterly", source_files)
 
     @pytest.mark.unit
     def test_large_file_numbers(self, validator):
         """大きなファイル番号を処理"""
-        source_files = ["Loop9998_test.txt", "Loop9999_final.txt"]
+        source_files = ["L09998_test.txt", "L09999_final.txt"]
         validator.validate_shadow_content("weekly", source_files)
 
     @pytest.mark.unit
     def test_source_files_with_none_raises(self, validator):
         """source_filesにNoneが含まれる場合はValidationError"""
         with pytest.raises(ValidationError) as exc_info:
-            validator.validate_shadow_content("weekly", [None, "Loop0001.txt"])
+            validator.validate_shadow_content("weekly", [None, "L00001.txt"])
         assert "expected str" in str(exc_info.value)
 
     @pytest.mark.unit
     def test_mixed_valid_invalid_filenames(self, validator):
         """有効と無効のファイル名が混在する場合"""
         with pytest.raises(ValidationError) as exc_info:
-            validator.validate_shadow_content("weekly", ["Loop0001_test.txt", "bad.txt"])
+            validator.validate_shadow_content("weekly", ["L00001_test.txt", "bad.txt"])
         assert "Invalid filename format" in str(exc_info.value)
 
     @pytest.mark.unit
     def test_unicode_in_filename_suffix(self, validator):
         """ファイル名に日本語が含まれる場合"""
-        source_files = ["Loop0001_テスト会話.txt", "Loop0002_別の会話.txt"]
+        source_files = ["L00001_テスト会話.txt", "L00002_別の会話.txt"]
         validator.validate_shadow_content("weekly", source_files)
 
     @pytest.mark.integration

@@ -101,7 +101,7 @@ class TestConfigApplicationIntegration:
         times_file = config.config_file.parent / "last_digest_times.json"
 
         # 保存操作
-        times_tracker.save("weekly", ["Loop0001_test.txt"])
+        times_tracker.save("weekly", ["L00001_test.txt"])
 
         # ファイルが作成されている
         assert times_file.exists()

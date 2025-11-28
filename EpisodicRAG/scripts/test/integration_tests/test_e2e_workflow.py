@@ -110,8 +110,8 @@ class TestE2ELoopDetectionToShadow:
         # 2つの新しいファイルのみ検出
         assert len(new_files2) == 2
         filenames = [f.name for f in new_files2]
-        assert any("Loop0004" in name for name in filenames)
-        assert any("Loop0005" in name for name in filenames)
+        assert any("L00004" in name for name in filenames)
+        assert any("L00005" in name for name in filenames)
 
 
 # =============================================================================
@@ -173,7 +173,7 @@ class TestE2EDigestPromotion:
         shadow_data = shadow_manager._io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = {
             "digest_type": "weekly",
-            "source_files": ["Loop0001_test.txt", "Loop0002_test.txt", "Loop0003_test.txt"],
+            "source_files": ["L00001_test.txt", "L00002_test.txt", "L00003_test.txt"],
             "abstract": "Test abstract",
             "keywords": ["test", "e2e"],
             "key_insights": ["insight1"],
@@ -359,7 +359,7 @@ class TestE2EFullWorkflow:
         times_data = times_tracker.load_or_create()
         # last_processed は整数で、処理されたLoop番号を表す
         assert isinstance(times_data["weekly"]["last_processed"], int)
-        assert times_data["weekly"]["last_processed"] == 5  # Loop0001-Loop0005を処理
+        assert times_data["weekly"]["last_processed"] == 5  # L00001-L00005を処理
 
     @pytest.mark.integration
     def test_multiple_weekly_cycles(self, full_env):
@@ -412,8 +412,8 @@ class TestE2EFullWorkflow:
         # 3つの新しいファイルのみ検出
         assert len(new_files2) == 3
         filenames = [f.name for f in new_files2]
-        assert not any("Loop0001" in name for name in filenames)
-        assert any("Loop0004" in name for name in filenames)
+        assert not any("L00001" in name for name in filenames)
+        assert any("L00004" in name for name in filenames)
 
         # サイクル2をShadowに追加
         shadow_manager2.add_files_to_shadow("weekly", new_files2)

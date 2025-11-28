@@ -8,7 +8,6 @@ finalize_from_shadow.py から分離。
 """
 
 from datetime import datetime
-from typing import Any, Callable, Dict, cast
 
 from application.validators import is_valid_dict
 from config import DigestConfig
@@ -42,14 +41,11 @@ class GrandDigestManager:
 
     def load_or_create(self) -> GrandDigestData:
         """GrandDigest.txtを読み込む。存在しなければテンプレートで作成"""
-        # Cast factory for infrastructure compatibility
-        factory = cast(Callable[[], Dict[str, Any]], self.get_template)
-        result = load_json_with_template(
+        return load_json_with_template(
             target_file=self.grand_digest_file,
-            default_factory=factory,
+            default_factory=self.get_template,
             log_message="GrandDigest.txt not found. Creating new file.",
         )
-        return cast(GrandDigestData, result)
 
     def save(self, data: GrandDigestData) -> None:
         """GrandDigest.txtを保存"""

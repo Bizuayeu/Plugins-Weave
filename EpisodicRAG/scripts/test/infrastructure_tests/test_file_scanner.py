@@ -91,11 +91,11 @@ class TestScanFiles:
     @pytest.mark.integration
     def test_glob_pattern_with_prefix(self, tmp_path):
         """プレフィックス付きglobパターン"""
-        (tmp_path / "Loop0001.txt").write_text("")
-        (tmp_path / "Loop0002.txt").write_text("")
+        (tmp_path / "L00001.txt").write_text("")
+        (tmp_path / "L00002.txt").write_text("")
         (tmp_path / "W0001.txt").write_text("")
 
-        result = scan_files(tmp_path, "Loop*.txt")
+        result = scan_files(tmp_path, "L*.txt")
         assert len(result) == 2
 
 
@@ -162,9 +162,9 @@ class TestGetMaxNumberedFile:
     @staticmethod
     def extract_loop_number(filename: str) -> Optional[int]:
         """Loop0001.txt → 1"""
-        if filename.startswith("Loop") and filename.endswith(".txt"):
+        if filename.startswith("L") and filename.endswith(".txt"):
             try:
-                return int(filename[4:8])
+                return int(filename[1:6])
             except ValueError:
                 return None
         return None
@@ -173,7 +173,7 @@ class TestGetMaxNumberedFile:
     def test_nonexistent_directory_returns_none(self, tmp_path):
         """存在しないディレクトリ → None"""
         nonexistent = tmp_path / "nonexistent"
-        result = get_max_numbered_file(nonexistent, "Loop*.txt", self.extract_loop_number)
+        result = get_max_numbered_file(nonexistent, "L*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
@@ -181,41 +181,41 @@ class TestGetMaxNumberedFile:
         """空ディレクトリ → None"""
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
-        result = get_max_numbered_file(empty_dir, "Loop*.txt", self.extract_loop_number)
+        result = get_max_numbered_file(empty_dir, "L*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
     def test_no_matching_files_returns_none(self, tmp_path):
         """マッチするファイルなし → None"""
         (tmp_path / "other.txt").write_text("")
-        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
+        result = get_max_numbered_file(tmp_path, "L*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
     def test_single_file_returns_number(self, tmp_path):
         """単一ファイル → その番号"""
-        (tmp_path / "Loop0042.txt").write_text("")
-        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
+        (tmp_path / "L00042.txt").write_text("")
+        result = get_max_numbered_file(tmp_path, "L*.txt", self.extract_loop_number)
         assert result == 42
 
     @pytest.mark.integration
     def test_multiple_files_returns_max(self, tmp_path):
         """複数ファイル → 最大番号"""
-        (tmp_path / "Loop0010.txt").write_text("")
-        (tmp_path / "Loop0050.txt").write_text("")
-        (tmp_path / "Loop0030.txt").write_text("")
+        (tmp_path / "L00010.txt").write_text("")
+        (tmp_path / "L00050.txt").write_text("")
+        (tmp_path / "L00030.txt").write_text("")
 
-        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
+        result = get_max_numbered_file(tmp_path, "L*.txt", self.extract_loop_number)
         assert result == 50
 
     @pytest.mark.integration
     def test_files_with_invalid_numbers_ignored(self, tmp_path):
         """無効な番号のファイルは無視"""
-        (tmp_path / "Loop0020.txt").write_text("")
-        (tmp_path / "LoopXXXX.txt").write_text("")
-        (tmp_path / "Loop.txt").write_text("")
+        (tmp_path / "L00020.txt").write_text("")
+        (tmp_path / "LXXXXX.txt").write_text("")
+        (tmp_path / "L.txt").write_text("")
 
-        result = get_max_numbered_file(tmp_path, "Loop*.txt", self.extract_loop_number)
+        result = get_max_numbered_file(tmp_path, "L*.txt", self.extract_loop_number)
         assert result == 20
 
 

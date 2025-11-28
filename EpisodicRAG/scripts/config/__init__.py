@@ -27,16 +27,10 @@ from typing import Any, List, Optional
 # Domain層からインポート
 from domain.constants import (
     LEVEL_CONFIG,
-    LOG_PREFIX_FILE,
-    LOG_PREFIX_STATE,
-    LOG_PREFIX_VALIDATE,
     SOURCE_TYPE_LOOPS,
 )
 from domain.exceptions import ConfigError
 from domain.types import ConfigData
-
-# Infrastructure層からログ関数をインポート（show_paths用）
-from infrastructure import log_debug, log_info
 
 # 内部コンポーネント
 from .config_loader import ConfigLoader
@@ -87,21 +81,14 @@ class DigestConfig:
             self.plugin_root = plugin_root
             self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
 
-            log_debug(f"{LOG_PREFIX_STATE} DigestConfig init: plugin_root={plugin_root}")
-            log_debug(f"{LOG_PREFIX_FILE} config_file: {self.config_file}")
-            log_debug(f"{LOG_PREFIX_FILE} config_file_exists: {self.config_file.exists()}")
-
             # ConfigLoader を使用して設定を読み込み
             self._config_loader = ConfigLoader(self.config_file)
             self.config = self._config_loader.load()
-            log_debug(f"{LOG_PREFIX_VALIDATE} config_keys: {list(self.config.keys())}")
 
             # 各コンポーネントを即時初期化（軽量オブジェクトのため遅延不要）
             self._path_resolver = PathResolver(self.plugin_root, self.config)
             self._threshold_provider = ThresholdProvider(self.config)
             self._level_path_service = LevelPathService(self._path_resolver.digests_path)
-
-            log_debug(f"{LOG_PREFIX_STATE} paths: loops={self._path_resolver.loops_path}, digests={self._path_resolver.digests_path}")
 
             # ConfigValidator を使用（DirectoryValidator を統合）
             self._config_validator = ConfigValidator(
@@ -215,7 +202,7 @@ class DigestConfig:
             level: ダイジェストレベル (weekly, monthly, quarterly, etc.)
 
         Returns:
-            ファイル検索パターン (例: "Loop*.txt", "W*.txt")
+            ファイル検索パターン (例: "L*.txt", "W*.txt")
 
         Raises:
             ConfigError: 無効なlevelが指定された場合
@@ -226,7 +213,7 @@ class DigestConfig:
         source_type = str(LEVEL_CONFIG[level]["source"])
 
         if source_type == SOURCE_TYPE_LOOPS:
-            return "Loop*.txt"
+            return "L*.txt"
         else:
             source_prefix = str(LEVEL_CONFIG[source_type]["prefix"])
             return f"{source_prefix}*.txt"
@@ -266,17 +253,17 @@ class DigestConfig:
 
     def show_paths(self):
         """パス設定を表示（デバッグ用）"""
-        log_info(f"Plugin Root: {self.plugin_root}")
-        log_info(f"Config File: {self.config_file}")
-        log_info(f"Base Dir (setting): {self.config.get('base_dir', '.')}")
-        log_info(f"Base Dir (resolved): {self.base_dir}")
-        log_info(f"Loops Path: {self.loops_path}")
-        log_info(f"Digests Path: {self.digests_path}")
-        log_info(f"Essences Path: {self.essences_path}")
+        print(f"Plugin Root: {self.plugin_root}")
+        print(f"Config File: {self.config_file}")
+        print(f"Base Dir (setting): {self.config.get('base_dir', '.')}")
+        print(f"Base Dir (resolved): {self.base_dir}")
+        print(f"Loops Path: {self.loops_path}")
+        print(f"Digests Path: {self.digests_path}")
+        print(f"Essences Path: {self.essences_path}")
 
         identity_file = self.get_identity_file_path()
         if identity_file:
-            log_info(f"Identity File: {identity_file}")
+            print(f"Identity File: {identity_file}")
 
 
 def main():

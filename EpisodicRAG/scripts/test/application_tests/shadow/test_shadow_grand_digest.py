@@ -27,7 +27,7 @@ def shadow_manager(temp_plugin_env):
     mock_config.essences_path = temp_plugin_env.essences_path
     mock_config.plugin_root = temp_plugin_env.plugin_root
     mock_config.get_source_dir.return_value = temp_plugin_env.loops_path
-    mock_config.get_source_pattern.return_value = "Loop*.txt"
+    mock_config.get_source_pattern.return_value = "L*.txt"
 
     # last_digest_times.json を作成（DigestTimesTracker用）
     times_file = temp_plugin_env.config_dir / "last_digest_times.json"
