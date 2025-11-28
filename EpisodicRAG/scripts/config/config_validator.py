@@ -16,7 +16,7 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Dict, List, Optional
 
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.types import ConfigData, as_dict
