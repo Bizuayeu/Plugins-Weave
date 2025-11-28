@@ -35,6 +35,7 @@
 
 - [GUIDE.md](../docs/user/GUIDE.md) - コマンドの詳しい使い方
 - [用語集](../README.md) - 用語・共通概念
+- [_implementation-notes.md](../skills/shared/_implementation-notes.md) - 実装時の共通ガイドライン
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

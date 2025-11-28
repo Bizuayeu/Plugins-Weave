@@ -365,31 +365,150 @@ loops_path = base_dir / project/data/Loops
 
 ### ファイル形式
 
-> **Note**: 各ファイル形式の詳細なJSON構造とAPI仕様は [API_REFERENCE.md](API_REFERENCE.md) を参照してください。
+このセクションでは、EpisodicRAGで使用される各ファイルのJSON構造を定義します。
 
-| ファイル種別 | 説明 | 詳細 |
-|-------------|------|------|
-| GrandDigest.txt | 確定済み長期記憶 | [API_REFERENCE.md#granddigest](API_REFERENCE.md) |
-| ShadowGrandDigest.txt | 未確定増分ダイジェスト | [API_REFERENCE.md#shadowgranddigest](API_REFERENCE.md) |
-| Provisional Digest | 次階層用個別ダイジェスト | [API_REFERENCE.md#provisional](API_REFERENCE.md) |
-| Regular Digest | 確定済み正式ダイジェスト | [API_REFERENCE.md#regulardigest](API_REFERENCE.md) |
+> **Note**: Python APIでこれらのファイルを操作する方法は [API_REFERENCE.md](API_REFERENCE.md) を参照してください。
+
+| ファイル種別 | 説明 | 配置先 |
+|-------------|------|--------|
+| GrandDigest.txt | 確定済み長期記憶 | `{essences_dir}/` |
+| ShadowGrandDigest.txt | 未確定増分ダイジェスト | `{essences_dir}/` |
+| Provisional Digest | 次階層用個別ダイジェスト | `{digests_dir}/{level_dir}/Provisional/` |
+| Regular Digest | 確定済み正式ダイジェスト | `{digests_dir}/{level_dir}/` |
+
+### GrandDigest.txt
+
+確定済みの長期記憶を格納するJSONファイル。
+
+```json
+{
+  "metadata": {
+    "last_updated": "2025-07-01T12:00:00",
+    "version": "1.0"
+  },
+  "major_digests": {
+    "weekly": {
+      "overall_digest": {
+        "timestamp": "2025-07-01T12:00:00",
+        "source_files": ["L00001.txt", "L00002.txt", ...],
+        "digest_type": "洞察",
+        "keywords": ["キーワード1", "キーワード2", ...],
+        "abstract": "2400文字程度の統合分析...",
+        "impression": "800文字程度の所感・展望..."
+      }
+    },
+    "monthly": { ... },
+    "quarterly": { ... }
+  }
+}
+```
+
+### ShadowGrandDigest.txt
+
+未確定の増分ダイジェストを格納するJSONファイル。
+
+```json
+{
+  "metadata": {
+    "last_updated": "2025-07-01T12:00:00",
+    "version": "1.0"
+  },
+  "latest_digests": {
+    "weekly": {
+      "overall_digest": {
+        "timestamp": "2025-07-01T12:00:00",
+        "source_files": ["L00001.txt", "L00002.txt"],
+        "digest_type": "<!-- PLACEHOLDER -->",
+        "keywords": ["<!-- PLACEHOLDER -->", ...],
+        "abstract": "<!-- PLACEHOLDER: abstract (max 2400 chars) -->",
+        "impression": "<!-- PLACEHOLDER: impression (max 800 chars) -->"
+      }
+    }
+  }
+}
+```
+
+**プレースホルダー**: `<!-- PLACEHOLDER -->` 形式は未分析状態を示す。`/digest` 実行時にDigestAnalyzerが埋める。
 
 ### フィールド名の設計意図
-
-GrandDigest.txt と ShadowGrandDigest.txt では、トップレベルのフィールド名が意図的に異なります：
 
 | ファイル | フィールド名 | 意図 |
 |----------|--------------|------|
 | GrandDigest.txt | `major_digests` | 「主要な」確定済みダイジェストを強調 |
 | ShadowGrandDigest.txt | `latest_digests` | 「最新の」仮状態であることを強調 |
 
-#### Provisional Digest
+### Provisional Digest
 
 DigestAnalyzerが生成した個別ダイジェストの中間ファイル（JSON形式）。
 
-#### last_digest_times.json
+```json
+{
+  "metadata": {
+    "digest_level": "weekly",
+    "digest_number": "0001",
+    "last_updated": "2025-07-01T12:00:00",
+    "version": "1.0"
+  },
+  "individual_digests": [
+    {
+      "filename": "L00001_タイトル.txt",
+      "timestamp": "2025-07-01T12:00:00",
+      "digest_type": "洞察",
+      "keywords": ["キーワード1", ...],
+      "abstract": "1200文字程度の個別分析...",
+      "impression": "400文字程度の所感..."
+    }
+  ]
+}
+```
+
+**ファイル名形式**: `{prefix}{番号}_Individual.txt`（例: `W0001_Individual.txt`）
+
+### Regular Digest
+
+確定済みの正式ダイジェストファイル。
+
+```json
+{
+  "metadata": {
+    "digest_level": "weekly",
+    "digest_number": "0001",
+    "created_at": "2025-07-01T12:00:00",
+    "title": "認知アーキテクチャの深化",
+    "version": "1.0"
+  },
+  "overall_digest": {
+    "timestamp": "2025-07-01T12:00:00",
+    "source_files": ["L00001.txt", "L00002.txt", ...],
+    "digest_type": "洞察",
+    "keywords": [...],
+    "abstract": "2400文字程度の統合分析...",
+    "impression": "800文字程度の所感・展望..."
+  },
+  "individual_digests": [
+    { ... }
+  ]
+}
+```
+
+**ファイル名形式**: `{日付}_{prefix}{番号}_タイトル.txt`（例: `2025-07-01_W0001_認知アーキテクチャ.txt`）
+
+### last_digest_times.json
 
 各レベルの最終処理ファイルを追跡する状態ファイル。
+
+```json
+{
+  "weekly": {
+    "last_file": "L00005_タイトル.txt",
+    "last_number": 5
+  },
+  "monthly": {
+    "last_file": "2025-07-01_W0005_タイトル.txt",
+    "last_number": 5
+  }
+}
+```
 
 ---
 

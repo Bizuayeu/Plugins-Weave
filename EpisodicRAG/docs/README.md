@@ -1,8 +1,10 @@
 # EpisodicRAG AI Specification Hub
 
-Claude/AI エージェント向けの技術仕様ハブです。
+AI/Claudeエージェント向けの技術仕様ハブです。
 
 > 📖 **ユーザー向けドキュメント**は [プロジェクト README](../../README.md) を参照してください。
+>
+> 📖 **開発参加ガイド**は [CONTRIBUTING.md](../CONTRIBUTING.md) を参照してください。
 
 ---
 
@@ -60,26 +62,13 @@ Claude/AI エージェント向けの技術仕様ハブです。
 
 ---
 
-## User Documentation
-
-| ドキュメント | 対象 | 概要 |
-|-------------|------|------|
-| [QUICKSTART.md](user/QUICKSTART.md) | 新規ユーザー | 5 分で始める |
-| [GUIDE.md](user/GUIDE.md) | 一般ユーザー | 詳細ガイド |
-| [用語集](../README.md) | 全員 | 用語・共通概念 |
-| [FAQ.md](user/FAQ.md) | 問題解決 | よくある質問 |
-| [TROUBLESHOOTING.md](user/TROUBLESHOOTING.md) | 問題解決 | 詳細トラブルシューティング |
-| [ADVANCED.md](user/ADVANCED.md) | 上級者 | GitHub 連携 |
-
 ## Developer Documentation
 
 | 目的 | ドキュメント | 概要 |
 |------|-------------|------|
-| 開発参加方法 | [CONTRIBUTING.md](../CONTRIBUTING.md) | 環境セットアップ・テスト・PR作成 |
-| AI開発ガイド | [CLAUDE.md](../.claude-plugin/CLAUDE.md) | Claude Code向け開発ガイドライン |
-| 技術アーキテクチャ | [ARCHITECTURE.md](dev/ARCHITECTURE.md) | Clean Architecture・データフロー |
+| 技術アーキテクチャ | [ARCHITECTURE.md](dev/ARCHITECTURE.md) | Clean Architecture・データフロー・ファイル形式 |
 | API仕様 | [API_REFERENCE.md](dev/API_REFERENCE.md) | Python API リファレンス |
-| 実装パターン | [_implementation-notes.md](../skills/shared/_implementation-notes.md) | スキル実装の共通ガイドライン |
+| 実装パターン | [_implementation-notes.md](../skills/shared/_implementation-notes.md) | スキル・コマンド・エージェント実装の共通ガイドライン |
 | エラーリカバリー | [ERROR_RECOVERY_PATTERNS.md](dev/ERROR_RECOVERY_PATTERNS.md) | エラーハンドリングパターン |
 
 ---

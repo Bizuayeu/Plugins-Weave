@@ -4,9 +4,16 @@
 
 EpisodicRAGプラグインに関するよくある質問と回答集です。
 
-> **ドキュメントの使い分け**
-> - **概念的な疑問**（〜とは何か、なぜ〜か）→ このドキュメント
-> - **具体的な解決手順**（〜が動かない、〜を修復したい）→ [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+---
+
+## このドキュメントの使い方
+
+| 質問の種類 | 参照先 |
+|-----------|--------|
+| 「〜とは何か」「なぜ〜か」という**概念的な疑問** | **このドキュメント（FAQ）** |
+| 「〜が動かない」「〜を修復したい」という**具体的な問題解決** | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+
+> 💡 FAQ で概念を理解し、問題が発生したら TROUBLESHOOTING で解決手順を確認してください。
 
 ## 目次
 
@@ -109,16 +116,9 @@ flowchart TB
 
 ## トラブルシューティング
 
-問題が発生した場合は、以下のドキュメントを参照してください：
+問題が発生した場合は [TROUBLESHOOTING.md](TROUBLESHOOTING.md) を参照してください。
 
-| 症状 | 参照先 |
-|------|--------|
-| DigestAnalyzerが起動しない | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#digestanalyzerエージェントが起動しない) |
-| individual_digestsが空になる | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#individual_digestsが空になる) |
-| ShadowGrandDigestが更新されない | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#shadowgranddigestが更新されない) |
-| 階層カスケードが動作しない | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#階層的カスケードが動作しない) |
-
-> 📖 詳細な診断手順・デバッグ方法は [TROUBLESHOOTING.md](TROUBLESHOOTING.md) を参照
+症状別の解決手順、診断フローチャート、デバッグ方法が記載されています。
 
 ---
 

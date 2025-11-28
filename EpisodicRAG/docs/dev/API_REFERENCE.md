@@ -2,9 +2,20 @@
 
 # API リファレンス
 
-EpisodicRAGプラグインのPython API仕様書です。
+EpisodicRAGプラグインの**Python API仕様書**です。
 
 > **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
+
+---
+
+## このドキュメントの範囲
+
+| 内容 | 配置先 |
+|------|--------|
+| **Python API**（クラス、関数、型定義） | **このドキュメント + api/*.md** |
+| ファイル形式（GrandDigest/Shadow JSON構造） | [ARCHITECTURE.md](ARCHITECTURE.md#技術仕様) |
+| データフロー図 | [ARCHITECTURE.md](ARCHITECTURE.md#データフロー) |
+| 設定ファイル仕様（config.json） | [api/config.md](api/config.md) |
 
 ---
 
