@@ -2,6 +2,8 @@
 
 このファイルは、Claude CodeがEpisodicRAGプラグインを開発・操作する際のガイドラインです。
 
+> **人間の開発者向け**: [CONTRIBUTING.md](../CONTRIBUTING.md) を参照してください。
+
 ---
 
 ## プロジェクト概要

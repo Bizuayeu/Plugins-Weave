@@ -16,6 +16,8 @@
 
 v2.0.0 より、Clean Architecture（4層 + config層）を採用しています。
 
+> 📖 **詳細仕様**（層構造・依存関係ルール・推奨インポートパス）: [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md#clean-architecture)
+
 ```text
 scripts/
 ├── domain/           # コアビジネスロジック（最内層）

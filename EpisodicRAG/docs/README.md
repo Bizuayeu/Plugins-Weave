@@ -73,10 +73,14 @@ Claude/AI エージェント向けの技術仕様ハブです。
 
 ## Developer Documentation
 
-| ドキュメント | 概要 |
-|-------------|------|
-| [ARCHITECTURE.md](dev/ARCHITECTURE.md) | 技術仕様 |
-| [API_REFERENCE.md](dev/API_REFERENCE.md) | API リファレンス |
+| 目的 | ドキュメント | 概要 |
+|------|-------------|------|
+| 開発参加方法 | [CONTRIBUTING.md](../CONTRIBUTING.md) | 環境セットアップ・テスト・PR作成 |
+| AI開発ガイド | [CLAUDE.md](../.claude-plugin/CLAUDE.md) | Claude Code向け開発ガイドライン |
+| 技術アーキテクチャ | [ARCHITECTURE.md](dev/ARCHITECTURE.md) | Clean Architecture・データフロー |
+| API仕様 | [API_REFERENCE.md](dev/API_REFERENCE.md) | Python API リファレンス |
+| 実装パターン | [_implementation-notes.md](../skills/shared/_implementation-notes.md) | スキル実装の共通ガイドライン |
+| エラーリカバリー | [ERROR_RECOVERY_PATTERNS.md](dev/ERROR_RECOVERY_PATTERNS.md) | エラーハンドリングパターン |
 
 ---
 
