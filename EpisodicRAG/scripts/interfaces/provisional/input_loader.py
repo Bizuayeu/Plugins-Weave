@@ -39,13 +39,20 @@ class InputLoader:
         if not input_data or not input_data.strip():
             raise ValidationError("input_data cannot be empty")
 
-        # Try as file path first
-        input_path = Path(input_data)
-        if input_path.exists():
-            data = InputLoader._load_from_file(input_path)
-        else:
-            # Parse as JSON string
+        # Quick heuristic: JSON arrays/objects start with [ or {
+        # This avoids calling Path.exists() on long JSON strings (OSError on Linux)
+        stripped = input_data.strip()
+        if stripped.startswith('[') or stripped.startswith('{'):
+            # Parse as JSON string directly
             data = InputLoader._parse_json_string(input_data)
+        else:
+            # Try as file path
+            input_path = Path(input_data)
+            if input_path.exists():
+                data = InputLoader._load_from_file(input_path)
+            else:
+                # Fallback: try parsing as JSON string anyway
+                data = InputLoader._parse_json_string(input_data)
 
         return validate_input_format(data)
 
