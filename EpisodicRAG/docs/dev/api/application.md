@@ -15,7 +15,19 @@ from application.validators import validate_dict, is_valid_list
 
 ---
 
+## 目次
+
+1. [バリデーション（validators.py）](#バリデーションapplicationvalidatorspy)
+2. [Shadow管理（shadow/）](#shadow管理applicationshadow)
+3. [GrandDigest管理（grand/）](#granddigest管理applicationgrand)
+4. [Finalize処理（finalize/）](#finalize処理applicationfinalize)
+5. [時間追跡（tracking/）](#時間追跡applicationtracking)
+
+---
+
 ## バリデーション（application/validators.py）
+
+データ型検証の共通関数群。重複する`isinstance`チェックを統一し、一貫したエラーメッセージを提供。
 
 ### validate_dict()
 
@@ -23,7 +35,28 @@ from application.validators import validate_dict, is_valid_list
 def validate_dict(data: Any, context: str) -> Dict[str, Any]
 ```
 
-データがdictであることを検証。違反時は`ValidationError`を送出。
+データがdictであることを検証。
+
+| パラメータ | 型 | 説明 |
+|-----------|------|------|
+| `data` | `Any` | 検証対象のデータ |
+| `context` | `str` | エラーメッセージに含める文脈情報（例: `"config.json"`） |
+
+| 戻り値 | 説明 |
+|--------|------|
+| `Dict[str, Any]` | 検証済みのdict |
+
+| 例外 | 発生条件 |
+|------|----------|
+| `ValidationError` | `data`がdictでない場合 |
+
+**使用例**:
+```python
+from application.validators import validate_dict
+
+raw_data = load_some_json()
+config = validate_dict(raw_data, "config.json")  # 失敗時はValidationError
+```
 
 ### validate_list()
 
@@ -31,7 +64,20 @@ def validate_dict(data: Any, context: str) -> Dict[str, Any]
 def validate_list(data: Any, context: str) -> List[Any]
 ```
 
-データがlistであることを検証。違反時は`ValidationError`を送出。
+データがlistであることを検証。
+
+| パラメータ | 型 | 説明 |
+|-----------|------|------|
+| `data` | `Any` | 検証対象のデータ |
+| `context` | `str` | エラーメッセージに含める文脈情報 |
+
+| 戻り値 | 説明 |
+|--------|------|
+| `List[Any]` | 検証済みのlist |
+
+| 例外 | 発生条件 |
+|------|----------|
+| `ValidationError` | `data`がlistでない場合 |
 
 ### validate_source_files()
 
@@ -39,7 +85,28 @@ def validate_list(data: Any, context: str) -> List[Any]
 def validate_source_files(files: Any, context: str = "source_files") -> List[str]
 ```
 
-source_filesの形式を検証（listでNone/空でないこと）。
+source_filesの形式を検証。
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|------|-----------|------|
+| `files` | `Any` | - | 検証対象のデータ |
+| `context` | `str` | `"source_files"` | エラーメッセージに含める文脈情報 |
+
+| 戻り値 | 説明 |
+|--------|------|
+| `List[str]` | 検証済みのファイルリスト |
+
+| 例外 | 発生条件 |
+|------|----------|
+| `ValidationError` | `files`がNone、listでない、または空の場合 |
+
+**使用例**:
+```python
+from application.validators import validate_source_files
+
+files = validate_source_files(shadow_digest.get("source_files"))
+# files: ["L00001_xxx.txt", "L00002_yyy.txt"]
+```
 
 ### is_valid_dict() / is_valid_list()
 
@@ -48,16 +115,51 @@ def is_valid_dict(data: Any) -> bool
 def is_valid_list(data: Any) -> bool
 ```
 
-例外を投げずにboolで型チェック。
+例外を投げずにboolで型チェック。条件分岐での使用に適している。
+
+| パラメータ | 型 | 説明 |
+|-----------|------|------|
+| `data` | `Any` | 検証対象のデータ |
+
+| 戻り値 | 説明 |
+|--------|------|
+| `bool` | `data`が期待する型なら`True` |
+
+**使用例**:
+```python
+from application.validators import is_valid_dict, is_valid_list
+
+if is_valid_dict(data):
+    process_dict(data)
+elif is_valid_list(data):
+    process_list(data)
+```
 
 ### get_dict_or_default() / get_list_or_default()
 
 ```python
-def get_dict_or_default(data: Any, default: Optional[Dict] = None) -> Dict[str, Any]
-def get_list_or_default(data: Any, default: Optional[List] = None) -> List[Any]
+def get_dict_or_default(data: Any, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]
+def get_list_or_default(data: Any, default: Optional[List[Any]] = None) -> List[Any]
 ```
 
 型が一致すればそのまま返し、不一致ならデフォルト値を返す。
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|------|-----------|------|
+| `data` | `Any` | - | 検証対象のデータ |
+| `default` | `Optional[Dict]` / `Optional[List]` | `None`（空のdict/list） | 型不一致時の戻り値 |
+
+| 戻り値 | 説明 |
+|--------|------|
+| `Dict[str, Any]` / `List[Any]` | `data`が期待する型なら`data`、そうでなければ`default` |
+
+**使用例**:
+```python
+from application.validators import get_dict_or_default
+
+# Noneや不正な型でも安全に空dictを取得
+keywords = get_dict_or_default(raw_data.get("keywords"), {})
+```
 
 ---
 
@@ -394,23 +496,111 @@ class DigestPersistence:
 
 ### DigestTimesTracker
 
-last_digest_times.json管理クラス。
+`last_digest_times.json` 管理クラス。各レベルの最終処理ファイル番号を追跡。
 
 ```python
 class DigestTimesTracker:
     def __init__(self, config: DigestConfig): ...
 ```
 
-| メソッド | 説明 | 戻り値 |
-|---------|------|--------|
-| `load_or_create() -> DigestTimesData` | 最終ダイジェスト生成時刻を読み込み | DigestTimesData |
-| `extract_file_numbers(level, input_files) -> List[str]` | ファイル名から連番を抽出（ゼロ埋め維持） | プレフィックス付き連番リスト |
-| `save(level, input_files=None) -> None` | 最終生成時刻と処理済みファイル番号を保存 | - |
+**コンストラクタ引数**:
 
-**save動作**:
+| パラメータ | 型 | 説明 |
+|-----------|------|------|
+| `config` | `DigestConfig` | 設定オブジェクト |
+
+**インスタンス属性**:
+
+| 属性 | 型 | 説明 |
+|------|------|------|
+| `last_digest_file` | `Path` | `{plugin_root}/.claude-plugin/last_digest_times.json` |
+| `template_file` | `Path` | `{plugin_root}/.claude-plugin/last_digest_times.template.json` |
+
+---
+
+#### load_or_create()
+
+```python
+def load_or_create(self) -> DigestTimesData
+```
+
+最終ダイジェスト生成時刻を読み込む。存在しなければテンプレートから初期化。
+
+| 戻り値 | 説明 |
+|--------|------|
+| `DigestTimesData` | レベル別の最終処理情報 |
+
+**DigestTimesData構造**:
+```python
+{
+    "weekly": {"timestamp": "2025-11-28T12:00:00", "last_processed": 5},
+    "monthly": {"timestamp": "", "last_processed": None},
+    # ... 全8レベル
+}
+```
+
+---
+
+#### extract_file_numbers()
+
+```python
+def extract_file_numbers(self, level: str, input_files: Optional[List[str]]) -> List[str]
+```
+
+ファイル名から連番を抽出（プレフィックス付き、ゼロ埋め維持）。
+
+| パラメータ | 型 | 説明 |
+|-----------|------|------|
+| `level` | `str` | ダイジェストレベル（将来の拡張用） |
+| `input_files` | `Optional[List[str]]` | ファイル名のリスト |
+
+| 戻り値 | 説明 |
+|--------|------|
+| `List[str]` | 抽出・フォーマットされた連番リスト（無効な入力は空リスト） |
+
+**使用例**:
+```python
+tracker = DigestTimesTracker(config)
+numbers = tracker.extract_file_numbers("weekly", ["L00001_xxx.txt", "L00005_yyy.txt"])
+# numbers: ["L00001", "L00005"]
+```
+
+---
+
+#### save()
+
+```python
+def save(self, level: str, input_files: Optional[List[str]] = None) -> None
+```
+
+最終生成時刻と最新処理済みファイル番号を保存。
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|------|-----------|------|
+| `level` | `str` | - | ダイジェストレベル |
+| `input_files` | `Optional[List[str]]` | `None` | 処理したファイル名のリスト |
+
+**動作フロー**:
 1. 既存データを読み込み
 2. `input_files`から最後のファイル番号を抽出
-3. `{level: {timestamp: ISO8601, last_processed: "W0005"}}`形式で保存
+3. 現在時刻とともに保存
+
+**保存形式**:
+```python
+{
+    "weekly": {
+        "timestamp": "2025-11-28T12:00:00",
+        "last_processed": 5  # 最後に処理したファイル番号（int）
+    }
+}
+```
+
+**使用例**:
+```python
+tracker = DigestTimesTracker(config)
+tracker.save("weekly", ["L00001_xxx.txt", "L00002_yyy.txt", "L00005_zzz.txt"])
+# last_processed = 5
+```
 
 ---
 
