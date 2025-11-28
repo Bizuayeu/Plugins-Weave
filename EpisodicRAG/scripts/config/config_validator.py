@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-from domain.types import ConfigData
+from domain.types import ConfigData, as_dict
 
 from .level_path_service import LevelPathService
 
@@ -122,7 +122,7 @@ class ConfigValidator:
 
         # パス値が文字列であることを検証
         # Use dict view for dynamic key access
-        config_dict = cast(Dict[str, Any], self.config)
+        config_dict = as_dict(self.config)
         path_keys = ["loops_path", "digests_path", "essences_path", "base_dir", "identity_file"]
         for key in path_keys:
             if key in config_dict:
@@ -145,7 +145,7 @@ class ConfigValidator:
         errors: List[str] = []
 
         # Use dict view for dynamic key access
-        config_dict = cast(Dict[str, Any], self.config)
+        config_dict = as_dict(self.config)
         for key in self.THRESHOLD_KEYS:
             if key in config_dict:
                 value = config_dict[key]

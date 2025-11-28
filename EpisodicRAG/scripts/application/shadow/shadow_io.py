@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, cast
 
-from domain.types import ShadowDigestData
+from domain.types import ShadowDigestData, as_dict
 from infrastructure import load_json_with_template, save_json
 
 
@@ -53,4 +53,4 @@ class ShadowIO:
         """
         data["metadata"]["last_updated"] = datetime.now().isoformat()
         # Cast TypedDict to Dict for infrastructure compatibility
-        save_json(self.shadow_digest_file, cast(Dict[str, Any], data))
+        save_json(self.shadow_digest_file, as_dict(data))

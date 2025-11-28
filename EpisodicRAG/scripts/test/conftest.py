@@ -209,3 +209,30 @@ def mock_digest_config(temp_plugin_env):
     mock.essences_path = temp_plugin_env.essences_path
     mock.config_dir = temp_plugin_env.config_dir
     return mock
+
+
+# =============================================================================
+# Application層フィクスチャ
+# =============================================================================
+
+
+@pytest.fixture
+def shadow_manager(config):
+    """
+    テスト用ShadowGrandDigestManager
+
+    Note:
+        実際のDigestConfigを使用する標準版。
+        カスタムモックが必要な場合は各テストで独自定義。
+    """
+    from application.grand import ShadowGrandDigestManager
+
+    return ShadowGrandDigestManager(config)
+
+
+@pytest.fixture
+def grand_digest_manager(config):
+    """テスト用GrandDigestManager"""
+    from application.grand import GrandDigestManager
+
+    return GrandDigestManager(config)

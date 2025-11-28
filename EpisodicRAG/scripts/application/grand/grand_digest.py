@@ -14,7 +14,7 @@ from application.validators import is_valid_dict
 from config import DigestConfig
 from domain.constants import LEVEL_NAMES
 from domain.exceptions import DigestError
-from domain.types import GrandDigestData, OverallDigestData
+from domain.types import GrandDigestData, OverallDigestData, as_dict
 from domain.version import DIGEST_FORMAT_VERSION
 from infrastructure import load_json_with_template, log_info, save_json
 
@@ -49,7 +49,7 @@ class GrandDigestManager:
 
     def save(self, data: GrandDigestData) -> None:
         """GrandDigest.txtを保存"""
-        save_json(self.grand_digest_file, cast(Dict[str, Any], data))
+        save_json(self.grand_digest_file, as_dict(data))
 
     def update_digest(
         self, level: str, digest_name: str, overall_digest: OverallDigestData

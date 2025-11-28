@@ -10,7 +10,7 @@ Usage:
     from domain.types import OverallDigestData, ShadowDigestData, LevelConfigData
 """
 
-from typing import Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict, cast
 
 # =============================================================================
 # メタデータ型定義
@@ -253,3 +253,29 @@ class ProvisionalDigestFile(TypedDict):
 
     metadata: DigestMetadataComplete
     individual_digests: List[IndividualDigestData]
+
+
+# =============================================================================
+# 型ユーティリティ関数
+# =============================================================================
+
+
+def as_dict(typed_dict: Any) -> Dict[str, Any]:
+    """
+    TypedDictを動的キーアクセス用にDict[str, Any]にキャスト。
+
+    TypedDictは静的型チェックには優れるが、動的キーアクセス
+    （例: data[level_name]）時にmypyが警告を出す。
+    このヘルパーで意図を明確化する。
+
+    Args:
+        typed_dict: キャストするTypedDictインスタンス
+
+    Returns:
+        Dict[str, Any]としてキャストされた同じオブジェクト
+
+    Example:
+        >>> config: ConfigData = load_config()
+        >>> levels = as_dict(config).get("levels", {})  # 動的アクセスOK
+    """
+    return cast(Dict[str, Any], typed_dict)

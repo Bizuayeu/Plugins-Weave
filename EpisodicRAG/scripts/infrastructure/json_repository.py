@@ -6,6 +6,27 @@ JSON Repository
 JSONファイルの読み書きを担当するインフラストラクチャ層。
 ファイルI/O操作を抽象化し、エラーハンドリングを一元管理。
 
+## JSON読み込み関数の使い分け
+
+| 関数 | 用途 | エラー時の動作 |
+|------|------|----------------|
+| load_json() | 必須ファイルの読み込み | 例外をスロー |
+| try_load_json() | オプショナルファイル | デフォルト値を返却 |
+| try_read_json_from_file() | バッチ処理向け | None/デフォルト返却 |
+
+### load_json(path)
+設定ファイルなど、存在が必須のファイルに使用。
+ファイルが存在しない/JSONが不正な場合は FileIOError を発生。
+
+### try_load_json(path, default)
+存在しない可能性があるファイルに使用。
+エラー時は引数で指定したdefaultを返却。ログ出力オプション付き。
+
+### try_read_json_from_file(path, default, log_on_error)
+複数ファイルをイテレートする際に使用。
+.txt拡張子チェック、ログ出力オプション付き。
+バッチ処理で非JSONファイルをスキップしたい場合に最適。
+
 Usage:
     from infrastructure.json_repository import load_json, save_json, load_json_with_template
     from infrastructure.json_repository import try_load_json, try_read_json_from_file

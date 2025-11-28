@@ -16,7 +16,7 @@ from config import DigestConfig
 from domain.constants import LEVEL_CONFIG
 from domain.exceptions import DigestError, FileIOError, ValidationError
 from domain.level_registry import get_level_registry
-from domain.types import RegularDigestData
+from domain.types import RegularDigestData, as_dict
 from infrastructure import get_default_confirm_callback, log_info, log_warning, save_json
 
 
@@ -79,7 +79,7 @@ class DigestPersistence:
 
         # 保存
         try:
-            save_json(final_path, cast(Dict[str, Any], regular_digest))
+            save_json(final_path, as_dict(regular_digest))
         except IOError as e:
             raise FileIOError(f"Failed to save RegularDigest: {e}")
 

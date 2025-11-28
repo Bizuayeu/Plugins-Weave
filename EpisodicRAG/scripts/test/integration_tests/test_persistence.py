@@ -32,30 +32,7 @@ from domain.exceptions import DigestError
 # =============================================================================
 # フィクスチャ
 # =============================================================================
-
-
-@pytest.fixture
-def config(temp_plugin_env):
-    """テスト用DigestConfig"""
-    return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
-
-
-@pytest.fixture
-def grand_digest_manager(config):
-    """テスト用GrandDigestManager"""
-    return GrandDigestManager(config)
-
-
-@pytest.fixture
-def shadow_manager(config):
-    """テスト用ShadowGrandDigestManager"""
-    return ShadowGrandDigestManager(config)
-
-
-@pytest.fixture
-def times_tracker(config):
-    """テスト用DigestTimesTracker"""
-    return DigestTimesTracker(config)
+# Note: config, shadow_manager, grand_digest_manager, times_tracker は conftest.py で定義済み
 
 
 @pytest.fixture

@@ -86,15 +86,7 @@ class TestFileDetectorGetSourcePath:
 class TestFileDetectorGetMaxFileNumber:
     """get_max_file_number メソッドのテスト"""
 
-    @pytest.fixture
-    def config(self, temp_plugin_env):
-        """テスト用DigestConfig"""
-        return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
-
-    @pytest.fixture
-    def times_tracker(self, config):
-        """テスト用DigestTimesTracker"""
-        return DigestTimesTracker(config)
+    # Note: config, times_tracker は conftest.py で定義済み
 
     @pytest.fixture
     def detector(self, config, times_tracker):
@@ -137,15 +129,7 @@ class TestFileDetectorGetMaxFileNumber:
 class TestFileDetectorFindNewFiles:
     """find_new_files メソッドのテスト"""
 
-    @pytest.fixture
-    def config(self, temp_plugin_env):
-        """テスト用DigestConfig"""
-        return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
-
-    @pytest.fixture
-    def times_tracker(self, config):
-        """テスト用DigestTimesTracker"""
-        return DigestTimesTracker(config)
+    # Note: config, times_tracker は conftest.py で定義済み
 
     @pytest.fixture
     def detector(self, config, times_tracker):

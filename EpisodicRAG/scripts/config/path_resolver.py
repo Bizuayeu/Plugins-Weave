@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, cast
 
 from domain.exceptions import ConfigError
-from domain.types import ConfigData
+from domain.types import ConfigData, as_dict
 
 __all__ = ["PathResolver"]
 
@@ -63,7 +63,7 @@ class PathResolver:
         """
         if "paths" not in self.config:
             raise ConfigError("'paths' section missing in config.json")
-        paths = cast(Dict[str, Any], self.config["paths"])
+        paths = as_dict(self.config["paths"])
         if key not in paths:
             raise ConfigError(f"Path key '{key}' not found in config.json")
         rel_path = str(paths[key])

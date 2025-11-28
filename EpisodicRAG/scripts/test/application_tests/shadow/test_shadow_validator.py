@@ -27,18 +27,7 @@ from domain.exceptions import DigestError, ValidationError
 # =============================================================================
 # フィクスチャ
 # =============================================================================
-
-
-@pytest.fixture
-def config(temp_plugin_env):
-    """テスト用DigestConfig"""
-    return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
-
-
-@pytest.fixture
-def shadow_manager(config):
-    """テスト用ShadowGrandDigestManager"""
-    return ShadowGrandDigestManager(config)
+# Note: config, shadow_manager は conftest.py で定義済み
 
 
 @pytest.fixture

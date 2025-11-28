@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, cast
 
 from domain.exceptions import ConfigError
-from domain.types import ConfigData
+from domain.types import ConfigData, as_dict
 
 
 class ConfigLoader:
@@ -153,7 +153,7 @@ class ConfigLoader:
         """
         config = self.load()
         # Use dict view for dynamic key access
-        config_dict = cast(Dict[str, Any], config)
+        config_dict = as_dict(config)
         if key not in config_dict:
             raise ConfigError(f"Required configuration key missing: '{key}'")
         return config_dict[key]
