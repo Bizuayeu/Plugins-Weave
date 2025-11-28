@@ -29,6 +29,18 @@ A collection of terminology definitions used in the EpisodicRAG plugin.
 - Skills and scripts operate relative to this directory
 - Example: `C:\Users\anyth\.claude\plugins\marketplaces\Plugins-Weave\EpisodicRAG`
 
+### Path Format Differences
+
+EpisodicRAG uses different paths depending on the environment:
+
+| Environment | Path Format | Example |
+|-------------|-------------|---------|
+| **Development** | Source code directly | `plugins-weave/EpisodicRAG/` |
+| **Marketplace** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
+| **Direct Plugin Install** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/` |
+
+**Important**: Configuration files (config.json) and data should always be placed in the installation directory, not in the development source code directory.
+
 ### base_dir
 **Definition**: The base directory for data placement
 

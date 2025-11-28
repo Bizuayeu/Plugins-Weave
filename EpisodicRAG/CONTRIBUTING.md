@@ -217,6 +217,8 @@ bash scripts/generate_digest_auto.sh
 v2.0.0 より、`scripts/` は Clean Architecture（4層構造）を採用しています。
 
 > 📖 **詳細仕様**: 層構造・依存関係ルール・推奨インポートパスは [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md#clean-architecture) を参照
+>
+> 📖 **アーキテクチャ選択理由**: [DESIGN_DECISIONS.md](docs/dev/DESIGN_DECISIONS.md)
 
 ### 新機能追加時のガイド
 

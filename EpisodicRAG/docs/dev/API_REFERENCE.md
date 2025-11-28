@@ -6,6 +6,17 @@ EpisodicRAGプラグインの**Python API仕様書**です。
 
 > **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 
+> 📖 用語・共通概念: [用語集](../../README.md)
+
+---
+
+## このドキュメントの使い方
+
+1. **新機能を実装したい** → Layer別APIから該当層を参照
+2. **既存クラスの使い方を知りたい** → クイックリファレンスでインポートパスを確認
+3. **設計判断の理由を知りたい** → [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)を参照
+4. **全体像を把握したい** → [ARCHITECTURE.md](ARCHITECTURE.md)を参照
+
 ---
 
 ## このドキュメントの範囲
@@ -92,6 +103,8 @@ EpisodicRAGで使用されているデザインパターン一覧：
 | **Template Method** | `ShadowTemplate` | テンプレート生成の骨格定義 |
 | **Builder** | `RegularDigestBuilder` | 複雑なオブジェクト（RegularDigest）の段階的構築 |
 | **Factory** | `get_level_registry()`, `get_default_confirm_callback()` | オブジェクト生成の抽象化 |
+
+> 📖 パターン選択の根拠: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)
 
 ---
 

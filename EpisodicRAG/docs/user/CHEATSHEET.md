@@ -1,5 +1,7 @@
 [EpisodicRAG](../../README.md) > [Docs](../README.md) > CHEATSHEET
 
+[English](CHEATSHEET.en.md) | 日本語
+
 # EpisodicRAG クイックリファレンス
 
 1ページで主要機能を参照できるチートシートです。

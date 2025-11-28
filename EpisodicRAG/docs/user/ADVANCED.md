@@ -25,6 +25,8 @@
 
 ## GitHubセットアップ（長期記憶の有効化）
 
+> 📖 用語定義（GrandDigest, ShadowGrandDigest）: [用語集](../../README.md#記憶構造)
+
 EpisodicRAGの長期記憶システムをフルに活用するには、GitHubリポジトリと連携します。これにより、セッション開始時に過去の記憶（GrandDigest/ShadowGrandDigest）を自動的に読み込めます。
 
 **注意**: このドキュメントでは例として開発環境のパス `plugins-weave/EpisodicRAG` を使用していますが、実際のプラグインインストール場所は環境により異なります。現在の設定パスは `@digest-config` で確認できます。
@@ -155,6 +157,8 @@ git push
 
 **注意**: GitHubセットアップをスキップしても、Plugin自体は動作します（完全自己完結）。ただし、セッション開始時の自動記憶読み込みは行われません。
 
+> 📖 Essences/GrandDigest/Shadow の定義: [用語集](../../README.md#記憶構造)
+
 ---
 
 ## キャッシュバスティングの仕組み
@@ -203,6 +207,8 @@ WebFetchでのアクセスには、プライベートリポジトリのraw URL�
 ## バックアップ＆リカバリ
 
 長期記憶（Loop、全Digest、Essence）を安全に保護するためのガイドラインです。
+
+> 📖 階層構造の詳細: [用語集](../../README.md#8階層構造)
 
 ### バックアップ対象ファイル
 

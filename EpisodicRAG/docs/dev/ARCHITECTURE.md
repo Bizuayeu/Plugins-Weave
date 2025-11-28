@@ -174,6 +174,8 @@ graph BT
     INF --> D
 ```
 
+> 📖 設計判断の背景: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)
+
 ### 推奨インポートパス
 
 ```python

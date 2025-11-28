@@ -32,7 +32,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 **A**: AI会話履歴を8階層で構造化し、セッション間で記憶を引き継ぐプラグインです。
 
-> 📖 詳細: [メインREADME](../../../README.md)
+> 📖 詳細: [用語集](../../README.md)
 
 ### Q: 無料で使えますか？
 
@@ -147,6 +147,7 @@ flowchart TB
 - [用語集](../../README.md) - 用語・共通概念
 - [QUICKSTART.md](QUICKSTART.md) - 5分チュートリアル
 - [GUIDE.md](GUIDE.md) - ユーザーガイド
+- [CHEATSHEET.md](CHEATSHEET.md) - コマンド早見表
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - 詳細なトラブルシューティング
 - [ARCHITECTURE.md](../dev/ARCHITECTURE.md) - 技術仕様
 

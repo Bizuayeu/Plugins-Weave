@@ -220,6 +220,7 @@ flowchart TD
 
 ## 次のステップ
 
+- 📋 **コマンド早見表**: [CHEATSHEET.md](CHEATSHEET.md)
 - 📙 **技術仕様を理解したい**: [ARCHITECTURE.md](../dev/ARCHITECTURE.md)
 - 🔧 **GitHub連携を設定したい**: [ADVANCED.md](ADVANCED.md)
 - 🆘 **高度な問題に直面した**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
