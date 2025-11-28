@@ -86,7 +86,8 @@ scripts/
 │   ├── constants.py                 # LEVEL_CONFIG等
 │   ├── version.py                   # バージョン
 │   ├── file_naming.py               # ファイル命名ユーティリティ
-│   └── level_registry.py            # LevelRegistry（階層設定管理）
+│   ├── level_registry.py            # LevelRegistry（階層設定管理）
+│   └── error_formatter.py           # ErrorFormatter（エラーメッセージ標準化）
 │
 ├── infrastructure/                  # 外部関心事
 │   ├── __init__.py                  # 公開API
@@ -126,12 +127,15 @@ scripts/
 │       ├── __init__.py
 │       ├── input_loader.py          # InputLoader
 │       ├── merger.py                # DigestMerger
-│       └── validator.py             # バリデーション関数
+│       ├── validator.py             # バリデーション関数
+│       └── file_manager.py          # ProvisionalFileManager
 │
 └── config/                          # 設定管理パッケージ
     ├── __init__.py                  # DigestConfig (Facade)
     ├── config_loader.py             # ConfigLoader
     ├── config_validator.py          # ConfigValidator
+    ├── config_repository.py         # load_config（後方互換）
+    ├── directory_validator.py       # DirectoryValidator（後方互換）
     ├── level_path_service.py        # LevelPathService
     ├── path_resolver.py             # PathResolver
     ├── plugin_root_resolver.py      # find_plugin_root
