@@ -40,7 +40,7 @@ class LevelPathService:
         """
         if level not in LEVEL_CONFIG:
             formatter = get_error_formatter()
-            raise ConfigError(formatter.invalid_level(level, list(LEVEL_NAMES)))
+            raise ConfigError(formatter.config.invalid_level(level, list(LEVEL_NAMES)))
         return self.digests_path / str(LEVEL_CONFIG[level]["dir"])
 
     def get_provisional_dir(self, level: str) -> Path:

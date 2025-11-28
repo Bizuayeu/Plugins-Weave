@@ -9,7 +9,6 @@ domain/constants.py のユニットテスト
 import pytest
 
 from domain.constants import (
-    DEFAULT_THRESHOLDS,
     LEVEL_CONFIG,
     LEVEL_NAMES,
     PLACEHOLDER_END,
@@ -251,21 +250,23 @@ class TestCreatePlaceholderKeywords:
 
 
 # =============================================================================
-# DEFAULT_THRESHOLDS テスト
+# LEVEL_CONFIG 閾値テスト（Single Source of Truth）
 # =============================================================================
 
 
-class TestDefaultThresholds:
-    """DEFAULT_THRESHOLDS定数のテスト"""
+class TestLevelConfigThresholds:
+    """LEVEL_CONFIG内の閾値テスト（Single Source of Truth）"""
 
     @pytest.mark.unit
     def test_全レベルのしきい値が定義されている(self):
-        """全8レベル分のしきい値が定義されている"""
-        assert set(DEFAULT_THRESHOLDS.keys()) == set(LEVEL_NAMES)
+        """全8レベル分のしきい値がLEVEL_CONFIGに定義されている"""
+        for level in LEVEL_NAMES:
+            assert "threshold" in LEVEL_CONFIG[level], f"{level}にthresholdキーがない"
 
     @pytest.mark.unit
     def test_全ての値が正の整数(self):
         """しきい値は全て正の整数"""
-        for level, threshold in DEFAULT_THRESHOLDS.items():
+        for level in LEVEL_NAMES:
+            threshold = LEVEL_CONFIG[level]["threshold"]
             assert isinstance(threshold, int), f"{level}のしきい値は整数であるべき"
             assert threshold > 0, f"{level}のしきい値は正の値であるべき"

@@ -79,26 +79,26 @@ class TestConfigLoadingInvariants:
         # 必須キーの存在
         assert "prefix" in config
         assert "digits" in config
-        assert "dir_name" in config
+        assert "dir" in config  # キー名は "dir"（"dir_name"ではない）
 
         # 型の一貫性
         assert isinstance(config["prefix"], str)
         assert isinstance(config["digits"], int)
-        assert isinstance(config["dir_name"], str)
+        assert isinstance(config["dir"], str)
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_dir_name_format(self, level):
+    def test_dir_format(self, level):
         """
-        dir_nameは "N_LevelName" 形式である
+        dirは "N_LevelName" 形式である
         """
         config = LEVEL_CONFIG[level]
-        dir_name = config["dir_name"]
+        dir_value = config["dir"]  # キー名は "dir"
 
         # 数字_名前 の形式
-        parts = dir_name.split("_", 1)
-        assert len(parts) == 2, f"dir_nameは'N_Name'形式であること: {dir_name}"
-        assert parts[0].isdigit(), f"dir_nameの先頭は数字であること: {dir_name}"
+        parts = dir_value.split("_", 1)
+        assert len(parts) == 2, f"dirは'N_Name'形式であること: {dir_value}"
+        assert parts[0].isdigit(), f"dirの先頭は数字であること: {dir_value}"
 
 
 # =============================================================================
@@ -122,21 +122,31 @@ class TestConfigThresholdInvariants:
         assert threshold <= 100, "閾値は妥当な範囲内であること"
 
     @given(level=valid_levels)
-    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
-    def test_threshold_consistency_with_digest_config(self, level, temp_plugin_env):
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture])
+    def test_threshold_is_positive_integer(self, level, temp_plugin_env):
         """
-        DigestConfigとLEVEL_CONFIGの閾値が一致する
+        DigestConfigの閾値は正の整数である
+
+        Note: LEVEL_CONFIGにthresholdを統合（Single Source of Truth）。
+        このテストはLEVEL_CONFIGの閾値が正しく適用されていることを検証。
         """
         from config import DigestConfig
+        from domain.constants import LEVEL_CONFIG
 
         digest_config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
-        level_config_threshold = LEVEL_CONFIG[level].get("threshold", 5)
         attr_name = f"{level.replace('-', '_')}_threshold"
-        digest_config_threshold = getattr(digest_config, attr_name, 5)
+        # config.thresholdプロパティ経由でアクセス
+        digest_config_threshold = getattr(digest_config.threshold, attr_name, 5)
 
-        assert level_config_threshold == digest_config_threshold, (
-            f"{level}の閾値がLEVEL_CONFIGとDigestConfigで一致すること"
+        # 閾値は正の整数であること
+        assert isinstance(digest_config_threshold, int), f"{level}の閾値はint型であること"
+        assert digest_config_threshold > 0, f"{level}の閾値は正であること"
+
+        # LEVEL_CONFIGと一致すること（config.jsonでオーバーライドされていない場合）
+        expected = LEVEL_CONFIG[level].get("threshold", 5)
+        assert digest_config_threshold == expected, (
+            f"{level}の閾値がLEVEL_CONFIGと一致すること（期待: {expected}, 実際: {digest_config_threshold}）"
         )
 
 
@@ -149,7 +159,7 @@ class TestPathResolutionInvariants:
     """パス解決の不変条件"""
 
     @given(level=valid_levels)
-    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture])
     def test_level_dir_returns_absolute_path(self, level, temp_plugin_env):
         """
         get_level_dir()は絶対パスを返す
@@ -162,7 +172,7 @@ class TestPathResolutionInvariants:
         assert level_dir.is_absolute(), f"{level}のディレクトリは絶対パスであること"
 
     @given(level=valid_levels)
-    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture])
     def test_level_dir_contains_level_name(self, level, temp_plugin_env):
         """
         get_level_dir()のパスにレベル関連の名前が含まれる
@@ -172,10 +182,10 @@ class TestPathResolutionInvariants:
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         level_dir = config.get_level_dir(level)
 
-        # パスにdir_nameが含まれる
-        expected_dir_name = LEVEL_CONFIG[level]["dir_name"]
-        assert expected_dir_name in str(level_dir), (
-            f"{level}のディレクトリパスに{expected_dir_name}が含まれること"
+        # パスにdirが含まれる
+        expected_dir = LEVEL_CONFIG[level]["dir"]
+        assert expected_dir in str(level_dir), (
+            f"{level}のディレクトリパスに{expected_dir}が含まれること"
         )
 
 
@@ -199,29 +209,29 @@ class TestConfigStructureInvariants:
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_level_config_dir_name_uniqueness(self, level):
+    def test_level_config_dir_uniqueness(self, level):
         """
-        各レベルのdir_nameは一意である
+        各レベルのdirは一意である
         """
-        dir_names = [LEVEL_CONFIG[l]["dir_name"] for l in LEVEL_NAMES]
-        assert len(dir_names) == len(set(dir_names)), "dir_nameは一意であること"
+        dirs = [LEVEL_CONFIG[l]["dir"] for l in LEVEL_NAMES]
+        assert len(dirs) == len(set(dirs)), "dirは一意であること"
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_level_config_dir_name_ordering(self, level):
+    def test_level_config_dir_ordering(self, level):
         """
-        dir_nameの番号は階層順序と一致する
+        dirの番号は階層順序と一致する
         """
         config = LEVEL_CONFIG[level]
-        dir_name = config["dir_name"]
+        dir_value = config["dir"]
 
         # 番号を抽出
-        dir_number = int(dir_name.split("_")[0])
+        dir_number = int(dir_value.split("_")[0])
         level_index = LEVEL_NAMES.index(level)
 
         # 番号は1から始まり、レベルインデックス+1と一致
         assert dir_number == level_index + 1, (
-            f"{level}のdir_name番号は{level_index + 1}であること（実際: {dir_number}）"
+            f"{level}のdir番号は{level_index + 1}であること（実際: {dir_number}）"
         )
 
 
@@ -270,16 +280,5 @@ class TestJSONRoundtripInvariants:
 
 
 # =============================================================================
-# Fixture for temp_plugin_env
+# Note: temp_plugin_env フィクスチャは conftest.py で定義
 # =============================================================================
-
-
-@pytest.fixture
-def temp_plugin_env():
-    """
-    テスト用の一時プラグイン環境を提供
-    """
-    from test_helpers import TempPluginEnvironment
-
-    with TempPluginEnvironment() as env:
-        yield env

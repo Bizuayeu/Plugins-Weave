@@ -40,7 +40,6 @@ Usage:
 # Version
 # Constants
 from domain.constants import (
-    DEFAULT_THRESHOLDS,
     LEVEL_CONFIG,
     LEVEL_NAMES,
     PLACEHOLDER_END,
@@ -122,7 +121,6 @@ __all__ = [
     "PLACEHOLDER_MARKER",
     "PLACEHOLDER_END",
     "PLACEHOLDER_SIMPLE",
-    "DEFAULT_THRESHOLDS",
     "build_level_hierarchy",
     # Exceptions
     "EpisodicRAGError",

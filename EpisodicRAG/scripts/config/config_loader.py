@@ -94,7 +94,7 @@ class ConfigLoader:
         formatter = get_error_formatter()
         if not self.config_file.exists():
             raise ConfigError(
-                f"{formatter.file_not_found(self.config_file)}\n"
+                f"{formatter.file.file_not_found(self.config_file)}\n"
                 "Run setup first: bash scripts/setup.sh"
             )
 
@@ -102,7 +102,7 @@ class ConfigLoader:
             with open(self.config_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
-            raise ConfigError(formatter.invalid_json(self.config_file, e)) from e
+            raise ConfigError(formatter.file.invalid_json(self.config_file, e)) from e
 
         # 構造検証（TypeGuard）
         if not is_config_data(data):
@@ -167,7 +167,7 @@ class ConfigLoader:
         config_dict = as_dict(config)
         if key not in config_dict:
             formatter = get_error_formatter()
-            raise ConfigError(formatter.config_key_missing(key))
+            raise ConfigError(formatter.config.config_key_missing(key))
         return config_dict[key]
 
     @property

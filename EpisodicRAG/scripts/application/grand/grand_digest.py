@@ -146,16 +146,16 @@ class GrandDigestManager:
         formatter = get_error_formatter()
         # 型チェック
         if not is_valid_dict(grand_data):
-            raise DigestError(formatter.invalid_type("GrandDigest.txt", "dict", grand_data))
+            raise DigestError(formatter.validation.invalid_type("GrandDigest.txt", "dict", grand_data))
 
         if "major_digests" not in grand_data:
-            raise DigestError(formatter.config_section_missing("major_digests"))
+            raise DigestError(formatter.config.config_section_missing("major_digests"))
 
         available_levels = list(grand_data["major_digests"].keys())
         log_debug(f"{LOG_PREFIX_VALIDATE} available_levels: {available_levels}")
 
         if level not in grand_data["major_digests"]:
-            raise DigestError(formatter.unknown_level(level))
+            raise DigestError(formatter.config.unknown_level(level))
 
         # overall_digestを更新（完全なオブジェクトとして保存）
         log_debug(f"{LOG_PREFIX_STATE} updating overall_digest for level={level}")

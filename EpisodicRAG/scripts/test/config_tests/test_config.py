@@ -269,10 +269,12 @@ class TestDigestConfigThresholds:
         config = DigestConfig(plugin_root=env.plugin_root)
 
         # デフォルト値が返されることを確認
-        assert config.weekly_threshold == 5
-        assert config.monthly_threshold == 5
-        assert config.quarterly_threshold == 3
-        assert config.annual_threshold == 4
+        # ARCHITECTURE: コンポーネント公開パターン
+        # config.threshold経由でThresholdProviderに直接アクセス
+        assert config.threshold.weekly_threshold == 5
+        assert config.threshold.monthly_threshold == 5
+        assert config.threshold.quarterly_threshold == 3
+        assert config.threshold.annual_threshold == 4
 
     @pytest.mark.unit
     def test_threshold_custom_values(self, threshold_env):
@@ -285,8 +287,8 @@ class TestDigestConfigThresholds:
 
         env = threshold_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
-        assert config.weekly_threshold == 10
-        assert config.monthly_threshold == 8
+        assert config.threshold.weekly_threshold == 10
+        assert config.threshold.monthly_threshold == 8
 
     @pytest.mark.unit
     def test_get_threshold_invalid_level(self, threshold_env):
@@ -298,13 +300,15 @@ class TestDigestConfigThresholds:
 
     @pytest.mark.unit
     def test_get_threshold_matches_properties(self, threshold_env):
-        """get_threshold()と既存プロパティが同じ値を返す"""
+        """get_threshold()とthresholdプロパティが同じ値を返す"""
         env = threshold_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
 
-        assert config.get_threshold("weekly") == config.weekly_threshold
-        assert config.get_threshold("monthly") == config.monthly_threshold
-        assert config.get_threshold("quarterly") == config.quarterly_threshold
+        # config.get_threshold() は後方互換性のため維持
+        # 新規コードでは config.threshold.get_threshold() を推奨
+        assert config.get_threshold("weekly") == config.threshold.weekly_threshold
+        assert config.get_threshold("monthly") == config.threshold.monthly_threshold
+        assert config.get_threshold("quarterly") == config.threshold.quarterly_threshold
 
 
 class TestDigestConfigIdentityFile:

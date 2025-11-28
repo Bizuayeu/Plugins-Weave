@@ -57,7 +57,7 @@ class TestFullCascadeInitialization:
         config = full_cascade_env["config"]
 
         shadow_manager = ShadowGrandDigestManager(config)
-        shadow_data = shadow_manager._shadow_io.load_or_create()
+        shadow_data = shadow_manager._io.load_or_create()
 
         for level in LEVEL_ORDER:
             assert level in shadow_data["latest_digests"], f"{level}がShadowに存在すること"
@@ -291,7 +291,7 @@ class TestCascadeStopConditions:
         assert len(weekly_shadow["source_files"]) == 1
 
         # 閾値（デフォルト5）未満なのでfinalize不要
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
         assert len(weekly_shadow["source_files"]) < threshold
 
     def test_cascade_stops_at_centurial(self, stop_condition_env):
@@ -329,7 +329,7 @@ class TestMetadataPropagation:
         config = metadata_env["config"]
 
         shadow_manager = ShadowGrandDigestManager(config)
-        shadow_data = shadow_manager._shadow_io.load_or_create()
+        shadow_data = shadow_manager._io.load_or_create()
 
         assert "metadata" in shadow_data
         assert "last_updated" in shadow_data["metadata"]

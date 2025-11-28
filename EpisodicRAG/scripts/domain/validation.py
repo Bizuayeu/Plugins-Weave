@@ -36,7 +36,7 @@ def validate_type(data: Any, expected_type: Type[T], context: str, type_name: st
     """
     if not isinstance(data, expected_type):
         formatter = get_error_formatter()
-        raise ValidationError(formatter.invalid_type(context, type_name, data))
+        raise ValidationError(formatter.validation.invalid_type(context, type_name, data))
     return data
 
 

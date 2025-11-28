@@ -39,7 +39,7 @@ class InputLoader:
         # Empty input check
         if not input_data or not input_data.strip():
             formatter = get_error_formatter()
-            raise ValidationError(formatter.empty_collection("input_data"))
+            raise ValidationError(formatter.validation.empty_collection("input_data"))
 
         # Quick heuristic: JSON arrays/objects start with [ or {
         # This avoids calling Path.exists() on long JSON strings (OSError on Linux)

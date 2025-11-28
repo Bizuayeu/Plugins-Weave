@@ -58,10 +58,10 @@ class TestLevelHierarchyInvariants:
         """
         LEVEL_CONFIGは必須キーを持つ
 
-        必須キー: prefix, digits, dir_name
+        必須キー: prefix, digits, dir
         """
         config = LEVEL_CONFIG[level]
-        required_keys = ["prefix", "digits", "dir_name"]
+        required_keys = ["prefix", "digits", "dir"]  # キー名は "dir"（"dir_name"ではない）
 
         for key in required_keys:
             assert key in config, f"{level}のLEVEL_CONFIGに{key}が存在すること"

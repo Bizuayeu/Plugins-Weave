@@ -128,5 +128,5 @@ class ProvisionalFileManager:
         level_cfg = self.level_config.get(level)
         if not level_cfg:
             formatter = get_error_formatter()
-            raise ConfigError(formatter.invalid_level(level, list(self.level_config.keys())))
+            raise ConfigError(formatter.config.invalid_level(level, list(self.level_config.keys())))
         return cast(LevelConfigData, level_cfg)

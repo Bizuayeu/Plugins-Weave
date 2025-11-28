@@ -28,10 +28,10 @@ def validate_individual_digest(digest: Any, index: int, context: str = "") -> No
     formatter = get_error_formatter()
     if not is_valid_dict(digest):
         raise ValidationError(
-            formatter.invalid_type(f"{prefix}digest at index {index}", "dict", digest)
+            formatter.validation.invalid_type(f"{prefix}digest at index {index}", "dict", digest)
         )
     if "source_file" not in digest:
-        raise ValidationError(formatter.validation_error(f"{prefix}digest at index {index}", "missing 'source_file' key", None))
+        raise ValidationError(formatter.validation.validation_error(f"{prefix}digest at index {index}", "missing 'source_file' key", None))
 
 
 def validate_individual_digests_list(
@@ -103,5 +103,5 @@ def validate_input_format(data: Any) -> List[IndividualDigestData]:
     # Invalid format
     formatter = get_error_formatter()
     raise ValidationError(
-        formatter.invalid_type("input format", "list or dict with 'individual_digests' key", data)
+        formatter.validation.invalid_type("input format", "list or dict with 'individual_digests' key", data)
     )

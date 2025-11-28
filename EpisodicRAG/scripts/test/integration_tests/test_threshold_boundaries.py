@@ -50,7 +50,8 @@ class TestThresholdBoundaryBase:
     def _get_threshold_for_level(self, config: DigestConfig, level: str) -> int:
         """指定レベルの閾値を取得"""
         threshold_attr = f"{level.replace('-', '_')}_threshold"
-        return getattr(config, threshold_attr, 5)
+        # config.threshold経由でThresholdProviderにアクセス
+        return getattr(config.threshold, threshold_attr, 5)
 
     def _create_source_files_for_level(
         self, env, config: DigestConfig, level: str, count: int
@@ -98,7 +99,7 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         env = boundary_env["env"]
         config = boundary_env["config"]
 
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
         file_count = max(1, threshold - 1)  # 最低1ファイル
 
         # Loopファイルを作成
@@ -125,7 +126,7 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         env = boundary_env["env"]
         config = boundary_env["config"]
 
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
 
         # Loopファイルを閾値と同数作成
         for i in range(1, threshold + 1):
@@ -151,7 +152,7 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         env = boundary_env["env"]
         config = boundary_env["config"]
 
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
         file_count = threshold + 1
 
         # Loopファイルを閾値+1作成
@@ -198,7 +199,7 @@ class TestAllLevelThresholds(TestThresholdBoundaryBase):
         config = boundary_env["config"]
 
         shadow_manager = ShadowGrandDigestManager(config)
-        shadow_data = shadow_manager._shadow_io.load_or_create()
+        shadow_data = shadow_manager._io.load_or_create()
 
         assert level in shadow_data["latest_digests"], f"{level}がShadowに存在すること"
 
@@ -211,8 +212,8 @@ class TestAllLevelThresholds(TestThresholdBoundaryBase):
             ("annual", 4),
             ("triennial", 3),
             ("decadal", 3),
-            ("multi-decadal", 3),
-            ("centurial", 3),
+            ("multi_decadal", 3),  # アンダースコア（ハイフンではない）
+            ("centurial", 4),  # LEVEL_CONFIGに統合済み
         ],
     )
     def test_default_threshold_values(self, boundary_env, level, expected_threshold):
@@ -241,7 +242,7 @@ class TestEdgeCases(TestThresholdBoundaryBase):
         env = boundary_env["env"]
         config = boundary_env["config"]
 
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
         file_count = threshold * 10  # 閾値の10倍
 
         # 大量のLoopファイルを作成
@@ -271,7 +272,7 @@ class TestEdgeCases(TestThresholdBoundaryBase):
         env = boundary_env["env"]
         config = boundary_env["config"]
 
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
         if threshold < 3:
             pytest.skip("閾値が3未満のため増分テストをスキップ")
 

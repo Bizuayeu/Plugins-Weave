@@ -158,7 +158,7 @@ class TestBoundaryConditions:
         config = boundary_env["config"]
 
         # weekly_threshold（デフォルト: 5）と同じ数のファイルを作成
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
         for i in range(1, threshold + 1):
             create_test_loop_file(env.loops_path, i, f"test_loop_{i}")
 
@@ -213,7 +213,7 @@ class TestBoundaryConditions:
         config = boundary_env["config"]
 
         # weekly_threshold - 1 のファイルを作成
-        threshold = config.weekly_threshold
+        threshold = config.threshold.weekly_threshold
         file_count = threshold - 1
         for i in range(1, file_count + 1):
             create_test_loop_file(env.loops_path, i, f"test_loop_{i}")

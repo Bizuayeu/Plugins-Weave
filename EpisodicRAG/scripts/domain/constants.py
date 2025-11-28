@@ -14,11 +14,12 @@ from typing import Dict
 
 # TypedDictを使わず、構造をコメントで明示（domain層は外部依存なし）
 # LevelConfigData構造:
-#   prefix  - ファイル名プレフィックス（例: W0001, M001, MD01）
-#   digits  - 番号の桁数（例: W0001は4桁）
-#   dir     - digests_path 以下のサブディレクトリ名
-#   source  - この階層を生成する際の入力元（"loops" または下位階層名）
-#   next    - 確定時にカスケードする上位階層（None = 最上位）
+#   prefix    - ファイル名プレフィックス（例: W0001, M001, MD01）
+#   digits    - 番号の桁数（例: W0001は4桁）
+#   dir       - digests_path 以下のサブディレクトリ名
+#   source    - この階層を生成する際の入力元（"loops" または下位階層名）
+#   next      - 確定時にカスケードする上位階層（None = 最上位）
+#   threshold - このレベルでダイジェスト生成に必要なソースファイル数
 
 
 # =============================================================================
@@ -46,6 +47,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "1_Weekly",
         "source": SOURCE_TYPE_LOOPS,
         "next": "monthly",
+        "threshold": 5,
     },
     "monthly": {
         "prefix": "M",
@@ -53,6 +55,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "2_Monthly",
         "source": "weekly",
         "next": "quarterly",
+        "threshold": 5,
     },
     "quarterly": {
         "prefix": "Q",
@@ -60,6 +63,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "3_Quarterly",
         "source": "monthly",
         "next": "annual",
+        "threshold": 3,
     },
     "annual": {
         "prefix": "A",
@@ -67,6 +71,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "4_Annual",
         "source": "quarterly",
         "next": "triennial",
+        "threshold": 4,
     },
     "triennial": {
         "prefix": "T",
@@ -74,6 +79,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "5_Triennial",
         "source": "annual",
         "next": "decadal",
+        "threshold": 3,
     },
     "decadal": {
         "prefix": "D",
@@ -81,6 +87,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "6_Decadal",
         "source": "triennial",
         "next": "multi_decadal",
+        "threshold": 3,
     },
     "multi_decadal": {
         "prefix": "MD",
@@ -88,6 +95,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "7_Multi-decadal",
         "source": "decadal",
         "next": "centurial",
+        "threshold": 3,
     },
     "centurial": {
         "prefix": "C",
@@ -95,6 +103,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, object]] = {
         "dir": "8_Centurial",
         "source": "multi_decadal",
         "next": None,
+        "threshold": 4,
     },
 }
 
@@ -116,22 +125,6 @@ PLACEHOLDER_LIMITS: Dict[str, int] = {
 PLACEHOLDER_MARKER = "<!-- PLACEHOLDER"
 PLACEHOLDER_END = " -->"
 PLACEHOLDER_SIMPLE = f"{PLACEHOLDER_MARKER}{PLACEHOLDER_END}"  # "<!-- PLACEHOLDER -->"
-
-
-# =============================================================================
-# デフォルトしきい値
-# =============================================================================
-
-DEFAULT_THRESHOLDS: Dict[str, int] = {
-    "weekly": 5,
-    "monthly": 5,
-    "quarterly": 3,
-    "annual": 4,
-    "triennial": 3,
-    "decadal": 3,
-    "multi_decadal": 3,
-    "centurial": 4,
-}
 
 
 # =============================================================================

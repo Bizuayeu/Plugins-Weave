@@ -56,19 +56,19 @@ class ShadowValidator:
         # 型チェック
         formatter = get_error_formatter()
         if not is_valid_list(source_files):
-            fatal_errors.append(formatter.invalid_type("source_files", "list", source_files))
+            fatal_errors.append(formatter.validation.invalid_type("source_files", "list", source_files))
             return fatal_errors, warnings, numbers
 
         # 空チェック
         if not source_files:
-            fatal_errors.append(formatter.empty_collection(f"Shadow digest for level '{level}'"))
+            fatal_errors.append(formatter.validation.empty_collection(f"Shadow digest for level '{level}'"))
             return fatal_errors, warnings, numbers
 
         # ファイル名検証と番号抽出を1ループで実行
         for i, filename in enumerate(source_files):
             if not isinstance(filename, str):
                 fatal_errors.append(
-                    formatter.invalid_type(f"filename at index {i}", "str", filename)
+                    formatter.validation.invalid_type(f"filename at index {i}", "str", filename)
                 )
                 continue
 
@@ -142,7 +142,7 @@ class ShadowValidator:
         """
         if not weave_title or not weave_title.strip():
             formatter = get_error_formatter()
-            raise ValidationError(formatter.empty_collection("weave_title"))
+            raise ValidationError(formatter.validation.empty_collection("weave_title"))
 
     def _fetch_shadow_digest(self, level: str) -> OverallDigestData:
         """
@@ -162,7 +162,7 @@ class ShadowValidator:
         if shadow_digest is None:
             log_info("Run 'python shadow_grand_digest.py' to update shadow first")
             formatter = get_error_formatter()
-            raise DigestError(formatter.digest_not_found(level, "shadow"))
+            raise DigestError(formatter.digest.digest_not_found(level, "shadow"))
 
         return shadow_digest
 
@@ -178,7 +178,7 @@ class ShadowValidator:
         """
         if not is_valid_dict(shadow_digest):
             formatter = get_error_formatter()
-            raise ValidationError(formatter.invalid_type("shadow digest", "dict", shadow_digest))
+            raise ValidationError(formatter.validation.invalid_type("shadow digest", "dict", shadow_digest))
 
     def validate_and_get_shadow(self, level: str, weave_title: str) -> OverallDigestData:
         """

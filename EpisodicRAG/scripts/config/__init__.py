@@ -5,14 +5,27 @@ Digest Plugin Configuration Manager
 
 Plugin自己完結版：Plugin内の.claude-plugin/config.jsonから設定を読み込む
 
-Architecture:
-    DigestConfig は薄い Facade として機能し、以下のコンポーネントに委譲:
-    - ConfigLoader: 設定ファイルの読み込み
-    - PathResolver: パス解決
-    - ThresholdProvider: 閾値管理
-    - LevelPathService: レベル別パス管理
-    - SourcePathResolver: ソースパス解決
-    - ConfigValidator: 設定とディレクトリ構造の検証
+## 設計意図
+
+ARCHITECTURE: Thin Facade Pattern
+DigestConfigは薄いFacadeとして機能し、内部コンポーネントに委譲。
+各コンポーネントは単一責任（SRP）を持つ。
+
+| コンポーネント | 責務 |
+|---------------|------|
+| ConfigLoader | 設定ファイルの読み込み |
+| PathResolver | パス解決 |
+| ThresholdProvider | 閾値管理 |
+| LevelPathService | レベル別パス管理 |
+| SourcePathResolver | ソースパス解決 |
+| ConfigValidator | 設定とディレクトリ構造の検証 |
+
+## 閾値アクセス方法
+
+ARCHITECTURE: コンポーネント公開による責務明確化
+閾値は`threshold`プロパティ経由でアクセス:
+    config.threshold.get_threshold("weekly")
+    config.threshold.weekly_threshold
 
 Usage:
     from config import DigestConfig
@@ -112,7 +125,7 @@ class DigestConfig:
 
         except (PermissionError, OSError) as e:
             formatter = get_error_formatter()
-            raise ConfigError(formatter.initialization_failed("configuration", e)) from e
+            raise ConfigError(formatter.config.initialization_failed("configuration", e)) from e
 
     # =========================================================================
     # Context Manager Support
@@ -256,53 +269,37 @@ class DigestConfig:
         """ディレクトリ構造の検証"""
         return self._directory_validator.validate_directory_structure()
 
+    # =========================================================================
+    # コンポーネント公開プロパティ
+    # =========================================================================
+
+    @property
+    def threshold(self) -> ThresholdProvider:
+        """
+        閾値プロバイダーへのアクセス
+
+        ARCHITECTURE: コンポーネント公開パターン
+        Facadeがラッパーメソッドを提供する代わりに、
+        内部コンポーネントを直接公開することで:
+        - コードの重複を排除
+        - IDE補完がThresholdProviderの全メソッドに対応
+        - 責務の所在が明確
+
+        Usage:
+            config.threshold.get_threshold("weekly")
+            config.threshold.weekly_threshold
+            config.threshold.monthly_threshold
+        """
+        return self._threshold_provider
+
     def get_threshold(self, level: str) -> int:
-        """指定レベルのthresholdを動的に取得"""
+        """
+        指定レベルのthresholdを動的に取得
+
+        Note:
+            後方互換性のため維持。新規コードは config.threshold.get_threshold() を推奨。
+        """
         return self._threshold_provider.get_threshold(level)
-
-    # =========================================================================
-    # 明示的プロパティ（IDE補完対応、ThresholdProviderに委譲）
-    # =========================================================================
-
-    @property
-    def weekly_threshold(self) -> int:
-        """週次thresholdを取得"""
-        return self._threshold_provider.weekly_threshold
-
-    @property
-    def monthly_threshold(self) -> int:
-        """月次thresholdを取得"""
-        return self._threshold_provider.monthly_threshold
-
-    @property
-    def quarterly_threshold(self) -> int:
-        """四半期thresholdを取得"""
-        return self._threshold_provider.quarterly_threshold
-
-    @property
-    def annual_threshold(self) -> int:
-        """年次thresholdを取得"""
-        return self._threshold_provider.annual_threshold
-
-    @property
-    def triennial_threshold(self) -> int:
-        """3年thresholdを取得"""
-        return self._threshold_provider.triennial_threshold
-
-    @property
-    def decadal_threshold(self) -> int:
-        """10年thresholdを取得"""
-        return self._threshold_provider.decadal_threshold
-
-    @property
-    def multi_decadal_threshold(self) -> int:
-        """数十年thresholdを取得"""
-        return self._threshold_provider.multi_decadal_threshold
-
-    @property
-    def centurial_threshold(self) -> int:
-        """100年thresholdを取得"""
-        return self._threshold_provider.centurial_threshold
 
     def show_paths(self) -> None:
         """パス設定を表示（デバッグ用）"""

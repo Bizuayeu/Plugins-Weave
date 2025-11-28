@@ -6,6 +6,39 @@ Level Registry - Strategy Pattern for Level-specific Behavior
 レベル固有の振る舞いを拡張可能な方法で管理するRegistry。
 Open/Closed Principle (OCP) を実現：コード修正なしで新レベルを追加可能。
 
+## 使用デザインパターン
+
+### Strategy Pattern
+レベルごとに異なる振る舞い（フォーマット、カスケード判定）を
+LevelBehaviorインターフェースで抽象化。具体的な実装は
+StandardLevelBehavior, LoopLevelBehaviorなどで提供。
+
+新しいレベルタイプを追加する際は、LevelBehaviorを継承した
+新クラスを作成するだけで対応可能（既存コード変更不要）。
+
+### Singleton Pattern
+get_level_registry()でアクセスするSingletonインスタンス。
+レベル設定はアプリケーション全体で不変かつ共有されるため、
+複数インスタンスを作成する意味がない。
+
+テスト時はreset_level_registry()でリセット可能。
+
+## SOLID原則の実践
+
+### OCP (Open/Closed Principle)
+- 新レベル追加: LEVEL_CONFIGに設定を追加するだけ
+- 新振る舞い: LevelBehaviorを継承してRegisterに登録
+- 既存コードの修正は一切不要
+
+### SRP (Single Responsibility Principle)
+- LevelMetadata: レベルの静的プロパティのみ
+- LevelBehavior: レベル固有の動的振る舞いのみ
+- LevelRegistry: レベルとBehaviorの登録・取得のみ
+
+### DIP (Dependency Inversion Principle)
+- LevelBehavior抽象クラスに依存し、具象クラスには依存しない
+- 呼び出し側はget_behavior()経由でBehaviorを取得
+
 Usage:
     from domain.level_registry import get_level_registry
 
@@ -78,6 +111,11 @@ class LevelBehavior(ABC):
 
     新しい振る舞いが必要な場合、このクラスを継承して実装を追加。
     既存コードを修正せずに拡張可能（OCP準拠）。
+
+    ## ARCHITECTURE: Strategy Pattern の Context
+    このクラスが Strategy の抽象インターフェースを定義。
+    StandardLevelBehavior, LoopLevelBehavior が具象 Strategy。
+    LevelRegistry が Context として Strategy を保持・切り替える。
     """
 
     @abstractmethod
@@ -227,7 +265,7 @@ class LevelRegistry:
         """
         if level not in self._levels:
             formatter = get_error_formatter()
-            raise ConfigError(formatter.unknown_level(level))
+            raise ConfigError(formatter.config.unknown_level(level))
         return self._levels[level][1]
 
     def get_metadata(self, level: str) -> LevelMetadata:
@@ -245,7 +283,7 @@ class LevelRegistry:
         """
         if level not in self._levels:
             formatter = get_error_formatter()
-            raise ConfigError(formatter.unknown_level(level))
+            raise ConfigError(formatter.config.unknown_level(level))
         return self._levels[level][0]
 
     def get_level_names(self) -> List[str]:
@@ -326,6 +364,17 @@ def get_level_registry() -> LevelRegistry:
     """
     LevelRegistryのSingletonインスタンスを取得
 
+    ## ARCHITECTURE: Singleton Pattern
+    なぜSingletonか？
+    - レベル設定はアプリケーション全体で不変
+    - 複数インスタンスはメモリの無駄
+    - DIコンテナを導入するほど複雑ではない
+
+    なぜクラスベースSingletonではなく関数アクセサか？
+    - Pythonらしいシンプルな実装
+    - reset_level_registry()でテスト時にリセット可能
+    - 遅延初期化が自然に実現
+
     Returns:
         LevelRegistryインスタンス
 
@@ -334,6 +383,7 @@ def get_level_registry() -> LevelRegistry:
         metadata = registry.get_metadata("weekly")
     """
     global _registry
+    # ARCHITECTURE: 遅延初期化 - 最初のアクセス時にのみインスタンス化
     if _registry is None:
         _registry = LevelRegistry()
     return _registry

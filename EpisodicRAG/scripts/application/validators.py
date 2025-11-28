@@ -114,13 +114,13 @@ def validate_source_files(files: Any, context: str = "source_files") -> List[str
     """
     formatter = get_error_formatter()
     if files is None:
-        raise ValidationError(formatter.validation_error(context, "cannot be None", None))
+        raise ValidationError(formatter.validation.validation_error(context, "cannot be None", None))
 
     if not isinstance(files, list):
-        raise ValidationError(formatter.invalid_type(context, "list", files))
+        raise ValidationError(formatter.validation.invalid_type(context, "list", files))
 
     if not files:
-        raise ValidationError(formatter.empty_collection(context))
+        raise ValidationError(formatter.validation.empty_collection(context))
 
     return files
 

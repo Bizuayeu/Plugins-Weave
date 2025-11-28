@@ -6,6 +6,32 @@ EpisodicRAG Digest Finalizer from Shadow (Facade)
 ShadowGrandDigestの内容からRegularDigestを作成し、
 3層のダイジェストシステム（Shadow/Regular/Grand）を更新
 
+## 使用デザインパターン
+
+### Facade Pattern
+DigestFinalizerFromShadowクラスは複雑なサブシステム
+（GrandDigestManager, ShadowGrandDigestManager, DigestTimesTracker等）
+への統一されたインターフェースを提供するFacade。
+
+外部からはfinalize_from_shadow()メソッド1つを呼び出すだけで、
+内部の複雑な処理フローが実行される。
+
+### Dependency Injection (コンストラクタインジェクション)
+__init__で依存オブジェクト（managers, tracker）をオプション引数で受け取る。
+- 本番環境: 引数なしで呼び出し → 内部でデフォルト実装を生成
+- テスト環境: モックを注入 → 依存を差し替えてテスト容易に
+
+## SOLID原則の実践
+
+### DIP (Dependency Inversion Principle)
+- コンストラクタで抽象（Optional型）を受け取り、具象は内部で生成
+- テスト時にモックを注入可能にすることでテスタビリティを向上
+- 上位層（Interfaces）が下位層（Application）の具象に直接依存しない
+
+### SRP (Single Responsibility Principle)
+- このクラスは「ShadowからRegularDigestを作成」という1つの責務のみ
+- 各サブ処理はValidator, Loader, Persistenceに委譲
+
 使用方法：
     python finalize_from_shadow.py LEVEL WEAVE_TITLE
 
@@ -79,13 +105,23 @@ class DigestFinalizerFromShadow:
         """
         ファイナライザーの初期化
 
+        ## ARCHITECTURE: Dependency Injection (Constructor Injection)
+        全ての依存オブジェクトをOptional引数で受け取る。
+        - None（デフォルト）: 本番用のデフォルト実装を内部で生成
+        - 値を渡す: テスト時にモックやスタブを注入可能
+
+        このパターンにより:
+        1. テストでファイルI/Oをモックに置換可能
+        2. 本番コードはシンプルに DigestFinalizerFromShadow() で呼び出し
+        3. 依存関係が明示的（ドキュメントとして機能）
+
         Args:
             config: DigestConfig インスタンス（省略時は自動生成）
             grand_digest_manager: GrandDigestManager インスタンス（省略時は自動生成、テスト時にモック注入可能）
             shadow_manager: ShadowGrandDigestManager インスタンス（省略時は自動生成、テスト時にモック注入可能）
             times_tracker: DigestTimesTracker インスタンス（省略時は自動生成、テスト時にモック注入可能）
         """
-        # 設定を読み込み
+        # ARCHITECTURE: デフォルト値パターン - Noneなら内部で生成
         if config is None:
             config = DigestConfig()
         self.config = config
@@ -93,7 +129,8 @@ class DigestFinalizerFromShadow:
         # パスを設定から取得
         self.digests_path = config.digests_path
 
-        # マネージャー初期化（外部から注入可能）
+        # ARCHITECTURE: or パターンでデフォルト実装を遅延生成
+        # テスト時は左辺にモックを渡すことで差し替え可能
         self.grand_digest_manager = grand_digest_manager or GrandDigestManager(config)
         self.shadow_manager = shadow_manager or ShadowGrandDigestManager(config)
         self.times_tracker = times_tracker or DigestTimesTracker(config)

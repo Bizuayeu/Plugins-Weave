@@ -30,7 +30,7 @@ def load_config(config_file: Path) -> ConfigData:
     formatter = get_error_formatter()
     if not config_file.exists():
         raise ConfigError(
-            f"{formatter.file_not_found(config_file)}\n"
+            f"{formatter.file.file_not_found(config_file)}\n"
             "Run setup first: bash scripts/setup.sh"
         )
 
@@ -38,4 +38,4 @@ def load_config(config_file: Path) -> ConfigData:
         with open(config_file, 'r', encoding='utf-8') as f:
             return json.load(f)
     except json.JSONDecodeError as e:
-        raise ConfigError(formatter.invalid_json(config_file, e)) from e
+        raise ConfigError(formatter.file.invalid_json(config_file, e)) from e

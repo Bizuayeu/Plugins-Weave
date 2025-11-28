@@ -125,12 +125,13 @@ class TestThresholdApplication:
             assert threshold >= 1
 
     def test_threshold_accessed_via_property(self, temp_plugin_env):
-        """閾値がプロパティアクセスで取得可能"""
+        """閾値がthresholdプロパティ経由で取得可能"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
-        # 動的プロパティアクセス
-        assert hasattr(config, "weekly_threshold")
-        assert isinstance(config.weekly_threshold, int)
+        # ARCHITECTURE: コンポーネント公開パターン
+        # config.threshold経由でThresholdProviderにアクセス
+        assert hasattr(config, "threshold")
+        assert isinstance(config.threshold.weekly_threshold, int)
 
 
 # =============================================================================

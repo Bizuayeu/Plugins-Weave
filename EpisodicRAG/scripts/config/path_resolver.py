@@ -58,7 +58,7 @@ class PathResolver:
         except ValueError:
             formatter = get_error_formatter()
             raise ConfigError(
-                formatter.config_invalid_value(
+                formatter.config.config_invalid_value(
                     "base_dir",
                     "path within plugin root",
                     f"'{base_dir_setting}' (resolves outside plugin root)"
@@ -81,10 +81,10 @@ class PathResolver:
         """
         formatter = get_error_formatter()
         if "paths" not in self.config:
-            raise ConfigError(formatter.config_section_missing("paths"))
+            raise ConfigError(formatter.config.config_section_missing("paths"))
         paths = as_dict(self.config["paths"])
         if key not in paths:
-            raise ConfigError(formatter.config_key_missing(f"paths.{key}"))
+            raise ConfigError(formatter.config.config_key_missing(f"paths.{key}"))
         rel_path = str(paths[key])
         return (self.base_dir / rel_path).resolve()
 

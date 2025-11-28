@@ -97,7 +97,7 @@ class DigestPersistence:
             save_json(final_path, as_dict(regular_digest))
         except IOError as e:
             formatter = get_error_formatter()
-            raise FileIOError(formatter.file_io_error("save", final_path, e))
+            raise FileIOError(formatter.file.file_io_error("save", final_path, e))
 
         log_info(f"RegularDigest saved: {final_path}")
         return final_path
@@ -120,7 +120,7 @@ class DigestPersistence:
         overall_digest = regular_digest.get("overall_digest")
         if not overall_digest or not is_valid_dict(overall_digest):
             formatter = get_error_formatter()
-            raise DigestError(formatter.validation_error("RegularDigest", "has no valid overall_digest", None))
+            raise DigestError(formatter.validation.validation_error("RegularDigest", "has no valid overall_digest", None))
         # GrandDigestManager.update_digestは例外を投げる（失敗時）
         self.grand_digest_manager.update_digest(level, new_digest_name, overall_digest)
 

@@ -9,7 +9,7 @@ config/threshold_provider.py のテスト
 import pytest
 
 from config.threshold_provider import ThresholdProvider
-from domain.constants import DEFAULT_THRESHOLDS, LEVEL_NAMES
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
 
 
@@ -38,7 +38,7 @@ class TestThresholdProvider:
 
         assert isinstance(result, int)
         assert result > 0
-        assert result == DEFAULT_THRESHOLDS.get(level, 5)
+        assert result == LEVEL_CONFIG[level].get("threshold", 5)
 
     @pytest.mark.unit
     def test_invalid_level_raises_config_error(self, default_config):
@@ -68,7 +68,7 @@ class TestThresholdProvider:
         # カスタム設定
         assert provider.get_threshold("weekly") == 10
         # デフォルト設定（custom_configに含まれない）
-        assert provider.get_threshold("annual") == DEFAULT_THRESHOLDS["annual"]
+        assert provider.get_threshold("annual") == LEVEL_CONFIG["annual"]["threshold"]
 
     @pytest.mark.unit
     def test_property_weekly_threshold(self, custom_config):
@@ -96,35 +96,35 @@ class TestThresholdProvider:
         """annual_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
-        assert provider.annual_threshold == DEFAULT_THRESHOLDS["annual"]
+        assert provider.annual_threshold == LEVEL_CONFIG["annual"]["threshold"]
 
     @pytest.mark.unit
     def test_property_triennial_threshold(self, default_config):
         """triennial_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
-        assert provider.triennial_threshold == DEFAULT_THRESHOLDS["triennial"]
+        assert provider.triennial_threshold == LEVEL_CONFIG["triennial"]["threshold"]
 
     @pytest.mark.unit
     def test_property_decadal_threshold(self, default_config):
         """decadal_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
-        assert provider.decadal_threshold == DEFAULT_THRESHOLDS["decadal"]
+        assert provider.decadal_threshold == LEVEL_CONFIG["decadal"]["threshold"]
 
     @pytest.mark.unit
     def test_property_multi_decadal_threshold(self, default_config):
         """multi_decadal_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
-        assert provider.multi_decadal_threshold == DEFAULT_THRESHOLDS["multi_decadal"]
+        assert provider.multi_decadal_threshold == LEVEL_CONFIG["multi_decadal"]["threshold"]
 
     @pytest.mark.unit
     def test_property_centurial_threshold(self, default_config):
         """centurial_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
-        assert provider.centurial_threshold == DEFAULT_THRESHOLDS["centurial"]
+        assert provider.centurial_threshold == LEVEL_CONFIG["centurial"]["threshold"]
 
     @pytest.mark.unit
     def test_empty_levels_section(self):
@@ -133,7 +133,7 @@ class TestThresholdProvider:
         provider = ThresholdProvider(config)
 
         # 全てデフォルト値になる
-        assert provider.weekly_threshold == DEFAULT_THRESHOLDS["weekly"]
+        assert provider.weekly_threshold == LEVEL_CONFIG["weekly"]["threshold"]
 
     @pytest.mark.unit
     def test_zero_threshold_allowed(self):

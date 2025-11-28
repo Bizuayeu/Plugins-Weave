@@ -35,9 +35,9 @@ def sanitize_filename(title: str, max_length: int = 50) -> str:
     # 型チェック
     formatter = get_error_formatter()
     if not isinstance(title, str):
-        raise ValidationError(formatter.invalid_type("title", "str", title))
+        raise ValidationError(formatter.validation.invalid_type("title", "str", title))
     if max_length <= 0:
-        raise ValidationError(formatter.validation_error("max_length", "must be positive", max_length))
+        raise ValidationError(formatter.validation.validation_error("max_length", "must be positive", max_length))
 
     # 危険な文字を削除
     sanitized = re.sub(r'[<>:"/\\|?*]', '', title)
@@ -81,7 +81,7 @@ def get_next_digest_number(digests_path: Path, level: str) -> int:
     config = LEVEL_CONFIG.get(level)
     if not config:
         formatter = get_error_formatter()
-        raise ConfigError(formatter.invalid_level(level, list(LEVEL_CONFIG.keys())))
+        raise ConfigError(formatter.config.invalid_level(level, list(LEVEL_CONFIG.keys())))
 
     prefix = str(config["prefix"])
     level_dir = digests_path / str(config["dir"])
