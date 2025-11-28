@@ -41,47 +41,63 @@ class DigestTimesTracker:
             log_message="Initialized last_digest_times.json from template",
         )
 
-    def extract_file_numbers(self, level: str, input_files: List[str]) -> List[str]:
-        """ファイル名から連番を抽出（プレフィックス付き、ゼロ埋め維持）"""
-        # None/空チェック
-        if input_files is None:
+    def extract_file_numbers(self, level: str, input_files: Optional[List[str]]) -> List[str]:
+        """
+        ファイル名から連番を抽出（プレフィックス付き、ゼロ埋め維持）
+
+        Args:
+            level: ダイジェストレベル（将来の拡張用）
+            input_files: ファイル名のリスト
+
+        Returns:
+            抽出・フォーマットされた連番リスト（無効な入力は空リスト）
+        """
+        # 早期リターン: None、空、または無効な型
+        if not input_files or not is_valid_list(input_files):
+            if input_files is not None and not is_valid_list(input_files):
+                log_warning(f"input_files is not a list: {type(input_files).__name__}")
             return []
 
-        # 型チェック
-        if not is_valid_list(input_files):
-            log_warning(f"input_files is not a list: {type(input_files).__name__}")
-            return []
-
-        if not input_files:
-            return []
-
-        # 統一関数を使用して抽出・フォーマット
         # Cast to satisfy List[Union[str, None]] signature (List invariance)
         files_with_optional = cast(List[Union[str, None]], input_files)
         return extract_numbers_formatted(files_with_optional)
 
+    def _extract_last_processed(self, file_numbers: List[str]) -> Optional[int]:
+        """
+        ファイル番号リストから最後の番号を抽出
+
+        Args:
+            file_numbers: フォーマット済みファイル番号リスト（例: ["Loop0001", "Loop0005"]）
+
+        Returns:
+            最後のファイル番号（int）、またはリストが空ならNone
+        """
+        if not file_numbers:
+            return None
+
+        last_file_str = file_numbers[-1]
+        return extract_number_only(last_file_str)
+
     def save(self, level: str, input_files: Optional[List[str]] = None) -> None:
-        """最終ダイジェスト生成時刻と最新処理済みファイル番号を保存"""
+        """
+        最終ダイジェスト生成時刻と最新処理済みファイル番号を保存
+
+        Args:
+            level: ダイジェストレベル
+            input_files: 処理したファイル名のリスト（オプション）
+        """
         # 空リスト警告
         if input_files is not None and len(input_files) == 0:
             log_warning(f"Empty input_files list for level: {level}")
 
         times = self.load_or_create()
 
-        # 連番を抽出
-        files_for_extract = input_files if input_files is not None else []
-        file_numbers = self.extract_file_numbers(level, files_for_extract)
-
-        # 最後の要素のみを保存 (as int for TypedDict compatibility)
-        # file_numbers contains formatted strings like "Loop0005", extract number only
-        last_file_str = file_numbers[-1] if file_numbers else None
-        last_processed: Optional[int] = (
-            extract_number_only(last_file_str) if last_file_str else None
-        )
+        # 連番抽出と最終番号取得
+        file_numbers = self.extract_file_numbers(level, input_files or [])
+        last_processed = self._extract_last_processed(file_numbers)
 
         # 保存
         times[level] = {"timestamp": datetime.now().isoformat(), "last_processed": last_processed}
-
         save_json(self.last_digest_file, times)
 
         log_info(f"Updated last_digest_times.json for level: {level}")

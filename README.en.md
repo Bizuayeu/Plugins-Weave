@@ -4,7 +4,7 @@ English | [日本語](README.md)
 
 Hierarchical Memory & Digest Generation System (8 Layers, 100 Years, Fully Self-Contained)
 
-![EpisodicRAG Plugin](EpisodicRAG.png)
+![EpisodicRAG Plugin - Architecture diagram of 8-layer hierarchical memory management system](EpisodicRAG.png)
 [![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 

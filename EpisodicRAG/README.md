@@ -159,7 +159,7 @@ EpisodicRAGは8つの階層で記憶を管理します（約108年分）：
 
 Digest確定時に上位階層へ自動的に伝播する処理です：
 
-```
+```text
 Loop (5個) → Weekly Digest
   ↓
 Weekly (5個) → Monthly Digest
@@ -194,7 +194,7 @@ Multi-decadal (4個) → Centurial Digest
 
 **ケース1: 未処理Loopの放置（最も一般的）**
 
-```
+```text
 L00001追加 → `/digest`せず → L00002追加
                               ↑
                     この時点でAIはL00001の内容を覚えていない
@@ -205,7 +205,7 @@ L00001追加 → `/digest`せず → L00002追加
 
 **ケース2: `/digest`処理中のエラー（技術的問題）**
 
-```
+```text
 /digest 実行 → エラー発生 → ShadowGrandDigestに
                            source_filesは登録されたが
                            digestがnull（プレースホルダー）
@@ -215,7 +215,7 @@ L00001追加 → `/digest`せず → L00002追加
 
 ### 記憶定着サイクル
 
-```
+```text
 Loop追加 → `/digest` → Loop追加 → `/digest` → ...
          ↑ 記憶定着  ↑         ↑ 記憶定着
 ```
@@ -224,7 +224,7 @@ Loop追加 → `/digest` → Loop追加 → `/digest` → ...
 
 **やってはいけないこと:**
 
-```
+```text
 L00001追加 → `/digest`せず → L00002追加
                               ↑
                     この時点でAIはL00001の内容を覚えていない
@@ -262,7 +262,7 @@ L00001追加 → `/digest`せず → L00002追加
 | Centurial | C | 2 | C01 |
 
 ### Loopファイル
-```
+```text
 形式: L[連番]_[タイトル].txt
 連番: 5桁の数字（大きいほど新しい）
 例:   L00001_初回セッション.txt
@@ -270,14 +270,14 @@ L00001追加 → `/digest`せず → L00002追加
 ```
 
 ### Provisionalファイル
-```
+```text
 形式: {prefix}{番号}_Individual.txt
 例:   W0001_Individual.txt
       M0001_Individual.txt
 ```
 
 ### Regularファイル
-```
+```text
 形式: {日付}_{prefix}{番号}_タイトル.txt
 例:   2025-07-01_W0001_認知アーキテクチャ.txt
       2025-08-15_M001_月次まとめ.txt

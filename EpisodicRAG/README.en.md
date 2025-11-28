@@ -159,7 +159,7 @@ EpisodicRAG manages memory across 8 hierarchical layers (approximately 108 years
 
 Process that automatically propagates to upper hierarchies when finalizing a Digest:
 
-```
+```text
 Loop (5) → Weekly Digest
   ↓
 Weekly (5) → Monthly Digest
@@ -194,7 +194,7 @@ Multi-decadal (4) → Centurial Digest
 
 **Case 1: Neglecting unprocessed Loops (most common)**
 
-```
+```text
 L00001 added → No `/digest` → L00002 added
                                ↑
                     At this point, AI doesn't remember L00001
@@ -205,7 +205,7 @@ L00001 added → No `/digest` → L00002 added
 
 **Case 2: Error during `/digest` processing (technical issue)**
 
-```
+```text
 /digest executed → Error occurred → In ShadowGrandDigest,
                                     source_files registered but
                                     digest is null (placeholder)
@@ -215,7 +215,7 @@ L00001 added → No `/digest` → L00002 added
 
 ### Memory Consolidation Cycle
 
-```
+```text
 Add Loop → `/digest` → Add Loop → `/digest` → ...
           ↑ consolidate ↑        ↑ consolidate
 ```
@@ -224,7 +224,7 @@ By following this principle, AI can remember all Loops.
 
 **What NOT to do:**
 
-```
+```text
 L00001 added → No `/digest` → L00002 added
                                ↑
                     At this point, AI doesn't remember L00001
@@ -262,7 +262,7 @@ L00001 added → No `/digest` → L00002 added
 | Centurial | C | 2 | C01 |
 
 ### Loop Files
-```
+```text
 Format: L[sequence_number]_[title].txt
 Number: 5-digit number (larger = newer)
 Examples: L00001_InitialSession.txt
@@ -270,14 +270,14 @@ Examples: L00001_InitialSession.txt
 ```
 
 ### Provisional Files
-```
+```text
 Format: {prefix}{number}_Individual.txt
 Examples: W0001_Individual.txt
           M0001_Individual.txt
 ```
 
 ### Regular Files
-```
+```text
 Format: {date}_{prefix}{number}_title.txt
 Examples: 2025-07-01_W0001_CognitiveArchitecture.txt
           2025-08-15_M001_MonthlySummary.txt

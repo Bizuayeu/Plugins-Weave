@@ -1056,7 +1056,7 @@ EpisodicRAGで使用されているデザインパターン一覧：
 
 ### Clean Architecture 層構造
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │              Interfaces層                    │
 │   DigestFinalizerFromShadow                 │
@@ -1114,7 +1114,7 @@ EpisodicRAGで使用されているデザインパターン一覧：
 - `"../.."`: 2階層上
 
 **パス解決の仕組み:**
-```
+```text
 最終的なパス = {plugin_root} / {base_dir} / {paths.*_dir}
 
 例:

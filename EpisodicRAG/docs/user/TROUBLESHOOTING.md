@@ -110,7 +110,7 @@ DigestAnalyzerが正しくindividual digestを生成しているか確認して�
 cat {digests_dir}/1_Weekly/Provisional/W0001_Individual.txt
 ```
 
-期待される形式（JSON）:
+期待される形式:
 ```json
 {
   "metadata": {
@@ -214,9 +214,9 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 2. **Weekly levelのoverall_digestが正しく設定されているか**
 
    期待される形式（[ARCHITECTURE.md](../dev/ARCHITECTURE.md) 参照）:
-   ```json
-   {
-     "major_digests": {
+```json
+{
+  "major_digests": {
        "weekly": {
          "overall_digest": {
            "timestamp": "...",
@@ -288,7 +288,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 **方法2: 明示的な指示を追加**
 
 DigestAnalyzerに以下を指示:
-```
+```text
 最後まで必ず出力してください。
 末尾は必ず }}} で終わること
 JSON形式を厳密に守ってください
@@ -298,7 +298,7 @@ JSON形式を厳密に守ってください
 
 - Loopファイルを分割（L00001a, L00001b など）
 - または段階的読み込みを指示:
-  ```
+  ```text
   まず前半を読み込んで分析し、
   次に後半を読み込んで統合してください
   ```
@@ -325,6 +325,8 @@ cat {path_to_generated_json}
 ```bash
 cd plugins-weave/EpisodicRAG
 git status
+```
+```text
 # 期待: "nothing to commit, working tree clean"
 # 問題: config.json や last_digest_times.json が untracked として表示される
 ```
@@ -364,7 +366,7 @@ git status
 @digest-auto
 ```
 
-出力内容を確認：
+出力内容を確認:
 - 未処理Loop検出
 - プレースホルダー検出
 - 中間ファイルスキップ検出
@@ -378,7 +380,7 @@ python scripts/config.py --show-paths
 ```
 
 出力例:
-```
+```text
 Plugin Root: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
 Config File: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin/config.json
 Base Dir (setting): ../../..
@@ -485,7 +487,7 @@ https://github.com/Bizuayeu/Plugins-Weave/issues
 
 ### 報告例（テンプレート）:
 
-```markdown
+```text
 ## 問題の概要
 [簡潔に問題を説明]
 

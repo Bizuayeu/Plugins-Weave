@@ -43,7 +43,7 @@ EpisodicRAGプラグインの開発に興味を持っていただき、ありが
 
 #### 1. ディレクトリ構造の確認
 
-```
+```text
 plugins-weave/
 ├── .claude-plugin/                     # マーケットプレイス設定
 │   └── marketplace.json
@@ -80,7 +80,7 @@ Claude Codeで以下を実行：
 ```
 
 **成功時の出力**:
-```
+```text
 ✅ Marketplace 'Plugins-Weave' added successfully
 ```
 
@@ -91,7 +91,7 @@ Claude Codeで以下を実行：
 ```
 
 **成功時の出力**:
-```
+```text
 ✅ Plugin 'EpisodicRAG-Plugin' installed successfully
 ```
 
@@ -110,7 +110,7 @@ Claude Codeで以下を実行：
 ```
 
 **期待される出力**:
-```
+```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 EpisodicRAG システム状態
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -121,7 +121,7 @@ Claude Codeで以下を実行：
 
 プラグインのコードを修正した後、以下で再テスト：
 
-```bash
+```text
 # 1. アンインストール
 /plugin uninstall EpisodicRAG-Plugin@Plugins-Weave
 
@@ -160,7 +160,7 @@ python scripts/config.py --show-paths
 ```
 
 **出力例**:
-```
+```text
 Plugin Root: [Your Project]/plugins-weave/EpisodicRAG
 Config File: [Your Project]/plugins-weave/EpisodicRAG/.claude-plugin/config.json
 Loops Path: [Your Project]/plugins-weave/EpisodicRAG/data/Loops
@@ -335,6 +335,8 @@ python -m pytest test/ --cov=. --cov-report=term-missing
 ```bash
 cd plugins-weave/EpisodicRAG
 git status
+```
+```text
 # 期待: "nothing to commit, working tree clean"
 ```
 

@@ -269,3 +269,217 @@ class TestMemoryEstimation:
         # List of 500 digests should be reasonably small
         # This is a rough estimate - actual memory usage is higher
         assert size_bytes < 1024 * 1024  # Less than 1MB for base structure
+
+
+# =============================================================================
+# File Detection Performance Tests
+# =============================================================================
+
+
+@pytest.fixture
+def large_digest_files(temp_plugin_env) -> List[Path]:
+    """Create a large number of Digest files for performance testing."""
+    weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
+    weekly_dir.mkdir(parents=True, exist_ok=True)
+    files = []
+
+    # Create 1000 digest files
+    for i in range(1, 1001):
+        filename = f"W{i:04d}_TestDigest.txt"
+        file_path = weekly_dir / filename
+        content = {
+            "metadata": {"digest_number": f"{i:04d}", "level": "weekly"},
+            "overall_digest": {"keywords": ["test"]},
+        }
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(content, f)
+        files.append(file_path)
+
+    return files
+
+
+@pytest.mark.performance
+@pytest.mark.slow
+class TestFileDetectionPerformance:
+    """Performance tests for file detection operations."""
+
+    def test_find_new_files_1000(self, large_digest_files, digest_config, times_tracker):
+        """File detection should handle 1000 files efficiently."""
+        from application.shadow import FileDetector
+
+        detector = FileDetector(digest_config, times_tracker)
+
+        start = time.perf_counter()
+
+        # Run file detection 10 times
+        for _ in range(10):
+            new_files = detector.find_new_files("monthly")
+
+        elapsed = time.perf_counter() - start
+
+        # 10 iterations should complete in under 5 seconds
+        assert elapsed < 5.0, f"File detection took {elapsed:.2f}s for 10 iterations"
+        print(f"\nFile detection: {elapsed:.3f}s for 10 iterations (1000 files)")
+
+
+# =============================================================================
+# Shadow I/O Performance Tests
+# =============================================================================
+
+
+@pytest.mark.performance
+@pytest.mark.slow
+class TestShadowIOPerformance:
+    """Performance tests for Shadow I/O operations."""
+
+    def test_shadow_load_save_cycle(self, temp_plugin_env, template, shadow_io):
+        """Shadow load/save cycle should be fast."""
+        start = time.perf_counter()
+
+        # Run load/save cycle 100 times
+        for i in range(100):
+            data = shadow_io.load_or_create()
+            # Modify slightly to trigger save
+            data["metadata"]["test_iteration"] = i
+            shadow_io.save(data)
+
+        elapsed = time.perf_counter() - start
+
+        # 100 load/save cycles should complete in under 10 seconds
+        assert elapsed < 10.0, f"Shadow I/O took {elapsed:.2f}s for 100 cycles"
+        print(f"\nShadow I/O: {elapsed:.3f}s for 100 load/save cycles")
+
+
+# =============================================================================
+# Regex Extraction Performance Tests
+# =============================================================================
+
+
+@pytest.mark.performance
+@pytest.mark.slow
+class TestRegexPerformance:
+    """Performance tests for regex-based file name extraction."""
+
+    def test_extract_file_number_1000(self):
+        """Regex extraction should be fast for many files."""
+        from domain.file_naming import extract_file_number
+
+        # Create 1000 file names
+        filenames = [f"L{i:05d}_TestLoop.txt" for i in range(1, 1001)]
+
+        start = time.perf_counter()
+
+        # Extract numbers 10 times
+        for _ in range(10):
+            results = [extract_file_number(f) for f in filenames]
+
+        elapsed = time.perf_counter() - start
+
+        # 10000 extractions should complete in under 0.5 seconds
+        assert elapsed < 0.5, f"Regex extraction took {elapsed:.2f}s"
+        assert all(r is not None for r in results)
+        print(f"\nRegex extraction: {elapsed:.3f}s for 10000 extractions")
+
+
+# =============================================================================
+# Grand Digest Performance Tests
+# =============================================================================
+
+
+@pytest.mark.performance
+@pytest.mark.slow
+class TestGrandDigestPerformance:
+    """Performance tests for Grand Digest operations."""
+
+    def test_grand_digest_crud_cycle(self, temp_plugin_env, digest_config):
+        """Grand Digest CRUD operations should be fast."""
+        from application.grand import GrandDigestManager
+
+        manager = GrandDigestManager(digest_config)
+
+        start = time.perf_counter()
+
+        # Run CRUD cycle 50 times
+        for i in range(50):
+            data = manager.load_or_create()
+            # Update digest - signature: (level, digest_name, overall_digest)
+            overall_digest = {
+                "name": f"TestDigest_{i}",
+                "source_files": [f"W{j:04d}.txt" for j in range(1, 6)],
+                "keywords": ["test", "performance"],
+                "abstract": "Test abstract",
+                "impression": "Test impression",
+            }
+            manager.update_digest("weekly", f"W{i:04d}_Test", overall_digest)
+
+        elapsed = time.perf_counter() - start
+
+        # 50 CRUD cycles should complete in under 5 seconds
+        assert elapsed < 5.0, f"Grand Digest CRUD took {elapsed:.2f}s for 50 cycles"
+        print(f"\nGrand Digest CRUD: {elapsed:.3f}s for 50 cycles")
+
+
+# =============================================================================
+# Cascade Processing Performance Tests
+# =============================================================================
+
+
+@pytest.mark.performance
+@pytest.mark.slow
+class TestCascadePerformance:
+    """Performance tests for cascade processing operations."""
+
+    def test_cascade_initialization(self, temp_plugin_env, digest_config):
+        """Cascade component initialization should be fast."""
+        from application.grand import ShadowGrandDigestManager
+        from application.tracking import DigestTimesTracker
+
+        start = time.perf_counter()
+
+        # Initialize components 20 times
+        for _ in range(20):
+            times_tracker = DigestTimesTracker(digest_config)
+            shadow_manager = ShadowGrandDigestManager(digest_config)
+            # ShadowGrandDigestManager contains ShadowUpdater internally
+
+        elapsed = time.perf_counter() - start
+
+        # 20 initializations should complete in under 2 seconds
+        assert elapsed < 2.0, f"Cascade init took {elapsed:.2f}s for 20 iterations"
+        print(f"\nCascade init: {elapsed:.3f}s for 20 iterations")
+
+
+# =============================================================================
+# File Appending Performance Tests
+# =============================================================================
+
+
+@pytest.mark.performance
+@pytest.mark.slow
+class TestFileAppendingPerformance:
+    """Performance tests for file appending operations."""
+
+    def test_add_files_to_shadow_50(self, temp_plugin_env, digest_config):
+        """Adding 50 files to shadow should be fast."""
+        from application.grand import ShadowGrandDigestManager
+
+        # Create 50 mock files
+        loops_path = temp_plugin_env.loops_path
+        for i in range(1, 51):
+            file_path = loops_path / f"L{i:05d}_Test.txt"
+            file_path.write_text('{"overall_digest": {"keywords": ["test"]}}')
+
+        start = time.perf_counter()
+
+        # Run update_shadow_for_new_loops 10 times
+        for _ in range(10):
+            shadow_manager = ShadowGrandDigestManager(digest_config)
+            shadow_manager.clear_shadow_level("weekly")
+            # Use the public API for detecting and adding new files
+            shadow_manager.update_shadow_for_new_loops()
+
+        elapsed = time.perf_counter() - start
+
+        # 10 iterations of updating shadow should complete in under 10 seconds
+        assert elapsed < 10.0, f"Shadow update took {elapsed:.2f}s for 10 iterations"
+        print(f"\nShadow update: {elapsed:.3f}s for 10 iterations (50 files)")

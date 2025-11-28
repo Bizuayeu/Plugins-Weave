@@ -71,7 +71,7 @@ class TestShadowValidatorValidateShadowContent:
     def test_raises_on_non_string_filename(self, validator):
         """ファイル名が文字列でない場合はValidationError"""
         with pytest.raises(ValidationError) as exc_info:
-            validator.validate_shadow_content("weekly", ["Loop0001.txt", 123])
+            validator.validate_shadow_content("weekly", ["L00001_test.txt", 123])
         assert "expected str" in str(exc_info.value)
 
     @pytest.mark.unit

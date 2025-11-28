@@ -6,7 +6,7 @@ Shadow Validator
 ShadowGrandDigestの内容を検証するクラス
 """
 
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from application.grand import ShadowGrandDigestManager
 from application.validators import is_valid_dict, is_valid_list
@@ -32,6 +32,73 @@ class ShadowValidator:
         self.shadow_manager = shadow_manager
         self.confirm_callback = confirm_callback or get_default_confirm_callback()
 
+    def _collect_validation_errors(
+        self, level: str, source_files: List[str]
+    ) -> Tuple[List[str], List[str], List[int]]:
+        """
+        検証エラーを1パスで収集
+
+        Args:
+            level: ダイジェストレベル
+            source_files: 検証対象のファイルリスト
+
+        Returns:
+            (fatal_errors, warnings, numbers) のタプル
+            - fatal_errors: 致命的エラー（処理続行不可）
+            - warnings: 警告（ユーザー確認で続行可能）
+            - numbers: 抽出されたファイル番号リスト
+        """
+        fatal_errors: List[str] = []
+        warnings: List[str] = []
+        numbers: List[int] = []
+
+        # 型チェック
+        if not is_valid_list(source_files):
+            fatal_errors.append(f"source_files must be a list, got {type(source_files).__name__}")
+            return fatal_errors, warnings, numbers
+
+        # 空チェック
+        if not source_files:
+            fatal_errors.append(f"Shadow digest for level '{level}' has no source files")
+            return fatal_errors, warnings, numbers
+
+        # ファイル名検証と番号抽出を1ループで実行
+        for i, filename in enumerate(source_files):
+            if not isinstance(filename, str):
+                fatal_errors.append(
+                    f"Invalid filename at index {i}: expected str, got {type(filename).__name__}"
+                )
+                continue
+
+            result = extract_file_number(filename)
+            if result:
+                numbers.append(result[1])
+            else:
+                fatal_errors.append(f"Invalid filename format: {filename}")
+
+        # 連番チェック（致命的エラーがなければ）
+        if not fatal_errors and numbers:
+            numbers.sort()
+            if not self._is_consecutive(numbers):
+                warnings.append(f"Non-consecutive files detected: {numbers}")
+
+        return fatal_errors, warnings, numbers
+
+    def _is_consecutive(self, numbers: List[int]) -> bool:
+        """
+        番号リストが連番かチェック
+
+        Args:
+            numbers: ソート済み番号リスト
+
+        Returns:
+            連番の場合True
+        """
+        for i in range(len(numbers) - 1):
+            if numbers[i + 1] != numbers[i] + 1:
+                return False
+        return True
+
     def validate_shadow_content(self, level: str, source_files: List[str]) -> None:
         """
         ShadowGrandDigestの内容が妥当かチェック
@@ -43,39 +110,19 @@ class ShadowValidator:
         Raises:
             ValidationError: source_filesの形式が不正な場合
         """
-        # 型チェック
-        if not is_valid_list(source_files):
-            raise ValidationError(f"source_files must be a list, got {type(source_files).__name__}")
+        fatal_errors, warnings, numbers = self._collect_validation_errors(level, source_files)
 
-        if not source_files:
-            raise ValidationError(f"Shadow digest for level '{level}' has no source files")
+        # 致命的エラーがあれば即座に例外
+        if fatal_errors:
+            raise ValidationError(fatal_errors[0])
 
-        # ファイル名の型チェック
-        for i, filename in enumerate(source_files):
-            if not isinstance(filename, str):
-                raise ValidationError(
-                    f"Invalid filename at index {i}: expected str, got {type(filename).__name__}"
-                )
-
-        # ファイル名から番号を抽出（共通関数を使用）
-        numbers = []
-        for filename in source_files:
-            result = extract_file_number(filename)
-            if result:
-                numbers.append(result[1])
-            else:
-                raise ValidationError(f"Invalid filename format: {filename}")
-
-        # 連番チェック
-        numbers.sort()
-        for i in range(len(numbers) - 1):
-            if numbers[i + 1] != numbers[i] + 1:
-                log_warning("Non-consecutive files detected:")
-                log_warning(f"  Files: {source_files}")
-                log_warning(f"  Numbers: {numbers}")
-                if not self.confirm_callback("Continue anyway?"):
-                    raise ValidationError("User cancelled due to non-consecutive files")
-                break
+        # 警告があればユーザーに確認
+        if warnings:
+            for warning in warnings:
+                log_warning(warning)
+            log_warning(f"  Files: {source_files}")
+            if not self.confirm_callback("Continue anyway?"):
+                raise ValidationError("User cancelled due to non-consecutive files")
 
         log_info(
             f"Shadow validation passed: {len(source_files)} file(s), range: {numbers[0]}-{numbers[-1]}"

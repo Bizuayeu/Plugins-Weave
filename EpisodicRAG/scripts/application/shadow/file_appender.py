@@ -7,7 +7,7 @@ File Appender
 """
 
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Any, Dict, List, Set
 
 from application.validators import is_valid_dict
 from domain.constants import (
@@ -53,6 +53,20 @@ class FileAppender:
         self.level_hierarchy = level_hierarchy
         self.placeholder_manager = placeholder_manager
 
+    def _is_valid_overall_digest(self, digest: Any) -> bool:
+        """
+        overall_digestの有効性を検証
+
+        有効条件: dictであり、source_filesキーを含む
+
+        Args:
+            digest: 検証対象のダイジェスト
+
+        Returns:
+            有効な場合True
+        """
+        return is_valid_dict(digest) and "source_files" in digest
+
     def _ensure_overall_digest_initialized(
         self, shadow_data: ShadowDigestData, level: str
     ) -> OverallDigestData:
@@ -70,19 +84,17 @@ class FileAppender:
 
         log_debug(f"{LOG_PREFIX_STATE} _ensure_overall_digest_initialized: level={level}")
         log_debug(
-            f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}"
+            f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, "
+            f"is_valid={self._is_valid_overall_digest(overall_digest)}"
         )
 
-        # overall_digestがnullまたは非dict型の場合、初期化
-        if overall_digest is None or not is_valid_dict(overall_digest):
-            log_debug(f"{LOG_PREFIX_DECISION} reinitializing overall_digest (null or invalid)")
+        # 単一条件で初期化判定（dictかつsource_files存在）
+        if not self._is_valid_overall_digest(overall_digest):
+            log_debug(
+                f"{LOG_PREFIX_DECISION} reinitializing overall_digest (invalid or missing source_files)"
+            )
             overall_digest = self.template.create_empty_overall_digest()
             shadow_data["latest_digests"][level]["overall_digest"] = overall_digest
-
-        # source_filesがoverall_digest内に存在しない場合、初期化
-        if "source_files" not in overall_digest:
-            log_debug(f"{LOG_PREFIX_DECISION} initializing source_files (not present)")
-            overall_digest["source_files"] = []
 
         return overall_digest
 

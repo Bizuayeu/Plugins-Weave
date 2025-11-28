@@ -55,19 +55,21 @@ class CascadeProcessor:
         self.level_hierarchy = level_hierarchy
         self.file_appender = file_appender
 
-    def _validate_overall_digest(self, overall_digest: Any) -> bool:
+    def _is_valid_overall_digest(self, digest: Any) -> bool:
         """
         overall_digestの有効性を検証
 
+        有効条件: dictであり、source_filesが存在し空でない
+
         Args:
-            overall_digest: 検証対象のダイジェスト
+            digest: 検証対象のダイジェスト
 
         Returns:
-            有効な場合True（dictでありsource_filesが存在し空でない）
+            有効な場合True
         """
-        if overall_digest is None or not is_valid_dict(overall_digest):
+        if not is_valid_dict(digest):
             return False
-        source_files = overall_digest.get("source_files", [])
+        source_files = digest.get("source_files", [])
         return bool(source_files)
 
     def get_shadow_digest_for_level(self, level: str) -> Optional[OverallDigestData]:
@@ -87,16 +89,16 @@ class CascadeProcessor:
 
         log_debug(f"{LOG_PREFIX_STATE} get_shadow_digest_for_level: level={level}")
         log_debug(
-            f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}"
+            f"{LOG_PREFIX_VALIDATE} overall_digest: "
+            f"is_valid={self._is_valid_overall_digest(overall_digest)}"
         )
 
-        if not self._validate_overall_digest(overall_digest):
+        if not self._is_valid_overall_digest(overall_digest):
             log_info(f"No shadow digest for level: {level}")
             return None
 
-        # At this point, overall_digest is validated (not None and has source_files)
-        source_files = overall_digest.get("source_files", []) if overall_digest else []
-        log_debug(f"{LOG_PREFIX_VALIDATE} source_files: count={len(source_files)}")
+        # 検証済み: source_filesへの直接アクセスが安全
+        log_debug(f"{LOG_PREFIX_VALIDATE} source_files: count={len(overall_digest['source_files'])}")
         return overall_digest
 
     def promote_shadow_to_grand(self, level: str) -> None:

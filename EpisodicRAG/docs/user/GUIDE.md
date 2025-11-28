@@ -66,7 +66,7 @@ DigestAnalyzer は各ファイルに対して long版 と short版 を生成し�
 | **保存先** | ShadowGrandDigest.txt | Provisional Digest |
 
 **データフロー**:
-```
+```text
 DigestAnalyzer 並列起動
   ↓
 long版 → ShadowGrandDigest.txt 更新（現階層overall用）
@@ -96,7 +96,7 @@ short版 → Provisional Digest 保存（次階層individual用）
 5. 次のアクション提示
 
 **データフロー:**
-```
+```text
 未処理Loop検出
   ↓
 DigestAnalyzer 並列起動（各Loopごと）
@@ -136,7 +136,7 @@ short版 → Provisional/1_Weekly/W0001_Individual.txt（--append）
    - Provisional ファイル削除
 
 **データフロー:**
-```
+```text
 ShadowGrandDigest.weekly確認
   ↓
 DigestAnalyzer 並列起動（各source_fileごと）
@@ -176,7 +176,7 @@ GrandDigest更新 + 次階層Shadowカスケード + Provisionalクリーンア�
 ```
 
 **出力例（未処理Loop検出時）:**
-```
+```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ 未処理Loop検出（まだらボケ予防）
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -364,7 +364,7 @@ flowchart TD
 
 #### Phase 1: Loop追加と即時分析（まだらボケ回避）
 
-```
+```text
 1. L00001_タイトル.txt を Loops/ に配置
 
 2. `/digest` 実行
@@ -391,7 +391,7 @@ flowchart TD
 
 #### Phase 2: Weekly Digest 確定
 
-```
+```text
 4. `/digest weekly` 実行（5個揃った時点）
    ↓
    ShadowGrandDigest.weekly 確認
@@ -419,7 +419,7 @@ flowchart TD
 
 #### Phase 3: Monthly Digest 生成（5つのWeeklyが揃った時点）
 
-```
+```text
 5. `/digest monthly` 実行
    ↓
    ShadowGrandDigest.monthly 確認
@@ -458,14 +458,14 @@ flowchart LR
 ```
 
 **毎日（1日1-2回）:**
-```bash
+```text
 # 新しい会話があったら
 1. LXXXXX_タイトル.txt を配置
 2. /digest  # 即座に記憶定着
 ```
 
 **週末（5個揃ったら）:**
-```bash
+```text
 3. @digest-auto  # 状態確認
 4. /digest weekly  # Weekly Digest確定
 ```
@@ -477,12 +477,12 @@ flowchart LR
 ### 月次運用パターン
 
 **毎週末:**
-```bash
+```text
 1. /digest weekly  # Weekly Digest確定
 ```
 
 **月末（5週分揃ったら）:**
-```bash
+```text
 2. @digest-auto  # 状態確認
 3. /digest monthly  # Monthly Digest確定
 ```

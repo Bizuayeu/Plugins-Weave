@@ -14,11 +14,14 @@ import pytest
 
 from domain.exceptions import FileIOError
 from infrastructure.json_repository import (
+    confirm_file_overwrite,
     ensure_directory,
     file_exists,
     load_json,
     load_json_with_template,
     save_json,
+    try_load_json,
+    try_read_json_from_file,
 )
 
 # =============================================================================
@@ -330,3 +333,166 @@ class TestEnsureDirectory:
 
         with pytest.raises(FileIOError, match="Failed to create directory"):
             ensure_directory(invalid_dir)
+
+
+# =============================================================================
+# try_load_json テスト
+# =============================================================================
+
+
+class TestTryLoadJson:
+    """try_load_json() 関数のテスト"""
+
+    @pytest.mark.integration
+    def test_missing_file_returns_default(self, tmp_path):
+        """存在しないファイル → デフォルト値"""
+        missing_file = tmp_path / "missing.json"
+
+        result = try_load_json(missing_file, default={"fallback": True})
+        assert result == {"fallback": True}
+
+    @pytest.mark.integration
+    def test_missing_file_returns_none_when_no_default(self, tmp_path):
+        """存在しないファイル、デフォルトなし → None"""
+        missing_file = tmp_path / "missing.json"
+
+        result = try_load_json(missing_file)
+        assert result is None
+
+    @pytest.mark.integration
+    def test_valid_json_returns_content(self, tmp_path):
+        """正常なJSON → 内容を返す"""
+        valid_file = tmp_path / "valid.json"
+        test_data = {"key": "value"}
+        valid_file.write_text(json.dumps(test_data))
+
+        result = try_load_json(valid_file)
+        assert result == test_data
+
+    @pytest.mark.integration
+    def test_invalid_json_returns_default(self, tmp_path):
+        """不正なJSON → デフォルト値"""
+        invalid_file = tmp_path / "invalid.json"
+        invalid_file.write_text("{invalid json")
+
+        result = try_load_json(invalid_file, default={"error": "fallback"})
+        assert result == {"error": "fallback"}
+
+    @pytest.mark.integration
+    def test_invalid_json_returns_none_when_no_default(self, tmp_path):
+        """不正なJSON、デフォルトなし → None"""
+        invalid_file = tmp_path / "invalid.json"
+        invalid_file.write_text("{invalid json")
+
+        result = try_load_json(invalid_file)
+        assert result is None
+
+
+# =============================================================================
+# try_read_json_from_file テスト
+# =============================================================================
+
+
+class TestTryReadJsonFromFile:
+    """try_read_json_from_file() 関数のテスト"""
+
+    @pytest.mark.integration
+    def test_missing_file_returns_none(self, tmp_path):
+        """存在しないファイル → None"""
+        missing_file = tmp_path / "missing.txt"
+
+        result = try_read_json_from_file(missing_file)
+        assert result is None
+
+    @pytest.mark.integration
+    def test_valid_txt_json_returns_content(self, tmp_path):
+        """正常な.txt JSON → 内容を返す"""
+        valid_file = tmp_path / "valid.txt"
+        test_data = {"source_file": "L00001.txt", "keywords": ["a", "b"]}
+        valid_file.write_text(json.dumps(test_data))
+
+        result = try_read_json_from_file(valid_file)
+        assert result == test_data
+
+    @pytest.mark.integration
+    def test_non_txt_extension_returns_none(self, tmp_path):
+        """非.txt拡張子 → None"""
+        json_file = tmp_path / "data.json"
+        json_file.write_text('{"key": "value"}')
+
+        result = try_read_json_from_file(json_file)
+        assert result is None
+
+    @pytest.mark.integration
+    def test_invalid_json_returns_none(self, tmp_path):
+        """不正なJSON → None"""
+        invalid_file = tmp_path / "invalid.txt"
+        invalid_file.write_text("{invalid json content")
+
+        result = try_read_json_from_file(invalid_file)
+        assert result is None
+
+    @pytest.mark.integration
+    def test_empty_file_returns_none(self, tmp_path):
+        """空ファイル → None"""
+        empty_file = tmp_path / "empty.txt"
+        empty_file.write_text("")
+
+        result = try_read_json_from_file(empty_file)
+        assert result is None
+
+    @pytest.mark.integration
+    def test_utf8_content_handled(self, tmp_path):
+        """UTF-8コンテンツを正しく処理"""
+        utf8_file = tmp_path / "utf8.txt"
+        test_data = {"japanese": "日本語", "keywords": ["キーワード1", "キーワード2"]}
+        utf8_file.write_text(json.dumps(test_data, ensure_ascii=False), encoding="utf-8")
+
+        result = try_read_json_from_file(utf8_file)
+        assert result is not None
+        assert result["japanese"] == "日本語"
+
+
+# =============================================================================
+# confirm_file_overwrite テスト
+# =============================================================================
+
+
+class TestConfirmFileOverwrite:
+    """confirm_file_overwrite() 関数のテスト"""
+
+    @pytest.mark.integration
+    def test_missing_file_returns_true(self, tmp_path):
+        """存在しないファイル → True（上書き可）"""
+        missing_file = tmp_path / "new_file.txt"
+
+        result = confirm_file_overwrite(missing_file)
+        assert result is True
+
+    @pytest.mark.integration
+    def test_existing_file_returns_false(self, tmp_path):
+        """存在するファイル、force=False → False"""
+        existing_file = tmp_path / "existing.txt"
+        existing_file.write_text("content")
+
+        result = confirm_file_overwrite(existing_file)
+        assert result is False
+
+    @pytest.mark.integration
+    def test_existing_file_with_force_returns_true(self, tmp_path):
+        """存在するファイル、force=True → True"""
+        existing_file = tmp_path / "existing.txt"
+        existing_file.write_text("content")
+
+        result = confirm_file_overwrite(existing_file, force=True)
+        assert result is True
+
+    @pytest.mark.unit
+    def test_force_false_by_default(self, tmp_path):
+        """force のデフォルト値は False"""
+        existing_file = tmp_path / "existing.txt"
+        existing_file.write_text("content")
+
+        # デフォルト引数を使用
+        result = confirm_file_overwrite(existing_file)
+        assert result is False

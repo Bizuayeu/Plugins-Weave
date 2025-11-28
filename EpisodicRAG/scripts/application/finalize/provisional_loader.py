@@ -50,6 +50,53 @@ class ProvisionalLoader:
         # 統一メソッドを使用
         return self.config.get_source_dir(level)
 
+    def _get_provisional_path(self, level: str, digest_num: str) -> Path:
+        """
+        Provisionalファイルのパスを取得
+
+        Args:
+            level: ダイジェストレベル
+            digest_num: ダイジェスト番号（ゼロ埋め済み）
+
+        Returns:
+            Provisionalファイルのパス
+        """
+        level_cfg = self.level_config[level]
+        provisional_dir = self.config.get_provisional_dir(level)
+        return provisional_dir / f"{level_cfg['prefix']}{digest_num}_Individual.txt"
+
+    def _load_provisional(
+        self, provisional_path: Path
+    ) -> Tuple[List[IndividualDigestData], Path]:
+        """
+        Provisionalファイルを読み込んで検証
+
+        Args:
+            provisional_path: Provisionalファイルのパス
+
+        Returns:
+            (individual_digests, provisional_file_to_delete) のタプル
+
+        Raises:
+            DigestError: ファイルフォーマットが不正な場合
+            FileIOError: ファイル読み込みに失敗した場合
+        """
+        provisional_data = load_json(provisional_path)
+        log_debug(
+            f"{LOG_PREFIX_VALIDATE} provisional_data: is_valid={is_valid_dict(provisional_data)}"
+        )
+
+        if not is_valid_dict(provisional_data):
+            raise DigestError(f"Invalid format in {provisional_path.name}: expected dict")
+
+        individual_digests = provisional_data.get("individual_digests", [])
+        log_debug(f"{LOG_PREFIX_STATE} loaded_digests_count: {len(individual_digests)}")
+        log_info(
+            f"Loaded {len(individual_digests)} individual digests from {provisional_path.name}"
+        )
+
+        return individual_digests, provisional_path
+
     def load_or_generate(
         self, level: str, shadow_digest: OverallDigestData, digest_num: str
     ) -> Tuple[List[IndividualDigestData], Optional[Path]]:
@@ -68,36 +115,20 @@ class ProvisionalLoader:
             DigestError: Provisionalファイルのフォーマットが不正な場合
             FileIOError: Provisionalファイルの読み込みに失敗した場合
         """
-        level_cfg = self.level_config[level]
-        provisional_dir = self.config.get_provisional_dir(level)
-        provisional_path = provisional_dir / f"{level_cfg['prefix']}{digest_num}_Individual.txt"
+        provisional_path = self._get_provisional_path(level, digest_num)
 
         log_debug(f"{LOG_PREFIX_FILE} load_or_generate: checking {provisional_path}")
         log_debug(f"{LOG_PREFIX_FILE} file_exists: {provisional_path.exists()}")
 
-        individual_digests: List[IndividualDigestData] = []
-        provisional_file_to_delete: Optional[Path] = None
-
         if provisional_path.exists():
-            provisional_data = load_json(provisional_path)
-            log_debug(
-                f"{LOG_PREFIX_VALIDATE} provisional_data: is_valid={is_valid_dict(provisional_data)}"
-            )
-            if not is_valid_dict(provisional_data):
-                raise DigestError(f"Invalid format in {provisional_path.name}: expected dict")
-            individual_digests = provisional_data.get("individual_digests", [])
-            log_debug(f"{LOG_PREFIX_STATE} loaded_digests_count: {len(individual_digests)}")
-            log_info(
-                f"Loaded {len(individual_digests)} individual digests from {provisional_path.name}"
-            )
-            provisional_file_to_delete = provisional_path
-        else:
-            # Provisionalファイルが存在しない場合、source_filesから自動生成
-            log_debug(f"{LOG_PREFIX_DECISION} provisional_not_found: generating from source files")
-            log_info("No Provisional digest found, generating from source files...")
-            individual_digests = self.generate_from_source(level, shadow_digest)
+            return self._load_provisional(provisional_path)
 
-        return individual_digests, provisional_file_to_delete
+        # Provisionalファイルが存在しない場合、source_filesから自動生成
+        log_debug(f"{LOG_PREFIX_DECISION} provisional_not_found: generating from source files")
+        log_info("No Provisional digest found, generating from source files...")
+        individual_digests = self.generate_from_source(level, shadow_digest)
+
+        return individual_digests, None
 
     def _build_individual_entry(
         self, source_file: str, source_data: Dict[str, Any]
