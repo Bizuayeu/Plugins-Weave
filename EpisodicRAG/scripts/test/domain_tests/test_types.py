@@ -39,6 +39,10 @@ from domain.types import (
     RegularDigestData,
     ShadowDigestData,
     ShadowLevelData,
+    # TypeGuard関数
+    is_config_data,
+    is_level_config_data,
+    is_shadow_digest_data,
 )
 
 # =============================================================================
@@ -462,3 +466,126 @@ class TestTypeCompatibility:
             },
         }
         assert data["base_dir"] == "."
+
+
+# =============================================================================
+# TypeGuard関数テスト
+# =============================================================================
+
+
+class TestTypeGuards:
+    """TypeGuard関数のテスト"""
+
+    # -------------------------------------------------------------------------
+    # is_config_data
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.unit
+    def test_is_config_data_valid_full(self):
+        """有効なConfigData（全フィールド）を判定"""
+        data = {"base_dir": ".", "paths": {}, "levels": {}}
+        assert is_config_data(data) is True
+
+    @pytest.mark.unit
+    def test_is_config_data_valid_empty(self):
+        """有効なConfigData（空dict）を判定"""
+        data: dict = {}
+        assert is_config_data(data) is True
+
+    @pytest.mark.unit
+    def test_is_config_data_invalid_string(self):
+        """無効なデータ（文字列）を判定"""
+        assert is_config_data("not a dict") is False
+
+    @pytest.mark.unit
+    def test_is_config_data_invalid_none(self):
+        """無効なデータ（None）を判定"""
+        assert is_config_data(None) is False
+
+    @pytest.mark.unit
+    def test_is_config_data_invalid_list(self):
+        """無効なデータ（リスト）を判定"""
+        assert is_config_data([]) is False
+
+    @pytest.mark.unit
+    def test_is_config_data_invalid_int(self):
+        """無効なデータ（整数）を判定"""
+        assert is_config_data(123) is False
+
+    # -------------------------------------------------------------------------
+    # is_level_config_data
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.unit
+    def test_is_level_config_data_valid(self):
+        """有効なLevelConfigDataを判定"""
+        data = {
+            "prefix": "W",
+            "digits": 4,
+            "dir": "1_Weekly",
+            "source": "loops",
+            "next": "monthly",
+        }
+        assert is_level_config_data(data) is True
+
+    @pytest.mark.unit
+    def test_is_level_config_data_valid_next_none(self):
+        """有効なLevelConfigData（next=None）を判定"""
+        data = {
+            "prefix": "C",
+            "digits": 4,
+            "dir": "8_Centurial",
+            "source": "multi_decadal",
+            "next": None,
+        }
+        assert is_level_config_data(data) is True
+
+    @pytest.mark.unit
+    def test_is_level_config_data_missing_prefix(self):
+        """必須キー欠如（prefix）を判定"""
+        data = {"digits": 4, "dir": "1_Weekly", "source": "loops", "next": "monthly"}
+        assert is_level_config_data(data) is False
+
+    @pytest.mark.unit
+    def test_is_level_config_data_missing_multiple(self):
+        """必須キー欠如（複数）を判定"""
+        data = {"prefix": "W", "digits": 4}
+        assert is_level_config_data(data) is False
+
+    @pytest.mark.unit
+    def test_is_level_config_data_invalid_type(self):
+        """無効なデータ型を判定"""
+        assert is_level_config_data("not a dict") is False
+        assert is_level_config_data(None) is False
+
+    # -------------------------------------------------------------------------
+    # is_shadow_digest_data
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.unit
+    def test_is_shadow_digest_data_valid(self):
+        """有効なShadowDigestDataを判定"""
+        data = {
+            "metadata": {"version": "2.1.0", "last_updated": "2024-01-01"},
+            "latest_digests": {},
+        }
+        assert is_shadow_digest_data(data) is True
+
+    @pytest.mark.unit
+    def test_is_shadow_digest_data_missing_metadata(self):
+        """必須キー欠如（metadata）を判定"""
+        data = {"latest_digests": {}}
+        assert is_shadow_digest_data(data) is False
+
+    @pytest.mark.unit
+    def test_is_shadow_digest_data_missing_latest_digests(self):
+        """必須キー欠如（latest_digests）を判定"""
+        data = {"metadata": {"version": "2.1.0"}}
+        assert is_shadow_digest_data(data) is False
+
+    @pytest.mark.unit
+    def test_is_shadow_digest_data_invalid_type(self):
+        """無効なデータ型を判定"""
+        assert is_shadow_digest_data("not a dict") is False
+        assert is_shadow_digest_data(None) is False
+        assert is_shadow_digest_data([]) is False

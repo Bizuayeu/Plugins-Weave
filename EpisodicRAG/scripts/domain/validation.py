@@ -38,9 +38,7 @@ def validate_type(data: Any, expected_type: Type[T], context: str, type_name: st
     return data
 
 
-def collect_type_error(
-    value: Any, expected_type: Type[Any], key: str, errors: List[str]
-) -> None:
+def collect_type_error(value: Any, expected_type: Type[Any], key: str, errors: List[str]) -> None:
     """
     設定値の型検証を行い、エラーがあればリストに追加
 

@@ -41,8 +41,14 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
 
         # Digestサブディレクトリ
         for subdir in [
-            "1_Weekly", "2_Monthly", "3_Quarterly", "4_Annual",
-            "5_Triennial", "6_Decadal", "7_Multi-decadal", "8_Centurial"
+            "1_Weekly",
+            "2_Monthly",
+            "3_Quarterly",
+            "4_Annual",
+            "5_Triennial",
+            "6_Decadal",
+            "7_Multi-decadal",
+            "8_Centurial",
         ]:
             (self.plugin_root / "data" / "Digests" / subdir).mkdir()
             (self.plugin_root / "data" / "Digests" / subdir / "Provisional").mkdir()
@@ -77,6 +83,7 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
             with patch("sys.stderr"):  # argparse エラー出力を抑制
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.finalize_from_shadow import main
+
                     main()
                 # argparse は無効な引数で exit code 2
                 assert exc_info.value.code == 2
@@ -88,6 +95,7 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.finalize_from_shadow import main
+
                     main()
                 assert exc_info.value.code == 2
 
@@ -98,6 +106,7 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
             with patch("sys.stdout"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.finalize_from_shadow import main
+
                     main()
                 assert exc_info.value.code == 0
 
@@ -117,6 +126,7 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
                 with patch("infrastructure.logging_config.log_error"):
                     with pytest.raises(SystemExit) as exc_info:
                         from interfaces.finalize_from_shadow import main
+
                         main()
                     assert exc_info.value.code == 1
 
@@ -142,8 +152,14 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
         for subdir in [
-            "1_Weekly", "2_Monthly", "3_Quarterly", "4_Annual",
-            "5_Triennial", "6_Decadal", "7_Multi-decadal", "8_Centurial"
+            "1_Weekly",
+            "2_Monthly",
+            "3_Quarterly",
+            "4_Annual",
+            "5_Triennial",
+            "6_Decadal",
+            "7_Multi-decadal",
+            "8_Centurial",
         ]:
             (self.plugin_root / "data" / "Digests" / subdir).mkdir()
             (self.plugin_root / "data" / "Digests" / subdir / "Provisional").mkdir()
@@ -177,6 +193,7 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.save_provisional_digest import main
+
                     main()
                 assert exc_info.value.code == 2
 
@@ -187,6 +204,7 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.save_provisional_digest import main
+
                     main()
                 assert exc_info.value.code == 2
 
@@ -197,6 +215,7 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
             with patch("sys.stdout"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.save_provisional_digest import main
+
                     main()
                 assert exc_info.value.code == 0
 
@@ -223,9 +242,7 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
         from domain.exceptions import ValidationError
 
         with patch("sys.argv", ["save_provisional_digest.py", "weekly", "[]"]):
-            with patch(
-                "interfaces.save_provisional_digest.ProvisionalDigestSaver"
-            ) as MockSaver:
+            with patch("interfaces.save_provisional_digest.ProvisionalDigestSaver") as MockSaver:
                 mock_instance = MagicMock()
                 mock_instance.save_provisional.side_effect = ValidationError("Test error")
                 MockSaver.return_value = mock_instance
@@ -247,8 +264,14 @@ class TestMainArgumentParsing(unittest.TestCase):
     def test_finalize_accepts_all_valid_levels(self):
         """全ての有効レベルがargparseで受け入れられる"""
         valid_levels = [
-            "weekly", "monthly", "quarterly", "annual",
-            "triennial", "decadal", "multi_decadal", "centurial"
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "multi_decadal",
+            "centurial",
         ]
 
         for level in valid_levels:
@@ -261,6 +284,7 @@ class TestMainArgumentParsing(unittest.TestCase):
                         MockFinalizer.return_value = mock_instance
 
                         from interfaces.finalize_from_shadow import main
+
                         main()
 
                         mock_instance.finalize_from_shadow.assert_called_once_with(level, "Title")
@@ -269,9 +293,7 @@ class TestMainArgumentParsing(unittest.TestCase):
     def test_save_provisional_append_flag(self):
         """--append フラグが正しく処理される"""
         with patch("sys.argv", ["save_provisional_digest.py", "weekly", "[]", "--append"]):
-            with patch(
-                "interfaces.save_provisional_digest.ProvisionalDigestSaver"
-            ) as MockSaver:
+            with patch("interfaces.save_provisional_digest.ProvisionalDigestSaver") as MockSaver:
                 mock_instance = MagicMock()
                 mock_instance.save_provisional.return_value = Path("/tmp/test.txt")
                 MockSaver.return_value = mock_instance
@@ -282,6 +304,7 @@ class TestMainArgumentParsing(unittest.TestCase):
                     with patch("infrastructure.logging_config.log_info"):
                         with patch("infrastructure.logging_config.log_warning"):
                             from interfaces.save_provisional_digest import main
+
                             main()
 
                             mock_instance.save_provisional.assert_called_once()

@@ -98,7 +98,9 @@ class CascadeProcessor:
             return None
 
         # 検証済み: source_filesへの直接アクセスが安全
-        log_debug(f"{LOG_PREFIX_VALIDATE} source_files: count={len(overall_digest['source_files'])}")
+        log_debug(
+            f"{LOG_PREFIX_VALIDATE} source_files: count={len(overall_digest['source_files'])}"
+        )
         return overall_digest
 
     def promote_shadow_to_grand(self, level: str) -> None:

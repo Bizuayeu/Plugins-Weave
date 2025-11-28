@@ -10,7 +10,7 @@ Usage:
     from domain.types import OverallDigestData, ShadowDigestData, LevelConfigData
 """
 
-from typing import Any, Dict, List, Optional, TypedDict, cast
+from typing import Any, Dict, List, Optional, TypedDict, TypeGuard, cast
 
 # =============================================================================
 # メタデータ型定義
@@ -279,3 +279,73 @@ def as_dict(typed_dict: Any) -> Dict[str, Any]:
         >>> levels = as_dict(config).get("levels", {})  # 動的アクセスOK
     """
     return cast(Dict[str, Any], typed_dict)
+
+
+# =============================================================================
+# TypeGuard関数（型安全な判定）
+# =============================================================================
+
+
+def is_config_data(data: Any) -> TypeGuard[ConfigData]:
+    """
+    ConfigData型かどうかを判定（型ガード）
+
+    Args:
+        data: 判定対象のデータ
+
+    Returns:
+        ConfigData型であればTrue
+
+    Example:
+        >>> data = load_json(path)
+        >>> if is_config_data(data):
+        ...     # data は ConfigData として型推論される
+        ...     print(data.get("base_dir"))
+    """
+    if not isinstance(data, dict):
+        return False
+    return True
+
+
+def is_level_config_data(data: Any) -> TypeGuard[LevelConfigData]:
+    """
+    LevelConfigData型かどうかを判定（型ガード）
+
+    Args:
+        data: 判定対象のデータ
+
+    Returns:
+        LevelConfigData型であればTrue（必須キーがすべて存在）
+
+    Example:
+        >>> level_data = LEVEL_CONFIG.get("weekly")
+        >>> if is_level_config_data(level_data):
+        ...     # level_data は LevelConfigData として型推論される
+        ...     print(level_data["prefix"])
+    """
+    if not isinstance(data, dict):
+        return False
+    required_keys = {"prefix", "digits", "dir", "source", "next"}
+    return required_keys <= data.keys()
+
+
+def is_shadow_digest_data(data: Any) -> TypeGuard[ShadowDigestData]:
+    """
+    ShadowDigestData型かどうかを判定（型ガード）
+
+    Args:
+        data: 判定対象のデータ
+
+    Returns:
+        ShadowDigestData型であればTrue（必須キーがすべて存在）
+
+    Example:
+        >>> shadow_data = load_json(shadow_path)
+        >>> if is_shadow_digest_data(shadow_data):
+        ...     # shadow_data は ShadowDigestData として型推論される
+        ...     print(shadow_data["metadata"])
+    """
+    if not isinstance(data, dict):
+        return False
+    required_keys = {"metadata", "latest_digests"}
+    return required_keys <= data.keys()

@@ -65,9 +65,7 @@ class ProvisionalLoader:
         provisional_dir = self.config.get_provisional_dir(level)
         return provisional_dir / f"{level_cfg['prefix']}{digest_num}_Individual.txt"
 
-    def _load_provisional(
-        self, provisional_path: Path
-    ) -> Tuple[List[IndividualDigestData], Path]:
+    def _load_provisional(self, provisional_path: Path) -> Tuple[List[IndividualDigestData], Path]:
         """
         Provisionalファイルを読み込んで検証
 
