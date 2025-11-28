@@ -25,9 +25,6 @@ import sys
 from pathlib import Path
 from typing import Any, List, Optional
 
-# Config層専用logger（Infrastructure層に依存しない）
-_logger = logging.getLogger("episodic_rag.config")
-
 # Domain層からインポート
 from domain.constants import (
     LEVEL_CONFIG,
@@ -46,6 +43,9 @@ from .level_path_service import LevelPathService
 from .path_resolver import PathResolver
 from .plugin_root_resolver import find_plugin_root
 from .threshold_provider import ThresholdProvider
+
+# Config層専用logger（Infrastructure層に依存しない）
+_logger = logging.getLogger("episodic_rag.config")
 
 # =============================================================================
 # DigestConfig クラス（Facade）
