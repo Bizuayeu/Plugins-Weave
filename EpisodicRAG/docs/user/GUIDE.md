@@ -18,7 +18,7 @@
 
 ### まだらボケとは
 
-> 📖 **SSoT**: まだらボケの定義・発生パターン・記憶定着サイクルの詳細は [_common-concepts.md](../../skills/shared/_common-concepts.md#まだらボケとは) を参照
+> 📖 まだらボケの定義・発生パターン・記憶定着サイクルの詳細は [用語集](../../README.md#まだらボケ) を参照
 
 **基本原則**: Loopファイルを追加したら都度 `/digest` を実行
 
@@ -26,7 +26,7 @@
 
 ### Provisional vs Regular Digest
 
-> 📖 用語定義: [GLOSSARY.md](../GLOSSARY.md#provisional-digest) を参照
+> 📖 用語定義: [用語集](../../README.md#provisional-digest) を参照
 
 #### Provisional Digest（仮ダイジェスト）
 
@@ -253,7 +253,7 @@ Plugin内に完全自己完結しており、プロジェクトルートをク�
 
 `config.json` は `@digest-setup` で自動生成されますが、手動編集も可能です。
 
-> 📖 パス用語（plugin_root / base_dir / paths）の詳細は [GLOSSARY.md](../GLOSSARY.md#基本概念) を参照
+> 📖 パス用語（plugin_root / base_dir / paths）の詳細は [用語集](../../README.md#基本概念) を参照
 
 #### JSONスキーマ
 

@@ -1,8 +1,8 @@
-[Home](../../README.md) > [Docs](README.md) > GLOSSARY
+[English](README.en.md) | [日本語](README.md)
 
-[English](GLOSSARY.en.md) | [日本語](GLOSSARY.md)
+# EpisodicRAG Plugin - Glossary & Reference
 
-# Glossary
+> **Project Overview & Installation**: See [Main README](../README.md)
 
 A collection of terminology definitions used in the EpisodicRAG plugin.
 
@@ -15,6 +15,7 @@ A collection of terminology definitions used in the EpisodicRAG plugin.
 - [File Naming Conventions](#file-naming-conventions)
 - [Commands & Skills](#commands--skills)
 - [Configuration Files](#configuration-files)
+- [Developer Reference](#developer-reference)
 - [Related Documents](#related-documents)
 
 ---
@@ -49,9 +50,9 @@ Path resolution: `base_dir + paths.loops_dir` → actual Loop directory
 ### Loop
 **Definition**: A text file recording an entire conversation session with AI
 
-- **Format**: `Loop[sequence_number]_[title].txt`
-- **Example**: `Loop0001_CognitiveArchitecture.txt`
-- **Regex**: `^Loop[0-9]+_[\p{L}\p{N}ー・\w]+\.txt$`
+- **Format**: `L[sequence_number]_[title].txt`
+- **Example**: `L00001_CognitiveArchitecture.txt`
+- **Regex**: `^L[0-9]+_[\p{L}\p{N}ー・\w]+\.txt$`
 - **Location**: `{loops_dir}/`
 
 Loops are the smallest unit of the EpisodicRAG system and serve as the foundation for all Digest generation.
@@ -87,7 +88,7 @@ Types of Digests:
 - **Contents**: Latest finalized Digest for each hierarchy (Weekly to Centurial)
 - **Update timing**: When a hierarchy is finalized with `/digest <type>`
 
-> See [ARCHITECTURE.md](dev/ARCHITECTURE.md#granddigesttxt) for detailed format
+> See [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md#granddigesttxt) for detailed format
 
 ```json
 {
@@ -106,14 +107,14 @@ Types of Digests:
 - **Purpose**: Temporarily stores analysis results of new Loops, promoted to Regular after threshold is met
 - **Update timing**: When new Loops are detected and analyzed with `/digest`
 
-> See [ARCHITECTURE.md](dev/ARCHITECTURE.md#shadowgranddigesttxt) for detailed format
+> See [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md#shadowgranddigesttxt) for detailed format
 
 ```json
 {
   "latest_digests": {
     "weekly": {
       "overall_digest": {
-        "source_files": ["Loop0001.txt", "Loop0002.txt"],
+        "source_files": ["L00001.txt", "L00002.txt"],
         "keywords": ["<!-- PLACEHOLDER -->", ...],
         "abstract": "<!-- PLACEHOLDER: ... -->"
       }
@@ -154,6 +155,28 @@ EpisodicRAG manages memory across 8 hierarchical layers (approximately 108 years
 | **Multi-decadal** | MD | ~27 years | 3 Decadal | 8,100 |
 | **Centurial** | C | ~108 years | 4 Multi-decadal | 32,400 |
 
+### Hierarchical Cascade
+
+Process that automatically propagates to upper hierarchies when finalizing a Digest:
+
+```
+Loop (5) → Weekly Digest
+  ↓
+Weekly (5) → Monthly Digest
+  ↓
+Monthly (3) → Quarterly Digest
+  ↓
+Quarterly (4) → Annual Digest
+  ↓
+Annual (3) → Triennial Digest
+  ↓
+Triennial (3) → Decadal Digest
+  ↓
+Decadal (3) → Multi-decadal Digest
+  ↓
+Multi-decadal (4) → Centurial Digest
+```
+
 ---
 
 ## Processes & Operations
@@ -161,22 +184,58 @@ EpisodicRAG manages memory across 8 hierarchical layers (approximately 108 years
 ### Mottled Memory (まだらボケ)
 **Definition**: A state where AI cannot remember the contents of Loops (fragmented memory)
 
-> See [_common-concepts.md](../skills/shared/_common-concepts.md#まだらボケとは) for patterns and countermeasures
+#### The Essence of EpisodicRAG
+
+1. **Adding Loop files** = Saving conversation records to files (physical storage)
+2. **Running `/digest`** = Consolidating memory in AI (cognitive storage)
+3. **Without `/digest`** = Files exist, but AI doesn't remember
+
+#### Cases Where Mottled Memory Occurs
+
+**Case 1: Neglecting unprocessed Loops (most common)**
+
+```
+L00001 added → No `/digest` → L00002 added
+                               ↑
+                    At this point, AI doesn't remember L00001
+                    (memory is mottled = fragmented)
+```
+
+**Countermeasure**: Run `/digest` each time you add a Loop
+
+**Case 2: Error during `/digest` processing (technical issue)**
+
+```
+/digest executed → Error occurred → In ShadowGrandDigest,
+                                    source_files registered but
+                                    digest is null (placeholder)
+```
+
+**Countermeasure**: Re-run `/digest` to complete analysis
+
+### Memory Consolidation Cycle
+
+```
+Add Loop → `/digest` → Add Loop → `/digest` → ...
+          ↑ consolidate ↑        ↑ consolidate
+```
+
+By following this principle, AI can remember all Loops.
+
+**What NOT to do:**
+
+```
+L00001 added → No `/digest` → L00002 added
+                               ↑
+                    At this point, AI doesn't remember L00001
+                    (memory is mottled = fragmented)
+```
 
 ### Threshold
 **Definition**: Minimum number of files required to generate each hierarchy's Digest
 
 - **Location**: `{plugin_root}/.claude-plugin/config.json`
 - **Change method**: Interactively change with `@digest-config` skill
-
-### Cascade
-**Definition**: Process that automatically propagates to upper hierarchies when finalizing a Digest
-
-```
-Weekly finalized → Added to Monthly Shadow
-Monthly finalized → Added to Quarterly Shadow
-...
-```
 
 ### Placeholder
 **Definition**: An unanalyzed state where `digest: null` in ShadowGrandDigest
@@ -188,19 +247,33 @@ Monthly finalized → Added to Quarterly Shadow
 
 ## File Naming Conventions
 
+### ID Digit Count
+
+| Level | Prefix | Digits | Example |
+|-------|--------|--------|---------|
+| Loop | L | 5 | L00001 |
+| Weekly | W | 4 | W0001 |
+| Monthly | M | 4 | M0001 |
+| Quarterly | Q | 3 | Q001 |
+| Annual | A | 3 | A001 |
+| Triennial | T | 2 | T01 |
+| Decadal | D | 2 | D01 |
+| Multi-Decadal | MD | 2 | MD01 |
+| Centurial | C | 2 | C01 |
+
 ### Loop Files
 ```
-Format: Loop[sequence_number]_[title].txt
-Number: 4+ digit number (larger = newer)
-Examples: Loop0001_InitialSession.txt
-          Loop0186_CognitiveArchitecture.txt
+Format: L[sequence_number]_[title].txt
+Number: 5-digit number (larger = newer)
+Examples: L00001_InitialSession.txt
+          L00186_CognitiveArchitecture.txt
 ```
 
 ### Provisional Files
 ```
 Format: {prefix}{number}_Individual.txt
 Examples: W0001_Individual.txt
-          M001_Individual.txt
+          M0001_Individual.txt
 ```
 
 ### Regular Files
@@ -253,12 +326,22 @@ Examples: 2025-07-01_W0001_CognitiveArchitecture.txt
 
 ---
 
+## Developer Reference
+
+| Concept | File |
+|---------|------|
+| Implementation Guidelines | [_implementation-notes.md](skills/shared/_implementation-notes.md) |
+| DigestConfig API | [API_REFERENCE.md](docs/dev/API_REFERENCE.md) |
+| File Format Specifications | [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md) |
+
+---
+
 ## Related Documents
 
-- [README.md](../../README.md) - Project Overview
-- [QUICKSTART.md](user/QUICKSTART.md) - 5-minute Tutorial
-- [GUIDE.md](user/GUIDE.md) - User Guide
-- [ARCHITECTURE.md](dev/ARCHITECTURE.md) - Technical Specifications
+- [Main README](../README.md) - Project Overview
+- [AI Spec Hub](docs/README.md) - Command, Skill & Agent Specifications
+- [QUICKSTART](docs/user/QUICKSTART.md) - 5-minute Tutorial
+- [GUIDE](docs/user/GUIDE.md) - User Guide
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

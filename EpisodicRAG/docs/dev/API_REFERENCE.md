@@ -64,7 +64,7 @@ from domain import (
 
 階層ごとの設定を定義する辞書。Single Source of Truth（唯一の真実の情報源）。
 
-> 📖 8階層のプレフィックス・桁数・時間スケールは [GLOSSARY.md](../GLOSSARY.md#8階層構造) を参照
+> 📖 8階層のプレフィックス・桁数・時間スケールは [用語集](../../README.md#8階層構造) を参照
 
 ```python
 LEVEL_CONFIG: Dict[str, Dict[str, Any]] = {
@@ -1148,7 +1148,7 @@ loops_dir = "homunculus/Weave/EpisodicRAG/Loops"
 
 **Provisionalファイル命名規則:**
 
-> 📖 ID桁数一覧（プレフィックス・桁数・例）は [GLOSSARY.md > ID桁数一覧](../GLOSSARY.md#id桁数一覧) を参照
+> 📖 ID桁数一覧（プレフィックス・桁数・例）は [用語集 > ID桁数一覧](../../README.md#id桁数一覧) を参照
 
 ---
 
@@ -1227,7 +1227,7 @@ class DigestConfig:
 
 #### プロパティ（パス関連）
 
-> 📖 パス用語の定義は [GLOSSARY.md](../GLOSSARY.md#基本概念) を参照
+> 📖 パス用語の定義は [用語集](../../README.md#基本概念) を参照
 
 | プロパティ | 型 | 説明 |
 |-----------|-----|------|
@@ -1302,7 +1302,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; print('OK')"
 ## 関連ドキュメント
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様・データフロー
-- [GLOSSARY.md](../GLOSSARY.md) - 用語集
+- [用語集](../../README.md) - 用語・共通概念
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - 開発参加ガイド
 
 ---

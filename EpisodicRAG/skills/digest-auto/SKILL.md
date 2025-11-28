@@ -11,9 +11,7 @@ EpisodicRAG システムの現在の状態を分析することで、
 
 ## 用語説明
 
-> 📖 パス用語（plugin_root / base_dir / paths）は [_common-concepts.md](../shared/_common-concepts.md#パス用語) を参照
->
-> 📖 ID桁数・命名規則は [GLOSSARY.md](../../docs/GLOSSARY.md#id桁数一覧) を参照
+> 📖 パス用語・ID桁数・命名規則は [用語集](../../README.md) を参照
 
 ## 目次
 
@@ -53,7 +51,7 @@ EpisodicRAG システムの現在の状態を分析することで、
 
 ## まだらボケとは
 
-> 📖 **SSoT**: まだらボケの定義・発生パターン・記憶定着サイクル・対策は [_common-concepts.md](../shared/_common-concepts.md#まだらボケとは) を参照
+> 📖 まだらボケの定義・発生パターン・記憶定着サイクル・対策は [用語集](../../README.md#まだらボケ) を参照
 
 ---
 

@@ -38,16 +38,16 @@ AIスキル仕様書
 
 | File | Purpose |
 |------|---------|
-| [_common-concepts.md](shared/_common-concepts.md) | まだらボケ概念定義（SSoT） |
 | [_implementation-notes.md](shared/_implementation-notes.md) | 実装ガイドライン |
-| [_footer.md](shared/_footer.md) | 共通フッター（SSoT） |
+
+> 📖 共通概念（まだらボケ等）は [用語集](../README.md) を参照
 
 ---
 
 ## See Also
 
 - [GUIDE.md](../docs/user/GUIDE.md) - スキルの詳しい使い方
-- [GLOSSARY.md](../docs/GLOSSARY.md) - 用語集
+- [用語集](../README.md) - 用語・共通概念
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

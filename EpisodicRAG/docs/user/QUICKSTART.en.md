@@ -148,7 +148,7 @@ If you encounter problems:
 
 ## Related Documentation
 
-- [GLOSSARY.md](../GLOSSARY.md) - Glossary
+- [Glossary](../../README.en.md) - Terms & Concepts
 - [GUIDE.md](GUIDE.md) - User Guide
 - [ARCHITECTURE.md](../dev/ARCHITECTURE.md) - Technical Specifications
 

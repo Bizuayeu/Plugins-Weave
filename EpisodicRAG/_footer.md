@@ -13,16 +13,17 @@
 ## 適用ファイル一覧
 
 - `README.md`（ルート）
+- `README.en.md`（ルート - 英語版）
+- `EpisodicRAG/README.md`
+- `EpisodicRAG/README.en.md`
+- `EpisodicRAG/docs/README.md`
 - `EpisodicRAG/docs/user/QUICKSTART.md`
 - `EpisodicRAG/docs/user/GUIDE.md`
 - `EpisodicRAG/docs/user/FAQ.md`
 - `EpisodicRAG/docs/user/ADVANCED.md`
 - `EpisodicRAG/docs/user/TROUBLESHOOTING.md`
-- `EpisodicRAG/docs/README.md`
-- `EpisodicRAG/docs/GLOSSARY.md`
 - `EpisodicRAG/docs/dev/ARCHITECTURE.md`
 - `EpisodicRAG/docs/dev/API_REFERENCE.md`
 - `EpisodicRAG/CONTRIBUTING.md`
 - `EpisodicRAG/skills/README.md`
 - `EpisodicRAG/commands/README.md`
-- `README.en.md`（ルート - 英語版）

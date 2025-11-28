@@ -148,7 +148,7 @@ ShadowGrandDigest.txt を更新しました
 
 ## 関連ドキュメント
 
-- [GLOSSARY.md](../GLOSSARY.md) - 用語集
+- [用語集](../../README.md) - 用語・共通概念
 - [GUIDE.md](GUIDE.md) - ユーザーガイド
 - [ARCHITECTURE.md](../dev/ARCHITECTURE.md) - 技術仕様
 

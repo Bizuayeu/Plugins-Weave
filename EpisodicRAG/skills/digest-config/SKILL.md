@@ -20,7 +20,7 @@ EpisodicRAG プラグインの設定を対話的に変更するスキルです�
 
 ## 用語説明
 
-> 📖 パス用語（plugin_root / base_dir / paths）は [_common-concepts.md](../shared/_common-concepts.md#パス用語) を参照
+> 📖 パス用語（plugin_root / base_dir / paths）は [用語集](../../README.md#基本概念) を参照
 
 ## 設定変更フロー
 

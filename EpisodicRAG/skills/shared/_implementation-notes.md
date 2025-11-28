@@ -89,4 +89,12 @@ Triennial → Decadal → Multi-decadal → Centurial
 
 ---
 
-*このファイルは内部参照用です。直接編集する場合は、参照元のドキュメントも確認してください。*
+## 関連ドキュメント
+
+- [用語集・リファレンス](../../README.md) - 用語定義・共通概念
+- [API_REFERENCE.md](../../docs/dev/API_REFERENCE.md) - DigestConfig API
+- [ARCHITECTURE.md](../../docs/dev/ARCHITECTURE.md) - 技術仕様
+
+---
+
+*このファイルは開発者向けの内部参照用です。*

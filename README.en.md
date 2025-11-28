@@ -27,7 +27,7 @@ EpisodicRAG is a system that hierarchically digests conversation logs (Loop file
 
 | You are... | Documents to Read |
 |------------|-------------------|
-| 🚀 **Getting Started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [GLOSSARY](EpisodicRAG/docs/GLOSSARY.md) |
+| 🚀 **Getting Started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [Glossary](EpisodicRAG/README.en.md) |
 | 📘 **Daily User** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) |
 | 🔧 **Customizing Settings** | [digest-config](EpisodicRAG/skills/digest-config/SKILL.md) |
 | 📊 **Checking Status** | [digest-auto](EpisodicRAG/skills/digest-auto/SKILL.md) |
@@ -92,7 +92,7 @@ For details, see [GUIDE.md](EpisodicRAG/docs/user/GUIDE.md).
 | Multi-decadal | ~30 years |
 | Centurial | ~100 years |
 
-> For complete layer table, see [GLOSSARY.md](EpisodicRAG/docs/GLOSSARY.md#8階層構造)
+> For complete layer table, see [Glossary](EpisodicRAG/README.en.md#8-layer-hierarchy)
 
 ---
 

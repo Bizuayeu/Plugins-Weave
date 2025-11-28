@@ -70,7 +70,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 `base_dir`の設定が正しいか確認してください。デフォルト（`.`）はプラグインルート自身を指します。
 
-> 📖 パス設定の詳細は [GLOSSARY.md](../GLOSSARY.md#基本概念) および [API_REFERENCE.md](../dev/API_REFERENCE.md#config.json-詳細仕様) を参照してください。
+> 📖 パス設定の詳細は [用語集](../../README.md#基本概念) および [API_REFERENCE.md](../dev/API_REFERENCE.md#config.json-詳細仕様) を参照してください。
 
 ---
 
@@ -82,7 +82,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 **例**: `L00001_認知アーキテクチャ論.txt`
 
-> 📖 詳細（正規表現・連番ルール）は [GLOSSARY.md > ファイル命名規則](../GLOSSARY.md#ファイル命名規則) を参照
+> 📖 詳細（正規表現・連番ルール）は [用語集 > ファイル命名規則](../../README.md#ファイル命名規則) を参照
 
 ### Q: `/digest`と`/digest weekly`の違いは？
 
@@ -96,7 +96,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 **A**: AIがLoopの内容を記憶できていない状態です。`Loop追加 → /digest`のサイクルで予防できます。
 
-> 📖 **SSoT**: 発生パターン・対策・記憶定着サイクルの詳細は [_common-concepts.md](../../skills/shared/_common-concepts.md#まだらボケとは) を参照
+> 📖 発生パターン・対策・記憶定着サイクルの詳細は [用語集](../../README.md#まだらボケ) を参照
 
 ### Q: threshold（閾値）を変更したい
 
@@ -157,7 +157,7 @@ python -m pytest test/ -v
 
 ## 関連ドキュメント
 
-- [GLOSSARY.md](../GLOSSARY.md) - 用語集
+- [用語集](../../README.md) - 用語・共通概念
 - [QUICKSTART.md](QUICKSTART.md) - 5分チュートリアル
 - [GUIDE.md](GUIDE.md) - ユーザーガイド
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - 詳細なトラブルシューティング

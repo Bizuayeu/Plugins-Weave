@@ -34,7 +34,7 @@
 ## See Also
 
 - [GUIDE.md](../docs/user/GUIDE.md) - コマンドの詳しい使い方
-- [GLOSSARY.md](../docs/GLOSSARY.md) - 用語集
+- [用語集](../README.md) - 用語・共通概念
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

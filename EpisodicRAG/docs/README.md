@@ -32,17 +32,9 @@ Claude/AI エージェント向けの技術仕様ハブです。
 
 ---
 
-## Shared Concepts (SSoT)
+## Shared Concepts
 
-AI エージェントが参照すべき共通概念の Single Source of Truth:
-
-| 概念 | SSoT ファイル |
-|------|--------------|
-| まだらボケ・記憶定着サイクル | [_common-concepts.md](../skills/shared/_common-concepts.md) |
-| 実装ガイドライン | [_implementation-notes.md](../skills/shared/_implementation-notes.md) |
-| 8 層階層構造 | [GLOSSARY.md](GLOSSARY.md#8階層構造) |
-| DigestConfig API | [API_REFERENCE.md](dev/API_REFERENCE.md) |
-| ファイル形式仕様 | [ARCHITECTURE.md](dev/ARCHITECTURE.md) |
+> 📖 用語・共通概念は [EpisodicRAG/README.md](../README.md) を参照
 
 ---
 
@@ -74,7 +66,7 @@ AI エージェントが参照すべき共通概念の Single Source of Truth:
 |-------------|------|------|
 | [QUICKSTART.md](user/QUICKSTART.md) | 新規ユーザー | 5 分で始める |
 | [GUIDE.md](user/GUIDE.md) | 一般ユーザー | 詳細ガイド |
-| [GLOSSARY.md](GLOSSARY.md) | 全員 | 用語集 |
+| [用語集](../README.md) | 全員 | 用語・共通概念 |
 | [FAQ.md](user/FAQ.md) | 問題解決 | よくある質問 |
 | [TROUBLESHOOTING.md](user/TROUBLESHOOTING.md) | 問題解決 | 詳細トラブルシューティング |
 | [ADVANCED.md](user/ADVANCED.md) | 上級者 | GitHub 連携 |

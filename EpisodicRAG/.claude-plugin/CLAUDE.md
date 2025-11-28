@@ -35,13 +35,14 @@ EpisodicRAG/
 
 ### 共有概念の定義
 
-以下の概念は `skills/shared/_common-concepts.md` で定義されています。他のドキュメントでは**参照リンク**を使用してください：
+用語・共通概念は `README.md`（用語集・リファレンス）で定義されています。他のドキュメントでは**参照リンク**を使用してください：
 
 | 概念 | SSoTの場所 | 参照形式 |
 |------|-----------|---------|
-| まだらボケ | `_common-concepts.md#まだらボケとは` | `> 📖 詳細: [_common-concepts.md](../skills/shared/_common-concepts.md#まだらボケとは)` |
-| 記憶定着サイクル | `_common-concepts.md#記憶定着サイクル` | 同上 |
-| 階層的カスケード | `_common-concepts.md#階層的カスケード` | 同上 |
+| まだらボケ | `README.md#まだらボケ` | `> 📖 詳細: [用語集](../../README.md#まだらボケ)` |
+| 記憶定着サイクル | `README.md#記憶定着サイクル` | 同上 |
+| 8階層構造 | `README.md#8階層構造` | 同上 |
+| 基本概念（パス用語） | `README.md#基本概念` | 同上 |
 
 ### 実装ガイドライン
 
@@ -65,7 +66,7 @@ EpisodicRAG/
 
 ### ドキュメント変更時
 
-1. **概念の追加・変更**: まず `skills/shared/_common-concepts.md` を更新
+1. **概念の追加・変更**: まず `README.md`（用語集・リファレンス）を更新
 2. **参照の更新**: 関連ドキュメントの参照リンクを確認
 3. **breadcrumbの維持**: `docs/` 配下のファイルは breadcrumb を含める
 
@@ -131,7 +132,7 @@ from interfaces import DigestFinalizerFromShadow
 | API仕様 | `docs/API_REFERENCE.md` |
 | アーキテクチャ | `docs/ARCHITECTURE.md` |
 | トラブルシューティング | `docs/TROUBLESHOOTING.md` |
-| 用語集 | `docs/GLOSSARY.md` |
+| 用語集 | `README.md` |
 | 開発者ガイド | `CONTRIBUTING.md` |
 
 ---
@@ -140,7 +141,7 @@ from interfaces import DigestFinalizerFromShadow
 
 ### やってはいけないこと
 
-- `_common-concepts.md` の内容を他のファイルに**コピー**する（参照リンクを使用）
+- `README.md`（用語集）の内容を他のファイルに**コピー**する（参照リンクを使用）
 - `config.py` をバイパスしてパスを直接指定する
 - テストを無効化してコミットする
 

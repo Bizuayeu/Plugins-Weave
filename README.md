@@ -27,7 +27,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 
 | あなたは... | 読むべきドキュメント |
 |------------|---------------------|
-| 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [GLOSSARY](EpisodicRAG/docs/GLOSSARY.md) |
+| 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [用語集](EpisodicRAG/README.md) |
 | 📘 **日常的に使う** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) |
 | 🔧 **設定をカスタマイズしたい** | [digest-config](EpisodicRAG/skills/digest-config/SKILL.md) |
 | 📊 **統計・状態を確認したい** | [digest-auto](EpisodicRAG/skills/digest-auto/SKILL.md) |
@@ -92,7 +92,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 | Multi-decadal | ~30 年 |
 | Centurial | ~100 年 |
 
-> 📖 完全な階層テーブルは [GLOSSARY.md](EpisodicRAG/docs/GLOSSARY.md#8階層構造) を参照
+> 📖 完全な階層テーブルは [用語集](EpisodicRAG/README.md#8階層構造) を参照
 
 ---
 
