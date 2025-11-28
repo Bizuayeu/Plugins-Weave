@@ -40,6 +40,29 @@ test/
 └── performance_tests/      # ベンチマーク
 ```
 
+## Test Summary
+
+### 層別テストファイル一覧
+
+| 層 | テストファイル | テスト数目安 |
+|----|---------------|-------------|
+| **Domain** | `test_validators.py`, `test_helpers.py`, `test_file_naming.py` | ~20 |
+| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py` | ~15 |
+| **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_processor.py` | ~40 |
+| **Interfaces** | `test_finalize_from_shadow.py`, `test_save_provisional_digest.py` | ~20 |
+| **Config** | `test_config.py`, `test_path_integration.py` | ~15 |
+| **Integration** | `test_e2e_workflow.py` | ~10 |
+
+> 📊 最新のテスト数は `pytest --collect-only | tail -1` で確認できます。
+
+### カバレッジ目標
+
+| カテゴリ | 目標 | 現状 |
+|---------|------|------|
+| Domain層 | 90%+ | [Codecov参照](https://codecov.io/gh/Bizuayeu/Plugins-Weave) |
+| Application層 | 80%+ | 同上 |
+| 全体 | 75%+ | 同上 |
+
 ### Test Markers
 
 ```python
@@ -229,10 +252,27 @@ HYPOTHESIS_PROFILE=ci pytest scripts/test/ -m property
 
 ## Continuous Integration
 
+### GitHub Actions
+
+[![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
+
+- **テスト実行**: PR作成時・mainマージ時に自動実行
+- **カバレッジレポート**: [Codecov Dashboard](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
+
+### ローカル実行
+
 ```bash
 # 最小テストセット（PR用）
 pytest scripts/test/ -m "not performance" --tb=short
 
 # フルテストセット（マージ後）
 pytest scripts/test/ -v
+
+# カバレッジ付き
+pytest scripts/test/ --cov=. --cov-report=term-missing --cov-report=html
+
+# HTMLレポート確認
+open htmlcov/index.html  # macOS
+start htmlcov/index.html # Windows
 ```

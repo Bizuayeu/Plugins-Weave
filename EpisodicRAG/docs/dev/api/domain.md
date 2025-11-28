@@ -142,6 +142,115 @@ class ProvisionalDigestFile(TypedDict):
 | `DigestTimesData` | `Dict[str, DigestTimeData]`のエイリアス |
 | `ProvisionalDigestEntry` | Provisional Digestの各エントリ |
 
+### 主要TypedDictスキーマ
+
+JSONファイル構造を理解するためのスキーマ定義です（TypeScript形式で表現、`?`はオプショナル）。
+
+#### ConfigData（config.json全体構造）
+
+```typescript
+interface ConfigData {
+  base_dir?: string;           // plugin_rootからの相対パス
+  paths?: {
+    loops_dir?: string;        // Loopファイル配置先
+    digests_dir?: string;      // Digest出力先
+    essences_dir?: string;     // GrandDigest配置先
+    identity_file_path?: string | null;  // 外部Identity.mdパス
+  };
+  levels?: {
+    weekly_threshold?: number;    // デフォルト: 5
+    monthly_threshold?: number;   // デフォルト: 5
+    quarterly_threshold?: number; // デフォルト: 3
+    annual_threshold?: number;    // デフォルト: 4
+    triennial_threshold?: number; // デフォルト: 3
+    decadal_threshold?: number;   // デフォルト: 3
+    multi_decadal_threshold?: number; // デフォルト: 3
+    centurial_threshold?: number; // デフォルト: 4
+  };
+}
+```
+
+#### ShadowDigestData（ShadowGrandDigest.txt全体構造）
+
+```typescript
+interface ShadowDigestData {
+  metadata: {
+    version: string;           // "1.0"
+    last_updated: string;      // ISO 8601形式
+    digest_level?: string;
+    digest_number?: string;
+  };
+  latest_digests: {
+    [level: string]: {         // "weekly", "monthly" など
+      overall_digest?: {
+        timestamp?: string;
+        source_files?: string[];
+        digest_type?: string;
+        keywords?: string[];
+        abstract?: string;
+        impression?: string;
+      } | null;
+      individual_digests?: IndividualDigestData[];
+      source_files?: string[];
+    };
+  };
+}
+```
+
+#### GrandDigestData（GrandDigest.txt全体構造）
+
+```typescript
+interface GrandDigestData {
+  metadata: {
+    version: string;           // "1.0"
+    last_updated: string;      // ISO 8601形式
+  };
+  major_digests: {
+    [level: string]: {         // "weekly", "monthly" など
+      overall_digest?: OverallDigestData | null;
+    };
+  };
+}
+```
+
+#### RegularDigestData（確定済みDigestファイル）
+
+```typescript
+interface RegularDigestData {
+  metadata: {
+    version: string;
+    last_updated: string;
+    digest_level: string;      // "weekly", "monthly" など
+    digest_number: string;     // "W0001", "M001" など
+    source_count?: number;
+  };
+  overall_digest: {
+    name?: string;             // タイトル
+    timestamp: string;
+    source_files: string[];
+    digest_type: string;
+    keywords: string[];
+    abstract: string;          // 最大2400文字
+    impression: string;        // 最大800文字
+  };
+  individual_digests: IndividualDigestData[];
+}
+```
+
+#### IndividualDigestData（個別ダイジェスト要素）
+
+```typescript
+interface IndividualDigestData {
+  source_file: string;         // "L00001_タイトル.txt"
+  digest_type: string;         // "洞察", "問題解決" など
+  keywords: string[];          // 最大5個
+  abstract: string;            // 最大1200文字
+  impression: string;          // 最大400文字
+}
+```
+
+> 📖 完全な型定義は [scripts/domain/types.py](../../../scripts/domain/types.py) を参照
+
 ---
 
 ## 関数（domain/file_naming.py）

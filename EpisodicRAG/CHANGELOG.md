@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2025-11-29
+
+### Added
+
+- **FAQ.md**: GitHub検索機能での横断検索ガイドを追加
+  - リポジトリ内検索（GitHub Web）の案内
+  - ローカル検索（VS Code）の案内
+  - 用語インデックスへの参照
+
+- **TESTING.md**: テストドキュメント拡充
+  - GitHub Actions CI/CDバッジ追加
+  - Codecovカバレッジレポートへのリンク追加
+  - 層別テストファイル一覧表追加
+  - カバレッジ目標表追加
+  - ローカルカバレッジ実行コマンド追加
+
+- **api/domain.md**: 主要TypedDictの完全スキーマを追加
+  - ConfigData（config.json全体構造）
+  - ShadowDigestData（ShadowGrandDigest.txt全体構造）
+  - GrandDigestData（GrandDigest.txt全体構造）
+  - RegularDigestData（確定済みDigestファイル）
+  - IndividualDigestData（個別ダイジェスト要素）
+  - TypeScript形式でスキーマを表現
+
+---
+
 ## [3.1.0] - 2025-11-29
 
 ### Added

@@ -140,6 +140,20 @@ flowchart TB
 
 > 📖 詳細: [ARCHITECTURE.md](../dev/ARCHITECTURE.md#テスト)、[CONTRIBUTING.md](../../CONTRIBUTING.md#テスト)
 
+### Q: ドキュメント内で特定のキーワードを検索したい
+
+**A**: GitHubの検索機能またはローカル検索を使用してください。
+
+```text
+# リポジトリ内検索（GitHub Web）
+https://github.com/Bizuayeu/Plugins-Weave で "キーワード" を検索
+
+# ローカル検索（VS Code）
+Ctrl+Shift+F → plugins-weave フォルダで検索
+```
+
+> 💡 主要な用語は [用語集](../../README.md#用語インデックス) にインデックスがあります。
+
 ---
 
 ## 関連ドキュメント
