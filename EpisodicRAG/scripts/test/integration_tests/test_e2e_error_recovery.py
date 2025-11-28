@@ -68,12 +68,12 @@ class TestCorruptedFileRecovery:
 
     def test_recover_from_corrupted_grand_digest(self, recovery_env):
         """
-        破損したGrandDigest.txtからの回復
+        破損したGrandDigest.txtの読み込み時エラー
 
         シナリオ:
         1. 不正なJSONでGrandDigestを作成
         2. GrandDigestManager.load_or_create()
-        3. テンプレートで再作成されることを確認
+        3. FileIOErrorが発生することを確認
         """
         env = recovery_env["env"]
         config = recovery_env["config"]
@@ -85,13 +85,9 @@ class TestCorruptedFileRecovery:
         # GrandDigestManagerを初期化
         grand_manager = GrandDigestManager(config)
 
-        # load_or_createでテンプレートが使用される
-        grand_data = grand_manager.load_or_create()
-
-        # 正しい構造になっていることを確認
-        assert "metadata" in grand_data
-        assert "major_digests" in grand_data
-        assert "weekly" in grand_data["major_digests"]
+        # 破損ファイルを読み込むとFileIOErrorが発生
+        with pytest.raises(FileIOError):
+            grand_manager.load_or_create()
 
     def test_recover_from_empty_shadow_file(self, recovery_env):
         """
@@ -154,10 +150,11 @@ class TestMissingFileRecovery:
         # DigestTimesTracker初期化
         tracker = DigestTimesTracker(config)
 
-        # getで初期値が返る
-        last_processed = tracker.get_last_processed("weekly")
-        # 初期状態ではNoneまたは空リスト
-        assert last_processed is None or len(last_processed) == 0
+        # load_or_createで初期値が返る
+        times_data = tracker.load_or_create()
+        last_processed = times_data.get("weekly", {}).get("last_processed")
+        # 初期状態ではNone
+        assert last_processed is None
 
     def test_missing_shadow_file_creates_new(self, missing_env):
         """
