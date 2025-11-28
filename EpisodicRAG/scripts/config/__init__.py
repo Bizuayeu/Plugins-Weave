@@ -23,7 +23,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import List, Optional
 
 # Domain層からインポート
 from domain.constants import (
@@ -230,30 +230,49 @@ class DigestConfig:
         """指定レベルのthresholdを動的に取得"""
         return self._threshold_provider.get_threshold(level)
 
-    def __getattr__(self, name: str) -> Any:
-        """
-        動的なthresholdプロパティアクセス
+    # =========================================================================
+    # 明示的プロパティ（IDE補完対応、ThresholdProviderに委譲）
+    # =========================================================================
 
-        例: config.weekly_threshold -> _threshold_provider.weekly_threshold
+    @property
+    def weekly_threshold(self) -> int:
+        """週次thresholdを取得"""
+        return self._threshold_provider.weekly_threshold
 
-        サポートするプロパティ:
-            - weekly_threshold, monthly_threshold, quarterly_threshold
-            - annual_threshold, triennial_threshold, decadal_threshold
-            - multi_decadal_threshold, centurial_threshold
+    @property
+    def monthly_threshold(self) -> int:
+        """月次thresholdを取得"""
+        return self._threshold_provider.monthly_threshold
 
-        Args:
-            name: アトリビュート名
+    @property
+    def quarterly_threshold(self) -> int:
+        """四半期thresholdを取得"""
+        return self._threshold_provider.quarterly_threshold
 
-        Returns:
-            threshold値
+    @property
+    def annual_threshold(self) -> int:
+        """年次thresholdを取得"""
+        return self._threshold_provider.annual_threshold
 
-        Raises:
-            AttributeError: 無効なアトリビュート名の場合
-        """
-        if name.endswith("_threshold"):
-            # ThresholdProviderに委譲
-            return getattr(self._threshold_provider, name)
-        raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}'")
+    @property
+    def triennial_threshold(self) -> int:
+        """3年thresholdを取得"""
+        return self._threshold_provider.triennial_threshold
+
+    @property
+    def decadal_threshold(self) -> int:
+        """10年thresholdを取得"""
+        return self._threshold_provider.decadal_threshold
+
+    @property
+    def multi_decadal_threshold(self) -> int:
+        """数十年thresholdを取得"""
+        return self._threshold_provider.multi_decadal_threshold
+
+    @property
+    def centurial_threshold(self) -> int:
+        """100年thresholdを取得"""
+        return self._threshold_provider.centurial_threshold
 
     def show_paths(self) -> None:
         """パス設定を表示（デバッグ用）"""

@@ -1,0 +1,227 @@
+# エラーリカバリーパターン
+
+EpisodicRAGプラグインで使用されているエラーハンドリングと
+リカバリーパターンのリファレンスドキュメント。
+
+## 概要
+
+このドキュメントでは、`infrastructure/json_repository.py`および
+関連テスト（`test_error_recovery.py`）で実装されているエラー処理パターンを解説します。
+
+---
+
+## 1. ファイル権限エラー
+
+### パターン
+
+```python
+try:
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
+except IOError as e:
+    raise FileIOError(f"Failed to write {file_path}: {e}") from e
+```
+
+### 対応するテスト
+
+- `test_save_json_permission_denied` - 読み取り専用ファイルへの書き込み
+- `test_load_json_permission_denied` - アクセス権限なしファイルの読み込み
+- `test_save_json_directory_not_writable` - 書き込み不可ディレクトリ
+
+### ベストプラクティス
+
+- `PermissionError`を`FileIOError`にラップして一貫したエラー階層を維持
+- Windows/Unix間の権限モデルの違いを考慮（テストでは`skipif`を使用）
+
+---
+
+## 2. ディスク容量エラー
+
+### パターン
+
+```python
+# OSError 28 = ENOSPC (No space left on device)
+try:
+    save_json(file_path, data)
+except OSError as e:
+    if e.errno == 28:
+        # ディスク容量不足の処理
+        raise FileIOError(f"Disk full: {e}") from e
+```
+
+### 対応するテスト
+
+- `test_save_json_disk_full_simulation` - ディスク容量不足シミュレーション
+- `test_save_json_io_error_simulation` - 一般的なI/Oエラー
+
+### ベストプラクティス
+
+- 本番環境では事前にディスク容量をチェック
+- 大容量データの書き込み前に一時ファイルを使用
+
+---
+
+## 3. JSON破損・フォーマットエラー
+
+### パターン
+
+```python
+def _safe_read_json(file_path: Path, raise_on_error: bool = True) -> Optional[Dict]:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        if raise_on_error:
+            raise FileIOError(f"Invalid JSON in {file_path}: {e}") from e
+        return None
+```
+
+### 対応するテスト
+
+- `test_load_json_invalid_json` - 不正なJSON構文
+- `test_load_json_empty_file` - 空ファイル
+- `test_load_json_truncated` - 途中で切れたJSON
+- `test_load_json_binary_content` - バイナリコンテンツ
+
+### ベストプラクティス
+
+- `json.JSONDecodeError`を明示的にキャッチ
+- エラーメッセージにファイルパスと元のエラーを含める
+- バッチ処理では`raise_on_error=False`でスキップ可能に
+
+---
+
+## 4. ファイル存在エラー
+
+### パターン
+
+```python
+def load_json(file_path: Path) -> Dict[str, Any]:
+    if not file_path.exists():
+        raise FileIOError(f"File not found: {file_path}")
+    # ...
+```
+
+### 対応するテスト
+
+- `test_load_json_nonexistent` - 存在しないファイル
+- `test_load_json_directory_instead_of_file` - ディレクトリをファイルとして指定
+
+### ベストプラクティス
+
+- ファイル操作前に`exists()`チェック
+- 明確なエラーメッセージでパスを含める
+
+---
+
+## 5. エンコーディングエラー
+
+### パターン
+
+```python
+# 常にUTF-8を使用
+with open(file_path, 'r', encoding='utf-8') as f:
+    return json.load(f)
+```
+
+### 対応するテスト
+
+- `test_load_json_utf8_bom` - UTF-8 BOM付きファイル
+- `test_load_json_utf16` - UTF-16エンコードファイル
+- `test_save_and_load_unicode` - Unicode文字の保存と読み込み
+
+### ベストプラクティス
+
+- 常に`encoding='utf-8'`を明示
+- `ensure_ascii=False`で日本語などを正しく保存
+- BOM付きファイルは別途処理が必要
+
+---
+
+## 6. 同時アクセスエラー
+
+### パターン
+
+```python
+# ファイルロック検出
+# Windows: OSError with errno 32 (ERROR_SHARING_VIOLATION)
+try:
+    save_json(file_path, data)
+except OSError as e:
+    if e.errno == 32:  # Windows: sharing violation
+        # リトライまたはエラー報告
+        raise FileIOError(f"File is locked: {file_path}") from e
+```
+
+### 対応するテスト
+
+- `test_save_json_file_locked_simulation` - ファイルロックシミュレーション
+
+### ベストプラクティス
+
+- ファイルロックライブラリの使用を検討（`filelock`等）
+- 一時ファイルに書き込み後にリネーム（アトミック操作）
+
+---
+
+## 7. 境界値・エッジケース
+
+### 対応するテスト
+
+- `test_save_and_load_empty_dict` - 空のdict
+- `test_save_and_load_nested_structure` - 深くネストした構造
+- `test_save_and_load_large_list` - 大きなリスト（10000要素）
+- `test_save_and_load_special_keys` - 特殊なキー名（空文字、スペース、タブ）
+
+### ベストプラクティス
+
+- 空データも有効なケースとして処理
+- 深いネストや大きなデータでのメモリ使用に注意
+- 特殊文字を含むキーも正しく処理
+
+---
+
+## JSON読み込み関数の使い分け
+
+| 関数 | 用途 | エラー時の動作 |
+|------|------|----------------|
+| `load_json()` | 必須ファイルの読み込み | 例外をスロー |
+| `try_load_json()` | オプショナルファイル | デフォルト値を返却 |
+| `try_read_json_from_file()` | バッチ処理向け | None/デフォルト返却 |
+
+### 使用例
+
+```python
+# 必須ファイル（設定ファイル等）
+config = load_json(config_path)  # 失敗時は例外
+
+# オプショナルファイル（キャッシュ等）
+cache = try_load_json(cache_path, default={})  # 失敗時は空dict
+
+# バッチ処理
+for file in files:
+    data = try_read_json_from_file(file)
+    if data is None:
+        continue  # スキップして次へ
+```
+
+---
+
+## 例外階層
+
+```
+EpisodicRAGError (Base exception)
+├── ConfigError         (Configuration issues)
+├── DigestError         (Digest processing failures)
+├── ValidationError     (Input validation failures)
+├── FileIOError         (File I/O failures)
+└── CorruptedDataError  (Data integrity issues)
+```
+
+---
+
+## 参照
+
+- 実装: `scripts/infrastructure/json_repository.py`
+- テスト: `scripts/test/integration_tests/test_error_recovery.py`
+- 例外定義: `scripts/domain/exceptions.py`

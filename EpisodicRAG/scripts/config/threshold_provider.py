@@ -6,8 +6,6 @@ Threshold Provider
 しきい値管理
 """
 
-from typing import Any
-
 from domain.constants import DEFAULT_THRESHOLDS, LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
 from domain.types import ConfigData, as_dict
@@ -18,7 +16,7 @@ __all__ = ["ThresholdProvider"]
 class ThresholdProvider:
     """しきい値プロバイダー
 
-    動的プロパティアクセスをサポート:
+    明示的プロパティでIDE補完をサポート:
         - weekly_threshold
         - monthly_threshold
         - quarterly_threshold
@@ -63,23 +61,46 @@ class ThresholdProvider:
             return int(value) if isinstance(value, (int, str, float)) else default
         return default
 
-    def __getattr__(self, name: str) -> Any:
-        """
-        動的なthresholdプロパティアクセス
+    # =========================================================================
+    # 明示的プロパティ（IDE補完対応）
+    # =========================================================================
 
-        例: provider.weekly_threshold -> get_threshold("weekly")
+    @property
+    def weekly_threshold(self) -> int:
+        """週次thresholdを取得"""
+        return self.get_threshold("weekly")
 
-        Args:
-            name: アトリビュート名
+    @property
+    def monthly_threshold(self) -> int:
+        """月次thresholdを取得"""
+        return self.get_threshold("monthly")
 
-        Returns:
-            threshold値
+    @property
+    def quarterly_threshold(self) -> int:
+        """四半期thresholdを取得"""
+        return self.get_threshold("quarterly")
 
-        Raises:
-            AttributeError: 無効なアトリビュート名の場合
-        """
-        if name.endswith("_threshold"):
-            level = name[:-10]  # "_threshold" を除去
-            if level in LEVEL_NAMES:
-                return self.get_threshold(level)
-        raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}'")
+    @property
+    def annual_threshold(self) -> int:
+        """年次thresholdを取得"""
+        return self.get_threshold("annual")
+
+    @property
+    def triennial_threshold(self) -> int:
+        """3年thresholdを取得"""
+        return self.get_threshold("triennial")
+
+    @property
+    def decadal_threshold(self) -> int:
+        """10年thresholdを取得"""
+        return self.get_threshold("decadal")
+
+    @property
+    def multi_decadal_threshold(self) -> int:
+        """数十年thresholdを取得"""
+        return self.get_threshold("multi_decadal")
+
+    @property
+    def centurial_threshold(self) -> int:
+        """100年thresholdを取得"""
+        return self.get_threshold("centurial")
