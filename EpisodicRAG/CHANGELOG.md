@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.0] - 2025-11-29
+
+### Added
+
+- **DESIGN_DECISIONS.md**: 設計判断ドキュメントを新規作成
+  - Clean Architecture採択理由
+  - デザインパターン選択の根拠（Facade, Repository, Strategy, Builder, Singleton, Template Method, Factory）
+  - Pythonプログラミング教材としての価値向上を目的
+
+- **CHEATSHEET.md / CHEATSHEET.en.md**: クイックリファレンスを新規作成
+  - コマンド・スキル早見表
+  - ファイル命名規則
+  - デフォルト閾値
+  - 日常ワークフロー
+  - 日英完全同期（91行/91行）
+
+### Changed
+
+- **ドキュメントSSoT強化**: 包括的なSSoT参照リファクタリング
+  - ADVANCED.md: SSoT参照3箇所追加（記憶構造、8階層構造）
+  - QUICKSTART.md/en.md: SSoT参照追加、日英完全同期（179行/179行）
+  - API_REFERENCE.md: 「使い方」セクション追加、DESIGN_DECISIONS参照
+  - ARCHITECTURE.md: DESIGN_DECISIONS参照追加
+  - CONTRIBUTING.md: DESIGN_DECISIONS参照追加
+  - README.en.md: Path Format Differencesセクション追加（日英同期 380行/380行）
+  - FAQ.md: 参照パス修正、CHEATSHEET参照追加
+  - GUIDE.md: CHEATSHEET参照追加
+
+- **デザインパターンの明示化**: API_REFERENCE.mdにパターン一覧を追加
+  - Facade, Repository, Singleton, Strategy, Template Method, Builder, Factory
+
+---
+
 ## [3.0.0] - 2025-11-28
 
 ### Breaking Changes
