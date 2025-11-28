@@ -5,7 +5,7 @@
 階層的記憶・ダイジェスト生成システム（8 層 100 年、完全自己完結版）
 
 ![EpisodicRAG Plugin](EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "episodicrag"
-version = "2.3.0"
+version = "3.0.0"
 description = "EpisodicRAG - Hierarchical digest generation for long-term memory"
 requires-python = ">=3.10"
 

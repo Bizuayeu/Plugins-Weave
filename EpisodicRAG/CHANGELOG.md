@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] - 2025-11-28
+
+### Breaking Changes
+
+- **Loop IDの桁数変更**: 4桁→5桁（例: `Loop0001` → `L00001`）
+- **ドキュメントの完全SSoT化**: 用語定義はREADME.mdに一元化
+- **テストスイートの導入**: pytest + hypothesis によるプロパティベーステスト
+
+### Changed
+
+- バージョン管理の全ファイル同期
+
+---
+
 ## [2.3.0] - 2025-11-28
 
 ### Breaking Changes
