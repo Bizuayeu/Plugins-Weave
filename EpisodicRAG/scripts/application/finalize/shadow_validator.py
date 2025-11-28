@@ -6,7 +6,7 @@ Shadow Validator
 ShadowGrandDigestの内容を検証するクラス
 """
 
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, Optional
 
 from application.grand import ShadowGrandDigestManager
 from application.validators import is_valid_dict, is_valid_list
@@ -115,12 +115,12 @@ class ShadowValidator:
 
         return shadow_digest
 
-    def _validate_shadow_format(self, shadow_digest) -> None:
+    def _validate_shadow_format(self, shadow_digest: Any) -> None:
         """
         Shadowダイジェストの形式検証
 
         Args:
-            shadow_digest: 検証するデータ
+            shadow_digest: 検証するデータ（任意の型を受け入れて検証する）
 
         Raises:
             ValidationError: 形式が不正な場合

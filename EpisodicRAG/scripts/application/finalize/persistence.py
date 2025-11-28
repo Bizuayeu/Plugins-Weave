@@ -7,13 +7,18 @@ RegularDigestの保存、GrandDigest更新、カスケード処理を担当
 """
 
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Callable, List, Optional
 
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
 from application.validators import is_valid_dict
 from config import DigestConfig
-from domain.constants import LEVEL_CONFIG
+from domain.constants import (
+    LEVEL_CONFIG,
+    LOG_PREFIX_DECISION,
+    LOG_PREFIX_FILE,
+    LOG_PREFIX_STATE,
+)
 from domain.exceptions import DigestError, FileIOError, ValidationError
 from domain.level_registry import get_level_registry
 from domain.types import RegularDigestData, as_dict
@@ -68,26 +73,26 @@ class DigestPersistence:
         config = self.level_config[level]
         target_dir = self.digests_path / str(config["dir"])
 
-        log_debug(f"[FILE] save_regular_digest: target_dir={target_dir}")
-        log_debug(f"[STATE] creating directory if needed")
+        log_debug(f"{LOG_PREFIX_FILE} save_regular_digest: target_dir={target_dir}")
+        log_debug(f"{LOG_PREFIX_STATE} creating directory if needed")
 
         target_dir.mkdir(parents=True, exist_ok=True)
         final_filename = f"{new_digest_name}.txt"
         final_path = target_dir / final_filename
 
-        log_debug(f"[FILE] final_path: {final_path}")
-        log_debug(f"[FILE] file_exists: {final_path.exists()}")
+        log_debug(f"{LOG_PREFIX_FILE} final_path: {final_path}")
+        log_debug(f"{LOG_PREFIX_FILE} file_exists: {final_path.exists()}")
 
         # 既存ファイルチェック
         if final_path.exists():
             log_warning(f"File already exists: {final_path}")
-            log_debug("[DECISION] prompting for overwrite confirmation")
+            log_debug(f"{LOG_PREFIX_DECISION} prompting for overwrite confirmation")
             if not self.confirm_callback("Overwrite?"):
                 raise ValidationError("User cancelled overwrite")
 
         # 保存
         try:
-            log_debug(f"[FILE] saving RegularDigest to {final_path}")
+            log_debug(f"{LOG_PREFIX_FILE} saving RegularDigest to {final_path}")
             save_json(final_path, as_dict(regular_digest))
         except IOError as e:
             raise FileIOError(f"Failed to save RegularDigest: {e}")
@@ -128,11 +133,11 @@ class DigestPersistence:
         registry = get_level_registry()
         should_cascade = registry.should_cascade(level)
 
-        log_debug(f"[DECISION] should_cascade({level}): {should_cascade}")
+        log_debug(f"{LOG_PREFIX_DECISION} should_cascade({level}): {should_cascade}")
 
         if should_cascade:
             log_info("[Step 3] Processing ShadowGrandDigest cascade")
-            log_debug(f"[STATE] starting cascade for level={level}")
+            log_debug(f"{LOG_PREFIX_STATE} starting cascade for level={level}")
             self.shadow_manager.cascade_update_on_digest_finalize(level)
         else:
             log_info(f"[Step 3] Skipped ({level} is top level, no cascade needed)")
@@ -178,12 +183,12 @@ class DigestPersistence:
             source_files: ソースファイルリスト
             provisional_file_to_delete: 削除するProvisionalファイル
         """
-        log_debug(f"[STATE] process_cascade_and_cleanup: level={level}")
-        log_debug(f"[STATE] source_files_count: {len(source_files)}")
-        log_debug(f"[FILE] provisional_to_delete: {provisional_file_to_delete}")
+        log_debug(f"{LOG_PREFIX_STATE} process_cascade_and_cleanup: level={level}")
+        log_debug(f"{LOG_PREFIX_STATE} source_files_count: {len(source_files)}")
+        log_debug(f"{LOG_PREFIX_FILE} provisional_to_delete: {provisional_file_to_delete}")
 
         self._update_shadow_cascade(level)
         self._update_digest_times(level, source_files)
         self._cleanup_provisional_file(provisional_file_to_delete)
 
-        log_debug(f"[STATE] cascade_and_cleanup completed for level={level}")
+        log_debug(f"{LOG_PREFIX_STATE} cascade_and_cleanup completed for level={level}")

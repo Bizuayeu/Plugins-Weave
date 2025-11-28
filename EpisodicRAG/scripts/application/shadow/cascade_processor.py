@@ -11,6 +11,12 @@ from typing import TYPE_CHECKING, Dict, Optional
 __all__ = ["CascadeProcessor"]
 
 from application.validators import is_valid_dict
+from domain.constants import (
+    LOG_PREFIX_DECISION,
+    LOG_PREFIX_FILE,
+    LOG_PREFIX_STATE,
+    LOG_PREFIX_VALIDATE,
+)
 from domain.types import LevelHierarchyEntry, OverallDigestData
 from infrastructure import log_debug, log_info
 
@@ -64,15 +70,15 @@ class CascadeProcessor:
         shadow_data = self.shadow_io.load_or_create()
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
-        log_debug(f"[STATE] get_shadow_digest_for_level: level={level}")
-        log_debug(f"[VALIDATE] overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}")
+        log_debug(f"{LOG_PREFIX_STATE} get_shadow_digest_for_level: level={level}")
+        log_debug(f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}")
 
         if overall_digest is None or not is_valid_dict(overall_digest):
             log_info(f"No shadow digest for level: {level}")
             return None
 
         source_files = overall_digest.get("source_files", [])
-        log_debug(f"[VALIDATE] source_files: count={len(source_files)}")
+        log_debug(f"{LOG_PREFIX_VALIDATE} source_files: count={len(source_files)}")
 
         if not source_files:
             log_info(f"No shadow digest for level: {level}")
@@ -131,22 +137,22 @@ class CascadeProcessor:
             level: レベル名
         """
         log_info(f"[Step 3] ShadowGrandDigest cascade for level: {level}")
-        log_debug(f"[STATE] cascade_update: starting for level={level}")
+        log_debug(f"{LOG_PREFIX_STATE} cascade_update: starting for level={level}")
 
         # 1. Shadow → Grand 昇格の確認
         self.promote_shadow_to_grand(level)
 
         # 2. 次のレベルの新しいファイルを検出
         next_level = self.level_hierarchy[level]["next"]
-        log_debug(f"[DECISION] next_level: {next_level}")
+        log_debug(f"{LOG_PREFIX_DECISION} next_level: {next_level}")
 
         if next_level:
             new_files = self.file_detector.find_new_files(next_level)
-            log_debug(f"[FILE] find_new_files({next_level}): found {len(new_files)} files")
+            log_debug(f"{LOG_PREFIX_FILE} find_new_files({next_level}): found {len(new_files)} files")
 
             if new_files:
                 log_info(f"Found {len(new_files)} new file(s) for {next_level}:")
-                log_debug(f"[FILE] new_files: {[f.name for f in new_files[:5]]}{'...' if len(new_files) > 5 else ''}")
+                log_debug(f"{LOG_PREFIX_FILE} new_files: {[f.name for f in new_files[:5]]}{'...' if len(new_files) > 5 else ''}")
 
                 # 3. 次のレベルのShadowに増分追加
                 self.file_appender.add_files_to_shadow(next_level, new_files)

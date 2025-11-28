@@ -133,6 +133,12 @@ DEFAULT_THRESHOLDS: Dict[str, int] = {
 
 LOG_SEPARATOR = "=" * 60  # ログ出力用のセパレータ
 
+# ログプレフィックス定数（デバッグログの分類用）
+LOG_PREFIX_STATE = "[STATE]"      # 状態変化のログ
+LOG_PREFIX_FILE = "[FILE]"        # ファイル操作のログ
+LOG_PREFIX_VALIDATE = "[VALIDATE]"  # 検証処理のログ
+LOG_PREFIX_DECISION = "[DECISION]"  # 判断分岐のログ
+
 
 # =============================================================================
 # プレースホルダーファクトリー関数（SSoT）

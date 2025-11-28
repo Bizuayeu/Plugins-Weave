@@ -113,31 +113,16 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 ## トラブルシューティング
 
-### Q: DigestAnalyzerが起動しません
+問題が発生した場合は、以下のドキュメントを参照してください：
 
-**A**: 以下を確認してください：
+| 症状 | 参照先 |
+|------|--------|
+| DigestAnalyzerが起動しない | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#digestanalyzerエージェントが起動しない) |
+| individual_digestsが空になる | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#individual_digestsが空になる) |
+| ShadowGrandDigestが更新されない | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#shadowgranddigestが更新されない) |
+| 階層カスケードが動作しない | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#階層的カスケードが動作しない) |
 
-1. 設定ファイルが存在するか
-2. パス解決が正しいか
-3. GrandDigest.txtが存在するか
-
-詳細は[TROUBLESHOOTING.md](TROUBLESHOOTING.md#digestanalyzerエージェントが起動しない)を参照してください。
-
-### Q: individual_digestsが空になります
-
-**A**: ProvisionalDigestファイルが生成されていない可能性があります。
-
-1. Provisionalディレクトリの確認
-2. `/digest`を再実行して分析を完了
-
-詳細は[TROUBLESHOOTING.md](TROUBLESHOOTING.md#individual_digestsが空になる)を参照してください。
-
-### Q: ShadowGrandDigestが更新されません
-
-**A**:
-1. `@digest-auto`でシステム状態を確認
-2. `last_digest_times.json`の内容を確認
-3. `/digest`を再実行
+> 📖 詳細な診断手順・デバッグ方法は [TROUBLESHOOTING.md](TROUBLESHOOTING.md) を参照
 
 ---
 

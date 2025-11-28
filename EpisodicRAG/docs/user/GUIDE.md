@@ -303,10 +303,22 @@ python scripts/config.py --show-paths
 
 ## 4. よくある問題と解決方法
 
-一般的な問題と解決方法については以下を参照してください：
+### クイックリファレンス
 
-- **[FAQ.md](FAQ.md)** - よくある質問と回答
-- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - 高度なトラブルシューティング（DigestAnalyzer、ShadowGrandDigest、階層カスケードなど）
+| 困っていること | 解決方法 |
+|--------------|---------|
+| 概念がわからない | [FAQ.md](FAQ.md) |
+| 具体的な問題を解決したい | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| システム状態を確認したい | `@digest-auto` を実行 |
+| 設定を変更したい | `@digest-config` を実行 |
+
+### よくある症状と対処
+
+1. **Loopファイルが検出されない** → `@digest-auto` で状態確認
+2. **DigestAnalyzerが起動しない** → [TROUBLESHOOTING.md](TROUBLESHOOTING.md#digestanalyzerエージェントが起動しない)
+3. **パスが解決できない** → `@digest-config` でパス設定を確認
+
+> 📖 詳細な解決手順は [TROUBLESHOOTING.md](TROUBLESHOOTING.md) を参照
 
 ---
 

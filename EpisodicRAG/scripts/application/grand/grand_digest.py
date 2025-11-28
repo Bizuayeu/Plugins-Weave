@@ -12,7 +12,11 @@ from typing import Any, Callable, Dict, cast
 
 from application.validators import is_valid_dict
 from config import DigestConfig
-from domain.constants import LEVEL_NAMES
+from domain.constants import (
+    LEVEL_NAMES,
+    LOG_PREFIX_STATE,
+    LOG_PREFIX_VALIDATE,
+)
 from domain.exceptions import DigestError
 from domain.types import GrandDigestData, OverallDigestData, as_dict
 from domain.version import DIGEST_FORMAT_VERSION
@@ -67,8 +71,8 @@ class GrandDigestManager:
         """
         grand_data = self.load_or_create()
 
-        log_debug(f"[STATE] update_digest: level={level}, digest_name={digest_name}")
-        log_debug(f"[VALIDATE] grand_data: is_valid={is_valid_dict(grand_data)}")
+        log_debug(f"{LOG_PREFIX_STATE} update_digest: level={level}, digest_name={digest_name}")
+        log_debug(f"{LOG_PREFIX_VALIDATE} grand_data: is_valid={is_valid_dict(grand_data)}")
 
         # 型チェック
         if not is_valid_dict(grand_data):
@@ -78,19 +82,19 @@ class GrandDigestManager:
             raise DigestError("GrandDigest.txt missing 'major_digests' section")
 
         available_levels = list(grand_data["major_digests"].keys())
-        log_debug(f"[VALIDATE] available_levels: {available_levels}")
+        log_debug(f"{LOG_PREFIX_VALIDATE} available_levels: {available_levels}")
 
         if level not in grand_data["major_digests"]:
             raise DigestError(f"Unknown level: {level}")
 
         # overall_digestを更新（完全なオブジェクトとして保存）
-        log_debug(f"[STATE] updating overall_digest for level={level}")
-        log_debug(f"[VALIDATE] overall_digest_keys: {list(overall_digest.keys())}")
+        log_debug(f"{LOG_PREFIX_STATE} updating overall_digest for level={level}")
+        log_debug(f"{LOG_PREFIX_VALIDATE} overall_digest_keys: {list(overall_digest.keys())}")
         grand_data["major_digests"][level]["overall_digest"] = overall_digest
 
         # メタデータを更新
         grand_data["metadata"]["last_updated"] = datetime.now().isoformat()
-        log_debug(f"[STATE] updated_timestamp: {grand_data['metadata']['last_updated']}")
+        log_debug(f"{LOG_PREFIX_STATE} updated_timestamp: {grand_data['metadata']['last_updated']}")
 
         # 保存
         self.save(grand_data)

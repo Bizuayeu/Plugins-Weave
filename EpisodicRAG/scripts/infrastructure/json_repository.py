@@ -35,7 +35,7 @@ Usage:
 import json
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, cast
 
 from domain.exceptions import FileIOError
 
@@ -99,8 +99,7 @@ def load_json(file_path: Path) -> Dict[str, Any]:
 
     result = _safe_read_json(file_path, raise_on_error=True)
     # _safe_read_jsonがraise_on_error=Trueで呼ばれた場合、Noneは返らない
-    assert result is not None  # 型チェッカー用
-    return result
+    return cast(Dict[str, Any], result)
 
 
 def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
@@ -152,7 +151,7 @@ def load_json_with_template(
     if target_file.exists():
         logger.debug(f"Loading existing file: {target_file}")
         data = _safe_read_json(target_file, raise_on_error=True)
-        assert data is not None  # 型チェッカー用
+        data = cast(Dict[str, Any], data)
         logger.debug(f"Loaded {len(data)} keys from {target_file.name}")
         return data
 
@@ -160,7 +159,7 @@ def load_json_with_template(
     if template_file and template_file.exists():
         logger.debug(f"Target not found, loading from template: {template_file}")
         template = _safe_read_json(template_file, raise_on_error=True)
-        assert template is not None  # 型チェッカー用
+        template = cast(Dict[str, Any], template)
         if save_on_create:
             save_json(target_file, template)
             logger.debug(f"Saved initialized file to: {target_file}")

@@ -16,7 +16,7 @@ Usage:
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from typing import Any, List, Optional
 
 from domain.exceptions import ConfigError
 from domain.types import ConfigData, as_dict
@@ -167,3 +167,29 @@ class ConfigLoader:
             読み込み済みの場合True
         """
         return self._config is not None
+
+    # 必須の設定キー
+    REQUIRED_KEYS = ["loops_path", "digests_path", "essences_path"]
+
+    def validate_required_keys(self) -> List[str]:
+        """
+        設定の必須キーを検証
+
+        ConfigValidatorの包括的な検証とは別に、最低限の必須キー検証を提供。
+        設定読み込み直後の軽量チェックに使用。
+
+        Returns:
+            エラーメッセージのリスト（問題がなければ空リスト）
+
+        Example:
+            errors = loader.validate_required_keys()
+            if errors:
+                raise ConfigError(f"Configuration errors: {errors}")
+        """
+        config = self.load()
+        config_dict = as_dict(config)
+        errors: List[str] = []
+        for key in self.REQUIRED_KEYS:
+            if key not in config_dict:
+                errors.append(f"Required key missing: '{key}'")
+        return errors
