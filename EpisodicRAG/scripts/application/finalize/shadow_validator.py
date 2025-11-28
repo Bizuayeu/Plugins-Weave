@@ -6,7 +6,7 @@ Shadow Validator
 ShadowGrandDigestの内容を検証するクラス
 """
 
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from application.grand import ShadowGrandDigestManager
 from application.validators import is_valid_dict, is_valid_list

@@ -313,7 +313,7 @@ class TestFileDetectionPerformance:
 
         # Run file detection 10 times
         for _ in range(10):
-            new_files = detector.find_new_files("monthly")
+            detector.find_new_files("monthly")
 
         elapsed = time.perf_counter() - start
 
@@ -401,7 +401,7 @@ class TestGrandDigestPerformance:
 
         # Run CRUD cycle 50 times
         for i in range(50):
-            data = manager.load_or_create()
+            manager.load_or_create()
             # Update digest - signature: (level, digest_name, overall_digest)
             overall_digest = {
                 "name": f"TestDigest_{i}",
@@ -438,8 +438,8 @@ class TestCascadePerformance:
 
         # Initialize components 20 times
         for _ in range(20):
-            times_tracker = DigestTimesTracker(digest_config)
-            shadow_manager = ShadowGrandDigestManager(digest_config)
+            DigestTimesTracker(digest_config)
+            ShadowGrandDigestManager(digest_config)
             # ShadowGrandDigestManager contains ShadowUpdater internally
 
         elapsed = time.perf_counter() - start
