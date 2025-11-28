@@ -922,7 +922,95 @@ Provisional Digestを保存。
 class ProvisionalDigestSaver:
     def __init__(self, config: DigestConfig): ...
     def save(self, level: str, digest_data: Dict) -> Path: ...
+    def run(self, level: str, input_data: Union[str, List], append: bool = False) -> None
 ```
+
+| メソッド | 説明 |
+|---------|------|
+| `save(level, digest_data) -> Path` | Provisionalファイルを保存し、パスを返す |
+| `run(level, input_data, append) -> None` | CLI/スクリプトからの実行エントリーポイント |
+
+### Provisionalサブパッケージ（interfaces/provisional/）
+
+Provisional Digest処理の詳細コンポーネント。
+
+#### InputLoader
+
+入力データの読み込み。
+
+```python
+class InputLoader:
+    def load_from_json_file(self, file_path: Path) -> List[IndividualDigestData]
+    def parse_json_string(self, json_string: str) -> List[IndividualDigestData]
+    def load_input(self, input_source: Union[str, Path]) -> List[IndividualDigestData]
+```
+
+| メソッド | 説明 |
+|---------|------|
+| `load_from_json_file(file_path)` | JSONファイルからダイジェストリストを読み込み |
+| `parse_json_string(json_string)` | JSON文字列をパースしてダイジェストリストに変換 |
+| `load_input(input_source)` | ファイルパスまたはJSON文字列から自動判定して読み込み |
+
+#### ProvisionalFileManager
+
+Provisionalファイルの管理。
+
+```python
+class ProvisionalFileManager:
+    def __init__(self, config: DigestConfig): ...
+
+    def get_provisional_dir(self, level: str) -> Path
+    def get_provisional_path(self, level: str, digest_number: str) -> Path
+    def get_next_provisional_number(self, level: str) -> int
+    def get_digits_for_level(self, level: str) -> int
+    def list_provisional_files(self, level: str) -> List[Path]
+```
+
+| メソッド | 説明 |
+|---------|------|
+| `get_provisional_dir(level)` | Provisionalディレクトリのパスを取得 |
+| `get_provisional_path(level, digest_number)` | Provisionalファイルのフルパスを取得 |
+| `get_next_provisional_number(level)` | 次のProvisional番号を計算 |
+| `list_provisional_files(level)` | 既存のProvisionalファイル一覧を取得 |
+
+#### DigestMerger
+
+ダイジェストのマージ処理。
+
+```python
+class DigestMerger:
+    def merge_digests(
+        self,
+        existing: List[IndividualDigestData],
+        new: List[IndividualDigestData]
+    ) -> List[IndividualDigestData]
+
+    def remove_duplicates(
+        self,
+        digests: List[IndividualDigestData]
+    ) -> List[IndividualDigestData]
+```
+
+| メソッド | 説明 |
+|---------|------|
+| `merge_digests(existing, new)` | 既存と新規のダイジェストをマージ |
+| `remove_duplicates(digests)` | 重複を除去（source_fileベース） |
+
+#### バリデーション関数（interfaces/provisional/validator.py）
+
+```python
+def validate_individual_digest(data: Any) -> IndividualDigestData
+def validate_individual_digests_list(data: Any) -> List[IndividualDigestData]
+def validate_input_format(data: Any) -> List[IndividualDigestData]
+def validate_provisional_structure(data: Any) -> Dict[str, Any]
+```
+
+| 関数 | 説明 | 例外 |
+|------|------|------|
+| `validate_individual_digest(data)` | 単一ダイジェストの形式を検証 | `ValidationError` |
+| `validate_individual_digests_list(data)` | ダイジェストリストの形式を検証 | `ValidationError` |
+| `validate_input_format(data)` | 入力データの形式を自動判定・検証 | `ValidationError` |
+| `validate_provisional_structure(data)` | Provisionalファイル全体の構造を検証 | `ValidationError` |
 
 ### ヘルパー関数（interfaces/interface_helpers.py）
 
@@ -947,6 +1035,58 @@ def get_next_digest_number(digests_path: Path, level: str) -> int
 ```
 
 指定レベルの次のDigest番号を取得。
+
+---
+
+## デザインパターン
+
+EpisodicRAGで使用されているデザインパターン一覧：
+
+| パターン | 適用箇所 | 説明 |
+|---------|---------|------|
+| **Facade** | `DigestFinalizerFromShadow`, `ShadowGrandDigestManager`, `ShadowUpdater` | 複雑なサブシステムを単純なインターフェースで隠蔽 |
+| **Repository** | `ShadowIO`, `GrandDigestManager`, `DigestTimesTracker` | データアクセスロジックの抽象化 |
+| **Singleton** | `LevelRegistry` | 階層設定の一元管理（`get_level_registry()`で取得） |
+| **Strategy** | `LevelBehavior`, `StandardLevelBehavior`, `LoopLevelBehavior` | 階層ごとの振る舞いを交換可能に |
+| **Template Method** | `ShadowTemplate` | テンプレート生成の骨格定義 |
+| **Builder** | `RegularDigestBuilder` | 複雑なオブジェクト（RegularDigest）の段階的構築 |
+| **Factory** | `get_level_registry()`, `get_default_confirm_callback()` | オブジェクト生成の抽象化 |
+
+### Clean Architecture 層構造
+
+```
+┌─────────────────────────────────────────────┐
+│              Interfaces層                    │
+│   DigestFinalizerFromShadow                 │
+│   ProvisionalDigestSaver                    │
+│   provisional/ サブパッケージ                │
+├─────────────────────────────────────────────┤
+│              Application層                   │
+│   shadow/: ShadowUpdater, CascadeProcessor  │
+│   grand/: GrandDigestManager                │
+│   finalize/: RegularDigestBuilder           │
+│   validators.py                             │
+├─────────────────────────────────────────────┤
+│            Infrastructure層                  │
+│   json_repository.py                        │
+│   file_scanner.py                           │
+│   logging_config.py                         │
+│   user_interaction.py                       │
+├─────────────────────────────────────────────┤
+│               Domain層                       │
+│   constants.py (LEVEL_CONFIG)               │
+│   types.py (TypedDict定義)                  │
+│   exceptions.py                             │
+│   file_naming.py                            │
+│   level_registry.py                         │
+└─────────────────────────────────────────────┘
+```
+
+**依存関係ルール**:
+- Domain層: 何にも依存しない（純粋なビジネスロジック）
+- Infrastructure層: Domain層のみに依存
+- Application層: Domain層 + Infrastructure層に依存
+- Interfaces層: Application層に依存（外部エントリーポイント）
 
 ---
 
