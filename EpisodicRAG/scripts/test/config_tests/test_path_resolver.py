@@ -77,15 +77,42 @@ class TestPathResolver:
         assert "not found in config.json" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_base_dir_resolution(self, temp_plugin_env):
-        """base_dir設定の解決"""
+    def test_base_dir_traversal_raises_config_error(self, temp_plugin_env):
+        """base_dirがplugin_root外を指す場合ConfigError（セキュリティ対策）"""
         config = {"base_dir": "..", "paths": {"loops_dir": "data/Loops"}}
+
+        with pytest.raises(ConfigError) as exc_info:
+            PathResolver(temp_plugin_env.plugin_root, config)
+
+        assert "resolves outside plugin root" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_base_dir_subdir_resolution(self, temp_plugin_env):
+        """base_dirがサブディレクトリを指す場合は正常動作"""
+        # サブディレクトリを作成
+        subdir = temp_plugin_env.plugin_root / "subdir"
+        subdir.mkdir()
+
+        config = {"base_dir": "subdir", "paths": {"loops_dir": "data/Loops"}}
         resolver = PathResolver(temp_plugin_env.plugin_root, config)
 
-        # base_dirが..なので、plugin_rootの親からの相対パスになる
-        result = resolver.base_dir
+        # base_dirがサブディレクトリを指す
+        assert resolver.base_dir == subdir.resolve()
 
-        assert result == temp_plugin_env.plugin_root.parent.resolve()
+    @pytest.mark.unit
+    def test_base_dir_with_dotdot_inside_plugin_root(self, temp_plugin_env):
+        """サブディレクトリ内で..を使用してもplugin_root内なら正常動作"""
+        # ネストしたサブディレクトリを作成
+        nested = temp_plugin_env.plugin_root / "a" / "b"
+        nested.mkdir(parents=True)
+
+        # a/b/.. -> a に解決される（plugin_root内）
+        config = {"base_dir": "a/b/..", "paths": {"loops_dir": "data/Loops"}}
+        resolver = PathResolver(temp_plugin_env.plugin_root, config)
+
+        # base_dirは a ディレクトリに解決される
+        expected = (temp_plugin_env.plugin_root / "a").resolve()
+        assert resolver.base_dir == expected
 
     @pytest.mark.unit
     def test_default_base_dir(self, temp_plugin_env):

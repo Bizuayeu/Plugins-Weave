@@ -10,25 +10,61 @@ Usage:
     from domain.file_naming import find_max_number, filter_files_after
 
 Note:
-    このモジュールはLevelRegistryを使用してOCP (Open/Closed Principle) を実現。
+    このモジュールはLevelRegistryProtocolを使用してOCP (Open/Closed Principle) を実現。
     新しいレベル追加時にこのファイルの修正は不要。
+    Protocol経由の依存関係逆転により、循環インポートを解消。
 """
 
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
-if TYPE_CHECKING:
-    from domain.level_registry import LevelRegistry
+from domain.protocols import LevelRegistryProtocol
+
+# Registry インスタンス（set_registry()で設定、未設定時は遅延インポートでフォールバック）
+_registry_instance: Optional[LevelRegistryProtocol] = None
 
 
-def _get_registry() -> "LevelRegistry":
+def set_registry(registry: LevelRegistryProtocol) -> None:
     """
-    LevelRegistryを遅延インポートで取得（循環インポート回避）
+    Registryを設定（アプリケーション起動時に呼び出し）
+
+    Args:
+        registry: LevelRegistryProtocolを満たすインスタンス
+
+    Note:
+        この関数を呼び出すことで、遅延インポートを回避できる。
+        テスト時にモックを注入する際にも使用可能。
+    """
+    global _registry_instance
+    _registry_instance = registry
+
+
+def reset_registry() -> None:
+    """
+    Registryをリセット（テスト用）
+
+    テスト間でRegistryの状態をクリアするために使用。
+    """
+    global _registry_instance
+    _registry_instance = None
+
+
+def _get_registry() -> LevelRegistryProtocol:
+    """
+    LevelRegistryProtocolを取得
+
+    set_registry()で設定されたインスタンスを返す。
+    未設定の場合は後方互換性のため遅延インポートでフォールバック。
 
     Returns:
-        LevelRegistryインスタンス
+        LevelRegistryProtocolインスタンス
     """
+    global _registry_instance
+    if _registry_instance is not None:
+        return _registry_instance
+
+    # フォールバック: 遅延インポート（後方互換性）
     from domain.level_registry import get_level_registry
 
     return get_level_registry()
@@ -234,4 +270,6 @@ __all__ = [
     "find_max_number",
     "filter_files_after",
     "extract_numbers_formatted",
+    "set_registry",
+    "reset_registry",
 ]

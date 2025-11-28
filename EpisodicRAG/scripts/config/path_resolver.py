@@ -42,11 +42,23 @@ class PathResolver:
         Returns:
             解決された基準ディレクトリのPath
 
+        Raises:
+            ConfigError: base_dirがplugin_root外を指す場合（パストラバーサル検出）
+
         Note:
             絶対パスは使用しない（Git公開時の可搬性のため）
         """
         base_dir_setting = self.config.get("base_dir", ".")
-        return (self.plugin_root / base_dir_setting).resolve()
+        resolved = (self.plugin_root / base_dir_setting).resolve()
+        plugin_root_resolved = self.plugin_root.resolve()
+        # パストラバーサル検出（plugin_root外へのアクセスを防止）
+        try:
+            resolved.relative_to(plugin_root_resolved)
+        except ValueError:
+            raise ConfigError(
+                f"Invalid base_dir: '{base_dir_setting}' resolves outside plugin root"
+            )
+        return resolved
 
     def resolve_path(self, key: str) -> Path:
         """

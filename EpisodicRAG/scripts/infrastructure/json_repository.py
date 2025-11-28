@@ -37,6 +37,7 @@ import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, TypeVar, cast
 
+from domain.constants import DIGEST_FILE_EXTENSION
 from domain.exceptions import FileIOError
 
 # Generic type for load_json_with_template
@@ -126,6 +127,72 @@ def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
         raise FileIOError(f"Failed to write {file_path}: {e}") from e
 
 
+def _try_load_existing(target_file: Path) -> Optional[Dict[str, Any]]:
+    """
+    既存ファイルから読み込み（存在しなければNone）
+
+    Args:
+        target_file: 読み込むJSONファイルのパス
+
+    Returns:
+        読み込んだdict、またはファイルが存在しない場合はNone
+    """
+    if not target_file.exists():
+        return None
+    logger.debug(f"Loading existing file: {target_file}")
+    raw_data = _safe_read_json(target_file, raise_on_error=True)
+    logger.debug(f"Loaded {len(raw_data) if raw_data else 0} keys from {target_file.name}")
+    return raw_data
+
+
+def _try_load_from_template(
+    target_file: Path, template_file: Optional[Path], save_on_create: bool
+) -> Optional[Dict[str, Any]]:
+    """
+    テンプレートから読み込み・保存
+
+    Args:
+        target_file: 保存先のJSONファイルのパス
+        template_file: テンプレートファイルのパス
+        save_on_create: 作成時に保存するかどうか
+
+    Returns:
+        読み込んだdict、またはテンプレートが存在しない場合はNone
+    """
+    if not template_file or not template_file.exists():
+        return None
+    logger.debug(f"Target not found, loading from template: {template_file}")
+    raw_template = _safe_read_json(template_file, raise_on_error=True)
+    if save_on_create and raw_template is not None:
+        save_json(target_file, raw_template)
+        logger.debug(f"Saved initialized file to: {target_file}")
+    return raw_template
+
+
+def _create_from_factory(
+    target_file: Path, default_factory: Optional[Callable[[], T]], save_on_create: bool
+) -> Optional[T]:
+    """
+    ファクトリから作成・保存
+
+    Args:
+        target_file: 保存先のJSONファイルのパス
+        default_factory: デフォルト値を生成する関数
+        save_on_create: 作成時に保存するかどうか
+
+    Returns:
+        生成したdict、またはファクトリがない場合はNone
+    """
+    if not default_factory:
+        return None
+    logger.debug("No template found, using default_factory")
+    result: T = default_factory()
+    if save_on_create:
+        save_json(target_file, cast(Dict[str, Any], result))
+        logger.debug(f"Saved default template to: {target_file}")
+    return result
+
+
 def load_json_with_template(
     target_file: Path,
     template_file: Optional[Path] = None,
@@ -161,37 +228,19 @@ def load_json_with_template(
     """
     logger.debug(f"load_json_with_template called: target={target_file}, template={template_file}")
 
-    # ファイルが存在する場合はそのまま読み込み
-    if target_file.exists():
-        logger.debug(f"Loading existing file: {target_file}")
-        raw_data = _safe_read_json(target_file, raise_on_error=True)
-        # _safe_read_json returns Dict[str, Any] | None, but with raise_on_error=True it won't return None
-        data: T = cast(T, raw_data)
-        logger.debug(f"Loaded {len(data)} keys from {target_file.name}")
-        return data
+    # 既存ファイルから読み込み
+    if (result := _try_load_existing(target_file)) is not None:
+        return cast(T, result)
 
-    # テンプレートファイルが存在する場合はそこから初期化
-    if template_file and template_file.exists():
-        logger.debug(f"Target not found, loading from template: {template_file}")
-        raw_template = _safe_read_json(template_file, raise_on_error=True)
-        template: T = cast(T, raw_template)
-        if save_on_create:
-            save_json(target_file, cast(Dict[str, Any], template))
-            logger.debug(f"Saved initialized file to: {target_file}")
-        msg = log_message or f"Initialized {target_file.name} from template"
-        logger.info(msg)
-        return template
+    # テンプレートから初期化
+    if (result := _try_load_from_template(target_file, template_file, save_on_create)) is not None:
+        logger.info(log_message or f"Initialized {target_file.name} from template")
+        return cast(T, result)
 
-    # デフォルトファクトリーがある場合はそれを使用
-    if default_factory:
-        logger.debug("No template found, using default_factory")
-        factory_template: T = default_factory()
-        if save_on_create:
-            save_json(target_file, cast(Dict[str, Any], factory_template))
-            logger.debug(f"Saved default template to: {target_file}")
-        msg = log_message or f"Created {target_file.name} with default template"
-        logger.info(msg)
-        return factory_template
+    # ファクトリから作成
+    if (result := _create_from_factory(target_file, default_factory, save_on_create)) is not None:
+        logger.info(log_message or f"Created {target_file.name} with default template")
+        return result
 
     # どちらもない場合は空のdictを返す
     logger.debug("No template or factory provided, returning empty dict")
@@ -310,7 +359,7 @@ def try_read_json_from_file(file_path: Path, log_on_error: bool = True) -> Optio
     if not file_path.exists():
         return None
 
-    if file_path.suffix != '.txt':
+    if file_path.suffix != DIGEST_FILE_EXTENSION:
         return None
 
     result = _safe_read_json(file_path, raise_on_error=False)

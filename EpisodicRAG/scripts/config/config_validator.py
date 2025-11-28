@@ -16,10 +16,11 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type
 
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.types import ConfigData, as_dict
+from domain.validation import collect_type_error as _collect_type_error
 
 from .level_path_service import LevelPathService
 
@@ -126,12 +127,7 @@ class ConfigValidator:
         path_keys = ["loops_path", "digests_path", "essences_path", "base_dir", "identity_file"]
         for key in path_keys:
             if key in config_dict:
-                value = config_dict[key]
-                if not isinstance(value, str):
-                    errors.append(
-                        f"Invalid configuration value for '{key}': "
-                        f"expected str, got {type(value).__name__}"
-                    )
+                _collect_type_error(config_dict[key], str, key, errors)
 
         return errors
 
@@ -149,12 +145,10 @@ class ConfigValidator:
         for key in self.THRESHOLD_KEYS:
             if key in config_dict:
                 value = config_dict[key]
-                if not isinstance(value, int):
-                    errors.append(
-                        f"Invalid configuration value for '{key}': "
-                        f"expected int, got {type(value).__name__}"
-                    )
-                elif value < 1:
+                # 型検証（validators.pyを再利用）
+                _collect_type_error(value, int, key, errors)
+                # 正の整数チェック（型が正しい場合のみ）
+                if isinstance(value, int) and value < 1:
                     errors.append(
                         f"Invalid configuration value for '{key}': "
                         f"must be positive integer, got {value}"

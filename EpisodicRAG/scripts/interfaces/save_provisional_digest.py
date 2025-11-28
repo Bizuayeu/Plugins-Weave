@@ -149,7 +149,7 @@ class ProvisionalDigestSaver:
         }
 
 
-def main():
+def main() -> None:
     """メイン処理"""
     parser = argparse.ArgumentParser(
         description="ProvisionalDigest保存スクリプト",

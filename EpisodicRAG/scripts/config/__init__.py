@@ -20,9 +20,13 @@ Usage:
 """
 
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any, List, Optional
+
+# Config層専用logger（Infrastructure層に依存しない）
+_logger = logging.getLogger("episodic_rag.config")
 
 # Domain層からインポート
 from domain.constants import (
@@ -251,22 +255,22 @@ class DigestConfig:
             return getattr(self._threshold_provider, name)
         raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}'")
 
-    def show_paths(self):
+    def show_paths(self) -> None:
         """パス設定を表示（デバッグ用）"""
-        print(f"Plugin Root: {self.plugin_root}")
-        print(f"Config File: {self.config_file}")
-        print(f"Base Dir (setting): {self.config.get('base_dir', '.')}")
-        print(f"Base Dir (resolved): {self.base_dir}")
-        print(f"Loops Path: {self.loops_path}")
-        print(f"Digests Path: {self.digests_path}")
-        print(f"Essences Path: {self.essences_path}")
+        _logger.info(f"Plugin Root: {self.plugin_root}")
+        _logger.info(f"Config File: {self.config_file}")
+        _logger.info(f"Base Dir (setting): {self.config.get('base_dir', '.')}")
+        _logger.info(f"Base Dir (resolved): {self.base_dir}")
+        _logger.info(f"Loops Path: {self.loops_path}")
+        _logger.info(f"Digests Path: {self.digests_path}")
+        _logger.info(f"Essences Path: {self.essences_path}")
 
         identity_file = self.get_identity_file_path()
         if identity_file:
-            print(f"Identity File: {identity_file}")
+            _logger.info(f"Identity File: {identity_file}")
 
 
-def main():
+def main() -> None:
     """CLI エントリーポイント"""
     import argparse
 

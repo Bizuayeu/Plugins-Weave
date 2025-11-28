@@ -16,6 +16,7 @@ Usage:
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from domain.exceptions import ValidationError
+from domain.validation import validate_type as _validate_type
 
 # =============================================================================
 # 汎用ヘルパー関数（内部使用）
@@ -23,26 +24,7 @@ from domain.exceptions import ValidationError
 
 T = TypeVar('T')
 
-
-def _validate_type(data: Any, expected_type: Type[T], context: str, type_name: str) -> T:
-    """
-    汎用型検証ヘルパー
-
-    Args:
-        data: 検証対象のデータ
-        expected_type: 期待する型
-        context: エラーメッセージに含める文脈情報
-        type_name: 表示用の型名
-
-    Returns:
-        検証済みのデータ
-
-    Raises:
-        ValidationError: dataが期待する型でない場合
-    """
-    if not isinstance(data, expected_type):
-        raise ValidationError(f"{context}: expected {type_name}, got {type(data).__name__}")
-    return data
+# _validate_type は domain.validation から再エクスポート（後方互換性維持）
 
 
 def _is_valid_type(data: Any, expected_type: Type[T]) -> bool:

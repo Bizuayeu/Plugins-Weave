@@ -178,7 +178,7 @@ class DigestFinalizerFromShadow:
         log_info(LOG_SEPARATOR)
 
 
-def main():
+def main() -> None:
     """メイン実行関数"""
     parser = argparse.ArgumentParser(
         description="Finalize digest from ShadowGrandDigest",
