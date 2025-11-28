@@ -90,17 +90,14 @@ class ConfigLoader:
         """
         if not self.config_file.exists():
             raise ConfigError(
-                f"Config file not found: {self.config_file}\n"
-                "Run setup first: bash scripts/setup.sh"
+                f"Config file not found: {self.config_file}\nRun setup first: bash scripts/setup.sh"
             )
 
         try:
             with open(self.config_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except json.JSONDecodeError as e:
-            raise ConfigError(
-                f"Invalid JSON in config file {self.config_file}: {e.msg}"
-            ) from e
+            raise ConfigError(f"Invalid JSON in config file {self.config_file}: {e.msg}") from e
 
     def get_config(self) -> ConfigData:
         """

@@ -114,12 +114,10 @@ class TestLargeDataVolumes:
 
         # Create large digest lists
         digests_a = [
-            {"source_file": f"L{i:05d}.txt", "keywords": [f"kw{i}"]}
-            for i in range(1, 251)
+            {"source_file": f"L{i:05d}.txt", "keywords": [f"kw{i}"]} for i in range(1, 251)
         ]
         digests_b = [
-            {"source_file": f"L{i:05d}.txt", "keywords": [f"new_kw{i}"]}
-            for i in range(200, 501)
+            {"source_file": f"L{i:05d}.txt", "keywords": [f"new_kw{i}"]} for i in range(200, 501)
         ]
 
         start = time.perf_counter()
@@ -286,12 +284,10 @@ class TestThroughput:
 
         # Prepare test data
         base_digests = [
-            {"source_file": f"L{i:05d}.txt", "keywords": ["a", "b"]}
-            for i in range(100)
+            {"source_file": f"L{i:05d}.txt", "keywords": ["a", "b"]} for i in range(100)
         ]
         new_digests = [
-            {"source_file": f"L{i:05d}.txt", "keywords": ["c", "d"]}
-            for i in range(50, 150)
+            {"source_file": f"L{i:05d}.txt", "keywords": ["c", "d"]} for i in range(50, 150)
         ]
 
         start = time.perf_counter()

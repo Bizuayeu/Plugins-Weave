@@ -199,9 +199,7 @@ class LevelRegistry:
         )
         self._register("loop", loop_metadata, LoopLevelBehavior())
 
-    def _register(
-        self, name: str, metadata: LevelMetadata, behavior: LevelBehavior
-    ) -> None:
+    def _register(self, name: str, metadata: LevelMetadata, behavior: LevelBehavior) -> None:
         """
         レベルを登録（内部メソッド）
 

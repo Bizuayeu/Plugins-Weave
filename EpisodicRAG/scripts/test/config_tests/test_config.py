@@ -181,9 +181,7 @@ class TestDigestConfig:
         # ConfigLoader.load を PermissionError を発生させるようにモック
         from config.config_loader import ConfigLoader
 
-        with patch.object(
-            ConfigLoader, "load", side_effect=PermissionError("Access denied")
-        ):
+        with patch.object(ConfigLoader, "load", side_effect=PermissionError("Access denied")):
             with pytest.raises(ConfigError) as exc_info:
                 DigestConfig(plugin_root=env.plugin_root)
 
@@ -421,17 +419,19 @@ class TestDigestConfigShowPaths:
         }
 
     @pytest.mark.unit
-    def test_show_paths_logs_all_paths(self, show_paths_env, capsys):
-        """show_paths()が全パスを標準出力に出力"""
+    def test_show_paths_logs_all_paths(self, show_paths_env, caplog):
+        """show_paths()が全パスをログに出力"""
+        import logging
+
         env = show_paths_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
 
-        config.show_paths()
+        with caplog.at_level(logging.INFO, logger="episodic_rag.config"):
+            config.show_paths()
 
-        captured = capsys.readouterr()
-        # パス情報が標準出力されている
-        assert "Loops" in captured.out
-        assert "Digests" in captured.out
+        # パス情報がログ出力されている
+        assert "Loops" in caplog.text
+        assert "Digests" in caplog.text
 
     @pytest.mark.unit
     def test_show_paths_returns_none(self, show_paths_env):

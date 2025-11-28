@@ -376,15 +376,7 @@ class TestConfigLoaderEdgeCases:
     @pytest.mark.unit
     def test_config_with_deeply_nested_structure(self, config_file):
         """深くネストされた設定"""
-        nested_config = {
-            "level1": {
-                "level2": {
-                    "level3": {
-                        "value": "deep_value"
-                    }
-                }
-            }
-        }
+        nested_config = {"level1": {"level2": {"level3": {"value": "deep_value"}}}}
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(nested_config, f)
 

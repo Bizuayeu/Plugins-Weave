@@ -86,13 +86,17 @@ class CascadeProcessor:
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
         log_debug(f"{LOG_PREFIX_STATE} get_shadow_digest_for_level: level={level}")
-        log_debug(f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}")
+        log_debug(
+            f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}"
+        )
 
         if not self._validate_overall_digest(overall_digest):
             log_info(f"No shadow digest for level: {level}")
             return None
 
-        log_debug(f"{LOG_PREFIX_VALIDATE} source_files: count={len(overall_digest.get('source_files', []))}")
+        # At this point, overall_digest is validated (not None and has source_files)
+        source_files = overall_digest.get("source_files", []) if overall_digest else []
+        log_debug(f"{LOG_PREFIX_VALIDATE} source_files: count={len(source_files)}")
         return overall_digest
 
     def promote_shadow_to_grand(self, level: str) -> None:
@@ -157,11 +161,15 @@ class CascadeProcessor:
 
         if next_level:
             new_files = self.file_detector.find_new_files(next_level)
-            log_debug(f"{LOG_PREFIX_FILE} find_new_files({next_level}): found {len(new_files)} files")
+            log_debug(
+                f"{LOG_PREFIX_FILE} find_new_files({next_level}): found {len(new_files)} files"
+            )
 
             if new_files:
                 log_info(f"Found {len(new_files)} new file(s) for {next_level}:")
-                log_debug(f"{LOG_PREFIX_FILE} new_files: {[f.name for f in new_files[:5]]}{'...' if len(new_files) > 5 else ''}")
+                log_debug(
+                    f"{LOG_PREFIX_FILE} new_files: {[f.name for f in new_files[:5]]}{'...' if len(new_files) > 5 else ''}"
+                )
 
                 # 3. 次のレベルのShadowに増分追加
                 self.file_appender.add_files_to_shadow(next_level, new_files)

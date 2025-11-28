@@ -205,9 +205,7 @@ class ErrorFormatter:
         """
         return f"{context}: expected {expected}, got {type(actual).__name__}"
 
-    def validation_error(
-        self, field: str, reason: str, value: Optional[Any] = None
-    ) -> str:
+    def validation_error(self, field: str, reason: str, value: Optional[Any] = None) -> str:
         """
         バリデーションエラーメッセージ
 

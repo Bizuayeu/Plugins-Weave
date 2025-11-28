@@ -56,9 +56,7 @@ class ProvisionalFileManager:
         files_for_search: List[Union[Path, str]] = list(existing_files)
         return find_max_number(files_for_search, prefix)
 
-    def load_existing_provisional(
-        self, level: str, digest_num: int
-    ) -> Optional[Dict[str, Any]]:
+    def load_existing_provisional(self, level: str, digest_num: int) -> Optional[Dict[str, Any]]:
         """
         Load an existing provisional digest file.
 

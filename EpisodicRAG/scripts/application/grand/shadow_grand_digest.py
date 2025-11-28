@@ -70,9 +70,7 @@ class ShadowGrandDigestManager:
         self._io = ShadowIO(self.shadow_digest_file, self._template.get_template)
         # Cast level_hierarchy for type compatibility
         hierarchy = cast(Dict[str, LevelHierarchyEntry], self.level_hierarchy)
-        self._updater = ShadowUpdater(
-            self._io, self._detector, self._template, hierarchy
-        )
+        self._updater = ShadowUpdater(self._io, self._detector, self._template, hierarchy)
 
     # ========================================
     # パブリックAPI
@@ -103,7 +101,7 @@ class ShadowGrandDigestManager:
         self._updater.cascade_update_on_digest_finalize(level)
 
 
-def main():
+def main() -> None:
     """新しいLoopファイルを検出してShadowGrandDigest.weeklyに増分追加"""
     config = DigestConfig()
     manager = ShadowGrandDigestManager(config)

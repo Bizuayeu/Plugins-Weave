@@ -344,9 +344,7 @@ class TestCascadeError(unittest.TestCase):
     def test_basic(self):
         """Basic cascade error message"""
         result = self.formatter.cascade_error("weekly", "monthly", "threshold not met")
-        self.assertEqual(
-            result, "Cascade failed from 'weekly' to 'monthly': threshold not met"
-        )
+        self.assertEqual(result, "Cascade failed from 'weekly' to 'monthly': threshold not met")
 
 
 class TestGetErrorFormatter(unittest.TestCase):

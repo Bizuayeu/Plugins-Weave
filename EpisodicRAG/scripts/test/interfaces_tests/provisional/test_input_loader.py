@@ -86,6 +86,7 @@ class TestInputLoaderLoadFromFile(unittest.TestCase):
     def tearDown(self):
         """Clean up temp directory"""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_json_file(self, filename: str, data) -> Path:
@@ -150,11 +151,13 @@ class TestInputLoaderLoadFromFilePath(unittest.TestCase):
     def setUp(self):
         """Set up temp directory"""
         import tempfile
+
         self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         """Clean up temp directory"""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_load_from_file_returns_list(self):

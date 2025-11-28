@@ -29,9 +29,7 @@ def validate_individual_digest(digest: Any, index: int, context: str = "") -> No
             f"Invalid {prefix}digest at index {index}: expected dict, got {type(digest).__name__}"
         )
     if "source_file" not in digest:
-        raise ValidationError(
-            f"Invalid {prefix}digest at index {index}: missing 'source_file' key"
-        )
+        raise ValidationError(f"Invalid {prefix}digest at index {index}: missing 'source_file' key")
 
 
 def validate_individual_digests_list(

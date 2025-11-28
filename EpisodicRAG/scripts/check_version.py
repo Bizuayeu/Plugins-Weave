@@ -11,6 +11,7 @@
 Usage:
     python scripts/check_version.py
 """
+
 import json
 import re
 import sys

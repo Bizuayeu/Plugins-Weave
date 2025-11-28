@@ -9,6 +9,7 @@ check_version.py のユニットテスト
 - ファイル欠如時のエラー処理
 - 不正なJSON時のエラー処理
 """
+
 import json
 import subprocess
 import sys
@@ -80,10 +81,7 @@ version = "{version}"
     def _run_check_version(self, script_path: Path) -> tuple[int, str]:
         """check_version.py を実行して終了コードと出力を返す"""
         result = subprocess.run(
-            [sys.executable, str(script_path)],
-            capture_output=True,
-            text=True,
-            encoding="utf-8"
+            [sys.executable, str(script_path)], capture_output=True, text=True, encoding="utf-8"
         )
         return result.returncode, result.stdout + result.stderr
 

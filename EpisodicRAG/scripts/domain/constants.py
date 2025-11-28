@@ -134,8 +134,8 @@ DEFAULT_THRESHOLDS: Dict[str, int] = {
 LOG_SEPARATOR = "=" * 60  # ログ出力用のセパレータ
 
 # ログプレフィックス定数（デバッグログの分類用）
-LOG_PREFIX_STATE = "[STATE]"      # 状態変化のログ
-LOG_PREFIX_FILE = "[FILE]"        # ファイル操作のログ
+LOG_PREFIX_STATE = "[STATE]"  # 状態変化のログ
+LOG_PREFIX_FILE = "[FILE]"  # ファイル操作のログ
 LOG_PREFIX_VALIDATE = "[VALIDATE]"  # 検証処理のログ
 LOG_PREFIX_DECISION = "[DECISION]"  # 判断分岐のログ
 
@@ -199,6 +199,5 @@ def build_level_hierarchy() -> Dict[str, Dict[str, object]]:
         # }
     """
     return {
-        level: {"source": cfg["source"], "next": cfg["next"]}
-        for level, cfg in LEVEL_CONFIG.items()
+        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
     }

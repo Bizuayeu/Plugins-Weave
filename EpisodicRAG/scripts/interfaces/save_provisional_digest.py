@@ -89,7 +89,9 @@ class ProvisionalDigestSaver:
 
         # Build and save the provisional file
         file_path = self.file_manager.get_provisional_path(level, digest_num)
-        provisional_data = self._build_provisional_data(level, digest_num, digits, individual_digests)
+        provisional_data = self._build_provisional_data(
+            level, digest_num, digits, individual_digests
+        )
         save_json(file_path, provisional_data)
 
         return file_path

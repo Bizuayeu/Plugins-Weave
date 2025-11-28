@@ -269,15 +269,7 @@ class TestEdgeCases:
     def test_save_and_load_nested_structure(self, tmp_path):
         """深くネストした構造の保存と読み込み"""
         test_file = tmp_path / "nested.json"
-        test_data = {
-            "level1": {
-                "level2": {
-                    "level3": {
-                        "level4": {"value": "deep"}
-                    }
-                }
-            }
-        }
+        test_data = {"level1": {"level2": {"level3": {"level4": {"value": "deep"}}}}}
         save_json(test_file, test_data)
         loaded = load_json(test_file)
         assert loaded["level1"]["level2"]["level3"]["level4"]["value"] == "deep"

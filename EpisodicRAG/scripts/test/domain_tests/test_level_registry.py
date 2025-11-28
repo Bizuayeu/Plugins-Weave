@@ -121,9 +121,7 @@ class TestStandardLevelBehavior:
     @pytest.mark.unit
     def test_should_not_cascade_top_level(self):
         """最上位レベルはカスケードしない"""
-        metadata = LevelMetadata(
-            "centurial", "C", 2, "8_Centurial", "multi_decadal", None
-        )
+        metadata = LevelMetadata("centurial", "C", 2, "8_Centurial", "multi_decadal", None)
         behavior = StandardLevelBehavior(metadata)
         assert behavior.should_cascade() is False
 

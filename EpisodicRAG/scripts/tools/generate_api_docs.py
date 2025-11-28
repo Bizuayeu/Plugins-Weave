@@ -28,6 +28,7 @@ from typing import Dict, List, Optional
 @dataclass
 class FunctionInfo:
     """関数情報"""
+
     name: str
     docstring: Optional[str]
     args: List[str]
@@ -38,6 +39,7 @@ class FunctionInfo:
 @dataclass
 class ClassInfo:
     """クラス情報"""
+
     name: str
     docstring: Optional[str]
     methods: List[FunctionInfo] = field(default_factory=list)
@@ -47,6 +49,7 @@ class ClassInfo:
 @dataclass
 class ModuleInfo:
     """モジュール情報"""
+
     name: str
     path: Path
     docstring: Optional[str]
@@ -331,7 +334,9 @@ def main():
                 print("API_REFERENCE.md is up to date.")
                 sys.exit(0)
             else:
-                print("API_REFERENCE.md is out of date. Run 'python generate_api_docs.py' to update.")
+                print(
+                    "API_REFERENCE.md is out of date. Run 'python generate_api_docs.py' to update."
+                )
                 sys.exit(1)
         else:
             print("API_REFERENCE.md does not exist.")

@@ -69,7 +69,9 @@ class FileAppender:
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
         log_debug(f"{LOG_PREFIX_STATE} _ensure_overall_digest_initialized: level={level}")
-        log_debug(f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}")
+        log_debug(
+            f"{LOG_PREFIX_VALIDATE} overall_digest: is_none={overall_digest is None}, is_valid={is_valid_dict(overall_digest) if overall_digest else False}"
+        )
 
         # overall_digestがnullまたは非dict型の場合、初期化
         if overall_digest is None or not is_valid_dict(overall_digest):
@@ -179,7 +181,9 @@ class FileAppender:
         existing_files = set(overall_digest["source_files"])
         source_type = self.level_hierarchy[level]["source"]
 
-        log_debug(f"{LOG_PREFIX_STATE} add_files_to_shadow: level={level}, new_files_count={len(new_files)}")
+        log_debug(
+            f"{LOG_PREFIX_STATE} add_files_to_shadow: level={level}, new_files_count={len(new_files)}"
+        )
         log_debug(f"{LOG_PREFIX_STATE} existing_files_count: {len(existing_files)}")
         log_debug(f"{LOG_PREFIX_STATE} source_type: {source_type}")
 

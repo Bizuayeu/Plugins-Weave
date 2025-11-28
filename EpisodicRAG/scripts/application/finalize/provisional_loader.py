@@ -80,7 +80,9 @@ class ProvisionalLoader:
 
         if provisional_path.exists():
             provisional_data = load_json(provisional_path)
-            log_debug(f"{LOG_PREFIX_VALIDATE} provisional_data: is_valid={is_valid_dict(provisional_data)}")
+            log_debug(
+                f"{LOG_PREFIX_VALIDATE} provisional_data: is_valid={is_valid_dict(provisional_data)}"
+            )
             if not is_valid_dict(provisional_data):
                 raise DigestError(f"Invalid format in {provisional_path.name}: expected dict")
             individual_digests = provisional_data.get("individual_digests", [])
@@ -137,7 +139,9 @@ class ProvisionalLoader:
         skipped_count = 0
         source_dir = self._get_source_path_for_level(level)
 
-        log_debug(f"{LOG_PREFIX_STATE} generate_from_source: level={level}, source_count={len(source_files)}")
+        log_debug(
+            f"{LOG_PREFIX_STATE} generate_from_source: level={level}, source_count={len(source_files)}"
+        )
         log_debug(f"{LOG_PREFIX_FILE} source_dir: {source_dir}")
 
         for source_file in source_files:

@@ -54,6 +54,7 @@ class TestGetCurrentDigestNumber(unittest.TestCase):
     def tearDown(self):
         """Clean up temp directory"""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_empty_directory_returns_none(self):
@@ -121,6 +122,7 @@ class TestLoadExistingProvisional(unittest.TestCase):
     def tearDown(self):
         """Clean up temp directory"""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_file_not_exists_returns_none(self):
@@ -164,6 +166,7 @@ class TestGetProvisionalPath(unittest.TestCase):
     def tearDown(self):
         """Clean up temp directory"""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_returns_correct_path(self):
@@ -240,8 +243,14 @@ class TestGetLevelConfig(unittest.TestCase):
     def test_all_valid_levels(self):
         """All valid levels return config"""
         valid_levels = [
-            "weekly", "monthly", "quarterly", "annual",
-            "triennial", "decadal", "multi_decadal", "centurial"
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "multi_decadal",
+            "centurial",
         ]
         for level in valid_levels:
             with self.subTest(level=level):

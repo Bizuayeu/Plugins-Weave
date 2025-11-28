@@ -75,7 +75,9 @@ class DigestTimesTracker:
         # 最後の要素のみを保存 (as int for TypedDict compatibility)
         # file_numbers contains formatted strings like "Loop0005", extract number only
         last_file_str = file_numbers[-1] if file_numbers else None
-        last_processed: Optional[int] = extract_number_only(last_file_str) if last_file_str else None
+        last_processed: Optional[int] = (
+            extract_number_only(last_file_str) if last_file_str else None
+        )
 
         # 保存
         times[level] = {"timestamp": datetime.now().isoformat(), "last_processed": last_processed}
