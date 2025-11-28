@@ -422,13 +422,19 @@ git status
 ```bash
 cd {loops_dir}
 
-# PowerShell (Windows) - Loop0001 → L00001
-Get-ChildItem -Filter "Loop???_*.txt" | Rename-Item -NewName { $_.Name -replace '^Loop(\d{3})_', 'L00$1_' }
-Get-ChildItem -Filter "Loop????_*.txt" | Rename-Item -NewName { $_.Name -replace '^Loop(\d{4})_', 'L0$1_' }
+# PowerShell (Windows) - 全桁数対応（Loop1〜Loop99999 → L00001〜L99999）
+Get-ChildItem -Filter "Loop*_*.txt" | ForEach-Object {
+    $newName = $_.Name -replace '^Loop(\d+)_', { 'L' + $_.Groups[1].Value.PadLeft(5, '0') + '_' }
+    Rename-Item $_.FullName -NewName $newName
+}
 
-# Bash (macOS/Linux) - Loop0001 → L00001
-for f in Loop???_*.txt; do mv "$f" "L00${f#Loop}"; done
-for f in Loop????_*.txt; do mv "$f" "L0${f#Loop}"; done
+# Bash (macOS/Linux) - 全桁数対応
+for f in Loop*_*.txt; do
+    num=$(echo "$f" | sed 's/Loop\([0-9]*\)_.*/\1/')
+    rest=$(echo "$f" | sed 's/Loop[0-9]*_//')
+    newname=$(printf "L%05d_%s" "$num" "$rest")
+    mv "$f" "$newname"
+done
 ```
 
 **方法2: 手動リネーム**

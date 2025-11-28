@@ -113,7 +113,7 @@ TodoWrite({
 
 1. **generate_digest_auto.sh 実行**
 ```bash
-cd Plugins/EpisodicRAG/scripts
+cd scripts
 bash generate_digest_auto.sh
 ```
 
@@ -163,7 +163,7 @@ bash generate_digest_auto.sh
      ```
    - save_provisional_digest.py実行:
      ```bash
-     cd Plugins/EpisodicRAG/scripts
+     cd scripts
      python3 save_provisional_digest.py weekly '<individual_digests JSON>' --append
      ```
    - **--append**: 既存Provisionalファイルに追加（複数回/digestでLoopを追加する場合）
@@ -192,7 +192,7 @@ bash generate_digest_auto.sh
 
 1. **generate_digest_auto.sh 実行**
 ```bash
-cd Plugins/EpisodicRAG/scripts
+cd scripts
 bash generate_digest_auto.sh {{type}}
 ```
 
@@ -258,7 +258,7 @@ bash generate_digest_auto.sh {{type}}
      ```
    - save_provisional_digest.py実行:
      ```bash
-     cd Plugins/EpisodicRAG/scripts
+     cd scripts
      python3 save_provisional_digest.py {{next_level}} '<individual_digests JSON>'
      ```
    - **注**: 次階層用は新規作成なので --append なし
@@ -280,7 +280,7 @@ bash generate_digest_auto.sh {{type}}
 
 6. **finalize_from_shadow.py 実行**
 ```bash
-cd Plugins/EpisodicRAG/scripts
+cd scripts
 python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 ```
    このコマンドが実行する処理:
@@ -311,7 +311,7 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
      ```
    - save_provisional_digest.py実行:
      ```bash
-     cd Plugins/EpisodicRAG/scripts
+     cd scripts
      python3 save_provisional_digest.py <next_level> '<individual_digests JSON>'
      ```
    - 次階層Provisionalファイル作成:
@@ -379,9 +379,9 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 ## 詳細仕様
 
 **完全な仕様とプロセスフロー**:
-- `Plugins/EpisodicRAG/scripts/generate_digest_auto.sh`
-- `Plugins/EpisodicRAG/agents/digest-analyzer.md`
-- `Plugins/EpisodicRAG/.claude-plugin/config.json`
+- `scripts/generate_digest_auto.sh`
+- `agents/digest-analyzer.md`
+- `.claude-plugin/config.json`
 
 **要件**:
 - Claude Opus 4.5（Task tool, Subagent機能）
@@ -398,7 +398,7 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 
 1. **Bash tool**: スクリプト実行
    ```python
-   Bash(command="cd Plugins/EpisodicRAG/scripts && bash generate_digest_auto.sh")
+   Bash(command="cd scripts && bash generate_digest_auto.sh")
    ```
 
 2. **Task tool**: DigestAnalyzerエージェント起動
@@ -423,7 +423,7 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 3. **Edit tool**: ShadowGrandDigest.txt更新
    ```python
    Edit(
-       file_path="Plugins/EpisodicRAG/data/Essences/ShadowGrandDigest.txt",
+       file_path="data/Essences/ShadowGrandDigest.txt",
        old_string='PLACEHOLDER...',
        new_string='{"digest": {...}}'
    )
@@ -431,7 +431,7 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 
 4. **Read tool**: 結果確認
    ```python
-   Read(file_path="Plugins/EpisodicRAG/data/Essences/GrandDigest.txt")
+   Read(file_path="data/Essences/GrandDigest.txt")
    ```
 
 ### 引数の取得

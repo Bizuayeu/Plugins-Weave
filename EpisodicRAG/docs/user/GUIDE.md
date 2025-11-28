@@ -183,7 +183,7 @@ flowchart TD
 | `levels.weekly_threshold` | Weekly生成に必要なLoop数 | `5` |
 | `levels.monthly_threshold` | Monthly生成に必要なWeekly数 | `5` |
 
-> 📖 完全な設定仕様は [API_REFERENCE.md](../dev/API_REFERENCE.md) を参照
+> 📖 完全な設定仕様は [api/config.md](../dev/api/config.md) を参照
 
 ### パス設定について
 

@@ -29,6 +29,18 @@ EpisodicRAGプラグインで使用される専門用語の定義集です。
 - スキルやスクリプトはこのディレクトリを基準に動作
 - 例: `C:\Users\anyth\.claude\plugins\marketplaces\Plugins-Weave\EpisodicRAG`
 
+### パス形式の違い
+
+EpisodicRAGは環境によって異なるパスを使用します：
+
+| 環境 | パス形式 | 例 |
+|------|---------|-----|
+| **開発環境** | ソースコード直接 | `plugins-weave/EpisodicRAG/` |
+| **マーケットプレース** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
+| **プラグイン直接インストール** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/` |
+
+**重要**: 設定ファイル（config.json）やデータは常にインストール先に配置します。開発環境のソースコードディレクトリには配置しないでください。
+
 ### base_dir
 **定義**: データ配置の基準ディレクトリ
 
