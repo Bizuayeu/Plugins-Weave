@@ -139,9 +139,11 @@ jobs:
           # Check for failures (exit code)
           PERF_RESULT=$?
 
-          # Count passed/failed
-          PASSED=$(grep -oP '\d+(?= passed)' perf_output.txt | head -1 || echo "0")
-          FAILED=$(grep -oP '\d+(?= failed)' perf_output.txt | head -1 || echo "0")
+          # Count passed/failed (use ${VAR:-0} to handle empty grep results)
+          PASSED=$(grep -oP '\d+(?= passed)' perf_output.txt | head -1 || true)
+          PASSED=${PASSED:-0}
+          FAILED=$(grep -oP '\d+(?= failed)' perf_output.txt | head -1 || true)
+          FAILED=${FAILED:-0}
 
           echo "Performance tests: $PASSED passed, $FAILED failed"
 
