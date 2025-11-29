@@ -331,7 +331,9 @@ class TestValidateConsecutive:
 
     def test_consecutive_returns_empty_warnings(self, validator):
         """連番は警告なし"""
-        warnings = validator.validate_consecutive([1, 2, 3], ["L00001.txt", "L00002.txt", "L00003.txt"])
+        warnings = validator.validate_consecutive(
+            [1, 2, 3], ["L00001.txt", "L00002.txt", "L00003.txt"]
+        )
         assert warnings == []
 
     def test_empty_numbers_returns_empty_warnings(self, validator):
