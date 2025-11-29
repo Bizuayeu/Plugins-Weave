@@ -18,13 +18,13 @@ from infrastructure import (
     try_read_json_from_file,
 )
 
-# 構造化ロガー
-_logger = get_structured_logger(__name__)
-
 from .file_detector import FileDetector
 from .placeholder_manager import PlaceholderManager
 from .shadow_io import ShadowIO
 from .template import ShadowTemplate
+
+# 構造化ロガー
+_logger = get_structured_logger(__name__)
 
 
 class FileAppender:

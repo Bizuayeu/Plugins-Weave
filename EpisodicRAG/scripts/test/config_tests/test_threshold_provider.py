@@ -8,9 +8,9 @@ config/threshold_provider.py のテスト
 
 import pytest
 
+from config.exceptions import ConfigError
 from config.threshold_provider import ThresholdProvider
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-from config.exceptions import ConfigError
 
 
 class TestThresholdProvider:

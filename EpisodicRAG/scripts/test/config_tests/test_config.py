@@ -20,8 +20,8 @@ from unittest.mock import patch
 import pytest
 
 from config import DigestConfig
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from config.exceptions import ConfigError
+from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 
 # =============================================================================
 # DigestConfig テスト

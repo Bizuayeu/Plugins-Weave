@@ -12,14 +12,14 @@ from typing import Dict, List, Optional
 from domain.types import LevelHierarchyEntry, OverallDigestData
 from infrastructure import get_structured_logger
 
-_logger = get_structured_logger(__name__)
-
 from .cascade_processor import CascadeProcessor
 from .file_appender import FileAppender
 from .file_detector import FileDetector
 from .placeholder_manager import PlaceholderManager
 from .shadow_io import ShadowIO
 from .template import ShadowTemplate
+
+_logger = get_structured_logger(__name__)
 
 
 class ShadowUpdater:

@@ -37,9 +37,9 @@ Note:
 """
 
 from datetime import datetime
+from typing import cast
 
 from config import DigestConfig
-from domain.validators import is_valid_dict
 from domain.constants import (
     LEVEL_NAMES,
     LOG_PREFIX_STATE,
@@ -48,6 +48,7 @@ from domain.constants import (
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import DigestError
 from domain.types import GrandDigestData, OverallDigestData, as_dict
+from domain.validators import is_valid_dict
 from domain.version import DIGEST_FORMAT_VERSION
 from infrastructure import get_structured_logger, load_json_with_template, log_debug, save_json
 
@@ -169,5 +170,5 @@ class GrandDigestManager:
         log_debug(f"{LOG_PREFIX_STATE} updated_timestamp: {grand_data['metadata']['last_updated']}")
 
         # 保存
-        self.save(grand_data)
+        self.save(cast(GrandDigestData, grand_data))
         _logger.info(f"Updated GrandDigest.txt for level: {level}")

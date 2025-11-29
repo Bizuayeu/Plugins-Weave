@@ -50,8 +50,8 @@ from typing import Optional
 
 from domain.error_formatter.base import BaseErrorFormatter
 from domain.error_formatter.config_errors import ConfigErrorFormatter
-from domain.error_formatter.digest_errors import DigestErrorFormatter
 from domain.error_formatter.diagnostic import with_diagnostic_context
+from domain.error_formatter.digest_errors import DigestErrorFormatter
 from domain.error_formatter.file_errors import FileErrorFormatter
 from domain.error_formatter.validation_errors import ValidationErrorFormatter
 

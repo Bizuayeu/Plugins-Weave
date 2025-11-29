@@ -13,8 +13,8 @@ import pytest
 from test_helpers import TempPluginEnvironment
 
 from config import DigestConfig
-from domain.constants import LEVEL_CONFIG
 from config.exceptions import ConfigError
+from domain.constants import LEVEL_CONFIG
 
 # =============================================================================
 # get_source_dir のテスト

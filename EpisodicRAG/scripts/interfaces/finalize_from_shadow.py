@@ -88,10 +88,10 @@ from domain.level_registry import get_level_registry
 # Infrastructure層
 from infrastructure import get_structured_logger, log_error
 
-_logger = get_structured_logger(__name__)
-
 # Helpers
 from interfaces.interface_helpers import get_next_digest_number, sanitize_filename
+
+_logger = get_structured_logger(__name__)
 
 
 class DigestFinalizerFromShadow:

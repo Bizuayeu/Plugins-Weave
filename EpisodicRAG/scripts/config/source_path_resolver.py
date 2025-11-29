@@ -17,7 +17,6 @@ from pathlib import Path
 
 from .constants import LEVEL_CONFIG, LEVEL_NAMES, SOURCE_TYPE_LOOPS
 from .exceptions import ConfigError
-
 from .level_path_service import LevelPathService
 
 

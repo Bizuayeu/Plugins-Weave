@@ -8,8 +8,8 @@ config/path_resolver.py のテスト
 
 import pytest
 
-from config.path_resolver import PathResolver
 from config.exceptions import ConfigError
+from config.path_resolver import PathResolver
 
 
 class TestPathResolver:

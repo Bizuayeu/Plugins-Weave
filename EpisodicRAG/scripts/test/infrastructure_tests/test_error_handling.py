@@ -18,7 +18,6 @@ from infrastructure.error_handling import (
     with_error_context,
 )
 
-
 # =============================================================================
 # safe_file_operation テスト
 # =============================================================================
@@ -154,7 +153,7 @@ class TestSafeCleanup:
         def cleanup():
             cleanup_called[0] = True
 
-        result = safe_cleanup(cleanup, "test cleanup")
+        safe_cleanup(cleanup, "test cleanup")
         assert cleanup_called[0] is True
         # safe_cleanup の戻り値は成功時 True のはず（実装を確認）
         # 実装: return result is None -> 成功時 operation() は None を返すので True
@@ -169,7 +168,7 @@ class TestSafeCleanup:
         def cleanup():
             raise FileNotFoundError("cleanup failed")
 
-        result = safe_cleanup(cleanup, "test cleanup")
+        safe_cleanup(cleanup, "test cleanup")
         # safe_cleanup の実装: return result is None
         # on_error が呼ばれると None 以外が返る（on_error は None を返す）
         # result = on_error(e) = None

@@ -9,9 +9,9 @@ config.json の読み書き
 import json
 from pathlib import Path
 
+from .error_messages import file_not_found_message, invalid_json_message
 from .exceptions import ConfigError
 from .types import ConfigData
-from .error_messages import file_not_found_message, invalid_json_message
 
 
 def load_config(config_file: Path) -> ConfigData:

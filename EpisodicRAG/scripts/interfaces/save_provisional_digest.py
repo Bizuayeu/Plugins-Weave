@@ -40,8 +40,6 @@ from domain.version import DIGEST_FORMAT_VERSION
 # Infrastructure層
 from infrastructure import get_structured_logger, log_error, log_warning, save_json
 
-_logger = get_structured_logger(__name__)
-
 # Helpers
 from interfaces.interface_helpers import get_next_digest_number
 
@@ -52,6 +50,8 @@ from interfaces.provisional import (
     ProvisionalFileManager,
 )
 from interfaces.provisional.validator import validate_provisional_structure
+
+_logger = get_structured_logger(__name__)
 
 
 class ProvisionalDigestSaver:

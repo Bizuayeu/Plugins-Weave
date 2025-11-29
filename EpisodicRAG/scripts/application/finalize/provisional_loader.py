@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from application.grand import ShadowGrandDigestManager
 from config import DigestConfig
-from domain.validators import is_valid_dict
 from domain.constants import (
     LEVEL_CONFIG,
     LOG_PREFIX_DECISION,
@@ -22,7 +21,14 @@ from domain.constants import (
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import DigestError
 from domain.types import IndividualDigestData, OverallDigestData
-from infrastructure import get_structured_logger, load_json, log_debug, log_warning, try_read_json_from_file
+from domain.validators import is_valid_dict
+from infrastructure import (
+    get_structured_logger,
+    load_json,
+    log_debug,
+    log_warning,
+    try_read_json_from_file,
+)
 
 _logger = get_structured_logger(__name__)
 

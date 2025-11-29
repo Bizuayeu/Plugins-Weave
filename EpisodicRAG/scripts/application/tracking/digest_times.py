@@ -11,10 +11,10 @@ from datetime import datetime
 from typing import List, Optional, Union, cast
 
 from config import DigestConfig
-from domain.validators import is_valid_list
 from domain.constants import LEVEL_NAMES
 from domain.file_naming import extract_number_only, extract_numbers_formatted
 from domain.types import DigestTimesData
+from domain.validators import is_valid_list
 from infrastructure import get_structured_logger, load_json_with_template, log_warning, save_json
 
 _logger = get_structured_logger(__name__)

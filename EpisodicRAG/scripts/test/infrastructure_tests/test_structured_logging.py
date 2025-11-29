@@ -22,7 +22,6 @@ from domain.constants import (
 )
 from infrastructure.structured_logging import StructuredLogger, get_structured_logger
 
-
 # =============================================================================
 # TestStructuredLoggerInit - 初期化テスト
 # =============================================================================

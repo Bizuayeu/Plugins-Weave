@@ -7,9 +7,9 @@ Threshold Provider
 """
 
 from .constants import LEVEL_CONFIG, LEVEL_NAMES
+from .error_messages import invalid_level_message
 from .exceptions import ConfigError
 from .types import ConfigData, as_dict
-from .error_messages import invalid_level_message
 
 __all__ = ["ThresholdProvider"]
 

@@ -98,6 +98,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+<details>
+<summary>Archive (v2.x and earlier)</summary>
+
 ## [2.3.0] - 2025-11-28
 
 ### Breaking Changes
@@ -433,6 +436,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GrandDigest/ShadowGrandDigest管理
 - Provisional/Regular Digest生成
 - まだらボケ検出機能
+
+</details>
 
 ---
 

@@ -7,12 +7,11 @@ RegularDigestの保存、GrandDigest更新、カスケード処理を担当
 """
 
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, cast
 
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
 from config import DigestConfig
-from domain.validators import is_valid_dict
 from domain.constants import (
     LEVEL_CONFIG,
     LOG_PREFIX_DECISION,
@@ -22,8 +21,15 @@ from domain.constants import (
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import DigestError, FileIOError, ValidationError
 from domain.level_registry import get_level_registry
-from domain.types import RegularDigestData, as_dict
-from infrastructure import get_default_confirm_callback, get_structured_logger, log_debug, log_warning, save_json
+from domain.types import OverallDigestData, RegularDigestData, as_dict
+from domain.validators import is_valid_dict
+from infrastructure import (
+    get_default_confirm_callback,
+    get_structured_logger,
+    log_debug,
+    log_warning,
+    save_json,
+)
 
 _logger = get_structured_logger(__name__)
 
@@ -124,7 +130,7 @@ class DigestPersistence:
             formatter = get_error_formatter()
             raise DigestError(formatter.validation.validation_error("RegularDigest", "has no valid overall_digest", None))
         # GrandDigestManager.update_digestは例外を投げる（失敗時）
-        self.grand_digest_manager.update_digest(level, new_digest_name, overall_digest)
+        self.grand_digest_manager.update_digest(level, new_digest_name, cast(OverallDigestData, overall_digest))
 
     def _update_shadow_cascade(self, level: str) -> None:
         """

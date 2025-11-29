@@ -44,7 +44,7 @@ Usage:
 
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, Mapping, Optional, TypeVar
+from typing import Any, Callable, Mapping, Optional, TypeVar
 
 from infrastructure.json_repository.chained_loader import ChainedLoader
 from infrastructure.json_repository.load_strategy import (

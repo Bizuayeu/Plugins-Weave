@@ -49,15 +49,15 @@ from domain.types import LevelHierarchyEntry, OverallDigestData
 from domain.validators import is_valid_overall_digest
 from infrastructure import get_structured_logger
 
-# 構造化ロガー
-_logger = get_structured_logger(__name__)
-
 from .file_detector import FileDetector
 from .shadow_io import ShadowIO
 from .template import ShadowTemplate
 
 if TYPE_CHECKING:
     from .file_appender import FileAppender
+
+# 構造化ロガー
+_logger = get_structured_logger(__name__)
 
 
 class CascadeProcessor:

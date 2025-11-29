@@ -8,9 +8,9 @@ from typing import List
 
 from domain.types import IndividualDigestData
 from infrastructure import get_structured_logger
+from interfaces.provisional.validator import validate_individual_digests_list
 
 _logger = get_structured_logger(__name__)
-from interfaces.provisional.validator import validate_individual_digests_list
 
 
 class DigestMerger:

@@ -33,7 +33,6 @@ from infrastructure.json_repository import (
     TemplateLoadStrategy,
 )
 
-
 # =============================================================================
 # LoadContext Tests
 # =============================================================================
@@ -57,7 +56,8 @@ class TestLoadContext:
         """全ての引数で初期化"""
         target = tmp_path / "target.json"
         template = tmp_path / "template.json"
-        factory = lambda: {"key": "value"}
+        def factory():
+            return {"key": "value"}
 
         context = LoadContext(
             target_file=target,

@@ -31,6 +31,12 @@ Usage:
 
 # JSON Repository
 # File Scanner
+# Error Handling
+from infrastructure.error_handling import (
+    safe_cleanup,
+    safe_file_operation,
+    with_error_context,
+)
 from infrastructure.file_scanner import (
     count_files,
     filter_files_after_number,
@@ -67,13 +73,6 @@ from infrastructure.structured_logging import (
 
 # User Interaction
 from infrastructure.user_interaction import get_default_confirm_callback
-
-# Error Handling
-from infrastructure.error_handling import (
-    safe_cleanup,
-    safe_file_operation,
-    with_error_context,
-)
 
 __all__ = [
     # JSON Repository

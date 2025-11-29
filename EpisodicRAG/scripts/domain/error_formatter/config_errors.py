@@ -12,7 +12,6 @@
 ファイルI/Oエラーやバリデーションエラーは別クラスが担当。
 """
 
-from pathlib import Path
 from typing import Any, List, Optional
 
 from domain.error_formatter.base import BaseErrorFormatter

@@ -12,7 +12,6 @@
 EpisodicRAG固有のドメインエラーを担当。
 """
 
-from pathlib import Path
 
 from domain.error_formatter.base import BaseErrorFormatter
 

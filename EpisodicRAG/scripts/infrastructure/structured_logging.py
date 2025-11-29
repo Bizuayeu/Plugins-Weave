@@ -29,6 +29,10 @@ from infrastructure.logging_config import log_debug
 class StructuredLoggerProtocol(Protocol):
     """構造化ロガーのプロトコル"""
 
+    def info(self, message: str) -> None:
+        """一般的な情報ログ"""
+        ...
+
     def state(self, message: str, **context: Any) -> None:
         """状態変化のログ"""
         ...
@@ -97,6 +101,19 @@ class StructuredLogger:
             log_debug(f"{prefix} {message}: {ctx_str}")
         else:
             log_debug(f"{prefix} {message}")
+
+    def info(self, message: str) -> None:
+        """
+        一般的な情報ログを出力
+
+        Args:
+            message: ログメッセージ
+
+        Example:
+            logger.info("Processing started")
+            # -> [DEBUG] Processing started
+        """
+        log_debug(message)
 
     def state(self, message: str, **context: Any) -> None:
         """

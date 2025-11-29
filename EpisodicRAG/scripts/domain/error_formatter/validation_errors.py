@@ -11,7 +11,6 @@
 このクラスは「バリデーションエラーのフォーマット」という単一責務のみを持つ。
 """
 
-from pathlib import Path
 from typing import Any, Optional
 
 from domain.error_formatter.base import BaseErrorFormatter

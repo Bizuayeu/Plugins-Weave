@@ -7,12 +7,11 @@ domain/protocols.py のユニットテスト。
 Protocol定義の構造的部分型付けを検証。
 """
 
-from typing import Optional, runtime_checkable, Protocol
+from typing import Optional, Protocol, runtime_checkable
 
 import pytest
 
 from domain.protocols import LevelBehaviorProtocol, LevelRegistryProtocol
-
 
 # =============================================================================
 # LevelBehaviorProtocol テスト
@@ -196,8 +195,9 @@ class TestProtocolGeneral:
         # file_naming.py は protocols.py に依存し、
         # level_registry.py を直接 import しない
 
-        from domain import file_naming
         import inspect
+
+        from domain import file_naming
 
         source = inspect.getsource(file_naming)
         # protocols からの import があるはず

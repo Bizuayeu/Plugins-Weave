@@ -101,21 +101,21 @@ class TestVersionFallback:
     @pytest.mark.unit
     def test_invalid_json_returns_fallback(self):
         """不正な JSON の場合は 0.0.0"""
-        from domain.version import _load_version_from_plugin_json
-
         # この関数は try-except で JSONDecodeError をキャッチする
         # 実装を確認
         import inspect
+
+        from domain.version import _load_version_from_plugin_json
         source = inspect.getsource(_load_version_from_plugin_json)
         assert "json.JSONDecodeError" in source or "JSONDecodeError" in source
 
     @pytest.mark.unit
     def test_missing_version_key_returns_fallback(self):
         """version キーがない場合は 0.0.0"""
-        from domain.version import _load_version_from_plugin_json
-
         # data.get("version", "0.0.0") の実装を確認
         import inspect
+
+        from domain.version import _load_version_from_plugin_json
         source = inspect.getsource(_load_version_from_plugin_json)
         assert '.get("version"' in source
 
@@ -148,6 +148,7 @@ class TestVersionModule:
     def test_ssot_comment_exists(self):
         """SSoT コメントが存在する（ドキュメント確認）"""
         import inspect
+
         from domain import version
 
         source = inspect.getsource(version)
@@ -157,6 +158,7 @@ class TestVersionModule:
     def test_version_loaded_at_import_time(self):
         """バージョンはインポート時に読み込まれる"""
         import importlib
+
         import domain.version
 
         # リロード前後で __version__ が定義されている

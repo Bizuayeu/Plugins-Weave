@@ -6,10 +6,10 @@ Centralizes all validation logic for provisional digest data structures.
 
 from typing import Any, List
 
-from domain.validators import is_valid_dict, is_valid_list
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ValidationError
 from domain.types import IndividualDigestData
+from domain.validators import is_valid_dict, is_valid_list
 
 
 def validate_individual_digest(digest: Any, index: int, context: str = "") -> None:

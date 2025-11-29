@@ -9,11 +9,11 @@ ShadowGrandDigestの内容を検証するクラス
 from typing import Any, Callable, List, Optional, Tuple
 
 from application.grand import ShadowGrandDigestManager
-from domain.validators import is_valid_dict, is_valid_list
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import DigestError, ValidationError
 from domain.file_naming import extract_file_number
 from domain.types import OverallDigestData
+from domain.validators import is_valid_dict, is_valid_list
 from infrastructure import get_default_confirm_callback, get_structured_logger, log_warning
 
 _logger = get_structured_logger(__name__)

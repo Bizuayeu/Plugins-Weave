@@ -41,6 +41,7 @@ class TestCliMain:
     def test_main_show_paths_flag(self, temp_plugin_env, caplog):
         """--show-paths フラグで paths を表示"""
         import logging
+
         from config.cli import main
 
         # argparseをモック
@@ -97,7 +98,7 @@ class TestCliMain:
             main(plugin_root=temp_plugin_env.plugin_root)
 
         output = captured_output.getvalue()
-        parsed = json.loads(output)
+        json.loads(output)  # JSONとしてパース可能であることを確認
 
         # indent=2 でフォーマットされているか
         assert "\n" in output  # 改行があること
@@ -129,8 +130,9 @@ class TestCliMain:
     @pytest.mark.unit
     def test_cli_can_be_run_as_module(self):
         """__main__ ブロックが存在"""
-        import config.cli as cli_module
         import inspect
+
+        import config.cli as cli_module
 
         source = inspect.getsource(cli_module)
         assert 'if __name__ == "__main__"' in source

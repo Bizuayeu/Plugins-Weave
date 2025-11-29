@@ -203,7 +203,7 @@ class TestConfigStructureInvariants:
         """
         各レベルのプレフィックスは一意である
         """
-        prefixes = [LEVEL_CONFIG[l]["prefix"] for l in LEVEL_NAMES]
+        prefixes = [LEVEL_CONFIG[level_name]["prefix"] for level_name in LEVEL_NAMES]
         # 注意: "L" は loop 用に予約されているが LEVEL_NAMES には含まれない
         assert len(prefixes) == len(set(prefixes)), "プレフィックスは一意であること"
 
@@ -213,7 +213,7 @@ class TestConfigStructureInvariants:
         """
         各レベルのdirは一意である
         """
-        dirs = [LEVEL_CONFIG[l]["dir"] for l in LEVEL_NAMES]
+        dirs = [LEVEL_CONFIG[level_name]["dir"] for level_name in LEVEL_NAMES]
         assert len(dirs) == len(set(dirs)), "dirは一意であること"
 
     @given(level=valid_levels)
