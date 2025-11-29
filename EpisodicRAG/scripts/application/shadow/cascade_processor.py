@@ -47,7 +47,7 @@ __all__ = ["CascadeProcessor"]
 
 from domain.types import LevelHierarchyEntry, OverallDigestData
 from domain.validators import is_valid_overall_digest
-from infrastructure import get_structured_logger, log_info
+from infrastructure import get_structured_logger
 
 # 構造化ロガー
 _logger = get_structured_logger(__name__)
@@ -111,7 +111,7 @@ class CascadeProcessor:
         """
         指定レベルのShadowダイジェストを取得
 
-        finalize_from_shadow.pyで使用: これがRegularDigestの内容になります
+        finalize_from_shadow.pyで使用: ShadowGrandDigestからoverall_digestを取得
 
         Args:
             level: レベル名
@@ -128,7 +128,7 @@ class CascadeProcessor:
         )
 
         if not is_valid_overall_digest(overall_digest):
-            log_info(f"No shadow digest for level: {level}")
+            _logger.info(f"No shadow digest for level: {level}")
             return None
 
         # is_valid_overall_digest は TypeGuard なので、
@@ -149,11 +149,11 @@ class CascadeProcessor:
         digest = self.get_shadow_digest_for_level(level)
 
         if not digest:
-            log_info(f"No shadow digest to promote for level: {level}")
+            _logger.info(f"No shadow digest to promote for level: {level}")
             return
 
         file_count = len(digest.get("source_files", []))
-        log_info(f"Shadow digest ready for promotion: {file_count} file(s)")
+        _logger.info(f"Shadow digest ready for promotion: {file_count} file(s)")
         # 実際の昇格処理はfinalize_from_shadow.pyで実行される
 
     def clear_shadow_level(self, level: str) -> None:
@@ -171,7 +171,7 @@ class CascadeProcessor:
         )
 
         self.shadow_io.save(shadow_data)
-        log_info(f"Cleared ShadowGrandDigest for level: {level}")
+        _logger.info(f"Cleared ShadowGrandDigest for level: {level}")
 
     def cascade_update_on_digest_finalize(self, level: str) -> None:
         """
@@ -186,7 +186,7 @@ class CascadeProcessor:
         Args:
             level: レベル名
         """
-        log_info(f"[Step 3] ShadowGrandDigest cascade for level: {level}")
+        _logger.info(f"[Step 3] ShadowGrandDigest cascade for level: {level}")
         _logger.state("cascade_update", starting_for_level=level)
 
         # 1. Shadow → Grand 昇格の確認
@@ -201,7 +201,7 @@ class CascadeProcessor:
             _logger.file_op(f"find_new_files({next_level})", found=len(new_files))
 
             if new_files:
-                log_info(f"Found {len(new_files)} new file(s) for {next_level}:")
+                _logger.info(f"Found {len(new_files)} new file(s) for {next_level}:")
                 file_names = [f.name for f in new_files[:5]]
                 suffix = "..." if len(new_files) > 5 else ""
                 _logger.file_op("new_files", names=f"{file_names}{suffix}")
@@ -209,9 +209,9 @@ class CascadeProcessor:
                 # 3. 次のレベルのShadowに増分追加
                 self.file_appender.add_files_to_shadow(next_level, new_files)
         else:
-            log_info(f"No next level for {level} (top level)")
+            _logger.info(f"No next level for {level} (top level)")
 
         # 4. 現在のレベルのShadowをクリア
         self.clear_shadow_level(level)
 
-        log_info(f"[Step 3] Cascade completed for level: {level}")
+        _logger.info(f"[Step 3] Cascade completed for level: {level}")

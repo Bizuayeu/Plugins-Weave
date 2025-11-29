@@ -27,6 +27,16 @@ from domain.validators import (
 # =============================================================================
 # 公開API（後方互換性維持）
 # =============================================================================
+#
+# NOTE: これらの関数はdomain層の検証関数への薄いラッパーです。
+# domain.validation および domain.validators に直接アクセスすることも可能ですが、
+# 既存コードとの後方互換性を維持するためにこのモジュールを提供しています。
+#
+# 新規コードでは、用途に応じて以下を直接使用することを推奨:
+#   - domain.validation.validate_type() - 型検証（例外を投げる）
+#   - domain.validators.is_valid_type() - 型チェック（boolを返す）
+#   - domain.validators.get_or_default() - デフォルト値付き取得
+#
 
 
 def validate_dict(data: Any, context: str) -> Dict[str, Any]:

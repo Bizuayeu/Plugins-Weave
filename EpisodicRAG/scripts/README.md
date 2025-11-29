@@ -36,16 +36,19 @@ domain/           ← 何にも依存しない（純粋なビジネスロジッ�
     ↑
 infrastructure/   ← domain/ のみ
     ↑
-config/           ← domain/ + infrastructure/（設定管理層）
-    ↑
-application/      ← domain/ + infrastructure/ + config/
+application/      ← domain/ + infrastructure/
     ↑
 interfaces/       ← application/
+
+config/           ← 何にも依存しない（完全独立）
 ```
 
-> **Note**: `config/` 層は設定管理を担当し、`DigestConfig` クラスやパス解決、
-> 閾値管理などを提供します。`application/` 層が設定にアクセスする際は
-> この層を経由します。
+> ⚠️ **CRITICAL: Config層の独立性**
+>
+> `config/` パッケージは **domain/ を含む他のすべての層から完全に独立** しています。
+> これは `digest-config` スキルがClaudeプラグインとして単独でロード可能である必要があるためです。
+>
+> 詳細: [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md#clean-architecture)
 
 ---
 

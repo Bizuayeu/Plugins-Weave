@@ -89,8 +89,5 @@ class FileDetector:
             # 初回は全ファイルを検出
             return all_files
 
-        # max_file_number is already int (from DigestTimesData)
-        max_num = max_file_number
-
         # 統一関数を使用してフィルタリング
-        return filter_files_after(all_files, max_num)
+        return filter_files_after(all_files, max_file_number)
