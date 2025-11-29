@@ -1,9 +1,9 @@
-[EpisodicRAG](../README.md) > [Commands](README.md) > digest
-
 ---
 name: digest
 description: EpisodicRAG階層的ダイジェスト生成（8層100年）
 ---
+
+[EpisodicRAG](../README.md) > [Commands](README.md) > digest
 
 # /digest - EpisodicRAG階層的ダイジェスト生成
 

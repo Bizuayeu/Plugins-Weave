@@ -1,11 +1,11 @@
-[EpisodicRAG](../README.md) > [Agents](README.md) > DigestAnalyzer
-
 ---
 name: DigestAnalyzer
 description: EpisodicRAG深層分析専門エージェント
 tools: [Read, Grep, mcp__serena__search_for_pattern, mcp__serena__find_symbol]
 model: opus
 ---
+
+[EpisodicRAG](../README.md) > [Agents](README.md) > DigestAnalyzer
 
 # DigestAnalyzer - EpisodicRAG 深層分析専門エージェント
 
