@@ -91,6 +91,115 @@ Triennial → Decadal → Multi-decadal → Centurial
 
 ---
 
+## バリデーションパターン
+
+### Config ファイル検証
+
+config.json の存在確認と読み込みパターン：
+
+```python
+from pathlib import Path
+import json
+import sys
+
+plugin_root = Path("{PLUGIN_ROOT}")  # 実際のパスに調整
+config_file = plugin_root / ".claude-plugin" / "config.json"
+
+# 存在確認
+if not config_file.exists():
+    print("❌ 設定ファイルが見つかりません")
+    print("@digest-setup を実行してください")
+    sys.exit(1)
+
+# 読み込み（JSONパースエラー対応）
+try:
+    with open(config_file, 'r', encoding='utf-8') as f:
+        config_data = json.load(f)
+except json.JSONDecodeError:
+    print("❌ 設定ファイルが破損しています")
+    print("@digest-setup で再セットアップしてください")
+    sys.exit(1)
+```
+
+### パス検証
+
+相対パス/絶対パスの解決とバリデーション：
+
+```python
+def validate_path(path_str: str, plugin_root: Path, must_exist: bool = False) -> Path:
+    """パスのバリデーション"""
+    path = Path(path_str)
+
+    # 相対パスの場合、プラグインルート基準で解決
+    if not path.is_absolute():
+        path = plugin_root / path_str
+
+    # 存在確認（オプション）
+    if must_exist and not path.exists():
+        raise FileNotFoundError(f"パスが見つかりません: {path}")
+
+    return path
+```
+
+### 閾値（Threshold）入力検証
+
+閾値入力のバリデーションパターン：
+
+```python
+def validate_threshold(value: str) -> int:
+    """閾値のバリデーション（1以上の整数）"""
+    try:
+        int_value = int(value)
+        if int_value < 1:
+            raise ValueError("閾値は1以上である必要があります")
+        return int_value
+    except ValueError:
+        raise ValueError("閾値は整数である必要があります")
+
+# 使用例：入力ループ
+while True:
+    new_value_str = input(f"新しい値 [Enter でキャンセル]: ")
+    if new_value_str == "":
+        print("変更をキャンセルしました")
+        break
+    try:
+        new_value = validate_threshold(new_value_str)
+        break
+    except ValueError as e:
+        print(f"❌ {e}")
+```
+
+---
+
+## 共通エラーメッセージ
+
+### Config未検出時
+
+```text
+❌ 設定ファイルが見つかりません
+@digest-setup を実行してください
+```
+
+### JSON パースエラー時
+
+```text
+❌ 設定ファイルが破損しています
+@digest-setup で再セットアップしてください
+```
+
+### ファイル書き込みエラー時
+
+```python
+try:
+    with open(config_file, 'w', encoding='utf-8') as f:
+        json.dump(config_data, f, indent=2, ensure_ascii=False)
+except Exception as e:
+    print(f"❌ 設定ファイルの保存に失敗しました: {e}")
+    sys.exit(1)
+```
+
+---
+
 ## 関連ドキュメント
 
 - [用語集・リファレンス](../../README.md) - 用語定義・共通概念

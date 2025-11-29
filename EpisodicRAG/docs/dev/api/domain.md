@@ -33,14 +33,14 @@ from domain import (
 
 ```python
 LEVEL_CONFIG: Dict[str, Dict[str, Any]] = {
-    "weekly": {"prefix": "W", "digits": 4, "dir": "1_Weekly", "source": "loops", "next": "monthly"},
-    "monthly": {"prefix": "M", "digits": 4, "dir": "2_Monthly", "source": "weekly", "next": "quarterly"},
-    "quarterly": {"prefix": "Q", "digits": 3, "dir": "3_Quarterly", "source": "monthly", "next": "annual"},
-    "annual": {"prefix": "A", "digits": 3, "dir": "4_Annual", "source": "quarterly", "next": "triennial"},
-    "triennial": {"prefix": "T", "digits": 2, "dir": "5_Triennial", "source": "annual", "next": "decadal"},
-    "decadal": {"prefix": "D", "digits": 2, "dir": "6_Decadal", "source": "triennial", "next": "multi_decadal"},
-    "multi_decadal": {"prefix": "MD", "digits": 2, "dir": "7_Multi-decadal", "source": "decadal", "next": "centurial"},
-    "centurial": {"prefix": "C", "digits": 2, "dir": "8_Centurial", "source": "multi_decadal", "next": None}
+    "weekly": {"prefix": "W", "digits": 4, "dir": "1_Weekly", "source": "loops", "next": "monthly", "threshold": 5},
+    "monthly": {"prefix": "M", "digits": 4, "dir": "2_Monthly", "source": "weekly", "next": "quarterly", "threshold": 5},
+    "quarterly": {"prefix": "Q", "digits": 3, "dir": "3_Quarterly", "source": "monthly", "next": "annual", "threshold": 3},
+    "annual": {"prefix": "A", "digits": 3, "dir": "4_Annual", "source": "quarterly", "next": "triennial", "threshold": 4},
+    "triennial": {"prefix": "T", "digits": 2, "dir": "5_Triennial", "source": "annual", "next": "decadal", "threshold": 3},
+    "decadal": {"prefix": "D", "digits": 2, "dir": "6_Decadal", "source": "triennial", "next": "multi_decadal", "threshold": 3},
+    "multi_decadal": {"prefix": "MD", "digits": 2, "dir": "7_Multi-decadal", "source": "decadal", "next": "centurial", "threshold": 3},
+    "centurial": {"prefix": "C", "digits": 2, "dir": "8_Centurial", "source": "multi_decadal", "next": None, "threshold": 4}
 }
 ```
 
@@ -51,6 +51,7 @@ LEVEL_CONFIG: Dict[str, Dict[str, Any]] = {
 | `dir` | digests_path以下のサブディレクトリ名 | `1_Weekly` |
 | `source` | この階層を生成する際の入力元 | `loops`, `weekly` |
 | `next` | 確定時にカスケードする上位階層 | `monthly`, `None` |
+| `threshold` | ダイジェスト生成に必要なソースファイル数 | `5`, `3`, `4` |
 
 ### LEVEL_NAMES
 

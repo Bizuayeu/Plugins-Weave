@@ -7,8 +7,20 @@
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
 
 ```python
-from infrastructure import load_json, save_json, log_info, log_error
-from infrastructure.file_scanner import scan_files, get_max_numbered_file
+from infrastructure import (
+    # JSON操作
+    load_json, save_json, load_json_with_template, file_exists, ensure_directory,
+    # ファイルスキャン
+    scan_files, get_files_by_pattern, get_max_numbered_file, filter_files_after_number, count_files,
+    # ロギング
+    get_logger, setup_logging, log_info, log_warning, log_error, log_debug,
+    # 構造化ロギング
+    StructuredLogger, get_structured_logger,
+    # エラーハンドリング
+    safe_file_operation, safe_cleanup, with_error_context,
+    # ユーザーインタラクション
+    get_default_confirm_callback,
+)
 ```
 
 ---
@@ -194,11 +206,135 @@ def setup_logging(level: Optional[int] = None) -> logging.Logger
 def log_info(message: str) -> None
 def log_warning(message: str) -> None
 def log_error(message: str, exit_code: Optional[int] = None) -> None
+def log_debug(message: str) -> None
 ```
 
 環境変数でログ設定をカスタマイズ可能:
 - `EPISODIC_RAG_LOG_LEVEL`: ログレベル (DEBUG, INFO, WARNING, ERROR)
 - `EPISODIC_RAG_LOG_FORMAT`: ログフォーマット (simple, detailed)
+
+---
+
+## 構造化ロギング（infrastructure/structured_logging.py）
+
+LOG_PREFIX_* 定数を使用したボイラープレートを統合し、一貫したログ出力を提供。
+
+### get_structured_logger()
+
+```python
+def get_structured_logger(name: str) -> StructuredLogger
+```
+
+構造化ロガーのインスタンスを取得。
+
+```python
+logger = get_structured_logger(__name__)
+logger.state("cascade_update", level="weekly", count=5)
+# -> [DEBUG] [STATE] cascade_update: level=weekly count=5
+```
+
+### StructuredLogger
+
+```python
+class StructuredLogger:
+    def info(message: str) -> None          # 一般的な情報ログ
+    def state(message: str, **context) -> None     # 状態変化のログ [STATE]
+    def file_op(message: str, **context) -> None   # ファイル操作のログ [FILE]
+    def validation(message: str, **context) -> None # 検証処理のログ [VALIDATE]
+    def decision(message: str, **context) -> None  # 判断分岐のログ [DECISION]
+```
+
+**使用例**:
+
+```python
+logger = get_structured_logger(__name__)
+
+# 従来のコード
+log_debug(f"{LOG_PREFIX_STATE} cascade_update: level={level}, count={count}")
+
+# 新しいコード
+logger.state("cascade_update", level=level, count=count)
+```
+
+---
+
+## エラーハンドリング（infrastructure/error_handling.py）
+
+ファイル操作等のエラー処理を統一するユーティリティ関数。
+
+### safe_file_operation()
+
+```python
+def safe_file_operation(
+    operation: Callable[[], T],
+    context: str,
+    on_error: Optional[Callable[[Exception], T]] = None,
+    *,
+    reraise: bool = False,
+) -> Optional[T]
+```
+
+ファイル操作を安全に実行するラッパー。一般的なファイルI/Oエラーをキャッチし、一貫した方法で処理する。
+
+```python
+# 基本的な使用（エラーを無視）
+safe_file_operation(lambda: file_path.unlink(), "delete file")
+
+# フォールバック付き
+result = safe_file_operation(
+    lambda: load_json(path),
+    "load config",
+    on_error=lambda e: {}
+)
+
+# エラーを再送出
+safe_file_operation(
+    lambda: save_json(path, data),
+    "save config",
+    reraise=True
+)
+```
+
+### safe_cleanup()
+
+```python
+def safe_cleanup(
+    cleanup_func: Callable[[], None],
+    context: str,
+    *,
+    log_on_error: bool = True,
+) -> bool
+```
+
+クリーンアップ操作を安全に実行する。エラーが発生しても処理を継続し、オプションで警告をログ出力。
+
+```python
+success = safe_cleanup(
+    lambda: temp_file.unlink(),
+    "remove temporary file"
+)
+if not success:
+    print("Cleanup failed but continuing...")
+```
+
+### with_error_context()
+
+```python
+def with_error_context(
+    operation: Callable[[], T],
+    context: str,
+    error_type: type = FileIOError,
+) -> T
+```
+
+操作を実行し、エラー時にコンテキスト付きの例外を送出。
+
+```python
+data = with_error_context(
+    lambda: json.load(f),
+    "parsing config.json"
+)
+```
 
 ---
 

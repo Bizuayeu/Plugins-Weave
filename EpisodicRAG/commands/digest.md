@@ -338,41 +338,15 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
 
 ---
 
-## セットアップ・管理用スキル（初回セットアップ時またはトラブル時に使用）
+## セットアップ・管理用スキル
 
-プラグイン初回使用時やトラブル時に使用するスキル：
+初回セットアップ時やトラブル時に使用するスキル：
 
-### @digest-setup - 初期セットアップ
-
-```bash
-@digest-setup セットアップを実行
-```
-
-- 設定ファイル（.claude-plugin/config.json）作成
-- ディレクトリ作成（data/Loops, data/Digests, data/Essences）
-- 対話的に設定を選択
-
-### @digest-auto - 最適階層の推奨
-
-```bash
-@digest-auto 今生成できるダイジェストを教えて
-```
-
-- 現在の状態を分析
-- 生成可能な階層を判定
-- 推奨アクションを提示
-- まだらボケ検出と警告
-
-### @digest-config - 設定変更
-
-```bash
-@digest-config 設定を変更したい
-@digest-config weekly threshold を 7 に変更
-```
-
-- 現在の設定を表示
-- 対話的に設定項目を変更
-- 設定ファイルを更新
+| スキル | 用途 | 詳細 |
+|--------|------|------|
+| `@digest-setup` | 初期セットアップ | [digest-setup SKILL.md](../skills/digest-setup/SKILL.md) |
+| `@digest-auto` | 最適階層の推奨 | [digest-auto SKILL.md](../skills/digest-auto/SKILL.md) |
+| `@digest-config` | 設定変更 | [digest-config SKILL.md](../skills/digest-config/SKILL.md) |
 
 ---
 
@@ -402,23 +376,7 @@ python3 finalize_from_shadow.py {{type}} "承認されたタイトル"
    ```
 
 2. **Task tool**: DigestAnalyzerエージェント起動
-   ```python
-   Task(
-       subagent_type="EpisodicRAG-Plugin:DigestAnalyzer",
-       description="Analyze Loop0001 for Weekly digest",
-       prompt="""
-分析対象ファイル: C:\\Users\\anyth\\DEV\\homunculus\\Weave\\EpisodicRAG\\Loops\\L00001_認知アーキテクチャ論.txt
-
-このLoopファイルを深層分析し、以下の形式でJSON出力してください：
-{{
-  "digest_type": "...",
-  "keywords": [...],
-  "abstract": {{"long": "...", "short": "..."}},
-  "impression": {{"long": "...", "short": "..."}}
-}}
-"""
-   )
-   ```
+   > 📖 DigestAnalyzerの詳細な呼び出しパターンは [digest-analyzer.md](../agents/digest-analyzer.md) を参照
 
 3. **Edit tool**: ShadowGrandDigest.txt更新
    ```python

@@ -438,65 +438,7 @@ EpisodicRAGの最も重要な機能は、**セッション間で記憶を引き�
 
 ## 実装時の注意事項
 
-> 📖 共通の実装ガイドラインは [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
-
-### 本スキル固有の注意点
-
-### エラーハンドリング
-
-```python
-# カスタムパス入力時のバリデーション（Q1-Q3共通）
-# Q1: Loops Path, Q2: Digests Path, Q3: Essences Path で使用
-if custom_path:
-    custom_path_obj = Path(custom_path)
-    if not custom_path_obj.is_absolute():
-        # 相対パスの場合、プラグインルート基準で解決
-        custom_path_obj = plugin_root / custom_path
-
-    # パスの存在確認（ディレクトリ作成の提案）
-    if not custom_path_obj.exists():
-        print(f"⚠️ 指定されたパスが存在しません: {custom_path_obj}")
-        create_it = input("ディレクトリを作成しますか？ (y/N): ")
-        if create_it.lower() == 'y':
-            custom_path_obj.mkdir(parents=True, exist_ok=True)
-            print(f"✅ ディレクトリを作成しました")
-        else:
-            print("❌ セットアップをキャンセルしました")
-            sys.exit(1)
-```
-
-### カスタム Threshold 入力
-
-```python
-if customize_thresholds:
-    thresholds = {
-        "weekly_threshold": 5,
-        "monthly_threshold": 5,
-        "quarterly_threshold": 3,
-        "annual_threshold": 4,
-        "triennial_threshold": 3,
-        "decadal_threshold": 3,
-        "multi_decadal_threshold": 3,
-        "centurial_threshold": 4
-    }
-
-    for key, default_value in thresholds.items():
-        level_name = key.replace("_threshold", "").title()
-        while True:
-            user_input = input(f"{level_name} threshold [{default_value}]: ")
-            if user_input == "":
-                # デフォルト値を使用
-                break
-            try:
-                new_value = int(user_input)
-                if new_value < 1:
-                    print("❌ 1以上の値を入力してください")
-                    continue
-                thresholds[key] = new_value
-                break
-            except ValueError:
-                print("❌ 数値を入力してください")
-```
+> 📖 共通の実装ガイドライン（パス検証、閾値検証、エラーハンドリング）は [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
 
 ## スキルの自律判断
 

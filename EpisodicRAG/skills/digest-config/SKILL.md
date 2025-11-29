@@ -444,70 +444,7 @@ Thresholds:
 
 ## 実装時の注意事項
 
-> 📖 共通の実装ガイドラインは [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
-
-### 本スキル固有の注意点
-
-## バリデーション
-
-### パスのバリデーション
-
-```python
-def validate_path(path_str, plugin_root, must_exist=False):
-    """パスのバリデーション"""
-    path = Path(path_str)
-
-    # 相対パスの場合、プラグインルート基準で解決
-    if not path.is_absolute():
-        path = plugin_root / path_str
-
-    # 存在確認（オプション）
-    if must_exist and not path.exists():
-        raise FileNotFoundError(f"パスが見つかりません: {path}")
-
-    return path
-```
-
-### Threshold のバリデーション
-
-```python
-def validate_threshold(value):
-    """Thresholdのバリデーション"""
-    try:
-        int_value = int(value)
-        if int_value < 1:
-            raise ValueError("Thresholdは1以上である必要があります")
-        return int_value
-    except ValueError:
-        raise ValueError("Thresholdは整数である必要があります")
-```
-
-## エラーハンドリング
-
-```python
-# 設定ファイルが存在しない
-if not config_file.exists():
-    print("❌ 設定ファイルが見つかりません")
-    print("@digest-setup を実行してください")
-    sys.exit(1)
-
-# JSON読み込みエラー
-try:
-    with open(config_file, 'r', encoding='utf-8') as f:
-        config_data = json.load(f)
-except json.JSONDecodeError:
-    print("❌ 設定ファイルが破損しています")
-    print("@digest-setup で再セットアップしてください")
-    sys.exit(1)
-
-# 設定ファイル書き込みエラー
-try:
-    with open(config_file, 'w', encoding='utf-8') as f:
-        json.dump(config_data, f, indent=2, ensure_ascii=False)
-except Exception as e:
-    print(f"❌ 設定ファイルの保存に失敗しました: {e}")
-    sys.exit(1)
-```
+> 📖 共通の実装ガイドライン（バリデーション、エラーハンドリング）は [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
 
 ## スキルの自律判断
 
