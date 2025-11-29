@@ -209,8 +209,7 @@ class ProvisionalLoader:
 
         # 各ソースファイルを処理し、成功したもののみ収集
         results = [
-            self._process_single_source(source_dir, source_file)
-            for source_file in source_files
+            self._process_single_source(source_dir, source_file) for source_file in source_files
         ]
         individual_digests = [entry for entry in results if entry is not None]
 

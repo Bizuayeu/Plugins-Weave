@@ -149,8 +149,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         # GrandDigest.txt、ShadowGrandDigest.txt、last_digest_times.json作成
         self.env.create_grand_digest()
         self.env.create_shadow_digest(
-            level="weekly",
-            source_files=["L00001_test.txt", "L00002_test.txt"]
+            level="weekly", source_files=["L00001_test.txt", "L00002_test.txt"]
         )
         self.env.create_last_digest_times()
 

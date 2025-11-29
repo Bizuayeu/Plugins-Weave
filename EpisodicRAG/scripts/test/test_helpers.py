@@ -271,8 +271,14 @@ class TempPluginEnvironment:
             "major_digests": {
                 level: {"overall_digest": None}
                 for level in [
-                    "weekly", "monthly", "quarterly", "annual",
-                    "triennial", "decadal", "multi_decadal", "centurial",
+                    "weekly",
+                    "monthly",
+                    "quarterly",
+                    "annual",
+                    "triennial",
+                    "decadal",
+                    "multi_decadal",
+                    "centurial",
                 ]
             },
         }
@@ -304,8 +310,14 @@ class TempPluginEnvironment:
                 "latest_digests": {
                     lv: {"overall_digest": None}
                     for lv in [
-                        "weekly", "monthly", "quarterly", "annual",
-                        "triennial", "decadal", "multi_decadal", "centurial",
+                        "weekly",
+                        "monthly",
+                        "quarterly",
+                        "annual",
+                        "triennial",
+                        "decadal",
+                        "multi_decadal",
+                        "centurial",
                     ]
                 },
             }
@@ -337,8 +349,14 @@ class TempPluginEnvironment:
         data = {
             level: {"timestamp": "", "last_processed": None}
             for level in [
-                "weekly", "monthly", "quarterly", "annual",
-                "triennial", "decadal", "multi_decadal", "centurial",
+                "weekly",
+                "monthly",
+                "quarterly",
+                "annual",
+                "triennial",
+                "decadal",
+                "multi_decadal",
+                "centurial",
             ]
         }
         file_path = self.config_dir / "last_digest_times.json"

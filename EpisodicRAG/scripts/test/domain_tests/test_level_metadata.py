@@ -145,7 +145,12 @@ class TestLevelMetadataEquality:
     def test_different_name_not_equal(self):
         """Different names are not equal"""
         meta1 = LevelMetadata(
-            name="weekly", prefix="W", digits=4, dir="1_Weekly", source="loops", next_level="monthly"
+            name="weekly",
+            prefix="W",
+            digits=4,
+            dir="1_Weekly",
+            source="loops",
+            next_level="monthly",
         )
         meta2 = LevelMetadata(
             name="monthly",
@@ -265,7 +270,12 @@ class TestAllLevelTypes:
     def test_all_level_configurations(self, name, prefix, source, next_level):
         """All level configurations can be created"""
         metadata = LevelMetadata(
-            name=name, prefix=prefix, digits=4, dir=f"x_{name}", source=source, next_level=next_level
+            name=name,
+            prefix=prefix,
+            digits=4,
+            dir=f"x_{name}",
+            source=source,
+            next_level=next_level,
         )
 
         assert metadata.name == name

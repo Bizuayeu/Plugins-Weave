@@ -132,7 +132,12 @@ class TestStandardLevelBehaviorFormatNumber:
     def test_formats_with_different_prefix(self):
         """Formats with different prefix"""
         metadata = LevelMetadata(
-            name="quarterly", prefix="Q", digits=4, dir="3_Quarterly", source="monthly", next_level=None
+            name="quarterly",
+            prefix="Q",
+            digits=4,
+            dir="3_Quarterly",
+            source="monthly",
+            next_level=None,
         )
         behavior = StandardLevelBehavior(metadata)
 

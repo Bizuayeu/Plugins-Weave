@@ -42,9 +42,7 @@ class TestConfigPathContext:
 
     def test_adds_config_path(self):
         """Adds config path to message"""
-        result = with_diagnostic_context(
-            "Config error", config_path=Path("/project/config.json")
-        )
+        result = with_diagnostic_context("Config error", config_path=Path("/project/config.json"))
         assert "config:" in result
         assert "config.json" in result
 
@@ -159,9 +157,7 @@ class TestMultipleContexts:
 
     def test_uses_pipe_separator(self):
         """Uses pipe separator between context parts"""
-        result = with_diagnostic_context(
-            "Error", current_level="weekly", last_operation="save"
-        )
+        result = with_diagnostic_context("Error", current_level="weekly", last_operation="save")
         assert " | " in result
 
     def test_maintains_order(self):
