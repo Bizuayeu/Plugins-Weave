@@ -167,6 +167,36 @@ class TestVersionConsistency:
             f"Version mismatch: __version__={__version__}, plugin.json={plugin_version}"
         )
 
+    @pytest.mark.unit
+    def test_marketplace_json_version_sync(self):
+        """marketplace.json の EpisodicRAG バージョンが plugin.json と一致"""
+        plugin_root = Path(__file__).parent.parent.parent.parent
+
+        # plugin.json からバージョン取得
+        plugin_json = plugin_root / ".claude-plugin" / "plugin.json"
+        plugin_data = json.loads(plugin_json.read_text(encoding="utf-8"))
+        plugin_version = plugin_data.get("version")
+
+        # marketplace.json からバージョン取得
+        # plugins-weave/.claude-plugin/marketplace.json
+        marketplace_json = plugin_root.parent / ".claude-plugin" / "marketplace.json"
+        assert marketplace_json.exists(), f"marketplace.json not found: {marketplace_json}"
+        marketplace_data = json.loads(marketplace_json.read_text(encoding="utf-8"))
+
+        # plugins 配列から EpisodicRAG-Plugin を検索
+        episodic_rag_plugin = None
+        for plugin in marketplace_data.get("plugins", []):
+            if plugin.get("name") == "EpisodicRAG-Plugin":
+                episodic_rag_plugin = plugin
+                break
+
+        assert episodic_rag_plugin, "EpisodicRAG-Plugin not found in marketplace.json"
+        marketplace_version = episodic_rag_plugin.get("version")
+
+        assert plugin_version == marketplace_version, (
+            f"Version mismatch: plugin.json={plugin_version}, marketplace.json={marketplace_version}"
+        )
+
 
 class TestVersionModule:
     """version モジュール全体のテスト"""
