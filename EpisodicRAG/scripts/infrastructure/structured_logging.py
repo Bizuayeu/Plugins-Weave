@@ -23,7 +23,7 @@ from domain.constants import (
     LOG_PREFIX_STATE,
     LOG_PREFIX_VALIDATE,
 )
-from infrastructure.logging_config import log_debug
+from infrastructure.logging_config import log_debug, log_info
 
 
 class StructuredLoggerProtocol(Protocol):
@@ -111,9 +111,9 @@ class StructuredLogger:
 
         Example:
             logger.info("Processing started")
-            # -> [DEBUG] Processing started
+            # -> [INFO] Processing started
         """
-        log_debug(message)
+        log_info(message)
 
     def state(self, message: str, **context: Any) -> None:
         """

@@ -86,14 +86,14 @@ Created files:
 
 Create a file with the following content:
 
-**Filename**: `Loop0001_TestConversation.txt`
+**Filename**: `L00001_TestConversation.txt`
 
 **Location**: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/data/Loops/`
 
 **Content** (copy-paste ready):
 
 ```text
-# Loop0001: Test Conversation
+# L00001: Test Conversation
 
 User: Hello, this is a test for EpisodicRAG.
 Assistant: Hello! This is a test for EpisodicRAG. How can I help you?
@@ -114,7 +114,7 @@ Assistant: EpisodicRAG is an 8-layer long-term memory system. It saves conversat
 ```text
 Unprocessed Loop files detected: 1
 
-  - Loop0001_TestConversation.txt
+  - L00001_TestConversation.txt
 
 Starting analysis with DigestAnalyzer...
 
