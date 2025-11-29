@@ -1,3 +1,4 @@
+<!-- Last synced: 2025-11-29 -->
 [English](README.en.md) | [日本語](README.md)
 
 # EpisodicRAG Plugin - Glossary & Reference
@@ -227,9 +228,21 @@ L00001 added → No `/digest` → L00002 added
 
 ### Memory Consolidation Cycle
 
+EpisodicRAG's most important principle is to **run `/digest` each time you add a Loop**.
+
+```mermaid
+flowchart LR
+    A[Add Loop] --> B["/digest"]
+    B --> C[Memory Consolidated]
+    C --> A
+
+    style B fill:#90EE90,stroke:#228B22
+    style C fill:#87CEEB,stroke:#4169E1
+```
+
+**What to do:**
 ```text
-Add Loop → `/digest` → Add Loop → `/digest` → ...
-          ↑ consolidate ↑        ↑ consolidate
+L00001 added → /digest → L00002 added → /digest → ...
 ```
 
 By following this principle, AI can remember all Loops.

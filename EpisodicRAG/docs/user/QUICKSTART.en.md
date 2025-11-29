@@ -1,3 +1,4 @@
+<!-- Last synced: 2025-11-29 -->
 [EpisodicRAG](../../README.md) > [Docs](../README.md) > QUICKSTART (English)
 
 [日本語](QUICKSTART.md) | English
