@@ -39,6 +39,41 @@ except ImportError:
 
 from test_helpers import TempPluginEnvironment, create_test_loop_file
 
+
+# =============================================================================
+# シングルトンリセット（テスト分離保証）
+# =============================================================================
+
+
+@pytest.fixture(autouse=True)
+def reset_all_singletons():
+    """
+    全テスト前後でシングルトンをリセット
+
+    テスト間の状態分離を保証し、テスト順序依存やグローバル状態による
+    予期しない干渉を防ぐ。
+
+    Note:
+        - level_registry: レベル設定のシングルトン
+        - file_naming: ファイル命名用レジストリ参照
+        - error_formatter: エラーフォーマッタのデフォルトインスタンス
+    """
+    # テスト実行前：クリーンな状態で開始
+    from domain.error_formatter import reset_error_formatter
+    from domain.file_naming import reset_registry
+    from domain.level_registry import reset_level_registry
+
+    reset_level_registry()
+    reset_registry()
+    reset_error_formatter()
+
+    yield  # テスト実行
+
+    # テスト実行後：次のテストのためにクリーンアップ
+    reset_level_registry()
+    reset_registry()
+    reset_error_formatter()
+
 # =============================================================================
 # pytestマーカー定義
 # =============================================================================
@@ -119,16 +154,16 @@ def digest_config(temp_plugin_env):
 
 
 @pytest.fixture
-def config(temp_plugin_env):
+def config(digest_config):
     """
     digest_configのエイリアス（後方互換性のため）
 
     Note:
         新規テストではdigest_configを使用することを推奨。
+        このフィクスチャは同一インスタンスを返すため、
+        digest_configとconfigは相互に置き換え可能。
     """
-    from config import DigestConfig
-
-    return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+    return digest_config
 
 
 # =============================================================================

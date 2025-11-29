@@ -4,36 +4,70 @@ Shadow Validator
 ================
 
 ShadowGrandDigestの内容を検証するクラス
+
+Design:
+    - ShadowValidator: Facadeクラスとして検証フローを統括
+    - CollectionValidator: コレクション型の検証（SRP分離）
+    - FileNumberValidator: ファイル番号の検証（SRP分離）
 """
 
 from typing import Any, Callable, List, Optional, Tuple
 
+from application.finalize.validators import CollectionValidator, FileNumberValidator
 from application.grand import ShadowGrandDigestManager
-from domain.error_formatter import get_error_formatter
+from domain.error_formatter import CompositeErrorFormatter, get_error_formatter
 from domain.exceptions import DigestError, ValidationError
-from domain.file_naming import extract_file_number
 from domain.types import OverallDigestData
-from domain.validators import is_valid_dict, is_valid_list
+from domain.validators import is_valid_dict
 from infrastructure import get_default_confirm_callback, get_structured_logger, log_warning
 
 _logger = get_structured_logger(__name__)
 
 
 class ShadowValidator:
-    """ShadowGrandDigestの検証を担当"""
+    """
+    ShadowGrandDigestの検証を担当（Facade）
+
+    Design:
+        CollectionValidatorとFileNumberValidatorに検証ロジックを委譲し、
+        検証フローのオーケストレーションを行う。
+    """
 
     def __init__(
         self,
         shadow_manager: ShadowGrandDigestManager,
         confirm_callback: Optional[Callable[[str], bool]] = None,
+        collection_validator: Optional[CollectionValidator] = None,
+        file_number_validator: Optional[FileNumberValidator] = None,
+        formatter: Optional[CompositeErrorFormatter] = None,
     ):
         """
         Args:
             shadow_manager: ShadowGrandDigestManager インスタンス
             confirm_callback: 確認コールバック関数（テスト用にモック可能）
+            collection_validator: コレクション検証（DIによるテスト容易化）
+            file_number_validator: ファイル番号検証（DIによるテスト容易化）
+            formatter: エラーフォーマッタ（DIによるテスト容易化）
         """
         self.shadow_manager = shadow_manager
         self.confirm_callback = confirm_callback or get_default_confirm_callback()
+        self._collection_validator = collection_validator
+        self._file_number_validator = file_number_validator
+        self._formatter = formatter
+
+    @property
+    def collection_validator(self) -> CollectionValidator:
+        """遅延初期化でCollectionValidatorを取得"""
+        if self._collection_validator is None:
+            self._collection_validator = CollectionValidator(formatter=self._formatter)
+        return self._collection_validator
+
+    @property
+    def file_number_validator(self) -> FileNumberValidator:
+        """遅延初期化でFileNumberValidatorを取得"""
+        if self._file_number_validator is None:
+            self._file_number_validator = FileNumberValidator(formatter=self._formatter)
+        return self._file_number_validator
 
     def _collect_validation_errors(
         self, level: str, source_files: List[str]
@@ -55,57 +89,32 @@ class ShadowValidator:
         warnings: List[str] = []
         numbers: List[int] = []
 
-        # 型チェック
-        formatter = get_error_formatter()
-        if not is_valid_list(source_files):
-            fatal_errors.append(
-                formatter.validation.invalid_type("source_files", "list", source_files)
-            )
-            return fatal_errors, warnings, numbers
+        # 1. 型チェックと空チェック（CollectionValidatorに委譲）
+        type_errors = self.collection_validator.validate_list(source_files, "source_files")
+        if type_errors:
+            return type_errors, warnings, numbers
 
-        # 空チェック
-        if not source_files:
-            fatal_errors.append(
-                formatter.validation.empty_collection(f"Shadow digest for level '{level}'")
-            )
-            return fatal_errors, warnings, numbers
+        empty_errors = self.collection_validator.validate_non_empty(
+            source_files, f"Shadow digest for level '{level}'"
+        )
+        if empty_errors:
+            return empty_errors, warnings, numbers
 
-        # ファイル名検証と番号抽出を1ループで実行
-        for i, filename in enumerate(source_files):
-            if not isinstance(filename, str):
-                fatal_errors.append(
-                    formatter.validation.invalid_type(f"filename at index {i}", "str", filename)
-                )
-                continue
+        # 2. ファイル名検証と番号抽出（FileNumberValidatorに委譲）
+        numbers, extraction_errors = self.file_number_validator.extract_numbers(source_files)
+        if extraction_errors:
+            return extraction_errors, warnings, numbers
 
-            result = extract_file_number(filename)
-            if result:
-                numbers.append(result[1])
-            else:
-                fatal_errors.append(f"Invalid filename format: {filename}")
+        # 3. 連番チェック（FileNumberValidatorに委譲）
+        consecutive_warnings = self.file_number_validator.validate_consecutive(
+            numbers, source_files
+        )
+        warnings.extend(consecutive_warnings)
 
-        # 連番チェック（致命的エラーがなければ）
-        if not fatal_errors and numbers:
-            numbers.sort()
-            if not self._is_consecutive(numbers):
-                warnings.append(f"Non-consecutive files detected: {numbers}")
+        # numbersをソート
+        numbers.sort()
 
         return fatal_errors, warnings, numbers
-
-    def _is_consecutive(self, numbers: List[int]) -> bool:
-        """
-        番号リストが連番かチェック
-
-        Args:
-            numbers: ソート済み番号リスト
-
-        Returns:
-            連番の場合True
-        """
-        for i in range(len(numbers) - 1):
-            if numbers[i + 1] != numbers[i] + 1:
-                return False
-        return True
 
     def validate_shadow_content(self, level: str, source_files: List[str]) -> None:
         """

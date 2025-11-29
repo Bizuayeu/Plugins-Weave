@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.0] - 2025-11-29
+
+### Added
+
+- **LEARNING_PATH.md**: Python学習ドキュメント追加
+  - Clean Architecture学習の段階的パス
+  - EpisodicRAGコードベースを教材としたPython学習ガイド
+
+### Changed
+
+- **バージョンSSoT強化**: CONTRIBUTING.mdのバージョン例をプレースホルダー化
+  - ハードコードされたバージョン番号を `x.y.z` に変更
+  - plugin.jsonへの参照を明示化
+
+- **英語版ドキュメント同期**: syncヘッダー追加
+  - README.en.md, EpisodicRAG/README.en.md
+  - QUICKSTART.en.md, CHEATSHEET.en.md
+  - CONTRIBUTING.mdの規定に準拠した `<!-- Last synced: YYYY-MM-DD -->` 形式
+
+---
+
 ## [3.2.0] - 2025-11-29
 
 ### Added

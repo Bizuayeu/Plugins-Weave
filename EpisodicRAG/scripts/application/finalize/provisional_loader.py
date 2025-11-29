@@ -162,6 +162,30 @@ class ProvisionalLoader:
             "impression": overall.get("impression", ""),
         }
 
+    def _process_single_source(
+        self, source_dir: Path, source_file: str
+    ) -> Optional[IndividualDigestData]:
+        """
+        単一ソースファイルを処理してIndividualDigestDataを生成
+
+        Args:
+            source_dir: ソースファイルのディレクトリパス
+            source_file: ソースファイル名
+
+        Returns:
+            IndividualDigestData、または読み込み失敗時はNone
+        """
+        source_path = source_dir / source_file
+        log_debug(f"{LOG_PREFIX_FILE} processing: {source_path}")
+        source_data = try_read_json_from_file(source_path)
+
+        if source_data is None:
+            log_debug(f"{LOG_PREFIX_FILE} skipped (read failed): {source_file}")
+            return None
+
+        _logger.info(f"Auto-generated individual digest from {source_file}")
+        return self._build_individual_entry(source_file, source_data)
+
     def generate_from_source(
         self, level: str, shadow_digest: OverallDigestData
     ) -> List[IndividualDigestData]:
@@ -175,9 +199,7 @@ class ProvisionalLoader:
         Returns:
             individual_digestsのリスト
         """
-        individual_digests: List[IndividualDigestData] = []
         source_files = shadow_digest.get("source_files", [])
-        skipped_count = 0
         source_dir = self._get_source_path_for_level(level)
 
         log_debug(
@@ -185,22 +207,18 @@ class ProvisionalLoader:
         )
         log_debug(f"{LOG_PREFIX_FILE} source_dir: {source_dir}")
 
-        for source_file in source_files:
-            source_path = source_dir / source_file
-            log_debug(f"{LOG_PREFIX_FILE} processing: {source_path}")
-            source_data = try_read_json_from_file(source_path)
+        # 各ソースファイルを処理し、成功したもののみ収集
+        results = [
+            self._process_single_source(source_dir, source_file)
+            for source_file in source_files
+        ]
+        individual_digests = [entry for entry in results if entry is not None]
 
-            if source_data is None:
-                log_debug(f"{LOG_PREFIX_FILE} skipped (read failed): {source_file}")
-                skipped_count += 1
-                continue
-
-            individual_entry = self._build_individual_entry(source_file, source_data)
-            individual_digests.append(individual_entry)
-            _logger.info(f"Auto-generated individual digest from {source_file}")
-
+        # スキップ数の計算とログ出力
+        skipped_count = len(source_files) - len(individual_digests)
         if skipped_count > 0:
             log_warning(f"Skipped {skipped_count}/{len(source_files)} files due to errors")
+
         _logger.info(
             f"Auto-generated {len(individual_digests)} individual digests from source files"
         )

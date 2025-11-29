@@ -70,7 +70,10 @@ def _get_registry() -> LevelRegistryProtocol:
     return get_level_registry()
 
 
-def extract_file_number(filename: str) -> Optional[Tuple[str, int]]:
+def extract_file_number(
+    filename: str,
+    registry: Optional[LevelRegistryProtocol] = None,
+) -> Optional[Tuple[str, int]]:
     """
     ファイル名からプレフィックスと番号を抽出
 
@@ -78,6 +81,8 @@ def extract_file_number(filename: str) -> Optional[Tuple[str, int]]:
 
     Args:
         filename: ファイル名（例: "Loop0186_xxx.txt", "MD01_xxx.txt"）
+        registry: オプショナルなLevelRegistryProtocol（DIによるテスト容易化）
+                  未指定時はグローバルシングルトンを使用
 
     Returns:
         (prefix, number) のタプル、またはNone
@@ -95,8 +100,8 @@ def extract_file_number(filename: str) -> Optional[Tuple[str, int]]:
         return None
 
     # Registry経由で動的にプレフィックスパターンを取得
-    registry = _get_registry()
-    pattern = registry.build_prefix_pattern()
+    reg = registry if registry is not None else _get_registry()
+    pattern = reg.build_prefix_pattern()
 
     match = re.search(rf"({pattern})(\d+)", filename)
     if match:
@@ -123,7 +128,11 @@ def extract_number_only(filename: str) -> Optional[int]:
     return result[1] if result else None
 
 
-def format_digest_number(level: str, number: int) -> str:
+def format_digest_number(
+    level: str,
+    number: int,
+    registry: Optional[LevelRegistryProtocol] = None,
+) -> str:
     """
     レベルと番号から統一されたフォーマットの文字列を生成
 
@@ -132,6 +141,8 @@ def format_digest_number(level: str, number: int) -> str:
     Args:
         level: 階層名（"loop", "weekly", "monthly", ...）
         number: 番号
+        registry: オプショナルなLevelRegistryProtocol（DIによるテスト容易化）
+                  未指定時はグローバルシングルトンを使用
 
     Returns:
         ゼロ埋めされた文字列（例: "Loop0186", "W0001", "MD01"）
@@ -147,18 +158,24 @@ def format_digest_number(level: str, number: int) -> str:
         >>> format_digest_number("multi_decadal", 3)
         'MD03'
     """
-    registry = _get_registry()
-    behavior = registry.get_behavior(level)
+    reg = registry if registry is not None else _get_registry()
+    behavior = reg.get_behavior(level)
     return behavior.format_number(number)
 
 
-def find_max_number(files: List[Union[Path, str]], prefix: str) -> Optional[int]:
+def find_max_number(
+    files: List[Union[Path, str]],
+    prefix: str,
+    registry: Optional[LevelRegistryProtocol] = None,
+) -> Optional[int]:
     """
     ファイルリストから指定プレフィックスの最大番号を取得
 
     Args:
         files: ファイルパス（PathまたはStr）のリスト
         prefix: 検索するプレフィックス（例: "W", "Loop", "MD"）
+        registry: オプショナルなLevelRegistryProtocol（DIによるテスト容易化）
+                  未指定時はグローバルシングルトンを使用
 
     Returns:
         最大番号、またはマッチするファイルがない場合はNone
@@ -183,7 +200,7 @@ def find_max_number(files: List[Union[Path, str]], prefix: str) -> Optional[int]
         else:
             continue
 
-        result = extract_file_number(filename)
+        result = extract_file_number(filename, registry=registry)
         if result and result[0] == prefix:
             num = result[1]
             if max_num is None or num > max_num:
@@ -219,7 +236,10 @@ def filter_files_after(files: List[Path], threshold: int) -> List[Path]:
     return result
 
 
-def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
+def extract_numbers_formatted(
+    files: List[Union[str, None]],
+    registry: Optional[LevelRegistryProtocol] = None,
+) -> List[str]:
     """
     ファイル名リストからフォーマット済み番号リストを抽出
 
@@ -229,6 +249,8 @@ def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
 
     Args:
         files: ファイル名のリスト
+        registry: オプショナルなLevelRegistryProtocol（DIによるテスト容易化）
+                  未指定時はグローバルシングルトンを使用
 
     Returns:
         フォーマット済み番号のソート済みリスト（例: ["Loop0001", "Loop0002"]）
@@ -240,7 +262,7 @@ def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
     if not files:
         return []
 
-    registry = _get_registry()
+    reg = registry if registry is not None else _get_registry()
 
     numbers = []
     for file in files:
@@ -248,13 +270,13 @@ def extract_numbers_formatted(files: List[Union[str, None]]) -> List[str]:
         if not isinstance(file, str):
             continue
 
-        result = extract_file_number(file)
+        result = extract_file_number(file, registry=reg)
         if result:
             prefix, num = result
             # Registry経由でプレフィックスからレベルを逆引き
-            level = registry.get_level_by_prefix(prefix)
+            level = reg.get_level_by_prefix(prefix)
             if level:
-                behavior = registry.get_behavior(level)
+                behavior = reg.get_behavior(level)
                 numbers.append(behavior.format_number(num))
             else:
                 # 未知のプレフィックス: 元の形式を維持（フォールバック）
