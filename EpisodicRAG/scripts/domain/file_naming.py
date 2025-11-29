@@ -17,7 +17,7 @@ Note:
 
 import re
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 from domain.protocols import LevelRegistryProtocol
 
@@ -71,7 +71,7 @@ def _get_registry() -> LevelRegistryProtocol:
 
 
 def extract_file_number(
-    filename: str,
+    filename: object,
     registry: Optional[LevelRegistryProtocol] = None,
 ) -> Optional[Tuple[str, int]]:
     """
@@ -81,6 +81,7 @@ def extract_file_number(
 
     Args:
         filename: ファイル名（例: "Loop0186_xxx.txt", "MD01_xxx.txt"）
+                  非文字列が渡された場合はNoneを返す（防御的プログラミング）
         registry: オプショナルなLevelRegistryProtocol（DIによるテスト容易化）
                   未指定時はグローバルシングルトンを使用
 
@@ -95,7 +96,7 @@ def extract_file_number(
         >>> extract_file_number("MD03_decadal.txt")
         ('MD', 3)
     """
-    # 型チェック
+    # 型チェック（防御的プログラミング - ランタイムで非strが渡される可能性）
     if not isinstance(filename, str):
         return None
 
@@ -164,7 +165,7 @@ def format_digest_number(
 
 
 def find_max_number(
-    files: List[Union[Path, str]],
+    files: Sequence[object],
     prefix: str,
     registry: Optional[LevelRegistryProtocol] = None,
 ) -> Optional[int]:
@@ -173,6 +174,7 @@ def find_max_number(
 
     Args:
         files: ファイルパス（PathまたはStr）のリスト
+               非Path/str要素はスキップ（防御的プログラミング）
         prefix: 検索するプレフィックス（例: "W", "Loop", "MD"）
         registry: オプショナルなLevelRegistryProtocol（DIによるテスト容易化）
                   未指定時はグローバルシングルトンを使用
@@ -192,7 +194,7 @@ def find_max_number(
     max_num: Optional[int] = None
 
     for file in files:
-        # PathオブジェクトまたはStringからファイル名を取得
+        # PathオブジェクトまたはStringからファイル名を取得（防御的プログラミング）
         if isinstance(file, Path):
             filename = file.name
         elif isinstance(file, str):

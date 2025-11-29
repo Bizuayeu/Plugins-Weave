@@ -55,7 +55,8 @@ def safe_read_json(file_path: Path, raise_on_error: bool = True) -> Optional[Dic
     formatter = get_error_formatter()
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            result: Dict[str, Any] = json.load(f)
+            return result
     except json.JSONDecodeError as e:
         if raise_on_error:
             raise FileIOError(formatter.file.invalid_json(file_path, e)) from e

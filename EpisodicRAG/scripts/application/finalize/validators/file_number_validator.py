@@ -6,7 +6,7 @@ File Number Validator
 ファイル番号の抽出と連番チェックを担当するバリデータ
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 from domain.error_formatter import CompositeErrorFormatter, get_error_formatter
 from domain.file_naming import extract_file_number
@@ -43,13 +43,14 @@ class FileNumberValidator:
         return self._formatter
 
     def extract_numbers(
-        self, filenames: List[str]
+        self, filenames: Sequence[object]
     ) -> Tuple[List[int], List[str]]:
         """
         ファイル名リストから番号を抽出
 
         Args:
             filenames: ファイル名のリスト
+                       非str要素はエラーとして報告（防御的プログラミング）
 
         Returns:
             (numbers, errors) のタプル
@@ -60,7 +61,7 @@ class FileNumberValidator:
         errors: List[str] = []
 
         for i, filename in enumerate(filenames):
-            # 型チェック
+            # 型チェック（防御的プログラミング - ランタイムで非strが渡される可能性）
             if not isinstance(filename, str):
                 errors.append(
                     self.formatter.validation.invalid_type(

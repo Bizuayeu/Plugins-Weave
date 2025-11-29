@@ -4,7 +4,7 @@ Provisional digest validation utilities.
 Centralizes all validation logic for provisional digest data structures.
 """
 
-from typing import Any, List
+from typing import Any, List, cast
 
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ValidationError
@@ -98,11 +98,11 @@ def validate_input_format(data: Any) -> List[IndividualDigestData]:
     """
     # Data is a list: return directly
     if is_valid_list(data):
-        return data
+        return cast(List[IndividualDigestData], data)
 
     # Data is a dict with "individual_digests" key
     if is_valid_dict(data) and "individual_digests" in data:
-        return data["individual_digests"]
+        return cast(List[IndividualDigestData], data["individual_digests"])
 
     # Invalid format
     formatter = get_error_formatter()

@@ -34,6 +34,7 @@ def load_config(config_file: Path) -> ConfigData:
 
     try:
         with open(config_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data: ConfigData = json.load(f)
+            return data
     except json.JSONDecodeError as e:
         raise ConfigError(invalid_json_message(config_file, e)) from e

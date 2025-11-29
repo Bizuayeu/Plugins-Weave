@@ -306,7 +306,7 @@ def generate_api_reference(scripts_path: Path, manual_sections: Dict[str, str]) 
     return "\n".join(lines)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Generate API_REFERENCE.md from docstrings")
     parser.add_argument("--check", action="store_true", help="Check if docs are up to date")
     parser.add_argument("--output", type=Path, help="Output file path")

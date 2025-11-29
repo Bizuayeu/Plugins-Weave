@@ -30,7 +30,8 @@ def _load_version_from_plugin_json() -> str:
 
     try:
         data = json.loads(plugin_json.read_text(encoding="utf-8"))
-        return data.get("version", "0.0.0")
+        version = data.get("version", "0.0.0")
+        return str(version) if version is not None else "0.0.0"
     except (json.JSONDecodeError, OSError):
         return "0.0.0"
 

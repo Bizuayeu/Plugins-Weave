@@ -55,12 +55,9 @@ class ThresholdProvider:
 
         key = f"{level}_threshold"
         # LEVEL_CONFIGからデフォルト閾値を取得（Single Source of Truth）
-        level_config = LEVEL_CONFIG.get(level, {})
-        if isinstance(level_config, dict):
-            threshold_value = level_config.get("threshold", 5)
-            default = int(threshold_value) if isinstance(threshold_value, (int, str, float)) else 5
-        else:
-            default = 5
+        # Note: level は既に LEVEL_CONFIG に存在することが保証されている（行53でチェック済み）
+        level_config = LEVEL_CONFIG[level]
+        default = level_config.get("threshold", 5)
         # Cast to Dict for dynamic key access
         levels_dict = as_dict(self.config.get("levels", {}))
         if key in levels_dict:
