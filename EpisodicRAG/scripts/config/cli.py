@@ -45,9 +45,13 @@ def main(plugin_root: Optional[Path] = None) -> None:
             # デフォルト: JSON出力
             print(json.dumps(config.config, indent=2, ensure_ascii=False))
 
-    except FileNotFoundError as e:
-        sys.stderr.write(f"[ERROR] {e}\n")
-        sys.exit(1)
+    except (FileNotFoundError, Exception) as e:
+        # ConfigError やその他のエラーをキャッチ
+        from .exceptions import ConfigError
+        if isinstance(e, (FileNotFoundError, ConfigError)):
+            sys.stderr.write(f"[ERROR] {e}\n")
+            sys.exit(1)
+        raise
 
 
 if __name__ == "__main__":

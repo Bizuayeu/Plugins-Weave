@@ -4,6 +4,8 @@
 
 EpisodicRAGプラグインの**Python API仕様書**です。
 
+> **設計方針**: このドキュメントはSSoT原則に従い、リンク集として機能します。詳細な定義は各 `api/*.md` を参照してください。
+
 > **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 
 > 📖 用語・共通概念: [用語集](../../README.md)
@@ -48,45 +50,11 @@ Clean Architecture（4層構造）に基づいて、APIドキュメントを層�
 
 ### 推奨インポートパス
 
-```python
-# Domain層（定数・型・例外）
-from domain import LEVEL_CONFIG, __version__, ValidationError
-from domain.file_naming import extract_file_number, format_digest_number
-from domain.level_registry import get_level_registry
-
-# Infrastructure層（外部I/O）
-from infrastructure import load_json, save_json, log_info, log_error
-from infrastructure.file_scanner import scan_files
-from infrastructure.user_interaction import get_default_confirm_callback
-
-# Application層（ビジネスロジック）
-from application.shadow import ShadowTemplate, ShadowUpdater, CascadeProcessor
-from application.grand import GrandDigestManager, ShadowGrandDigestManager
-from application.finalize import RegularDigestBuilder, DigestPersistence
-from application.validators import validate_dict, is_valid_list
-
-# Interfaces層（エントリーポイント）
-from interfaces import DigestFinalizerFromShadow, ProvisionalDigestSaver
-from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
-from interfaces.provisional import InputLoader, DigestMerger
-
-# 設定（configパッケージ）
-from config import DigestConfig
-```
+> 📖 完全なインポートパスは [ARCHITECTURE.md#推奨インポートパス](ARCHITECTURE.md#推奨インポートパス) を参照
 
 ### 依存関係ルール
 
-```text
-domain/           ← 何にも依存しない（純粋なビジネスロジック）
-    ↑
-infrastructure/   ← domain/ のみ
-    ↑
-application/      ← domain/ + infrastructure/
-    ↑
-interfaces/       ← application/
-```
-
-> 📖 **アーキテクチャ詳細**: [ARCHITECTURE.md](ARCHITECTURE.md#clean-architecture)
+> 📖 詳細は [ARCHITECTURE.md#依存関係ルール](ARCHITECTURE.md#依存関係ルール) を参照
 
 ---
 

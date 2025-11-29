@@ -268,7 +268,15 @@ class TestMemoryEstimation:
 
         # List of 500 digests should be reasonably small
         # This is a rough estimate - actual memory usage is higher
-        assert size_bytes < 1024 * 1024  # Less than 1MB for base structure
+        # Lower bound: ensure logic is actually running (not empty structure)
+        assert size_bytes > 1024, "Memory too small - logic may not be running"
+        # Upper bound: should not exceed 1MB for base structure
+        assert size_bytes < 1024 * 1024, "Memory exceeds 1MB limit"
+        # Per-digest memory ratio check
+        per_digest_bytes = size_bytes / len(large_individual_digests)
+        assert 10 < per_digest_bytes < 10000, (
+            f"Per-digest memory {per_digest_bytes:.1f}B out of expected range (10-10000B)"
+        )
 
 
 # =============================================================================
@@ -317,8 +325,15 @@ class TestFileDetectionPerformance:
 
         elapsed = time.perf_counter() - start
 
-        # 10 iterations should complete in under 5 seconds
-        assert elapsed < 5.0, f"File detection took {elapsed:.2f}s for 10 iterations"
+        # Lower bound: ensure detection logic is actually executing
+        assert elapsed > 0.01, "Detection too fast - check if logic is executing"
+        # Upper bound: 10 iterations should complete in under 5 seconds
+        assert elapsed < 5.0, f"File detection took {elapsed:.2f}s for 10 iterations (max 5s)"
+        # Performance rate check: ensure minimum throughput
+        files_per_second = (1000 * 10) / elapsed  # 1000 files × 10 iterations
+        assert files_per_second > 100, (
+            f"Detection rate {files_per_second:.0f} files/sec below minimum (100 files/sec)"
+        )
         print(f"\nFile detection: {elapsed:.3f}s for 10 iterations (1000 files)")
 
 

@@ -70,13 +70,19 @@ class TestGrandDigestManagerUnit:
         assert template["metadata"]["last_updated"]  # 空でない
 
     @pytest.mark.unit
-    def test_get_template_levels_have_overall_digest(self, grand_manager):
-        """get_template() の各レベルにoverall_digestが含まれる"""
+    def test_get_template_levels_have_overall_digest_key(self, grand_manager):
+        """get_template() の各レベルにoverall_digestキーが存在"""
         template = grand_manager.get_template()
 
         for level in LEVEL_NAMES:
             assert "overall_digest" in template["major_digests"][level]
-            # 初期状態はNone
+
+    @pytest.mark.unit
+    def test_get_template_initial_overall_digests_are_none(self, grand_manager):
+        """get_template() の初期状態ではoverall_digestはNone"""
+        template = grand_manager.get_template()
+
+        for level in LEVEL_NAMES:
             assert template["major_digests"][level]["overall_digest"] is None
 
     @pytest.mark.unit
@@ -176,8 +182,8 @@ class TestGrandDigestManagerIntegration:
         assert data["major_digests"]["weekly"]["overall_digest"] == overall
 
     @pytest.mark.integration
-    def test_update_digest_preserves_other_levels(self, grand_manager):
-        """update_digest() は他のレベルを保持する"""
+    def test_update_digest_preserves_monthly_when_weekly_updated(self, grand_manager):
+        """update_digest() でweekly更新時にmonthlyが保持される"""
         # まずmonthlyを更新
         monthly_digest = {"type": "monthly"}
         grand_manager.update_digest("monthly", "M0001", monthly_digest)
@@ -186,9 +192,23 @@ class TestGrandDigestManagerIntegration:
         weekly_digest = {"type": "weekly"}
         grand_manager.update_digest("weekly", "W0001", weekly_digest)
 
-        # 両方のデータが保持されていることを確認
+        # monthlyが保持されていることを確認
         data = grand_manager.load_or_create()
         assert data["major_digests"]["monthly"]["overall_digest"] == monthly_digest
+
+    @pytest.mark.integration
+    def test_update_digest_sets_weekly_correctly(self, grand_manager):
+        """update_digest() でweeklyが正しく設定される"""
+        # まずmonthlyを更新
+        monthly_digest = {"type": "monthly"}
+        grand_manager.update_digest("monthly", "M0001", monthly_digest)
+
+        # 次にweeklyを更新
+        weekly_digest = {"type": "weekly"}
+        grand_manager.update_digest("weekly", "W0001", weekly_digest)
+
+        # weeklyが正しく設定されていることを確認
+        data = grand_manager.load_or_create()
         assert data["major_digests"]["weekly"]["overall_digest"] == weekly_digest
 
     @pytest.mark.integration

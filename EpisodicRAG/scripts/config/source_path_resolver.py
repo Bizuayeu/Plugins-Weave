@@ -15,8 +15,8 @@ Usage:
 
 from pathlib import Path
 
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, SOURCE_TYPE_LOOPS
-from domain.exceptions import ConfigError
+from .constants import LEVEL_CONFIG, LEVEL_NAMES, SOURCE_TYPE_LOOPS
+from .exceptions import ConfigError
 
 from .level_path_service import LevelPathService
 

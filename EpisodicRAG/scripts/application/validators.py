@@ -13,50 +13,15 @@ Usage:
     files = validate_list(source_files, "source_files")
 """
 
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+from typing import Any, Dict, List, Optional
 
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ValidationError
 from domain.validation import validate_type as _validate_type
-
-# =============================================================================
-# 汎用ヘルパー関数（内部使用）
-# =============================================================================
-
-T = TypeVar('T')
-
-# _validate_type は domain.validation から再エクスポート（後方互換性維持）
-
-
-def _is_valid_type(data: Any, expected_type: Type[T]) -> bool:
-    """
-    汎用型チェックヘルパー（例外を投げない）
-
-    Args:
-        data: 検証対象のデータ
-        expected_type: 期待する型
-
-    Returns:
-        dataが期待する型ならTrue
-    """
-    return isinstance(data, expected_type)
-
-
-def _get_or_default(data: Any, expected_type: Type[T], default_factory: Callable[[], T]) -> T:
-    """
-    汎用デフォルト取得ヘルパー
-
-    Args:
-        data: 検証対象のデータ
-        expected_type: 期待する型
-        default_factory: デフォルト値を生成する関数
-
-    Returns:
-        dataが期待する型ならdata、そうでなければdefault_factory()の結果
-    """
-    if isinstance(data, expected_type):
-        return data
-    return default_factory()
+from domain.validators import (
+    get_or_default as _get_or_default,
+    is_valid_type as _is_valid_type,
+)
 
 
 # =============================================================================

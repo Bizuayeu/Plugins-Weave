@@ -37,10 +37,10 @@ import logging
 from pathlib import Path
 from typing import List, Literal, Optional
 
-# Domain層からインポート
-from domain.error_formatter import get_error_formatter
-from domain.exceptions import ConfigError
-from domain.types import ConfigData
+# Config層専用の型・例外・エラーメッセージ
+from .exceptions import ConfigError
+from .types import ConfigData
+from .error_messages import initialization_failed_message
 
 # 内部コンポーネント
 from .config_loader import ConfigLoader
@@ -124,8 +124,7 @@ class DigestConfig:
             self._directory_validator = self._config_validator
 
         except (PermissionError, OSError) as e:
-            formatter = get_error_formatter()
-            raise ConfigError(formatter.config.initialization_failed("configuration", e)) from e
+            raise ConfigError(initialization_failed_message("configuration", e)) from e
 
     # =========================================================================
     # Context Manager Support

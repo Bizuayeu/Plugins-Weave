@@ -18,9 +18,9 @@ Usage:
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-from domain.types import ConfigData, as_dict
-from domain.validation import collect_type_error as _collect_type_error
+from .constants import LEVEL_CONFIG, LEVEL_NAMES
+from .types import ConfigData, as_dict
+from .validation import collect_type_error as _collect_type_error
 
 from .config_constants import REQUIRED_CONFIG_KEYS, THRESHOLD_KEYS
 from .level_path_service import LevelPathService

@@ -42,7 +42,7 @@ class TestConcurrentReads:
                 with open(test_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 results.append(data)
-            except Exception as e:
+            except (IOError, json.JSONDecodeError, FileNotFoundError) as e:
                 errors.append(e)
 
         # Create and start multiple reader threads
@@ -158,7 +158,7 @@ class TestLockContentionSimulation:
                     data["counter"] += 1
                     with open(test_file, "w", encoding="utf-8") as f:
                         json.dump(data, f)
-            except Exception as e:
+            except (IOError, json.JSONDecodeError, KeyError, TypeError, FileNotFoundError) as e:
                 errors.append(e)
 
         threads = [threading.Thread(target=increment_task) for _ in range(10)]
@@ -259,3 +259,162 @@ class TestShadowUpdateConcurrency:
 
         assert len(final_data["pending_sources"]) == 3
         assert "L00003.txt" in final_data["pending_sources"]
+
+
+# =============================================================================
+# Race Condition Tests
+# =============================================================================
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+class TestRaceConditions:
+    """競合状態のテスト"""
+
+    def test_shadow_update_atomicity(self, temp_plugin_env):
+        """Shadow更新がアトミックであること - 部分書き込みが発生しない"""
+        test_file = temp_plugin_env.digests_path / "atomicity_test.json"
+        test_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # 初期データ
+        initial_data = {"counter": 0, "items": list(range(100))}
+        with open(test_file, "w", encoding="utf-8") as f:
+            json.dump(initial_data, f)
+
+        write_lock = threading.Lock()
+        partial_write_detected = []
+        completed_writes = []
+
+        def atomic_writer(writer_id: int):
+            """アトミックな書き込みを行う"""
+            for i in range(5):
+                try:
+                    with write_lock:
+                        with open(test_file, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                        data["counter"] += 1
+                        data["last_writer"] = writer_id
+                        with open(test_file, "w", encoding="utf-8") as f:
+                            json.dump(data, f, ensure_ascii=False)
+                    completed_writes.append((writer_id, i))
+                except (IOError, json.JSONDecodeError) as e:
+                    partial_write_detected.append(e)
+
+        # 複数スレッドで同時書き込み
+        threads = [threading.Thread(target=atomic_writer, args=(i,)) for i in range(5)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        # 部分書き込みがないことを確認
+        assert len(partial_write_detected) == 0, f"部分書き込み検出: {partial_write_detected}"
+
+        # 全書き込みが完了したことを確認
+        assert len(completed_writes) == 25, f"完了した書き込み: {len(completed_writes)}/25"
+
+        # ファイルが有効なJSONであることを確認
+        with open(test_file, "r", encoding="utf-8") as f:
+            final_data = json.load(f)
+        assert final_data["counter"] == 25
+
+    def test_partial_write_detection(self, temp_plugin_env):
+        """部分書き込みを検出できること"""
+        test_file = temp_plugin_env.digests_path / "partial_write_test.json"
+        test_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # 正常なJSONファイルを作成
+        valid_data = {"complete": True, "data": "test"}
+        with open(test_file, "w", encoding="utf-8") as f:
+            json.dump(valid_data, f)
+
+        # 部分的に書き込まれたファイルをシミュレート
+        partial_content = '{"incomplete": true, "data": '  # 不完全なJSON
+        with open(test_file, "w", encoding="utf-8") as f:
+            f.write(partial_content)
+
+        # 不完全なJSONの読み取りはエラーになるべき
+        with pytest.raises(json.JSONDecodeError):
+            with open(test_file, "r", encoding="utf-8") as f:
+                json.load(f)
+
+    def test_read_during_write_tracking(self, temp_plugin_env):
+        """書き込み中の読み取り結果を追跡"""
+        test_file = temp_plugin_env.digests_path / "read_write_tracking.json"
+        test_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # 初期データ
+        with open(test_file, "w", encoding="utf-8") as f:
+            json.dump({"version": 1}, f)
+
+        read_successes: List[dict] = []
+        read_failures: List[Exception] = []
+        write_lock = threading.Lock()
+        total_reads = 0
+
+        def writer_task():
+            for i in range(10):
+                with write_lock:
+                    with open(test_file, "w", encoding="utf-8") as f:
+                        json.dump({"version": i + 2}, f)
+                time.sleep(0.005)
+
+        def reader_task():
+            nonlocal total_reads
+            for _ in range(20):
+                total_reads += 1
+                try:
+                    with open(test_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    read_successes.append(data)
+                except (IOError, json.JSONDecodeError) as e:
+                    read_failures.append(e)
+                time.sleep(0.002)
+
+        writer = threading.Thread(target=writer_task)
+        reader = threading.Thread(target=reader_task)
+
+        writer.start()
+        reader.start()
+        writer.join()
+        reader.join()
+
+        # 読み取り成功率を計算
+        success_rate = len(read_successes) / total_reads if total_reads > 0 else 0
+
+        # 最低限の成功率を確保（書き込みロックがあるため高い成功率が期待される）
+        assert success_rate > 0.8, f"読み取り成功率が低すぎます: {success_rate:.1%}"
+        # 成功した読み取りは全て有効なデータ
+        assert all("version" in r for r in read_successes)
+
+    def test_timeout_on_blocked_operation(self, temp_plugin_env):
+        """ブロックされた操作のタイムアウト動作"""
+        import concurrent.futures
+
+        test_file = temp_plugin_env.digests_path / "timeout_test.json"
+        test_file.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(test_file, "w", encoding="utf-8") as f:
+            json.dump({"data": "test"}, f)
+
+        long_running_lock = threading.Lock()
+        operation_completed = []
+
+        def long_running_task():
+            """長時間実行されるタスクをシミュレート"""
+            with long_running_lock:
+                time.sleep(0.5)  # 500ms待機
+                with open(test_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                operation_completed.append(True)
+                return data
+
+        # タイムアウト付きで実行
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(long_running_task)
+            try:
+                result = future.result(timeout=2.0)  # 2秒タイムアウト
+                assert result is not None
+                assert len(operation_completed) == 1
+            except concurrent.futures.TimeoutError:
+                pytest.fail("操作がタイムアウトしました（2秒以内に完了すべき）")

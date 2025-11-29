@@ -227,21 +227,31 @@ L00001追加 → `/digest`せず → L00002追加
 
 ### 記憶定着サイクル
 
+EpisodicRAGの最も重要な原則は、**Loopを追加したら都度 `/digest` を実行する**ことです。
+
+```mermaid
+flowchart LR
+    A[Loop追加] --> B["/digest"]
+    B --> C[記憶定着]
+    C --> A
+
+    style B fill:#90EE90,stroke:#228B22
+    style C fill:#87CEEB,stroke:#4169E1
+```
+
+**やるべきこと:**
 ```text
-Loop追加 → `/digest` → Loop追加 → `/digest` → ...
-         ↑ 記憶定着  ↑         ↑ 記憶定着
+L00001追加 → /digest → L00002追加 → /digest → ...
+```
+
+**やってはいけないこと:**
+```text
+L00001追加 → L00002追加 → /digest
+                 ↑
+       この時点でL00001の内容をAIは覚えていない（まだらボケ）
 ```
 
 この原則を守ることで、AIは全てのLoopを記憶できます。
-
-**やってはいけないこと:**
-
-```text
-L00001追加 → `/digest`せず → L00002追加
-                              ↑
-                    この時点でAIはL00001の内容を覚えていない
-                    （記憶がまだら＝虫食い状態）
-```
 
 ### Threshold（閾値）
 **定義**: 各階層のDigest生成に必要な最小ファイル数

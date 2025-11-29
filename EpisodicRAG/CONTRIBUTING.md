@@ -428,6 +428,47 @@ python -c "from domain import __version__; print(__version__)"
 
 ---
 
+## Documentation Sync Process
+
+### Bilingual Documentation Policy
+
+EpisodicRAGプラグインは日本語を主言語とし、主要ドキュメントの英語版を提供しています。
+
+1. **Primary Language**: Japanese (日本語)
+2. **Secondary Language**: English
+
+> **翻訳方針**: 主要ドキュメント（README, QUICKSTART, CHEATSHEET）のみ英語版を維持します。その他のドキュメントは日本語のみとし、翻訳の維持コストを抑えます。
+
+### Currently Synced Files
+
+| Japanese | English | Status |
+|----------|---------|--------|
+| `README.md` | `README.en.md` | ✅ Synced |
+| `docs/user/QUICKSTART.md` | `docs/user/QUICKSTART.en.md` | ✅ Synced |
+| `docs/user/CHEATSHEET.md` | `docs/user/CHEATSHEET.en.md` | ✅ Synced |
+
+### Sync Workflow
+
+日本語ドキュメントを更新した場合、対応する英語ドキュメントも同期してください。
+
+1. **Edit Japanese version first** - 日本語版を先に編集
+2. **Update English version** - 同じPR内で英語版を更新
+3. **Add sync header** - 英語ファイルの先頭にヘッダーを追加:
+   ```markdown
+   <!-- Last synced: YYYY-MM-DD -->
+   ```
+
+### Adding New Translations
+
+新しい英語翻訳を追加する場合:
+
+1. Copy structure from Japanese version（日本語版の構造をコピー）
+2. Translate content maintaining formatting（フォーマットを維持して翻訳）
+3. Add sync header with date（同期ヘッダーを追加）
+4. Update this table（上のテーブルを更新）
+
+---
+
 ## サポート
 
 質問や問題がある場合は、GitHub Issuesで報告してください。

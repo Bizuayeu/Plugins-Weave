@@ -11,7 +11,7 @@ import json
 import pytest
 
 from config.config_repository import load_config
-from domain.exceptions import ConfigError
+from config.exceptions import ConfigError
 
 
 class TestLoadConfig:

@@ -9,9 +9,13 @@ base_dir基準のパス解決
 from pathlib import Path
 from typing import Optional
 
-from domain.error_formatter import get_error_formatter
-from domain.exceptions import ConfigError
-from domain.types import ConfigData, as_dict
+from .exceptions import ConfigError
+from .types import ConfigData, as_dict
+from .error_messages import (
+    config_invalid_value_message,
+    config_section_missing_message,
+    config_key_missing_message,
+)
 
 __all__ = ["PathResolver"]
 
@@ -56,9 +60,8 @@ class PathResolver:
         try:
             resolved.relative_to(plugin_root_resolved)
         except ValueError:
-            formatter = get_error_formatter()
             raise ConfigError(
-                formatter.config.config_invalid_value(
+                config_invalid_value_message(
                     "base_dir",
                     "path within plugin root",
                     f"'{base_dir_setting}' (resolves outside plugin root)"
@@ -79,12 +82,11 @@ class PathResolver:
         Raises:
             ConfigError: pathsセクションまたはキーが存在しない場合
         """
-        formatter = get_error_formatter()
         if "paths" not in self.config:
-            raise ConfigError(formatter.config.config_section_missing("paths"))
+            raise ConfigError(config_section_missing_message("paths"))
         paths = as_dict(self.config["paths"])
         if key not in paths:
-            raise ConfigError(formatter.config.config_key_missing(f"paths.{key}"))
+            raise ConfigError(config_key_missing_message(f"paths.{key}"))
         rel_path = str(paths[key])
         return (self.base_dir / rel_path).resolve()
 

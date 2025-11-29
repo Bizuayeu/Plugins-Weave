@@ -68,6 +68,13 @@ from infrastructure.structured_logging import (
 # User Interaction
 from infrastructure.user_interaction import get_default_confirm_callback
 
+# Error Handling
+from infrastructure.error_handling import (
+    safe_cleanup,
+    safe_file_operation,
+    with_error_context,
+)
+
 __all__ = [
     # JSON Repository
     "load_json",
@@ -96,4 +103,8 @@ __all__ = [
     "get_structured_logger",
     # User Interaction
     "get_default_confirm_callback",
+    # Error Handling
+    "safe_file_operation",
+    "safe_cleanup",
+    "with_error_context",
 ]

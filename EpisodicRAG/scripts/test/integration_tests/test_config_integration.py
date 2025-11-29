@@ -19,7 +19,7 @@ from application.shadow import FileDetector
 from application.tracking import DigestTimesTracker
 from config import DigestConfig
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-from domain.exceptions import ConfigError
+from config.exceptions import ConfigError
 
 # integration マーカーを適用（ファイル全体）
 pytestmark = pytest.mark.integration

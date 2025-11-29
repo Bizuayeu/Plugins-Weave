@@ -8,9 +8,9 @@ Level Path Service
 
 from pathlib import Path
 
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-from domain.error_formatter import get_error_formatter
-from domain.exceptions import ConfigError
+from .constants import LEVEL_CONFIG, LEVEL_NAMES
+from .exceptions import ConfigError
+from .error_messages import invalid_level_message
 
 
 class LevelPathService:
@@ -39,8 +39,7 @@ class LevelPathService:
             ConfigError: 不正なレベル名の場合
         """
         if level not in LEVEL_CONFIG:
-            formatter = get_error_formatter()
-            raise ConfigError(formatter.config.invalid_level(level, list(LEVEL_NAMES)))
+            raise ConfigError(invalid_level_message(level, list(LEVEL_NAMES)))
         return self.digests_path / str(LEVEL_CONFIG[level]["dir"])
 
     def get_provisional_dir(self, level: str) -> Path:

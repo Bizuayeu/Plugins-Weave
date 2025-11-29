@@ -6,10 +6,10 @@ Threshold Provider
 しきい値管理
 """
 
-from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-from domain.error_formatter import get_error_formatter
-from domain.exceptions import ConfigError
-from domain.types import ConfigData, as_dict
+from .constants import LEVEL_CONFIG, LEVEL_NAMES
+from .exceptions import ConfigError
+from .types import ConfigData, as_dict
+from .error_messages import invalid_level_message
 
 __all__ = ["ThresholdProvider"]
 
@@ -51,13 +51,16 @@ class ThresholdProvider:
             ConfigError: 不正なレベル名の場合
         """
         if level not in LEVEL_CONFIG:
-            formatter = get_error_formatter()
-            raise ConfigError(formatter.config.invalid_level(level, list(LEVEL_NAMES)))
+            raise ConfigError(invalid_level_message(level, list(LEVEL_NAMES)))
 
         key = f"{level}_threshold"
         # LEVEL_CONFIGからデフォルト閾値を取得（Single Source of Truth）
         level_config = LEVEL_CONFIG.get(level, {})
-        default = int(level_config.get("threshold", 5)) if isinstance(level_config, dict) else 5
+        if isinstance(level_config, dict):
+            threshold_value = level_config.get("threshold", 5)
+            default = int(threshold_value) if isinstance(threshold_value, (int, str, float)) else 5
+        else:
+            default = 5
         # Cast to Dict for dynamic key access
         levels_dict = as_dict(self.config.get("levels", {}))
         if key in levels_dict:

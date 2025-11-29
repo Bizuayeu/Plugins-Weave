@@ -68,14 +68,21 @@ class TestDigestPersistenceSaveRegularDigest:
     """save_regular_digest メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_saves_new_digest(self, persistence, valid_regular_digest, temp_plugin_env):
-        """新しいdigestを保存"""
+    def test_saves_file_exists(self, persistence, valid_regular_digest, temp_plugin_env):
+        """保存したファイルが存在する"""
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
-
         assert result_path.exists()
+
+    @pytest.mark.integration
+    def test_saves_file_with_correct_name(self, persistence, valid_regular_digest, temp_plugin_env):
+        """正しいファイル名で保存される"""
+        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
         assert result_path.name == "W0001_Test.txt"
 
-        # 内容を検証
+    @pytest.mark.integration
+    def test_saves_correct_content(self, persistence, valid_regular_digest, temp_plugin_env):
+        """正しい内容が保存される"""
+        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
         with open(result_path, 'r', encoding='utf-8') as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["name"] == "W0001_Test"

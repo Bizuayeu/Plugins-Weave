@@ -66,10 +66,15 @@ class TestCreateEmptyOverallDigest:
         assert result["timestamp"] == PLACEHOLDER_SIMPLE
 
     @pytest.mark.unit
-    def test_source_files_is_empty_list(self, template):
-        """source_filesは空リスト"""
+    def test_source_files_is_empty(self, template):
+        """source_filesが空であること"""
         result = template.create_empty_overall_digest()
         assert result["source_files"] == []
+
+    @pytest.mark.unit
+    def test_source_files_is_list_type(self, template):
+        """source_filesがlist型であること"""
+        result = template.create_empty_overall_digest()
         assert isinstance(result["source_files"], list)
 
     @pytest.mark.unit
@@ -86,11 +91,17 @@ class TestCreateEmptyOverallDigest:
         assert len(result["keywords"]) == expected_count
 
     @pytest.mark.unit
-    def test_keywords_are_placeholders(self, template):
-        """各keywordはプレースホルダー形式"""
+    def test_keywords_have_placeholder_marker(self, template):
+        """各keywordにプレースホルダーマーカーが含まれる"""
         result = template.create_empty_overall_digest()
         for keyword in result["keywords"]:
             assert PLACEHOLDER_MARKER in keyword
+
+    @pytest.mark.unit
+    def test_keywords_have_placeholder_end(self, template):
+        """各keywordにプレースホルダー終端が含まれる"""
+        result = template.create_empty_overall_digest()
+        for keyword in result["keywords"]:
             assert PLACEHOLDER_END in keyword
 
     @pytest.mark.unit

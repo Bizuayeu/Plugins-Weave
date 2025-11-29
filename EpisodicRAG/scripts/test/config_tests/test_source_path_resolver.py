@@ -14,7 +14,7 @@ from test_helpers import TempPluginEnvironment
 
 from config import DigestConfig
 from domain.constants import LEVEL_CONFIG
-from domain.exceptions import ConfigError
+from config.exceptions import ConfigError
 
 # =============================================================================
 # get_source_dir のテスト

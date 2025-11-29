@@ -10,7 +10,7 @@ import pytest
 
 from config.level_path_service import LevelPathService
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
-from domain.exceptions import ConfigError
+from config.exceptions import ConfigError
 
 
 class TestLevelPathService:

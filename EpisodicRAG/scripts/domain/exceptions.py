@@ -68,7 +68,7 @@ class DiagnosticContext:
         Returns:
             キー=属性名、値=属性値の辞書（Noneは除外）
         """
-        result = {}
+        result: Dict[str, Any] = {}
         if self.config_path is not None:
             result["config_path"] = str(self.config_path)
         if self.current_level is not None:

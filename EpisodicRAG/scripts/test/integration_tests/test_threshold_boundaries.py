@@ -300,7 +300,11 @@ class TestEdgeCases(TestThresholdBoundaryBase):
 
     def test_duplicate_file_addition_prevented(self, boundary_env):
         """
-        同じファイルの重複追加が防止されること
+        同じファイルをShadowに重複追加しても1回しか追加されないこと
+
+        Note:
+            find_new_filesはtimes_trackerのlast_processed番号に基づいて判定する。
+            このテストではadd_files_to_shadowの重複防止機能を検証する。
         """
         env = boundary_env["env"]
         config = boundary_env["config"]
@@ -317,17 +321,131 @@ class TestEdgeCases(TestThresholdBoundaryBase):
 
         weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
         initial_count = len(weekly_shadow["source_files"])
+        assert initial_count == 3, f"初回追加で3件追加されるべき（実際: {initial_count}）"
 
-        # 2回目の追加（同じファイル）
-        # find_new_filesは既に追加済みファイルを除外するはず
-        new_files_2 = shadow_manager._detector.find_new_files("weekly")
-
-        # 新規ファイルがなければ0件
-        # （実際の動作は実装依存）
-        shadow_manager.add_files_to_shadow("weekly", new_files_2)
+        # 2回目の追加（同じファイルを直接追加）
+        # add_files_to_shadowは内部で重複を防止するはず
+        shadow_manager.add_files_to_shadow("weekly", new_files)
 
         weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
         final_count = len(weekly_shadow["source_files"])
 
-        # 重複追加がなければ件数は同じか、増分のみ
-        assert final_count >= initial_count
+        # 重複追加がなければ件数は同じ
+        assert final_count == initial_count, f"重複追加が発生: {final_count - initial_count}件追加された"
+
+
+class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
+    """追加のエッジケース境界値テスト"""
+
+    def test_threshold_equals_one(self, temp_plugin_env):
+        """
+        閾値=1の特殊ケース
+
+        単一ファイルで閾値達成する場合のテスト
+        """
+        import json
+
+        env = temp_plugin_env
+
+        # 閾値=1の設定を作成
+        config_file = env.config_dir / "config.json"
+        config_data = json.loads(config_file.read_text())
+        config_data["levels"] = {"weekly_threshold": 1}
+        config_file.write_text(json.dumps(config_data, indent=2))
+
+        config = DigestConfig(plugin_root=env.plugin_root)
+
+        # last_digest_times.json を初期化
+        times_file = env.config_dir / "last_digest_times.json"
+        times_file.write_text("{}")
+
+        # 閾値が1であることを確認
+        assert config.threshold.weekly_threshold == 1
+
+        # 1ファイルを作成
+        create_test_loop_file(env.loops_path, 1, "test_loop_1")
+
+        shadow_manager = ShadowGrandDigestManager(config)
+        new_files = shadow_manager._detector.find_new_files("weekly")
+
+        assert len(new_files) == 1, "1件のファイルが検出されること"
+
+    @pytest.mark.slow
+    def test_very_large_threshold(self, boundary_env):
+        """
+        大きな閾値（1000+）のテスト
+
+        大量ファイルでのパフォーマンスと正確性
+        """
+        env = boundary_env["env"]
+        config = boundary_env["config"]
+
+        # 1000ファイルを作成
+        file_count = 1000
+        for i in range(1, file_count + 1):
+            create_test_loop_file(env.loops_path, i, f"test_loop_{i}")
+
+        shadow_manager = ShadowGrandDigestManager(config)
+        new_files = shadow_manager._detector.find_new_files("weekly")
+
+        assert len(new_files) == file_count, f"1000件のファイルが検出されること（実際: {len(new_files)}）"
+
+        shadow_manager.add_files_to_shadow("weekly", new_files)
+        weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
+
+        assert weekly_shadow is not None
+        assert len(weekly_shadow["source_files"]) == file_count
+
+    def test_threshold_minus_two(self, boundary_env):
+        """
+        閾値-2のテスト
+
+        threshold-2でトリガーされないこと
+        """
+        env = boundary_env["env"]
+        config = boundary_env["config"]
+
+        threshold = config.threshold.weekly_threshold
+        if threshold < 3:
+            pytest.skip("閾値が3未満のためテストをスキップ")
+
+        file_count = threshold - 2
+
+        for i in range(1, file_count + 1):
+            create_test_loop_file(env.loops_path, i, f"test_loop_{i}")
+
+        shadow_manager = ShadowGrandDigestManager(config)
+        new_files = shadow_manager._detector.find_new_files("weekly")
+
+        assert len(new_files) == file_count, f"閾値-2={file_count}件のファイルが検出されること"
+
+        # 閾値に達していないことを確認
+        assert file_count < threshold, "ファイル数が閾値未満であること"
+
+    def test_threshold_plus_two(self, boundary_env):
+        """
+        閾値+2のテスト
+
+        threshold+2で確実にトリガーされること
+        """
+        env = boundary_env["env"]
+        config = boundary_env["config"]
+
+        threshold = config.threshold.weekly_threshold
+        file_count = threshold + 2
+
+        for i in range(1, file_count + 1):
+            create_test_loop_file(env.loops_path, i, f"test_loop_{i}")
+
+        shadow_manager = ShadowGrandDigestManager(config)
+        new_files = shadow_manager._detector.find_new_files("weekly")
+
+        assert len(new_files) == file_count, f"閾値+2={file_count}件のファイルが検出されること"
+
+        shadow_manager.add_files_to_shadow("weekly", new_files)
+        weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
+
+        assert weekly_shadow is not None
+        assert len(weekly_shadow["source_files"]) == file_count
+        # 閾値を超えていることを確認
+        assert file_count > threshold, "ファイル数が閾値を超えていること"
