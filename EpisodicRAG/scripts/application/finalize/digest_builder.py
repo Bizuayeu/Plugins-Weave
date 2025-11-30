@@ -69,7 +69,30 @@ class RegularDigestBuilder:
 
     Note:
         build()はmetadata.last_updatedを現在時刻で自動設定する。
+        abstract/impressionはstring型とlong/shortオブジェクト型の両方に対応。
     """
+
+    @staticmethod
+    def _extract_long_value(value, default: str = "") -> str:
+        """
+        abstract/impression から long 版の値を抽出する。
+
+        Args:
+            value: string型 または {"long": str, "short": str} 型
+            default: 値が取得できない場合のデフォルト値
+
+        Returns:
+            long版の文字列（string型の場合はそのまま返す）
+
+        Example:
+            >>> RegularDigestBuilder._extract_long_value("plain text")
+            'plain text'
+            >>> RegularDigestBuilder._extract_long_value({"long": "2400字", "short": "1200字"})
+            '2400字'
+        """
+        if isinstance(value, dict):
+            return value.get("long", default)
+        return value if value else default
 
     @staticmethod
     def build(
@@ -94,6 +117,15 @@ class RegularDigestBuilder:
         """
         source_files = shadow_digest.get("source_files", [])
 
+        # abstract/impression は string型 または {"long": str, "short": str} 型に対応
+        # overall_digest には long 版を使用
+        abstract = RegularDigestBuilder._extract_long_value(
+            shadow_digest.get("abstract", "")
+        )
+        impression = RegularDigestBuilder._extract_long_value(
+            shadow_digest.get("impression", "")
+        )
+
         return {
             "metadata": {
                 "digest_level": level,
@@ -107,8 +139,8 @@ class RegularDigestBuilder:
                 "source_files": source_files,
                 "digest_type": shadow_digest.get("digest_type", "統合"),
                 "keywords": shadow_digest.get("keywords", []),
-                "abstract": shadow_digest.get("abstract", ""),
-                "impression": shadow_digest.get("impression", ""),
+                "abstract": abstract,
+                "impression": impression,
             },
             "individual_digests": individual_digests,
         }

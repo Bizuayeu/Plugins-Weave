@@ -91,6 +91,20 @@ GrandDigest と ShadowGrandDigest を活用し、Loop/Digest ファイルの深�
 }
 ```
 
+### 出力使用先の明示
+
+DigestAnalyzer の出力は以下のように使い分けられます：
+
+| 出力 | 文字数 | 用途 | 保存先 |
+|------|--------|------|--------|
+| abstract.long | 2400字 | 現階層overall_digest | ShadowGrandDigest.{level}.overall_digest.abstract |
+| abstract.short | 1200字 | 次階層individual_digests | Provisional/{next}_Individual.txt |
+| impression.long | 800字 | 現階層overall_digest | ShadowGrandDigest.{level}.overall_digest.impression |
+| impression.short | 400字 | 次階層individual_digests | Provisional/{next}_Individual.txt |
+
+**注意**: 単一ソースファイルの場合も、この使い分けは同様に適用されます。
+単一エントリでもDigestAnalyzerを呼び出すことで、まだらボケを回避し、Provisional整合性を維持できます。
+
 ### digest_type の選択
 
 config.py から取得可能な digest_type 一覧:

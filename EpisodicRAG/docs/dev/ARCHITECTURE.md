@@ -298,6 +298,45 @@ flowchart LR
     MD --> |x4| C[Centurial]
 ```
 
+### finalize後の次階層処理フロー
+
+```text
+/digest weekly 完了
+│
+├── W0051 Regular作成 ✅
+├── GrandDigest.weekly 更新 ✅
+├── ShadowGrandDigest.weekly クリア ✅
+│
+└── 次階層カスケード
+    ├── ShadowGrandDigest.monthly.source_files += [W0051] ✅ 自動
+    │
+    └── 【重要】統合分析（単一エントリでも実行）
+        ├── DigestAnalyzer起動（W0051を入力）
+        ├── long版 → ShadowGrandDigest.monthly.overall_digest 更新
+        └── short版 → M0011_Individual.txt 追加
+```
+
+**単一エントリでも統合分析を行う理由：**
+
+1. **まだらボケ回避** - 分析を後回しにすると記憶が断片化
+2. **long/short両方を即座に取得** - 次の確定処理時に必要
+3. **Provisional整合性維持** - individual_digestsが常に最新状態
+
+```mermaid
+flowchart TD
+    A["/digest weekly 完了"] --> B[RegularDigest作成]
+    B --> C[GrandDigest更新]
+    C --> D[Shadow.weekly クリア]
+    D --> E[次階層カスケード開始]
+    E --> F["source_files += [W0051]"]
+    F --> G{エントリ数}
+    G -->|単一でも| H[DigestAnalyzer起動]
+    H --> I[long版出力]
+    H --> J[short版出力]
+    I --> K[Shadow.monthly.overall_digest更新]
+    J --> L[M00XX_Individual.txt追加]
+```
+
 ---
 
 ## パス解決の仕組み
