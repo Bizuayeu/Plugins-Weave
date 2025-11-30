@@ -17,6 +17,7 @@ EpisodicRAG システムの現在の状態を分析することで、
 - [CLIスクリプト](#cliスクリプト)
 - [スキルの自律判断](#スキルの自律判断)
 - [出力例](#出力例)
+- [実装時の注意事項](#重要実装時の注意事項)
 
 ## 用語説明
 
@@ -227,9 +228,9 @@ Claudeの動作:
 
 ---
 
-## 実装時の注意事項
+## 【重要】実装時の注意事項
 
-> 📖 共通の実装ガイドラインは [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
+> 📖 共通の実装ガイドラインである [_implementation-notes.md](../shared/_implementation-notes.md) を**必ず参照**してください。
 > - UIメッセージの出力形式
 > - config.py への依存
 > - エラーハンドリング

@@ -14,6 +14,7 @@ EpisodicRAG プラグインの初期セットアップを対話的に実行す�
 - [CLIスクリプト](#cliスクリプト)
 - [スキルの自律判断](#スキルの自律判断)
 - [デフォルト設定例](#デフォルト設定例)
+- [実装時の注意事項](#重要実装時の注意事項)
 
 ## 用語説明
 
@@ -187,9 +188,9 @@ python -m interfaces.digest_setup init --config '...' --force
 
 ---
 
-## 実装時の注意事項
+## 【重要】実装時の注意事項
 
-> 📖 共通の実装ガイドライン（パス検証、閾値検証、エラーハンドリング）は [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
+> 📖 共通の実装ガイドライン（パス検証、閾値検証、エラーハンドリング）である [_implementation-notes.md](../shared/_implementation-notes.md) を**必ず参照**してください。
 
 ---
 
