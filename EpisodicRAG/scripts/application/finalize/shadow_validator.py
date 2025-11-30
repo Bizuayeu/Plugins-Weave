@@ -15,6 +15,7 @@ from typing import Any, Callable, List, Optional, Tuple
 
 from application.finalize.validators import CollectionValidator, FileNumberValidator
 from application.grand import ShadowGrandDigestManager
+from domain.constants import PLACEHOLDER_MARKER
 from domain.error_formatter import CompositeErrorFormatter, get_error_formatter
 from domain.exceptions import DigestError, ValidationError
 from domain.types import OverallDigestData
@@ -197,6 +198,27 @@ class ShadowValidator:
                 formatter.validation.invalid_type("shadow digest", "dict", shadow_digest)
             )
 
+    def _validate_digest_type(self, shadow_digest: OverallDigestData) -> None:
+        """
+        digest_typeがプレースホルダーでないことを検証
+
+        Args:
+            shadow_digest: 検証対象のShadowダイジェスト
+
+        Raises:
+            ValidationError: digest_typeがプレースホルダーまたは空の場合
+        """
+        digest_type = shadow_digest.get("digest_type")
+
+        if digest_type is None or not str(digest_type).strip():
+            formatter = get_error_formatter()
+            raise ValidationError(formatter.validation.empty_collection("digest_type"))
+
+        if PLACEHOLDER_MARKER in str(digest_type):
+            raise ValidationError(
+                "digest_type contains placeholder. Run DigestAnalyzer first."
+            )
+
     def validate_and_get_shadow(self, level: str, weave_title: str) -> OverallDigestData:
         """
         Shadowデータの検証と取得
@@ -209,7 +231,8 @@ class ShadowValidator:
             検証済みのshadow_digest
 
         Raises:
-            ValidationError: weave_titleが空、またはshadow_digestの形式が不正な場合
+            ValidationError: weave_titleが空、shadow_digestの形式が不正、
+                           またはdigest_typeがプレースホルダーの場合
             DigestError: shadow_digestが見つからない場合
         """
         # 1. タイトル検証
@@ -224,6 +247,9 @@ class ShadowValidator:
         # 4. source_files取得と内容検証
         source_files = shadow_digest.get("source_files", [])
         self.validate_shadow_content(level, source_files)
+
+        # 5. digest_type検証（分析完了確認）
+        self._validate_digest_type(shadow_digest)
 
         _logger.info(f"Shadow digest contains {len(source_files)} source file(s)")
         return shadow_digest

@@ -124,6 +124,11 @@ class TestShadowValidatorValidateAndGetShadow:
         _ = create_test_loop_file(temp_plugin_env.loops_path, 1)
         shadow_manager.update_shadow_for_new_loops()
 
+        # digest_typeを分析済み状態に設定
+        data = shadow_manager._io.load_or_create()
+        data["latest_digests"]["weekly"]["overall_digest"]["digest_type"] = "テスト"
+        shadow_manager._io.save(data)
+
         result = validator.validate_and_get_shadow("weekly", "Test Title")
 
         assert result is not None
@@ -361,6 +366,11 @@ class TestShadowValidatorEdgeCases:
             create_test_loop_file(temp_plugin_env.loops_path, i, f"test_{i}")
         shadow_manager.update_shadow_for_new_loops()
 
+        # digest_typeを分析済み状態に設定
+        data = shadow_manager._io.load_or_create()
+        data["latest_digests"]["weekly"]["overall_digest"]["digest_type"] = "テスト"
+        shadow_manager._io.save(data)
+
         result = validator.validate_and_get_shadow("weekly", "Test Title")
 
         assert result is not None
@@ -470,3 +480,66 @@ class TestShadowValidatorPrivateMethods:
     def test_validate_shadow_format_empty_dict_passes(self, validator):
         """_validate_shadow_format: 空のdictでもエラーなし"""
         validator._validate_shadow_format({})
+
+    # -------------------------------------------------------------------------
+    # _validate_digest_type() テスト
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.unit
+    def test_validate_digest_type_none_raises(self, validator):
+        """_validate_digest_type: NoneでValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_digest_type({"digest_type": None})
+        assert "cannot be empty" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_digest_type_empty_string_raises(self, validator):
+        """_validate_digest_type: 空文字列でValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_digest_type({"digest_type": ""})
+        assert "cannot be empty" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_digest_type_whitespace_only_raises(self, validator):
+        """_validate_digest_type: 空白のみでValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_digest_type({"digest_type": "   "})
+        assert "cannot be empty" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_validate_digest_type_placeholder_raises(self, validator):
+        """_validate_digest_type: プレースホルダーでValidationError"""
+        from domain.constants import PLACEHOLDER_SIMPLE
+
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_digest_type({"digest_type": PLACEHOLDER_SIMPLE})
+        assert "placeholder" in str(exc_info.value).lower()
+
+    @pytest.mark.unit
+    def test_validate_digest_type_placeholder_marker_raises(self, validator):
+        """_validate_digest_type: PLACEHOLDERマーカーを含む場合ValidationError"""
+        from domain.constants import PLACEHOLDER_MARKER
+
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_digest_type({"digest_type": f"{PLACEHOLDER_MARKER}: custom -->"})
+        assert "placeholder" in str(exc_info.value).lower()
+
+    @pytest.mark.unit
+    def test_validate_digest_type_valid_string_passes(self, validator):
+        """_validate_digest_type: 正常な文字列でエラーなし"""
+        # 例外が発生しなければOK
+        validator._validate_digest_type({"digest_type": "転換"})
+
+    @pytest.mark.unit
+    def test_validate_digest_type_valid_types(self, validator):
+        """_validate_digest_type: 有効なdigest_type値でエラーなし"""
+        valid_types = ["統合", "深化", "転換", "テスト"]
+        for dtype in valid_types:
+            validator._validate_digest_type({"digest_type": dtype})
+
+    @pytest.mark.unit
+    def test_validate_digest_type_missing_key_raises(self, validator):
+        """_validate_digest_type: digest_typeキーがない場合ValidationError"""
+        with pytest.raises(ValidationError) as exc_info:
+            validator._validate_digest_type({})
+        assert "cannot be empty" in str(exc_info.value)
