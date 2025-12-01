@@ -554,7 +554,7 @@ DigestAnalyzerが生成した個別ダイジェストの中間ファイル（JSO
 }
 ```
 
-**ファイル名形式**: `{日付}_{prefix}{番号}_タイトル.txt`（例: `2025-07-01_W0001_認知アーキテクチャ.txt`）
+**ファイル名形式**: `{prefix}{番号}_タイトル.txt`（例: `W0001_認知アーキテクチャ.txt`）
 
 ### last_digest_times.json
 
@@ -567,7 +567,7 @@ DigestAnalyzerが生成した個別ダイジェストの中間ファイル（JSO
     "last_number": 5
   },
   "monthly": {
-    "last_file": "2025-07-01_W0005_タイトル.txt",
+    "last_file": "W0005_タイトル.txt",
     "last_number": 5
   }
 }

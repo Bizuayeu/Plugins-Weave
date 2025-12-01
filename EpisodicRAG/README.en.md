@@ -160,9 +160,12 @@ Types of Digests:
   "latest_digests": {
     "weekly": {
       "overall_digest": {
+        "timestamp": "2025-07-01T12:00:00",
         "source_files": ["L00001.txt", "L00002.txt"],
+        "digest_type": "<!-- PLACEHOLDER -->",
         "keywords": ["<!-- PLACEHOLDER -->", ...],
-        "abstract": "<!-- PLACEHOLDER: ... -->"
+        "abstract": "<!-- PLACEHOLDER: abstract (max 2400 chars) -->",
+        "impression": "<!-- PLACEHOLDER: impression (max 800 chars) -->"
       }
     }
   }
@@ -181,8 +184,8 @@ Types of Digests:
 **Definition**: Finalized official digest file
 
 - **Location**: `{digests_dir}/{level_dir}/`
-- **Format**: `{date}_{prefix}{number}_title.txt`
-- **Example**: `2025-07-01_W0001_CognitiveArchitecture.txt`
+- **Format**: `{prefix}{number}_title.txt`
+- **Example**: `W0001_CognitiveArchitecture.txt`
 
 ---
 
@@ -334,9 +337,9 @@ Examples: W0001_Individual.txt
 
 ### Regular Files
 ```text
-Format: {date}_{prefix}{number}_title.txt
-Examples: 2025-07-01_W0001_CognitiveArchitecture.txt
-          2025-08-15_M001_MonthlySummary.txt
+Format: {prefix}{number}_title.txt
+Examples: W0001_CognitiveArchitecture.txt
+          M0001_MonthlySummary.txt
 ```
 
 ---
@@ -376,9 +379,12 @@ Examples: 2025-07-01_W0001_CognitiveArchitecture.txt
     "decadal_threshold": 3,
     "multi_decadal_threshold": 3,
     "centurial_threshold": 4
-  }
+  },
+  "trusted_external_paths": []
 }
 ```
+
+> **v4.0.0+**: `trusted_external_paths` is a whitelist for external path access. Explicit registration is required when using external paths (such as `identity_file_path`).
 
 ---
 

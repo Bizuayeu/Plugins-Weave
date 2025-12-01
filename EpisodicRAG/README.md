@@ -159,9 +159,12 @@ Digestには以下の種類があります：
   "latest_digests": {
     "weekly": {
       "overall_digest": {
+        "timestamp": "2025-07-01T12:00:00",
         "source_files": ["L00001.txt", "L00002.txt"],
+        "digest_type": "<!-- PLACEHOLDER -->",
         "keywords": ["<!-- PLACEHOLDER -->", ...],
-        "abstract": "<!-- PLACEHOLDER: ... -->"
+        "abstract": "<!-- PLACEHOLDER: abstract (max 2400 chars) -->",
+        "impression": "<!-- PLACEHOLDER: impression (max 800 chars) -->"
       }
     }
   }
@@ -180,8 +183,8 @@ Digestには以下の種類があります：
 **定義**: 確定済みの正式ダイジェストファイル
 
 - **配置先**: `{digests_dir}/{level_dir}/`
-- **形式**: `{日付}_{prefix}{番号}_タイトル.txt`
-- **例**: `2025-07-01_W0001_認知アーキテクチャ.txt`
+- **形式**: `{prefix}{番号}_タイトル.txt`
+- **例**: `W0001_認知アーキテクチャ.txt`
 
 ---
 
@@ -333,9 +336,9 @@ L00001追加 → L00002追加 → /digest
 
 ### Regularファイル
 ```text
-形式: {日付}_{prefix}{番号}_タイトル.txt
-例:   2025-07-01_W0001_認知アーキテクチャ.txt
-      2025-08-15_M001_月次まとめ.txt
+形式: {prefix}{番号}_タイトル.txt
+例:   W0001_認知アーキテクチャ.txt
+      M0001_月次まとめ.txt
 ```
 
 ---
@@ -375,9 +378,12 @@ L00001追加 → L00002追加 → /digest
     "decadal_threshold": 3,
     "multi_decadal_threshold": 3,
     "centurial_threshold": 4
-  }
+  },
+  "trusted_external_paths": []
 }
 ```
+
+> **v4.0.0+**: `trusted_external_paths`は外部パスアクセスのホワイトリストです。外部パス（`identity_file_path`等）を使用する場合は明示的な登録が必要です。
 
 ---
 

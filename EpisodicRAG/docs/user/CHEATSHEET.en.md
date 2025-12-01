@@ -32,9 +32,9 @@ A one-page cheat sheet for quick reference of key features.
 | Type | Prefix | Digits | Format | Example |
 |------|--------|--------|--------|---------|
 | Loop | L | 5 | `L[5digits]_Title.txt` | `L00001_FirstSession.txt` |
-| Weekly | W | 4 | `Date_W[4digits]_Title.txt` | `2025-01-01_W0001_WeeklySummary.txt` |
-| Monthly | M | 4 | `Date_M[4digits]_Title.txt` | `2025-02-01_M0001_MonthlySummary.txt` |
-| Quarterly | Q | 3 | `Date_Q[3digits]_Title.txt` | `2025-04-01_Q001_Quarterly.txt` |
+| Weekly | W | 4 | `W[4digits]_Title.txt` | `W0001_WeeklySummary.txt` |
+| Monthly | M | 4 | `M[4digits]_Title.txt` | `M0001_MonthlySummary.txt` |
+| Quarterly | Q | 3 | `Q[3digits]_Title.txt` | `Q001_Quarterly.txt` |
 
 ---
 
