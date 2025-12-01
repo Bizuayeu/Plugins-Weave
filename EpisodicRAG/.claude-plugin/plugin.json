@@ -1,6 +1,6 @@
 {
   "name": "EpisodicRAG-Plugin",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "description": "Hierarchical Episodic Memory Generator (8-layer, 100-year span)",
   "author": {
     "name": "Weave @ EpisodicRAG"

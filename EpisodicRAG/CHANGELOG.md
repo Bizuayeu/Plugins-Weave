@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.0] - 2025-12-01
+
+### Breaking Changes
+
+- **config層のClean Architecture分解**: 単一configモジュールを3層に再編成
+  - `domain/config/` - 定数・型検証
+  - `infrastructure/config/` - ファイルI/O・パス解決
+  - `application/config/` - バリデーション・サービス
+  - **移行**: インポートパスを層構造に合わせて更新
+
+- **スキルのPythonスクリプト化**: 疑似コードから実行可能CLIへ
+  - `@digest-setup` → `python -m interfaces.digest_setup`
+  - `@digest-config` → `python -m interfaces.digest_config`
+  - `@digest-auto` → `python -m interfaces.digest_auto`
+  - スキル経由の使用は引き続き可能
+
+- **trusted_external_pathsの導入**: 外部パスアクセスのセキュリティ強化
+  - config.jsonに `trusted_external_paths: []` フィールド追加
+  - 外部パス使用時は明示的なホワイトリスト登録が必要
+
+---
+
 ## [3.3.0] - 2025-11-29
 
 ### Added

@@ -2,7 +2,7 @@
 
 # EpisodicRAG AI Specification Hub
 
-[![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 
 AI/Claudeエージェント向けの技術仕様ハブです。
 

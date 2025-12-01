@@ -197,6 +197,30 @@ class TestVersionConsistency:
             f"Version mismatch: plugin.json={plugin_version}, marketplace.json={marketplace_version}"
         )
 
+    @pytest.mark.unit
+    def test_changelog_version_sync(self):
+        """CHANGELOG.md の最新バージョンが plugin.json と一致"""
+        plugin_root = Path(__file__).parent.parent.parent.parent
+
+        # plugin.json からバージョン取得
+        plugin_json = plugin_root / ".claude-plugin" / "plugin.json"
+        plugin_data = json.loads(plugin_json.read_text(encoding="utf-8"))
+        plugin_version = plugin_data.get("version")
+
+        # CHANGELOG.md から最新バージョン取得
+        changelog = plugin_root / "CHANGELOG.md"
+        assert changelog.exists(), f"CHANGELOG.md not found: {changelog}"
+        changelog_content = changelog.read_text(encoding="utf-8")
+
+        # 正規表現で最初の ## [x.y.z] を抽出
+        version_match = re.search(r"^## \[(\d+\.\d+\.\d+)\]", changelog_content, re.MULTILINE)
+        assert version_match, "No version found in CHANGELOG.md (expected format: ## [x.y.z])"
+        changelog_version = version_match.group(1)
+
+        assert plugin_version == changelog_version, (
+            f"Version mismatch: plugin.json={plugin_version}, CHANGELOG.md={changelog_version}"
+        )
+
 
 class TestVersionModule:
     """version モジュール全体のテスト"""
