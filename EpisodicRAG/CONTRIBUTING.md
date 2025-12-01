@@ -1,3 +1,5 @@
+[English](CONTRIBUTING.en.md) | [日本語](CONTRIBUTING.md)
+
 # Contributing to EpisodicRAG Plugin
 
 EpisodicRAGプラグインの開発に興味を持っていただき、ありがとうございます！
@@ -59,13 +61,22 @@ plugins-weave/
     ├── agents/
     ├── commands/
     ├── docs/
-    ├── scripts/
+    ├── scripts/                        # Clean Architecture（4層）
+    │   ├── domain/                     # コアビジネスロジック
+    │   │   └── config/                 # 設定定数・バリデーション
+    │   ├── infrastructure/             # 外部関心事（I/O）
+    │   │   └── config/                 # 設定ファイルI/O
+    │   ├── application/                # ユースケース
+    │   │   └── config/                 # DigestConfig（Facade）
+    │   ├── interfaces/                 # エントリーポイント
     │   └── test/
     ├── skills/
     │   └── shared/
     ├── CHANGELOG.md
     └── CONTRIBUTING.md
 ```
+
+> 📖 **詳細なディレクトリ構造**: [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md#ディレクトリ構成)
 
 `marketplace.json`は既に配置済みです（リポジトリに含まれています）。
 
@@ -190,17 +201,38 @@ Essences Path: [Your Project]/plugins-weave/EpisodicRAG/data/Essences
 
 プラグインの内部スクリプトを直接実行することも可能です（デバッグ用）。
 
-### config.py - 設定管理
+### config_cli.py - 設定管理（v4.0.0+）
 
 すべてのパス情報を管理し、Plugin自己完結性を保証します。
 
 ```bash
+cd plugins-weave/EpisodicRAG/scripts
+
 # パス情報表示
-python scripts/config.py --show-paths
+python -m interfaces.config_cli --show-paths
 
 # 設定JSON出力
-python scripts/config.py
+python -m interfaces.config_cli
 ```
+
+### スキルのCLI直接実行（v4.0.0+）
+
+スキルはPythonスクリプトとして直接実行可能です（デバッグ用）:
+
+```bash
+cd plugins-weave/EpisodicRAG/scripts
+
+# @digest-setup 相当
+python -m interfaces.digest_setup
+
+# @digest-config 相当
+python -m interfaces.digest_config
+
+# @digest-auto 相当
+python -m interfaces.digest_auto
+```
+
+> **Note**: スキル経由の使用（`@digest-setup` 等）も引き続き可能です。
 
 ### generate_digest_auto.sh - 自動Digest生成
 
@@ -220,13 +252,21 @@ v2.0.0 より、`scripts/` は Clean Architecture（4層構造）を採用して
 >
 > 📖 **アーキテクチャ選択理由**: [DESIGN_DECISIONS.md](docs/dev/DESIGN_DECISIONS.md)
 
+**v4.0.0での変更**: 設定管理機能（config）は各層のサブディレクトリに分散配置されています:
+- `domain/config/` - 設定定数、バリデーションヘルパー
+- `infrastructure/config/` - 設定ファイルI/O、パス解決
+- `application/config/` - DigestConfig（Facade）、サービスクラス
+
 ### 新機能追加時のガイド
 
 | 追加する機能 | 配置先 |
 |-------------|--------|
 | 定数・型定義・例外 | `domain/` |
+| 設定関連の定数・バリデーション | `domain/config/` |
 | ファイルI/O・ロギング | `infrastructure/` |
+| 設定ファイル読み込み・パス解決 | `infrastructure/config/` |
 | ビジネスロジック | `application/` |
+| 設定管理サービス（Facade） | `application/config/` |
 | 外部エントリーポイント | `interfaces/` |
 
 ---
@@ -383,16 +423,21 @@ git status
 // .claude-plugin/plugin.json
 {
   "name": "EpisodicRAG-Plugin",
-  "version": "x.y.z",  // ← ここがSSoT（唯一の更新場所）- 実際の値は plugin.json を参照
+  "version": "x.y.z",  // ← ここがSSoT - 実際の値は plugin.json を参照
   ...
 }
 ```
 
-| ファイル | フィールド | 備考 |
-|---------|-----------|------|
-| `.claude-plugin/plugin.json` | `version` | **SSoT**（ここを更新） |
-| `scripts/domain/version.py` | `__version__` | plugin.json から動的読み込み（自動） |
-| `CHANGELOG.md` | `## [x.x.x]` | 変更履歴として手動更新 |
+| ファイル | フィールド | 同期方法 |
+|---------|-----------|----------|
+| `.claude-plugin/plugin.json` | `version` | **SSoT**（ここが起点） |
+| `pyproject.toml` | `version` | 手動同期 |
+| `../.claude-plugin/marketplace.json` | `plugins[].version` | 手動同期 |
+| `CHANGELOG.md` | `## [x.x.x]` | 手動同期 |
+| `../README.md` / `../README.en.md` | バージョンバッジ | 手動同期 |
+| `scripts/domain/version.py` | `__version__` | **自動**（動的読み込み） |
+
+> 📊 これらの同期は `scripts/test/domain_tests/test_version.py` のテストで検証されます。
 
 **動的読み込みの仕組み**:
 
@@ -405,15 +450,18 @@ print(__version__)  # plugin.json の version が表示される
 
 ### リリース手順
 
-バージョン更新時は以下の**2ファイルのみ**更新:
+バージョン更新時は以下の**5ファイル**を更新:
 
 1. `.claude-plugin/plugin.json` - `version` フィールドを更新（SSoT）
-2. `CHANGELOG.md` - 新しいセクション `## [x.x.x] - YYYY-MM-DD` を追加
+2. `pyproject.toml` - `version` を同じ値に更新
+3. `../.claude-plugin/marketplace.json` - `plugins[0].version` を同じ値に更新
+4. `CHANGELOG.md` - 新しいセクション `## [x.x.x] - YYYY-MM-DD` を追加
+5. `../README.md` と `../README.en.md` - バージョンバッジを更新
 
 ```bash
-# 動作確認
+# 動作確認（テストで全ファイルの同期を検証）
 cd scripts
-python -c "from domain import __version__; print(__version__)"
+python -m pytest test/domain_tests/test_version.py -v
 ```
 
 ### ドキュメントヘッダーのバージョン
@@ -437,13 +485,15 @@ EpisodicRAGプラグインは日本語を主言語とし、主要ドキュメン
 1. **Primary Language**: Japanese (日本語)
 2. **Secondary Language**: English
 
-> **翻訳方針**: 主要ドキュメント（README, QUICKSTART, CHEATSHEET）のみ英語版を維持します。その他のドキュメントは日本語のみとし、翻訳の維持コストを抑えます。
+> **翻訳方針**: 主要ドキュメント（README, CHANGELOG, CONTRIBUTING, QUICKSTART, CHEATSHEET）のみ英語版を維持します。その他のドキュメントは日本語のみとし、翻訳の維持コストを抑えます。
 
 ### Currently Synced Files
 
 | Japanese | English | Status |
 |----------|---------|--------|
 | `README.md` | `README.en.md` | ✅ Synced |
+| `CHANGELOG.md` | `CHANGELOG.en.md` | ✅ Synced |
+| `CONTRIBUTING.md` | `CONTRIBUTING.en.md` | ✅ Synced |
 | `docs/user/QUICKSTART.md` | `docs/user/QUICKSTART.en.md` | ✅ Synced |
 | `docs/user/CHEATSHEET.md` | `docs/user/CHEATSHEET.en.md` | ✅ Synced |
 
