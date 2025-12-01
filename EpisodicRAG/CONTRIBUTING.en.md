@@ -138,7 +138,7 @@ Configure interactively.
 
 After modifying plugin code, retest with:
 
-```text
+```ClaudeCLI
 # 1. Uninstall
 /plugin uninstall EpisodicRAG-Plugin@Plugins-Weave
 

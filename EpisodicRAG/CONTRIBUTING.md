@@ -137,7 +137,7 @@ Claude Codeで以下を実行：
 
 プラグインのコードを修正した後、以下で再テスト：
 
-```text
+```ClaudeCLI
 # 1. アンインストール
 /plugin uninstall EpisodicRAG-Plugin@Plugins-Weave
 
