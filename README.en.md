@@ -48,7 +48,7 @@ EpisodicRAG is a system that hierarchically digests conversation logs (Loop file
 
 ## Quick Installation
 
-```bash
+```ClaudeCLI
 # 1. Add marketplace
 /marketplace add https://github.com/Bizuayeu/Plugins-Weave
 

@@ -299,7 +299,7 @@ cp ~/episodicrag-backup/{DATE}/Loops/Loop*.txt {DATA_PATH}/Loops/
    ```
 
 2. **Loopから再生成**:
-   ```bash
+   ```ClaudeCLI
    # Loopが残っていれば再分析可能
    /digest  # 未処理Loopを再検出・分析
    ```
@@ -319,7 +319,7 @@ cp ~/episodicrag-backup/{DATE}/Loops/Loop*.txt {DATA_PATH}/Loops/
    ```
 
 3. **テンプレートから再初期化**（最終手段）:
-   ```bash
+   ```ClaudeCLI
    @digest-setup
    # セットアップウィザードでファイルを再作成
    ```

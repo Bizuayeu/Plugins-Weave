@@ -82,7 +82,7 @@ ConfigError: Invalid configuration value for 'base_dir': expected path within pl
 **解決方法**:
 
 1. **`@digest-config`で対話的に設定**（推奨）:
-   ```bash
+   ```ClaudeCLI
    @digest-config 外部のデータディレクトリを使いたい
    ```
 
@@ -142,7 +142,7 @@ ConfigError: Invalid configuration value for 'base_dir': expected path within pl
 - **config.jsonが存在しない場合**: `@digest-setup`を実行
 - **パス解決エラーの場合**: `@digest-config`で設定を確認・修正
 - **GrandDigest.txtが存在しない場合**: 初回セットアップを実行
-  ```bash
+  ```ClaudeCLI
   @digest-setup
   ```
 
@@ -177,7 +177,7 @@ ConfigError: Invalid configuration value for 'base_dir': expected path within pl
 **ケースA: Provisionalファイルが存在しない**
 
 各Loopに対して`/digest`を再実行:
-```bash
+```ClaudeCLI
 /digest  # Loop検出と分析
 ```
 
@@ -236,7 +236,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
    ```
 
 2. **新しいLoopファイルが検出されているか**
-   ```bash
+   ```ClaudeCLI
    @digest-auto
    ```
 
@@ -249,7 +249,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 **解決方法**:
 
 1. **未処理Loopの検出と分析**:
-   ```bash
+   ```ClaudeCLI
    /digest
    ```
 

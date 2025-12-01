@@ -47,7 +47,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 
 ## クイックインストール
 
-```bash
+```ClaudeCLI
 # 1. マーケットプレイス追加
 /marketplace add https://github.com/Bizuayeu/Plugins-Weave
 

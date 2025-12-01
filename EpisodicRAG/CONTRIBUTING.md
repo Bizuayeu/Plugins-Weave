@@ -87,7 +87,7 @@ plugins-weave/
 
 Claude Codeで以下を実行：
 
-```bash
+```ClaudeCLI
 # 相対パスの場合
 /marketplace add ./plugins-weave
 
@@ -102,7 +102,7 @@ Claude Codeで以下を実行：
 
 #### 3. プラグインのインストール
 
-```bash
+```ClaudeCLI
 /plugin install EpisodicRAG-Plugin@Plugins-Weave
 ```
 
@@ -113,7 +113,7 @@ Claude Codeで以下を実行：
 
 #### 4. 初期セットアップ
 
-```bash
+```ClaudeCLI
 @digest-setup
 ```
 
@@ -121,7 +121,7 @@ Claude Codeで以下を実行：
 
 #### 5. 動作確認
 
-```bash
+```ClaudeCLI
 @digest-auto
 ```
 

@@ -46,7 +46,7 @@ EpisodicRAGシステムの基本操作を提供するコマンドです。
 
 ### 新しいLoopファイルの検出
 
-```bash
+```ClaudeCLI
 /digest
 ```
 
@@ -54,7 +54,7 @@ EpisodicRAGシステムの基本操作を提供するコマンドです。
 
 ### 階層的ダイジェストの確定
 
-```bash
+```ClaudeCLI
 /digest <type>
 ```
 

@@ -37,13 +37,13 @@ flowchart LR
 
 ### 1-1. マーケットプレイス追加
 
-```bash
+```ClaudeCLI
 /marketplace add https://github.com/Bizuayeu/Plugins-Weave
 ```
 
 ### 1-2. プラグインインストール
 
-```bash
+```ClaudeCLI
 /plugin install EpisodicRAG-Plugin@Plugins-Weave
 ```
 
@@ -51,7 +51,7 @@ flowchart LR
 
 ## Step 2: セットアップ（1分）
 
-```bash
+```ClaudeCLI
 @digest-setup
 ```
 
@@ -105,7 +105,7 @@ Assistant: EpisodicRAGは8階層の長期記憶システムです。会話をLoo
 
 ## Step 4: 初回分析実行（1分）
 
-```bash
+```ClaudeCLI
 /digest
 ```
 
@@ -141,7 +141,7 @@ ShadowGrandDigest.txt を更新しました
 
 ### システム状態を確認
 
-```bash
+```ClaudeCLI
 @digest-auto
 ```
 
@@ -149,7 +149,7 @@ ShadowGrandDigest.txt を更新しました
 
 ### 5個のLoopを貯めてWeekly Digestを生成
 
-```bash
+```ClaudeCLI
 # 5個のLoopファイルを追加後
 /digest weekly
 ```

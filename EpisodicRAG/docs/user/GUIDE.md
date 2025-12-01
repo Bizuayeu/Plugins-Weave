@@ -138,7 +138,7 @@ flowchart TD
 
 設定を変更する最も簡単な方法は、`@digest-config` スキルを使用することです：
 
-```bash
+```ClaudeCLI
 @digest-config
 ```
 

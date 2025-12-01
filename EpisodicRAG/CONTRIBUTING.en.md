@@ -88,7 +88,7 @@ plugins-weave/
 
 Execute the following in Claude Code:
 
-```bash
+```ClaudeCLI
 # With relative path
 /marketplace add ./plugins-weave
 
@@ -103,7 +103,7 @@ Execute the following in Claude Code:
 
 #### 3. Install the Plugin
 
-```bash
+```ClaudeCLI
 /plugin install EpisodicRAG-Plugin@Plugins-Weave
 ```
 
@@ -114,7 +114,7 @@ Execute the following in Claude Code:
 
 #### 4. Initial Setup
 
-```bash
+```ClaudeCLI
 @digest-setup
 ```
 
@@ -122,7 +122,7 @@ Configure interactively.
 
 #### 5. Verify Operation
 
-```bash
+```ClaudeCLI
 @digest-auto
 ```
 
