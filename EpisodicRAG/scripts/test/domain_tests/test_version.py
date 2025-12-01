@@ -221,6 +221,32 @@ class TestVersionConsistency:
             f"Version mismatch: plugin.json={plugin_version}, CHANGELOG.md={changelog_version}"
         )
 
+    @pytest.mark.unit
+    def test_root_readme_version_badges(self):
+        """ルート README.md/README.en.md のバージョンバッジが plugin.json と一致"""
+        plugin_root = Path(__file__).parent.parent.parent.parent
+
+        # plugin.json からバージョン取得
+        plugin_json = plugin_root / ".claude-plugin" / "plugin.json"
+        plugin_data = json.loads(plugin_json.read_text(encoding="utf-8"))
+        plugin_version = plugin_data.get("version")
+
+        # ルート README ファイルをチェック
+        repo_root = plugin_root.parent  # plugins-weave/
+        readme_files = ["README.md", "README.en.md"]
+
+        for readme_name in readme_files:
+            readme_path = repo_root / readme_name
+            if not readme_path.exists():
+                continue
+            content = readme_path.read_text(encoding="utf-8")
+            badge_match = re.search(r"badge/version-(\d+\.\d+\.\d+)-", content)
+            assert badge_match, f"Version badge not found in {readme_name}"
+            badge_version = badge_match.group(1)
+            assert plugin_version == badge_version, (
+                f"Version mismatch: plugin.json={plugin_version}, {readme_name}={badge_version}"
+            )
+
 
 class TestVersionModule:
     """version モジュール全体のテスト"""
