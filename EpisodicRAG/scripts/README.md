@@ -14,16 +14,18 @@
 
 ## Architecture (Clean Architecture)
 
-v2.0.0 より、Clean Architecture（4層 + config層）を採用しています。
+v2.0.0 より、Clean Architecture（4層構造）を採用しています。
 
 > 📖 **詳細仕様**（層構造・依存関係ルール・推奨インポートパス）: [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md#clean-architecture)
 
 ```text
 scripts/
 ├── domain/           # コアビジネスロジック（最内層）
+│   └── config/       # 設定定数・バリデーション
 ├── infrastructure/   # 外部関心事（I/O、ロギング）
-├── config/           # 設定管理（パス解決、閾値管理）
+│   └── config/       # 設定ファイルI/O・パス解決
 ├── application/      # ユースケース
+│   └── config/       # DigestConfig（Facade）
 ├── interfaces/       # エントリーポイント
 ├── tools/            # 開発ツール（ドキュメント生成など）
 └── test/             # テスト（847テスト）
@@ -39,15 +41,9 @@ infrastructure/   ← domain/ のみ
 application/      ← domain/ + infrastructure/
     ↑
 interfaces/       ← application/
-
-config/           ← 何にも依存しない（完全独立）
 ```
 
-> ⚠️ **CRITICAL: Config層の独立性**
->
-> `config/` パッケージは **domain/ を含む他のすべての層から完全に独立** しています。
-> これは `digest-config` スキルがClaudeプラグインとして単独でロード可能である必要があるためです。
->
+> **Note**: v4.0.0より、設定管理機能（config）は各層のサブディレクトリに分散配置されています。
 > 詳細: [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md#clean-architecture)
 
 ---
@@ -127,26 +123,28 @@ from interfaces.interface_helpers import sanitize_filename, get_next_digest_numb
 from interfaces.provisional import ProvisionalMerger
 ```
 
-### config/ - 設定管理
+### 設定管理（各層のconfig/）
 
-設定管理パッケージ。`DigestConfig` クラスやパス解決、閾値管理などを提供。
+v4.0.0より、設定管理機能は各層のサブディレクトリに分散配置されています。
 
-| Module | Purpose |
-|--------|---------|
-| `config_loader.py` | 設定ファイル読み込み |
-| `config_repository.py` | 設定データアクセス |
-| `config_validator.py` | 設定値・ディレクトリバリデーション |
-| `level_path_service.py` | レベル別パス生成 |
-| `path_resolver.py` | パス解決ユーティリティ |
-| `plugin_root_resolver.py` | プラグインルート検出 |
-| `threshold_provider.py` | 閾値提供 |
+| 層 | Package | Purpose |
+|---|---------|---------|
+| **domain** | `domain/config/` | 設定定数（`REQUIRED_CONFIG_KEYS`, `THRESHOLD_KEYS`）、バリデーションヘルパー |
+| **infrastructure** | `infrastructure/config/` | 設定ファイルI/O（`ConfigLoader`, `ConfigRepository`）、パス解決（`PathResolver`, `PluginRootResolver`） |
+| **application** | `application/config/` | DigestConfig（Facade）、サービスクラス（`ConfigValidator`, `LevelPathService`, `ThresholdProvider`） |
 
 ```python
+# アプリケーション層のFacade経由で使用（推奨）
 from application.config import DigestConfig
 
 config = DigestConfig()
 print(config.loops_path)
 print(config.get_threshold("weekly"))
+
+# 層別に直接使用する場合
+from domain.config import REQUIRED_CONFIG_KEYS
+from infrastructure.config import ConfigLoader
+from application.config import ThresholdProvider
 ```
 
 ---
@@ -171,10 +169,9 @@ test/
 ├── conftest.py              # 共通フィクスチャ
 ├── test_constants.py        # 定数テスト
 ├── test_helpers.py          # ヘルパーテスト
-├── domain_tests/            # domain層テスト
-├── infrastructure_tests/    # infrastructure層テスト
-├── config_tests/            # config層テスト
-├── application_tests/       # application層テスト
+├── domain_tests/            # domain層テスト（config/含む）
+├── infrastructure_tests/    # infrastructure層テスト（config/含む）
+├── application_tests/       # application層テスト（config/含む）
 ├── interfaces_tests/        # interfaces層テスト
 ├── integration_tests/       # 統合テスト
 └── performance_tests/       # パフォーマンステスト
