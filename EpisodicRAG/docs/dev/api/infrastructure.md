@@ -478,5 +478,4 @@ if callback("ファイルを上書きしますか？"):
 > **v4.0.0 更新**: 設定管理が `infrastructure/config/` サブパッケージとして追加されました。
 
 ---
-
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
