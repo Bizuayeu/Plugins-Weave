@@ -7,6 +7,17 @@
 
 A one-page cheat sheet for quick reference of key features.
 
+## Table of Contents
+
+- [Command Quick Reference](#command-quick-reference)
+- [Skill Quick Reference](#skill-quick-reference)
+- [File Naming Conventions](#file-naming-conventions)
+- [Default Thresholds](#default-thresholds)
+- [Key Paths](#key-paths)
+- [Daily Workflow](#daily-workflow)
+- [Troubleshooting](#troubleshooting)
+- [Related Documentation](#related-documentation)
+
 ---
 
 ## Command Quick Reference

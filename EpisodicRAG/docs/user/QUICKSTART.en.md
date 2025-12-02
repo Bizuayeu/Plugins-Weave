@@ -7,6 +7,19 @@
 
 A guide to set up EpisodicRAG as quickly as possible and verify it works.
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Overview](#overview)
+- [Step 1: Installation](#step-1-installation-1-min)
+- [Step 2: Setup](#step-2-setup-1-min)
+- [Step 3: Create Sample Loop](#step-3-create-sample-loop-2-min)
+- [Step 4: Run Initial Analysis](#step-4-run-initial-analysis-1-min)
+- [Success Checklist](#success-checklist)
+- [Next Steps](#next-steps)
+- [Troubleshooting](#troubleshooting)
+- [Related Documentation](#related-documentation)
+
 ---
 
 ## Prerequisites

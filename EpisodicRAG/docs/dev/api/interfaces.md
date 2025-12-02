@@ -7,9 +7,178 @@
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
 
 ```python
-from interfaces import DigestFinalizerFromShadow, ProvisionalDigestSaver
-from interfaces.interface_helpers import sanitize_filename, get_next_digest_number
+from interfaces import (
+    # Main entry points
+    DigestFinalizerFromShadow,
+    ProvisionalDigestSaver,
+    # CLI classes (v4.0.0)
+    SetupManager,
+    ConfigEditor,
+    DigestAutoAnalyzer,
+    # Helpers
+    sanitize_filename,
+    get_next_digest_number,
+    # Provisional submodule
+    InputLoader,
+    ProvisionalFileManager,
+    DigestMerger,
+)
 ```
+
+---
+
+## 目次
+
+1. [SetupManager（digest_setup.py）](#setupmanagerdigest_setuppy)
+2. [ConfigEditor（digest_config.py）](#configeditordigest_configpy)
+3. [DigestAutoAnalyzer（digest_auto.py）](#digestautoanalyzerdigest_autopy)
+4. [DigestFinalizerFromShadow](#digestfinalizerfromshadow)
+5. [ProvisionalDigestSaver](#provisionaldigestsaver)
+6. [Provisionalサブパッケージ](#provisionalサブパッケージinterfacesprovisional)
+7. [ヘルパー関数](#ヘルパー関数interfacesinterface_helperspy)
+8. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
+
+---
+
+## SetupManager（digest_setup.py）
+
+初期セットアップCLI。設定ファイル・ディレクトリ・初期ファイルを作成。
+
+```python
+class SetupManager:
+    def __init__(self, plugin_root: Optional[Path] = None): ...
+
+    def check(self) -> Dict[str, Any]: ...
+    def init(self, config_data: Dict[str, Any], force: bool = False) -> SetupResult: ...
+```
+
+| メソッド | 説明 | 戻り値 |
+|---------|------|--------|
+| `check()` | セットアップ状態確認 | `{"status": "configured"\|"partial"\|"not_configured", ...}` |
+| `init(config_data, force)` | 初期化実行（8階層ディレクトリ作成） | `SetupResult` |
+
+**SetupResult構造**:
+```python
+@dataclass
+class SetupResult:
+    status: str  # "ok" | "error" | "already_configured"
+    created: Optional[Dict[str, Any]] = None  # 作成されたファイル/ディレクトリ
+    warnings: List[str] = field(default_factory=list)
+    external_paths_detected: List[str] = field(default_factory=list)
+    error: Optional[str] = None
+```
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+
+# 状態確認
+python -m interfaces.digest_setup check
+
+# 初期化
+python -m interfaces.digest_setup init --config '{"base_dir": ".", "paths": {...}, "levels": {...}}'
+
+# 強制上書き
+python -m interfaces.digest_setup init --config '...' --force
+```
+
+**スキル**: `@digest-setup`
+
+---
+
+## ConfigEditor（digest_config.py）
+
+設定変更CLI。設定ファイルの読み取り・変更を行う。
+
+```python
+class ConfigEditor:
+    def __init__(self, plugin_root: Optional[Path] = None): ...
+
+    def show(self) -> Dict[str, Any]: ...
+    def update(self, new_config: Dict[str, Any]) -> Dict[str, Any]: ...
+    def set_value(self, key: str, value: Any) -> Dict[str, Any]: ...
+    def add_trusted_path(self, path: str) -> Dict[str, Any]: ...
+    def remove_trusted_path(self, path: str) -> Dict[str, Any]: ...
+    def list_trusted_paths(self) -> Dict[str, Any]: ...
+```
+
+| メソッド | 説明 |
+|---------|------|
+| `show()` | 現在設定と解決後パスを表示 |
+| `update(new_config)` | 設定を完全更新 |
+| `set_value(key, value)` | 個別設定変更（ドット記法対応: `levels.weekly_threshold`） |
+| `add_trusted_path(path)` | `trusted_external_paths`にパスを追加 |
+| `remove_trusted_path(path)` | `trusted_external_paths`からパスを削除 |
+| `list_trusted_paths()` | 許可済み外部パス一覧 |
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+
+# 現在設定を表示
+python -m interfaces.digest_config show
+
+# 個別設定を変更（ドット記法）
+python -m interfaces.digest_config set --key "levels.weekly_threshold" --value 7
+
+# 外部パス許可リスト管理
+python -m interfaces.digest_config trusted-paths list
+python -m interfaces.digest_config trusted-paths add "~/DEV/production"
+python -m interfaces.digest_config trusted-paths remove "~/DEV/production"
+```
+
+**スキル**: `@digest-config`
+
+---
+
+## DigestAutoAnalyzer（digest_auto.py）
+
+健全性診断CLI。システム状態を分析し、まだらボケを検出、生成可能なダイジェスト階層を推奨。
+
+```python
+class DigestAutoAnalyzer:
+    def __init__(self, plugin_root: Optional[Path] = None): ...
+
+    def analyze(self) -> AnalysisResult: ...
+```
+
+| メソッド | 説明 | 戻り値 |
+|---------|------|--------|
+| `analyze()` | システム健全性診断を実行 | `AnalysisResult` |
+
+**AnalysisResult構造**:
+```python
+@dataclass
+class AnalysisResult:
+    status: str  # "ok" | "warning" | "error"
+    issues: List[Issue] = field(default_factory=list)
+    generatable_levels: List[LevelStatus] = field(default_factory=list)
+    insufficient_levels: List[LevelStatus] = field(default_factory=list)
+    recommendations: List[str] = field(default_factory=list)
+    error: Optional[str] = None
+```
+
+**検出項目**:
+- 未処理Loopファイル（`last_processed`より後）
+- プレースホルダー（まだらボケ: `<!-- PLACEHOLDER -->`マーカー）
+- 連番ギャップ（中間ファイルスキップ）
+- 生成可能なダイジェスト階層
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+
+# JSON形式で出力
+python -m interfaces.digest_auto --output json
+
+# テキスト形式で出力（人間可読）
+python -m interfaces.digest_auto --output text
+```
+
+**スキル**: `@digest-auto`
 
 ---
 
@@ -231,6 +400,64 @@ def get_next_digest_number(digests_path: Path, level: str) -> int
 ```
 
 指定レベルの次のDigest番号を取得。
+
+---
+
+## ShadowStateChecker（内部CLI）
+
+Shadow状態判定CLI。`__all__`にエクスポートされていない内部CLI。直接インポートせず、CLIとして使用。
+
+> DigestAnalyzer起動が必要かを判定するためのユーティリティ。
+
+```python
+class ShadowStateChecker:
+    def __init__(self, plugin_root: Optional[Path] = None): ...
+
+    def check(self, level: str) -> ShadowStateResult: ...
+```
+
+| メソッド | 説明 | 戻り値 |
+|---------|------|--------|
+| `check(level)` | 指定レベルのShadow状態確認 | `ShadowStateResult` |
+
+**ShadowStateResult構造**:
+```python
+@dataclass
+class ShadowStateResult:
+    status: str  # "ok" | "error"
+    level: str
+    analyzed: bool  # True: 分析済み, False: プレースホルダーあり
+    source_files: List[str] = field(default_factory=list)
+    source_count: int = 0
+    placeholder_fields: List[str] = field(default_factory=list)
+    message: str = ""
+    error: Optional[str] = None
+```
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+
+# Weekly階層の状態確認
+python -m interfaces.shadow_state_checker weekly
+
+# Monthly階層の状態確認
+python -m interfaces.shadow_state_checker monthly
+```
+
+**出力例**:
+```json
+{
+  "status": "ok",
+  "level": "weekly",
+  "analyzed": false,
+  "source_files": ["L00001_xxx.txt", "L00002_yyy.txt"],
+  "source_count": 2,
+  "placeholder_fields": ["abstract", "impression"],
+  "message": "Placeholders detected in: abstract, impression - run DigestAnalyzer"
+}
+```
 
 ---
 

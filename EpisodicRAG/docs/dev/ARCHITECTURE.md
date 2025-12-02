@@ -77,6 +77,7 @@
 ## Clean Architecture
 
 v2.0.0 より、Clean Architecture（4層構造）を採用しています。
+v4.0.0 で設定機能を3層に分散し、CLIモジュールを追加しました。
 
 ### 層構造
 
@@ -98,9 +99,15 @@ scripts/
 │
 ├── infrastructure/                  # 外部関心事
 │   ├── __init__.py                  # 公開API
-│   ├── json_repository.py           # JSON操作
+│   ├── json_repository/             # JSON操作（パッケージ）
+│   │   ├── __init__.py              # 公開API
+│   │   ├── operations.py            # 基本CRUD操作
+│   │   ├── chained_loader.py        # Chain of Responsibilityローダー
+│   │   └── load_strategy.py         # ロード戦略定義
 │   ├── file_scanner.py              # ファイル検出
 │   ├── logging_config.py            # ロギング設定
+│   ├── error_handling.py            # エラーハンドリング
+│   ├── structured_logging.py        # 構造化ロギング
 │   ├── user_interaction.py          # ユーザー確認コールバック
 │   └── config/                      # 設定ファイルI/O
 │       ├── __init__.py
@@ -144,6 +151,10 @@ scripts/
     ├── save_provisional_digest.py   # ProvisionalDigestSaver
     ├── interface_helpers.py         # sanitize_filename, get_next_digest_number
     ├── config_cli.py                # 設定CLIエントリーポイント
+    ├── digest_setup.py              # @digest-setup CLI (v4.0.0+)
+    ├── digest_config.py             # @digest-config CLI (v4.0.0+)
+    ├── digest_auto.py               # @digest-auto CLI (v4.0.0+)
+    ├── shadow_state_checker.py      # Shadow状態チェッカー
     └── provisional/                 # Provisionalサブパッケージ
         ├── __init__.py
         ├── input_loader.py          # InputLoader
@@ -164,11 +175,12 @@ application/      ← domain/ + infrastructure/（config/サブディレクト�
 interfaces/       ← application/（config_cli.py含む）
 ```
 
-> **Note**: 設定管理機能は各層のconfig/サブディレクトリに分散配置されています。
+> **Note**: v4.0.0より、設定管理機能は各層のconfig/サブディレクトリに分散配置されています。
 > - `domain/config/`: 設定定数、バリデーションヘルパー
 > - `infrastructure/config/`: 設定ファイルI/O、パス解決
 > - `application/config/`: DigestConfig（Facade）、サービスクラス
 > - `interfaces/config_cli.py`: CLIエントリーポイント
+> - `interfaces/digest_*.py`: スキルCLI実装（v4.0.0+）
 
 ```mermaid
 graph BT
@@ -344,22 +356,22 @@ flowchart TD
 
 > 📖 パス用語の定義は [用語集](../../README.md#基本概念) を参照。ここでは実装詳細を説明します。
 
-### configパッケージの役割
+### 設定管理の3層分散（v4.0.0+）
 
-`scripts/config/`パッケージは、すべてのパス設定を一元管理し、Plugin自己完結性を保証します。
+> 📖 設計判断の背景: [DESIGN_DECISIONS.md#config機能の層分散](DESIGN_DECISIONS.md#config機能の層分散v400)
 
-**内部コンポーネント構成:**
+v4.0.0より、設定機能は各層のconfig/サブディレクトリに分散配置されています：
 
-| コンポーネント | 責務 |
-|---------------|------|
-| `DigestConfig` | Facade - 外部インターフェース |
-| `PathResolver` | パス解決ロジック |
-| `ThresholdProvider` | 閾値管理 |
-| `LevelPathService` | レベル別パス管理 |
-| `ConfigValidator` | 設定とディレクトリ構造の検証 |
+| 層 | パス | 責務 |
+|----|------|------|
+| Domain | `domain/config/` | 定数（REQUIRED_CONFIG_KEYS）、バリデーションヘルパー |
+| Infrastructure | `infrastructure/config/` | ファイルI/O（ConfigLoader）、パス解決（PathResolver） |
+| Application | `application/config/` | DigestConfig（Facade）、サービスクラス |
+
+**DigestConfig（Facade）の配置:**
 
 ```python
-# scripts/config/__init__.py
+# application/config/__init__.py
 class DigestConfig:
     """設定管理クラス（Facade）"""
 
@@ -601,6 +613,16 @@ python -m pytest test/ -m fast
 - **データの完全なユーザー管理**: すべてのデータはユーザーの管理下に保存
 - **設定ファイルの自己完結**: Plugin内に完全に配置
 
+### trusted_external_paths（v4.0.0+）
+
+Plugin外ディレクトリへのアクセスを制御するセキュリティ機構：
+
+- **設定場所**: `config.json` の `trusted_external_paths` フィールド
+- **デフォルト**: `[]`（空配列、plugin_root内のみ許可）
+- **用途**: 外部パスを`base_dir`に指定する場合に明示的許可が必要
+
+> 📖 詳細は [DESIGN_DECISIONS.md#trusted_external_paths](DESIGN_DECISIONS.md#trusted_external_pathsv400) を参照
+
 ---
 
 ## パフォーマンス
@@ -630,6 +652,8 @@ DigestAnalyzerエージェントをベースに、カスタム分析ロジック
 - **GitHub連携の設定**: [ADVANCED.md](../user/ADVANCED.md)
 - **トラブルシューティング**: [TROUBLESHOOTING.md](../user/TROUBLESHOOTING.md)
 - **API リファレンス**: [API_REFERENCE.md](API_REFERENCE.md)
+- **設計判断**: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)
+- **変更履歴**: [CHANGELOG.md](../../CHANGELOG.md)
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

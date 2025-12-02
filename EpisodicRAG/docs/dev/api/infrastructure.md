@@ -10,6 +10,7 @@
 from infrastructure import (
     # JSON操作
     load_json, save_json, load_json_with_template, file_exists, ensure_directory,
+    try_load_json, try_read_json_from_file, confirm_file_overwrite,
     # ファイルスキャン
     scan_files, get_files_by_pattern, get_max_numbered_file, filter_files_after_number, count_files,
     # ロギング
@@ -21,11 +22,35 @@ from infrastructure import (
     # ユーザーインタラクション
     get_default_confirm_callback,
 )
+
+# 設定管理（別サブパッケージ）
+from infrastructure.config import (
+    ConfigLoader, PathResolver, find_plugin_root, load_config,
+)
 ```
 
 ---
 
-## JSON操作（infrastructure/json_repository.py）
+## 目次
+
+**ファイル操作**
+- [JSON操作](#json操作infrastructurejson_repository) - 読み書き、テンプレート
+- [ファイルスキャン](#ファイルスキャンinfrastructurefile_scannerpy) - 検索、フィルタ
+
+**ロギング**
+- [基本ロギング](#基本ロギングinfrastructurelogging_configpy) - `log_info()`, `log_error()` 等
+- [構造化ロギング](#構造化ロギングinfrastructurestructured_loggingpy) - セマンティックログ（STATE, FILE等）
+
+**エラー・設定・その他**
+- [エラーハンドリング](#エラーハンドリングinfrastructureerror_handlingpy) - 安全なファイル操作
+- [設定管理](#設定管理infrastructureconfig) - ConfigLoader, PathResolver *(v4.0.0+)*
+- [ユーザーインタラクション](#ユーザーインタラクションinfrastructureuser_interactionpy) - 確認コールバック
+
+---
+
+## JSON操作（infrastructure/json_repository/）
+
+> パッケージ構造: `operations.py`（基本操作）、`load_strategy.py`（Strategy Pattern）、`chained_loader.py`（Chain of Responsibility）
 
 ### load_json()
 
@@ -76,10 +101,24 @@ def ensure_directory(dir_path: Path) -> None
 ### try_load_json()
 
 ```python
-def try_load_json(file_path: Path) -> Optional[Dict[str, Any]]
+def try_load_json(
+    file_path: Path,
+    default: Optional[Dict[str, Any]] = None,
+    log_on_error: bool = True
+) -> Optional[Dict[str, Any]]
 ```
 
-JSONファイル読み込みを試行。失敗時は例外を投げずに`None`を返す。
+JSONファイルを安全に読み込む。エラー時はデフォルト値を返す（グレースフルデグラデーション用）。
+
+```python
+# ファイルがなければ空dictを返す
+data = try_load_json(path, default={})
+
+# ファイルがなければNoneを返す
+data = try_load_json(path)
+if data is None:
+    # 初期化処理
+```
 
 ### try_read_json_from_file()
 
@@ -92,21 +131,18 @@ def try_read_json_from_file(file_path: Path) -> Optional[Dict[str, Any]]
 ### confirm_file_overwrite()
 
 ```python
-def confirm_file_overwrite(
-    file_path: Path,
-    confirm_callback: Callable[[str], bool]
-) -> bool
+def confirm_file_overwrite(file_path: Path, force: bool = False) -> bool
 ```
 
-ファイル上書き確認。コールバック関数でユーザーに確認を求める。
+ファイルの上書き可否を判定。既存ファイルがなければTrue、あればforceフラグに従う。
 
 ```python
 # 使用例
-def my_confirm(message: str) -> bool:
-    return input(f"{message} (y/n): ").lower() == 'y'
+if not confirm_file_overwrite(Path("output.txt")):
+    raise FileIOError("File already exists")
 
-if confirm_file_overwrite(Path("output.txt"), my_confirm):
-    # 上書き実行
+# 強制上書き
+confirm_file_overwrite(Path("output.txt"), force=True)  # 常にTrue
 ```
 
 ---
@@ -182,7 +218,7 @@ max_loop = get_max_numbered_file(
 
 ---
 
-## ロギング（infrastructure/logging_config.py）
+## 基本ロギング（infrastructure/logging_config.py）
 
 ### get_logger()
 
@@ -338,6 +374,89 @@ data = with_error_context(
 
 ---
 
+## 設定管理（infrastructure/config/）
+
+> v4.0.0で追加。設定ファイルI/O・パス解決を担当。
+> アクセス: `from infrastructure.config import ...`
+
+### find_plugin_root()
+
+```python
+def find_plugin_root(script_path: Path) -> Path
+```
+
+起点パスからPluginルートディレクトリを検出。`.claude-plugin/config.json` が存在するディレクトリを返す。
+
+**例外**: `FileNotFoundError` - Pluginルートが見つからない場合
+
+### load_config()
+
+```python
+def load_config(config_file: Path) -> ConfigData
+```
+
+設定ファイルをシンプルに読み込む。キャッシュなし。
+
+**例外**: `ConfigError` - ファイル不存在またはJSONパースエラー
+
+### ConfigLoader
+
+設定ファイルの読み込みとキャッシュ管理を担当するクラス。
+
+```python
+class ConfigLoader:
+    def __init__(self, config_file: Path): ...
+    def load(self) -> ConfigData: ...           # キャッシュ付き読み込み
+    def reload(self) -> ConfigData: ...         # 強制再読み込み
+    def get(self, key: str, default: Any = None) -> Any: ...
+    def get_required(self, key: str) -> Any: ...  # 例外発生
+    def has_key(self, key: str) -> bool: ...
+    def validate_required_keys(self) -> List[str]: ...
+    @property
+    def is_loaded(self) -> bool: ...
+```
+
+**使用例**:
+
+```python
+from infrastructure.config import ConfigLoader
+
+loader = ConfigLoader(Path("config.json"))
+config = loader.load()
+value = loader.get("key", default="default_value")
+```
+
+### PathResolver
+
+base_dir基準のパス解決とセキュリティ検証を担当するクラス。
+
+```python
+class PathResolver:
+    def __init__(self, plugin_root: Path, config: ConfigData): ...
+    def resolve_path(self, key: str) -> Path: ...
+    @property
+    def loops_path(self) -> Path: ...
+    @property
+    def digests_path(self) -> Path: ...
+    @property
+    def essences_path(self) -> Path: ...
+    def get_identity_file_path(self) -> Optional[Path]: ...
+```
+
+**セキュリティ**: `trusted_external_paths` 設定で外部パスアクセスを制限。
+
+```python
+from infrastructure.config import PathResolver, ConfigLoader, find_plugin_root
+
+plugin_root = find_plugin_root(Path(__file__))
+loader = ConfigLoader(plugin_root / "config.json")
+resolver = PathResolver(plugin_root, loader.load())
+
+loops = resolver.loops_path  # 絶対パス
+```
+
+---
+
 ## ユーザーインタラクション（infrastructure/user_interaction.py）
 
 ### get_default_confirm_callback()
@@ -353,6 +472,10 @@ callback = get_default_confirm_callback()
 if callback("ファイルを上書きしますか？"):
     # 上書き実行
 ```
+
+---
+
+> **v4.0.0 更新**: 設定管理が `infrastructure/config/` サブパッケージとして追加されました。
 
 ---
 

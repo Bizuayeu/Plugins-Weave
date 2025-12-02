@@ -5,9 +5,32 @@
 EpisodicRAGプラグインで使用されているエラーハンドリングと
 リカバリーパターンのリファレンスドキュメント。
 
+## 目次
+
+**基本エラーパターン**
+- [1. ファイル権限エラー](#1-ファイル権限エラー)
+- [2. ディスク容量エラー](#2-ディスク容量エラー)
+- [3. JSON破損・フォーマットエラー](#3-json破損フォーマットエラー)
+- [4. ファイル存在エラー](#4-ファイル存在エラー)
+- [5. エンコーディングエラー](#5-エンコーディングエラー)
+- [6. 同時アクセスエラー](#6-同時アクセスエラー)
+- [7. 境界値・エッジケース](#7-境界値エッジケース)
+
+**実装リファレンス**
+- [8. JSON読み込み関数の使い分け](#8-json読み込み関数の使い分け)
+- [9. Strategy / Chain of Responsibility パターン](#9-strategy--chain-of-responsibility-パターン)
+- [10. スキル CLI のエラー処理パターン](#10-スキル-cli-のエラー処理パターン)
+
+**システム構造**
+- [11. 外部パスアクセス制御](#11-外部パスアクセス制御)
+- [12. 例外階層](#12-例外階層)
+- [13. 参照](#13-参照)
+
+---
+
 ## 概要
 
-このドキュメントでは、`infrastructure/json_repository.py`および
+このドキュメントでは、`infrastructure/json_repository/`パッケージおよび
 関連テスト（`test_error_recovery.py`）で実装されているエラー処理パターンを解説します。
 
 ---
@@ -68,13 +91,19 @@ except OSError as e:
 ### パターン
 
 ```python
-def _safe_read_json(file_path: Path, raise_on_error: bool = True) -> Optional[Dict]:
+def safe_read_json(file_path: Path, raise_on_error: bool = True) -> Optional[Dict[str, Any]]:
+    """JSONファイルを安全に読み込む共通ヘルパー"""
+    formatter = get_error_formatter()
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except json.JSONDecodeError as e:
         if raise_on_error:
-            raise FileIOError(f"Invalid JSON in {file_path}: {e}") from e
+            raise FileIOError(formatter.file.invalid_json(file_path, e)) from e
+        return None
+    except IOError as e:
+        if raise_on_error:
+            raise FileIOError(formatter.file.file_io_error("read", file_path, e)) from e
         return None
 ```
 
@@ -183,13 +212,15 @@ except OSError as e:
 
 ---
 
-## JSON読み込み関数の使い分け
+## 8. JSON読み込み関数の使い分け
 
 | 関数 | 用途 | エラー時の動作 |
 |------|------|----------------|
+| `safe_read_json()` | 共通ヘルパー | `raise_on_error`で制御 |
 | `load_json()` | 必須ファイルの読み込み | 例外をスロー |
 | `try_load_json()` | オプショナルファイル | デフォルト値を返却 |
 | `try_read_json_from_file()` | バッチ処理向け | None/デフォルト返却 |
+| `load_json_with_template()` | テンプレート付き | 3段階フォールバック |
 
 ### 使用例
 
@@ -205,11 +236,158 @@ for file in files:
     data = try_read_json_from_file(file)
     if data is None:
         continue  # スキップして次へ
+
+# テンプレート付き読み込み（3段階フォールバック）
+data = load_json_with_template(
+    target_file=config_path,
+    template_file=template_path,
+    default_factory=lambda: {"version": "1.0"},
+    save_on_create=True,
+)
+# 1. 既存ファイル → 2. テンプレート → 3. ファクトリ関数
 ```
 
 ---
 
-## 例外階層
+## 9. Strategy / Chain of Responsibility パターン
+
+`json_repository/`パッケージは2つのGoFデザインパターンを採用し、
+フォールバックロジックを宣言的に表現しています。
+
+### LoadStrategy 基底クラス
+
+```python
+class LoadStrategy(ABC, Generic[T]):
+    """JSON読み込み戦略の抽象基底クラス"""
+
+    @abstractmethod
+    def load(self, context: LoadContext) -> Optional[T]:
+        """読み込みを試行、成功時はT、失敗時はNone"""
+        ...
+
+    @abstractmethod
+    def get_description(self) -> str:
+        """戦略の説明（デバッグ用）"""
+        ...
+```
+
+### 具象戦略クラス
+
+| クラス | 責務 | 試行順序 |
+|--------|------|----------|
+| `FileLoadStrategy` | 既存ファイルから読み込み | 1 |
+| `TemplateLoadStrategy` | テンプレートから初期化 | 2 |
+| `FactoryLoadStrategy` | ファクトリ関数から生成 | 3 |
+| `DefaultLoadStrategy` | 空dictを返す（最終フォールバック） | 4 |
+
+### ChainedLoader の動作フロー
+
+```python
+class ChainedLoader(Generic[T]):
+    def load(self, context: LoadContext) -> Optional[T]:
+        for strategy in self._strategies:
+            logger.debug(f"Trying: {strategy.get_description()}")
+            result = strategy.load(context)
+            if result is not None:
+                return result
+        return None
+```
+
+### エラー時の挙動
+
+- 各戦略内でエラーが発生した場合は `None` を返し、次の戦略へ
+- `FileLoadStrategy` で `raise_on_error=True` の場合は例外をスロー
+- `DefaultLoadStrategy` が最後にあるため、必ず結果が返る
+
+---
+
+## 10. スキル CLI のエラー処理パターン
+
+v4.0.0でスキルがPythonスクリプト化され、構造化されたエラー処理が導入されました。
+
+### SetupResult status別エラー処理 (digest_setup.py)
+
+```python
+@dataclass
+class SetupResult:
+    status: str  # "ok" | "error" | "already_configured"
+    created: Optional[Dict[str, Any]] = None
+    warnings: List[str] = field(default_factory=list)
+    external_paths_detected: List[str] = field(default_factory=list)
+    error: Optional[str] = None
+```
+
+### 使用パターン
+
+```python
+result = manager.init(config_data, force=args.force)
+if result.status == "error":
+    output_error(result.error)
+elif result.status == "already_configured":
+    # 既存設定がある場合の処理
+    pass
+else:  # "ok"
+    output_json(asdict(result))
+```
+
+### ConfigEditor のエラー処理 (digest_config.py)
+
+```python
+# FileNotFoundError: 設定ファイルが見つからない
+except FileNotFoundError as e:
+    output_error(str(e), {"action": "Run @digest-setup first"})
+
+# JSONDecodeError: 設定ファイルが破損
+except json.JSONDecodeError as e:
+    output_error(f"Config file is corrupted: {e}", {"action": "Run @digest-setup to recreate"})
+```
+
+---
+
+## 11. 外部パスアクセス制御
+
+v4.0.0で導入された`trusted_external_paths`によるセキュリティ検証。
+
+### 概要
+
+`config.json`の`trusted_external_paths`は、plugin_root外へのアクセスを許可するホワイトリスト。
+
+### パス判定ロジック
+
+```python
+def _is_external_path(self, path_str: str) -> bool:
+    """パスがplugin_root外を指すか判定"""
+    path = Path(path_str).expanduser()
+
+    # 絶対パスの場合
+    if path.is_absolute():
+        try:
+            path.resolve().relative_to(self.plugin_root.resolve())
+            return False  # plugin_root内
+        except ValueError:
+            return True  # plugin_root外
+
+    # 相対パスで上位ディレクトリに出る場合
+    if ".." in str(path):
+        resolved = (self.plugin_root / path).resolve()
+        try:
+            resolved.relative_to(self.plugin_root.resolve())
+            return False
+        except ValueError:
+            return True
+
+    return False
+```
+
+### ベストプラクティス
+
+- 絶対パスまたは `~` で始まるパスのみ`trusted_external_paths`に登録
+- 外部パス検出時は`external_paths_detected`としてユーザーに警告
+- セキュリティのためデフォルトは空配列
+
+---
+
+## 12. 例外階層
 
 ```
 EpisodicRAGError (Base exception)
@@ -222,11 +400,14 @@ EpisodicRAGError (Base exception)
 
 ---
 
-## 参照
+## 13. 参照
 
-- 実装: `scripts/infrastructure/json_repository.py`
-- テスト: `scripts/test/integration_tests/test_error_recovery.py`
-- 例外定義: `scripts/domain/exceptions.py`
+- 実装: `../../scripts/infrastructure/json_repository/`
+  - `operations.py` - 基本操作（safe_read_json, load_json, save_json等）
+  - `load_strategy.py` - Strategy Pattern実装
+  - `chained_loader.py` - Chain of Responsibility実装
+- テスト: `../../scripts/test/integration_tests/test_error_recovery.py`
+- 例外定義: `../../scripts/domain/exceptions.py`
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

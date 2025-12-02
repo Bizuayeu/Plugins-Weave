@@ -7,10 +7,22 @@
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
 
 ```python
-from application.shadow import ShadowTemplate, ShadowUpdater
-from application.grand import GrandDigestManager, ShadowGrandDigestManager
-from application.finalize import RegularDigestBuilder, DigestPersistence
-from application.validators import validate_dict, is_valid_list
+from application import (
+    # Validators
+    validate_dict, validate_list, validate_source_files,
+    is_valid_dict, is_valid_list,
+    get_dict_or_default, get_list_or_default,
+    # Tracking
+    DigestTimesTracker,
+    # Shadow (Facades)
+    ShadowTemplate, FileDetector, ShadowIO, ShadowUpdater,
+    # Grand (Facades)
+    GrandDigestManager, ShadowGrandDigestManager,
+    # Finalize
+    ShadowValidator, ProvisionalLoader, RegularDigestBuilder, DigestPersistence,
+)
+# Config (separate import)
+from application.config import DigestConfig
 ```
 
 ---
@@ -22,6 +34,7 @@ from application.validators import validate_dict, is_valid_list
 3. [GrandDigest管理（grand/）](#granddigest管理applicationgrand)
 4. [Finalize処理（finalize/）](#finalize処理applicationfinalize)
 5. [時間追跡（tracking/）](#時間追跡applicationtracking)
+6. [設定管理（config/）](#設定管理applicationconfig)
 
 ---
 
@@ -165,81 +178,15 @@ keywords = get_dict_or_default(raw_data.get("keywords"), {})
 
 ## Shadow管理（application/shadow/）
 
-### CascadeProcessor
+### 内部クラス
 
-ダイジェスト確定時のカスケード処理を担当。
+以下のクラスは `ShadowUpdater` Facade の内部実装です。直接使用せず、`ShadowUpdater` 経由で利用してください。
 
-```python
-class CascadeProcessor:
-    def __init__(
-        self,
-        shadow_io: ShadowIO,
-        file_detector: FileDetector,
-        template: ShadowTemplate,
-        level_hierarchy: Dict[str, LevelHierarchyEntry],
-        file_appender: FileAppender
-    ): ...
-```
-
-| メソッド | 説明 |
-|---------|------|
-| `get_shadow_digest_for_level(level: str) -> Optional[OverallDigestData]` | 指定レベルのShadowダイジェストを取得 |
-| `promote_shadow_to_grand(level: str) -> None` | ShadowをGrandDigestに昇格（確認のみ） |
-| `clear_shadow_level(level: str) -> None` | 指定レベルのShadowを初期化 |
-| `cascade_update_on_digest_finalize(level: str) -> None` | ダイジェスト確定時のカスケード処理（処理3） |
-
-**cascade_update_on_digest_finalize処理フロー**:
-1. Shadow → Grand 昇格の確認
-2. 次のレベルの新しいファイルを検出
-3. 次のレベルのShadowに増分追加
-4. 現在のレベルのShadowをクリア
-
-### PlaceholderManager
-
-PLACEHOLDER管理（更新・保持判定）を担当。
-
-```python
-class PlaceholderManager:
-    def update_or_preserve(
-        self,
-        overall_digest: OverallDigestData,
-        total_files: int
-    ) -> None
-```
-
-| メソッド | 説明 |
-|---------|------|
-| `update_or_preserve(overall_digest, total_files) -> None` | PLACEHOLDERの更新または既存分析の保持 |
-
-**動作**:
-- `abstract`がPLACEHOLDER（空または`<!-- PLACEHOLDER`を含む）の場合: 新規PLACEHOLDER生成
-- それ以外: 既存分析を保持し、再分析を促すログ出力
-
-### FileAppender
-
-Shadowへのファイル追加を担当。
-
-```python
-class FileAppender:
-    def __init__(
-        self,
-        shadow_io: ShadowIO,
-        placeholder_manager: PlaceholderManager,
-        level_hierarchy: Dict[str, LevelHierarchyEntry]
-    ): ...
-
-    def append_files_to_level(self, level: str, files: List[Path]) -> None
-```
-
-| メソッド | 説明 |
-|---------|------|
-| `append_files_to_level(level, files) -> None` | 指定レベルのShadowに新規ファイルを追加 |
-
-**動作**:
-1. 現在のShadowデータを読み込み
-2. 既存の`source_files`に新規ファイルを追加
-3. PlaceholderManagerで`overall_digest`を更新
-4. Shadowファイルに保存
+| クラス | 責務 |
+|--------|------|
+| `CascadeProcessor` | ダイジェスト確定時のカスケード処理 |
+| `PlaceholderManager` | PLACEHOLDER管理（更新・保持判定） |
+| `FileAppender` | Shadowへのファイル追加 |
 
 ### ShadowTemplate
 
@@ -604,4 +551,34 @@ tracker.save("weekly", ["L00001_xxx.txt", "L00002_yyy.txt", "L00005_zzz.txt"])
 
 ---
 
+## 設定管理（application/config/）
+
+> v4.0.0で追加。詳細は [config.md](config.md) を参照。
+
+### DigestConfig
+
+設定管理のFacadeクラス。パス解決、閾値取得、ディレクトリ構造検証を統合。
+
+```python
+from application.config import DigestConfig
+
+config = DigestConfig()
+print(config.loops_path)
+print(config.weekly_threshold)
+```
+
+詳細なAPI仕様は [config.md](config.md#digestconfig-クラスapplicationconfig__init__py) を参照。
+
+### 内部クラス
+
+以下のクラスは `DigestConfig` Facade の内部実装です。直接使用は推奨されません。
+
+| クラス | 責務 |
+|--------|------|
+| `ConfigValidator` | config.json の検証 |
+| `LevelPathService` | レベル別パス操作 |
+| `SourcePathResolver` | ソースパス解決 |
+| `ThresholdProvider` | 閾値アクセス |
+
+---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

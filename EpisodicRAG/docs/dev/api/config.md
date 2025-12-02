@@ -4,7 +4,51 @@
 
 config.json仕様とDigestConfigクラス。
 
+> **v4.0.0**: 設定管理機能は3層に分散配置されています。アーキテクチャ詳細は [ARCHITECTURE.md](../ARCHITECTURE.md#依存関係ルール) を参照。
+
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
+
+```python
+from application.config import DigestConfig
+
+# または詳細なインポート
+from application.config import (
+    DigestConfig,
+    ConfigValidator,
+    ThresholdProvider,
+    LevelPathService,
+)
+
+# Infrastructure層のconfig（低レベルAPI）
+from infrastructure.config import (
+    ConfigLoader,
+    PathResolver,
+    find_plugin_root,
+    load_config,
+)
+```
+
+---
+
+## 目次
+
+1. [config.json 詳細仕様](#configjson-詳細仕様)
+   - [設定ファイルの場所](#設定ファイルの場所)
+   - [設定項目詳細](#設定項目詳細)
+   - [よくある設定パターン](#よくある設定パターン)
+2. [ConfigData型定義](#configdata型定義)
+   - [ConfigData（config.json全体構造）](#configdataconfig.json全体構造)
+   - [PathsConfigData / LevelsConfigData](#pathsconfigdata--levelsconfigdata)
+3. [DigestConfig クラス](#digestconfig-クラスapplicationconfig__init__py)
+   - [プロパティ（パス関連）](#プロパティパス関連)
+   - [プロパティ（閾値関連）](#プロパティ閾値関連)
+   - [メソッド](#メソッド)
+   - [Context Manager対応](#context-manager対応)
+   - [thresholdプロパティ](#thresholdプロパティ)
+4. [CLI使用方法](#cli使用方法)
+   - [interfaces.config_cli モジュール](#interfacesconfig_cli-モジュール)
+   - [スキルCLI (v4.0.0+)](#スキルcli-v400)
+   - [テスト実行](#テスト実行)
 
 ---
 
@@ -26,7 +70,7 @@ config.json仕様とDigestConfigクラス。
 - `"."` (デフォルト): プラグインルート自身を基準とする（完全自己完結型）
 - `"subdir"`: プラグイン内のサブディレクトリ
 - `"~/DEV/production/EpisodicRAG"`: 外部パス（`trusted_external_paths`で許可が必要）
-- `"C:/Users/anyth/DEV/data"`: Windows絶対パス（`trusted_external_paths`で許可が必要）
+- `"C:/Users/username/DEV/data"`: Windows絶対パス（`trusted_external_paths`で許可が必要）
 
 **パス解決の仕組み:**
 ```text
@@ -154,6 +198,63 @@ plugin_root外でアクセスを許可する絶対パスのリスト
 
 ---
 
+## ConfigData型定義
+
+config.jsonの型安全な定義。`domain/types.py`で定義。
+
+```python
+from domain.types import ConfigData, PathsConfigData, LevelsConfigData
+```
+
+### ConfigData（config.json全体構造）
+
+```typescript
+interface ConfigData {
+  base_dir?: string;           // plugin_rootからの相対パス
+  trusted_external_paths?: string[];  // plugin_root外でアクセス許可するパス (v4.0.0+)
+  paths?: {
+    loops_dir?: string;        // Loopファイル配置先
+    digests_dir?: string;      // Digest出力先
+    essences_dir?: string;     // GrandDigest配置先
+    identity_file_path?: string | null;  // 外部Identity.mdパス
+  };
+  levels?: {
+    weekly_threshold?: number;    // デフォルト: 5
+    monthly_threshold?: number;   // デフォルト: 5
+    quarterly_threshold?: number; // デフォルト: 3
+    annual_threshold?: number;    // デフォルト: 4
+    triennial_threshold?: number; // デフォルト: 3
+    decadal_threshold?: number;   // デフォルト: 3
+    multi_decadal_threshold?: number; // デフォルト: 3
+    centurial_threshold?: number; // デフォルト: 4
+  };
+}
+```
+
+### PathsConfigData / LevelsConfigData
+
+```python
+class PathsConfigData(TypedDict, total=False):
+    loops_dir: str
+    digests_dir: str
+    essences_dir: str
+    identity_file_path: Optional[str]
+
+class LevelsConfigData(TypedDict, total=False):
+    weekly_threshold: int
+    monthly_threshold: int
+    quarterly_threshold: int
+    annual_threshold: int
+    triennial_threshold: int
+    decadal_threshold: int
+    multi_decadal_threshold: int
+    centurial_threshold: int
+```
+
+> 📖 完全な型定義は [domain/types.py](../../../scripts/domain/types.py) を参照
+
+---
+
 ## DigestConfig クラス（application/config/__init__.py）
 
 ```python
@@ -193,10 +294,34 @@ class DigestConfig:
 def resolve_path(self, key: str) -> Path
 def get_level_dir(self, level: str) -> Path
 def get_provisional_dir(self, level: str) -> Path
+def get_source_dir(self, level: str) -> Path
+def get_source_pattern(self, level: str) -> str
 def get_threshold(self, level: str) -> int
 def get_identity_file_path(self) -> Optional[Path]
+def load_config(self) -> ConfigData
 def show_paths(self) -> None
 def validate_directory_structure(self) -> list
+```
+
+### Context Manager対応
+
+`with`文での使用に対応しています。
+
+```python
+from application.config import DigestConfig
+
+with DigestConfig() as config:
+    print(config.loops_path)
+```
+
+### thresholdプロパティ
+
+`threshold`プロパティ経由で`ThresholdProvider`にアクセスできます。
+
+```python
+config = DigestConfig()
+print(config.threshold.weekly_threshold)  # 5
+print(config.threshold.monthly_threshold)  # 5
 ```
 
 ---
@@ -218,6 +343,64 @@ python -m interfaces.config_cli --show-paths
 python -m interfaces.config_cli --plugin-root /path/to/plugin
 ```
 
+### スキルCLI (v4.0.0+)
+
+v4.0.0で追加されたスキルのPythonスクリプト実装。Claudeから呼び出されるか、直接実行可能。
+
+#### digest_setup（初期セットアップ）
+
+```bash
+cd scripts
+
+# セットアップ状態を確認
+python -m interfaces.digest_setup check
+
+# 初期セットアップ実行
+python -m interfaces.digest_setup init --config '{"base_dir": ".", "paths": {...}, "levels": {...}}'
+
+# 既存設定を上書き
+python -m interfaces.digest_setup init --config '...' --force
+```
+
+#### digest_config（設定変更）
+
+```bash
+cd scripts
+
+# 現在の設定を表示
+python -m interfaces.digest_config show
+
+# 設定を一括更新
+python -m interfaces.digest_config update --config '{"base_dir": ".", ...}'
+
+# 個別設定を変更（ドット記法サポート）
+python -m interfaces.digest_config set --key "levels.weekly_threshold" --value 7
+
+# trusted_external_paths の管理
+python -m interfaces.digest_config trusted-paths list
+python -m interfaces.digest_config trusted-paths add "~/DEV/production"
+python -m interfaces.digest_config trusted-paths remove "~/DEV/production"
+```
+
+#### digest_auto（健全性診断）
+
+```bash
+cd scripts
+
+# JSON形式で出力（デフォルト）
+python -m interfaces.digest_auto --output json
+
+# テキスト形式で出力
+python -m interfaces.digest_auto --output text
+```
+
+出力内容:
+- 未処理Loop検出
+- プレースホルダー検出（まだらボケ）
+- 中間ファイルスキップ検出
+- 生成可能なダイジェスト階層
+- 推奨アクション
+
 ### テスト実行
 
 ```bash
@@ -234,5 +417,4 @@ python -c "from interfaces import DigestFinalizerFromShadow; print('OK')"
 ```
 
 ---
-
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

@@ -4,6 +4,8 @@
 
 コアビジネスロジック。外部に依存しない純粋な定義。
 
+> **v4.0.0**: エラーフォーマッタがCompositeパターンに再編成されました。詳細は [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) を参照。
+
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
 
 ```python
@@ -23,7 +25,38 @@ from domain import (
 
 ---
 
+## 目次
+
+**定数・設定**
+- [定数](#定数) - バージョン、LEVEL_CONFIG、PLACEHOLDER
+- [例外](#例外domainexceptionspy) - EpisodicRAGError階層
+- [型定義](#型定義domaintypespy) - TypedDict、スキーマ
+
+**ファイル・階層操作**
+- [関数](#関数domainfile_namingpy) - ファイル命名、番号抽出
+- [レベルレジストリ](#レベルレジストリdomainlevel_registrypy) - 階層設定の一元管理
+- [定数ユーティリティ](#定数ユーティリティ関数domainconstantspy) - プレースホルダー生成
+
+**エラー処理**
+- [エラーフォーマット](#エラーフォーマットdomainerror_formatter) - CompositeErrorFormatter *(v4.0.0+)*
+
+---
+
 ## 定数
+
+### バージョン定数
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `__version__` | (動的) | plugin.jsonから読み込み（SSoT） |
+| `DIGEST_FORMAT_VERSION` | `"1.0"` | データフォーマットバージョン |
+
+```python
+from domain import __version__, DIGEST_FORMAT_VERSION
+
+print(__version__)           # "4.0.0" (plugin.jsonから)
+print(DIGEST_FORMAT_VERSION) # "1.0"
+```
 
 ### LEVEL_CONFIG
 
@@ -147,29 +180,15 @@ class ProvisionalDigestFile(TypedDict):
 
 JSONファイル構造を理解するためのスキーマ定義です（TypeScript形式で表現、`?`はオプショナル）。
 
-#### ConfigData（config.json全体構造）
+#### ConfigData
 
-```typescript
-interface ConfigData {
-  base_dir?: string;           // plugin_rootからの相対パス
-  paths?: {
-    loops_dir?: string;        // Loopファイル配置先
-    digests_dir?: string;      // Digest出力先
-    essences_dir?: string;     // GrandDigest配置先
-    identity_file_path?: string | null;  // 外部Identity.mdパス
-  };
-  levels?: {
-    weekly_threshold?: number;    // デフォルト: 5
-    monthly_threshold?: number;   // デフォルト: 5
-    quarterly_threshold?: number; // デフォルト: 3
-    annual_threshold?: number;    // デフォルト: 4
-    triennial_threshold?: number; // デフォルト: 3
-    decadal_threshold?: number;   // デフォルト: 3
-    multi_decadal_threshold?: number; // デフォルト: 3
-    centurial_threshold?: number; // デフォルト: 4
-  };
-}
+config.json全体構造の型定義。
+
+```python
+from domain.types import ConfigData
 ```
+
+> 📖 詳細スキーマは [config.md](config.md#configdata型定義) を参照
 
 #### ShadowDigestData（ShadowGrandDigest.txt全体構造）
 
@@ -367,6 +386,27 @@ class LevelBehavior(ABC):
 | `StandardLevelBehavior` | 通常階層（weekly〜centurial） |
 | `LoopLevelBehavior` | Loopファイル用（5桁、カスケードなし） |
 
+#### 実装例
+
+```python
+from domain.level_behaviors import StandardLevelBehavior, LoopLevelBehavior
+from domain.level_metadata import LevelMetadata
+
+# StandardLevelBehavior使用例
+metadata = LevelMetadata(
+    name="weekly", prefix="W", digits=4,
+    dir="1_Weekly", source="loops", next_level="monthly"
+)
+behavior = StandardLevelBehavior(metadata)
+print(behavior.format_number(42))      # "W0042"
+print(behavior.should_cascade())       # True
+
+# LoopLevelBehavior使用例
+loop_behavior = LoopLevelBehavior()
+print(loop_behavior.format_number(186))  # "L00186"
+print(loop_behavior.should_cascade())    # False
+```
+
 ### LevelRegistry
 
 ```python
@@ -435,32 +475,40 @@ LEVEL_CONFIGから階層関係（source/next）を抽出した辞書を構築。
 
 ---
 
-## エラーフォーマット（domain/error_formatter.py）
+## エラーフォーマット（domain/error_formatter/）
 
-エラーメッセージの標準化を担当。一貫したパス表記、コンテキスト情報、メッセージフォーマットを提供。
+エラーメッセージの標準化を担当。Compositeパターンによりカテゴリ別フォーマッタを統合。
 
-### ErrorFormatter
+> 📖 デザインパターン詳細は [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) を参照
+
+### CompositeErrorFormatter
+
+全エラーフォーマッタを統合するComposite。カテゴリを明示的に指定してメソッドを呼び出す。
 
 ```python
-class ErrorFormatter:
-    def __init__(self, project_root: Path): ...
+class CompositeErrorFormatter:
+    """全エラーフォーマッタを統合するComposite"""
+
+    config: ConfigErrorFormatter      # 設定関連エラー
+    file: FileErrorFormatter          # ファイルI/Oエラー
+    validation: ValidationErrorFormatter  # バリデーションエラー
+    digest: DigestErrorFormatter      # ダイジェスト処理エラー
+
+    def format_path(self, path: Path) -> str: ...
 ```
 
-| メソッド | 説明 |
-|---------|------|
-| `format_path(path)` | パスを相対パスに正規化 |
+### カテゴリ別メソッド一覧
 
-#### Level/Config エラー
+#### config（設定関連）
 
 | メソッド | 説明 |
 |---------|------|
 | `invalid_level(level, valid_levels)` | 無効レベルエラー |
-| `unknown_level(level)` | 不明レベルエラー（`invalid_level`のエイリアス） |
 | `config_key_missing(key)` | 設定キー欠落エラー |
 | `config_invalid_value(key, expected, actual)` | 設定値不正エラー |
 | `config_section_missing(section)` | 設定セクション欠落エラー |
 
-#### File I/O エラー
+#### file（ファイルI/O）
 
 | メソッド | 説明 |
 |---------|------|
@@ -471,7 +519,7 @@ class ErrorFormatter:
 | `directory_creation_failed(path, error)` | ディレクトリ作成失敗エラー |
 | `invalid_json(path, error)` | JSON不正エラー |
 
-#### Validation エラー
+#### validation（バリデーション）
 
 | メソッド | 説明 |
 |---------|------|
@@ -479,7 +527,7 @@ class ErrorFormatter:
 | `validation_error(field, reason, value)` | バリデーションエラー |
 | `empty_collection(context)` | 空コレクションエラー |
 
-#### Digest固有エラー
+#### digest（ダイジェスト処理）
 
 | メソッド | 説明 |
 |---------|------|
@@ -491,23 +539,33 @@ class ErrorFormatter:
 ### ファクトリ関数
 
 ```python
-def get_error_formatter(project_root: Optional[Path] = None) -> ErrorFormatter
+def get_error_formatter(project_root: Optional[Path] = None) -> CompositeErrorFormatter
 def reset_error_formatter() -> None  # テスト用リセット
 ```
 
-**使用例**:
+### 使用例
 
 ```python
 from domain.error_formatter import get_error_formatter
 
 formatter = get_error_formatter()
-msg = formatter.file_not_found(Path("/path/to/file.txt"))
+
+# 設定関連エラー
+msg = formatter.config.invalid_level("xyz", ["weekly", "monthly"])
+# -> "Invalid level: 'xyz'. Valid levels: weekly, monthly"
+
+# ファイルI/Oエラー
+msg = formatter.file.file_not_found(Path("/path/to/file.txt"))
 # -> "File not found: path/to/file.txt"
 
-msg = formatter.invalid_level("xyz", ["weekly", "monthly"])
-# -> "Invalid level: 'xyz'. Valid levels: weekly, monthly"
+# バリデーションエラー
+msg = formatter.validation.invalid_type("config", "dict", "list")
+# -> "Invalid type for config: expected dict, got list"
+
+# ダイジェスト処理エラー
+msg = formatter.digest.shadow_empty("weekly")
+# -> "Shadow is empty for level: weekly"
 ```
 
 ---
-
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

@@ -199,9 +199,9 @@ python -m interfaces.finalize_from_shadow weekly "承認されたタイトル"
 ```python
 Task(
     subagent_type="EpisodicRAG-Plugin:DigestAnalyzer",
-    description="Analyze Loop0001 for digest generation",
+    description="Analyze L00001 for digest generation",
     prompt="""
-分析対象ファイル: C:\Users\anyth\DEV\homunculus\Weave\EpisodicRAG\Loops\Loop0001_認知アーキテクチャ論.txt
+分析対象ファイル: C:\Users\anyth\DEV\homunculus\Weave\EpisodicRAG\Loops\L00001_認知アーキテクチャ論.txt
 
 このLoopファイルを深層分析し、以下の形式でJSON出力してください：
 {
@@ -219,7 +219,7 @@ Task(
 ShadowGrandDigest.weeklyのsource_filesから各Loopを並列分析：
 
 ```python
-source_files = ["Loop0001_認知アーキテクチャ論.txt", "Loop0002_AI長期記憶論.txt", ...]
+source_files = ["L00001_認知アーキテクチャ論.txt", "L00002_AI長期記憶論.txt", ...]
 
 # 各Loopに対してDigestAnalyzerを並列起動
 for source_file in source_files:

@@ -31,8 +31,8 @@ GrandDigest と ShadowGrandDigest を活用し、Loop/Digest ファイルの深�
 ### 必須
 
 - **分析対象ファイルパス**: 分析する Loop/Digest ファイルの絶対パスまたはファイル名
-  - 絶対パス例: `C:\Users\anyth\DEV\homunculus\Weave\EpisodicRAG\Loops\Loop0001_認知アーキテクチャ論.txt`
-  - ファイル名例: `Loop0001_認知アーキテクチャ論.txt`（エージェントが loops_path から検索）
+  - 絶対パス例: `{loops_path}/L00001_認知アーキテクチャ論.txt`
+  - ファイル名例: `L00001_認知アーキテクチャ論.txt`（エージェントが loops_path から検索）
 
 ### オプション
 
@@ -145,11 +145,11 @@ config = DigestConfig()
 
 ```python
 # 通常の読み込み
-Read(file_path="C:/path/to/Loop0001.txt")
+Read(file_path="{loops_path}/L00001_認知アーキテクチャ論.txt")
 
 # 大規模ファイルの段階的読み込み
-Read(file_path="C:/path/to/Loop0001.txt", offset=0, limit=500)
-Read(file_path="C:/path/to/Loop0001.txt", offset=500, limit=500)
+Read(file_path="{loops_path}/L00199_技術探究.txt", offset=0, limit=500)
+Read(file_path="{loops_path}/L00199_技術探究.txt", offset=500, limit=500)
 ```
 
 ### Grep/mcp**serena**\*（補助的検索のみ）⚠️
@@ -267,7 +267,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 1. **ファイルサイズを事前確認**
    ```bash
    # Loopファイル
-   wc -l {loops_path}/Loop0199_*.txt
+   wc -l {loops_path}/L00199_*.txt
    # Digestファイル
    wc -l {digests_path}/*W0050*.txt
    ```

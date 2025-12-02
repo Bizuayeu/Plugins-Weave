@@ -12,6 +12,17 @@ EpisodicRAGプラグインの**Python API仕様書**です。
 
 ---
 
+## 目次
+
+1. [このドキュメントの使い方](#このドキュメントの使い方)
+2. [このドキュメントの範囲](#このドキュメントの範囲)
+3. [Layer別API](#layer別api)
+4. [クイックリファレンス](#クイックリファレンス)
+5. [デザインパターン](#デザインパターン)
+6. [関連ドキュメント](#関連ドキュメント)
+
+---
+
 ## このドキュメントの使い方
 
 1. **新機能を実装したい** → Layer別APIから該当層を参照
@@ -41,8 +52,22 @@ Clean Architecture（4層構造）に基づいて、APIドキュメントを層�
 | **Domain** | コアビジネスロジック（定数、型、例外、ファイル命名） | [domain.md](api/domain.md) |
 | **Infrastructure** | 外部関心事（JSON操作、ファイルスキャン、ロギング） | [infrastructure.md](api/infrastructure.md) |
 | **Application** | ユースケース（Shadow管理、GrandDigest、Finalize処理） | [application.md](api/application.md) |
-| **Interfaces** | エントリーポイント（DigestFinalizer、ProvisionalSaver） | [interfaces.md](api/interfaces.md) |
-| **Config** | 設定管理（config.json仕様、DigestConfigクラス） | [config.md](api/config.md) |
+| **Interfaces** | エントリーポイント（DigestFinalizer、ProvisionalSaver、CLI管理クラス） | [interfaces.md](api/interfaces.md) |
+
+### 設定管理（config）
+
+> v4.0.0で3層に分散配置されました。詳細は [ARCHITECTURE.md#依存関係ルール](ARCHITECTURE.md#依存関係ルール) を参照。
+
+設定関連APIは Clean Architecture に従って各層に配置されています:
+
+| 層 | パス | 責務 | 詳細 |
+|----|------|------|------|
+| Domain | `domain/config/` | 定数・バリデーションヘルパー | [domain.md](api/domain.md) |
+| Infrastructure | `infrastructure/config/` | ファイルI/O・パス解決 | [infrastructure.md](api/infrastructure.md) |
+| Application | `application/config/` | DigestConfig（Facade） | [config.md](api/config.md) |
+| Interfaces | `interfaces/config_cli.py` | CLIエントリーポイント | [interfaces.md](api/interfaces.md) |
+
+config.json仕様とDigestConfigクラスの詳細は [config.md](api/config.md) を参照。
 
 ---
 
@@ -79,6 +104,7 @@ EpisodicRAGで使用されているデザインパターン一覧：
 ## 関連ドキュメント
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様・データフロー
+- [CHANGELOG.md](../../CHANGELOG.md) - バージョン履歴・Breaking Changes
 - [用語集](../../README.md) - 用語・共通概念
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - 開発参加ガイド
 
