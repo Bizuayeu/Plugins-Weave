@@ -6,7 +6,9 @@ ProvisionalDigestSaver 統合テスト
 一時ディレクトリを使用したファイルI/Oテスト
 """
 
+import io
 import json
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -135,3 +137,63 @@ class TestProvisionalDigestSaver:
             data = json.load(f)
 
         assert len(data["individual_digests"]) == 2
+
+
+class TestCLIStdinOption:
+    """--stdin オプションのテスト"""
+
+    @pytest.mark.integration
+    def test_stdin_option_reads_from_stdin(self, temp_plugin_env, monkeypatch):
+        """--stdin オプションで標準入力からJSONを読み込む"""
+        from interfaces.save_provisional_digest import main
+
+        # テスト用JSON
+        test_json = json.dumps({
+            "individual_digests": {
+                "Loop0001.txt": {
+                    "digest_type": "test",
+                    "keywords": ["keyword1"],
+                    "abstract": {"long": "long text", "short": "short"},
+                    "impression": {"long": "impression long", "short": "short"}
+                }
+            }
+        })
+
+        # 標準入力をモック
+        monkeypatch.setattr('sys.stdin', io.StringIO(test_json))
+
+        # コマンドライン引数をモック
+        test_args = ['save_provisional_digest.py', 'weekly', '--stdin']
+        monkeypatch.setattr('sys.argv', test_args)
+
+        # DigestConfigをモック
+        with patch('interfaces.save_provisional_digest.DigestConfig') as mock_config_class:
+            mock_config = MagicMock()
+            mock_config.digests_path = temp_plugin_env.digests_path
+            provisional_dir = temp_plugin_env.digests_path / "1_Weekly" / "Provisional"
+            provisional_dir.mkdir(parents=True, exist_ok=True)
+            mock_config.get_provisional_dir.return_value = provisional_dir
+            mock_config_class.return_value = mock_config
+
+            # main() 実行（例外なく完了すればOK）
+            main()
+
+        # Provisionalファイルが作成されたことを確認
+        provisional_files = list(provisional_dir.glob("*.txt"))
+        assert len(provisional_files) == 1
+
+    @pytest.mark.integration
+    def test_error_when_no_input_and_no_stdin(self, temp_plugin_env, monkeypatch):
+        """input_dataも--stdinもない場合はエラー"""
+        from interfaces.save_provisional_digest import main
+
+        # コマンドライン引数（input_dataなし、--stdinなし）
+        test_args = ['save_provisional_digest.py', 'weekly']
+        monkeypatch.setattr('sys.argv', test_args)
+
+        # argparse.error() は SystemExit を発生させる
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+
+        # エラーコード2（argparseのエラー）
+        assert exc_info.value.code == 2

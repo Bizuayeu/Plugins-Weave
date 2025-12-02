@@ -7,12 +7,16 @@ DigestAnalyzerが生成したindividual_digestsをProvisionalDigestファイル�
 finalize_from_shadow.pyが読み込むための中間ファイルを作成する。
 
 Usage:
-    python save_provisional_digest.py <level> <json_file_or_string> [--append]
+    python save_provisional_digest.py <level> --stdin [--append]
+    python save_provisional_digest.py <level> <json_file> [--append]
 
 Examples:
-    python save_provisional_digest.py weekly individual_digests.json
-    python save_provisional_digest.py weekly '[{"source_file":"Loop0001.txt",...}]'
-    python save_provisional_digest.py weekly '[{"source_file":"Loop0005.txt",...}]' --append
+    cat digest.json | python save_provisional_digest.py weekly --stdin --append
+    python save_provisional_digest.py weekly individual_digests.json --append
+
+Note:
+    JSONはファイルまたは--stdinで渡してください。
+    コマンドライン引数で直接JSON文字列を渡すと、長いテキストが切り詰められる可能性があります。
 """
 
 import argparse
@@ -159,9 +163,10 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python save_provisional_digest.py weekly individual_digests.json
-  python save_provisional_digest.py weekly '[{"source_file":"Loop0001.txt",...}]'
-  python save_provisional_digest.py weekly '[{"source_file":"Loop0005.txt",...}]' --append
+  cat digest.json | python save_provisional_digest.py weekly --stdin --append
+  python save_provisional_digest.py weekly individual_digests.json --append
+
+Note: JSONはファイルまたは--stdinで渡してください。
         """,
     )
     # Registry経由でレベル一覧を動的に取得（OCP準拠）
@@ -171,7 +176,14 @@ Examples:
         choices=registry.get_level_names(),
         help="ダイジェストレベル",
     )
-    parser.add_argument("input_data", help="JSONファイルパスまたはJSON文字列")
+    parser.add_argument(
+        "input_data", nargs="?", default=None,
+        help="JSONファイルパスまたはJSON文字列（--stdin使用時は不要）"
+    )
+    parser.add_argument(
+        "--stdin", action="store_true",
+        help="標準入力からJSONを読み込む（長いJSONに推奨）"
+    )
     parser.add_argument(
         "--append", action="store_true", help="既存のProvisionalファイルに追加（新規作成ではなく）"
     )
@@ -184,6 +196,10 @@ Examples:
 
     args = parser.parse_args()
 
+    # Validate: either input_data or --stdin must be provided
+    if not args.stdin and args.input_data is None:
+        parser.error("input_data is required unless --stdin is specified")
+
     try:
         # plugin_root が指定されている場合は DigestConfig に渡す
         plugin_root = Path(args.plugin_root) if args.plugin_root else None
@@ -191,7 +207,11 @@ Examples:
         saver = ProvisionalDigestSaver(config=config)
 
         # Load individual digests using InputLoader
-        individual_digests = InputLoader.load(args.input_data)
+        if args.stdin:
+            input_data = sys.stdin.read()
+        else:
+            input_data = args.input_data
+        individual_digests = InputLoader.load(input_data)
 
         # Empty list warning
         if len(individual_digests) == 0:

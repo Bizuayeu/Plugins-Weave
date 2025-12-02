@@ -152,12 +152,15 @@ Provisional保存。
 **配置先**: `scripts/interfaces/save_provisional_digest.py`
 
 ```bash
-# 追記モード（パターン1）
-python -m interfaces.save_provisional_digest weekly '<individual_digests JSON>' --append
+# 標準入力から読み込み（推奨）
+cat digest.json | python -m interfaces.save_provisional_digest weekly --stdin --append
 
-# 新規作成（パターン2、次階層用）
-python -m interfaces.save_provisional_digest monthly '<individual_digests JSON>'
+# ファイルパス指定
+python -m interfaces.save_provisional_digest weekly digest.json --append
 ```
+
+> **⚠️ 重要**: JSONはファイルまたは`--stdin`で渡してください。
+> コマンドライン引数で直接JSON文字列を渡すと、長いテキストが切り詰められる可能性があります。
 
 ---
 
