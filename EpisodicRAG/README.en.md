@@ -9,12 +9,17 @@ A collection of terminology definitions used in the EpisodicRAG plugin.
 
 ## Table of Contents
 
+**Core Concepts**
 - [Basic Concepts](#basic-concepts)
 - [Memory Structure](#memory-structure)
 - [8-Layer Hierarchy](#8-layer-hierarchy)
+
+**Operations Guide**
 - [Processes & Operations](#processes--operations)
 - [File Naming Conventions](#file-naming-conventions)
 - [Commands & Skills](#commands--skills)
+
+**Configuration & Development**
 - [Configuration Files](#configuration-files)
 - [Developer Reference](#developer-reference)
 - [Related Documents](#related-documents)
