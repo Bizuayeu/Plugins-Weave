@@ -47,7 +47,7 @@ class DigestFinalizerFromShadow:
 
 ```python
 from interfaces import DigestFinalizerFromShadow
-from config import DigestConfig
+from application.config import DigestConfig
 
 config = DigestConfig()
 finalizer = DigestFinalizerFromShadow(config)
@@ -95,7 +95,7 @@ class ProvisionalDigestSaver:
 
 ```python
 from interfaces import ProvisionalDigestSaver
-from config import DigestConfig
+from application.config import DigestConfig
 
 config = DigestConfig()
 saver = ProvisionalDigestSaver(config)

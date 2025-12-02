@@ -332,7 +332,7 @@ class GrandDigestManager:
 
 ```python
 from application.grand import GrandDigestManager
-from config import DigestConfig
+from application.config import DigestConfig
 
 config = DigestConfig()
 manager = GrandDigestManager(config)
@@ -369,7 +369,7 @@ class ShadowGrandDigestManager:
 
 ```python
 from application.grand import ShadowGrandDigestManager
-from config import DigestConfig
+from application.config import DigestConfig
 
 config = DigestConfig()
 manager = ShadowGrandDigestManager(config)

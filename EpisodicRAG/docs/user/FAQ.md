@@ -79,7 +79,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 }
 ```
 
-> 📖 詳細: [用語集](../../README.md#trusted_external_paths)、[TROUBLESHOOTING.md](TROUBLESHOOTING.md#外部パスアクセスエラー)
+> 📖 詳細: [用語集](../../README.md#trusted_external_paths)、[TROUBLESHOOTING.md](TROUBLESHOOTING.md#外部パス設定エラー)
 
 ---
 

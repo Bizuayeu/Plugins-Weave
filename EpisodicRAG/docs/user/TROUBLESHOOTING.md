@@ -4,6 +4,35 @@
 
 このドキュメントでは、EpisodicRAGプラグインで発生する問題の**具体的な解決手順**を提供します。
 
+> **対応バージョン**: EpisodicRAG Plugin v4.0.0+ / ファイルフォーマット 1.0
+>
+> **v4.0.0変更点**: config層がClean Architecture（3層）に分解されました。スキルはPythonスクリプトとしても実行可能です（`python -m interfaces.digest_setup`等）。
+>
+> **v3.0.0変更点**: Loop ID形式が4桁→5桁に変更されました（Loop0001→L00001）。既存ファイルの移行については[Loop ID移行](#loop-id移行v300)を参照してください。
+>
+> **v2.0.0変更点**: Clean Architecture（4層構造）を採用。旧パス（`scripts/shadow_grand_digest.py`等）は使用不可。[ARCHITECTURE.md](../dev/ARCHITECTURE.md#clean-architecture)を参照。
+>
+> 📖 環境別パス形式は [用語集](../../README.md#パス形式の違い) を参照
+
+---
+
+## 目次
+
+1. [このドキュメントの使い方](#このドキュメントの使い方)
+2. [クイック診断フローチャート](#クイック診断フローチャート)
+3. [問題別解決ガイド](#問題別解決ガイド)
+   - [外部パス設定エラー](#外部パス設定エラー)
+   - [DigestAnalyzerエージェントが起動しない](#digestanalyzerエージェントが起動しない)
+   - [individual_digestsが空になる](#individual_digestsが空になる)
+   - [ShadowGrandDigestが更新されない](#shadowgranddigestが更新されない)
+   - [階層的カスケードが動作しない](#階層的カスケードが動作しない)
+   - [Digest生成時のJSON形式エラー](#digest生成時のjson形式エラー)
+   - [開発環境とインストール環境の混在](#開発環境とインストール環境の混在)
+   - [Loop ID移行（v3.0.0）](#loop-id移行v300)
+4. [システム状態の詳細診断](#システム状態の詳細診断)
+5. [デバッグモード](#デバッグモード)
+6. [サポート](#サポート)
+
 ---
 
 ## このドキュメントの使い方
@@ -15,29 +44,6 @@
 | **用語・命名規則**（ID桁数、ファイル形式） | [用語集](../../README.md) |
 
 > 💡 まず下の「クイック診断フローチャート」で問題を切り分け、該当セクションへ進んでください。
-
-> **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
->
-> **Note**: v2.0.0以降はClean Architecture（4層構造）を採用しています。旧パス（`scripts/shadow_grand_digest.py`等）は使用できません。[ARCHITECTURE.md](../dev/ARCHITECTURE.md#clean-architecture)を参照してください。
->
-> **v3.0.0変更点**: Loop ID形式が4桁→5桁に変更されました（Loop0001→L00001）。既存ファイルの移行については[Loop ID移行](#loop-id移行v300)を参照してください。
-
----
-
-## 目次
-
-1. [問題別解決ガイド](#問題別解決ガイド)
-   - [外部パス設定エラー](#外部パス設定エラー)
-   - [DigestAnalyzerエージェントが起動しない](#digestanalyzerエージェントが起動しない)
-   - [individual_digestsが空になる](#individual_digestsが空になる)
-   - [ShadowGrandDigestが更新されない](#shadowgranddigestが更新されない)
-   - [階層的カスケードが動作しない](#階層的カスケードが動作しない)
-   - [Digest生成時のJSON形式エラー](#digest生成時のjson形式エラー)
-   - [開発環境とインストール環境の混在](#開発環境とインストール環境の混在)
-   - [Loop ID移行（v3.0.0）](#loop-id移行v300)
-2. [システム状態の詳細診断](#システム状態の詳細診断)
-3. [デバッグモード](#デバッグモード)
-4. [サポート](#サポート)
 
 ---
 
@@ -59,10 +65,10 @@ flowchart TD
     E --> H
     G --> I["問題別ガイド参照"]
 
-    style A fill:#FFCDD2
-    style H fill:#C8E6C9
-    style C fill:#E3F2FD
-    style E fill:#E3F2FD
+    style A fill:#FFCDD2,color:#000000
+    style H fill:#C8E6C9,color:#000000
+    style C fill:#E3F2FD,color:#000000
+    style E fill:#E3F2FD,color:#000000
 ```
 
 ---
@@ -119,12 +125,12 @@ ConfigError: Invalid configuration value for 'base_dir': expected path within pl
 
 1. **config.jsonが存在するか**
    ```bash
-   ls ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin/config.json
+   ls ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin/config.json
    ```
 
 2. **パス解決が正しいか**（📖 [用語集](../../README.md#基本概念) 参照）
    ```bash
-   cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
+   cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG
    python -m interfaces.digest_setup check
    ```
 
@@ -217,8 +223,8 @@ cat {digests_dir}/1_Weekly/Provisional/W0001_Individual.txt
 ```bash
 # 手動で DigestFinalizerFromShadow を実行してエラー詳細を確認
 # v2.0.0+: interfaces層からインポート
-cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/scripts
-python -c "from interfaces import DigestFinalizerFromShadow; from config import DigestConfig; f = DigestFinalizerFromShadow(DigestConfig()); f.finalize('weekly', 'テストタイトル')"
+cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/scripts
+python -c "from interfaces import DigestFinalizerFromShadow; from application.config import DigestConfig; f = DigestFinalizerFromShadow(DigestConfig()); f.finalize('weekly', 'テストタイトル')"
 ```
 
 ---
@@ -232,7 +238,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 1. **last_digest_times.jsonの内容を確認**
    ```bash
    # .claude-plugin/ 内に配置されています
-   cat ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin/last_digest_times.json
+   cat ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin/last_digest_times.json
    ```
 
 2. **新しいLoopファイルが検出されているか**
@@ -256,7 +262,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 2. **last_digest_times.jsonが破損している場合**:
    ```bash
    # バックアップを取ってから削除（.claude-plugin/ 内に配置）
-   cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin
+   cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin
    cp last_digest_times.json last_digest_times.json.bak
    rm last_digest_times.json
 
@@ -273,8 +279,8 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 
    # 再実行（テンプレートから自動再作成されます）
    # v2.0.0+: ShadowGrandDigestManagerを使用
-   cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/scripts
-   python -c "from application.grand import ShadowGrandDigestManager; from config import DigestConfig; m = ShadowGrandDigestManager(DigestConfig()); m.load_or_create(); print('OK')"
+   cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/scripts
+   python -c "from application.grand import ShadowGrandDigestManager; from application.config import DigestConfig; m = ShadowGrandDigestManager(DigestConfig()); m.load_or_create(); print('OK')"
    ```
 
 ---
@@ -536,14 +542,14 @@ rm {essences_dir}/ShadowGrandDigest.txt
 ### 2. パス設定確認
 
 ```bash
-cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
+cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG
 python -m interfaces.digest_setup check
 ```
 
 出力例:
 ```text
-Plugin Root: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-Config File: ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin/config.json
+Plugin Root: ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG
+Config File: ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin/config.json
 Base Dir (setting): ../../..
 Base Dir (resolved): /Users/username/DEV
 Loops Path: /Users/username/DEV/homunculus/Weave/EpisodicRAG/Loops
@@ -600,7 +606,7 @@ cat {essences_dir}/ShadowGrandDigest.txt
 ### generate_digest_auto.sh のデバッグ
 
 ```bash
-cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
+cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG
 bash -x scripts/generate_digest_auto.sh
 ```
 
@@ -609,7 +615,7 @@ bash -x scripts/generate_digest_auto.sh
 ### Pythonスクリプトのデバッグ
 
 ```bash
-cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/scripts
+cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/scripts
 
 # digest_setupのデバッグ
 python -v -m interfaces.digest_setup check
