@@ -578,29 +578,19 @@ DigestAnalyzerが生成した個別ダイジェストの中間ファイル（JSO
 
 ## テスト
 
-### 実行方法
+> 📖 **詳細ガイド**: [TESTING.md](../../scripts/test/TESTING.md) を参照
+
+### クイック実行
 
 ```bash
 cd scripts
 
-# 全テスト実行（pytest）
+# 全テスト実行
 python -m pytest test/ -v
 
-# unittest形式
-python -m unittest discover -s test -v
+# 高速テストのみ
+python -m pytest test/ -m fast
 ```
-
-### テスト構成
-
-| カテゴリ | ファイル数 |
-|----------|-----------|
-| Domain層 | 1 |
-| Infrastructure層 | 2 |
-| Application層 | 12 |
-| Interfaces層 | 3 |
-| Integration | 2 |
-
-> 📊 最新のテスト数は [CI バッジ](https://github.com/Bizuayeu/Plugins-Weave/actions) を参照してください。
 
 ---
 

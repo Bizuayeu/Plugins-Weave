@@ -2,6 +2,23 @@
 
 テストスイートのガイドドキュメント。
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Test Organization](#test-organization)
+- [Test Summary](#test-summary)
+- [Fixture Dependency Map](#fixture-dependency-map)
+- [Adding New Tests](#adding-new-tests)
+- [Test Naming Convention](#test-naming-convention)
+- [Debugging Tips](#debugging-tips)
+- [Hypothesis Profiles](#hypothesis-profiles)
+- [Performance Targets](#performance-targets)
+- [CLI Integration Tests](#cli-integration-tests-v400)
+- [Continuous Integration](#continuous-integration)
+- [Known Gaps](#known-gaps)
+
+---
+
 ## Quick Start
 
 ```bash
@@ -14,13 +31,20 @@ pytest scripts/test/ -m unit
 # 統合テストのみ
 pytest scripts/test/ -m integration
 
-# 高速テストのみ（CIで使用）
+# slowマーカー以外（CI用：1秒超のテストを除外）
 pytest scripts/test/ -m "not slow"
+
+# fastマーカーのみ（純粋ロジック、I/Oなし）
+pytest scripts/test/ -m fast
 
 # Property-based tests のみ
 pytest scripts/test/ -m property
+
+# CLI統合テストのみ [v4.0.0+]
+pytest scripts/test/cli_integration_tests/ -m cli
 ```
 
+---
 ## Test Organization
 
 ### Architecture Layers
@@ -29,31 +53,43 @@ pytest scripts/test/ -m property
 
 ```
 test/
-├── domain_tests/           # 純粋なビジネスロジック（I/Oなし）
-├── config_tests/           # 設定管理
-├── application_tests/      # ユースケース
-│   ├── grand/              # GrandDigest関連
-│   └── shadow/             # Shadow関連
-├── infrastructure_tests/   # I/O操作
-├── interfaces_tests/       # エントリポイント
-├── integration_tests/      # E2Eシナリオ
-└── performance_tests/      # ベンチマーク
+├── conftest.py              # 共通フィクスチャ
+├── test_helpers.py          # テストヘルパー
+├── test_constants.py        # テスト用定数
+├── domain_tests/            # 純粋なビジネスロジック (17 files)
+├── config_tests/            # Config層3層化対応 (13 files) [v4.0.0+]
+├── application_tests/       # ユースケース (16 files)
+│   ├── grand/               # GrandDigest関連
+│   ├── shadow/              # Shadow関連
+│   └── finalize/            # Finalize処理
+│       └── validators/      # バリデータ
+├── infrastructure_tests/    # I/O操作 (10 files)
+├── interfaces_tests/        # エントリポイント (8 files)
+│   └── provisional/         # Provisional処理
+├── integration_tests/       # E2Eシナリオ (14 files)
+├── cli_integration_tests/   # CLI E2E (3 files) [v4.0.0+]
+└── performance_tests/       # ベンチマーク (1 file)
 ```
+
+---
 
 ## Test Summary
 
 ### 層別テストファイル一覧
 
-| 層 | テストファイル | テスト数目安 |
-|----|---------------|-------------|
-| **Domain** | `test_validators.py`, `test_helpers.py`, `test_file_naming.py` | ~20 |
-| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py` | ~15 |
-| **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_processor.py` | ~40 |
-| **Interfaces** | `test_finalize_from_shadow.py`, `test_save_provisional_digest.py` | ~20 |
-| **Config** | `test_config.py`, `test_path_integration.py` | ~15 |
-| **Integration** | `test_e2e_workflow.py` | ~10 |
+| 層 | 主なテストファイル | ファイル数 |
+|----|-------------------|-----------|
+| **Domain** | `test_validators.py`, `test_file_naming.py`, `test_level_registry.py`, `test_types.py` | 17 |
+| **Config** | `test_config.py`, `test_path_resolver.py`, `test_threshold_provider.py`, `test_config_validator.py` | 13 |
+| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py` | 10 |
+| **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_processor.py`, `test_persistence.py` | 16 |
+| **Interfaces** | `test_finalize_from_shadow.py`, `test_digest_config.py`, `test_digest_setup.py` | 8 |
+| **Integration** | `test_e2e_workflow.py`, `test_full_cascade.py`, `test_config_integration.py` | 14 |
+| **CLI Integration** | `test_digest_*_cli.py`, `test_workflow_cli.py` | 3 |
+| **Performance** | `test_benchmarks.py` | 1 |
 
-> 📊 最新のテスト数は `pytest --collect-only | tail -1` で確認できます。
+> 📊 最新のテスト数: `pytest --collect-only | tail -1`
+> 📁 ファイル数確認: `find scripts/test -name "test_*.py" | wc -l`
 
 ### カバレッジ目標
 
@@ -68,21 +104,32 @@ test/
 ```python
 @pytest.mark.unit          # 純粋ロジック、<100ms、I/Oなし
 @pytest.mark.integration   # ファイルI/O、複数コンポーネント
-@pytest.mark.slow          # 1秒超
+@pytest.mark.slow          # 1秒超（-m "not slow" で除外）
+@pytest.mark.fast          # 高速テスト（純粋ロジック、I/Oなし、明示的に指定）
 @pytest.mark.property      # Hypothesis property-based tests
 @pytest.mark.performance   # ベンチマーク（デフォルトでスキップ）
+@pytest.mark.cli           # CLI統合テスト（subprocess経由）[v4.0.0+]
 ```
+
+> **Note**: `slow` は除外用（`-m "not slow"`）、`fast` は選択用（`-m fast`）として使い分けます。
+
+---
 
 ## Fixture Dependency Map
 
 ```mermaid
 graph TD
     A["conftest.py<br/>(Shared Fixtures)"]
+    R["reset_all_singletons<br/>(autouse=True)"]
+
     A --> B["temp_plugin_env<br/>(function scope)"]
     A --> C["shared_plugin_env<br/>(module scope)"]
+    A --> L["level_hierarchy"]
+    A --> P["placeholder_manager"]
 
     B --> D["digest_config"]
     B --> E["config (alias)"]
+    B --> M["mock_digest_config"]
 
     D --> F["times_tracker"]
     D --> G["shadow_manager"]
@@ -92,9 +139,10 @@ graph TD
     J["template"] --> K["shadow_io"]
     B --> K
 
-    style A fill:#e1f5ff
-    style B fill:#fff9c4
-    style D fill:#f3e5f5
+    style A fill:#e1f5ff,color:#000000
+    style B fill:#fff9c4,color:#000000
+    style D fill:#f3e5f5,color:#000000
+    style R fill:#ffcdd2,color:#000000
 ```
 
 ### Core Fixtures
@@ -132,6 +180,34 @@ def test_with_loops(sample_loop_files):
     assert len(loop_files) == 5
 ```
 
+### Additional Fixtures [v4.0.0+]
+
+#### `reset_all_singletons` (autouse=True)
+
+テスト間の状態分離を保証する自動実行フィクスチャ。
+
+- `level_registry`: レベル設定のシングルトン
+- `file_naming`: ファイル命名用レジストリ参照
+- `error_formatter`: エラーフォーマッタのデフォルトインスタンス
+
+#### `mock_digest_config`
+
+パス情報のみを持つ軽量モックDigestConfig。
+
+```python
+def test_with_mock(mock_digest_config):
+    assert mock_digest_config.plugin_root.exists()
+```
+
+#### `level_hierarchy`
+
+SSoT関数からレベル階層情報を取得。
+
+#### `placeholder_manager`
+
+PlaceholderManagerインスタンスを提供。
+
+---
 ## Adding New Tests
 
 ### Unit Tests
@@ -185,12 +261,16 @@ class TestFileNamingInvariants:
         assert result[1] == number
 ```
 
+---
+
 ## Test Naming Convention
 
 - `test_<module>.py` - 単体テスト
 - `test_e2e_<scenario>.py` - E2Eワークフローテスト
 - `test_<component>_properties.py` - Property-based tests
 - `test_concurrent_<aspect>.py` - 並行処理テスト
+
+---
 
 ## Debugging Tips
 
@@ -217,6 +297,8 @@ pytest --fixtures
 pytest --fixtures scripts/test/conftest.py
 ```
 
+---
+
 ## Hypothesis Profiles
 
 ```python
@@ -235,20 +317,65 @@ settings.register_profile("quick", max_examples=20)
 HYPOTHESIS_PROFILE=ci pytest scripts/test/ -m property
 ```
 
+---
+
 ## Performance Targets
 
 - Unit test suite: <5秒
 - Integration suite: <30秒
 - Full test suite: <2分
 
-## Known Gaps
+---
 
-### 将来の改善候補
+## CLI Integration Tests [v4.0.0+]
 
-1. **8レベル完全カスケードテスト** - 現在は2レベルまでのテスト
-2. **エラー回復テスト** - 破損ファイルからの回復シナリオ
-3. **境界条件テスト** - 閾値ちょうどのケース
-4. **並行書き込みテスト** - 読み取り中の書き込みシナリオ
+v4.0.0で追加されたCLI E2Eテストフレームワーク。subprocess経由で実際のCLIコマンドを実行してテストします。
+
+### ディレクトリ構成
+
+```
+cli_integration_tests/
+├── __init__.py
+├── conftest.py          # CLI専用フィクスチャ
+├── cli_runner.py        # CLIRunner ヘルパークラス
+├── test_digest_setup_cli.py
+├── test_digest_config_cli.py
+└── test_digest_auto_cli.py
+```
+
+### CLIRunner
+
+subprocess経由でCLIコマンドを実行するヘルパークラス:
+
+```python
+@pytest.mark.cli
+def test_setup_check(cli_runner):
+    result = cli_runner.run_digest_setup("check")
+    result.assert_success()
+    result.assert_json_status("not_configured")
+```
+
+### CLI専用フィクスチャ
+
+| フィクスチャ | 説明 |
+|-------------|------|
+| `cli_temp_dir` | 一時ディレクトリ |
+| `cli_plugin_root` | 最小構造のプラグインルート |
+| `cli_runner` | CLIRunner インスタンス |
+| `configured_cli_env` | 設定済み環境（config.json、テンプレート等） |
+| `configured_cli_runner` | 設定済み環境のCLIRunner |
+
+### 実行方法
+
+```bash
+# CLI統合テストのみ実行
+pytest scripts/test/cli_integration_tests/ -m cli -v
+
+# 特定のCLIテストのみ
+pytest scripts/test/cli_integration_tests/test_digest_setup_cli.py -v
+```
+
+---
 
 ## Continuous Integration
 
@@ -276,3 +403,16 @@ pytest scripts/test/ --cov=. --cov-report=term-missing --cov-report=html
 open htmlcov/index.html  # macOS
 start htmlcov/index.html # Windows
 ```
+
+---
+
+## Known Gaps
+
+### 将来の改善候補
+
+1. **8レベル完全カスケードテスト** - 現在はWeekly→Monthlyの2レベルまで
+
+> **Note**: 以下は実装済み
+> - エラー回復テスト → `test_stateful_workflow.py::ErrorRecoveryStateMachine`
+> - 境界条件テスト → `test_threshold_boundaries.py`
+> - 並行アクセステスト → `test_concurrent_access.py`

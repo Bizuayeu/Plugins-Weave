@@ -1,14 +1,26 @@
 # Scripts
 
-内部スクリプト（開発者向け）
+EpisodicRAGプラグインのPython実装リファレンス
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture-clean-architecture)
+- [Layers](#layers)
+- [Shell Scripts](#shell-scripts)
+- [Tests](#tests)
+- [See Also](#see-also)
 
 ---
 
 ## Overview
 
-このディレクトリには、EpisodicRAGプラグインのPython実装が含まれています。
+| 対象 | 用途 |
+|------|------|
+| **ユーザー** | CLIコマンド（`python -m interfaces.digest_*`）またはスキル経由で使用 |
+| **開発者** | 各層のモジュールを直接インポートして拡張 |
 
-**通常のユーザーはこれらのスクリプトを直接実行する必要はありません。**
+> 📖 使い方: [QUICKSTART.md](../docs/user/QUICKSTART.md) / 技術仕様: [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md)
 
 ---
 
@@ -50,9 +62,7 @@ interfaces/       ← application/
 
 ## Layers
 
-### domain/ - コアビジネスロジック（最内層）
-
-外部に依存しない純粋なビジネスロジック。
+### domain/ - 定数・型・例外
 
 | Module | Purpose |
 |--------|---------|
@@ -70,9 +80,7 @@ from domain.file_naming import extract_file_number, format_digest_number
 from domain.level_registry import get_level_registry
 ```
 
-### infrastructure/ - 外部関心事
-
-ファイルI/O、ロギングなどの外部関心事。
+### infrastructure/ - 外部I/O
 
 | Module | Purpose |
 |--------|---------|
@@ -87,15 +95,13 @@ from infrastructure.file_scanner import scan_files, get_max_numbered_file
 from infrastructure.user_interaction import get_default_confirm_callback
 ```
 
-### application/ - ユースケース
-
-ビジネスロジックの実装。
+### application/ - ビジネスロジック
 
 | Package | Purpose |
 |---------|---------|
 | `validators.py` | バリデーション関数（`validate_dict`, `is_valid_list`） |
 | `tracking/` | 時間追跡（`DigestTimesTracker`） |
-| `shadow/` | Shadow管理（`ShadowTemplate`, `ShadowUpdater`, `ShadowIO`, `FileDetector`） |
+| `shadow/` | Shadow管理（`ShadowTemplate`, `ShadowUpdater`, `ShadowIO`, `FileDetector`, `CascadeProcessor`, `FileAppender`, `PlaceholderManager`） |
 | `grand/` | GrandDigest管理（`GrandDigestManager`, `ShadowGrandDigestManager`） |
 | `finalize/` | Finalize処理（`ShadowValidator`, `ProvisionalLoader`, `RegularDigestBuilder`, `DigestPersistence`） |
 
@@ -108,12 +114,15 @@ from application.validators import validate_dict, is_valid_list
 
 ### interfaces/ - エントリーポイント
 
-外部からのエントリーポイント。
-
 | Module | Class | Purpose |
 |--------|-------|---------|
 | `finalize_from_shadow.py` | `DigestFinalizerFromShadow` | メインエントリーポイント |
 | `save_provisional_digest.py` | `ProvisionalDigestSaver` | Provisional保存 |
+| `digest_setup.py` | - | 初期セットアップCLI (`python -m interfaces.digest_setup`) |
+| `digest_config.py` | - | 設定変更CLI (`python -m interfaces.digest_config`) |
+| `digest_auto.py` | - | 健全性診断CLI (`python -m interfaces.digest_auto`) |
+| `shadow_state_checker.py` | - | Shadow状態チェッカー |
+| `config_cli.py` | - | 設定CLIエントリーポイント |
 | `interface_helpers.py` | - | ヘルパー関数（`sanitize_filename`, `get_next_digest_number`） |
 | `provisional/` | - | Provisionalマージ処理（`file_manager`, `input_loader`, `merger`, `validator`） |
 
@@ -209,6 +218,6 @@ python -c "from interfaces import DigestFinalizerFromShadow; print('OK')"
 
 - [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md) - 技術仕様
 - [API_REFERENCE.md](../docs/dev/API_REFERENCE.md) - API リファレンス
+- [DESIGN_DECISIONS.md](../docs/dev/DESIGN_DECISIONS.md) - 設計判断
+- [LEARNING_PATH.md](../docs/dev/LEARNING_PATH.md) - Python学習パス
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - 開発参加ガイド
-
----
