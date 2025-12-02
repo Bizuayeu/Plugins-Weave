@@ -16,9 +16,9 @@
 
 > 💡 まず下の「クイック診断フローチャート」で問題を切り分け、該当セクションへ進んでください。
 
-> **対応バージョン**: EpisodicRAG Plugin v3.0.0+ / ファイルフォーマット 1.0
+> **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 >
-> **Note**: v2.0.0以降（最新v3.0.0）はClean Architecture（4層構造）を採用しています。旧パス（`scripts/shadow_grand_digest.py`等）は使用できません。[ARCHITECTURE.md](../dev/ARCHITECTURE.md#clean-architecture)を参照してください。
+> **Note**: v2.0.0以降はClean Architecture（4層構造）を採用しています。旧パス（`scripts/shadow_grand_digest.py`等）は使用できません。[ARCHITECTURE.md](../dev/ARCHITECTURE.md#clean-architecture)を参照してください。
 >
 > **v3.0.0変更点**: Loop ID形式が4桁→5桁に変更されました（Loop0001→L00001）。既存ファイルの移行については[Loop ID移行](#loop-id移行v300)を参照してください。
 

@@ -433,10 +433,10 @@ python -m pytest test/domain_tests/test_version.py -v
 Some documents (ARCHITECTURE.md, API_REFERENCE.md, TROUBLESHOOTING.md) have version headers:
 
 ```markdown
-> **Supported Version**: EpisodicRAG Plugin v2.x.x+ / File Format 1.0
+> **Supported Version**: EpisodicRAG Plugin ([version.py](scripts/domain/version.py) reference) / File Format 1.0
 ```
 
-Update these **only for major/minor version changes** (patch version updates not required).
+**Recommended**: Use dynamic reference format (`[version.py](...) reference`) to avoid manual updates.
 
 ---
 

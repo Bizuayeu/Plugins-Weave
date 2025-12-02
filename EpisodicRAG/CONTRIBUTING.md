@@ -432,10 +432,10 @@ python -m pytest test/domain_tests/test_version.py -v
 一部ドキュメント（ARCHITECTURE.md, API_REFERENCE.md, TROUBLESHOOTING.md）にはバージョンヘッダーがあります：
 
 ```markdown
-> **対応バージョン**: EpisodicRAG Plugin v2.x.x+ / ファイルフォーマット 1.0
+> **対応バージョン**: EpisodicRAG Plugin（[version.py](scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 ```
 
-これらは**メジャー/マイナーバージョン変更時のみ更新**してください（パッチバージョンは更新不要）。
+**推奨**: 動的参照形式（`[version.py](...) 参照`）を使用し、手動更新を不要にしてください。
 
 ---
 
