@@ -12,6 +12,25 @@ AI/Claudeエージェント向けの技術仕様ハブです。
 
 ---
 
+## ⚠️ v4.0.0 Breaking Changes
+
+### Config層の再編成
+インポートパスが変更されました:
+- **旧**: `scripts/config.py` (単一モジュール)
+- **新**: `domain/config/`, `infrastructure/config/`, `application/config/` (3層)
+
+### スキルのCLI化
+スキル経由に加え、直接実行が可能に:
+```bash
+python -m interfaces.digest_setup
+python -m interfaces.digest_config
+python -m interfaces.digest_auto
+```
+
+> 📖 詳細: [CHANGELOG.md](../CHANGELOG.md#400---2025-12-01)
+
+---
+
 ## Command Specifications
 
 | コマンド | 仕様書 | 概要 |
@@ -89,10 +108,36 @@ AI/Claudeエージェント向けの技術仕様ハブです。
 | Layer | Document | 概要 |
 |-------|----------|------|
 | Domain | [domain.md](dev/api/domain.md) | 定数・型・例外・ファイル命名 |
+| Domain/Config | 同上 | 設定定数・型バリデーション |
 | Infrastructure | [infrastructure.md](dev/api/infrastructure.md) | JSON操作・ファイルスキャン・ロギング |
+| Infrastructure/Config | 同上 | ファイルI/O・パス解決 |
 | Application | [application.md](dev/api/application.md) | Shadow管理・GrandDigest・Finalize処理 |
-| Interfaces | [interfaces.md](dev/api/interfaces.md) | DigestFinalizer・ProvisionalSaver |
-| Config | [config.md](dev/api/config.md) | config.json仕様・DigestConfigクラス |
+| Application/Config | 同上 | DigestConfig Facade・サービスクラス |
+| Interfaces | [interfaces.md](dev/api/interfaces.md) | DigestFinalizer・ProvisionalSaver・CLI |
+| Config (統合) | [config.md](dev/api/config.md) | config.json仕様・統合API |
+
+---
+
+## Documentation Map
+
+```text
+docs/
+├── README.md              ← 現在地
+├── user/                  ← ユーザー向け
+│   ├── QUICKSTART.md      # 5分スタート
+│   ├── GUIDE.md           # 基本ガイド
+│   ├── ADVANCED.md        # 高度な使い方
+│   ├── CHEATSHEET.md      # 早見表
+│   ├── FAQ.md             # よくある質問
+│   └── TROUBLESHOOTING.md # トラブル解決
+│
+└── dev/                   ← 開発者向け
+    ├── ARCHITECTURE.md    # 技術仕様
+    ├── API_REFERENCE.md   # API仕様
+    ├── DESIGN_DECISIONS.md
+    ├── LEARNING_PATH.md
+    └── api/               # Layer別詳細
+```
 
 ---
 

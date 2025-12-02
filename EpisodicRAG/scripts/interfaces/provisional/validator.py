@@ -12,6 +12,40 @@ from domain.types import IndividualDigestData
 from domain.validators import is_valid_dict, is_valid_list
 
 
+def validate_long_short_text(value: Any, field_name: str, index: int) -> None:
+    """
+    Validate abstract/impression field format.
+
+    Accepts only {long, short} format.
+
+    Args:
+        value: The value to validate
+        field_name: Name of the field ("abstract" or "impression")
+        index: Index of the digest in the list (for error messages)
+
+    Raises:
+        ValidationError: If value is not {long: str, short: str} format
+    """
+    if value is None:
+        return  # Optional field
+
+    if not isinstance(value, dict):
+        raise ValidationError(
+            f"{field_name} at index {index} must be {{long: str, short: str}}, "
+            f"got {type(value).__name__}"
+        )
+
+    if "long" not in value or "short" not in value:
+        raise ValidationError(
+            f"{field_name} at index {index} must have both 'long' and 'short' keys"
+        )
+
+    if not isinstance(value["long"], str) or not isinstance(value["short"], str):
+        raise ValidationError(
+            f"{field_name} at index {index}: 'long' and 'short' must be strings"
+        )
+
+
 def validate_individual_digest(digest: Any, index: int, context: str = "") -> None:
     """
     Validate a single individual digest entry.
@@ -36,6 +70,10 @@ def validate_individual_digest(digest: Any, index: int, context: str = "") -> No
                 f"{prefix}digest at index {index}", "missing 'source_file' key", None
             )
         )
+
+    # Validate abstract/impression format ({long, short} required)
+    validate_long_short_text(digest.get("abstract"), "abstract", index)
+    validate_long_short_text(digest.get("impression"), "impression", index)
 
 
 def validate_individual_digests_list(

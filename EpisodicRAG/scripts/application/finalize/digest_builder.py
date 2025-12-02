@@ -42,6 +42,7 @@ Note:
 from datetime import datetime
 from typing import List
 
+from domain.text_utils import extract_long_value
 from domain.types import IndividualDigestData, OverallDigestData, RegularDigestData
 from domain.version import DIGEST_FORMAT_VERSION
 
@@ -78,21 +79,20 @@ class RegularDigestBuilder:
         abstract/impression から long 版の値を抽出する。
 
         Args:
-            value: string型 または {"long": str, "short": str} 型
+            value: LongShortText型 {"long": str, "short": str}
             default: 値が取得できない場合のデフォルト値
 
         Returns:
-            long版の文字列（string型の場合はそのまま返す）
+            long版の文字列
 
         Example:
-            >>> RegularDigestBuilder._extract_long_value("plain text")
-            'plain text'
             >>> RegularDigestBuilder._extract_long_value({"long": "2400字", "short": "1200字"})
             '2400字'
+
+        Note:
+            この実装はdomain.text_utils.extract_long_valueに委譲しています。
         """
-        if isinstance(value, dict):
-            return value.get("long", default)
-        return value if value else default
+        return extract_long_value(value, default)
 
     @staticmethod
     def build(

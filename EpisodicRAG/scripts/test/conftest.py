@@ -272,3 +272,41 @@ def grand_digest_manager(config):
     from application.grand import GrandDigestManager
 
     return GrandDigestManager(config)
+
+
+# =============================================================================
+# LongShortText関連フィクスチャ
+# =============================================================================
+
+
+@pytest.fixture
+def valid_digest_long_short():
+    """有効な{long, short}形式のdigestデータ"""
+    return {
+        "source_file": "L00001_test.txt",
+        "digest_type": "テスト",
+        "keywords": ["test", "sample"],
+        "abstract": {"long": "詳細な要約（2400字程度）...", "short": "簡潔な要約（1200字程度）"},
+        "impression": {"long": "詳細な所感（800字程度）...", "short": "簡潔な所感（400字程度）"},
+    }
+
+
+@pytest.fixture
+def valid_individual_digests_list():
+    """有効なindividual_digestsリスト"""
+    return [
+        {
+            "source_file": "L00001_test.txt",
+            "digest_type": "開発",
+            "keywords": ["MCP", "Python"],
+            "abstract": {"long": "詳細1...", "short": "簡潔1"},
+            "impression": {"long": "所感1...", "short": "短い所感1"},
+        },
+        {
+            "source_file": "L00002_test.txt",
+            "digest_type": "学習",
+            "keywords": ["API", "認証"],
+            "abstract": {"long": "詳細2...", "short": "簡潔2"},
+            "impression": {"long": "所感2...", "short": "短い所感2"},
+        },
+    ]

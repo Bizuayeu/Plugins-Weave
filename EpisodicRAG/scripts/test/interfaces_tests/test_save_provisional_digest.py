@@ -147,16 +147,17 @@ class TestCLIStdinOption:
         """--stdin オプションで標準入力からJSONを読み込む"""
         from interfaces.save_provisional_digest import main
 
-        # テスト用JSON
+        # テスト用JSON（リスト形式 + {long, short}形式）
         test_json = json.dumps({
-            "individual_digests": {
-                "Loop0001.txt": {
+            "individual_digests": [
+                {
+                    "source_file": "Loop0001.txt",
                     "digest_type": "test",
                     "keywords": ["keyword1"],
                     "abstract": {"long": "long text", "short": "short"},
                     "impression": {"long": "impression long", "short": "short"}
                 }
-            }
+            ]
         })
 
         # 標準入力をモック

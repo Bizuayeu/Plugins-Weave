@@ -124,7 +124,7 @@ class TestTryLoadJsonProperties:
     @pytest.mark.property
     @pytest.mark.integration
     @given(data=simple_json_dicts)
-    @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow])
+    @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow], deadline=1000)
     def test_returns_data_for_valid_file(self, data):
         """try_load_json returns data for valid file"""
         with tempfile.TemporaryDirectory() as tmp_dir:

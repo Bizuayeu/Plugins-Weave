@@ -23,11 +23,16 @@
 
 ---
 
-## config.pyへの依存
+## DigestConfigへの依存
 
-すべてのパス情報は`config.py`経由で取得します。
+すべてのパス情報は`DigestConfig`（Facade）経由で取得します。
 
-> 📖 DigestConfigの全プロパティ・メソッドは [config.py](../../scripts/config.py) を参照
+> 📖 DigestConfigの全プロパティ・メソッドは [application/config/](../../scripts/application/config/__init__.py) を参照
+> 📖 Config層は3層に分解されています:
+> - `domain/config/` - 定数・バリデーション
+> - `infrastructure/config/` - ファイルI/O・パス解決
+> - `application/config/` - DigestConfig（Facade）
+>
 > 📖 API仕様は [api/config.md](../../docs/dev/api/config.md) を参照
 
 ---

@@ -89,6 +89,24 @@ class LevelHierarchyEntry(TypedDict):
 
 
 # =============================================================================
+# 共通テキスト型定義
+# =============================================================================
+
+
+class LongShortText(TypedDict):
+    """
+    abstract/impressionの長短両形式
+
+    DigestAnalyzerが生成する形式。
+    - long: overall_digest用（2400字 / 800字）
+    - short: individual_digests用（1200字 / 400字）
+    """
+
+    long: str
+    short: str
+
+
+# =============================================================================
 # Digest データの型定義
 # =============================================================================
 
@@ -113,13 +131,16 @@ class OverallDigestData(TypedDict, total=False):
 class IndividualDigestData(TypedDict):
     """
     individual_digests の各要素の構造
+
+    DigestAnalyzerが生成する形式。
+    abstract/impressionは{long, short}形式を使用。
     """
 
     source_file: str
     digest_type: str
     keywords: List[str]
-    abstract: str
-    impression: str
+    abstract: LongShortText
+    impression: LongShortText
 
 
 class ShadowLevelData(TypedDict, total=False):
@@ -238,13 +259,16 @@ DigestTimesData = Dict[str, DigestTimeData]
 class ProvisionalDigestEntry(TypedDict):
     """
     Provisional Digest の各エントリ
+
+    DigestAnalyzerが生成する形式。
+    abstract/impressionは{long, short}形式を使用。
     """
 
     source_file: str
     digest_type: str
     keywords: List[str]
-    abstract: str
-    impression: str
+    abstract: LongShortText
+    impression: LongShortText
 
 
 class ProvisionalDigestFile(TypedDict):
@@ -367,3 +391,26 @@ def is_shadow_digest_data(data: Any) -> TypeGuard[ShadowDigestData]:
         return False
     required_keys = {"metadata", "latest_digests"}
     return required_keys <= data.keys()
+
+
+def is_long_short_text(value: Any) -> TypeGuard[LongShortText]:
+    """
+    LongShortText型かどうかを判定（型ガード）
+
+    Args:
+        value: 判定対象のデータ
+
+    Returns:
+        LongShortText型であればTrue（long, shortキーが存在し、値が文字列）
+
+    Example:
+        >>> text = {"long": "詳細な要約...", "short": "簡潔な要約"}
+        >>> if is_long_short_text(text):
+        ...     # text は LongShortText として型推論される
+        ...     print(text["long"])
+    """
+    if not isinstance(value, dict):
+        return False
+    if "long" not in value or "short" not in value:
+        return False
+    return isinstance(value["long"], str) and isinstance(value["short"], str)

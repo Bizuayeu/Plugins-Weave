@@ -322,6 +322,7 @@ class TestE2EFullWorkflow:
         shadow_data = shadow_manager._io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"].update(
             {
+                "digest_type": "週次統合",  # プレースホルダーを上書き
                 "abstract": "Complete workflow test abstract",
                 "keywords": ["workflow", "e2e", "complete"],
                 "key_insights": ["Full workflow works"],
@@ -382,6 +383,7 @@ class TestE2EFullWorkflow:
         shadow_data = shadow_manager._io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"].update(
             {
+                "digest_type": "週次統合",  # プレースホルダーを上書き
                 "abstract": "Cycle 1 abstract",
                 "keywords": ["cycle1"],
                 "key_insights": ["insight1"],
@@ -422,6 +424,7 @@ class TestE2EFullWorkflow:
         shadow_data2 = shadow_manager2._io.load_or_create()
         shadow_data2["latest_digests"]["weekly"]["overall_digest"].update(
             {
+                "digest_type": "週次統合",  # プレースホルダーを上書き
                 "abstract": "Cycle 2 abstract",
                 "keywords": ["cycle2"],
                 "key_insights": ["insight2"],

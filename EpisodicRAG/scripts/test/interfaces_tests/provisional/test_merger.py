@@ -134,14 +134,14 @@ class TestDigestMergerMerge(unittest.TestCase):
             {
                 "source_file": "a.txt",
                 "keywords": ["old"],
-                "abstract": "old abstract",
+                "abstract": {"long": "old abstract long", "short": "old abstract short"},
             }
         ]
         new = [
             {
                 "source_file": "a.txt",
                 "keywords": ["new"],
-                "impression": "new impression",
+                "impression": {"long": "new impression long", "short": "new impression short"},
             }
         ]
         result = DigestMerger.merge(existing, new)

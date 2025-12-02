@@ -84,6 +84,13 @@ from domain.level_registry import (
     reset_level_registry,
 )
 
+# Text utilities
+from domain.text_utils import (
+    extract_long_value,
+    extract_short_value,
+    extract_value,
+)
+
 # Types
 from domain.types import (
     # Metadata
@@ -96,9 +103,12 @@ from domain.types import (
     GrandDigestData,
     GrandDigestLevelData,
     IndividualDigestData,
+    # Long/Short text type
+    is_long_short_text,
     # Level config
     LevelConfigData,
     LevelsConfigData,
+    LongShortText,
     # Digest data
     OverallDigestData,
     # Config data
@@ -162,6 +172,13 @@ __all__ = [
     "DigestTimesData",
     # Types - Provisional
     "ProvisionalDigestEntry",
+    # Types - LongShortText
+    "LongShortText",
+    "is_long_short_text",
+    # Text utilities
+    "extract_long_value",
+    "extract_short_value",
+    "extract_value",
     # Level registry
     "LevelMetadata",
     "LevelBehavior",
