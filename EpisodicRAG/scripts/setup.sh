@@ -58,16 +58,16 @@ EpisodicRAG Plugin セットアップスクリプト - 詳細ヘルプ
     * jqがない場合: sedで単純置換（複雑なパスには非推奨）
 
 【セットアップ完了後の確認】
-  python scripts/config.py --show-paths
+  python -m interfaces.digest_setup check
 
-  出力例:
-    Plugin Root: /path/to/EpisodicRAG
-    Config File: /path/to/EpisodicRAG/.claude-plugin/config.json
-    Base Dir (setting): .
-    Base Dir (resolved): /path/to/EpisodicRAG
-    Loops Path: /path/to/EpisodicRAG/data/Loops
-    Digests Path: /path/to/EpisodicRAG/data/Digests
-    Essences Path: /path/to/EpisodicRAG/data/Essences
+  出力例 (JSON):
+    {
+      "status": "configured",
+      "config_exists": true,
+      "directories_exist": true,
+      "config_file": "/path/to/.claude-plugin/config.json",
+      "message": "Setup already completed"
+    }
 
 ================================================================================
 EOF
@@ -179,15 +179,15 @@ fi
 
 echo "[OK] Plugin data directories created"
 
-# パス確認表示（config.py経由で取得）
+# パス確認表示（digest_setup経由で取得）
 echo ""
 echo "========================================"
 echo "Setup completed!"
 echo "========================================"
 echo ""
 
-# config.py経由でパス表示
-python scripts/config.py --show-paths
+# digest_setup経由でパス表示
+python -m interfaces.digest_setup check
 
 echo ""
 echo "========================================"
@@ -197,8 +197,8 @@ echo ""
 echo "1. Place Loop files in: $LOOPS_DIR"
 echo ""
 echo "2. Test digest generation:"
-echo "   cd $PLUGIN_DIR"
-echo "   python scripts/shadow_grand_digest.py"
+echo "   cd $PLUGIN_DIR/scripts"
+echo "   python -m application.grand.shadow_grand_digest"
 echo ""
 echo "3. Use Plugin scripts:"
 echo "   bash scripts/generate_digest_auto.sh"

@@ -176,7 +176,7 @@ class ShadowValidator:
         shadow_digest = self.shadow_manager.get_shadow_digest_for_level(level)
 
         if shadow_digest is None:
-            _logger.info("Run 'python shadow_grand_digest.py' to update shadow first")
+            _logger.info("Run 'python -m application.grand.shadow_grand_digest' to update shadow first")
             formatter = get_error_formatter()
             raise DigestError(formatter.digest.digest_not_found(level, "shadow"))
 

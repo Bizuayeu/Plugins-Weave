@@ -125,13 +125,13 @@ ConfigError: Invalid configuration value for 'base_dir': expected path within pl
 2. **パス解決が正しいか**（📖 [用語集](../../README.md#基本概念) 参照）
    ```bash
    cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-   python scripts/config.py --show-paths
+   python -m interfaces.digest_setup check
    ```
 
 3. **GrandDigest.txtが存在するか**
    ```bash
    # 設定されているessences_dirを確認
-   python scripts/config.py --show-paths
+   python -m interfaces.digest_setup check
 
    # 該当パスのGrandDigest.txtを確認
    ls {essences_dir}/GrandDigest.txt
@@ -159,7 +159,7 @@ ConfigError: Invalid configuration value for 'base_dir': expected path within pl
 1. **ProvisionalDigestディレクトリの確認**:
    ```bash
    # 設定されているdigests_dirを確認
-   python scripts/config.py --show-paths
+   python -m interfaces.digest_setup check
 
    # Provisionalディレクトリの内容確認
    ls {digests_dir}/1_Weekly/Provisional/
@@ -242,7 +242,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 
 3. **ShadowGrandDigest.txtの構造確認**
    ```bash
-   python scripts/config.py --show-paths  # essences_dirを確認
+   python -m interfaces.digest_setup check  # essences_dirを確認
    cat {essences_dir}/ShadowGrandDigest.txt
    ```
 
@@ -267,7 +267,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 3. **ShadowGrandDigest.txtが破損している場合**:
    ```bash
    # バックアップを取ってから削除
-   python scripts/config.py --show-paths  # essences_dirを確認
+   python -m interfaces.digest_setup check  # essences_dirを確認
    cp {essences_dir}/ShadowGrandDigest.txt {essences_dir}/ShadowGrandDigest.txt.bak
    rm {essences_dir}/ShadowGrandDigest.txt
 
@@ -287,7 +287,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 
 1. **GrandDigest.txtの構造確認**
    ```bash
-   python scripts/config.py --show-paths  # essences_dirを確認
+   python -m interfaces.digest_setup check  # essences_dirを確認
    cat {essences_dir}/GrandDigest.txt
    ```
 
@@ -320,13 +320,13 @@ python -c "from interfaces import DigestFinalizerFromShadow; from config import 
 
 1. **Weekly Digestが5個揃っているか確認**:
    ```bash
-   python scripts/config.py --show-paths  # digests_dirを確認
+   python -m interfaces.digest_setup check  # digests_dirを確認
    ls {digests_dir}/1_Weekly/
    ```
 
 2. **config.jsonのmonthly_thresholdが正しいか確認**:
    ```bash
-   python scripts/config.py
+   python -m interfaces.digest_config show
    ```
 
 3. **明示的にMonthly Digestを生成**:
@@ -493,7 +493,7 @@ Loop0186_xxx.txt → L00186_xxx.txt
 Loopファイルリネーム後、ShadowGrandDigestを再構築:
 ```bash
 # ShadowGrandDigest.txtをバックアップして削除
-python scripts/config.py --show-paths  # essences_dirを確認
+python -m interfaces.digest_setup check  # essences_dirを確認
 cp {essences_dir}/ShadowGrandDigest.txt {essences_dir}/ShadowGrandDigest.txt.v2.bak
 rm {essences_dir}/ShadowGrandDigest.txt
 
@@ -537,7 +537,7 @@ rm {essences_dir}/ShadowGrandDigest.txt
 
 ```bash
 cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-python scripts/config.py --show-paths
+python -m interfaces.digest_setup check
 ```
 
 出力例:
@@ -611,8 +611,8 @@ bash -x scripts/generate_digest_auto.sh
 ```bash
 cd ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/scripts
 
-# config.pyのデバッグ
-python -v -m config --show-paths
+# digest_setupのデバッグ
+python -v -m interfaces.digest_setup check
 
 # v2.0.0+: Clean Architecture層別インポート確認
 python -c "from domain import LEVEL_CONFIG, __version__; print(f'Version: {__version__}')"
@@ -634,7 +634,7 @@ https://github.com/Bizuayeu/Plugins-Weave/issues
 1. **エラーメッセージ** （全文コピー）
 2. **パス設定の出力**:
    ```bash
-   python scripts/config.py --show-paths
+   python -m interfaces.digest_setup check
    ```
 3. **システム状態の出力**:
    ```bash
@@ -664,7 +664,7 @@ https://github.com/Bizuayeu/Plugins-Weave/issues
 
 ## パス設定
 ```
-[python scripts/config.py --show-paths の出力]
+[python -m interfaces.digest_setup check の出力]
 ```
 
 ## システム状態

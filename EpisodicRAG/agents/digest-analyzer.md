@@ -107,10 +107,11 @@ DigestAnalyzer の出力は以下のように使い分けられます：
 
 ### digest_type の選択
 
-config.py から取得可能な digest_type 一覧:
+DigestConfig から取得可能な digest_type 一覧:
 
 ```python
-digest_types = config.digest_types
+from application.config import DigestConfig
+config = DigestConfig()
 # デフォルト: ["洞察", "発見", "実装", "失敗", "転換", "継承", "予言", "統合", "進化", "覚醒"]
 ```
 
@@ -203,7 +204,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
    - ✅ Read ツールを使用（全文読み込み）
    - ❌ Grep は使用しない（検索用であり、全文分析には不適切）
    - 大規模ファイルの場合: offset/limit で段階的読み込み（「注意事項」参照）
-2. config.py からパス情報と設定を取得
+2. DigestConfig (application.config) からパス情報と設定を取得
 3. Identity file（設定されている場合）からコンテキストを把握
 4. GrandDigest から最新の知識状態を把握
 5. ShadowGrandDigest から未確定の文脈を把握
@@ -312,7 +313,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 ### 参照すべきファイル
 
 - `Plugins/EpisodicRAG/.claude-plugin/config.json` - Plugin 設定
-- `Plugins/EpisodicRAG/scripts/config.py` - 設定管理クラス
+- `Plugins/EpisodicRAG/scripts/application/config/` - 設定管理（DigestConfig）
 - Identity file（設定されている場合） - コンテキスト参照
 - `Essences/GrandDigest.txt` - 全 8 レベルの最新状態
 - `Essences/ShadowGrandDigest.txt` - 未確定の最新記憶

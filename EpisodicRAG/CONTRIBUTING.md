@@ -172,16 +172,18 @@ bash scripts/setup.sh
 #### 2. 設定確認
 
 ```bash
-python scripts/config.py --show-paths
+python -m interfaces.digest_setup check
 ```
 
 **出力例**:
-```text
-Plugin Root: [Your Project]/plugins-weave/EpisodicRAG
-Config File: [Your Project]/plugins-weave/EpisodicRAG/.claude-plugin/config.json
-Loops Path: [Your Project]/plugins-weave/EpisodicRAG/data/Loops
-Digests Path: [Your Project]/plugins-weave/EpisodicRAG/data/Digests
-Essences Path: [Your Project]/plugins-weave/EpisodicRAG/data/Essences
+```json
+{
+  "status": "configured",
+  "config_exists": true,
+  "directories_exist": true,
+  "config_file": "[Your Project]/plugins-weave/EpisodicRAG/.claude-plugin/config.json",
+  "message": "Setup already completed"
+}
 ```
 
 （identity_file_pathを設定している場合は "Identity File:" 行も表示されます）
