@@ -14,6 +14,10 @@
 >
 > 📖 環境別パス形式は [用語集](../../README.md#パス形式の違い) を参照
 
+> **パス変数の凡例**:
+> - `{plugin_root}`: プラグインのインストール先（[用語集](../../README.md#plugin_root) 参照）
+> - `{loops_dir}`, `{digests_dir}`, `{essences_dir}`: config.jsonで設定されたデータディレクトリ
+
 ---
 
 ## 目次
@@ -125,12 +129,12 @@ ConfigError: Invalid configuration value for 'base_dir': expected path within pl
 
 1. **config.jsonが存在するか**
    ```bash
-   ls ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin/config.json
+   ls {plugin_root}/.claude-plugin/config.json
    ```
 
 2. **パス解決が正しいか**（📖 [用語集](../../README.md#基本概念) 参照）
    ```bash
-   cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG
+   cd {plugin_root}
    python -m interfaces.digest_setup check
    ```
 
@@ -223,7 +227,7 @@ cat {digests_dir}/1_Weekly/Provisional/W0001_Individual.txt
 ```bash
 # 手動で DigestFinalizerFromShadow を実行してエラー詳細を確認
 # v2.0.0+: interfaces層からインポート
-cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/scripts
+cd {plugin_root}/scripts
 python -c "from interfaces import DigestFinalizerFromShadow; from application.config import DigestConfig; f = DigestFinalizerFromShadow(DigestConfig()); f.finalize('weekly', 'テストタイトル')"
 ```
 
@@ -238,7 +242,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from application.co
 1. **last_digest_times.jsonの内容を確認**
    ```bash
    # .claude-plugin/ 内に配置されています
-   cat ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin/last_digest_times.json
+   cat {plugin_root}/.claude-plugin/last_digest_times.json
    ```
 
 2. **新しいLoopファイルが検出されているか**
@@ -262,7 +266,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from application.co
 2. **last_digest_times.jsonが破損している場合**:
    ```bash
    # バックアップを取ってから削除（.claude-plugin/ 内に配置）
-   cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin
+   cd {plugin_root}/.claude-plugin
    cp last_digest_times.json last_digest_times.json.bak
    rm last_digest_times.json
 
@@ -279,7 +283,7 @@ python -c "from interfaces import DigestFinalizerFromShadow; from application.co
 
    # 再実行（テンプレートから自動再作成されます）
    # v2.0.0+: ShadowGrandDigestManagerを使用
-   cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/scripts
+   cd {plugin_root}/scripts
    python -c "from application.grand import ShadowGrandDigestManager; from application.config import DigestConfig; m = ShadowGrandDigestManager(DigestConfig()); m.load_or_create(); print('OK')"
    ```
 
@@ -430,12 +434,12 @@ git status
 2. **インストール済プラグインに正しく配置**:
    ```bash
    # config.jsonの場所確認
-   cat ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/.claude-plugin/config.json
+   cat {plugin_root}/.claude-plugin/config.json
    ```
 
 **重要な原則**:
 - **開発フォルダ**: ソースコードのみ（設定ファイルは.gitignoreで除外）
-- **インストール済プラグイン**: 実行環境・設定ファイル配置場所（`~/.claude/plugins/marketplaces/`）
+- **インストール済プラグイン**: 実行環境・設定ファイル配置場所（`{plugin_root}/`）
 - **データディレクトリ**: base_dirからの相対パスで別の場所に配置
 
 **参考**: この問題は開発者が新規インストールをテストする際の特殊ケースです。通常のユーザーは遭遇しません。
@@ -542,7 +546,7 @@ rm {essences_dir}/ShadowGrandDigest.txt
 ### 2. パス設定確認
 
 ```bash
-cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG
+cd {plugin_root}
 python -m interfaces.digest_setup check
 ```
 
@@ -606,7 +610,7 @@ cat {essences_dir}/ShadowGrandDigest.txt
 ### generate_digest_auto.sh のデバッグ
 
 ```bash
-cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG
+cd {plugin_root}
 bash -x scripts/generate_digest_auto.sh
 ```
 
@@ -615,7 +619,7 @@ bash -x scripts/generate_digest_auto.sh
 ### Pythonスクリプトのデバッグ
 
 ```bash
-cd ~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/scripts
+cd {plugin_root}/scripts
 
 # digest_setupのデバッグ
 python -v -m interfaces.digest_setup check

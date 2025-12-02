@@ -18,6 +18,14 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from domain.file_constants import (
+    CONFIG_FILENAME,
+    DIGEST_TIMES_FILENAME,
+    GRAND_DIGEST_FILENAME,
+    PLUGIN_CONFIG_DIR,
+    SHADOW_GRAND_DIGEST_FILENAME,
+)
+
 
 @dataclass
 class Issue:
@@ -89,8 +97,8 @@ class DigestAutoAnalyzer:
         else:
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
-        self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
-        self.last_digest_file = self.plugin_root / ".claude-plugin" / "last_digest_times.json"
+        self.config_file = self.plugin_root / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
+        self.last_digest_file = self.plugin_root / PLUGIN_CONFIG_DIR / DIGEST_TIMES_FILENAME
 
     def _load_config(self) -> Dict[str, Any]:
         """設定ファイルを読み込む"""
@@ -169,7 +177,7 @@ class DigestAutoAnalyzer:
                 recommendations.append("Run /digest to process unprocessed loops first")
 
             # 3. ShadowGrandDigest確認
-            shadow_file = essences_path / "ShadowGrandDigest.txt"
+            shadow_file = essences_path / SHADOW_GRAND_DIGEST_FILENAME
             shadow_data = self._load_json_file(shadow_file)
             if shadow_data is None:
                 return AnalysisResult(
@@ -207,7 +215,7 @@ class DigestAutoAnalyzer:
                 recommendations.append("Consider adding missing files to prevent memory gaps")
 
             # 6. GrandDigest確認と生成可能な階層判定
-            grand_file = essences_path / "GrandDigest.txt"
+            grand_file = essences_path / GRAND_DIGEST_FILENAME
             grand_data = self._load_json_file(grand_file) or {}
 
             generatable, insufficient = self._determine_generatable_levels(

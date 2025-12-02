@@ -1,0 +1,233 @@
+#!/usr/bin/env python3
+"""
+ConfigEditor CLI set コマンドテスト
+===================================
+
+set サブコマンドの追加CLIテスト。
+test_digest_config.py から分割。
+"""
+
+import json
+import shutil
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+
+
+class TestConfigCLISetCommandExtended(unittest.TestCase):
+    """set サブコマンドの追加CLIテスト"""
+
+    def setUp(self):
+        """テスト環境をセットアップ"""
+        self.temp_dir = tempfile.mkdtemp()
+        self.plugin_root = Path(self.temp_dir)
+        (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        self._create_config()
+
+    def tearDown(self):
+        """一時ディレクトリを削除"""
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def _create_config(self):
+        """設定ファイルを作成"""
+        config_data = {
+            "base_dir": ".",
+            "trusted_external_paths": [],
+            "paths": {
+                "loops_dir": "data/Loops",
+                "digests_dir": "data/Digests",
+                "essences_dir": "data/Essences",
+            },
+            "levels": {"weekly_threshold": 5, "monthly_threshold": 5},
+        }
+        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+            json.dump(config_data, f)
+
+    @pytest.mark.unit
+    def test_set_missing_key_exits_error(self):
+        """set で --key がない場合にエラー"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--value", "7"
+        ]):
+            with patch("sys.stderr"):
+                with pytest.raises(SystemExit) as exc_info:
+                    from interfaces.digest_config import main
+                    main()
+                assert exc_info.value.code == 2
+
+    @pytest.mark.unit
+    def test_set_missing_value_exits_error(self):
+        """set で --value がない場合にエラー"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "levels.weekly_threshold"
+        ]):
+            with patch("sys.stderr"):
+                with pytest.raises(SystemExit) as exc_info:
+                    from interfaces.digest_config import main
+                    main()
+                assert exc_info.value.code == 2
+
+    @pytest.mark.unit
+    def test_set_deeply_nested_key(self):
+        """set で深くネストされたキーを設定"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "paths.loops_dir",
+            "--value", "custom/Loops"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["status"] == "ok"
+                assert result["new_value"] == "custom/Loops"
+
+    @pytest.mark.unit
+    def test_set_creates_intermediate_keys(self):
+        """set が中間キーを作成する"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "new_section.new_key",
+            "--value", "new_value"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["status"] == "ok"
+
+        # ファイルを確認
+        with open(self.plugin_root / ".claude-plugin" / "config.json", "r", encoding="utf-8") as f:
+            saved_config = json.load(f)
+        assert saved_config["new_section"]["new_key"] == "new_value"
+
+    @pytest.mark.unit
+    def test_set_boolean_true(self):
+        """set で true を設定"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "some_flag",
+            "--value", "true"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["new_value"] is True
+
+    @pytest.mark.unit
+    def test_set_boolean_false(self):
+        """set で false を設定"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "some_flag",
+            "--value", "false"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["new_value"] is False
+
+    @pytest.mark.unit
+    def test_set_null_value(self):
+        """set で null を設定"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "paths.identity_file_path",
+            "--value", "null"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["new_value"] is None
+
+    @pytest.mark.unit
+    def test_set_negative_integer(self):
+        """set で負の整数を設定"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "some_value",
+            "--value", "-10"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["new_value"] == -10
+
+    @pytest.mark.unit
+    def test_set_threshold_invalid_string_exits_error(self):
+        """set で閾値に無効な文字列を設定するとエラー"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "levels.weekly_threshold",
+            "--value", "not_a_number"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["status"] == "error"
+                assert "integer" in result["error"].lower()
+
+    @pytest.mark.unit
+    def test_set_output_shows_old_value(self):
+        """set が古い値を表示"""
+        with patch("sys.argv", [
+            "digest_config.py",
+            "--plugin-root", str(self.plugin_root),
+            "set",
+            "--key", "levels.weekly_threshold",
+            "--value", "10"
+        ]):
+            from interfaces.digest_config import main
+
+            with patch("builtins.print") as mock_print:
+                main()
+                output = mock_print.call_args[0][0]
+                result = json.loads(output)
+                assert result["old_value"] == 5
+                assert result["new_value"] == 10
+
+
+if __name__ == "__main__":
+    unittest.main()

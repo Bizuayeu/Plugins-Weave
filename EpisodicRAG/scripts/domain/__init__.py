@@ -49,6 +49,28 @@ from domain.constants import (
     build_level_hierarchy,
 )
 
+# File constants
+from domain.file_constants import (
+    CONFIG_FILENAME,
+    CONFIG_TEMPLATE,
+    DATA_DIR_NAME,
+    DIGEST_TIMES_FILENAME,
+    DIGEST_TIMES_TEMPLATE,
+    ESSENCES_DIR_NAME,
+    GRAND_DIGEST_FILENAME,
+    GRAND_DIGEST_TEMPLATE,
+    INDIVIDUAL_DIGEST_SUFFIX,
+    LOOP_FILE_PATTERN,
+    LOOPS_DIR_NAME,
+    MONTHLY_FILE_PATTERN,
+    OVERALL_DIGEST_SUFFIX,
+    PLUGIN_CONFIG_DIR,
+    PROVISIONALS_SUBDIR,
+    SHADOW_GRAND_DIGEST_FILENAME,
+    SHADOW_GRAND_DIGEST_TEMPLATE,
+    WEEKLY_FILE_PATTERN,
+)
+
 # Exceptions
 from domain.exceptions import (
     ConfigError,
@@ -122,6 +144,14 @@ from domain.types import (
 
 # Domain validators (digest validation, runtime checks)
 from domain.validators import ensure_not_none, is_valid_overall_digest
+
+# Validation helpers (SSoT)
+from domain.validation_helpers import (
+    collect_list_element_errors,
+    validate_dict_has_keys,
+    validate_dict_key_type,
+    validate_list_not_empty,
+)
 from domain.version import DIGEST_FORMAT_VERSION, __version__
 
 __all__ = [
@@ -136,6 +166,25 @@ __all__ = [
     "PLACEHOLDER_END",
     "PLACEHOLDER_SIMPLE",
     "build_level_hierarchy",
+    # File constants
+    "GRAND_DIGEST_FILENAME",
+    "SHADOW_GRAND_DIGEST_FILENAME",
+    "GRAND_DIGEST_TEMPLATE",
+    "SHADOW_GRAND_DIGEST_TEMPLATE",
+    "DIGEST_TIMES_TEMPLATE",
+    "CONFIG_TEMPLATE",
+    "CONFIG_FILENAME",
+    "DIGEST_TIMES_FILENAME",
+    "PLUGIN_CONFIG_DIR",
+    "ESSENCES_DIR_NAME",
+    "LOOPS_DIR_NAME",
+    "PROVISIONALS_SUBDIR",
+    "DATA_DIR_NAME",
+    "LOOP_FILE_PATTERN",
+    "WEEKLY_FILE_PATTERN",
+    "MONTHLY_FILE_PATTERN",
+    "INDIVIDUAL_DIGEST_SUFFIX",
+    "OVERALL_DIGEST_SUFFIX",
     # Exceptions
     "EpisodicRAGError",
     "ConfigError",
@@ -190,4 +239,9 @@ __all__ = [
     # Domain validators
     "is_valid_overall_digest",
     "ensure_not_none",
+    # Validation helpers
+    "validate_list_not_empty",
+    "validate_dict_has_keys",
+    "validate_dict_key_type",
+    "collect_list_element_errors",
 ]

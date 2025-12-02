@@ -12,14 +12,15 @@
 
 1. [ディレクトリ構成](#ディレクトリ構成)
 2. [Clean Architecture](#clean-architecture)
-3. [データフロー](#データフロー)
-4. [パス解決の仕組み](#パス解決の仕組み)
-5. [技術仕様](#技術仕様)
-6. [テスト](#テスト)
-7. [セキュリティとプライバシー](#セキュリティとプライバシー)
-8. [パフォーマンス](#パフォーマンス)
-9. [拡張性](#拡張性)
-10. [次のステップ](#次のステップ)
+3. [主要API一覧](#主要api一覧)
+4. [データフロー](#データフロー)
+5. [パス解決の仕組み](#パス解決の仕組み)
+6. [技術仕様](#技術仕様)
+7. [テスト](#テスト)
+8. [セキュリティとプライバシー](#セキュリティとプライバシー)
+9. [パフォーマンス](#パフォーマンス)
+10. [拡張性](#拡張性)
+11. [次のステップ](#次のステップ)
 
 ---
 
@@ -78,6 +79,7 @@
 
 v2.0.0 より、Clean Architecture（4層構造）を採用しています。
 v4.0.0 で設定機能を3層に分散し、CLIモジュールを追加しました。
+v4.1.0 でTypedDict分割、新パターン追加、開発ツールを追加しました。
 
 ### 層構造
 
@@ -85,13 +87,29 @@ v4.0.0 で設定機能を3層に分散し、CLIモジュールを追加しまし
 scripts/
 ├── domain/                          # コアビジネスロジック（最内層）
 │   ├── __init__.py                  # 公開API
-│   ├── types.py                     # TypedDict定義（ConfigData含む）
+│   ├── types/                       # TypedDict定義（v4.1.0+パッケージ化）
+│   │   ├── __init__.py              # 全型re-export（後方互換性維持）
+│   │   ├── metadata.py              # BaseMetadata, DigestMetadata等
+│   │   ├── level.py                 # LevelConfigData, LevelHierarchyEntry
+│   │   ├── text.py                  # LongShortText
+│   │   ├── digest.py                # OverallDigestData, ShadowDigestData等
+│   │   ├── config.py                # ConfigData, PathsConfigData等
+│   │   ├── entry.py                 # ProvisionalDigestEntry等
+│   │   ├── guards.py                # 型ガード関数
+│   │   └── utils.py                 # as_dict
 │   ├── exceptions.py                # ドメイン例外（ConfigError含む）
 │   ├── constants.py                 # LEVEL_CONFIG等
 │   ├── version.py                   # バージョン
 │   ├── file_naming.py               # ファイル命名ユーティリティ
 │   ├── level_registry.py            # LevelRegistry（階層設定管理）
-│   ├── error_formatter.py           # ErrorFormatter（エラーメッセージ標準化）
+│   ├── error_formatter/             # エラーフォーマッタ（パッケージ）
+│   │   ├── __init__.py              # CompositeErrorFormatter
+│   │   ├── base.py                  # BaseErrorFormatter
+│   │   ├── registry.py              # FormatterRegistry (v4.1.0+)
+│   │   └── formatters/              # カテゴリ別フォーマッタ
+│   ├── validators/                  # バリデーション（v4.1.0+統合）
+│   │   ├── __init__.py              # 公開API
+│   │   └── helpers.py               # validate_type, collect_type_error等
 │   └── config/                      # 設定関連定数・バリデーション
 │       ├── __init__.py
 │       ├── config_constants.py      # REQUIRED_CONFIG_KEYS, THRESHOLD_KEYS
@@ -114,6 +132,7 @@ scripts/
 │       ├── config_loader.py         # ConfigLoader
 │       ├── config_repository.py     # load_config
 │       ├── path_resolver.py         # PathResolver
+│       ├── path_validators.py       # PathValidatorChain (v4.1.0+)
 │       ├── plugin_root_resolver.py  # find_plugin_root
 │       └── error_messages.py        # エラーメッセージヘルパー
 │
@@ -128,6 +147,7 @@ scripts/
 │   │   ├── shadow_io.py             # ShadowIO
 │   │   ├── shadow_updater.py        # ShadowUpdater
 │   │   ├── cascade_processor.py     # CascadeProcessor
+│   │   ├── cascade_orchestrator.py  # CascadeOrchestrator (v4.1.0+)
 │   │   ├── file_appender.py         # FileAppender
 │   │   └── placeholder_manager.py   # PlaceholderManager
 │   ├── grand/                       # GrandDigest
@@ -140,27 +160,34 @@ scripts/
 │   │   └── persistence.py           # DigestPersistence
 │   └── config/                      # 設定管理（Facade）
 │       ├── __init__.py              # DigestConfig（Facade）
+│       ├── config_builder.py        # DigestConfigBuilder (v4.1.0+)
 │       ├── config_validator.py      # ConfigValidator
 │       ├── level_path_service.py    # LevelPathService
 │       ├── source_path_resolver.py  # SourcePathResolver
 │       └── threshold_provider.py    # ThresholdProvider
 │
-└── interfaces/                      # エントリーポイント
-    ├── __init__.py                  # 公開API
-    ├── finalize_from_shadow.py      # DigestFinalizerFromShadow
-    ├── save_provisional_digest.py   # ProvisionalDigestSaver
-    ├── interface_helpers.py         # sanitize_filename, get_next_digest_number
-    ├── config_cli.py                # 設定CLIエントリーポイント
-    ├── digest_setup.py              # @digest-setup CLI (v4.0.0+)
-    ├── digest_config.py             # @digest-config CLI (v4.0.0+)
-    ├── digest_auto.py               # @digest-auto CLI (v4.0.0+)
-    ├── shadow_state_checker.py      # Shadow状態チェッカー
-    └── provisional/                 # Provisionalサブパッケージ
-        ├── __init__.py
-        ├── input_loader.py          # InputLoader
-        ├── merger.py                # DigestMerger
-        ├── validator.py             # バリデーション関数
-        └── file_manager.py          # ProvisionalFileManager
+├── interfaces/                      # エントリーポイント
+│   ├── __init__.py                  # 公開API
+│   ├── finalize_from_shadow.py      # DigestFinalizerFromShadow
+│   ├── save_provisional_digest.py   # ProvisionalDigestSaver
+│   ├── interface_helpers.py         # sanitize_filename, get_next_digest_number
+│   ├── config_cli.py                # 設定CLIエントリーポイント
+│   ├── digest_setup.py              # @digest-setup CLI (v4.0.0+)
+│   ├── digest_config.py             # @digest-config CLI (v4.0.0+)
+│   ├── digest_auto.py               # @digest-auto CLI (v4.0.0+)
+│   ├── shadow_state_checker.py      # Shadow状態チェッカー
+│   └── provisional/                 # Provisionalサブパッケージ
+│       ├── __init__.py
+│       ├── input_loader.py          # InputLoader
+│       ├── merger.py                # DigestMerger
+│       ├── validator.py             # バリデーション関数
+│       └── file_manager.py          # ProvisionalFileManager
+│
+├── tools/                           # 開発ツール (v4.1.0+)
+│   ├── check_footer.py              # フッター一貫性チェッカー
+│   └── link_checker.py              # Markdownリンクチェッカー
+│
+└── test/                            # テスト（CIバッジ参照）
 ```
 
 ### 依存関係ルール
@@ -233,6 +260,58 @@ from interfaces.provisional import InputLoader, DigestMerger
 from application.config import DigestConfig
 from domain.exceptions import ConfigError
 from domain.config import REQUIRED_CONFIG_KEYS
+```
+
+---
+
+## 主要API一覧
+
+> **目的**: AIエージェントが全体像を一度で把握できるクイックリファレンス
+> 詳細なAPI仕様は [API_REFERENCE.md](API_REFERENCE.md) を参照
+
+### 層別主要クラス
+
+| 層 | クラス/関数 | 用途 | 詳細 |
+|----|------------|------|------|
+| **Domain** | `LEVEL_CONFIG` | 8階層設定（SSoT） | [domain.md](api/domain.md) |
+| **Domain** | `LEVEL_NAMES` | 階層名リスト | [domain.md](api/domain.md) |
+| **Domain** | `EpisodicRAGError` | 基底例外 | [domain.md](api/domain.md) |
+| **Domain** | `ValidationError` | バリデーションエラー | [domain.md](api/domain.md) |
+| **Domain** | `ConfigError` | 設定エラー | [domain.md](api/domain.md) |
+| **Domain** | `LevelRegistry` | 階層設定の一元管理 | [domain.md](api/domain.md) |
+| **Domain** | `extract_file_number()` | ファイル番号抽出 | [domain.md](api/domain.md) |
+| **Infrastructure** | `load_json()` / `save_json()` | JSON I/O | [infrastructure.md](api/infrastructure.md) |
+| **Infrastructure** | `scan_files()` | ファイル検出 | [infrastructure.md](api/infrastructure.md) |
+| **Infrastructure** | `ConfigLoader` | 設定ファイル読み込み | [infrastructure.md](api/infrastructure.md) |
+| **Infrastructure** | `PathResolver` | パス解決 | [infrastructure.md](api/infrastructure.md) |
+| **Application** | `DigestConfig` | 設定管理Facade | [config.md](api/config.md) |
+| **Application** | `ShadowUpdater` | Shadow更新Facade | [application.md](api/application.md) |
+| **Application** | `ShadowIO` | Shadow読み書き | [application.md](api/application.md) |
+| **Application** | `GrandDigestManager` | GrandDigest管理 | [application.md](api/application.md) |
+| **Application** | `ShadowGrandDigestManager` | ShadowGrandDigest管理 | [application.md](api/application.md) |
+| **Application** | `RegularDigestBuilder` | RegularDigest構築 | [application.md](api/application.md) |
+| **Interfaces** | `DigestFinalizerFromShadow` | 確定処理エントリーポイント | [interfaces.md](api/interfaces.md) |
+| **Interfaces** | `ProvisionalDigestSaver` | Provisional保存 | [interfaces.md](api/interfaces.md) |
+| **Interfaces** | `SetupManager` | セットアップCLI | [interfaces.md](api/interfaces.md) |
+| **Interfaces** | `ConfigEditor` | 設定編集CLI | [interfaces.md](api/interfaces.md) |
+
+### よく使うインポートパターン
+
+```python
+# 基本的な設定読み込み
+from application.config import DigestConfig
+config = DigestConfig()  # plugin_root自動検出
+
+# ファイル操作
+from infrastructure import load_json, save_json
+
+# Shadow更新
+from application.shadow import ShadowUpdater
+updater = ShadowUpdater(config)
+
+# Digest確定
+from interfaces import DigestFinalizerFromShadow
+finalizer = DigestFinalizerFromShadow(config)
 ```
 
 ---

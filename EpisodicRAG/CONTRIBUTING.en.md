@@ -457,6 +457,7 @@ The EpisodicRAG plugin uses Japanese as the primary language and provides Englis
 
 | Japanese | English | Status |
 |----------|---------|--------|
+| `../README.md` | `../README.en.md` | ✅ Synced |
 | `README.md` | `README.en.md` | ✅ Synced |
 | `CHANGELOG.md` | `CHANGELOG.en.md` | ✅ Synced |
 | `CONTRIBUTING.md` | `CONTRIBUTING.en.md` | ✅ Synced |

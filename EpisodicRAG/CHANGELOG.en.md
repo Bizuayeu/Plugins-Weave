@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-02 -->
+<!-- Last synced: 2025-12-03 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,14 +12,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v4.x](#400---2025-12-01)
+- [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
 
 ---
 
+## [4.1.0] - 2025-12-03
+
+### Added
+
+- **Internal Refactoring**: TypedDict split, validation consolidation, 4 new design patterns
+- **Development Tools**: Footer checker, link checker (`scripts/tools/`)
+- **Tests**: 117 tests added (total 2162 tests)
+
+> 📖 See [DESIGN_DECISIONS.md](docs/dev/DESIGN_DECISIONS.md) for details
+
+---
+
 ## [4.0.0] - 2025-12-01
+
+> **⚠️ Migration Note**: Migration from v3.x or earlier is deprecated. Plugin reinstallation is recommended.
+> Existing conversation records (GrandDigest, ShadowGrandDigest, Loop files, etc.) can be used as-is.
 
 ### Breaking Changes
 

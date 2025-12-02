@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "episodicrag"
-version = "4.0.0"
+version = "4.1.0"
 description = "EpisodicRAG - Hierarchical digest generation for long-term memory"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -150,8 +150,8 @@ disallow_any_generics = false
 # Import settings
 ignore_missing_imports = true
 
-# Exclude test layer (optional: can be enabled later)
-exclude = ["scripts/test/"]
+# Test layer: enabled with relaxed settings (Phase 1)
+# exclude = ["scripts/test/"]  # Removed to enable test type checking
 
 # Domain layer: already 100% compliant
 [[tool.mypy.overrides]]
@@ -238,8 +238,11 @@ module = [
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
-# Note: Test layer excluded via exclude = ["scripts/test/"]
-# To enable strict typing for tests, remove the exclude and add:
-# [[tool.mypy.overrides]]
-# module = "test.*"
-# disallow_untyped_defs = true
+# Test layer: relaxed settings (Phase 1 of gradual strictness)
+# Future: increase to disallow_untyped_defs = true
+[[tool.mypy.overrides]]
+module = "test.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+warn_return_any = false
+check_untyped_defs = true

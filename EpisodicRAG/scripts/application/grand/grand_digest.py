@@ -45,6 +45,7 @@ from domain.constants import (
     LOG_PREFIX_STATE,
     LOG_PREFIX_VALIDATE,
 )
+from domain.file_constants import GRAND_DIGEST_FILENAME
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import DigestError
 from domain.types import GrandDigestData, OverallDigestData, as_dict
@@ -80,7 +81,7 @@ class GrandDigestManager:
 
     def __init__(self, config: DigestConfig):
         self.config = config
-        self.grand_digest_file = config.essences_path / "GrandDigest.txt"
+        self.grand_digest_file = config.essences_path / GRAND_DIGEST_FILENAME
 
     def get_template(self) -> GrandDigestData:
         """

@@ -22,8 +22,9 @@ EpisodicRAGプラグインの開発に興味を持っていただき、ありが
 4. [プルリクエストの作成](#プルリクエストの作成)
 5. [コーディング規約](#コーディング規約)
 6. [テスト](#テスト)
-7. [ドキュメント](#ドキュメント)
-8. [サポート](#サポート)
+7. [開発ツール](#開発ツール-v410) - フッターチェッカー、リンクチェッカー *(v4.1.0+)*
+8. [ドキュメント](#ドキュメント)
+9. [サポート](#サポート)
 
 ---
 
@@ -332,6 +333,86 @@ python -m pytest test/config_tests/ -v
 
 ---
 
+## 開発ツール *(v4.1.0+)*
+
+`scripts/tools/` ディレクトリには、ドキュメントの品質管理ツールが含まれています。
+
+### フッターチェッカー（check_footer.py）
+
+各ドキュメントのフッターが `_footer.md` で定義された形式と一致しているかを検証します。
+
+```bash
+cd plugins-weave/EpisodicRAG/scripts
+
+# チェック実行
+python -m tools.check_footer
+
+# 自動修正
+python -m tools.check_footer --fix
+
+# サマリーのみ表示
+python -m tools.check_footer --quiet
+```
+
+**出力例**:
+```text
+Checking files in: docs/
+
+OK (3):
+  docs/README.md
+  docs/dev/ARCHITECTURE.md
+  docs/dev/DESIGN_DECISIONS.md
+
+MISSING (1):
+  docs/user/NEW_FILE.md
+
+MISMATCH (1):
+  docs/user/OLD_FILE.md
+
+Summary: 3 OK, 1 MISSING, 1 MISMATCH
+```
+
+### リンクチェッカー（link_checker.py）
+
+Markdownファイル内の相対リンク、アンカーリンク、複合リンクを検証します。
+
+```bash
+cd plugins-weave/EpisodicRAG/scripts
+
+# 検証実行
+python -m tools.link_checker ../docs
+
+# 詳細出力
+python -m tools.link_checker ../docs --verbose
+
+# JSON出力（CI/CD用）
+python -m tools.link_checker ../docs --json
+```
+
+**出力例**:
+```text
+Checking: docs/dev/ARCHITECTURE.md
+
+BROKEN LINKS:
+  Line 42: [config.md](./config.md)
+    File not found: docs/dev/config.md
+    Suggestion: Did you mean docs/dev/api/config.md?
+
+  Line 85: [#invalid-anchor](#invalid-anchor)
+    Anchor not found in document
+
+Summary: 2 broken links in 1 file
+```
+
+**機能**:
+- 相対リンク（`./file.md`, `../file.md`）の検証
+- アンカーリンク（`#section`）の検証
+- 複合リンク（`file.md#section`）の検証
+- 壊れたリンクの修正案提示
+- JSON出力（CI/CD統合用）
+
+---
+
 ## 開発環境での注意事項
 
 ### インストールテスト時の環境混在
@@ -456,6 +537,7 @@ EpisodicRAGプラグインは日本語を主言語とし、主要ドキュメン
 
 | Japanese | English | Status |
 |----------|---------|--------|
+| `../README.md` | `../README.en.md` | ✅ Synced |
 | `README.md` | `README.en.md` | ✅ Synced |
 | `CHANGELOG.md` | `CHANGELOG.en.md` | ✅ Synced |
 | `CONTRIBUTING.md` | `CONTRIBUTING.en.md` | ✅ Synced |

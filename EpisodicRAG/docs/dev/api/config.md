@@ -4,6 +4,9 @@
 
 config.json仕様とDigestConfigクラス。
 
+> **対象読者**: AIエージェント（Claude Code）、人間開発者
+> **想定ユースケース**: 設定ファイル操作、DigestConfig使用時の参照
+
 > **v4.0.0**: 設定管理機能は3層に分散配置されています。アーキテクチャ詳細は [ARCHITECTURE.md](../ARCHITECTURE.md#依存関係ルール) を参照。
 
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
@@ -37,7 +40,7 @@ from infrastructure.config import (
    - [設定項目詳細](#設定項目詳細)
    - [よくある設定パターン](#よくある設定パターン)
 2. [ConfigData型定義](#configdata型定義)
-   - [ConfigData（config.json全体構造）](#configdataconfig.json全体構造)
+   - [ConfigData（config.json全体構造）](#configdataconfigjson全体構造)
    - [PathsConfigData / LevelsConfigData](#pathsconfigdata--levelsconfigdata)
 3. [DigestConfig クラス](#digestconfig-クラスapplicationconfig__init__py)
    - [プロパティ（パス関連）](#プロパティパス関連)
@@ -251,7 +254,7 @@ class LevelsConfigData(TypedDict, total=False):
     centurial_threshold: int
 ```
 
-> 📖 完全な型定義は [domain/types.py](../../../scripts/domain/types.py) を参照
+> 📖 完全な型定義は [domain/types/config.py](../../../scripts/domain/types/config.py) を参照
 
 ---
 

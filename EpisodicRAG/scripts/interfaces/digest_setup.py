@@ -19,6 +19,17 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from domain.file_constants import (
+    CONFIG_FILENAME,
+    DIGEST_TIMES_FILENAME,
+    DIGEST_TIMES_TEMPLATE,
+    GRAND_DIGEST_FILENAME,
+    GRAND_DIGEST_TEMPLATE,
+    PLUGIN_CONFIG_DIR,
+    SHADOW_GRAND_DIGEST_FILENAME,
+    SHADOW_GRAND_DIGEST_TEMPLATE,
+)
+
 
 @dataclass
 class SetupResult:
@@ -57,8 +68,8 @@ class SetupManager:
             # スクリプトの場所から推測
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
-        self.config_dir = self.plugin_root / ".claude-plugin"
-        self.config_file = self.config_dir / "config.json"
+        self.config_dir = self.plugin_root / PLUGIN_CONFIG_DIR
+        self.config_file = self.config_dir / CONFIG_FILENAME
         self.template_dir = self.config_dir
 
     def check(self) -> Dict[str, Any]:
@@ -263,9 +274,9 @@ class SetupManager:
 
         # テンプレートファイルのコピー
         template_files = [
-            ("GrandDigest.template.txt", essences_dir / "GrandDigest.txt"),
-            ("ShadowGrandDigest.template.txt", essences_dir / "ShadowGrandDigest.txt"),
-            ("last_digest_times.template.json", self.config_dir / "last_digest_times.json"),
+            (GRAND_DIGEST_TEMPLATE, essences_dir / GRAND_DIGEST_FILENAME),
+            (SHADOW_GRAND_DIGEST_TEMPLATE, essences_dir / SHADOW_GRAND_DIGEST_FILENAME),
+            (DIGEST_TIMES_TEMPLATE, self.config_dir / DIGEST_TIMES_FILENAME),
         ]
 
         for template_name, dest_path in template_files:

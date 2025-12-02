@@ -40,6 +40,10 @@
 | Singleton (Registry) | DIコンテナ, グローバル変数 | ドメイン層のシンプルさ、テスト時のリセット可能性 |
 | Composite (ErrorFormatter) | 単一クラス, 関数群 | カテゴリ別責務分離、SRP準拠 |
 | Chain of Responsibility (TemplateLoader) | if-else連鎖, Switch | 戦略の追加・削除が容易、OCP準拠 |
+| Builder (DigestConfigBuilder) v4.1.0+ | コンストラクタ引数, Factory | Fluent Interface、テスト時の依存性注入 |
+| Orchestrator (CascadeOrchestrator) v4.1.0+ | Facade内包, 手続き的処理 | ワークフロー制御の明確化、結果構造化 |
+| Registry (FormatterRegistry) v4.1.0+ | Dict直接管理, サービスロケータ | 型安全性、動的登録、拡張性 |
+| Chain of Responsibility (PathValidatorChain) v4.1.0+ | if-else連鎖, 単一Validator | 検証ルールの追加が容易、SRP準拠 |
 | スキルのCLI化 (v4.0.0+) | スキル疑似コード維持, バッチスクリプト | テスタビリティ、デバッグ容易性、型安全性 |
 | trusted_external_paths (v4.0.0+) | 無制限アクセス, ユーザー確認ダイアログ | セキュリティ強化、明示的許可モデル |
 | Loop ID 5桁化 (v3.0.0+) | 4桁維持, 可変長, UUID | 10万件対応、ソート順維持、可読性 |
@@ -77,6 +81,30 @@
 - **実装**: `infrastructure/json_repository/chained_loader.py`
 - **目的**: テンプレートロード戦略の順次試行
 - **SOLID**: OCP（新戦略追加が容易）
+
+### Builder Pattern (v4.1.0+)
+- **実装**: `application/config/config_builder.py`
+- **目的**: DigestConfigの柔軟な構築とテスト時の依存性注入
+- **設計判断**: Fluent Interface（メソッドチェーン）で可読性向上
+- **SOLID**: OCP（新しいwithメソッド追加が容易）
+
+### Orchestrator Pattern (v4.1.0+)
+- **実装**: `application/shadow/cascade_orchestrator.py`
+- **目的**: カスケード処理のワークフロー制御と結果構造化
+- **設計判断**: 4ステップ（promote→detect→add→clear）を明示的に制御
+- **SOLID**: SRP（ワークフロー制御とデータ操作を分離）
+
+### Registry Pattern (v4.1.0+)
+- **実装**: `domain/error_formatter/registry.py`
+- **目的**: エラーフォーマッタの動的登録と取得
+- **設計判断**: CompositeErrorFormatterの内部実装として統合
+- **SOLID**: OCP（新カテゴリ追加が容易）
+
+### Chain of Responsibility Pattern - PathValidator (v4.1.0+)
+- **実装**: `infrastructure/config/path_validators.py`
+- **目的**: パス検証ルールの順次適用
+- **設計判断**: PluginRootValidator → TrustedExternalPathValidatorの順で検証
+- **SOLID**: OCP（新Validator追加が容易）、SRP（各Validatorが単一検証ルール）
 
 ---
 

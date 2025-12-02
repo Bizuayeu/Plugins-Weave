@@ -19,6 +19,8 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR
+
 
 class ConfigEditor:
     """設定エディタ"""
@@ -34,7 +36,7 @@ class ConfigEditor:
             # スクリプトの場所から推測
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
-        self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
+        self.config_file = self.plugin_root / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
 
     def _load_config(self) -> Dict[str, Any]:
         """設定ファイルを読み込む"""

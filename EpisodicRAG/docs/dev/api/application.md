@@ -4,6 +4,9 @@
 
 ビジネスロジックの実装。
 
+> **対象読者**: AIエージェント（Claude Code）、人間開発者
+> **想定ユースケース**: Shadow/GrandDigest管理、Finalize処理の実装時
+
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
 
 ```python
@@ -22,7 +25,12 @@ from application import (
     ShadowValidator, ProvisionalLoader, RegularDigestBuilder, DigestPersistence,
 )
 # Config (separate import)
-from application.config import DigestConfig
+from application.config import DigestConfig, DigestConfigBuilder  # v4.1.0+
+
+# Cascade Orchestrator (v4.1.0+)
+from application.shadow import (
+    CascadeOrchestrator, CascadeResult, CascadeStepResult, CascadeStepStatus,
+)
 ```
 
 ---
@@ -31,10 +39,12 @@ from application.config import DigestConfig
 
 1. [バリデーション（validators.py）](#バリデーションapplicationvalidatorspy)
 2. [Shadow管理（shadow/）](#shadow管理applicationshadow)
+   - [CascadeOrchestrator](#cascadeorchestrator) *(v4.1.0+)*
 3. [GrandDigest管理（grand/）](#granddigest管理applicationgrand)
 4. [Finalize処理（finalize/）](#finalize処理applicationfinalize)
 5. [時間追跡（tracking/）](#時間追跡applicationtracking)
 6. [設定管理（config/）](#設定管理applicationconfig)
+   - [DigestConfigBuilder](#digestconfigbuilder) *(v4.1.0+)*
 
 ---
 
@@ -253,6 +263,88 @@ class ShadowUpdater:
     def get_shadow_digest_for_level(self, level: str) -> Optional[OverallDigestData]
     def promote_shadow_to_grand(self, level: str) -> None
     def update_shadow_for_new_loops(self) -> None
+```
+
+### CascadeOrchestrator *(v4.1.0+)*
+
+カスケード処理全体を制御するOrchestrator。各ステップの実行順序と結果管理を担当。
+
+> 📖 Orchestrator Pattern - [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) 参照
+
+```python
+from application.shadow import (
+    CascadeOrchestrator, CascadeResult, CascadeStepResult, CascadeStepStatus
+)
+```
+
+#### CascadeStepStatus（列挙型）
+
+```python
+class CascadeStepStatus(Enum):
+    SUCCESS = "success"      # ステップ成功
+    SKIPPED = "skipped"      # スキップ（条件不一致等）
+    FAILED = "failed"        # ステップ失敗
+```
+
+#### CascadeStepResult
+
+```python
+@dataclass
+class CascadeStepResult:
+    """カスケードステップの実行結果"""
+    step_name: str                   # ステップ名
+    status: CascadeStepStatus        # 実行ステータス
+    message: Optional[str] = None    # 詳細メッセージ
+    details: Optional[Dict[str, Any]] = None  # 追加詳細
+```
+
+#### CascadeResult
+
+```python
+@dataclass
+class CascadeResult:
+    """カスケード処理全体の結果"""
+    success: bool                    # 全体成功フラグ
+    steps: List[CascadeStepResult]   # 各ステップ結果
+    processed_levels: List[str]      # 処理されたレベル
+    error_message: Optional[str] = None  # エラーメッセージ
+```
+
+#### CascadeOrchestrator
+
+```python
+class CascadeOrchestrator:
+    """カスケード処理のオーケストレーター"""
+
+    def __init__(
+        self,
+        shadow_updater: ShadowUpdater,
+        grand_manager: GrandDigestManager,
+        level_hierarchy: Dict[str, LevelHierarchyEntry]
+    ): ...
+
+    def execute_cascade(self, from_level: str) -> CascadeResult: ...
+```
+
+**使用例**:
+
+```python
+from application.shadow import CascadeOrchestrator, CascadeStepStatus
+
+orchestrator = CascadeOrchestrator(
+    shadow_updater=updater,
+    grand_manager=grand_manager,
+    level_hierarchy=hierarchy
+)
+
+result = orchestrator.execute_cascade("weekly")
+
+if result.success:
+    print(f"Processed levels: {result.processed_levels}")
+    for step in result.steps:
+        print(f"  {step.step_name}: {step.status.value}")
+else:
+    print(f"Cascade failed: {result.error_message}")
 ```
 
 ---
@@ -568,6 +660,49 @@ print(config.weekly_threshold)
 ```
 
 詳細なAPI仕様は [config.md](config.md#digestconfig-クラスapplicationconfig__init__py) を参照。
+
+### DigestConfigBuilder *(v4.1.0+)*
+
+DigestConfigの構築を担当するBuilder。Fluent Interfaceで依存性注入を容易に。
+
+> 📖 Builder Pattern - [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) 参照
+
+```python
+from application.config import DigestConfigBuilder
+
+class DigestConfigBuilder:
+    """DigestConfig構築のBuilder"""
+
+    def with_plugin_root(self, plugin_root: Path) -> "DigestConfigBuilder": ...
+    def with_config_loader(self, loader: ConfigLoader) -> "DigestConfigBuilder": ...
+    def with_path_resolver(self, resolver: PathResolver) -> "DigestConfigBuilder": ...
+    def build(self) -> DigestConfig: ...
+
+    @classmethod
+    def build_default(cls) -> DigestConfig: ...
+```
+
+**使用例（テスト時の依存性注入）**:
+
+```python
+from application.config import DigestConfigBuilder
+from unittest.mock import Mock
+
+# テスト用に依存性を注入
+mock_loader = Mock(spec=ConfigLoader)
+mock_resolver = Mock(spec=PathResolver)
+
+config = (
+    DigestConfigBuilder()
+    .with_plugin_root(Path("/test/root"))
+    .with_config_loader(mock_loader)
+    .with_path_resolver(mock_resolver)
+    .build()
+)
+
+# 本番環境ではデフォルト構築
+config = DigestConfigBuilder.build_default()
+```
 
 ### 内部クラス
 

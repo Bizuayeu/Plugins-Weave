@@ -14,7 +14,7 @@ AI/Claudeエージェント向けの技術仕様ハブです。
 
 ## 目次
 
-- [⚠️ v4.0.0 Breaking Changes](#️-v400-breaking-changes)
+- [⚠️ v4.0.0 Breaking Changes](#v400-breaking-changes)
 - [Command Specifications](#command-specifications)
 - [Skill Specifications](#skill-specifications)
 - [Agent Specifications](#agent-specifications)

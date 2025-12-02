@@ -26,6 +26,10 @@ EpisodicRAGを最速でセットアップし、動作確認するためのガイ
 - Claude Code または Claude VSCode Extension がインストール済み
 - Python 3.x がインストール済み
 
+> **パス変数の凡例**:
+> - `{plugin_root}`: プラグインのインストール先（[用語集](../../README.md#plugin_root) 参照）
+> - `{loops_dir}`: config.jsonで設定されたLoopディレクトリ
+
 ---
 
 ## 全体の流れ
@@ -101,7 +105,7 @@ Q5〜Q12: 各階層のthreshold → [1] デフォルト値
 
 **ファイル名**: `L00001_テスト会話.txt`
 
-**配置先**: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/data/Loops/`
+**配置先**: `{plugin_root}/data/Loops/`（デフォルト設定の場合）
 
 **内容**（コピペ可能）:
 

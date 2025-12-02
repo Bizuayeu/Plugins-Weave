@@ -4,7 +4,8 @@
 
 EpisodicRAGプラグインの**Python API仕様書**です。
 
-> **設計方針**: このドキュメントはSSoT原則に従い、リンク集として機能します。詳細な定義は各 `api/*.md` を参照してください。
+> **全体像**: アーキテクチャ全体と主要APIは **[ARCHITECTURE.md](ARCHITECTURE.md)** を参照
+> ARCHITECTURE.mdがSSoTの中心です。このドキュメントは詳細リンク集として機能します。
 
 > **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 

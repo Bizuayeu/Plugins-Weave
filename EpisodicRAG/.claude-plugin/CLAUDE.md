@@ -1,8 +1,30 @@
+[EpisodicRAG](../README.md) > CLAUDE.md
+
 # CLAUDE.md - EpisodicRAG Plugin
 
 このファイルは、Claude CodeがEpisodicRAGプラグインを開発・操作する際のガイドラインです。
 
 > **人間の開発者向け**: [CONTRIBUTING.md](../CONTRIBUTING.md) を参照してください。
+
+---
+
+## 目次
+
+**概要**
+1. [プロジェクト概要](#プロジェクト概要)
+2. [ディレクトリ構造](#ディレクトリ構造)
+
+**アーキテクチャ**
+3. [Clean Architecture](#clean-architecture)
+4. [Single Source of Truth (SSoT)](#single-source-of-truth-ssot)
+
+**開発ガイド**
+5. [開発ワークフロー](#開発ワークフロー)
+6. [コーディング規約](#コーディング規約)
+
+**リファレンス**
+7. [主要ファイル参照](#主要ファイル参照)
+8. [注意事項](#注意事項)
 
 ---
 
@@ -22,14 +44,60 @@ EpisodicRAG/
 ├── .claude-plugin/          # プラグインメタデータ・設定
 ├── agents/                  # AIエージェント仕様
 ├── commands/                # スラッシュコマンド仕様
-├── docs/                    # ユーザードキュメント
-├── scripts/                 # Python/Bash実装
+├── docs/                    # ドキュメント
+│   ├── dev/                 # 開発者向け（ARCHITECTURE, API等）
+│   └── user/                # ユーザー向け（GUIDE, FAQ等）
+├── scripts/                 # Python/Bash実装（Clean Architecture）
+│   ├── domain/              # コアビジネスロジック
+│   │   └── config/          # 設定定数・バリデーション
+│   ├── infrastructure/      # 外部関心事
+│   │   └── config/          # 設定ファイルI/O
+│   ├── application/         # ユースケース
+│   │   └── config/          # DigestConfig（Facade）
+│   ├── interfaces/          # エントリーポイント・CLI
 │   └── test/                # ユニットテスト
 ├── skills/                  # スキル仕様
 │   └── shared/              # 共有コンポーネント（SSoT）
 ├── CHANGELOG.md             # バージョン履歴
 └── CONTRIBUTING.md          # 開発者ガイド
 ```
+
+---
+
+## Clean Architecture
+
+スクリプトは4層アーキテクチャで構成されています。v4.0.0でconfig層を3つのサブレイヤーに分解しました。
+
+| 層 | ディレクトリ | 役割 |
+|----|-------------|------|
+| Domain | `scripts/domain/` | コアビジネスロジック（定数、型、例外） |
+| ├ config | `scripts/domain/config/` | 設定定数・バリデーション |
+| Infrastructure | `scripts/infrastructure/` | 外部関心事（JSON操作、ファイルスキャン） |
+| ├ config | `scripts/infrastructure/config/` | 設定ファイルI/O・パス解決 |
+| Application | `scripts/application/` | ユースケース（Shadow管理、GrandDigest管理） |
+| ├ config | `scripts/application/config/` | DigestConfig（Facade） |
+| Interfaces | `scripts/interfaces/` | エントリーポイント・CLI |
+
+### 推奨インポートパス
+
+```python
+# Domain層
+from domain import LEVEL_CONFIG, __version__
+from domain.config import REQUIRED_CONFIG_KEYS
+
+# Infrastructure層
+from infrastructure.config import load_json, save_json
+
+# Application層
+from application.validators import validate_dict
+from application.config import DigestConfig
+
+# Interfaces層
+from interfaces import DigestFinalizerFromShadow
+```
+
+> ⚠️ 旧インポートパス（`from validators import ...`等）は動作しません。
+> 📖 詳細は [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md) を参照
 
 ---
 
@@ -64,7 +132,9 @@ EpisodicRAG/
 1. 関連するテストを確認: `scripts/test/`
 2. 変更を実装
 3. テスト実行: `python -m pytest scripts/test/ -v`
-4. 動作確認: `/plugin uninstall` → `/plugin install` → `@digest-auto`
+4. 動作確認（以下のいずれか）:
+   - スキル経由: `/plugin uninstall` → `/plugin install` → `@digest-auto`
+   - CLI直接実行: `python -m interfaces.digest_auto`
 
 ### ドキュメント変更時
 
@@ -103,37 +173,13 @@ EpisodicRAG/
 
 ---
 
-## Clean Architecture (v2.0.0+)
-
-スクリプトは4層アーキテクチャで構成されています：
-
-| 層 | ディレクトリ | 役割 |
-|----|-------------|------|
-| Domain | `scripts/domain/` | コアビジネスロジック（定数、型、例外） |
-| Infrastructure | `scripts/infrastructure/` | 外部関心事（JSON操作、ファイルスキャン） |
-| Application | `scripts/application/` | ユースケース（Shadow管理、GrandDigest管理） |
-| Interfaces | `scripts/interfaces/` | エントリーポイント |
-
-### 推奨インポートパス
-
-```python
-from domain import LEVEL_CONFIG, __version__
-from application.validators import validate_dict
-from interfaces import DigestFinalizerFromShadow
-```
-
-> ⚠️ v2.0.0でClean Architecture移行に伴い、旧インポートパス（`from validators import ...`等）は動作しません。
-> 📖 詳細は [ARCHITECTURE.md](../docs/dev/ARCHITECTURE.md) を参照
-
----
-
 ## 主要ファイル参照
 
 | 目的 | ファイル |
 |------|---------|
-| API仕様 | `docs/API_REFERENCE.md` |
-| アーキテクチャ | `docs/ARCHITECTURE.md` |
-| トラブルシューティング | `docs/TROUBLESHOOTING.md` |
+| API仕様 | `docs/dev/API_REFERENCE.md` |
+| アーキテクチャ | `docs/dev/ARCHITECTURE.md` |
+| トラブルシューティング | `docs/user/TROUBLESHOOTING.md` |
 | 用語集 | `README.md` |
 | 開発者ガイド | `CONTRIBUTING.md` |
 
@@ -154,5 +200,4 @@ from interfaces import DigestFinalizerFromShadow
 - 既存パターンに従う（CONTRIBUTING.md参照）
 
 ---
-
-*このファイルは EpisodicRAG Plugin v2.0.0+ に対応しています。*
+**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

@@ -18,11 +18,11 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 ## 目次
 
 - [一般的な質問](#一般的な質問)
-- [導入・セットアップ](#導入セットアップ)
+- [導入・セットアップ](#導入・セットアップ)
 - [日常的な使い方](#日常的な使い方)
 - [パフォーマンスと最適化](#パフォーマンスと最適化)
 - [バックアップと復旧](#バックアップと復旧)
-- [マルチユーザー・同時アクセス](#マルチユーザー同時アクセス)
+- [マルチユーザー・同時アクセス](#マルチユーザー・同時アクセス)
 - [他ツールとの連携](#他ツールとの連携)
 - [トラブルシューティング](#トラブルシューティング)
 - [開発者向け](#開発者向け)
@@ -62,12 +62,11 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 ### Q: パスが正しく解決されません
 
-**A**: `@digest-config` で設定を確認・修正。確認ポイント：
+**A**: `@digest-config` で設定を確認・修正してください。
 
-1. **base_dir**: 相対パス（プラグインルート基準）または絶対パス（`~/`展開サポート）
-2. **trusted_external_paths**: 外部パス使用時はホワイトリスト登録が必要（v4.0.0+）
-
-> 📖 詳細: [用語集](../../README.md#基本概念)、[api/config.md](../dev/api/config.md#configjson-詳細仕様)
+> 📖 詳細手順: [TROUBLESHOOTING.md](TROUBLESHOOTING.md#外部パス設定エラー)
+>
+> 📖 概念説明: [用語集](../../README.md#基本概念)
 
 ### Q: trusted_external_pathsとは何ですか？
 
@@ -189,6 +188,8 @@ flowchart TB
 | ShadowGrandDigest | `/digest`を実行して再生成 |
 | GrandDigest | `/digest weekly`を実行して再生成 |
 | config.json | `@digest-setup`を実行して再作成 |
+
+> 📖 詳細な復旧手順: [TROUBLESHOOTING.md](TROUBLESHOOTING.md#shadowgranddigestが更新されない)
 
 ---
 

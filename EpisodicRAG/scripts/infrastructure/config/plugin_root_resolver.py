@@ -8,6 +8,8 @@ Pluginルートディレクトリの検出
 
 from pathlib import Path
 
+from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR
+
 
 def find_plugin_root(script_path: Path) -> Path:
     """
@@ -29,11 +31,11 @@ def find_plugin_root(script_path: Path) -> Path:
 
     # 祖先ディレクトリを順に検索
     for ancestor in [current] + list(current.parents):
-        plugin_marker = ancestor / ".claude-plugin" / "config.json"
+        plugin_marker = ancestor / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
         if plugin_marker.exists():
             return ancestor
 
     # 見つからない場合はエラー
     raise FileNotFoundError(
-        f"Plugin root not found. No .claude-plugin/config.json in ancestors of: {script_path}"
+        f"Plugin root not found. No {PLUGIN_CONFIG_DIR}/{CONFIG_FILENAME} in ancestors of: {script_path}"
     )

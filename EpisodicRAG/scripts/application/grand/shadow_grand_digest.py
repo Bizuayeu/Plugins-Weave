@@ -30,6 +30,7 @@ from application.tracking import DigestTimesTracker
 # Plugin版: application.configをインポート
 from application.config import DigestConfig
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, LOG_SEPARATOR, build_level_hierarchy
+from domain.file_constants import GRAND_DIGEST_FILENAME, SHADOW_GRAND_DIGEST_FILENAME
 from domain.types import LevelHierarchyEntry, OverallDigestData
 from infrastructure import get_structured_logger, log_warning
 
@@ -57,8 +58,8 @@ class ShadowGrandDigestManager:
         self.essences_path = config.essences_path
 
         # ファイルパスを設定
-        self.grand_digest_file = self.essences_path / "GrandDigest.txt"
-        self.shadow_digest_file = self.essences_path / "ShadowGrandDigest.txt"
+        self.grand_digest_file = self.essences_path / GRAND_DIGEST_FILENAME
+        self.shadow_digest_file = self.essences_path / SHADOW_GRAND_DIGEST_FILENAME
 
         # レベル設定（共通定数を参照）
         self.levels = LEVEL_NAMES

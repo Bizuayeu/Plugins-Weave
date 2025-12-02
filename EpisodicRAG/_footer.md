@@ -22,6 +22,9 @@
 - `CONTRIBUTING.md`
 - `CONTRIBUTING.en.md`
 
+### EpisodicRAG/.claude-plugin/
+- `CLAUDE.md`
+
 ### EpisodicRAG/docs/
 - `README.md`
 

@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-01 (refactored) -->
+<!-- Last synced: 2025-12-03 (language policy added) -->
 English | [日本語](README.md)
 
 # EpisodicRAG Plugin - Glossary & Reference
@@ -22,6 +22,7 @@ A collection of terminology definitions used in the EpisodicRAG plugin.
 **Configuration & Development**
 - [Configuration Files](#configuration-files)
 - [Developer Reference](#developer-reference)
+- [Language Policy](#language-policy)
 - [Related Documents](#related-documents)
 
 ---
@@ -421,6 +422,23 @@ Examples: W0001_CognitiveArchitecture.txt
 | Regular Digest | [Memory Structure](#regular-digest) |
 | ShadowGrandDigest | [Memory Structure](#shadowgranddigest) |
 | Threshold | [Processes & Operations](#threshold) |
+
+---
+
+## Language Policy
+
+Multilingual documentation policy for EpisodicRAG:
+
+| Category | Language | Reason |
+|----------|----------|--------|
+| **All Documents** | Japanese (SSoT) | Primary source of information |
+| **English Versions** | QUICKSTART, CHEATSHEET, README | Reduce onboarding barriers |
+| **Developer Details** | Japanese only | AI-First - AI can understand/supplement Japanese |
+
+**AI-First Documentation Principles**:
+- AI agents (Claude Code, etc.) can directly understand natural language
+- With search keywords, AI can understand and supplement Japanese documentation
+- Dynamic AI translation is more efficient than maintaining full translations
 
 ---
 

@@ -4,6 +4,9 @@
 
 コアビジネスロジック。外部に依存しない純粋な定義。
 
+> **対象読者**: AIエージェント（Claude Code）、人間開発者
+> **想定ユースケース**: API実装時の参照、定数・型定義の確認
+
 > **v4.0.0**: エラーフォーマッタがCompositeパターンに再編成されました。詳細は [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) を参照。
 
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
@@ -30,7 +33,10 @@ from domain import (
 **定数・設定**
 - [定数](#定数) - バージョン、LEVEL_CONFIG、PLACEHOLDER
 - [例外](#例外domainexceptionspy) - EpisodicRAGError階層
-- [型定義](#型定義domaintypespy) - TypedDict、スキーマ
+- [型定義](#型定義domaintypes) - TypedDict、スキーマ *(v4.1.0: パッケージ化)*
+
+**バリデーション**
+- [バリデーションヘルパー](#バリデーションヘルパーdomainvalidatorshelperspy) - 共通検証関数 *(v4.1.0+)*
 
 **ファイル・階層操作**
 - [関数](#関数domainfile_namingpy) - ファイル命名、番号抽出
@@ -123,9 +129,26 @@ PLACEHOLDER_LIMITS: Dict[str, int] = {
 
 ---
 
-## 型定義（domain/types.py）
+## 型定義（domain/types/）
+
+> v4.1.0でパッケージ化。後方互換性は100%維持（`from domain.types import ...` は引き続き動作）。
 
 TypedDictを使用した型安全な定義。`Dict[str, Any]`の置き換え用。
+
+### パッケージ構造
+
+```text
+domain/types/
+├── __init__.py     # 全型をre-export（後方互換性維持）
+├── metadata.py     # BaseMetadata, DigestMetadata, DigestMetadataComplete
+├── level.py        # LevelConfigData, LevelHierarchyEntry
+├── text.py         # LongShortText
+├── digest.py       # OverallDigestData, ShadowDigestData, GrandDigestData等
+├── config.py       # ConfigData, PathsConfigData, DigestTimesData等
+├── entry.py        # ProvisionalDigestEntry, ProvisionalDigestFile
+├── guards.py       # is_config_data, is_level_config_data等（型ガード）
+└── utils.py        # as_dict
+```
 
 ```python
 from domain.types import DigestMetadataComplete, ProvisionalDigestFile
@@ -269,7 +292,115 @@ interface IndividualDigestData {
 }
 ```
 
-> 📖 完全な型定義は [scripts/domain/types.py](../../../scripts/domain/types.py) を参照
+> 📖 完全な型定義は [scripts/domain/types/](../../../scripts/domain/types/) を参照
+
+---
+
+## バリデーションヘルパー（domain/validators/helpers.py） *(v4.1.0+)*
+
+複数のバリデータで共通して使用される検証関数を集約。
+
+```python
+from domain.validators.helpers import (
+    validate_type,
+    collect_type_error,
+    validate_list_not_empty,
+    validate_string_not_empty,
+    validate_dict_keys,
+)
+```
+
+### validate_type()
+
+```python
+def validate_type(
+    value: Any,
+    expected_type: Type[T],
+    context: str,
+    errors: List[str]
+) -> Optional[T]
+```
+
+型検証を行い、エラーがあればリストに追加。
+
+```python
+errors: List[str] = []
+config = validate_type(data, dict, "config", errors)
+if errors:
+    raise ValidationError("; ".join(errors))
+```
+
+### collect_type_error()
+
+```python
+def collect_type_error(
+    context: str,
+    expected: str,
+    actual: Any,
+    errors: List[str]
+) -> None
+```
+
+型エラーメッセージをエラーリストに収集。
+
+### validate_list_not_empty()
+
+```python
+def validate_list_not_empty(
+    value: List[Any],
+    context: str,
+    errors: List[str]
+) -> bool
+```
+
+リストが空でないことを検証。
+
+### validate_string_not_empty()
+
+```python
+def validate_string_not_empty(
+    value: str,
+    context: str,
+    errors: List[str]
+) -> bool
+```
+
+文字列が空でないことを検証。
+
+### validate_dict_keys()
+
+```python
+def validate_dict_keys(
+    d: Dict[str, Any],
+    required_keys: List[str],
+    context: str,
+    errors: List[str]
+) -> bool
+```
+
+辞書に必須キーが存在することを検証。
+
+**使用例**:
+
+```python
+from domain.validators.helpers import (
+    validate_type, validate_list_not_empty, validate_dict_keys
+)
+
+def validate_config(data: Any) -> ConfigData:
+    errors: List[str] = []
+
+    config = validate_type(data, dict, "config", errors)
+    if config is None:
+        raise ValidationError("; ".join(errors))
+
+    validate_dict_keys(config, ["version", "paths"], "config", errors)
+
+    if errors:
+        raise ValidationError("; ".join(errors))
+
+    return cast(ConfigData, config)
+```
 
 ---
 
@@ -541,6 +672,40 @@ class CompositeErrorFormatter:
 ```python
 def get_error_formatter(project_root: Optional[Path] = None) -> CompositeErrorFormatter
 def reset_error_formatter() -> None  # テスト用リセット
+```
+
+### FormatterRegistry *(v4.1.0+)*
+
+> 📖 Registry Pattern - [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) 参照
+
+カスタムフォーマッタの動的登録・取得を可能にするRegistry。CompositeErrorFormatterに統合。
+
+```python
+from domain.error_formatter.registry import FormatterRegistry
+
+class FormatterRegistry:
+    """フォーマッタのRegistry Pattern実装"""
+
+    def register_formatter(self, category: str, formatter: BaseFormatter) -> None
+    def get_formatter(self, category: str) -> Optional[BaseFormatter]
+    def has_formatter(self, category: str) -> bool
+    def list_categories(self) -> List[str]
+```
+
+**CompositeErrorFormatterでの使用**:
+
+```python
+from domain.error_formatter import get_error_formatter
+
+formatter = get_error_formatter()
+
+# カスタムフォーマッタを登録
+formatter.register_formatter("custom", MyCustomFormatter())
+
+# 登録済みカテゴリをチェック
+if formatter.has_formatter("custom"):
+    custom = formatter.get_formatter("custom")
+    msg = custom.format_error(...)
 ```
 
 ### 使用例

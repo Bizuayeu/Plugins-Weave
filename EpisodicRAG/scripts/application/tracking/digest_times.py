@@ -12,6 +12,7 @@ from typing import List, Optional, Union, cast
 
 from application.config import DigestConfig
 from domain.constants import LEVEL_NAMES
+from domain.file_constants import DIGEST_TIMES_FILENAME, DIGEST_TIMES_TEMPLATE, PLUGIN_CONFIG_DIR
 from domain.file_naming import extract_number_only, extract_numbers_formatted
 from domain.types import DigestTimesData
 from domain.validators import is_valid_list
@@ -25,10 +26,8 @@ class DigestTimesTracker:
 
     def __init__(self, config: DigestConfig):
         self.config = config
-        self.last_digest_file = config.plugin_root / ".claude-plugin" / "last_digest_times.json"
-        self.template_file = (
-            config.plugin_root / ".claude-plugin" / "last_digest_times.template.json"
-        )
+        self.last_digest_file = config.plugin_root / PLUGIN_CONFIG_DIR / DIGEST_TIMES_FILENAME
+        self.template_file = config.plugin_root / PLUGIN_CONFIG_DIR / DIGEST_TIMES_TEMPLATE
 
     def _get_default_template(self) -> DigestTimesData:
         """テンプレートがない場合のデフォルト構造を返す"""

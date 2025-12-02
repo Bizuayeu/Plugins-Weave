@@ -18,6 +18,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR, SHADOW_GRAND_DIGEST_FILENAME
+
 # Windows UTF-8対応（pytest実行時はスキップ）
 if sys.platform == "win32" and "pytest" not in sys.modules:
     import io
@@ -68,7 +70,7 @@ class ShadowStateChecker:
         else:
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
-        self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
+        self.config_file = self.plugin_root / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
         self.shadow_file: Optional[Path] = None
 
     def _load_config(self) -> Dict[str, Any]:
@@ -135,7 +137,7 @@ class ShadowStateChecker:
             # 設定読み込み
             config = self._load_config()
             essences_path = self._get_essences_path(config)
-            self.shadow_file = essences_path / "ShadowGrandDigest.txt"
+            self.shadow_file = essences_path / SHADOW_GRAND_DIGEST_FILENAME
 
             # Shadow読み込み
             shadow_data = self._load_shadow()

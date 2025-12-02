@@ -27,6 +27,10 @@ A guide to set up EpisodicRAG as quickly as possible and verify it works.
 - Claude Code or Claude VSCode Extension installed
 - Python 3.x installed
 
+> **Path Variable Legend**:
+> - `{plugin_root}`: Plugin installation directory (see [Glossary](../../README.en.md#plugin_root))
+> - `{loops_dir}`: Loop directory configured in config.json
+
 ---
 
 ## Overview
@@ -102,7 +106,7 @@ Create a file with the following content:
 
 **Filename**: `L00001_TestConversation.txt`
 
-**Location**: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/data/Loops/`
+**Location**: `{plugin_root}/data/Loops/` (with default settings)
 
 **Content** (copy-paste ready):
 

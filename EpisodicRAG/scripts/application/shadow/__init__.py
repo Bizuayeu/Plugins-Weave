@@ -9,8 +9,17 @@ Components:
     - FileDetector: 新規ファイル検出
     - ShadowIO: Shadow I/O処理
     - ShadowUpdater: Shadow更新・カスケード処理
+    - CascadeProcessor: カスケードデータ操作
+    - CascadeOrchestrator: カスケードワークフロー制御
 """
 
+from .cascade_orchestrator import (
+    CascadeOrchestrator,
+    CascadeResult,
+    CascadeStepResult,
+    CascadeStepStatus,
+)
+from .cascade_processor import CascadeProcessor
 from .file_detector import FileDetector
 from .shadow_io import ShadowIO
 from .shadow_updater import ShadowUpdater
@@ -21,4 +30,9 @@ __all__ = [
     "FileDetector",
     "ShadowIO",
     "ShadowUpdater",
+    "CascadeProcessor",
+    "CascadeOrchestrator",
+    "CascadeResult",
+    "CascadeStepResult",
+    "CascadeStepStatus",
 ]

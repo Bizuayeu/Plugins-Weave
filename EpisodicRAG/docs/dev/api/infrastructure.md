@@ -4,6 +4,9 @@
 
 外部関心事（ファイルI/O、ロギング）。
 
+> **対象読者**: AIエージェント（Claude Code）、人間開発者
+> **想定ユースケース**: ファイル操作、ロギング、設定ファイル読み込みの実装時
+
 > 📖 用語・共通概念は [用語集](../../../README.md) を参照
 
 ```python
@@ -26,6 +29,9 @@ from infrastructure import (
 # 設定管理（別サブパッケージ）
 from infrastructure.config import (
     ConfigLoader, PathResolver, find_plugin_root, load_config,
+    # パス検証 (v4.1.0+)
+    PathValidatorChain, PluginRootValidator, TrustedExternalPathValidator,
+    ValidationContext, ValidationResult,
 )
 ```
 
@@ -44,6 +50,7 @@ from infrastructure.config import (
 **エラー・設定・その他**
 - [エラーハンドリング](#エラーハンドリングinfrastructureerror_handlingpy) - 安全なファイル操作
 - [設定管理](#設定管理infrastructureconfig) - ConfigLoader, PathResolver *(v4.0.0+)*
+- [パス検証](#パス検証infrastructureconfigpath_validatorspy) - PathValidatorChain *(v4.1.0+)*
 - [ユーザーインタラクション](#ユーザーインタラクションinfrastructureuser_interactionpy) - 確認コールバック
 
 ---
@@ -457,6 +464,112 @@ loops = resolver.loops_path  # 絶対パス
 
 ---
 
+## パス検証（infrastructure/config/path_validators.py） *(v4.1.0+)*
+
+Chain of Responsibility パターンによるパス検証。PathResolverの内部バリデーションを独立モジュール化。
+
+> 📖 Chain of Responsibility パターン - [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) 参照
+
+### ValidationContext
+
+検証に必要なコンテキスト情報を保持。
+
+```python
+@dataclass(frozen=True)
+class ValidationContext:
+    """パス検証のコンテキスト"""
+    resolved_path: Path          # 解決済みパス
+    plugin_root: Path            # プラグインルート
+    trusted_paths: List[Path]    # 信頼済み外部パス
+    original_value: str          # 元の設定値
+```
+
+### ValidationResult
+
+検証結果を表すデータクラス。
+
+```python
+@dataclass(frozen=True)
+class ValidationResult:
+    """検証結果"""
+    is_valid: bool               # 検証成功/失敗
+    message: Optional[str] = None  # エラーメッセージ（失敗時）
+```
+
+### PathValidator（抽象基底クラス）
+
+```python
+class PathValidator(ABC):
+    """パス検証の抽象基底クラス"""
+
+    @abstractmethod
+    def validate(self, context: ValidationContext) -> ValidationResult: ...
+
+    def set_next(self, validator: "PathValidator") -> "PathValidator": ...
+```
+
+### PluginRootValidator
+
+パスがプラグインルート内にあるかを検証。
+
+```python
+class PluginRootValidator(PathValidator):
+    """plugin_root内のパスを許可"""
+
+    def validate(self, context: ValidationContext) -> ValidationResult
+```
+
+### TrustedExternalPathValidator
+
+パスが信頼済み外部パス内にあるかを検証。
+
+```python
+class TrustedExternalPathValidator(PathValidator):
+    """trusted_external_paths内のパスを許可"""
+
+    def validate(self, context: ValidationContext) -> ValidationResult
+```
+
+### PathValidatorChain
+
+複数のバリデータをチェーン化するファサード。
+
+```python
+class PathValidatorChain:
+    """パス検証のChain of Responsibility"""
+
+    @classmethod
+    def create_default_chain(cls) -> "PathValidatorChain": ...
+
+    def validate(self, context: ValidationContext) -> ValidationResult: ...
+```
+
+**使用例**:
+
+```python
+from infrastructure.config.path_validators import (
+    PathValidatorChain, ValidationContext
+)
+
+# デフォルトチェーンを作成（PluginRoot → TrustedExternalPath）
+chain = PathValidatorChain.create_default_chain()
+
+# 検証コンテキストを作成
+context = ValidationContext(
+    resolved_path=Path("/some/path").resolve(),
+    plugin_root=Path("/plugin/root").resolve(),
+    trusted_paths=[Path("/trusted/external").resolve()],
+    original_value="/some/path"
+)
+
+# 検証実行
+result = chain.validate(context)
+if not result.is_valid:
+    raise ConfigError(result.message)
+```
+
+---
+
 ## ユーザーインタラクション（infrastructure/user_interaction.py）
 
 ### get_default_confirm_callback()
@@ -476,6 +589,7 @@ if callback("ファイルを上書きしますか？"):
 ---
 
 > **v4.0.0 更新**: 設定管理が `infrastructure/config/` サブパッケージとして追加されました。
+> **v4.1.0 更新**: PathValidatorChain（Chain of Responsibility）が追加されました。
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

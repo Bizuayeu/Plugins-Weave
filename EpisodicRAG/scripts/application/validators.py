@@ -19,9 +19,8 @@ Usage:
 
 from typing import Any, Dict, List, Optional
 
-from domain.error_formatter import get_error_formatter
-from domain.exceptions import ValidationError
 from domain.validation import validate_type as _validate_type
+from domain.validation_helpers import validate_list_not_empty as _validate_list_not_empty
 from domain.validators import get_or_default as _get_or_default
 
 # Re-export from domain.validators (SSoT)
@@ -85,20 +84,11 @@ def validate_source_files(files: Any, context: str = "source_files") -> List[str
 
     Raises:
         ValidationError: filesがlistでない、または空の場合
+
+    Note:
+        domain.validation_helpers.validate_list_not_empty() に委譲。
     """
-    formatter = get_error_formatter()
-    if files is None:
-        raise ValidationError(
-            formatter.validation.validation_error(context, "cannot be None", None)
-        )
-
-    if not isinstance(files, list):
-        raise ValidationError(formatter.validation.invalid_type(context, "list", files))
-
-    if not files:
-        raise ValidationError(formatter.validation.empty_collection(context))
-
-    return files
+    return _validate_list_not_empty(files, context)
 
 
 def get_dict_or_default(data: Any, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
