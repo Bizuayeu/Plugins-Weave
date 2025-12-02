@@ -23,7 +23,7 @@ EpisodicRAG システムの現在の状態を分析することで、
 
 ## 用語説明
 
-> 📖 パス用語・ID桁数・命名規則は [用語集](../../README.md) を参照
+> 📖 パス用語（plugin_root / base_dir / paths）・ID桁数・命名規則は [用語集](../../README.md#基本概念) を参照
 
 ---
 
@@ -33,7 +33,7 @@ EpisodicRAG システムの現在の状態を分析することで、
 > VSCode拡張では単一改行が空白に変換されるため、
 > 対話型メッセージは三連バッククォートで囲む必要があります。
 
-> 📖 共通の実装ガイドラインは [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
+> 📖 共通の実装ガイドライン（パス検証、閾値検証、バリデーション、エラーハンドリング）は [_implementation-notes.md](../shared/_implementation-notes.md) を参照してください。
 
 ---
 

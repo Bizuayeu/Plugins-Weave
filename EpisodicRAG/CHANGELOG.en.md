@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-01 -->
+<!-- Last synced: 2025-12-02 -->
 [English](CHANGELOG.en.md) | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -335,7 +335,7 @@ Developer migration guide:
 
 ### Changed
 - **SSoT reference enforcement**:
-  - `digest-auto/SKILL.md`: Replaced "Mottled Memory" explanation with `_common-concepts.md` reference
+  - `digest-auto/SKILL.md`: Simplified "Mottled Memory" explanation to README.md SSoT reference
   - `FAQ.md`: Simplified "Mottled Memory" answer to SSoT reference
 - **Version information unification**:
   - Added version headers to `ARCHITECTURE.md`, `TROUBLESHOOTING.md`, `API_REFERENCE.md`

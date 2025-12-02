@@ -334,7 +334,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **SSoT参照の徹底**:
-  - `digest-auto/SKILL.md`: 「まだらボケ」説明を `_common-concepts.md` 参照に置換
+  - `digest-auto/SKILL.md`: 「まだらボケ」説明をREADME.md SSoT参照に簡略化
   - `FAQ.md`: 「まだらボケ」回答をSSoT参照に簡略化
 - **バージョン情報統一**:
   - `ARCHITECTURE.md`, `TROUBLESHOOTING.md`, `API_REFERENCE.md` にバージョンヘッダー追加
