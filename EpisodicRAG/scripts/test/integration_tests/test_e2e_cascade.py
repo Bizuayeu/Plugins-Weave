@@ -11,6 +11,20 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 from test_helpers import create_test_loop_file
 
@@ -27,7 +41,7 @@ class TestMultiLevelCascade:
     """マルチレベルカスケード処理のE2Eテスト"""
 
     @pytest.fixture
-    def cascade_env(self, temp_plugin_env):
+    def cascade_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """カスケードテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -136,7 +150,7 @@ class TestBoundaryConditions:
     """境界条件のE2Eテスト"""
 
     @pytest.fixture
-    def boundary_env(self, temp_plugin_env):
+    def boundary_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """境界条件テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)

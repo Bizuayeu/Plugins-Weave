@@ -238,8 +238,9 @@ module = [
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
-# Test layer: 段階的strict化進行中（2617→1304エラー、50%削減達成）
-# 次のステップ: 残りの[no-untyped-def]エラー（カスタムフィクスチャ型付け）を完了後、strict有効化
+# Test layer: 段階的strict化進行中（2617→1174エラー、55%削減達成）
+# TYPE_CHECKINGブロック導入、カスタムフィクスチャ型アノテーション追加済み
+# 次のステップ: 残りの[no-untyped-def]エラー（ローカルフィクスチャ型付け）を完了後、strict有効化
 [[tool.mypy.overrides]]
 module = "test.*"
 disallow_untyped_defs = false

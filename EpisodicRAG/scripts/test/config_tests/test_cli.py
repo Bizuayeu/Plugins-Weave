@@ -13,6 +13,20 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 
@@ -20,7 +34,7 @@ class TestCliMain:
     """config.cli.main() 関数のテスト"""
 
     @pytest.mark.integration
-    def test_main_no_arguments_outputs_json(self, temp_plugin_env) -> None:
+    def test_main_no_arguments_outputs_json(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """引数なしでJSON出力"""
         from interfaces.config_cli import main
@@ -39,7 +53,7 @@ class TestCliMain:
         assert "paths" in parsed or "base_dir" in parsed
 
     @pytest.mark.integration
-    def test_main_show_paths_flag(self, temp_plugin_env, caplog: pytest.LogCaptureFixture) -> None:
+    def test_main_show_paths_flag(self, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture) -> None:
 
         """--show-paths フラグで paths を表示"""
         import logging
@@ -57,7 +71,7 @@ class TestCliMain:
         assert "Plugin Root" in log_output or len(caplog.records) > 0
 
     @pytest.mark.integration
-    def test_main_plugin_root_override(self, temp_plugin_env) -> None:
+    def test_main_plugin_root_override(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """plugin_root 引数でルートをオーバーライド"""
         from interfaces.config_cli import main
@@ -91,7 +105,7 @@ class TestCliMain:
         assert "[ERROR]" in captured_stderr.getvalue()
 
     @pytest.mark.integration
-    def test_json_output_format(self, temp_plugin_env) -> None:
+    def test_json_output_format(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """JSON出力フォーマットの検証"""
         from interfaces.config_cli import main
@@ -110,7 +124,7 @@ class TestCliMain:
         assert "  " in output  # インデントがあること
 
     @pytest.mark.integration
-    def test_main_with_args_plugin_root(self, temp_plugin_env) -> None:
+    def test_main_with_args_plugin_root(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """--plugin-root 引数が正しく処理される"""
         from interfaces.config_cli import main
@@ -146,7 +160,7 @@ class TestCliMain:
         assert 'if __name__ == "__main__"' in source
 
     @pytest.mark.integration
-    def test_unicode_in_output(self, temp_plugin_env) -> None:
+    def test_unicode_in_output(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """出力にUnicodeが含まれても正しく処理される"""
         from interfaces.config_cli import main

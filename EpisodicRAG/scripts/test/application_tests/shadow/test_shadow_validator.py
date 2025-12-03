@@ -11,6 +11,20 @@ ShadowValidatorクラスの動作を検証。
 import pytest
 from test_helpers import create_test_loop_file
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 from application.finalize import ShadowValidator
 from application.grand import ShadowGrandDigestManager
 from application.config import DigestConfig
@@ -26,7 +40,7 @@ pytestmark = pytest.mark.slow
 
 
 @pytest.fixture
-def validator(shadow_manager):
+def validator(shadow_manager: "ShadowGrandDigestManager"):
 
     """テスト用ShadowValidator"""
     return ShadowValidator(shadow_manager)
@@ -129,7 +143,7 @@ class TestShadowValidatorValidateAndGetShadow:
         assert "Digest not found" in str(exc_info.value)
 
     @pytest.mark.integration
-    def test_returns_valid_shadow(self, validator, shadow_manager, temp_plugin_env) -> None:
+    def test_returns_valid_shadow(self, validator, shadow_manager: "ShadowGrandDigestManager", temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """有効なshadow_digestを返す"""
         # Loopファイルを作成してShadowに追加
@@ -157,7 +171,7 @@ class TestShadowValidatorInit:
     """ShadowValidator 初期化のテスト"""
 
     @pytest.mark.unit
-    def test_stores_shadow_manager(self, shadow_manager) -> None:
+    def test_stores_shadow_manager(self, shadow_manager: "ShadowGrandDigestManager") -> None:
 
         """shadow_managerが正しく保存される"""
         validator = ShadowValidator(shadow_manager)
@@ -240,7 +254,7 @@ class TestShadowValidatorConfirmCallback:
     """confirm_callback注入方式のテスト"""
 
     @pytest.mark.unit
-    def test_non_consecutive_cancelled_via_callback(self, shadow_manager) -> None:
+    def test_non_consecutive_cancelled_via_callback(self, shadow_manager: "ShadowGrandDigestManager") -> None:
 
         """コールバックでキャンセル時にValidationErrorが発生"""
         # 常にキャンセルするコールバック
@@ -254,7 +268,7 @@ class TestShadowValidatorConfirmCallback:
         assert "User cancelled" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_non_consecutive_continued_via_callback(self, shadow_manager) -> None:
+    def test_non_consecutive_continued_via_callback(self, shadow_manager: "ShadowGrandDigestManager") -> None:
 
         """コールバックで承認時に正常に継続される"""
         # 常に承認するコールバック
@@ -267,7 +281,7 @@ class TestShadowValidatorConfirmCallback:
         validator.validate_shadow_content("weekly", source_files)
 
     @pytest.mark.unit
-    def test_callback_receives_correct_message(self, shadow_manager):
+    def test_callback_receives_correct_message(self, shadow_manager: "ShadowGrandDigestManager"):
 
         """コールバックが正しいメッセージを受け取る"""
         received_messages = []
@@ -287,7 +301,7 @@ class TestShadowValidatorConfirmCallback:
         assert "Continue anyway?" in received_messages[0]
 
     @pytest.mark.unit
-    def test_default_callback_used_when_none_provided(self, shadow_manager) -> None:
+    def test_default_callback_used_when_none_provided(self, shadow_manager: "ShadowGrandDigestManager") -> None:
 
         """confirm_callbackがNoneの場合、デフォルトコールバックが使用される"""
         validator = ShadowValidator(shadow_manager, confirm_callback=None)
@@ -296,7 +310,7 @@ class TestShadowValidatorConfirmCallback:
         assert callable(validator.confirm_callback)
 
     @pytest.mark.unit
-    def test_custom_callback_stored(self, shadow_manager):
+    def test_custom_callback_stored(self, shadow_manager: "ShadowGrandDigestManager"):
 
         """カスタムコールバックが正しく保存される"""
 
@@ -309,7 +323,7 @@ class TestShadowValidatorConfirmCallback:
         assert validator.confirm_callback is custom_callback
 
     @pytest.mark.unit
-    def test_consecutive_files_no_callback(self, shadow_manager):
+    def test_consecutive_files_no_callback(self, shadow_manager: "ShadowGrandDigestManager"):
 
         """連続ファイルの場合はコールバックが呼ばれない"""
         callback_called = []
@@ -390,7 +404,7 @@ class TestShadowValidatorEdgeCases:
 
     @pytest.mark.integration
     def test_validate_and_get_shadow_with_multiple_files(
-        self, validator, shadow_manager, temp_plugin_env
+        self, validator, shadow_manager: "ShadowGrandDigestManager", temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
 
         """複数ファイルを含むshadow_digestを検証"""
@@ -474,7 +488,7 @@ class TestShadowValidatorPrivateMethods:
         assert "Digest not found" in str(exc_info.value)
 
     @pytest.mark.integration
-    def test_fetch_shadow_digest_returns_data(self, validator, shadow_manager, temp_plugin_env) -> None:
+    def test_fetch_shadow_digest_returns_data(self, validator, shadow_manager: "ShadowGrandDigestManager", temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """_fetch_shadow_digest: 正常なデータを返す"""
         # Loopファイルを作成してShadowに追加

@@ -16,6 +16,20 @@ ConfigValidatorクラスの動作を検証:
 from pathlib import Path
 from typing import cast
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from application.config.config_validator import ConfigValidator, DirectoryValidator
@@ -52,7 +66,7 @@ def valid_config() -> ConfigData:
 
 
 @pytest.fixture
-def validator_with_env(temp_plugin_env, valid_config):
+def validator_with_env(temp_plugin_env: "TempPluginEnvironment", valid_config):
 
     """テスト環境付きのConfigValidator"""
     level_path_service = LevelPathService(temp_plugin_env.digests_path)
@@ -66,7 +80,7 @@ def validator_with_env(temp_plugin_env, valid_config):
 
 
 @pytest.fixture
-def validator_without_level_service(temp_plugin_env, valid_config):
+def validator_without_level_service(temp_plugin_env: "TempPluginEnvironment", valid_config):
 
     """LevelPathServiceなしのConfigValidator"""
     return ConfigValidator(
@@ -87,7 +101,7 @@ class TestConfigValidatorInit:
     """ConfigValidatorの初期化テスト"""
 
     @pytest.mark.unit
-    def test_init_with_all_parameters(self, temp_plugin_env, valid_config) -> None:
+    def test_init_with_all_parameters(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """全パラメータで初期化できる"""
         level_path_service = LevelPathService(temp_plugin_env.digests_path)
@@ -105,7 +119,7 @@ class TestConfigValidatorInit:
         assert validator.level_path_service == level_path_service
 
     @pytest.mark.unit
-    def test_init_without_level_path_service(self, temp_plugin_env, valid_config) -> None:
+    def test_init_without_level_path_service(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """LevelPathServiceなしで初期化できる"""
         validator = ConfigValidator(
@@ -133,7 +147,7 @@ class TestValidateRequiredKeys:
         assert len(errors) == 0
 
     @pytest.mark.unit
-    def test_missing_loops_path_key(self, temp_plugin_env) -> None:
+    def test_missing_loops_path_key(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """loops_pathキーがない場合エラー"""
         config = cast(
@@ -155,7 +169,7 @@ class TestValidateRequiredKeys:
         assert any("loops_path" in e for e in errors)
 
     @pytest.mark.unit
-    def test_missing_digests_path_key(self, temp_plugin_env) -> None:
+    def test_missing_digests_path_key(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """digests_pathキーがない場合エラー"""
         config = cast(
@@ -177,7 +191,7 @@ class TestValidateRequiredKeys:
         assert any("digests_path" in e for e in errors)
 
     @pytest.mark.unit
-    def test_empty_config_has_multiple_errors(self, temp_plugin_env) -> None:
+    def test_empty_config_has_multiple_errors(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """空の設定では複数のエラー"""
         config = cast(ConfigData, {})
@@ -207,7 +221,7 @@ class TestValidatePaths:
         assert len(errors) == 0
 
     @pytest.mark.unit
-    def test_invalid_path_type_int(self, temp_plugin_env) -> None:
+    def test_invalid_path_type_int(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """パスが整数の場合エラー"""
         config = cast(
@@ -230,7 +244,7 @@ class TestValidatePaths:
         assert any("loops_path" in e for e in errors)
 
     @pytest.mark.unit
-    def test_invalid_path_type_list(self, temp_plugin_env) -> None:
+    def test_invalid_path_type_list(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """パスがリストの場合エラー"""
         config = cast(
@@ -269,7 +283,7 @@ class TestValidateThresholds:
         assert len(errors) == 0
 
     @pytest.mark.unit
-    def test_threshold_zero_is_invalid(self, temp_plugin_env) -> None:
+    def test_threshold_zero_is_invalid(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """閾値0は無効"""
         config = cast(
@@ -290,7 +304,7 @@ class TestValidateThresholds:
         assert any("weekly_threshold" in e and "positive" in e for e in errors)
 
     @pytest.mark.unit
-    def test_threshold_negative_is_invalid(self, temp_plugin_env) -> None:
+    def test_threshold_negative_is_invalid(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """負の閾値は無効"""
         config = cast(
@@ -311,7 +325,7 @@ class TestValidateThresholds:
         assert any("monthly_threshold" in e for e in errors)
 
     @pytest.mark.unit
-    def test_threshold_string_is_invalid(self, temp_plugin_env) -> None:
+    def test_threshold_string_is_invalid(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """文字列の閾値は無効"""
         config = cast(
@@ -348,7 +362,7 @@ class TestValidateDirectoryStructure:
         assert len(errors) == 0
 
     @pytest.mark.unit
-    def test_missing_loops_directory(self, temp_plugin_env, valid_config) -> None:
+    def test_missing_loops_directory(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """Loopsディレクトリがない場合エラー"""
         # 存在しないパスを指定
@@ -363,7 +377,7 @@ class TestValidateDirectoryStructure:
         assert any("Loops directory missing" in e for e in errors)
 
     @pytest.mark.unit
-    def test_missing_digests_directory(self, temp_plugin_env, valid_config) -> None:
+    def test_missing_digests_directory(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """Digestsディレクトリがない場合エラー"""
         missing_path = temp_plugin_env.plugin_root / "nonexistent_digests"
@@ -377,7 +391,7 @@ class TestValidateDirectoryStructure:
         assert any("Digests directory missing" in e for e in errors)
 
     @pytest.mark.unit
-    def test_missing_essences_directory(self, temp_plugin_env, valid_config) -> None:
+    def test_missing_essences_directory(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """Essencesディレクトリがない場合エラー"""
         missing_path = temp_plugin_env.plugin_root / "nonexistent_essences"
@@ -454,7 +468,7 @@ class TestValidateAll:
         assert validator_with_env.is_valid() is True
 
     @pytest.mark.unit
-    def test_is_valid_returns_false_for_invalid_config(self, temp_plugin_env) -> None:
+    def test_is_valid_returns_false_for_invalid_config(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """無効な設定でis_validがFalse"""
         config = cast(ConfigData, {})  # Empty config
@@ -482,7 +496,7 @@ class TestDirectoryValidatorAlias:
         assert DirectoryValidator is ConfigValidator
 
     @pytest.mark.unit
-    def test_directory_validator_instantiation(self, temp_plugin_env, valid_config) -> None:
+    def test_directory_validator_instantiation(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """DirectoryValidatorとしてインスタンス化可能"""
         validator = DirectoryValidator(

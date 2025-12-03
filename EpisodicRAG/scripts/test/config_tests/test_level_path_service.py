@@ -8,6 +8,20 @@ config/level_path_service.py のテスト
 
 import pytest
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 from domain.exceptions import ConfigError
 from application.config.level_path_service import LevelPathService
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
@@ -17,7 +31,7 @@ class TestLevelPathService:
     """LevelPathServiceクラスのテスト"""
 
     @pytest.fixture
-    def service(self, temp_plugin_env):
+    def service(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """LevelPathServiceインスタンス"""
         return LevelPathService(temp_plugin_env.digests_path)
@@ -88,7 +102,7 @@ class TestLevelPathService:
         assert "Invalid level" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_digests_path_stored(self, temp_plugin_env) -> None:
+    def test_digests_path_stored(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """digests_pathが正しく格納される"""
         service = LevelPathService(temp_plugin_env.digests_path)
@@ -96,7 +110,7 @@ class TestLevelPathService:
         assert service.digests_path == temp_plugin_env.digests_path
 
     @pytest.mark.unit
-    def test_level_dir_under_digests_path(self, service, temp_plugin_env) -> None:
+    def test_level_dir_under_digests_path(self, service, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """レベルディレクトリがdigests_path配下"""
         result = service.get_level_dir("weekly")

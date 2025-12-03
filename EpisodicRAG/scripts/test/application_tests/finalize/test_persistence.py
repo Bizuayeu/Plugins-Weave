@@ -11,6 +11,20 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from domain.exceptions import DigestError, FileIOError, ValidationError
@@ -23,7 +37,7 @@ from domain.exceptions import DigestError, FileIOError, ValidationError
 class TestDigestPersistenceInit:
     """DigestPersistence initialization tests"""
 
-    def test_init_with_all_dependencies(self, temp_plugin_env) -> None:
+    def test_init_with_all_dependencies(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Initializes with all required dependencies"""
         from application.finalize.persistence import DigestPersistence
@@ -48,7 +62,7 @@ class TestDigestPersistenceInit:
         assert persistence.shadow_manager is shadow_manager
         assert persistence.times_tracker is times_tracker
 
-    def test_init_with_custom_confirm_callback(self, temp_plugin_env) -> None:
+    def test_init_with_custom_confirm_callback(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Accepts custom confirm callback"""
         from application.finalize.persistence import DigestPersistence
@@ -79,7 +93,7 @@ class TestSaveRegularDigest:
     """save_regular_digest() tests"""
 
     @pytest.fixture
-    def persistence(self, temp_plugin_env):
+    def persistence(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """Create DigestPersistence instance for testing"""
         from application.finalize.persistence import DigestPersistence
@@ -118,7 +132,7 @@ class TestSaveRegularDigest:
             "individual_digests": [],
         }
 
-    def test_saves_to_correct_directory(self, persistence, sample_regular_digest, temp_plugin_env) -> None:
+    def test_saves_to_correct_directory(self, persistence, sample_regular_digest, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Saves digest to correct level directory"""
         result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
@@ -128,7 +142,7 @@ class TestSaveRegularDigest:
         assert result.name == "W0001.txt"
 
     def test_creates_directory_if_not_exists(
-        self, persistence, sample_regular_digest, temp_plugin_env
+        self, persistence, sample_regular_digest, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
 
         """Creates target directory if it doesn't exist"""
@@ -155,7 +169,7 @@ class TestSaveRegularDigest:
         assert loaded["metadata"]["level"] == "weekly"
         assert loaded["overall_digest"]["name"] == "W0001"
 
-    def test_raises_validation_error_on_cancel(self, temp_plugin_env, sample_regular_digest) -> None:
+    def test_raises_validation_error_on_cancel(self, temp_plugin_env: "TempPluginEnvironment", sample_regular_digest) -> None:
 
         """Raises ValidationError when user cancels overwrite"""
         from application.finalize.persistence import DigestPersistence
@@ -204,7 +218,7 @@ class TestUpdateGrandDigest:
     """update_grand_digest() tests"""
 
     @pytest.fixture
-    def persistence_with_mock_grand(self, temp_plugin_env):
+    def persistence_with_mock_grand(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """Create DigestPersistence with mocked GrandDigestManager"""
         from application.finalize.persistence import DigestPersistence
@@ -268,7 +282,7 @@ class TestProcessCascadeAndCleanup:
     """process_cascade_and_cleanup() tests"""
 
     @pytest.fixture
-    def persistence_with_mocks(self, temp_plugin_env):
+    def persistence_with_mocks(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """Create DigestPersistence with mocked dependencies"""
         from application.finalize.persistence import DigestPersistence
@@ -348,7 +362,7 @@ class TestCleanupProvisionalFile:
     """_cleanup_provisional_file() tests"""
 
     @pytest.fixture
-    def persistence(self, temp_plugin_env):
+    def persistence(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """Create DigestPersistence instance"""
         from application.finalize.persistence import DigestPersistence

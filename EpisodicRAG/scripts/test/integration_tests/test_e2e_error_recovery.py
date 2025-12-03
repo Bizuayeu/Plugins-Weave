@@ -10,6 +10,20 @@ E2E Error Recovery Tests
 import json
 from pathlib import Path
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 from test_helpers import create_test_loop_file
 
@@ -26,7 +40,7 @@ class TestCorruptedFileRecovery:
     """破損ファイルからの回復テスト"""
 
     @pytest.fixture
-    def recovery_env(self, temp_plugin_env):
+    def recovery_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """回復テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -121,7 +135,7 @@ class TestMissingFileRecovery:
     """ファイル欠損からの回復テスト"""
 
     @pytest.fixture
-    def missing_env(self, temp_plugin_env):
+    def missing_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """ファイル欠損テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -195,7 +209,7 @@ class TestInvalidDataRecovery:
     """不正データからの回復テスト"""
 
     @pytest.fixture
-    def invalid_data_env(self, temp_plugin_env):
+    def invalid_data_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """不正データテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)

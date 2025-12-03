@@ -16,6 +16,20 @@ import json
 import tempfile
 from pathlib import Path
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
@@ -129,7 +143,7 @@ class TestConfigThresholdInvariants:
         max_examples=50,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     )
-    def test_threshold_is_positive_integer(self, level, temp_plugin_env) -> None:
+    def test_threshold_is_positive_integer(self, level, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """
         DigestConfigの閾値は正の整数である
@@ -170,7 +184,7 @@ class TestPathResolutionInvariants:
         max_examples=50,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     )
-    def test_level_dir_returns_absolute_path(self, level, temp_plugin_env) -> None:
+    def test_level_dir_returns_absolute_path(self, level, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """
         get_level_dir()は絶対パスを返す
@@ -187,7 +201,7 @@ class TestPathResolutionInvariants:
         max_examples=50,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     )
-    def test_level_dir_contains_level_name(self, level, temp_plugin_env) -> None:
+    def test_level_dir_contains_level_name(self, level, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """
         get_level_dir()のパスにレベル関連の名前が含まれる

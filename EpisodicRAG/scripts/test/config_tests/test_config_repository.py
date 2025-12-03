@@ -8,6 +8,20 @@ config/config_repository.py のテスト
 
 import json
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from infrastructure.config.config_repository import load_config
@@ -18,7 +32,7 @@ class TestLoadConfig:
     """load_config関数のテスト"""
 
     @pytest.mark.unit
-    def test_load_config_success(self, temp_plugin_env) -> None:
+    def test_load_config_success(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """正常なJSONファイル読み込み"""
         config_file = temp_plugin_env.config_dir / "config.json"
@@ -30,7 +44,7 @@ class TestLoadConfig:
         assert "levels" in result
 
     @pytest.mark.unit
-    def test_load_config_file_not_found(self, temp_plugin_env) -> None:
+    def test_load_config_file_not_found(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """ファイル不存在時ConfigError"""
         nonexistent_file = temp_plugin_env.config_dir / "nonexistent.json"
@@ -41,7 +55,7 @@ class TestLoadConfig:
         assert "File not found" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_config_invalid_json(self, temp_plugin_env) -> None:
+    def test_load_config_invalid_json(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """不正JSON時ConfigError"""
         invalid_json_file = temp_plugin_env.config_dir / "invalid.json"
@@ -53,7 +67,7 @@ class TestLoadConfig:
         assert "Invalid JSON" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_config_returns_config_data_structure(self, temp_plugin_env) -> None:
+    def test_load_config_returns_config_data_structure(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """戻り値がConfigData構造を持つ"""
         config_file = temp_plugin_env.config_dir / "config.json"
@@ -68,7 +82,7 @@ class TestLoadConfig:
         assert "essences_dir" in paths
 
     @pytest.mark.unit
-    def test_load_config_preserves_values(self, temp_plugin_env) -> None:
+    def test_load_config_preserves_values(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """設定値が正しく読み込まれる"""
         config_file = temp_plugin_env.config_dir / "config.json"
@@ -92,7 +106,7 @@ class TestLoadConfig:
         assert result["levels"]["weekly_threshold"] == 10
 
     @pytest.mark.unit
-    def test_load_config_empty_json(self, temp_plugin_env) -> None:
+    def test_load_config_empty_json(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """空のJSONオブジェクトも読み込み可能"""
         empty_json_file = temp_plugin_env.config_dir / "empty.json"
@@ -103,7 +117,7 @@ class TestLoadConfig:
         assert result == {}
 
     @pytest.mark.unit
-    def test_load_config_unicode_content(self, temp_plugin_env) -> None:
+    def test_load_config_unicode_content(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Unicode文字を含むJSONファイル"""
         unicode_json_file = temp_plugin_env.config_dir / "unicode.json"

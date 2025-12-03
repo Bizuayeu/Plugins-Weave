@@ -10,6 +10,20 @@ import time
 from pathlib import Path
 from typing import List
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 # =============================================================================
@@ -18,7 +32,7 @@ import pytest
 
 
 @pytest.fixture
-def many_loop_files(temp_plugin_env) -> List[Path]:
+def many_loop_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
     """Create many Loop files for scale testing."""
     loops_path = temp_plugin_env.loops_path
     files = []
@@ -46,7 +60,7 @@ def many_loop_files(temp_plugin_env) -> List[Path]:
 
 
 @pytest.fixture
-def deep_hierarchy_setup(temp_plugin_env):
+def deep_hierarchy_setup(temp_plugin_env: "TempPluginEnvironment"):
 
     """Setup all 8 levels of the digest hierarchy."""
     from domain.constants import LEVEL_CONFIG
@@ -208,7 +222,7 @@ class TestHierarchyDepth:
 class TestMemoryPressure:
     """Tests for memory usage under load."""
 
-    def test_large_json_structure_handling(self, temp_plugin_env) -> None:
+    def test_large_json_structure_handling(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Handle large JSON structures without excessive memory."""
         large_file = temp_plugin_env.digests_path / "large.json"
@@ -267,7 +281,7 @@ class TestMemoryPressure:
 class TestThroughput:
     """Tests for operation throughput."""
 
-    def test_file_creation_throughput(self, temp_plugin_env) -> None:
+    def test_file_creation_throughput(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Measure file creation throughput."""
         output_dir = temp_plugin_env.digests_path / "throughput_test"

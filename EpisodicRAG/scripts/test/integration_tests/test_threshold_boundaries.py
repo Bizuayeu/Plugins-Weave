@@ -16,6 +16,20 @@
 
 from pathlib import Path
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 from test_helpers import create_test_loop_file
 
@@ -34,7 +48,7 @@ class TestThresholdBoundaryBase:
     """閾値境界条件テストの基底クラス"""
 
     @pytest.fixture
-    def boundary_env(self, temp_plugin_env):
+    def boundary_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """境界条件テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -350,7 +364,7 @@ class TestEdgeCases(TestThresholdBoundaryBase):
 class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
     """追加のエッジケース境界値テスト"""
 
-    def test_threshold_equals_one(self, temp_plugin_env) -> None:
+    def test_threshold_equals_one(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """
         閾値=1の特殊ケース

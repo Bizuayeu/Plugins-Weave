@@ -8,6 +8,20 @@ config/path_resolver.py のテスト
 
 from pathlib import Path
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from domain.exceptions import ConfigError
@@ -31,7 +45,7 @@ class TestPathResolver:
         }
 
     @pytest.mark.unit
-    def test_resolve_loop_dir(self, temp_plugin_env, valid_config) -> None:
+    def test_resolve_loop_dir(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """Loopディレクトリ解決"""
         resolver = PathResolver(temp_plugin_env.plugin_root, valid_config)
@@ -42,7 +56,7 @@ class TestPathResolver:
         assert "data" in str(result)
 
     @pytest.mark.unit
-    def test_resolve_digest_dir(self, temp_plugin_env, valid_config) -> None:
+    def test_resolve_digest_dir(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """Digestディレクトリ解決"""
         resolver = PathResolver(temp_plugin_env.plugin_root, valid_config)
@@ -52,7 +66,7 @@ class TestPathResolver:
         assert result.name == "Digests"
 
     @pytest.mark.unit
-    def test_resolve_essences_dir(self, temp_plugin_env, valid_config) -> None:
+    def test_resolve_essences_dir(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """Essencesディレクトリ解決"""
         resolver = PathResolver(temp_plugin_env.plugin_root, valid_config)
@@ -62,7 +76,7 @@ class TestPathResolver:
         assert result.name == "Essences"
 
     @pytest.mark.unit
-    def test_missing_paths_section_raises_config_error(self, temp_plugin_env) -> None:
+    def test_missing_paths_section_raises_config_error(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """pathsセクション欠如時ConfigError"""
         config_without_paths = {"base_dir": "."}
@@ -74,7 +88,7 @@ class TestPathResolver:
         assert "'paths' section missing" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_missing_key_raises_config_error(self, temp_plugin_env, valid_config) -> None:
+    def test_missing_key_raises_config_error(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """存在しないキー指定時ConfigError"""
         resolver = PathResolver(temp_plugin_env.plugin_root, valid_config)
@@ -85,7 +99,7 @@ class TestPathResolver:
         assert "Required configuration key missing" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_base_dir_traversal_raises_config_error(self, temp_plugin_env) -> None:
+    def test_base_dir_traversal_raises_config_error(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """base_dirがplugin_root外を指す場合ConfigError（セキュリティ対策）"""
         config = {"base_dir": "..", "paths": {"loops_dir": "data/Loops"}}
@@ -96,7 +110,7 @@ class TestPathResolver:
         assert "Invalid configuration value for 'base_dir'" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_base_dir_subdir_resolution(self, temp_plugin_env) -> None:
+    def test_base_dir_subdir_resolution(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """base_dirがサブディレクトリを指す場合は正常動作"""
         # サブディレクトリを作成
@@ -110,7 +124,7 @@ class TestPathResolver:
         assert resolver.base_dir == subdir.resolve()
 
     @pytest.mark.unit
-    def test_base_dir_with_dotdot_inside_plugin_root(self, temp_plugin_env) -> None:
+    def test_base_dir_with_dotdot_inside_plugin_root(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """サブディレクトリ内で..を使用してもplugin_root内なら正常動作"""
         # ネストしたサブディレクトリを作成
@@ -126,7 +140,7 @@ class TestPathResolver:
         assert resolver.base_dir == expected
 
     @pytest.mark.unit
-    def test_default_base_dir(self, temp_plugin_env) -> None:
+    def test_default_base_dir(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """base_dir未指定時のデフォルト"""
         config = {"paths": {"loops_dir": "data/Loops"}}
@@ -136,7 +150,7 @@ class TestPathResolver:
         assert resolver.base_dir == temp_plugin_env.plugin_root.resolve()
 
     @pytest.mark.unit
-    def test_identity_file_path_configured(self, temp_plugin_env) -> None:
+    def test_identity_file_path_configured(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """identity_file_pathが設定されている場合"""
         config = {
@@ -156,7 +170,7 @@ class TestPathResolver:
         assert result.name == "identity.md"
 
     @pytest.mark.unit
-    def test_identity_file_path_not_configured(self, temp_plugin_env, valid_config) -> None:
+    def test_identity_file_path_not_configured(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """identity_file_pathが未設定の場合None"""
         resolver = PathResolver(temp_plugin_env.plugin_root, valid_config)
@@ -166,7 +180,7 @@ class TestPathResolver:
         assert result is None
 
     @pytest.mark.unit
-    def test_resolve_path_returns_absolute(self, temp_plugin_env, valid_config) -> None:
+    def test_resolve_path_returns_absolute(self, temp_plugin_env: "TempPluginEnvironment", valid_config) -> None:
 
         """resolve_pathは絶対パスを返す"""
         resolver = PathResolver(temp_plugin_env.plugin_root, valid_config)
@@ -180,7 +194,7 @@ class TestTrustedExternalPaths:
     """trusted_external_paths機能のテスト"""
 
     @pytest.mark.unit
-    def test_empty_trusted_paths_is_default(self, temp_plugin_env) -> None:
+    def test_empty_trusted_paths_is_default(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """trusted_external_pathsが未設定時は空配列"""
         config = {"base_dir": ".", "paths": {"loops_dir": "data/Loops"}}
@@ -189,7 +203,7 @@ class TestTrustedExternalPaths:
         assert resolver._trusted_external_paths == []
 
     @pytest.mark.unit
-    def test_base_dir_in_trusted_path_allowed(self, temp_plugin_env, tmp_path: Path) -> None:
+    def test_base_dir_in_trusted_path_allowed(self, temp_plugin_env: "TempPluginEnvironment", tmp_path: Path) -> None:
 
         """trusted_external_paths内のbase_dirは許可される"""
         external_dir = tmp_path / "external_data"
@@ -205,7 +219,7 @@ class TestTrustedExternalPaths:
         assert resolver.base_dir == external_dir.resolve()
 
     @pytest.mark.unit
-    def test_base_dir_outside_trusted_paths_raises_error(self, temp_plugin_env, tmp_path: Path) -> None:
+    def test_base_dir_outside_trusted_paths_raises_error(self, temp_plugin_env: "TempPluginEnvironment", tmp_path: Path) -> None:
 
         """trusted_external_paths外のbase_dirはConfigError"""
         external_dir = tmp_path / "untrusted"
@@ -225,7 +239,7 @@ class TestTrustedExternalPaths:
         assert "trusted_external_paths" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_tilde_expansion_in_trusted_paths(self, temp_plugin_env) -> None:
+    def test_tilde_expansion_in_trusted_paths(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """trusted_external_pathsでチルダ展開が動作する"""
         from pathlib import Path
@@ -244,7 +258,7 @@ class TestTrustedExternalPaths:
         assert resolver._trusted_external_paths[0] == (home / "DEV").resolve()
 
     @pytest.mark.unit
-    def test_relative_path_in_trusted_paths_raises_error(self, temp_plugin_env) -> None:
+    def test_relative_path_in_trusted_paths_raises_error(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """trusted_external_pathsに相対パスを指定するとConfigError"""
         config = {
@@ -260,7 +274,7 @@ class TestTrustedExternalPaths:
         assert "absolute path" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_tilde_expansion_in_base_dir(self, temp_plugin_env) -> None:
+    def test_tilde_expansion_in_base_dir(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """base_dirでチルダ展開が動作する"""
         from pathlib import Path
@@ -277,7 +291,7 @@ class TestTrustedExternalPaths:
         assert resolver.base_dir == home.resolve()
 
     @pytest.mark.unit
-    def test_backward_compatibility_without_trusted_paths(self, temp_plugin_env) -> None:
+    def test_backward_compatibility_without_trusted_paths(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """trusted_external_pathsなしの既存設定は動作する（後方互換性）"""
         config = {
@@ -289,7 +303,7 @@ class TestTrustedExternalPaths:
         assert resolver.base_dir == temp_plugin_env.plugin_root.resolve()
 
     @pytest.mark.unit
-    def test_absolute_path_in_base_dir_with_trusted_paths(self, temp_plugin_env, tmp_path: Path) -> None:
+    def test_absolute_path_in_base_dir_with_trusted_paths(self, temp_plugin_env: "TempPluginEnvironment", tmp_path: Path) -> None:
 
         """絶対パスのbase_dirがtrusted_external_paths内なら許可"""
         external_dir = tmp_path / "data"
@@ -305,7 +319,7 @@ class TestTrustedExternalPaths:
         assert resolver.base_dir == external_dir.resolve()
 
     @pytest.mark.unit
-    def test_multiple_trusted_paths(self, temp_plugin_env, tmp_path: Path) -> None:
+    def test_multiple_trusted_paths(self, temp_plugin_env: "TempPluginEnvironment", tmp_path: Path) -> None:
 
         """複数のtrusted_external_pathsが設定できる"""
         dir1 = tmp_path / "dir1"

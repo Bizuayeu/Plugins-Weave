@@ -11,6 +11,20 @@ Orchestrator Pattern 実装のテスト。
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from application.shadow import (
@@ -49,7 +63,7 @@ def level_hierarchy():
 
 
 @pytest.fixture
-def cascade_components(temp_plugin_env, level_hierarchy):
+def cascade_components(temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "Dict[str, LevelHierarchyEntry]"):
 
     """カスケード処理に必要なコンポーネント群"""
     config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -79,7 +93,7 @@ def cascade_components(temp_plugin_env, level_hierarchy):
 
 
 @pytest.fixture
-def cascade_orchestrator(cascade_components, level_hierarchy):
+def cascade_orchestrator(cascade_components, level_hierarchy: "Dict[str, LevelHierarchyEntry]"):
 
     """CascadeOrchestratorインスタンスを提供"""
     return CascadeOrchestrator(
@@ -201,7 +215,7 @@ class TestCascadeOrchestratorInit:
     """CascadeOrchestrator initialization tests"""
 
     @pytest.mark.unit
-    def test_init_with_components(self, cascade_components, level_hierarchy) -> None:
+    def test_init_with_components(self, cascade_components, level_hierarchy: "Dict[str, LevelHierarchyEntry]") -> None:
 
         """Initialize with all required components"""
         orchestrator = CascadeOrchestrator(

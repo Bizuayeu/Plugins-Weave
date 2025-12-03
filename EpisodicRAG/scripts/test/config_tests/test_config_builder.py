@@ -13,6 +13,20 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from application.config import DigestConfig, DigestConfigBuilder
@@ -82,7 +96,7 @@ class TestDigestConfigBuilderBuild:
     """DigestConfigBuilder.build() tests"""
 
     @pytest.fixture
-    def config_env(self, temp_plugin_env):
+    def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """テスト用の設定環境を構築"""
         config_data = {
@@ -174,7 +188,7 @@ class TestDigestConfigBuilderBuildDefault:
     """DigestConfigBuilder.build_default() tests"""
 
     @pytest.fixture
-    def config_env(self, temp_plugin_env):
+    def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """テスト用の設定環境を構築"""
         config_data = {
@@ -241,7 +255,7 @@ class TestDigestConfigBuilderEquivalence:
     """Test that Builder produces equivalent results to direct instantiation"""
 
     @pytest.fixture
-    def config_env(self, temp_plugin_env):
+    def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """テスト用の設定環境を構築"""
         config_data = {

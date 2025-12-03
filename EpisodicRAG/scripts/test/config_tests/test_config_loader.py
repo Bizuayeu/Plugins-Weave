@@ -14,6 +14,20 @@ ConfigLoaderクラスの動作を検証:
 import json
 from pathlib import Path
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from infrastructure.config.config_loader import ConfigLoader
@@ -25,7 +39,7 @@ from domain.exceptions import ConfigError
 
 
 @pytest.fixture
-def config_file(temp_plugin_env):
+def config_file(temp_plugin_env: "TempPluginEnvironment"):
 
     """テスト用config.jsonファイルパスを提供"""
     return temp_plugin_env.config_dir / "config.json"
@@ -79,7 +93,7 @@ class TestConfigLoaderInit:
         assert loader._config is None  # 初期状態ではキャッシュなし
 
     @pytest.mark.unit
-    def test_init_with_path_object(self, temp_plugin_env) -> None:
+    def test_init_with_path_object(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Pathオブジェクトで初期化できる"""
         config_path = temp_plugin_env.config_dir / "config.json"
@@ -119,7 +133,7 @@ class TestConfigLoaderLoad:
         assert config_loader.is_loaded is True
 
     @pytest.mark.unit
-    def test_load_file_not_found(self, temp_plugin_env) -> None:
+    def test_load_file_not_found(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """ファイルが存在しない場合ConfigError"""
         nonexistent = temp_plugin_env.config_dir / "nonexistent.json"

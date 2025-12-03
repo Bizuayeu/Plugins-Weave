@@ -10,6 +10,20 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from application.shadow import (
@@ -43,7 +57,7 @@ def level_hierarchy():
 
 
 @pytest.fixture
-def cascade_processor(temp_plugin_env, level_hierarchy):
+def cascade_processor(temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "Dict[str, LevelHierarchyEntry]"):
 
     """CascadeProcessorインスタンスを提供"""
     config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -76,7 +90,7 @@ class TestGetShadowDigestForLevel:
         assert result is None
 
     @pytest.mark.integration
-    def test_returns_digest_when_exists(self, cascade_processor, temp_plugin_env) -> None:
+    def test_returns_digest_when_exists(self, cascade_processor, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Shadowダイジェストが存在する場合、その内容を返す"""
         # Shadowにデータを追加
@@ -228,7 +242,7 @@ class TestCascadeUpdateOnDigestFinalize:
 
     @pytest.mark.integration
     def test_cascade_detects_new_files_for_next_level(
-        self, cascade_processor, temp_plugin_env, caplog
+        self, cascade_processor, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture
     ) -> None:
 
         """次レベルの新規ファイルを検出してShadowに追加"""
@@ -265,7 +279,7 @@ class TestCascadeProcessorEdgeCases:
     """CascadeProcessor のエッジケーステスト"""
 
     @pytest.mark.unit
-    def test_all_levels_have_hierarchy_entry(self, cascade_processor, level_hierarchy) -> None:
+    def test_all_levels_have_hierarchy_entry(self, cascade_processor, level_hierarchy: "Dict[str, LevelHierarchyEntry]") -> None:
 
         """すべてのレベルがhierarchyに存在する"""
         for level in LEVEL_CONFIG.keys():

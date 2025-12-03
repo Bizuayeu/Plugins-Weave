@@ -12,6 +12,20 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 # Interfaces層
@@ -21,7 +35,7 @@ from interfaces.provisional import DigestMerger, InputLoader
 
 
 @pytest.fixture
-def provisional_saver(temp_plugin_env) -> None:
+def provisional_saver(temp_plugin_env: "TempPluginEnvironment") -> None:
 
     """ProvisionalDigestSaverインスタンスを提供"""
     # Provisionalディレクトリを作成
@@ -42,7 +56,7 @@ class TestInputLoader:
     """InputLoader のテスト"""
 
     @pytest.mark.integration
-    def test_load_individual_digests_from_list(self, temp_plugin_env) -> None:
+    def test_load_individual_digests_from_list(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """JSON文字列（リスト形式）からの読み込み"""
         json_str = '[{"source_file": "Loop0001.txt", "keywords": ["test"]}]'
@@ -53,7 +67,7 @@ class TestInputLoader:
         assert result[0]["source_file"] == "Loop0001.txt"
 
     @pytest.mark.integration
-    def test_load_individual_digests_from_dict(self, temp_plugin_env) -> None:
+    def test_load_individual_digests_from_dict(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """JSON文字列（dict形式）からの読み込み"""
         json_str = '{"individual_digests": [{"source_file": "Loop0001.txt"}]}'
@@ -63,7 +77,7 @@ class TestInputLoader:
         assert len(result) == 1
 
     @pytest.mark.integration
-    def test_load_individual_digests_empty_raises(self, temp_plugin_env) -> None:
+    def test_load_individual_digests_empty_raises(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """空文字列でValidationError"""
         with pytest.raises(ValidationError):
@@ -74,7 +88,7 @@ class TestDigestMerger:
     """DigestMerger のテスト"""
 
     @pytest.mark.integration
-    def test_merge_individual_digests(self, temp_plugin_env) -> None:
+    def test_merge_individual_digests(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """マージ処理（重複は上書き）"""
         existing = [
@@ -94,7 +108,7 @@ class TestDigestMerger:
         assert loop1["keywords"] == ["new"]
 
     @pytest.mark.integration
-    def test_merge_individual_digests_missing_filename_raises(self, temp_plugin_env) -> None:
+    def test_merge_individual_digests_missing_filename_raises(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """source_fileキーがない場合ValidationError"""
         existing = [{"keywords": ["test"]}]  # source_fileなし
@@ -151,7 +165,7 @@ class TestCLIStdinOption:
     """--stdin オプションのテスト"""
 
     @pytest.mark.integration
-    def test_stdin_option_reads_from_stdin(self, temp_plugin_env, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_stdin_option_reads_from_stdin(self, temp_plugin_env: "TempPluginEnvironment", monkeypatch: pytest.MonkeyPatch) -> None:
 
         """--stdin オプションで標準入力からJSONを読み込む"""
         from interfaces.save_provisional_digest import main
@@ -193,7 +207,7 @@ class TestCLIStdinOption:
         assert len(provisional_files) == 1
 
     @pytest.mark.integration
-    def test_error_when_no_input_and_no_stdin(self, temp_plugin_env, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_error_when_no_input_and_no_stdin(self, temp_plugin_env: "TempPluginEnvironment", monkeypatch: pytest.MonkeyPatch) -> None:
 
         """input_dataも--stdinもない場合はエラー"""
         from interfaces.save_provisional_digest import main

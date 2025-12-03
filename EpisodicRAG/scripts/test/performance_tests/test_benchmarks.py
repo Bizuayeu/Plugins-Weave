@@ -14,6 +14,20 @@ import time
 from pathlib import Path
 from typing import List
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from domain.constants import LEVEL_CONFIG
@@ -24,7 +38,7 @@ from domain.constants import LEVEL_CONFIG
 
 
 @pytest.fixture
-def large_loop_files(temp_plugin_env) -> List[Path]:
+def large_loop_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
     """Create a large number of Loop files for performance testing."""
     loops_path = temp_plugin_env.loops_path
     files = []
@@ -89,7 +103,7 @@ class TestJsonIOPerformance:
         assert elapsed < 2.0, f"JSON loading took {elapsed:.2f}s for 100 files"
         print(f"\nJSON load: {elapsed:.3f}s for {len(large_loop_files)} files")
 
-    def test_json_dump_performance(self, temp_plugin_env, large_individual_digests) -> None:
+    def test_json_dump_performance(self, temp_plugin_env: "TempPluginEnvironment", large_individual_digests) -> None:
 
         """JSON dumping should be fast for typical data sizes."""
         output_path = temp_plugin_env.digests_path / "performance_test.json"
@@ -293,7 +307,7 @@ class TestMemoryEstimation:
 
 
 @pytest.fixture
-def large_digest_files(temp_plugin_env) -> List[Path]:
+def large_digest_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
     """Create a large number of Digest files for performance testing."""
     weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
     weekly_dir.mkdir(parents=True, exist_ok=True)
@@ -319,7 +333,7 @@ def large_digest_files(temp_plugin_env) -> List[Path]:
 class TestFileDetectionPerformance:
     """Performance tests for file detection operations."""
 
-    def test_find_new_files_1000(self, large_digest_files, digest_config, times_tracker) -> None:
+    def test_find_new_files_1000(self, large_digest_files, digest_config: "DigestConfig", times_tracker: "DigestTimesTracker") -> None:
 
         """File detection should handle 1000 files efficiently."""
         from application.shadow import FileDetector
@@ -356,7 +370,7 @@ class TestFileDetectionPerformance:
 class TestShadowIOPerformance:
     """Performance tests for Shadow I/O operations."""
 
-    def test_shadow_load_save_cycle(self, temp_plugin_env, template, shadow_io) -> None:
+    def test_shadow_load_save_cycle(self, temp_plugin_env: "TempPluginEnvironment", template: "ShadowTemplate", shadow_io: "ShadowIO") -> None:
 
         """Shadow load/save cycle should be fast."""
         start = time.perf_counter()
@@ -417,7 +431,7 @@ class TestRegexPerformance:
 class TestGrandDigestPerformance:
     """Performance tests for Grand Digest operations."""
 
-    def test_grand_digest_crud_cycle(self, temp_plugin_env, digest_config) -> None:
+    def test_grand_digest_crud_cycle(self, temp_plugin_env: "TempPluginEnvironment", digest_config: "DigestConfig") -> None:
 
         """Grand Digest CRUD operations should be fast."""
         from application.grand import GrandDigestManager
@@ -456,7 +470,7 @@ class TestGrandDigestPerformance:
 class TestCascadePerformance:
     """Performance tests for cascade processing operations."""
 
-    def test_cascade_initialization(self, temp_plugin_env, digest_config) -> None:
+    def test_cascade_initialization(self, temp_plugin_env: "TempPluginEnvironment", digest_config: "DigestConfig") -> None:
 
         """Cascade component initialization should be fast."""
         from application.grand import ShadowGrandDigestManager
@@ -487,7 +501,7 @@ class TestCascadePerformance:
 class TestFileAppendingPerformance:
     """Performance tests for file appending operations."""
 
-    def test_add_files_to_shadow_50(self, temp_plugin_env, digest_config) -> None:
+    def test_add_files_to_shadow_50(self, temp_plugin_env: "TempPluginEnvironment", digest_config: "DigestConfig") -> None:
 
         """Adding 50 files to shadow should be fast."""
         from application.grand import ShadowGrandDigestManager

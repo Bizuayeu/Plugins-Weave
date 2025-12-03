@@ -12,6 +12,20 @@ import time
 from pathlib import Path
 from typing import List
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 # =============================================================================
@@ -24,7 +38,7 @@ import pytest
 class TestConcurrentReads:
     """Tests for concurrent read access patterns."""
 
-    def test_multiple_readers_same_file(self, temp_plugin_env) -> None:
+    def test_multiple_readers_same_file(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Multiple threads should be able to read the same file concurrently."""
         # Create test file
@@ -59,7 +73,7 @@ class TestConcurrentReads:
         assert len(results) == 10
         assert all(r == test_data for r in results)
 
-    def test_read_while_another_reads(self, temp_plugin_env) -> None:
+    def test_read_while_another_reads(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Reads should not block other reads."""
         test_file = temp_plugin_env.digests_path / "concurrent_read.json"
@@ -99,7 +113,7 @@ class TestConcurrentReads:
 class TestSequentialWrites:
     """Tests for sequential write access patterns."""
 
-    def test_sequential_writes_preserve_data(self, temp_plugin_env) -> None:
+    def test_sequential_writes_preserve_data(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Sequential writes should preserve data integrity."""
         test_file = temp_plugin_env.digests_path / "sequential_write.json"
@@ -116,7 +130,7 @@ class TestSequentialWrites:
                 loaded = json.load(f)
             assert loaded["iteration"] == i
 
-    def test_append_operations_accumulate(self, temp_plugin_env) -> None:
+    def test_append_operations_accumulate(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Append operations should accumulate data correctly."""
         from interfaces.provisional import DigestMerger
@@ -142,7 +156,7 @@ class TestSequentialWrites:
 class TestLockContentionSimulation:
     """Tests that simulate lock contention scenarios."""
 
-    def test_simulated_write_contention(self, temp_plugin_env) -> None:
+    def test_simulated_write_contention(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Simulate what happens when multiple processes try to write."""
         test_file = temp_plugin_env.digests_path / "contention.json"
@@ -181,7 +195,7 @@ class TestLockContentionSimulation:
             final_data = json.load(f)
         assert final_data["counter"] == 10
 
-    def test_read_during_write_simulation(self, temp_plugin_env) -> None:
+    def test_read_during_write_simulation(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Simulate reading while another process is writing."""
         test_file = temp_plugin_env.digests_path / "read_write.json"
@@ -238,7 +252,7 @@ class TestLockContentionSimulation:
 class TestShadowUpdateConcurrency:
     """Tests for Shadow update concurrency patterns."""
 
-    def test_shadow_updates_are_idempotent(self, temp_plugin_env) -> None:
+    def test_shadow_updates_are_idempotent(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Multiple identical Shadow updates should produce same result."""
         shadow_path = temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
@@ -283,7 +297,7 @@ class TestShadowUpdateConcurrency:
 class TestRaceConditions:
     """競合状態のテスト"""
 
-    def test_shadow_update_atomicity(self, temp_plugin_env) -> None:
+    def test_shadow_update_atomicity(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """Shadow更新がアトミックであること - 部分書き込みが発生しない"""
         test_file = temp_plugin_env.digests_path / "atomicity_test.json"
@@ -332,7 +346,7 @@ class TestRaceConditions:
             final_data = json.load(f)
         assert final_data["counter"] == 25
 
-    def test_partial_write_detection(self, temp_plugin_env) -> None:
+    def test_partial_write_detection(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """部分書き込みを検出できること"""
         test_file = temp_plugin_env.digests_path / "partial_write_test.json"
@@ -353,7 +367,7 @@ class TestRaceConditions:
             with open(test_file, "r", encoding="utf-8") as f:
                 json.load(f)
 
-    def test_read_during_write_tracking(self, temp_plugin_env) -> None:
+    def test_read_during_write_tracking(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """書き込み中の読み取り結果を追跡
 
@@ -413,7 +427,7 @@ class TestRaceConditions:
             final_data = json.load(f)
         assert final_data["version"] == 11  # 1 + 10回の書き込み
 
-    def test_timeout_on_blocked_operation(self, temp_plugin_env):
+    def test_timeout_on_blocked_operation(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """ブロックされた操作のタイムアウト動作"""
         import concurrent.futures

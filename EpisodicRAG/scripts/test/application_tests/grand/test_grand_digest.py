@@ -10,6 +10,20 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 # Application層
@@ -22,7 +36,7 @@ from domain.version import DIGEST_FORMAT_VERSION
 
 
 @pytest.fixture
-def grand_manager(temp_plugin_env):
+def grand_manager(temp_plugin_env: "TempPluginEnvironment"):
 
     """GrandDigestManagerインスタンスを提供"""
     mock_config = MagicMock()
@@ -148,7 +162,7 @@ class TestGrandDigestManagerIntegration:
             grand_manager.load_or_create()
 
     @pytest.mark.integration
-    def test_save_creates_parent_directories(self, temp_plugin_env) -> None:
+    def test_save_creates_parent_directories(self, temp_plugin_env: "TempPluginEnvironment") -> None:
 
         """save() は親ディレクトリを自動作成する"""
         import shutil

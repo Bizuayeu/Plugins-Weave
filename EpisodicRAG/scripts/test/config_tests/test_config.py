@@ -17,6 +17,20 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 from application.config import DigestConfig
@@ -32,7 +46,7 @@ class TestDigestConfig:
     """DigestConfig クラスのテスト"""
 
     @pytest.fixture
-    def config_env(self, temp_plugin_env):
+    def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """テスト用の設定環境を構築"""
         # config.json 作成
@@ -221,7 +235,7 @@ class TestDigestConfigThresholds:
     """DigestConfig thresholdプロパティのテスト"""
 
     @pytest.fixture
-    def threshold_env(self, temp_plugin_env):
+    def threshold_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """threshold テスト用の設定環境"""
         config_data = {
@@ -336,7 +350,7 @@ class TestDigestConfigIdentityFile:
     """DigestConfig identity_file_path のテスト"""
 
     @pytest.fixture
-    def identity_env(self, temp_plugin_env):
+    def identity_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """identity_file テスト用の設定環境"""
         config_data = {
@@ -427,7 +441,7 @@ class TestDigestConfigShowPaths:
     """DigestConfig.show_paths() のテスト"""
 
     @pytest.fixture
-    def show_paths_env(self, temp_plugin_env):
+    def show_paths_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """show_paths テスト用の設定環境"""
         config_data = {
@@ -486,7 +500,7 @@ class TestDigestConfigContextManager:
     """DigestConfig の Context Manager テスト"""
 
     @pytest.fixture
-    def context_env(self, temp_plugin_env):
+    def context_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """Context Manager テスト用の設定環境を構築"""
         config_data = {

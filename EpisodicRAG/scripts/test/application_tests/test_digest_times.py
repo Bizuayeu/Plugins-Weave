@@ -10,6 +10,20 @@ pytestスタイルに移行済み
 from datetime import datetime
 from unittest.mock import MagicMock
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 
 # Application層
@@ -20,7 +34,7 @@ class TestDigestTimesTracker:
     """DigestTimesTracker の統合テスト"""
 
     @pytest.fixture
-    def mock_config(self, temp_plugin_env):
+    def mock_config(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """モック設定を提供"""
         mock = MagicMock()

@@ -16,6 +16,20 @@ Weekly から Centurial までの完全なカスケードフローを検証。
 import json
 from pathlib import Path
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, Dict, List, Tuple
+    from test_helpers import TempPluginEnvironment
+    from application.config import DigestConfig
+    from application.tracking import DigestTimesTracker
+    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.shadow.placeholder_manager import PlaceholderManager
+    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from domain.types.level import LevelHierarchyEntry
+
+
 import pytest
 from test_helpers import create_test_loop_file
 
@@ -35,7 +49,7 @@ class TestFullCascadeInitialization:
     """8層構造の初期化テスト"""
 
     @pytest.fixture
-    def full_cascade_env(self, temp_plugin_env):
+    def full_cascade_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """フルカスケードテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -118,7 +132,7 @@ class TestFullCascadeFlow:
     """8層フルカスケードフローテスト"""
 
     @pytest.fixture
-    def cascade_flow_env(self, temp_plugin_env):
+    def cascade_flow_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """カスケードフローテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -259,7 +273,7 @@ class TestCascadeStopConditions:
     """カスケード停止条件テスト"""
 
     @pytest.fixture
-    def stop_condition_env(self, temp_plugin_env):
+    def stop_condition_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """停止条件テスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -320,7 +334,7 @@ class TestMetadataPropagation:
     """メタデータ伝播テスト"""
 
     @pytest.fixture
-    def metadata_env(self, temp_plugin_env):
+    def metadata_env(self, temp_plugin_env: "TempPluginEnvironment"):
 
         """メタデータテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
