@@ -4,19 +4,28 @@
 
 ## Table of Contents
 
+**Overview**
 - [Quick Start](#quick-start)
 - [Test Organization](#test-organization)
 - [Test Summary](#test-summary)
+
+**Test Infrastructure**
 - [Fixture Dependency Map](#fixture-dependency-map)
-- [Adding New Tests](#adding-new-tests)
-- [Test Naming Convention](#test-naming-convention)
-- [Property-Based Tests 一覧](#property-based-tests-一覧)
-- [Debugging Tips](#debugging-tips)
 - [Hypothesis Profiles](#hypothesis-profiles)
 - [Performance Targets](#performance-targets)
+
+**Writing Tests**
+- [Adding New Tests](#adding-new-tests)
+- [Test Naming Convention](#test-naming-convention)
+- [Property-Based Tests](#property-based-tests)
+
+**Running & Debugging**
+- [Debugging Tips](#debugging-tips)
 - [CLI Integration Tests](#cli-integration-tests-v400)
-- [Continuous Integration](#continuous-integration)
 - [Tools Tests](#tools-tests-v410)
+
+**CI/CD**
+- [Continuous Integration](#continuous-integration)
 - [Known Gaps](#known-gaps)
 
 ---
@@ -47,6 +56,7 @@ pytest scripts/test/cli_integration_tests/ -m cli
 ```
 
 ---
+
 ## Test Organization
 
 ### Architecture Layers
@@ -221,6 +231,7 @@ SSoT関数からレベル階層情報を取得。
 PlaceholderManagerインスタンスを提供。
 
 ---
+
 ## Adding New Tests
 
 ### Unit Tests
@@ -285,7 +296,7 @@ class TestFileNamingInvariants:
 
 ---
 
-## Property-Based Tests 一覧
+## Property-Based Tests
 
 Hypothesis を使用したプロパティベーステスト。
 不変条件（invariants）と境界条件を網羅的にテスト。
