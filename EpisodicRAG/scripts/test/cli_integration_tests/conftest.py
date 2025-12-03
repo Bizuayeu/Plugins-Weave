@@ -21,7 +21,8 @@ from .cli_runner import CLIRunner
 # =============================================================================
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
+
     """カスタムマーカーを登録"""
     config.addinivalue_line("markers", "cli: CLI統合テスト（subprocess経由）")
 
@@ -62,6 +63,7 @@ def cli_runner(cli_plugin_root: Path) -> CLIRunner:
 
     Usage:
         def test_something(cli_runner):
+
             result = cli_runner.run_digest_setup("check")
             result.assert_success()
     """
@@ -247,6 +249,7 @@ def configured_cli_runner(configured_cli_env: Dict[str, Path]) -> CLIRunner:
 
     Usage:
         def test_something(configured_cli_runner):
+
             result = configured_cli_runner.run_digest_auto(output="json")
             result.assert_success()
     """

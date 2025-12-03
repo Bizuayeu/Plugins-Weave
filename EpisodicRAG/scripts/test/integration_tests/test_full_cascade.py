@@ -36,6 +36,7 @@ class TestFullCascadeInitialization:
 
     @pytest.fixture
     def full_cascade_env(self, temp_plugin_env):
+
         """フルカスケードテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -48,7 +49,8 @@ class TestFullCascadeInitialization:
             "config": config,
         }
 
-    def test_all_eight_levels_exist_in_shadow(self, full_cascade_env):
+    def test_all_eight_levels_exist_in_shadow(self, full_cascade_env) -> None:
+
         """
         ShadowGrandDigestに全8層が存在する
 
@@ -62,7 +64,8 @@ class TestFullCascadeInitialization:
         for level in LEVEL_ORDER:
             assert level in shadow_data["latest_digests"], f"{level}がShadowに存在すること"
 
-    def test_all_eight_levels_exist_in_grand(self, full_cascade_env):
+    def test_all_eight_levels_exist_in_grand(self, full_cascade_env) -> None:
+
         """
         GrandDigestに全8層が存在する
 
@@ -76,7 +79,8 @@ class TestFullCascadeInitialization:
         for level in LEVEL_ORDER:
             assert level in grand_data["major_digests"], f"{level}がGrandDigestに存在すること"
 
-    def test_level_hierarchy_is_correctly_linked(self, full_cascade_env):
+    def test_level_hierarchy_is_correctly_linked(self, full_cascade_env) -> None:
+
         """
         レベル階層が正しくリンクされている
 
@@ -95,7 +99,8 @@ class TestFullCascadeInitialization:
                 # 最上位（centurial）のnextはNone
                 assert hierarchy[level]["next"] is None, "centurialの次はNoneであること"
 
-    def test_all_eight_level_directories_created(self, full_cascade_env):
+    def test_all_eight_level_directories_created(self, full_cascade_env) -> None:
+
         """
         全8層のディレクトリが作成される
 
@@ -114,6 +119,7 @@ class TestFullCascadeFlow:
 
     @pytest.fixture
     def cascade_flow_env(self, temp_plugin_env):
+
         """カスケードフローテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -134,7 +140,8 @@ class TestFullCascadeFlow:
             "config": config,
         }
 
-    def test_weekly_to_monthly_cascade(self, cascade_flow_env):
+    def test_weekly_to_monthly_cascade(self, cascade_flow_env) -> None:
+
         """
         Weekly→Monthlyカスケードが正しく動作する
 
@@ -188,7 +195,8 @@ class TestFullCascadeFlow:
         if weekly_shadow_after is not None:
             assert len(weekly_shadow_after.get("source_files", [])) == 0
 
-    def test_multi_level_cascade_quarterly(self, cascade_flow_env):
+    def test_multi_level_cascade_quarterly(self, cascade_flow_env) -> None:
+
         """
         複数レベルのカスケード（Weekly→Monthly→Quarterly）
 
@@ -229,7 +237,8 @@ class TestFullCascadeFlow:
         assert monthly_shadow is not None
         assert len(monthly_shadow["source_files"]) == 5
 
-    def test_cascade_preserves_level_order(self, cascade_flow_env):
+    def test_cascade_preserves_level_order(self, cascade_flow_env) -> None:
+
         """
         カスケードはレベル順序を保持する
 
@@ -251,6 +260,7 @@ class TestCascadeStopConditions:
 
     @pytest.fixture
     def stop_condition_env(self, temp_plugin_env):
+
         """停止条件テスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -262,7 +272,8 @@ class TestCascadeStopConditions:
             "config": config,
         }
 
-    def test_cascade_stops_at_insufficient_threshold(self, stop_condition_env):
+    def test_cascade_stops_at_insufficient_threshold(self, stop_condition_env) -> None:
+
         """
         閾値未満の場合カスケードが停止する
 
@@ -292,7 +303,8 @@ class TestCascadeStopConditions:
         threshold = config.threshold.weekly_threshold
         assert len(weekly_shadow["source_files"]) < threshold
 
-    def test_cascade_stops_at_centurial(self, stop_condition_env):
+    def test_cascade_stops_at_centurial(self, stop_condition_env) -> None:
+
         """
         カスケードはcenturialで停止する
 
@@ -309,6 +321,7 @@ class TestMetadataPropagation:
 
     @pytest.fixture
     def metadata_env(self, temp_plugin_env):
+
         """メタデータテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -320,7 +333,8 @@ class TestMetadataPropagation:
             "config": config,
         }
 
-    def test_shadow_metadata_has_last_updated(self, metadata_env):
+    def test_shadow_metadata_has_last_updated(self, metadata_env) -> None:
+
         """
         ShadowGrandDigestのmetadataにlast_updatedが存在する
         """
@@ -332,7 +346,8 @@ class TestMetadataPropagation:
         assert "metadata" in shadow_data
         assert "last_updated" in shadow_data["metadata"]
 
-    def test_grand_metadata_has_version(self, metadata_env):
+    def test_grand_metadata_has_version(self, metadata_env) -> None:
+
         """
         GrandDigestのmetadataにversionが存在する
         """
@@ -344,7 +359,8 @@ class TestMetadataPropagation:
         assert "metadata" in grand_data
         assert "version" in grand_data["metadata"]
 
-    def test_source_files_tracked_per_level(self, metadata_env):
+    def test_source_files_tracked_per_level(self, metadata_env) -> None:
+
         """
         各レベルでsource_filesが追跡される
         """

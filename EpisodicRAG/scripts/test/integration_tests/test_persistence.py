@@ -32,12 +32,14 @@ pytestmark = pytest.mark.slow
 
 @pytest.fixture
 def persistence(config, grand_digest_manager, shadow_manager, times_tracker):
+
     """テスト用DigestPersistence"""
     return DigestPersistence(config, grand_digest_manager, shadow_manager, times_tracker)
 
 
 @pytest.fixture
 def valid_regular_digest():
+
     """有効なRegularDigest"""
     return {
         "metadata": {
@@ -68,19 +70,22 @@ class TestDigestPersistenceSaveRegularDigest:
     """save_regular_digest メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_saves_file_exists(self, persistence, valid_regular_digest, temp_plugin_env):
+    def test_saves_file_exists(self, persistence, valid_regular_digest, temp_plugin_env) -> None:
+
         """保存したファイルが存在する"""
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
         assert result_path.exists()
 
     @pytest.mark.integration
-    def test_saves_file_with_correct_name(self, persistence, valid_regular_digest, temp_plugin_env):
+    def test_saves_file_with_correct_name(self, persistence, valid_regular_digest, temp_plugin_env) -> None:
+
         """正しいファイル名で保存される"""
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
         assert result_path.name == "W0001_Test.txt"
 
     @pytest.mark.integration
-    def test_saves_correct_content(self, persistence, valid_regular_digest, temp_plugin_env):
+    def test_saves_correct_content(self, persistence, valid_regular_digest, temp_plugin_env) -> None:
+
         """正しい内容が保存される"""
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
         with open(result_path, 'r', encoding='utf-8') as f:
@@ -90,7 +95,8 @@ class TestDigestPersistenceSaveRegularDigest:
     @pytest.mark.integration
     def test_creates_directory_if_not_exists(
         self, persistence, valid_regular_digest, temp_plugin_env
-    ):
+    ) -> None:
+
         """ディレクトリがなければ作成"""
         # 1_Weeklyディレクトリを削除
         import shutil
@@ -106,7 +112,8 @@ class TestDigestPersistenceSaveRegularDigest:
     @pytest.mark.integration
     def test_saves_to_correct_level_directory(
         self, persistence, valid_regular_digest, temp_plugin_env
-    ):
+    ) -> None:
+
         """正しいレベルディレクトリに保存"""
         # monthlyに保存
         valid_regular_digest["metadata"]["digest_level"] = "monthly"
@@ -125,7 +132,8 @@ class TestDigestPersistenceUpdateGrandDigest:
     """update_grand_digest メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_updates_grand_digest(self, persistence, valid_regular_digest, grand_digest_manager):
+    def test_updates_grand_digest(self, persistence, valid_regular_digest, grand_digest_manager) -> None:
+
         """GrandDigestが更新される"""
         persistence.update_grand_digest("weekly", valid_regular_digest, "W0001_Test")
 
@@ -136,7 +144,8 @@ class TestDigestPersistenceUpdateGrandDigest:
         assert weekly_digest["name"] == "W0001_Test"
 
     @pytest.mark.integration
-    def test_raises_on_invalid_overall_digest(self, persistence):
+    def test_raises_on_invalid_overall_digest(self, persistence) -> None:
+
         """overall_digestが無効な場合はDigestError"""
         invalid_digest = {
             "metadata": {},
@@ -149,7 +158,8 @@ class TestDigestPersistenceUpdateGrandDigest:
         assert "no valid overall_digest" in str(exc_info.value)
 
     @pytest.mark.integration
-    def test_raises_on_missing_overall_digest(self, persistence):
+    def test_raises_on_missing_overall_digest(self, persistence) -> None:
+
         """overall_digestがない場合はDigestError"""
         invalid_digest = {
             "metadata": {},
@@ -171,7 +181,8 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
     """process_cascade_and_cleanup メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_updates_times_tracker(self, persistence, times_tracker, temp_plugin_env):
+    def test_updates_times_tracker(self, persistence, times_tracker, temp_plugin_env) -> None:
+
         """times_trackerが更新される"""
         source_files = ["L00001_test.txt", "L00002_test.txt"]
         persistence.process_cascade_and_cleanup("weekly", source_files, None)
@@ -183,7 +194,8 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
         assert times_data["weekly"]["last_processed"] == 2  # L00002が最後
 
     @pytest.mark.integration
-    def test_removes_provisional_file(self, persistence, config):
+    def test_removes_provisional_file(self, persistence, config) -> None:
+
         """Provisionalファイルが削除される"""
         # Provisionalファイルを作成
         provisional_dir = config.get_provisional_dir("weekly")
@@ -198,13 +210,15 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
         assert not provisional_path.exists()
 
     @pytest.mark.integration
-    def test_handles_none_provisional_file(self, persistence):
+    def test_handles_none_provisional_file(self, persistence) -> None:
+
         """Provisionalファイルがない場合も正常に動作"""
         # エラーなく完了すればOK
         persistence.process_cascade_and_cleanup("weekly", ["L00001.txt"], None)
 
     @pytest.mark.integration
-    def test_skips_cascade_for_centurial(self, persistence, shadow_manager, temp_plugin_env):
+    def test_skips_cascade_for_centurial(self, persistence, shadow_manager, temp_plugin_env) -> None:
+
         """centurialではカスケードがスキップされる"""
         # エラーなく完了すればOK（centurialにはnext=Noneなので）
         persistence.process_cascade_and_cleanup("centurial", [], None)
@@ -219,7 +233,8 @@ class TestDigestPersistenceInit:
     """DigestPersistence 初期化のテスト"""
 
     @pytest.mark.unit
-    def test_stores_dependencies(self, config, grand_digest_manager, shadow_manager, times_tracker):
+    def test_stores_dependencies(self, config, grand_digest_manager, shadow_manager, times_tracker) -> None:
+
         """依存関係が正しく保存される"""
         persistence = DigestPersistence(config, grand_digest_manager, shadow_manager, times_tracker)
 
@@ -229,7 +244,8 @@ class TestDigestPersistenceInit:
         assert persistence.times_tracker is times_tracker
 
     @pytest.mark.unit
-    def test_sets_digests_path(self, config, grand_digest_manager, shadow_manager, times_tracker):
+    def test_sets_digests_path(self, config, grand_digest_manager, shadow_manager, times_tracker) -> None:
+
         """digests_pathが設定される"""
         persistence = DigestPersistence(config, grand_digest_manager, shadow_manager, times_tracker)
 
@@ -247,7 +263,8 @@ class TestDigestPersistenceUserInput:
     @pytest.mark.integration
     def test_overwrite_user_cancels(
         self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch
-    ):
+    ) -> None:
+
         """既存ファイル上書き時、ユーザーがキャンセル"""
         from domain.exceptions import ValidationError
 
@@ -265,7 +282,8 @@ class TestDigestPersistenceUserInput:
     @pytest.mark.integration
     def test_overwrite_user_confirms(
         self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch
-    ):
+    ) -> None:
+
         """既存ファイル上書き時、ユーザーが確認"""
         # 先にファイルを作成
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
@@ -286,14 +304,16 @@ class TestDigestPersistenceUserInput:
     @pytest.mark.integration
     def test_overwrite_eoferror_continues(
         self, persistence, valid_regular_digest, temp_plugin_env, monkeypatch
-    ):
+    ) -> None:
+
         """非対話モード（EOFError）では上書きを続行"""
         # 先にファイルを作成
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
         assert result_path.exists()
 
         # input()をEOFErrorを発生させるようにモック
-        def raise_eoferror(_):
+        def raise_eoferror(_) -> None:
+
             raise EOFError()
 
         monkeypatch.setattr('builtins.input', raise_eoferror)
@@ -325,7 +345,8 @@ class TestDigestPersistenceConfirmCallback:
         times_tracker,
         valid_regular_digest,
         temp_plugin_env,
-    ):
+    ) -> None:
+
         """コールバックでキャンセル時にValidationErrorが発生"""
         from domain.exceptions import ValidationError
 
@@ -356,7 +377,8 @@ class TestDigestPersistenceConfirmCallback:
         times_tracker,
         valid_regular_digest,
         temp_plugin_env,
-    ):
+    ) -> None:
+
         """コールバックで承認時に正常に上書きされる"""
         # 常に承認するコールバック
         persistence = DigestPersistence(
@@ -383,7 +405,8 @@ class TestDigestPersistenceConfirmCallback:
     @pytest.mark.unit
     def test_default_callback_used_when_none_provided(
         self, config, grand_digest_manager, shadow_manager, times_tracker
-    ):
+    ) -> None:
+
         """confirm_callbackがNoneの場合、デフォルトコールバックが使用される"""
         persistence = DigestPersistence(
             config, grand_digest_manager, shadow_manager, times_tracker, confirm_callback=None
@@ -396,9 +419,11 @@ class TestDigestPersistenceConfirmCallback:
     def test_custom_callback_stored(
         self, config, grand_digest_manager, shadow_manager, times_tracker
     ):
+
         """カスタムコールバックが正しく保存される"""
 
         def custom_callback(msg):
+
             return True
 
         persistence = DigestPersistence(
@@ -421,7 +446,8 @@ class TestDigestPersistenceCascadeDetails:
     """カスケード処理の詳細テスト"""
 
     @pytest.mark.integration
-    def test_cascade_updates_next_level_shadow(self, persistence, shadow_manager, temp_plugin_env):
+    def test_cascade_updates_next_level_shadow(self, persistence, shadow_manager, temp_plugin_env) -> None:
+
         """カスケードが次レベルのShadowを更新"""
         # Loopファイルを作成してShadowに追加
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
@@ -436,7 +462,8 @@ class TestDigestPersistenceCascadeDetails:
         # 具体的な内容検証はカスケードロジックに依存
 
     @pytest.mark.integration
-    def test_cascade_for_all_non_centurial_levels(self, persistence, shadow_manager):
+    def test_cascade_for_all_non_centurial_levels(self, persistence, shadow_manager) -> None:
+
         """centurial以外の全レベルでカスケードが実行される"""
         levels_with_cascade = [
             "weekly",
@@ -453,7 +480,8 @@ class TestDigestPersistenceCascadeDetails:
             persistence.process_cascade_and_cleanup(level, [], None)
 
     @pytest.mark.integration
-    def test_provisional_delete_failure_logs_warning(self, persistence, config, monkeypatch):
+    def test_provisional_delete_failure_logs_warning(self, persistence, config, monkeypatch: pytest.MonkeyPatch) -> None:
+
         """Provisional削除失敗時は警告を記録（エラーにはならない）"""
         # 存在しないファイルパスを指定（削除失敗シミュレーション）
         fake_provisional = config.get_provisional_dir("weekly") / "NonExistent.txt"

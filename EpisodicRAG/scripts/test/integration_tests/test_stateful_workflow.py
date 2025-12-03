@@ -72,7 +72,8 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         - データ損失なし
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+
         super().__init__()
         self.loop_count = 0
         self.weekly_count = 0
@@ -89,7 +90,8 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         self.temp_dir: Optional[tempfile.TemporaryDirectory] = None
 
     @initialize()
-    def setup(self):
+    def setup(self) -> None:
+
         """テスト環境の初期化"""
         self.temp_dir = tempfile.TemporaryDirectory()
         self.base_path = Path(self.temp_dir.name)
@@ -100,13 +102,15 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         (self.base_path / "Digests" / "2_Monthly").mkdir(parents=True)
         (self.base_path / "Essences").mkdir(parents=True)
 
-    def teardown(self):
+    def teardown(self) -> None:
+
         """テスト環境のクリーンアップ"""
         if self.temp_dir:
             self.temp_dir.cleanup()
 
     @rule()
-    def create_loop(self):
+    def create_loop(self) -> None:
+
         """Loopファイルを作成"""
         self.loop_count += 1
         self.total_loops_created += 1
@@ -123,7 +127,8 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         )
 
     @rule()
-    def run_digest(self):
+    def run_digest(self) -> None:
+
         """
         /digestコマンドをシミュレート
 
@@ -154,7 +159,8 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
             self.loop_count = 0
 
     @rule()
-    def run_digest_weekly(self):
+    def run_digest_weekly(self) -> None:
+
         """
         /digest weeklyコマンドをシミュレート
 
@@ -185,14 +191,16 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
             self.weekly_count = 0
 
     @invariant()
-    def counts_are_non_negative(self):
+    def counts_are_non_negative(self) -> None:
+
         """カウントは常に非負"""
         assert self.loop_count >= 0, f"loop_count is negative: {self.loop_count}"
         assert self.weekly_count >= 0, f"weekly_count is negative: {self.weekly_count}"
         assert self.monthly_count >= 0, f"monthly_count is negative: {self.monthly_count}"
 
     @invariant()
-    def counts_within_valid_range(self):
+    def counts_within_valid_range(self) -> None:
+
         """カウントは有効な範囲内（閾値以下）"""
         # Loopは閾値と同数まで蓄積可能（閾値に達したらdigestで処理）
         # 閾値を超えることもある（digestを実行しない場合）
@@ -201,7 +209,8 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         pass  # No strict upper bound - counts can exceed threshold if digest not run
 
     @invariant()
-    def total_consistency(self):
+    def total_consistency(self) -> None:
+
         """総作成数の一貫性"""
         assert self.total_loops_created >= 0
         assert self.total_weeklies_created >= 0
@@ -233,7 +242,8 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
         - 回復後はシステムが正常な状態
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+
         super().__init__()
         self.file_exists = False
         self.file_corrupted = False
@@ -244,19 +254,22 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
         self.test_file: Optional[Path] = None
 
     @initialize()
-    def setup(self):
+    def setup(self) -> None:
+
         """テスト環境の初期化"""
         self.temp_dir = tempfile.TemporaryDirectory()
         self.base_path = Path(self.temp_dir.name)
         self.test_file = self.base_path / "test_data.json"
 
-    def teardown(self):
+    def teardown(self) -> None:
+
         """テスト環境のクリーンアップ"""
         if self.temp_dir:
             self.temp_dir.cleanup()
 
     @rule()
-    def create_file(self):
+    def create_file(self) -> None:
+
         """正常なファイルを作成"""
         if self.test_file:
             self.test_file.write_text(json.dumps({"status": "valid", "data": [1, 2, 3]}))
@@ -265,7 +278,8 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
             self.corruption_detected = False
 
     @rule()
-    def corrupt_file(self):
+    def corrupt_file(self) -> None:
+
         """ファイルを破損させる"""
         if self.file_exists and self.test_file and not self.file_corrupted:
             # 不完全なJSONを書き込む
@@ -274,7 +288,8 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
             self.corruption_detected = False
 
     @rule()
-    def detect_corruption(self):
+    def detect_corruption(self) -> None:
+
         """破損を検出"""
         if self.file_exists and self.test_file:
             try:
@@ -285,7 +300,8 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
                 self.corruption_detected = True
 
     @rule()
-    def recover_from_corruption(self):
+    def recover_from_corruption(self) -> None:
+
         """破損から回復"""
         if self.corruption_detected and self.test_file:
             # 回復: ファイルを削除して再作成
@@ -300,7 +316,8 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
             self.recovery_attempted = True
 
     @invariant()
-    def corruption_state_consistency(self):
+    def corruption_state_consistency(self) -> None:
+
         """破損状態の一貫性"""
         if self.file_corrupted:
             # 破損ファイルは存在する
@@ -310,7 +327,8 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
         # because detect_corruption is the last action that set it
 
     @invariant()
-    def recovery_restores_valid_state(self):
+    def recovery_restores_valid_state(self) -> None:
+
         """回復後は有効な状態（回復直後かつ破損していない場合）"""
         # Only check immediately after recovery when file is not corrupted again
         if (
@@ -376,7 +394,8 @@ class TestDigestWorkflowManual:
     """手動テストケース - 特定のシナリオを検証"""
 
     @pytest.mark.unit
-    def test_threshold_trigger(self):
+    def test_threshold_trigger(self) -> None:
+
         """閾値に達するとWeeklyが作成される"""
         sm = DigestWorkflowStateMachine()
         sm.setup()
@@ -399,7 +418,8 @@ class TestDigestWorkflowManual:
             sm.teardown()
 
     @pytest.mark.unit
-    def test_cascade_to_monthly(self):
+    def test_cascade_to_monthly(self) -> None:
+
         """Weekly→Monthlyカスケードが正常に動作"""
         sm = DigestWorkflowStateMachine()
         sm.setup()
@@ -430,7 +450,8 @@ class TestErrorRecoveryManual:
     """手動テストケース - エラー回復シナリオを検証"""
 
     @pytest.mark.unit
-    def test_corruption_detection(self):
+    def test_corruption_detection(self) -> None:
+
         """破損検出が正常に動作"""
         sm = ErrorRecoveryStateMachine()
         sm.setup()
@@ -452,7 +473,8 @@ class TestErrorRecoveryManual:
             sm.teardown()
 
     @pytest.mark.unit
-    def test_full_recovery_cycle(self):
+    def test_full_recovery_cycle(self) -> None:
+
         """完全な回復サイクル"""
         sm = ErrorRecoveryStateMachine()
         sm.setup()

@@ -45,7 +45,8 @@ from test_helpers import TempPluginEnvironment, create_test_loop_file
 
 
 @pytest.fixture(autouse=True)
-def reset_all_singletons():
+def reset_all_singletons() -> None:
+
     """
     全テスト前後でシングルトンをリセット
 
@@ -79,7 +80,8 @@ def reset_all_singletons():
 # =============================================================================
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
+
     """カスタムマーカーを登録"""
     config.addinivalue_line("markers", "unit: 単体テスト（高速、外部依存なし）")
     config.addinivalue_line("markers", "integration: 統合テスト（ファイルI/O）")
@@ -98,12 +100,14 @@ def pytest_configure(config):
 
 
 @pytest.fixture
-def temp_plugin_env():
+def temp_plugin_env() -> None:
+
     """
     テスト用の一時プラグイン環境を提供（関数スコープ）
 
     Usage:
-        def test_something(temp_plugin_env):
+        def test_something(temp_plugin_env) -> None:
+
             config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
             # ... テスト実行 ...
     """
@@ -112,7 +116,8 @@ def temp_plugin_env():
 
 
 @pytest.fixture(scope="module")
-def shared_plugin_env():
+def shared_plugin_env() -> None:
+
     """
     モジュール間で共有するプラグイン環境（読み取り専用テスト用）
 
@@ -126,6 +131,7 @@ def shared_plugin_env():
 
 @pytest.fixture
 def sample_loop_files(temp_plugin_env):
+
     """
     5つのサンプルLoopファイルを作成済みの環境を提供
 
@@ -146,6 +152,7 @@ def sample_loop_files(temp_plugin_env):
 
 @pytest.fixture
 def digest_config(temp_plugin_env):
+
     """
     初期化済みのDigestConfigインスタンスを提供
     """
@@ -156,6 +163,7 @@ def digest_config(temp_plugin_env):
 
 @pytest.fixture
 def config(digest_config):
+
     """
     digest_configのエイリアス（後方互換性のため）
 
@@ -174,6 +182,7 @@ def config(digest_config):
 
 @pytest.fixture
 def times_tracker(config):
+
     """テスト用DigestTimesTracker"""
     from application.tracking import DigestTimesTracker
 
@@ -182,6 +191,7 @@ def times_tracker(config):
 
 @pytest.fixture
 def template():
+
     """テスト用ShadowTemplate"""
     from application.shadow import ShadowTemplate
     from domain.constants import LEVEL_NAMES
@@ -191,6 +201,7 @@ def template():
 
 @pytest.fixture
 def shadow_io(temp_plugin_env, template):
+
     """テスト用ShadowIO"""
     from application.shadow import ShadowIO
 
@@ -200,6 +211,7 @@ def shadow_io(temp_plugin_env, template):
 
 @pytest.fixture
 def file_detector(config, times_tracker):
+
     """テスト用FileDetector"""
     from application.shadow import FileDetector
 
@@ -208,6 +220,7 @@ def file_detector(config, times_tracker):
 
 @pytest.fixture
 def level_hierarchy():
+
     """レベル階層情報（SSoT関数を使用）"""
     from domain.constants import build_level_hierarchy
 
@@ -216,6 +229,7 @@ def level_hierarchy():
 
 @pytest.fixture
 def placeholder_manager():
+
     """テスト用PlaceholderManager"""
     from application.shadow.placeholder_manager import PlaceholderManager
 
@@ -229,6 +243,7 @@ def placeholder_manager():
 
 @pytest.fixture
 def mock_digest_config(temp_plugin_env):
+
     """
     モック用のDigestConfig（パス情報のみ）
 
@@ -254,6 +269,7 @@ def mock_digest_config(temp_plugin_env):
 
 @pytest.fixture
 def shadow_manager(config):
+
     """
     テスト用ShadowGrandDigestManager
 
@@ -268,6 +284,7 @@ def shadow_manager(config):
 
 @pytest.fixture
 def grand_digest_manager(config):
+
     """テスト用GrandDigestManager"""
     from application.grand import GrandDigestManager
 
@@ -281,6 +298,7 @@ def grand_digest_manager(config):
 
 @pytest.fixture
 def valid_digest_long_short():
+
     """有効な{long, short}形式のdigestデータ"""
     return {
         "source_file": "L00001_test.txt",
@@ -293,6 +311,7 @@ def valid_digest_long_short():
 
 @pytest.fixture
 def valid_individual_digests_list():
+
     """有効なindividual_digestsリスト"""
     return [
         {

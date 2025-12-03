@@ -30,11 +30,13 @@ class TestPracticalUsagePatterns:
     """実用的な使用パターンのテスト"""
 
     @pytest.mark.unit
-    def test_selective_catch(self):
+    def test_selective_catch(self) -> None:
+
         """特定の例外を選択的にキャッチ"""
         caught = []
 
-        def raise_various_errors(error_type: str):
+        def raise_various_errors(error_type: str) -> None:
+
             if error_type == "config":
                 raise ConfigError("config")
             elif error_type == "digest":
@@ -55,7 +57,8 @@ class TestPracticalUsagePatterns:
         assert caught == ["config", "digest", "validation"]
 
     @pytest.mark.unit
-    def test_catch_all_episodic_rag_errors(self):
+    def test_catch_all_episodic_rag_errors(self) -> None:
+
         """すべてのEpisodicRAGエラーを一括キャッチ"""
         errors = [
             ConfigError("1"),
@@ -75,7 +78,8 @@ class TestPracticalUsagePatterns:
         assert caught_count == 5
 
     @pytest.mark.unit
-    def test_error_message_formatting(self):
+    def test_error_message_formatting(self) -> None:
+
         """エラーメッセージのフォーマット"""
         # ファイルパスを含むエラー
         file_error = FileIOError("Cannot read file: /path/to/config.json")
@@ -100,7 +104,8 @@ class TestDiagnosticContext:
     """DiagnosticContext のテスト"""
 
     @pytest.mark.unit
-    def test_to_dict_all_fields(self):
+    def test_to_dict_all_fields(self) -> None:
+
         """全フィールドを設定した場合のto_dict"""
         test_path = Path("/path/to/config.json")
         ctx = DiagnosticContext(
@@ -122,7 +127,8 @@ class TestDiagnosticContext:
         assert result["extra"] == "data"
 
     @pytest.mark.unit
-    def test_to_dict_partial_fields(self):
+    def test_to_dict_partial_fields(self) -> None:
+
         """一部フィールドのみ設定した場合のto_dict"""
         ctx = DiagnosticContext(
             current_level="monthly",
@@ -137,14 +143,16 @@ class TestDiagnosticContext:
         assert "last_operation" not in result
 
     @pytest.mark.unit
-    def test_to_dict_empty(self):
+    def test_to_dict_empty(self) -> None:
+
         """空のコンテキストのto_dict"""
         ctx = DiagnosticContext()
         result = ctx.to_dict()
         assert result == {}
 
     @pytest.mark.unit
-    def test_str_representation(self):
+    def test_str_representation(self) -> None:
+
         """__str__の文字列表現"""
         ctx = DiagnosticContext(
             current_level="weekly",
@@ -158,13 +166,15 @@ class TestDiagnosticContext:
         assert "threshold=5" in result
 
     @pytest.mark.unit
-    def test_str_empty_context(self):
+    def test_str_empty_context(self) -> None:
+
         """空のコンテキストの__str__"""
         ctx = DiagnosticContext()
         assert str(ctx) == ""
 
     @pytest.mark.unit
-    def test_additional_info_merged(self):
+    def test_additional_info_merged(self) -> None:
+
         """additional_infoがto_dictにマージされる"""
         ctx = DiagnosticContext(
             current_level="weekly",
@@ -186,7 +196,8 @@ class TestEpisodicRAGErrorWithContext:
     """EpisodicRAGError のコンテキスト付きテスト"""
 
     @pytest.mark.unit
-    def test_str_with_context(self):
+    def test_str_with_context(self) -> None:
+
         """コンテキスト付きエラーの__str__"""
         ctx = DiagnosticContext(
             current_level="weekly",
@@ -201,7 +212,8 @@ class TestEpisodicRAGErrorWithContext:
         assert "file_count=3" in result
 
     @pytest.mark.unit
-    def test_str_without_context(self):
+    def test_str_without_context(self) -> None:
+
         """コンテキストなしエラーの__str__"""
         error = EpisodicRAGError("Simple error")
         result = str(error)
@@ -210,7 +222,8 @@ class TestEpisodicRAGErrorWithContext:
         assert "[Context:" not in result
 
     @pytest.mark.unit
-    def test_str_with_empty_context(self):
+    def test_str_with_empty_context(self) -> None:
+
         """空のコンテキストを持つエラーの__str__"""
         ctx = DiagnosticContext()
         error = EpisodicRAGError("Error with empty context", context=ctx)
@@ -220,7 +233,8 @@ class TestEpisodicRAGErrorWithContext:
         assert result == "Error with empty context"
 
     @pytest.mark.unit
-    def test_context_attribute_accessible(self):
+    def test_context_attribute_accessible(self) -> None:
+
         """context属性にアクセスできる"""
         ctx = DiagnosticContext(current_level="monthly")
         error = EpisodicRAGError("Error", context=ctx)
@@ -229,7 +243,8 @@ class TestEpisodicRAGErrorWithContext:
         assert error.context.current_level == "monthly"
 
     @pytest.mark.unit
-    def test_subclass_with_context(self):
+    def test_subclass_with_context(self) -> None:
+
         """サブクラスでもコンテキストが機能する"""
         ctx = DiagnosticContext(
             current_level="weekly",
@@ -243,7 +258,8 @@ class TestEpisodicRAGErrorWithContext:
         assert "threshold=5" in result
 
     @pytest.mark.unit
-    def test_context_with_path(self):
+    def test_context_with_path(self) -> None:
+
         """Pathを含むコンテキスト"""
         test_path = Path("/home/user/config.json")
         ctx = DiagnosticContext(

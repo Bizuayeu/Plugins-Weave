@@ -27,19 +27,22 @@ pytestmark = pytest.mark.unit
 class TestCollectionValidatorInit:
     """CollectionValidator 初期化のテスト"""
 
-    def test_init_with_default_formatter(self):
+    def test_init_with_default_formatter(self) -> None:
+
         """デフォルトフォーマッタで初期化"""
         validator = CollectionValidator()
         # フォーマッタは遅延初期化されるので、この時点ではNone
         assert validator._formatter is None
 
-    def test_init_with_custom_formatter(self):
+    def test_init_with_custom_formatter(self) -> None:
+
         """カスタムフォーマッタで初期化"""
         mock_formatter = MagicMock(spec=CompositeErrorFormatter)
         validator = CollectionValidator(formatter=mock_formatter)
         assert validator._formatter is mock_formatter
 
-    def test_formatter_lazy_initialization(self):
+    def test_formatter_lazy_initialization(self) -> None:
+
         """formatterプロパティで遅延初期化される"""
         validator = CollectionValidator()
         assert validator._formatter is None
@@ -63,6 +66,7 @@ class TestValidateList:
 
     @pytest.fixture
     def validator(self):
+
         """テスト用CollectionValidator"""
         return CollectionValidator()
 
@@ -70,22 +74,26 @@ class TestValidateList:
     # 正常系
     # -------------------------------------------------------------------------
 
-    def test_valid_list_returns_empty_errors(self, validator):
+    def test_valid_list_returns_empty_errors(self, validator) -> None:
+
         """有効なリストはエラーなし"""
         errors = validator.validate_list([1, 2, 3], "test_context")
         assert errors == []
 
-    def test_empty_list_is_valid_type(self, validator):
+    def test_empty_list_is_valid_type(self, validator) -> None:
+
         """空のリストも型としては有効"""
         errors = validator.validate_list([], "test_context")
         assert errors == []
 
-    def test_nested_list_is_valid_type(self, validator):
+    def test_nested_list_is_valid_type(self, validator) -> None:
+
         """ネストされたリストも有効"""
         errors = validator.validate_list([[1, 2], [3, 4]], "test_context")
         assert errors == []
 
-    def test_list_with_mixed_types(self, validator):
+    def test_list_with_mixed_types(self, validator) -> None:
+
         """異なる型を含むリストも有効"""
         errors = validator.validate_list([1, "string", None, {"key": "value"}], "test_context")
         assert errors == []
@@ -106,7 +114,8 @@ class TestValidateList:
             (True, "bool"),
         ],
     )
-    def test_non_list_types_return_error(self, validator, invalid_input, type_name):
+    def test_non_list_types_return_error(self, validator, invalid_input, type_name) -> None:
+
         """リスト以外の型はエラーを返す"""
         errors = validator.validate_list(invalid_input, "test_context")
         assert len(errors) == 1
@@ -116,14 +125,16 @@ class TestValidateList:
     # エラーメッセージ検証
     # -------------------------------------------------------------------------
 
-    def test_error_message_contains_context(self, validator):
+    def test_error_message_contains_context(self, validator) -> None:
+
         """エラーメッセージにコンテキストが含まれる"""
         context = "source_files"
         errors = validator.validate_list("not a list", context)
         assert len(errors) == 1
         assert context in errors[0]
 
-    def test_error_message_contains_actual_type(self, validator):
+    def test_error_message_contains_actual_type(self, validator) -> None:
+
         """エラーメッセージに実際の型が含まれる"""
         errors = validator.validate_list({"dict": "value"}, "test_context")
         assert len(errors) == 1
@@ -140,6 +151,7 @@ class TestValidateNonEmpty:
 
     @pytest.fixture
     def validator(self):
+
         """テスト用CollectionValidator"""
         return CollectionValidator()
 
@@ -147,22 +159,26 @@ class TestValidateNonEmpty:
     # 正常系
     # -------------------------------------------------------------------------
 
-    def test_non_empty_list_returns_empty_errors(self, validator):
+    def test_non_empty_list_returns_empty_errors(self, validator) -> None:
+
         """空でないリストはエラーなし"""
         errors = validator.validate_non_empty([1, 2, 3], "test_context")
         assert errors == []
 
-    def test_single_element_list_returns_empty_errors(self, validator):
+    def test_single_element_list_returns_empty_errors(self, validator) -> None:
+
         """1要素のリストもエラーなし"""
         errors = validator.validate_non_empty(["single"], "test_context")
         assert errors == []
 
-    def test_list_with_none_elements_is_non_empty(self, validator):
+    def test_list_with_none_elements_is_non_empty(self, validator) -> None:
+
         """Noneを含むリストは空ではない"""
         errors = validator.validate_non_empty([None], "test_context")
         assert errors == []
 
-    def test_list_with_empty_string_is_non_empty(self, validator):
+    def test_list_with_empty_string_is_non_empty(self, validator) -> None:
+
         """空文字列を含むリストは空ではない"""
         errors = validator.validate_non_empty([""], "test_context")
         assert errors == []
@@ -171,13 +187,15 @@ class TestValidateNonEmpty:
     # 異常系
     # -------------------------------------------------------------------------
 
-    def test_empty_list_returns_error(self, validator):
+    def test_empty_list_returns_error(self, validator) -> None:
+
         """空のリストはエラーを返す"""
         errors = validator.validate_non_empty([], "test_context")
         assert len(errors) == 1
         assert "cannot be empty" in errors[0].lower() or "empty" in errors[0].lower()
 
-    def test_error_message_contains_context(self, validator):
+    def test_error_message_contains_context(self, validator) -> None:
+
         """エラーメッセージにコンテキストが含まれる"""
         context = "source_files"
         errors = validator.validate_non_empty([], context)
@@ -195,6 +213,7 @@ class TestValidateListAndNonEmpty:
 
     @pytest.fixture
     def validator(self):
+
         """テスト用CollectionValidator"""
         return CollectionValidator()
 
@@ -202,12 +221,14 @@ class TestValidateListAndNonEmpty:
     # 正常系
     # -------------------------------------------------------------------------
 
-    def test_valid_non_empty_list_returns_empty_errors(self, validator):
+    def test_valid_non_empty_list_returns_empty_errors(self, validator) -> None:
+
         """有効な非空リストはエラーなし"""
         errors = validator.validate_list_and_non_empty([1, 2, 3], "test_context")
         assert errors == []
 
-    def test_single_element_list_passes(self, validator):
+    def test_single_element_list_passes(self, validator) -> None:
+
         """1要素のリストもエラーなし"""
         errors = validator.validate_list_and_non_empty(["item"], "test_context")
         assert errors == []
@@ -216,13 +237,15 @@ class TestValidateListAndNonEmpty:
     # 異常系：型エラーが先に検出される
     # -------------------------------------------------------------------------
 
-    def test_non_list_returns_type_error_only(self, validator):
+    def test_non_list_returns_type_error_only(self, validator) -> None:
+
         """リスト以外の型は型エラーのみ返す（空チェックは行わない）"""
         errors = validator.validate_list_and_non_empty("not a list", "test_context")
         assert len(errors) == 1
         assert "expected list" in errors[0].lower()
 
-    def test_dict_returns_type_error_only(self, validator):
+    def test_dict_returns_type_error_only(self, validator) -> None:
+
         """dictは型エラーのみ返す"""
         errors = validator.validate_list_and_non_empty({"key": "value"}, "test_context")
         assert len(errors) == 1
@@ -232,7 +255,8 @@ class TestValidateListAndNonEmpty:
     # 異常系：型OK、空チェックでエラー
     # -------------------------------------------------------------------------
 
-    def test_empty_list_returns_empty_error(self, validator):
+    def test_empty_list_returns_empty_error(self, validator) -> None:
+
         """空のリストは空エラーを返す"""
         errors = validator.validate_list_and_non_empty([], "test_context")
         assert len(errors) == 1
@@ -242,7 +266,8 @@ class TestValidateListAndNonEmpty:
     # 型エラーが優先される
     # -------------------------------------------------------------------------
 
-    def test_type_error_takes_precedence_over_empty(self, validator):
+    def test_type_error_takes_precedence_over_empty(self, validator) -> None:
+
         """型エラーは空チェックより優先（空文字列の場合）"""
         # 空文字列はリストではないので、型エラーが先に検出される
         errors = validator.validate_list_and_non_empty("", "test_context")
@@ -260,17 +285,20 @@ class TestCollectionValidatorEdgeCases:
 
     @pytest.fixture
     def validator(self):
+
         """テスト用CollectionValidator"""
         return CollectionValidator()
 
-    def test_unicode_context_in_error_message(self, validator):
+    def test_unicode_context_in_error_message(self, validator) -> None:
+
         """日本語コンテキストがエラーメッセージに含まれる"""
         context = "ソースファイル"
         errors = validator.validate_list("not a list", context)
         assert len(errors) == 1
         assert context in errors[0]
 
-    def test_very_long_context_string(self, validator):
+    def test_very_long_context_string(self, validator) -> None:
+
         """非常に長いコンテキスト文字列でも動作する"""
         context = "a" * 1000
         errors = validator.validate_list("not a list", context)
@@ -278,14 +306,16 @@ class TestCollectionValidatorEdgeCases:
         # エラーメッセージは生成されるが、長さの制限はない
         assert errors[0] is not None
 
-    def test_special_characters_in_context(self, validator):
+    def test_special_characters_in_context(self, validator) -> None:
+
         """特殊文字を含むコンテキストでも動作する"""
         context = "source_files[0]['name']"
         errors = validator.validate_list("not a list", context)
         assert len(errors) == 1
         assert context in errors[0]
 
-    def test_newline_in_context(self, validator):
+    def test_newline_in_context(self, validator) -> None:
+
         """改行を含むコンテキストでも動作する"""
         context = "line1\nline2"
         errors = validator.validate_list("not a list", context)
@@ -293,7 +323,8 @@ class TestCollectionValidatorEdgeCases:
         # エラーメッセージは生成される
         assert errors[0] is not None
 
-    def test_large_list_validation(self, validator):
+    def test_large_list_validation(self, validator) -> None:
+
         """大きなリストでも正常に動作する"""
         large_list = list(range(10000))
         errors = validator.validate_list(large_list, "test_context")

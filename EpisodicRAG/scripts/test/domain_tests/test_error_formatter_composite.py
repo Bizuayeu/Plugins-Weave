@@ -28,7 +28,8 @@ from domain.error_formatter import (
 class TestCompositeErrorFormatterInit(unittest.TestCase):
     """CompositeErrorFormatter initialization tests"""
 
-    def test_init_creates_category_formatters(self):
+    def test_init_creates_category_formatters(self) -> None:
+
         """Initializes with all category formatters"""
         formatter = CompositeErrorFormatter(Path("/root"))
         self.assertIsInstance(formatter.config, ConfigErrorFormatter)
@@ -36,7 +37,8 @@ class TestCompositeErrorFormatterInit(unittest.TestCase):
         self.assertIsInstance(formatter.validation, ValidationErrorFormatter)
         self.assertIsInstance(formatter.digest, DigestErrorFormatter)
 
-    def test_category_formatters_share_project_root(self):
+    def test_category_formatters_share_project_root(self) -> None:
+
         """All category formatters have same project root"""
         root = Path("/test/project")
         formatter = CompositeErrorFormatter(root)
@@ -49,7 +51,8 @@ class TestCompositeErrorFormatterInit(unittest.TestCase):
 class TestCompositeErrorFormatterFormatPath(unittest.TestCase):
     """CompositeErrorFormatter.format_path() tests"""
 
-    def test_convenience_method(self):
+    def test_convenience_method(self) -> None:
+
         """format_path convenience method works"""
         root = Path("/project")
         formatter = CompositeErrorFormatter(root)
@@ -61,27 +64,32 @@ class TestCompositeErrorFormatterFormatPath(unittest.TestCase):
 class TestCompositeErrorFormatterCategoryAccess(unittest.TestCase):
     """CompositeErrorFormatter category access tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Set up test formatter"""
         self.formatter = CompositeErrorFormatter(Path("/root"))
 
-    def test_config_category_access(self):
+    def test_config_category_access(self) -> None:
+
         """Access config methods via category"""
         result = self.formatter.config.invalid_level("xyz")
         self.assertEqual(result, "Invalid level: 'xyz'")
 
-    def test_file_category_access(self):
+    def test_file_category_access(self) -> None:
+
         """Access file methods via category"""
         path = Path("/root/file.txt")
         result = self.formatter.file.file_not_found(path)
         self.assertEqual(result, "File not found: file.txt")
 
-    def test_validation_category_access(self):
+    def test_validation_category_access(self) -> None:
+
         """Access validation methods via category"""
         result = self.formatter.validation.empty_collection("items")
         self.assertEqual(result, "items cannot be empty")
 
-    def test_digest_category_access(self):
+    def test_digest_category_access(self) -> None:
+
         """Access digest methods via category"""
         result = self.formatter.digest.shadow_empty("weekly")
         self.assertEqual(result, "Shadow digest for level 'weekly' has no source files")
@@ -95,32 +103,38 @@ class TestCompositeErrorFormatterCategoryAccess(unittest.TestCase):
 class TestGetErrorFormatter(unittest.TestCase):
     """get_error_formatter() tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Reset formatter before each test"""
         reset_error_formatter()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """Reset formatter after each test"""
         reset_error_formatter()
 
-    def test_returns_composite_formatter(self):
+    def test_returns_composite_formatter(self) -> None:
+
         """Returns CompositeErrorFormatter instance"""
         formatter = get_error_formatter()
         self.assertIsInstance(formatter, CompositeErrorFormatter)
 
-    def test_with_explicit_root(self):
+    def test_with_explicit_root(self) -> None:
+
         """Creates formatter with provided root"""
         root = Path("/explicit/root")
         formatter = get_error_formatter(root)
         self.assertEqual(formatter.project_root, root)
 
-    def test_caches_default_formatter(self):
+    def test_caches_default_formatter(self) -> None:
+
         """Caches and returns same formatter instance"""
         formatter1 = get_error_formatter()
         formatter2 = get_error_formatter()
         self.assertIs(formatter1, formatter2)
 
-    def test_explicit_root_overrides_cache(self):
+    def test_explicit_root_overrides_cache(self) -> None:
+
         """Explicit root creates new formatter"""
         _ = get_error_formatter()
         root = Path("/new/root")
@@ -131,7 +145,8 @@ class TestGetErrorFormatter(unittest.TestCase):
 class TestResetErrorFormatter(unittest.TestCase):
     """reset_error_formatter() tests"""
 
-    def test_resets_cached_formatter(self):
+    def test_resets_cached_formatter(self) -> None:
+
         """Resets the cached formatter"""
         formatter1 = get_error_formatter(Path("/first"))
         reset_error_formatter()

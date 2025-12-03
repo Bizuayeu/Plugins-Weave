@@ -29,14 +29,16 @@ class TestScanFiles:
     """scan_files() 関数のテスト"""
 
     @pytest.mark.integration
-    def test_nonexistent_directory_returns_empty(self, tmp_path):
+    def test_nonexistent_directory_returns_empty(self, tmp_path: Path) -> None:
+
         """存在しないディレクトリ → 空リスト"""
         nonexistent = tmp_path / "nonexistent"
         result = scan_files(nonexistent, "*.txt")
         assert result == []
 
     @pytest.mark.integration
-    def test_empty_directory_returns_empty(self, tmp_path):
+    def test_empty_directory_returns_empty(self, tmp_path: Path) -> None:
+
         """空ディレクトリ → 空リスト"""
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
@@ -44,7 +46,8 @@ class TestScanFiles:
         assert result == []
 
     @pytest.mark.integration
-    def test_single_file_match(self, tmp_path):
+    def test_single_file_match(self, tmp_path: Path) -> None:
+
         """単一ファイルマッチ"""
         test_file = tmp_path / "test.txt"
         test_file.write_text("content")
@@ -54,7 +57,8 @@ class TestScanFiles:
         assert result[0] == test_file
 
     @pytest.mark.integration
-    def test_multiple_files_sorted_by_default(self, tmp_path):
+    def test_multiple_files_sorted_by_default(self, tmp_path: Path) -> None:
+
         """複数ファイル - デフォルトでソート"""
         (tmp_path / "c.txt").write_text("")
         (tmp_path / "a.txt").write_text("")
@@ -67,7 +71,8 @@ class TestScanFiles:
         assert result[2].name == "c.txt"
 
     @pytest.mark.integration
-    def test_multiple_files_unsorted(self, tmp_path):
+    def test_multiple_files_unsorted(self, tmp_path: Path) -> None:
+
         """複数ファイル - ソートなし（glob順序はプラットフォーム依存）"""
         (tmp_path / "c.txt").write_text("")
         (tmp_path / "a.txt").write_text("")
@@ -78,7 +83,8 @@ class TestScanFiles:
         # ソートなしの場合、順序は保証されないがファイル数は正しい
 
     @pytest.mark.integration
-    def test_pattern_filters_correctly(self, tmp_path):
+    def test_pattern_filters_correctly(self, tmp_path: Path) -> None:
+
         """パターンが正しくフィルタリング"""
         (tmp_path / "test.txt").write_text("")
         (tmp_path / "test.json").write_text("")
@@ -89,7 +95,8 @@ class TestScanFiles:
         assert result[0].name == "test.txt"
 
     @pytest.mark.integration
-    def test_glob_pattern_with_prefix(self, tmp_path):
+    def test_glob_pattern_with_prefix(self, tmp_path: Path) -> None:
+
         """プレフィックス付きglobパターン"""
         (tmp_path / "L00001.txt").write_text("")
         (tmp_path / "L00002.txt").write_text("")
@@ -108,7 +115,8 @@ class TestGetFilesByPattern:
     """get_files_by_pattern() 関数のテスト"""
 
     @pytest.mark.integration
-    def test_without_filter(self, tmp_path):
+    def test_without_filter(self, tmp_path: Path) -> None:
+
         """フィルター関数なし - 全ファイル取得"""
         (tmp_path / "a.txt").write_text("")
         (tmp_path / "b.txt").write_text("")
@@ -117,7 +125,8 @@ class TestGetFilesByPattern:
         assert len(result) == 2
 
     @pytest.mark.integration
-    def test_with_filter_matching(self, tmp_path):
+    def test_with_filter_matching(self, tmp_path: Path) -> None:
+
         """フィルター関数 - マッチするファイルのみ"""
         (tmp_path / "keep_a.txt").write_text("")
         (tmp_path / "keep_b.txt").write_text("")
@@ -130,7 +139,8 @@ class TestGetFilesByPattern:
         assert all("keep_" in f.name for f in result)
 
     @pytest.mark.integration
-    def test_with_filter_no_matches(self, tmp_path):
+    def test_with_filter_no_matches(self, tmp_path: Path) -> None:
+
         """フィルター関数 - 全てフィルタアウト"""
         (tmp_path / "a.txt").write_text("")
         (tmp_path / "b.txt").write_text("")
@@ -139,7 +149,8 @@ class TestGetFilesByPattern:
         assert result == []
 
     @pytest.mark.integration
-    def test_results_are_sorted(self, tmp_path):
+    def test_results_are_sorted(self, tmp_path: Path) -> None:
+
         """結果はソート済み"""
         (tmp_path / "z.txt").write_text("")
         (tmp_path / "a.txt").write_text("")
@@ -170,14 +181,16 @@ class TestGetMaxNumberedFile:
         return None
 
     @pytest.mark.integration
-    def test_nonexistent_directory_returns_none(self, tmp_path):
+    def test_nonexistent_directory_returns_none(self, tmp_path: Path) -> None:
+
         """存在しないディレクトリ → None"""
         nonexistent = tmp_path / "nonexistent"
         result = get_max_numbered_file(nonexistent, "L*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
-    def test_empty_directory_returns_none(self, tmp_path):
+    def test_empty_directory_returns_none(self, tmp_path: Path) -> None:
+
         """空ディレクトリ → None"""
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
@@ -185,21 +198,24 @@ class TestGetMaxNumberedFile:
         assert result is None
 
     @pytest.mark.integration
-    def test_no_matching_files_returns_none(self, tmp_path):
+    def test_no_matching_files_returns_none(self, tmp_path: Path) -> None:
+
         """マッチするファイルなし → None"""
         (tmp_path / "other.txt").write_text("")
         result = get_max_numbered_file(tmp_path, "L*.txt", self.extract_loop_number)
         assert result is None
 
     @pytest.mark.integration
-    def test_single_file_returns_number(self, tmp_path):
+    def test_single_file_returns_number(self, tmp_path: Path) -> None:
+
         """単一ファイル → その番号"""
         (tmp_path / "L00042.txt").write_text("")
         result = get_max_numbered_file(tmp_path, "L*.txt", self.extract_loop_number)
         assert result == 42
 
     @pytest.mark.integration
-    def test_multiple_files_returns_max(self, tmp_path):
+    def test_multiple_files_returns_max(self, tmp_path: Path) -> None:
+
         """複数ファイル → 最大番号"""
         (tmp_path / "L00010.txt").write_text("")
         (tmp_path / "L00050.txt").write_text("")
@@ -209,7 +225,8 @@ class TestGetMaxNumberedFile:
         assert result == 50
 
     @pytest.mark.integration
-    def test_files_with_invalid_numbers_ignored(self, tmp_path):
+    def test_files_with_invalid_numbers_ignored(self, tmp_path: Path) -> None:
+
         """無効な番号のファイルは無視"""
         (tmp_path / "L00020.txt").write_text("")
         (tmp_path / "LXXXXX.txt").write_text("")
@@ -238,13 +255,15 @@ class TestFilterFilesAfterNumber:
         return None
 
     @pytest.mark.unit
-    def test_empty_list_returns_empty(self):
+    def test_empty_list_returns_empty(self) -> None:
+
         """空リスト → 空リスト"""
         result = filter_files_after_number([], 10, self.extract_number)
         assert result == []
 
     @pytest.mark.unit
-    def test_all_below_threshold_returns_empty(self, tmp_path):
+    def test_all_below_threshold_returns_empty(self, tmp_path: Path) -> None:
+
         """全てしきい値以下 → 空リスト"""
         files = [
             tmp_path / "Loop0001.txt",
@@ -255,7 +274,8 @@ class TestFilterFilesAfterNumber:
         assert result == []
 
     @pytest.mark.unit
-    def test_all_above_threshold_returns_all(self, tmp_path):
+    def test_all_above_threshold_returns_all(self, tmp_path: Path) -> None:
+
         """全てしきい値超 → 全て返す"""
         files = [
             tmp_path / "Loop0015.txt",
@@ -266,7 +286,8 @@ class TestFilterFilesAfterNumber:
         assert len(result) == 3
 
     @pytest.mark.unit
-    def test_mixed_files_filters_correctly(self, tmp_path):
+    def test_mixed_files_filters_correctly(self, tmp_path: Path) -> None:
+
         """混在ファイル → 正しくフィルタ"""
         files = [
             tmp_path / "Loop0005.txt",  # below
@@ -279,7 +300,8 @@ class TestFilterFilesAfterNumber:
         assert all(self.extract_number(f.name) > 10 for f in result)
 
     @pytest.mark.unit
-    def test_invalid_number_files_excluded(self, tmp_path):
+    def test_invalid_number_files_excluded(self, tmp_path: Path) -> None:
+
         """無効な番号のファイルは除外"""
         files = [
             tmp_path / "Loop0015.txt",  # valid, above
@@ -300,14 +322,16 @@ class TestCountFiles:
     """count_files() 関数のテスト"""
 
     @pytest.mark.integration
-    def test_nonexistent_directory_returns_zero(self, tmp_path):
+    def test_nonexistent_directory_returns_zero(self, tmp_path: Path) -> None:
+
         """存在しないディレクトリ → 0"""
         nonexistent = tmp_path / "nonexistent"
         result = count_files(nonexistent, "*.txt")
         assert result == 0
 
     @pytest.mark.integration
-    def test_empty_directory_returns_zero(self, tmp_path):
+    def test_empty_directory_returns_zero(self, tmp_path: Path) -> None:
+
         """空ディレクトリ → 0"""
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
@@ -315,14 +339,16 @@ class TestCountFiles:
         assert result == 0
 
     @pytest.mark.integration
-    def test_single_file_returns_one(self, tmp_path):
+    def test_single_file_returns_one(self, tmp_path: Path) -> None:
+
         """単一ファイル → 1"""
         (tmp_path / "test.txt").write_text("")
         result = count_files(tmp_path, "*.txt")
         assert result == 1
 
     @pytest.mark.integration
-    def test_multiple_files_counted_correctly(self, tmp_path):
+    def test_multiple_files_counted_correctly(self, tmp_path: Path) -> None:
+
         """複数ファイル → 正しくカウント"""
         for i in range(5):
             (tmp_path / f"file{i}.txt").write_text("")
@@ -330,7 +356,8 @@ class TestCountFiles:
         assert result == 5
 
     @pytest.mark.integration
-    def test_pattern_filters_count(self, tmp_path):
+    def test_pattern_filters_count(self, tmp_path: Path) -> None:
+
         """パターンがカウントに影響"""
         (tmp_path / "a.txt").write_text("")
         (tmp_path / "b.txt").write_text("")
@@ -343,7 +370,8 @@ class TestCountFiles:
         assert json_count == 1
 
     @pytest.mark.integration
-    def test_default_pattern_is_txt(self, tmp_path):
+    def test_default_pattern_is_txt(self, tmp_path: Path) -> None:
+
         """デフォルトパターンは *.txt"""
         (tmp_path / "a.txt").write_text("")
         (tmp_path / "b.txt").write_text("")

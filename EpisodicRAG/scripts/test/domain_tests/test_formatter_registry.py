@@ -31,13 +31,15 @@ from domain.error_formatter import (
 class TestFormatterRegistryInit(unittest.TestCase):
     """FormatterRegistry initialization tests"""
 
-    def test_init_with_project_root(self):
+    def test_init_with_project_root(self) -> None:
+
         """Initializes with project root"""
         root = Path("/project")
         registry = FormatterRegistry(root)
         self.assertEqual(registry.project_root, root)
 
-    def test_init_empty_registry(self):
+    def test_init_empty_registry(self) -> None:
+
         """Starts with no registered formatters"""
         registry = FormatterRegistry(Path("/project"))
         self.assertEqual(len(registry), 0)
@@ -47,19 +49,22 @@ class TestFormatterRegistryInit(unittest.TestCase):
 class TestFormatterRegistryRegister(unittest.TestCase):
     """FormatterRegistry.register() tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Set up test registry"""
         self.root = Path("/project")
         self.registry = FormatterRegistry(self.root)
 
-    def test_register_formatter(self):
+    def test_register_formatter(self) -> None:
+
         """Registers a formatter with category name"""
         formatter = ConfigErrorFormatter(self.root)
         self.registry.register("config", formatter)
         self.assertTrue(self.registry.has("config"))
         self.assertEqual(len(self.registry), 1)
 
-    def test_register_multiple_formatters(self):
+    def test_register_multiple_formatters(self) -> None:
+
         """Registers multiple formatters"""
         self.registry.register("config", ConfigErrorFormatter(self.root))
         self.registry.register("file", FileErrorFormatter(self.root))
@@ -68,13 +73,15 @@ class TestFormatterRegistryRegister(unittest.TestCase):
         self.assertEqual(len(self.registry), 3)
         self.assertEqual(set(self.registry.categories()), {"config", "file", "validation"})
 
-    def test_register_rejects_non_formatter(self):
+    def test_register_rejects_non_formatter(self) -> None:
+
         """Rejects non-BaseErrorFormatter objects"""
         with self.assertRaises(TypeError) as ctx:
             self.registry.register("invalid", "not a formatter")  # type: ignore
         self.assertIn("BaseErrorFormatter", str(ctx.exception))
 
-    def test_register_overwrites_existing(self):
+    def test_register_overwrites_existing(self) -> None:
+
         """Overwrites existing formatter with same category"""
         formatter1 = ConfigErrorFormatter(self.root)
         formatter2 = ConfigErrorFormatter(Path("/other"))
@@ -89,31 +96,36 @@ class TestFormatterRegistryRegister(unittest.TestCase):
 class TestFormatterRegistryGet(unittest.TestCase):
     """FormatterRegistry.get() tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Set up test registry with formatters"""
         self.root = Path("/project")
         self.registry = FormatterRegistry(self.root)
         self.registry.register("config", ConfigErrorFormatter(self.root))
         self.registry.register("file", FileErrorFormatter(self.root))
 
-    def test_get_registered_formatter(self):
+    def test_get_registered_formatter(self) -> None:
+
         """Gets registered formatter by category"""
         formatter = self.registry.get("config")
         self.assertIsInstance(formatter, ConfigErrorFormatter)
 
-    def test_get_raises_for_unknown_category(self):
+    def test_get_raises_for_unknown_category(self) -> None:
+
         """Raises KeyError for unknown category"""
         with self.assertRaises(KeyError) as ctx:
             self.registry.get("unknown")
         self.assertIn("unknown", str(ctx.exception))
         self.assertIn("config", str(ctx.exception))  # Shows available
 
-    def test_get_or_none_returns_formatter(self):
+    def test_get_or_none_returns_formatter(self) -> None:
+
         """get_or_none returns formatter when exists"""
         formatter = self.registry.get_or_none("config")
         self.assertIsInstance(formatter, ConfigErrorFormatter)
 
-    def test_get_or_none_returns_none(self):
+    def test_get_or_none_returns_none(self) -> None:
+
         """get_or_none returns None when not exists"""
         result = self.registry.get_or_none("unknown")
         self.assertIsNone(result)
@@ -122,30 +134,35 @@ class TestFormatterRegistryGet(unittest.TestCase):
 class TestFormatterRegistryDynamicAccess(unittest.TestCase):
     """FormatterRegistry dynamic attribute access tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Set up test registry with formatters"""
         self.root = Path("/project")
         self.registry = FormatterRegistry(self.root)
         self.registry.register("config", ConfigErrorFormatter(self.root))
         self.registry.register("file", FileErrorFormatter(self.root))
 
-    def test_dynamic_attribute_access(self):
+    def test_dynamic_attribute_access(self) -> None:
+
         """Access formatter via attribute: registry.config"""
         formatter = self.registry.config
         self.assertIsInstance(formatter, ConfigErrorFormatter)
 
-    def test_dynamic_access_raises_attribute_error(self):
+    def test_dynamic_access_raises_attribute_error(self) -> None:
+
         """Raises AttributeError for unknown category"""
         with self.assertRaises(AttributeError) as ctx:
             _ = self.registry.unknown
         self.assertIn("unknown", str(ctx.exception))
 
-    def test_in_operator(self):
+    def test_in_operator(self) -> None:
+
         """'in' operator works for checking categories"""
         self.assertIn("config", self.registry)
         self.assertNotIn("unknown", self.registry)
 
-    def test_private_attribute_access_fails(self):
+    def test_private_attribute_access_fails(self) -> None:
+
         """Private attributes (_name) raise AttributeError normally"""
         with self.assertRaises(AttributeError):
             _ = self.registry._nonexistent
@@ -154,19 +171,22 @@ class TestFormatterRegistryDynamicAccess(unittest.TestCase):
 class TestFormatterRegistryUsability(unittest.TestCase):
     """FormatterRegistry practical usage tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Set up test registry with formatters"""
         self.root = Path("/project")
         self.registry = FormatterRegistry(self.root)
         self.registry.register("config", ConfigErrorFormatter(self.root))
 
-    def test_formatter_methods_work(self):
+    def test_formatter_methods_work(self) -> None:
+
         """Formatter methods work after retrieval"""
         formatter = self.registry.get("config")
         result = formatter.invalid_level("xyz", ["weekly", "monthly"])
         self.assertEqual(result, "Invalid level: 'xyz'. Valid levels: weekly, monthly")
 
-    def test_dynamic_access_methods_work(self):
+    def test_dynamic_access_methods_work(self) -> None:
+
         """Formatter methods work via dynamic access"""
         result = self.registry.config.invalid_level("xyz")
         self.assertEqual(result, "Invalid level: 'xyz'")
@@ -180,16 +200,19 @@ class TestFormatterRegistryUsability(unittest.TestCase):
 class TestCompositeErrorFormatterRegistryIntegration(unittest.TestCase):
     """CompositeErrorFormatter registry integration tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Set up test formatter"""
         self.root = Path("/project")
         self.formatter = CompositeErrorFormatter(self.root)
 
-    def test_has_internal_registry(self):
+    def test_has_internal_registry(self) -> None:
+
         """Has internal FormatterRegistry"""
         self.assertIsInstance(self.formatter.registry, FormatterRegistry)
 
-    def test_registry_has_default_formatters(self):
+    def test_registry_has_default_formatters(self) -> None:
+
         """Internal registry has all default formatters"""
         registry = self.formatter.registry
         self.assertEqual(len(registry), 4)
@@ -198,7 +221,8 @@ class TestCompositeErrorFormatterRegistryIntegration(unittest.TestCase):
         self.assertTrue(registry.has("validation"))
         self.assertTrue(registry.has("digest"))
 
-    def test_backward_compatible_property_access(self):
+    def test_backward_compatible_property_access(self) -> None:
+
         """Backward compatible property access works"""
         # These are properties that delegate to registry
         self.assertIsInstance(self.formatter.config, ConfigErrorFormatter)
@@ -210,12 +234,14 @@ class TestCompositeErrorFormatterRegistryIntegration(unittest.TestCase):
 class TestCompositeErrorFormatterExtension(unittest.TestCase):
     """CompositeErrorFormatter extension tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """Set up test formatter"""
         self.root = Path("/project")
         self.formatter = CompositeErrorFormatter(self.root)
 
-    def test_register_formatter_method(self):
+    def test_register_formatter_method(self) -> None:
+
         """register_formatter adds new category"""
         custom = ConfigErrorFormatter(self.root)  # Using existing class for simplicity
         self.formatter.register_formatter("custom", custom)
@@ -223,17 +249,20 @@ class TestCompositeErrorFormatterExtension(unittest.TestCase):
         self.assertTrue(self.formatter.has_formatter("custom"))
         self.assertEqual(len(self.formatter.registry), 5)
 
-    def test_get_formatter_method(self):
+    def test_get_formatter_method(self) -> None:
+
         """get_formatter retrieves registered formatter"""
         formatter = self.formatter.get_formatter("config")
         self.assertIsInstance(formatter, ConfigErrorFormatter)
 
-    def test_get_formatter_raises_for_unknown(self):
+    def test_get_formatter_raises_for_unknown(self) -> None:
+
         """get_formatter raises KeyError for unknown category"""
         with self.assertRaises(KeyError):
             self.formatter.get_formatter("unknown")
 
-    def test_has_formatter_method(self):
+    def test_has_formatter_method(self) -> None:
+
         """has_formatter checks if category exists"""
         self.assertTrue(self.formatter.has_formatter("config"))
         self.assertFalse(self.formatter.has_formatter("unknown"))
@@ -242,7 +271,8 @@ class TestCompositeErrorFormatterExtension(unittest.TestCase):
 class TestCompositeErrorFormatterCustomFormatter(unittest.TestCase):
     """Tests for adding custom formatters"""
 
-    def test_custom_formatter_accessible_via_registry(self):
+    def test_custom_formatter_accessible_via_registry(self) -> None:
+
         """Custom formatter accessible via registry"""
         root = Path("/project")
         formatter = CompositeErrorFormatter(root)
@@ -268,12 +298,14 @@ class TestCompositeErrorFormatterCustomFormatter(unittest.TestCase):
 class TestFormatterRegistryImports(unittest.TestCase):
     """FormatterRegistry import path tests"""
 
-    def test_import_from_package(self):
+    def test_import_from_package(self) -> None:
+
         """Import from domain.error_formatter package"""
         from domain.error_formatter import FormatterRegistry
         self.assertIsNotNone(FormatterRegistry)
 
-    def test_import_from_module(self):
+    def test_import_from_module(self) -> None:
+
         """Import from domain.error_formatter.registry module"""
         from domain.error_formatter.registry import FormatterRegistry
         self.assertIsNotNone(FormatterRegistry)

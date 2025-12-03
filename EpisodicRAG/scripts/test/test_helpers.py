@@ -223,7 +223,8 @@ class TempPluginEnvironment:
             # ... テスト実行 ...
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+
         self.temp_dir: Optional[Path] = None
         self.paths: Optional[Dict[str, Path]] = None
 
@@ -234,7 +235,8 @@ class TempPluginEnvironment:
         create_default_templates(self.paths["config_dir"])
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+
         if self.temp_dir and self.temp_dir.exists():
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 

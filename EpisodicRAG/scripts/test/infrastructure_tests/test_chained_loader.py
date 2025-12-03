@@ -28,7 +28,8 @@ from infrastructure.json_repository.load_strategy import LoadContext, LoadStrate
 class MockSuccessStrategy(LoadStrategy[Dict[str, Any]]):
     """常に成功を返す戦略"""
 
-    def __init__(self, return_value: Dict[str, Any], description: str = "MockSuccess"):
+    def __init__(self, return_value: Dict[str, Any], description: str = "MockSuccess") -> None:
+
         self.return_value = return_value
         self.description = description
         self.load_called = False
@@ -44,7 +45,8 @@ class MockSuccessStrategy(LoadStrategy[Dict[str, Any]]):
 class MockFailureStrategy(LoadStrategy[Dict[str, Any]]):
     """常にNoneを返す戦略"""
 
-    def __init__(self, description: str = "MockFailure"):
+    def __init__(self, description: str = "MockFailure") -> None:
+
         self.description = description
         self.load_called = False
 
@@ -63,6 +65,7 @@ class MockFailureStrategy(LoadStrategy[Dict[str, Any]]):
 
 @pytest.fixture
 def sample_context():
+
     """テスト用のLoadContext"""
     return LoadContext(
         target_file=Path("/tmp/test.json"),
@@ -72,6 +75,7 @@ def sample_context():
 
 @pytest.fixture
 def success_data():
+
     """成功時に返すデータ"""
     return {"key": "value", "number": 42}
 
@@ -85,7 +89,8 @@ class TestChainedLoaderLoad:
     """loadメソッドのテスト"""
 
     @pytest.mark.unit
-    def test_returns_first_successful_result(self, sample_context, success_data):
+    def test_returns_first_successful_result(self, sample_context, success_data) -> None:
+
         """最初に成功した戦略の結果を返す"""
         strategy1 = MockFailureStrategy("fail1")
         strategy2 = MockSuccessStrategy(success_data, "success")
@@ -100,7 +105,8 @@ class TestChainedLoaderLoad:
         assert strategy3.load_called is False  # 短絡評価
 
     @pytest.mark.unit
-    def test_first_strategy_succeeds(self, sample_context, success_data):
+    def test_first_strategy_succeeds(self, sample_context, success_data) -> None:
+
         """最初の戦略が成功した場合、それを返す"""
         strategy1 = MockSuccessStrategy(success_data, "success")
         strategy2 = MockFailureStrategy("fail")
@@ -113,7 +119,8 @@ class TestChainedLoaderLoad:
         assert strategy2.load_called is False  # 呼ばれない
 
     @pytest.mark.unit
-    def test_all_strategies_fail_returns_none(self, sample_context):
+    def test_all_strategies_fail_returns_none(self, sample_context) -> None:
+
         """全戦略が失敗した場合Noneを返す"""
         strategy1 = MockFailureStrategy("fail1")
         strategy2 = MockFailureStrategy("fail2")
@@ -128,7 +135,8 @@ class TestChainedLoaderLoad:
         assert strategy3.load_called is True
 
     @pytest.mark.unit
-    def test_empty_strategy_list_returns_none(self, sample_context):
+    def test_empty_strategy_list_returns_none(self, sample_context) -> None:
+
         """空の戦略リストはNoneを返す"""
         loader: ChainedLoader[Dict[str, Any]] = ChainedLoader([])
         result = loader.load(sample_context)
@@ -136,7 +144,8 @@ class TestChainedLoaderLoad:
         assert result is None
 
     @pytest.mark.unit
-    def test_single_successful_strategy(self, sample_context, success_data):
+    def test_single_successful_strategy(self, sample_context, success_data) -> None:
+
         """単一の成功戦略"""
         strategy = MockSuccessStrategy(success_data, "only")
 
@@ -146,7 +155,8 @@ class TestChainedLoaderLoad:
         assert result == success_data
 
     @pytest.mark.unit
-    def test_single_failing_strategy(self, sample_context):
+    def test_single_failing_strategy(self, sample_context) -> None:
+
         """単一の失敗戦略"""
         strategy = MockFailureStrategy("only")
 
@@ -166,11 +176,13 @@ class TestChainedLoaderStrategyOrder:
 
     @pytest.mark.unit
     def test_strategies_executed_in_order(self, sample_context):
+
         """戦略は追加順に実行される"""
         execution_order = []
 
         class OrderTrackingStrategy(LoadStrategy[Dict[str, Any]]):
-            def __init__(self, name: str):
+            def __init__(self, name: str) -> None:
+
                 self.name = name
 
             def load(self, context: LoadContext) -> Optional[Dict[str, Any]]:
@@ -201,7 +213,8 @@ class TestChainedLoaderAddStrategy:
     """add_strategyメソッドのテスト"""
 
     @pytest.mark.unit
-    def test_add_strategy_appends_to_end(self, sample_context, success_data):
+    def test_add_strategy_appends_to_end(self, sample_context, success_data) -> None:
+
         """add_strategyは最後に追加する"""
         strategy1 = MockFailureStrategy("fail")
         strategy2 = MockSuccessStrategy(success_data, "success")
@@ -213,7 +226,8 @@ class TestChainedLoaderAddStrategy:
         assert result == success_data
 
     @pytest.mark.unit
-    def test_add_strategy_to_empty_list(self, sample_context, success_data):
+    def test_add_strategy_to_empty_list(self, sample_context, success_data) -> None:
+
         """空のリストに戦略を追加"""
         strategy = MockSuccessStrategy(success_data, "success")
 
@@ -233,7 +247,8 @@ class TestChainedLoaderInsertStrategy:
     """insert_strategyメソッドのテスト"""
 
     @pytest.mark.unit
-    def test_insert_at_beginning(self, sample_context, success_data):
+    def test_insert_at_beginning(self, sample_context, success_data) -> None:
+
         """先頭に挿入"""
         strategy1 = MockFailureStrategy("fail")
         strategy2 = MockSuccessStrategy(success_data, "success")
@@ -246,7 +261,8 @@ class TestChainedLoaderInsertStrategy:
         assert strategy1.load_called is False  # 短絡で呼ばれない
 
     @pytest.mark.unit
-    def test_insert_in_middle(self, sample_context, success_data):
+    def test_insert_in_middle(self, sample_context, success_data) -> None:
+
         """中間に挿入"""
         strategy1 = MockFailureStrategy("fail1")
         strategy2 = MockFailureStrategy("fail2")
@@ -261,7 +277,8 @@ class TestChainedLoaderInsertStrategy:
         assert strategy2.load_called is False
 
     @pytest.mark.unit
-    def test_insert_at_end(self, sample_context, success_data):
+    def test_insert_at_end(self, sample_context, success_data) -> None:
+
         """最後に挿入（add_strategyと同等）"""
         strategy1 = MockFailureStrategy("fail")
         strategy2 = MockSuccessStrategy(success_data, "success")
@@ -283,6 +300,7 @@ class TestChainedLoaderContextPassing:
 
     @pytest.mark.unit
     def test_context_passed_to_all_strategies(self, sample_context):
+
         """コンテキストが各戦略に渡される"""
         received_contexts = []
 
@@ -312,11 +330,13 @@ class TestLoadContext:
 
     @pytest.mark.unit
     def test_context_initialization(self):
+
         """コンテキストの初期化"""
         target = Path("/tmp/target.json")
         template = Path("/tmp/template.json")
 
         def factory():
+
             return {"default": True}
 
         context = LoadContext(
@@ -334,7 +354,8 @@ class TestLoadContext:
         assert context.log_message == "test message"
 
     @pytest.mark.unit
-    def test_context_minimal_initialization(self):
+    def test_context_minimal_initialization(self) -> None:
+
         """最小限のコンテキスト初期化"""
         target = Path("/tmp/target.json")
 

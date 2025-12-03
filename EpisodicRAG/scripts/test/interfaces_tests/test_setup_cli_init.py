@@ -20,18 +20,21 @@ import pytest
 class TestSetupCLIInitCommand(unittest.TestCase):
     """init サブコマンドのCLIテスト"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
         self._create_templates()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _create_templates(self):
+    def _create_templates(self) -> None:
+
         """テンプレートファイルを作成"""
         template_dir = self.plugin_root / ".claude-plugin"
         grand_template = {"metadata": {"last_updated": "", "version": "1.0"}, "major_digests": {}}
@@ -45,6 +48,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             json.dump(times_template, f)
 
     def _get_valid_config_json(self):
+
         """有効な設定JSONを返す"""
         return json.dumps({
             "base_dir": ".",
@@ -66,7 +70,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         })
 
     @pytest.mark.unit
-    def test_init_with_valid_config_json(self):
+    def test_init_with_valid_config_json(self) -> None:
+
         """init --config で有効なJSONを渡す"""
         config_json = self._get_valid_config_json()
 
@@ -86,7 +91,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert result["created"] is not None
 
     @pytest.mark.unit
-    def test_init_with_invalid_json_exits_error(self):
+    def test_init_with_invalid_json_exits_error(self) -> None:
+
         """init --config に不正なJSONを渡すとエラー"""
         with patch("sys.argv", [
             "digest_setup.py",
@@ -105,7 +111,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert result["status"] == "error"
 
     @pytest.mark.unit
-    def test_init_with_missing_paths_exits_error(self):
+    def test_init_with_missing_paths_exits_error(self) -> None:
+
         """init --config で paths がないとエラー"""
         config_json = json.dumps({
             "base_dir": ".",
@@ -128,7 +135,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert "paths" in result["error"].lower()
 
     @pytest.mark.unit
-    def test_init_with_missing_levels_exits_error(self):
+    def test_init_with_missing_levels_exits_error(self) -> None:
+
         """init --config で levels がないとエラー"""
         config_json = json.dumps({
             "base_dir": ".",
@@ -155,7 +163,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert "levels" in result["error"].lower()
 
     @pytest.mark.unit
-    def test_init_with_invalid_threshold_exits_error(self):
+    def test_init_with_invalid_threshold_exits_error(self) -> None:
+
         """init --config で無効な閾値を渡すとエラー"""
         config_json = json.dumps({
             "base_dir": ".",
@@ -191,7 +200,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert result["status"] == "error"
 
     @pytest.mark.unit
-    def test_init_creates_directories(self):
+    def test_init_creates_directories(self) -> None:
+
         """init がディレクトリを作成する"""
         config_json = self._get_valid_config_json()
 
@@ -212,7 +222,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         assert (self.plugin_root / "data" / "Essences").exists()
 
     @pytest.mark.unit
-    def test_init_creates_config_file(self):
+    def test_init_creates_config_file(self) -> None:
+
         """init が設定ファイルを作成する"""
         config_json = self._get_valid_config_json()
 
@@ -231,7 +242,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         assert (self.plugin_root / ".claude-plugin" / "config.json").exists()
 
     @pytest.mark.unit
-    def test_init_without_force_fails_when_exists(self):
+    def test_init_without_force_fails_when_exists(self) -> None:
+
         """既存設定がある場合、force なしで失敗する"""
         # 既存の設定ファイルを作成
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
@@ -254,7 +266,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert result["status"] == "already_configured"
 
     @pytest.mark.unit
-    def test_init_with_force_overwrites_existing(self):
+    def test_init_with_force_overwrites_existing(self) -> None:
+
         """既存設定がある場合でも force で上書きする"""
         # 既存の設定ファイルを作成
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
@@ -278,7 +291,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert result["status"] == "ok"
 
     @pytest.mark.unit
-    def test_init_detects_external_paths(self):
+    def test_init_detects_external_paths(self) -> None:
+
         """init が外部パスを検出する"""
         config_json = json.dumps({
             "base_dir": "~/external/path",
@@ -315,7 +329,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert len(result["external_paths_detected"]) > 0
 
     @pytest.mark.unit
-    def test_init_output_is_valid_json(self):
+    def test_init_output_is_valid_json(self) -> None:
+
         """init の出力が有効なJSON"""
         config_json = self._get_valid_config_json()
 
@@ -335,7 +350,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
                 assert isinstance(result, dict)
 
     @pytest.mark.unit
-    def test_init_output_contains_created_info(self):
+    def test_init_output_contains_created_info(self) -> None:
+
         """init の出力が作成情報を含む"""
         config_json = self._get_valid_config_json()
 

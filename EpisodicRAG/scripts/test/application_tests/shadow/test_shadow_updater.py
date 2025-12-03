@@ -35,6 +35,7 @@ pytestmark = pytest.mark.slow
 
 @pytest.fixture
 def updater(shadow_io, file_detector, template, level_hierarchy):
+
     """テスト用ShadowUpdater"""
     return ShadowUpdater(shadow_io, file_detector, template, level_hierarchy)
 
@@ -48,7 +49,8 @@ class TestAddFilesToShadow:
     """add_files_to_shadow メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_adds_files_to_empty_shadow(self, updater, temp_plugin_env, shadow_io):
+    def test_adds_files_to_empty_shadow(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """空のShadowにファイルを追加"""
         # Loopファイルを作成
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
@@ -64,7 +66,8 @@ class TestAddFilesToShadow:
         assert "L00002_test.txt" in overall["source_files"]
 
     @pytest.mark.integration
-    def test_does_not_add_duplicate_files(self, updater, temp_plugin_env, shadow_io):
+    def test_does_not_add_duplicate_files(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """重複ファイルは追加されない"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
 
@@ -77,7 +80,8 @@ class TestAddFilesToShadow:
         assert len(overall["source_files"]) == 1
 
     @pytest.mark.integration
-    def test_incremental_add(self, updater, temp_plugin_env, shadow_io):
+    def test_incremental_add(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """増分追加が正しく動作"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
         loop2 = create_test_loop_file(temp_plugin_env.loops_path, 2)
@@ -94,7 +98,8 @@ class TestAddFilesToShadow:
         assert len(overall["source_files"]) == 3
 
     @pytest.mark.integration
-    def test_updates_placeholder_on_add(self, updater, temp_plugin_env, shadow_io):
+    def test_updates_placeholder_on_add(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """ファイル追加時にプレースホルダーが更新される"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
 
@@ -115,7 +120,8 @@ class TestClearShadowLevel:
     """clear_shadow_level メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_clears_shadow_data(self, updater, temp_plugin_env, shadow_io):
+    def test_clears_shadow_data(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """Shadowデータがクリアされる"""
         # まずファイルを追加
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
@@ -130,7 +136,8 @@ class TestClearShadowLevel:
         assert overall["source_files"] == []
 
     @pytest.mark.integration
-    def test_resets_to_placeholder(self, updater, shadow_io):
+    def test_resets_to_placeholder(self, updater, shadow_io) -> None:
+
         """クリア後はプレースホルダーに戻る"""
         updater.clear_shadow_level("weekly")
 
@@ -140,7 +147,8 @@ class TestClearShadowLevel:
         assert PLACEHOLDER_MARKER in overall["impression"]
 
     @pytest.mark.integration
-    def test_does_not_affect_other_levels(self, updater, temp_plugin_env, shadow_io):
+    def test_does_not_affect_other_levels(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """他のレベルに影響しない"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
 
@@ -172,13 +180,15 @@ class TestGetShadowDigestForLevel:
     """get_shadow_digest_for_level メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_returns_none_for_empty_shadow(self, updater):
+    def test_returns_none_for_empty_shadow(self, updater) -> None:
+
         """空のShadowはNoneを返す"""
         result = updater.get_shadow_digest_for_level("weekly")
         assert result is None
 
     @pytest.mark.integration
-    def test_returns_digest_when_files_exist(self, updater, temp_plugin_env):
+    def test_returns_digest_when_files_exist(self, updater, temp_plugin_env) -> None:
+
         """ファイルがある場合はdigestを返す"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
         updater.add_files_to_shadow("weekly", [loop1])
@@ -190,7 +200,8 @@ class TestGetShadowDigestForLevel:
         assert len(result["source_files"]) == 1
 
     @pytest.mark.integration
-    def test_returns_none_after_clear(self, updater, temp_plugin_env):
+    def test_returns_none_after_clear(self, updater, temp_plugin_env) -> None:
+
         """クリア後はNoneを返す"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
         updater.add_files_to_shadow("weekly", [loop1])
@@ -209,7 +220,8 @@ class TestUpdateShadowForNewLoops:
     """update_shadow_for_new_loops メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_does_nothing_when_no_new_files(self, updater, shadow_io):
+    def test_does_nothing_when_no_new_files(self, updater, shadow_io) -> None:
+
         """新しいファイルがない場合は何もしない"""
         updater.update_shadow_for_new_loops()
 
@@ -218,7 +230,8 @@ class TestUpdateShadowForNewLoops:
         assert overall.get("source_files", []) == []
 
     @pytest.mark.integration
-    def test_adds_new_loop_files(self, updater, temp_plugin_env, shadow_io):
+    def test_adds_new_loop_files(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """新しいLoopファイルを追加"""
         # Loopファイルを作成
         create_test_loop_file(temp_plugin_env.loops_path, 1)
@@ -240,7 +253,8 @@ class TestCascadeUpdateOnDigestFinalize:
     """cascade_update_on_digest_finalize メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_clears_current_level(self, updater, temp_plugin_env, shadow_io):
+    def test_clears_current_level(self, updater, temp_plugin_env, shadow_io) -> None:
+
         """現在のレベルがクリアされる"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
         updater.add_files_to_shadow("weekly", [loop1])
@@ -252,7 +266,8 @@ class TestCascadeUpdateOnDigestFinalize:
         assert overall["source_files"] == []
 
     @pytest.mark.integration
-    def test_does_not_cascade_from_centurial(self, updater, shadow_io):
+    def test_does_not_cascade_from_centurial(self, updater, shadow_io) -> None:
+
         """centurial（最上位）からはカスケードしない"""
         # centurialにはnext=Noneなのでカスケードしない
         updater.cascade_update_on_digest_finalize("centurial")
@@ -271,7 +286,8 @@ class TestShadowUpdaterInit:
     """ShadowUpdater 初期化のテスト"""
 
     @pytest.mark.unit
-    def test_stores_dependencies(self, shadow_io, file_detector, template, level_hierarchy):
+    def test_stores_dependencies(self, shadow_io, file_detector, template, level_hierarchy) -> None:
+
         """依存関係が正しく保存される"""
         updater = ShadowUpdater(shadow_io, file_detector, template, level_hierarchy)
 
@@ -290,7 +306,8 @@ class TestPromoteShadowToGrand:
     """promote_shadow_to_grand メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_promote_shadow_to_grand_with_files(self, updater, temp_plugin_env, capsys):
+    def test_promote_shadow_to_grand_with_files(self, updater, temp_plugin_env, capsys: pytest.CaptureFixture[str]) -> None:
+
         """ファイルがある場合、昇格準備完了をログ出力"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
         loop2 = create_test_loop_file(temp_plugin_env.loops_path, 2)
@@ -304,7 +321,8 @@ class TestPromoteShadowToGrand:
         assert "2" in captured.out or captured.out == ""  # ログ実装による
 
     @pytest.mark.integration
-    def test_promote_shadow_to_grand_empty(self, updater, capsys):
+    def test_promote_shadow_to_grand_empty(self, updater, capsys: pytest.CaptureFixture[str]) -> None:
+
         """空のShadowの場合、何もしない"""
         updater.promote_shadow_to_grand("weekly")
 
@@ -313,7 +331,8 @@ class TestPromoteShadowToGrand:
         # "No shadow digest" が含まれることを確認（または何も出力しない）
 
     @pytest.mark.integration
-    def test_promote_shadow_to_grand_after_clear(self, updater, temp_plugin_env, capsys):
+    def test_promote_shadow_to_grand_after_clear(self, updater, temp_plugin_env, capsys: pytest.CaptureFixture[str]) -> None:
+
         """クリア後は昇格対象なし"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
         updater.add_files_to_shadow("weekly", [loop1])

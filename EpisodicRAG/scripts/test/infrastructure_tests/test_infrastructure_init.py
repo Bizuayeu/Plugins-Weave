@@ -6,6 +6,8 @@ infrastructure/__init__.py のユニットテスト
 Infrastructureモジュールのエクスポートと統合を検証。
 """
 
+from pathlib import Path
+
 import pytest
 
 # =============================================================================
@@ -17,7 +19,8 @@ class TestInfrastructureExports:
     """infrastructure/__init__.py エクスポートのテスト"""
 
     @pytest.mark.unit
-    def test_all_json_exports_importable(self):
+    def test_all_json_exports_importable(self) -> None:
+
         """JSON関連のエクスポートがインポート可能"""
         from infrastructure import (
             confirm_file_overwrite,
@@ -41,7 +44,8 @@ class TestInfrastructureExports:
         assert callable(try_read_json_from_file)
 
     @pytest.mark.unit
-    def test_all_file_scanner_exports_importable(self):
+    def test_all_file_scanner_exports_importable(self) -> None:
+
         """ファイルスキャナー関連のエクスポートがインポート可能"""
         from infrastructure import (
             count_files,
@@ -58,7 +62,8 @@ class TestInfrastructureExports:
         assert callable(count_files)
 
     @pytest.mark.unit
-    def test_all_logging_exports_importable(self):
+    def test_all_logging_exports_importable(self) -> None:
+
         """ロギング関連のエクスポートがインポート可能"""
         from infrastructure import (
             get_logger,
@@ -77,14 +82,16 @@ class TestInfrastructureExports:
         assert callable(log_debug)
 
     @pytest.mark.unit
-    def test_user_interaction_exports_importable(self):
+    def test_user_interaction_exports_importable(self) -> None:
+
         """ユーザーインタラクション関連のエクスポートがインポート可能"""
         from infrastructure import get_default_confirm_callback
 
         assert callable(get_default_confirm_callback)
 
     @pytest.mark.unit
-    def test_exports_match_all_list(self):
+    def test_exports_match_all_list(self) -> None:
+
         """__all__の全項目がインポート可能"""
         import infrastructure
 
@@ -94,7 +101,8 @@ class TestInfrastructureExports:
             assert item is not None, f"Export {name} is None"
 
     @pytest.mark.unit
-    def test_all_list_completeness(self):
+    def test_all_list_completeness(self) -> None:
+
         """__all__に必要な全項目が含まれている"""
         import infrastructure
 
@@ -138,7 +146,8 @@ class TestInfrastructureIntegration:
     """Infrastructureモジュールの統合テスト"""
 
     @pytest.mark.integration
-    def test_json_roundtrip(self, tmp_path):
+    def test_json_roundtrip(self, tmp_path: Path) -> None:
+
         """JSON保存・読み込みのラウンドトリップ"""
         from infrastructure import load_json, save_json
 
@@ -151,7 +160,8 @@ class TestInfrastructureIntegration:
         assert loaded == test_data
 
     @pytest.mark.integration
-    def test_file_scanner_with_pattern(self, tmp_path):
+    def test_file_scanner_with_pattern(self, tmp_path: Path) -> None:
+
         """パターンによるファイルスキャン"""
         from infrastructure import scan_files
 
@@ -169,7 +179,8 @@ class TestInfrastructureIntegration:
         assert len(json_files) == 1
 
     @pytest.mark.integration
-    def test_logging_functions(self, caplog):
+    def test_logging_functions(self, caplog: pytest.LogCaptureFixture) -> None:
+
         """ロギング関数の動作確認"""
         import logging
 
@@ -187,7 +198,8 @@ class TestInfrastructureIntegration:
         assert "Error message" in caplog.text
 
     @pytest.mark.integration
-    def test_user_interaction_callback(self, monkeypatch):
+    def test_user_interaction_callback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+
         """ユーザーインタラクションコールバックの動作確認"""
         from infrastructure import get_default_confirm_callback
 

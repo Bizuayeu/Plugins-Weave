@@ -19,17 +19,20 @@ import pytest
 class TestDigestAutoAnalyzer(unittest.TestCase):
     """DigestAutoAnalyzer クラスのテスト"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _setup_plugin_structure(self):
+    def _setup_plugin_structure(self) -> None:
+
         """プラグイン構造を作成"""
         # ディレクトリ構造
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
@@ -98,7 +101,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
             json.dump(times_data, f)
 
     @pytest.mark.unit
-    def test_analyze_returns_ok_when_no_issues(self):
+    def test_analyze_returns_ok_when_no_issues(self) -> None:
+
         """問題がない場合に ok を返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -109,7 +113,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         assert len(result.issues) == 0
 
     @pytest.mark.unit
-    def test_analyze_detects_unprocessed_loops(self):
+    def test_analyze_detects_unprocessed_loops(self) -> None:
+
         """未処理Loopを検出する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -126,7 +131,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         assert unprocessed_issues[0].count == 2
 
     @pytest.mark.unit
-    def test_analyze_detects_placeholders(self):
+    def test_analyze_detects_placeholders(self) -> None:
+
         """プレースホルダーを検出する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -153,7 +159,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         assert placeholder_issues[0].level == "weekly"
 
     @pytest.mark.unit
-    def test_analyze_detects_gaps(self):
+    def test_analyze_detects_gaps(self) -> None:
+
         """中間ファイルのギャップを検出する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -180,7 +187,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         assert gap_issues[0].count == 2  # 2つの欠番
 
     @pytest.mark.unit
-    def test_analyze_determines_generatable_levels(self):
+    def test_analyze_determines_generatable_levels(self) -> None:
+
         """生成可能な階層を判定する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -202,7 +210,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         assert weekly_levels[0].ready is True
 
     @pytest.mark.unit
-    def test_analyze_includes_recommendations(self):
+    def test_analyze_includes_recommendations(self) -> None:
+
         """推奨アクションが含まれる"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -215,7 +224,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         assert len(result.recommendations) > 0
 
     @pytest.mark.unit
-    def test_analyze_returns_error_when_config_missing(self):
+    def test_analyze_returns_error_when_config_missing(self) -> None:
+
         """設定ファイルがない場合にエラーを返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -229,7 +239,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         assert result.error is not None
 
     @pytest.mark.unit
-    def test_analyze_returns_error_when_shadow_missing(self):
+    def test_analyze_returns_error_when_shadow_missing(self) -> None:
+
         """ShadowGrandDigestがない場合にエラーを返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -245,18 +256,21 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
 class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
     """DigestAutoAnalyzer ヘルパーメソッドのテスト"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
-    def test_extract_file_number(self):
+    def test_extract_file_number(self) -> None:
+
         """ファイル名から番号を抽出する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -268,7 +282,8 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         assert analyzer._extract_file_number("invalid") is None
 
     @pytest.mark.unit
-    def test_find_gaps(self):
+    def test_find_gaps(self) -> None:
+
         """連番のギャップを検出する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -280,7 +295,8 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         assert analyzer._find_gaps([]) == []
 
     @pytest.mark.unit
-    def test_load_json_file_returns_none_for_invalid_json(self):
+    def test_load_json_file_returns_none_for_invalid_json(self) -> None:
+
         """無効なJSONファイルに対してNoneを返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -294,7 +310,8 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         assert result is None
 
     @pytest.mark.unit
-    def test_load_json_file_returns_none_for_missing_file(self):
+    def test_load_json_file_returns_none_for_missing_file(self) -> None:
+
         """存在しないファイルに対してNoneを返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
@@ -304,7 +321,8 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         assert result is None
 
     @pytest.mark.unit
-    def test_load_json_file_returns_data_for_valid_json(self):
+    def test_load_json_file_returns_data_for_valid_json(self) -> None:
+
         """有効なJSONファイルに対してデータを返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 

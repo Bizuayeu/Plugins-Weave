@@ -21,6 +21,7 @@ class TestDigestTimesTracker:
 
     @pytest.fixture
     def mock_config(self, temp_plugin_env):
+
         """モック設定を提供"""
         mock = MagicMock()
         mock.plugin_root = temp_plugin_env.plugin_root
@@ -28,11 +29,13 @@ class TestDigestTimesTracker:
 
     @pytest.fixture
     def tracker(self, mock_config):
+
         """DigestTimesTrackerインスタンスを提供"""
         return DigestTimesTracker(mock_config)
 
     @pytest.mark.integration
-    def test_load_or_create_empty(self, tracker):
+    def test_load_or_create_empty(self, tracker) -> None:
+
         """空の状態からの読み込み"""
         data = tracker.load_or_create()
 
@@ -41,7 +44,8 @@ class TestDigestTimesTracker:
         assert "centurial" in data
 
     @pytest.mark.integration
-    def test_save_and_load(self, tracker):
+    def test_save_and_load(self, tracker) -> None:
+
         """保存と読み込み"""
         input_files = ["L00001_Test.txt", "L00002_Test.txt"]
         tracker.save("weekly", input_files)
@@ -53,7 +57,8 @@ class TestDigestTimesTracker:
         assert data["weekly"]["last_processed"] == 2
 
     @pytest.mark.unit
-    def test_extract_file_numbers(self, tracker):
+    def test_extract_file_numbers(self, tracker) -> None:
+
         """ファイル番号抽出"""
         files = ["L00001_A.txt", "L00003_B.txt"]
         numbers = tracker.extract_file_numbers("weekly", files)
@@ -61,7 +66,8 @@ class TestDigestTimesTracker:
         assert numbers == ["L00001", "L00003"]
 
     @pytest.mark.unit
-    def test_extract_file_numbers_monthly(self, tracker):
+    def test_extract_file_numbers_monthly(self, tracker) -> None:
+
         """Monthlyレベルのファイル番号抽出（Wプレフィックスは4桁維持）"""
         files = ["W0001_A.txt", "W0005_B.txt"]
         numbers = tracker.extract_file_numbers("monthly", files)
@@ -70,7 +76,8 @@ class TestDigestTimesTracker:
         assert numbers == ["W0001", "W0005"]
 
     @pytest.mark.unit
-    def test_load_or_create_initializes_all_levels(self, tracker):
+    def test_load_or_create_initializes_all_levels(self, tracker) -> None:
+
         """load_or_createが全8レベルを初期化"""
         data = tracker.load_or_create()
 
@@ -88,7 +95,8 @@ class TestDigestTimesTracker:
             assert level in data
 
     @pytest.mark.integration
-    def test_save_updates_timestamp(self, tracker):
+    def test_save_updates_timestamp(self, tracker) -> None:
+
         """saveがtimestampを更新"""
         input_files = ["L00001_Test.txt"]
         tracker.save("weekly", input_files)

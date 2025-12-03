@@ -28,6 +28,7 @@ class TestMultiLevelCascade:
 
     @pytest.fixture
     def cascade_env(self, temp_plugin_env):
+
         """カスケードテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -40,7 +41,8 @@ class TestMultiLevelCascade:
             "config": config,
         }
 
-    def test_weekly_finalize_triggers_monthly_shadow_update(self, cascade_env):
+    def test_weekly_finalize_triggers_monthly_shadow_update(self, cascade_env) -> None:
+
         """
         Weekly確定時にMonthly Shadowが更新される
 
@@ -100,7 +102,8 @@ class TestMultiLevelCascade:
         if weekly_shadow_after is not None:
             assert len(weekly_shadow_after.get("source_files", [])) == 0
 
-    def test_cascade_stops_at_insufficient_threshold(self, cascade_env):
+    def test_cascade_stops_at_insufficient_threshold(self, cascade_env) -> None:
+
         """
         閾値未満の場合カスケードが発動しない
 
@@ -134,6 +137,7 @@ class TestBoundaryConditions:
 
     @pytest.fixture
     def boundary_env(self, temp_plugin_env):
+
         """境界条件テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -146,7 +150,8 @@ class TestBoundaryConditions:
             "config": config,
         }
 
-    def test_exactly_at_threshold_triggers_processing(self, boundary_env):
+    def test_exactly_at_threshold_triggers_processing(self, boundary_env) -> None:
+
         """
         閾値ちょうどの場合は処理が発動する
 
@@ -177,7 +182,8 @@ class TestBoundaryConditions:
         assert weekly_shadow is not None
         assert len(weekly_shadow["source_files"]) == threshold
 
-    def test_empty_loop_directory_initialization(self, boundary_env):
+    def test_empty_loop_directory_initialization(self, boundary_env) -> None:
+
         """
         空のLoopディレクトリでの初回実行
 
@@ -200,7 +206,8 @@ class TestBoundaryConditions:
         if weekly_shadow is not None:
             assert len(weekly_shadow.get("source_files", [])) == 0
 
-    def test_one_file_below_threshold_no_auto_finalize(self, boundary_env):
+    def test_one_file_below_threshold_no_auto_finalize(self, boundary_env) -> None:
+
         """
         閾値-1の場合は自動確定が発生しない
 

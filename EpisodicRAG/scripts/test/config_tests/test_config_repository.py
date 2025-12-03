@@ -18,7 +18,8 @@ class TestLoadConfig:
     """load_config関数のテスト"""
 
     @pytest.mark.unit
-    def test_load_config_success(self, temp_plugin_env):
+    def test_load_config_success(self, temp_plugin_env) -> None:
+
         """正常なJSONファイル読み込み"""
         config_file = temp_plugin_env.config_dir / "config.json"
 
@@ -29,7 +30,8 @@ class TestLoadConfig:
         assert "levels" in result
 
     @pytest.mark.unit
-    def test_load_config_file_not_found(self, temp_plugin_env):
+    def test_load_config_file_not_found(self, temp_plugin_env) -> None:
+
         """ファイル不存在時ConfigError"""
         nonexistent_file = temp_plugin_env.config_dir / "nonexistent.json"
 
@@ -39,7 +41,8 @@ class TestLoadConfig:
         assert "File not found" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_config_invalid_json(self, temp_plugin_env):
+    def test_load_config_invalid_json(self, temp_plugin_env) -> None:
+
         """不正JSON時ConfigError"""
         invalid_json_file = temp_plugin_env.config_dir / "invalid.json"
         invalid_json_file.write_text("{invalid json content", encoding='utf-8')
@@ -50,7 +53,8 @@ class TestLoadConfig:
         assert "Invalid JSON" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_config_returns_config_data_structure(self, temp_plugin_env):
+    def test_load_config_returns_config_data_structure(self, temp_plugin_env) -> None:
+
         """戻り値がConfigData構造を持つ"""
         config_file = temp_plugin_env.config_dir / "config.json"
 
@@ -64,7 +68,8 @@ class TestLoadConfig:
         assert "essences_dir" in paths
 
     @pytest.mark.unit
-    def test_load_config_preserves_values(self, temp_plugin_env):
+    def test_load_config_preserves_values(self, temp_plugin_env) -> None:
+
         """設定値が正しく読み込まれる"""
         config_file = temp_plugin_env.config_dir / "config.json"
 
@@ -87,7 +92,8 @@ class TestLoadConfig:
         assert result["levels"]["weekly_threshold"] == 10
 
     @pytest.mark.unit
-    def test_load_config_empty_json(self, temp_plugin_env):
+    def test_load_config_empty_json(self, temp_plugin_env) -> None:
+
         """空のJSONオブジェクトも読み込み可能"""
         empty_json_file = temp_plugin_env.config_dir / "empty.json"
         empty_json_file.write_text("{}", encoding='utf-8')
@@ -97,7 +103,8 @@ class TestLoadConfig:
         assert result == {}
 
     @pytest.mark.unit
-    def test_load_config_unicode_content(self, temp_plugin_env):
+    def test_load_config_unicode_content(self, temp_plugin_env) -> None:
+
         """Unicode文字を含むJSONファイル"""
         unicode_json_file = temp_plugin_env.config_dir / "unicode.json"
         unicode_config = {"description": "日本語テスト 🎉", "paths": {"loops_dir": "データ/ループ"}}

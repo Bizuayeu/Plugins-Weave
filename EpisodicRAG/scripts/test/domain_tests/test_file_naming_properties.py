@@ -53,7 +53,8 @@ class TestFileNamingRoundtrip:
     @pytest.mark.property
     @given(level=all_levels, number=st.integers(min_value=0, max_value=9999))
     @settings(max_examples=200)
-    def test_format_then_extract_roundtrip(self, level, number):
+    def test_format_then_extract_roundtrip(self, level, number) -> None:
+
         """Formatting a number then extracting should yield the same number"""
         # Skip numbers too large for the level's digit count
         if level != "loop":
@@ -71,7 +72,8 @@ class TestFileNamingRoundtrip:
     @pytest.mark.property
     @given(level=all_levels, number=st.integers(min_value=1, max_value=999))
     @settings(max_examples=100)
-    def test_format_then_extract_number_only_roundtrip(self, level, number):
+    def test_format_then_extract_number_only_roundtrip(self, level, number) -> None:
+
         """extract_number_only should yield the same number after formatting"""
         formatted = format_digest_number(level, number)
         result = extract_number_only(formatted)
@@ -90,7 +92,8 @@ class TestExtractFileNumberRobustness:
     @pytest.mark.property
     @given(filename=arbitrary_filenames)
     @settings(max_examples=500)
-    def test_never_crashes_on_arbitrary_string(self, filename):
+    def test_never_crashes_on_arbitrary_string(self, filename) -> None:
+
         """extract_file_number should never raise on any string input"""
         result = extract_file_number(filename)
         # Result should be None or a valid tuple
@@ -112,7 +115,8 @@ class TestExtractFileNumberRobustness:
         )
     )
     @settings(max_examples=100)
-    def test_handles_non_string_input(self, value):
+    def test_handles_non_string_input(self, value) -> None:
+
         """extract_file_number should return None for non-string input"""
         result = extract_file_number(value)
         assert result is None
@@ -132,7 +136,8 @@ class TestFindMaxNumberProperties:
         prefix=valid_prefixes,
     )
     @settings(max_examples=200)
-    def test_result_is_max_of_matching_files(self, numbers, prefix):
+    def test_result_is_max_of_matching_files(self, numbers, prefix) -> None:
+
         """find_max_number should return the maximum number among matching files"""
         # Create filenames with the prefix
         files = [f"{prefix}{n:04d}_test.txt" for n in numbers]
@@ -144,7 +149,8 @@ class TestFindMaxNumberProperties:
     @pytest.mark.property
     @given(files=st.lists(arbitrary_filenames, min_size=0, max_size=20))
     @settings(max_examples=100)
-    def test_returns_none_or_positive_integer(self, files):
+    def test_returns_none_or_positive_integer(self, files) -> None:
+
         """Result should be None or a non-negative integer"""
         result = find_max_number(files, "W")
         assert result is None or (isinstance(result, int) and result >= 0)
@@ -152,7 +158,8 @@ class TestFindMaxNumberProperties:
     @pytest.mark.property
     @given(numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=10))
     @settings(max_examples=100)
-    def test_empty_list_returns_none(self, numbers):
+    def test_empty_list_returns_none(self, numbers) -> None:
+
         """Empty list should return None"""
         result = find_max_number([], "W")
         assert result is None
@@ -167,7 +174,8 @@ class TestFilterFilesAfterProperties:
         threshold=st.integers(min_value=0, max_value=10000),
     )
     @settings(max_examples=100)
-    def test_all_results_above_threshold(self, numbers, threshold):
+    def test_all_results_above_threshold(self, numbers, threshold) -> None:
+
         """All returned files should have numbers > threshold"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
@@ -187,7 +195,8 @@ class TestFilterFilesAfterProperties:
         threshold=st.integers(min_value=0, max_value=10000),
     )
     @settings(max_examples=100)
-    def test_result_length_invariant(self, numbers, threshold):
+    def test_result_length_invariant(self, numbers, threshold) -> None:
+
         """Result length should equal count of numbers > threshold"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
@@ -207,7 +216,8 @@ class TestExtractNumbersFormattedProperties:
     @pytest.mark.property
     @given(numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20))
     @settings(max_examples=200)
-    def test_output_is_sorted(self, numbers):
+    def test_output_is_sorted(self, numbers) -> None:
+
         """Output should always be sorted"""
         files = [f"L{n:05d}_test.txt" for n in numbers]
 
@@ -220,7 +230,8 @@ class TestExtractNumbersFormattedProperties:
         valid_numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=10),
     )
     @settings(max_examples=100)
-    def test_output_contains_only_valid_entries(self, valid_numbers):
+    def test_output_contains_only_valid_entries(self, valid_numbers) -> None:
+
         """Output should only contain formatted entries from valid input files"""
         files = [f"L{n:05d}_test.txt" for n in valid_numbers]
 

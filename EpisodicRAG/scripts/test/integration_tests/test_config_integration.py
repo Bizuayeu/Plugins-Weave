@@ -32,7 +32,8 @@ pytestmark = pytest.mark.integration
 class TestConfigPathResolution:
     """Config読み込みからパス解決までの統合テスト"""
 
-    def test_config_loads_and_creates_directories(self, temp_plugin_env):
+    def test_config_loads_and_creates_directories(self, temp_plugin_env) -> None:
+
         """設定読み込み後、必要なディレクトリが存在する"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -40,7 +41,8 @@ class TestConfigPathResolution:
         assert config.digests_path.exists()
         assert config.essences_path.exists()
 
-    def test_level_dirs_accessible_from_config(self, temp_plugin_env):
+    def test_level_dirs_accessible_from_config(self, temp_plugin_env) -> None:
+
         """全レベルディレクトリにアクセス可能"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -49,7 +51,8 @@ class TestConfigPathResolution:
             assert level_dir.exists(), f"Level dir for {level} should exist"
             assert level_dir.name == LEVEL_CONFIG[level]["dir"]
 
-    def test_provisional_dirs_accessible_from_config(self, temp_plugin_env):
+    def test_provisional_dirs_accessible_from_config(self, temp_plugin_env) -> None:
+
         """全レベルのProvisionalディレクトリにアクセス可能"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -58,7 +61,8 @@ class TestConfigPathResolution:
             assert prov_dir.exists(), f"Provisional dir for {level} should exist"
             assert prov_dir.name == "Provisional"
 
-    def test_source_dir_for_each_level(self, temp_plugin_env):
+    def test_source_dir_for_each_level(self, temp_plugin_env) -> None:
+
         """各レベルのソースディレクトリが正しく解決される"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -78,7 +82,8 @@ class TestConfigPathResolution:
 class TestConfigApplicationIntegration:
     """Config層とApplication層の連携テスト"""
 
-    def test_file_detector_uses_config_paths(self, temp_plugin_env):
+    def test_file_detector_uses_config_paths(self, temp_plugin_env) -> None:
+
         """FileDetectorがConfigのパスを正しく使用する"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         times_tracker = DigestTimesTracker(config)
@@ -92,7 +97,8 @@ class TestConfigApplicationIntegration:
         new_files = detector.find_new_files("weekly")
         assert len(new_files) == 2
 
-    def test_times_tracker_uses_config_paths(self, temp_plugin_env):
+    def test_times_tracker_uses_config_paths(self, temp_plugin_env) -> None:
+
         """DigestTimesTrackerがConfigのパスを正しく使用する"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         times_tracker = DigestTimesTracker(config)
@@ -115,7 +121,8 @@ class TestConfigApplicationIntegration:
 class TestThresholdApplication:
     """閾値設定がApplication層で正しく適用されることを確認"""
 
-    def test_default_thresholds_available(self, temp_plugin_env):
+    def test_default_thresholds_available(self, temp_plugin_env) -> None:
+
         """デフォルト閾値が全レベルで利用可能"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -124,7 +131,8 @@ class TestThresholdApplication:
             assert isinstance(threshold, int)
             assert threshold >= 1
 
-    def test_threshold_accessed_via_property(self, temp_plugin_env):
+    def test_threshold_accessed_via_property(self, temp_plugin_env) -> None:
+
         """閾値がthresholdプロパティ経由で取得可能"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -142,14 +150,16 @@ class TestThresholdApplication:
 class TestErrorHandlingIntegration:
     """Config層のエラーがApplication/Domain層で適切に処理される"""
 
-    def test_invalid_level_raises_config_error(self, temp_plugin_env):
+    def test_invalid_level_raises_config_error(self, temp_plugin_env) -> None:
+
         """無効なレベル名でConfigErrorが発生"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
         with pytest.raises(ConfigError):
             config.get_threshold("invalid_level")
 
-    def test_config_validation_detects_issues(self, temp_plugin_env):
+    def test_config_validation_detects_issues(self, temp_plugin_env) -> None:
+
         """Config検証が問題を検出"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -166,7 +176,8 @@ class TestErrorHandlingIntegration:
 class TestEndToEndConfigFlow:
     """Config → Application → Domain の完全なフロー"""
 
-    def test_complete_config_to_detection_flow(self, temp_plugin_env):
+    def test_complete_config_to_detection_flow(self, temp_plugin_env) -> None:
+
         """設定からファイル検出までの完全なフロー"""
         # 1. Config初期化
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
@@ -191,7 +202,8 @@ class TestEndToEndConfigFlow:
         new_files_after = detector.find_new_files("weekly")
         assert len(new_files_after) == 0
 
-    def test_threshold_affects_behavior(self, temp_plugin_env):
+    def test_threshold_affects_behavior(self, temp_plugin_env) -> None:
+
         """閾値がApplication層の動作に影響を与える"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 

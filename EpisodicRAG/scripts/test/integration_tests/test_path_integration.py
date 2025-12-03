@@ -20,7 +20,8 @@ from domain.file_naming import format_digest_number
 class TestProvisionalDirectoryStructure(unittest.TestCase):
     """Provisionalディレクトリ構造のテスト"""
 
-    def test_provisional_dir_is_inside_level_dir(self):
+    def test_provisional_dir_is_inside_level_dir(self) -> None:
+
         """
         get_provisional_dir() がレベルディレクトリ内のパスを返すことを検証
 
@@ -38,7 +39,8 @@ class TestProvisionalDirectoryStructure(unittest.TestCase):
                 self.assertEqual(prov_dir.parent, level_dir)
                 self.assertEqual(prov_dir.name, "Provisional")
 
-    def test_all_level_dirs_have_correct_names(self):
+    def test_all_level_dirs_have_correct_names(self) -> None:
+
         """各レベルディレクトリ名がLEVEL_CONFIGと一致することを検証"""
         with TempPluginEnvironment() as env:
             config = DigestConfig(plugin_root=env.plugin_root)
@@ -50,7 +52,8 @@ class TestProvisionalDirectoryStructure(unittest.TestCase):
                 self.assertEqual(level_dir.name, expected_name)
                 self.assertTrue(level_dir.exists())
 
-    def test_provisional_dirs_exist_inside_level_dirs(self):
+    def test_provisional_dirs_exist_inside_level_dirs(self) -> None:
+
         """Provisionalディレクトリがレベルディレクトリ内に存在することを検証"""
         with TempPluginEnvironment() as env:
             config = DigestConfig(plugin_root=env.plugin_root)
@@ -71,48 +74,57 @@ class TestProvisionalDirectoryStructure(unittest.TestCase):
 class TestFormatDigestNumber(unittest.TestCase):
     """format_digest_number関数のテスト"""
 
-    def test_format_loop_number(self):
+    def test_format_loop_number(self) -> None:
+
         """Loop番号のフォーマット検証"""
         self.assertEqual(format_digest_number("loop", 1), "L00001")
         self.assertEqual(format_digest_number("loop", 186), "L00186")
         self.assertEqual(format_digest_number("loop", 9999), "L09999")
 
-    def test_format_weekly_number(self):
+    def test_format_weekly_number(self) -> None:
+
         """Weekly番号のフォーマット検証（4桁）"""
         self.assertEqual(format_digest_number("weekly", 1), "W0001")
         self.assertEqual(format_digest_number("weekly", 123), "W0123")
 
-    def test_format_monthly_number(self):
+    def test_format_monthly_number(self) -> None:
+
         """Monthly番号のフォーマット検証（4桁）"""
         self.assertEqual(format_digest_number("monthly", 1), "M0001")
         self.assertEqual(format_digest_number("monthly", 12), "M0012")
 
-    def test_format_quarterly_number(self):
+    def test_format_quarterly_number(self) -> None:
+
         """Quarterly番号のフォーマット検証（3桁）"""
         self.assertEqual(format_digest_number("quarterly", 1), "Q001")
 
-    def test_format_annual_number(self):
+    def test_format_annual_number(self) -> None:
+
         """Annual番号のフォーマット検証（3桁）"""
         self.assertEqual(format_digest_number("annual", 1), "A001")
         self.assertEqual(format_digest_number("annual", 99), "A099")
 
-    def test_format_multi_decadal_number(self):
+    def test_format_multi_decadal_number(self) -> None:
+
         """Multi-decadal番号のフォーマット検証（MD + 2桁）"""
         self.assertEqual(format_digest_number("multi_decadal", 1), "MD01")
         self.assertEqual(format_digest_number("multi_decadal", 3), "MD03")
 
-    def test_format_centurial_number(self):
+    def test_format_centurial_number(self) -> None:
+
         """Centurial番号のフォーマット検証（2桁）"""
         self.assertEqual(format_digest_number("centurial", 1), "C01")
 
-    def test_invalid_level_raises_error(self):
+    def test_invalid_level_raises_error(self) -> None:
+
         """無効なレベルでConfigErrorが発生することを検証"""
         from domain.exceptions import ConfigError
 
         with self.assertRaises(ConfigError):
             format_digest_number("invalid_level", 1)
 
-    def test_consistency_with_level_config(self):
+    def test_consistency_with_level_config(self) -> None:
+
         """LEVEL_CONFIGとの一貫性を検証"""
         for level, cfg in LEVEL_CONFIG.items():
             formatted = format_digest_number(level, 1)
@@ -126,14 +138,16 @@ class TestFormatDigestNumber(unittest.TestCase):
 class TestValidateDirectoryStructure(unittest.TestCase):
     """validate_directory_structure メソッドのテスト"""
 
-    def test_valid_structure_returns_empty_list(self):
+    def test_valid_structure_returns_empty_list(self) -> None:
+
         """正しい構造では空のエラーリストを返す"""
         with TempPluginEnvironment() as env:
             config = DigestConfig(plugin_root=env.plugin_root)
             errors = config.validate_directory_structure()
             self.assertEqual(errors, [])
 
-    def test_missing_loops_detected(self):
+    def test_missing_loops_detected(self) -> None:
+
         """Loopsディレクトリが欠落している場合を検出"""
         with TempPluginEnvironment() as env:
             config = DigestConfig(plugin_root=env.plugin_root)
@@ -145,7 +159,8 @@ class TestValidateDirectoryStructure(unittest.TestCase):
             errors = config.validate_directory_structure()
             self.assertTrue(any("Loops" in e for e in errors))
 
-    def test_missing_provisional_detected(self):
+    def test_missing_provisional_detected(self) -> None:
+
         """Provisionalディレクトリが欠落している場合を検出"""
         with TempPluginEnvironment() as env:
             config = DigestConfig(plugin_root=env.plugin_root)
@@ -161,7 +176,8 @@ class TestValidateDirectoryStructure(unittest.TestCase):
 class TestHelperFunctions(unittest.TestCase):
     """test_helpersモジュールの関数テスト"""
 
-    def test_temp_plugin_environment_creates_structure(self):
+    def test_temp_plugin_environment_creates_structure(self) -> None:
+
         """TempPluginEnvironmentが正しい構造を作成することを検証"""
         with TempPluginEnvironment() as env:
             # 基本ディレクトリの存在確認
@@ -180,7 +196,8 @@ class TestHelperFunctions(unittest.TestCase):
                 self.assertTrue(level_path.exists())
                 self.assertTrue((level_path / "Provisional").exists())
 
-    def test_temp_environment_cleanup(self):
+    def test_temp_environment_cleanup(self) -> None:
+
         """一時環境が正しくクリーンアップされることを検証"""
         with TempPluginEnvironment() as env:
             temp_dir = env.plugin_root

@@ -35,17 +35,20 @@ class TestCreateEmptyOverallDigest:
 
     @pytest.fixture
     def template(self):
+
         """テスト用ShadowTemplateインスタンス"""
         return ShadowTemplate(levels=LEVEL_NAMES)
 
     @pytest.mark.unit
-    def test_returns_dict(self, template):
+    def test_returns_dict(self, template) -> None:
+
         """dictを返す"""
         result = template.create_empty_overall_digest()
         assert isinstance(result, dict)
 
     @pytest.mark.unit
-    def test_has_all_required_fields(self, template):
+    def test_has_all_required_fields(self, template) -> None:
+
         """必須フィールドがすべて存在する"""
         result = template.create_empty_overall_digest()
         required_fields = [
@@ -60,80 +63,92 @@ class TestCreateEmptyOverallDigest:
             assert field in result, f"Missing field: {field}"
 
     @pytest.mark.unit
-    def test_timestamp_is_placeholder(self, template):
+    def test_timestamp_is_placeholder(self, template) -> None:
+
         """timestampはプレースホルダー"""
         result = template.create_empty_overall_digest()
         assert result["timestamp"] == PLACEHOLDER_SIMPLE
 
     @pytest.mark.unit
-    def test_source_files_is_empty(self, template):
+    def test_source_files_is_empty(self, template) -> None:
+
         """source_filesが空であること"""
         result = template.create_empty_overall_digest()
         assert result["source_files"] == []
 
     @pytest.mark.unit
-    def test_source_files_is_list_type(self, template):
+    def test_source_files_is_list_type(self, template) -> None:
+
         """source_filesがlist型であること"""
         result = template.create_empty_overall_digest()
         assert isinstance(result["source_files"], list)
 
     @pytest.mark.unit
-    def test_digest_type_is_placeholder(self, template):
+    def test_digest_type_is_placeholder(self, template) -> None:
+
         """digest_typeはプレースホルダー"""
         result = template.create_empty_overall_digest()
         assert result["digest_type"] == PLACEHOLDER_SIMPLE
 
     @pytest.mark.unit
-    def test_keywords_count_matches_config(self, template):
+    def test_keywords_count_matches_config(self, template) -> None:
+
         """keywordsの数はPLACEHOLDER_LIMITS.keyword_countと一致"""
         result = template.create_empty_overall_digest()
         expected_count = PLACEHOLDER_LIMITS["keyword_count"]
         assert len(result["keywords"]) == expected_count
 
     @pytest.mark.unit
-    def test_keywords_have_placeholder_marker(self, template):
+    def test_keywords_have_placeholder_marker(self, template) -> None:
+
         """各keywordにプレースホルダーマーカーが含まれる"""
         result = template.create_empty_overall_digest()
         for keyword in result["keywords"]:
             assert PLACEHOLDER_MARKER in keyword
 
     @pytest.mark.unit
-    def test_keywords_have_placeholder_end(self, template):
+    def test_keywords_have_placeholder_end(self, template) -> None:
+
         """各keywordにプレースホルダー終端が含まれる"""
         result = template.create_empty_overall_digest()
         for keyword in result["keywords"]:
             assert PLACEHOLDER_END in keyword
 
     @pytest.mark.unit
-    def test_keywords_have_numbered_names(self, template):
+    def test_keywords_have_numbered_names(self, template) -> None:
+
         """keywordsには番号付き名前が含まれる"""
         result = template.create_empty_overall_digest()
         for i, keyword in enumerate(result["keywords"], start=1):
             assert f"keyword{i}" in keyword
 
     @pytest.mark.unit
-    def test_abstract_is_placeholder(self, template):
+    def test_abstract_is_placeholder(self, template) -> None:
+
         """abstractはプレースホルダー"""
         result = template.create_empty_overall_digest()
         assert PLACEHOLDER_MARKER in result["abstract"]
         assert PLACEHOLDER_END in result["abstract"]
 
     @pytest.mark.unit
-    def test_abstract_contains_char_limit(self, template):
+    def test_abstract_contains_char_limit(self, template) -> None:
+
         """abstractにはabstract_charsの文字数ガイドラインが含まれる"""
         result = template.create_empty_overall_digest()
         expected_chars = str(PLACEHOLDER_LIMITS["abstract_chars"])
         assert expected_chars in result["abstract"]
 
     @pytest.mark.unit
-    def test_impression_is_placeholder(self, template):
+    def test_impression_is_placeholder(self, template) -> None:
+
         """impressionはプレースホルダー"""
         result = template.create_empty_overall_digest()
         assert PLACEHOLDER_MARKER in result["impression"]
         assert PLACEHOLDER_END in result["impression"]
 
     @pytest.mark.unit
-    def test_impression_contains_char_limit(self, template):
+    def test_impression_contains_char_limit(self, template) -> None:
+
         """impressionにはimpression_charsの文字数ガイドラインが含まれる"""
         result = template.create_empty_overall_digest()
         expected_chars = str(PLACEHOLDER_LIMITS["impression_chars"])
@@ -150,42 +165,49 @@ class TestGetTemplate:
 
     @pytest.fixture
     def template(self):
+
         """テスト用ShadowTemplateインスタンス（全レベル）"""
         return ShadowTemplate(levels=LEVEL_NAMES)
 
     @pytest.fixture
     def custom_levels_template(self):
+
         """カスタムレベルのShadowTemplate"""
         return ShadowTemplate(levels=["weekly", "monthly"])
 
     @pytest.mark.unit
-    def test_returns_dict(self, template):
+    def test_returns_dict(self, template) -> None:
+
         """dictを返す"""
         result = template.get_template()
         assert isinstance(result, dict)
 
     @pytest.mark.unit
-    def test_has_metadata_section(self, template):
+    def test_has_metadata_section(self, template) -> None:
+
         """metadataセクションが存在する"""
         result = template.get_template()
         assert "metadata" in result
         assert isinstance(result["metadata"], dict)
 
     @pytest.mark.unit
-    def test_has_latest_digests_section(self, template):
+    def test_has_latest_digests_section(self, template) -> None:
+
         """latest_digestsセクションが存在する"""
         result = template.get_template()
         assert "latest_digests" in result
         assert isinstance(result["latest_digests"], dict)
 
     @pytest.mark.unit
-    def test_metadata_has_last_updated(self, template):
+    def test_metadata_has_last_updated(self, template) -> None:
+
         """metadata.last_updatedが存在する"""
         result = template.get_template()
         assert "last_updated" in result["metadata"]
 
     @pytest.mark.unit
-    def test_metadata_last_updated_is_iso_format(self, template):
+    def test_metadata_last_updated_is_iso_format(self, template) -> None:
+
         """metadata.last_updatedはISO形式の日時"""
         result = template.get_template()
         last_updated = result["metadata"]["last_updated"]
@@ -193,14 +215,16 @@ class TestGetTemplate:
         datetime.fromisoformat(last_updated)
 
     @pytest.mark.unit
-    def test_metadata_has_version(self, template):
+    def test_metadata_has_version(self, template) -> None:
+
         """metadata.versionが存在し、正しい値"""
         result = template.get_template()
         assert "version" in result["metadata"]
         assert result["metadata"]["version"] == DIGEST_FORMAT_VERSION
 
     @pytest.mark.unit
-    def test_metadata_has_description(self, template):
+    def test_metadata_has_description(self, template) -> None:
+
         """metadata.descriptionが存在する"""
         result = template.get_template()
         assert "description" in result["metadata"]
@@ -208,21 +232,24 @@ class TestGetTemplate:
         assert len(result["metadata"]["description"]) > 0
 
     @pytest.mark.unit
-    def test_latest_digests_has_all_levels(self, template):
+    def test_latest_digests_has_all_levels(self, template) -> None:
+
         """latest_digestsに全レベルが含まれる"""
         result = template.get_template()
         for level in LEVEL_NAMES:
             assert level in result["latest_digests"], f"Missing level: {level}"
 
     @pytest.mark.unit
-    def test_each_level_has_overall_digest(self, template):
+    def test_each_level_has_overall_digest(self, template) -> None:
+
         """各レベルにoverall_digestが含まれる"""
         result = template.get_template()
         for level in LEVEL_NAMES:
             assert "overall_digest" in result["latest_digests"][level]
 
     @pytest.mark.unit
-    def test_level_overall_digest_has_placeholders(self, template):
+    def test_level_overall_digest_has_placeholders(self, template) -> None:
+
         """各レベルのoverall_digestにプレースホルダーが含まれる"""
         result = template.get_template()
         for level in LEVEL_NAMES:
@@ -231,7 +258,8 @@ class TestGetTemplate:
             assert len(overall["keywords"]) == PLACEHOLDER_LIMITS["keyword_count"]
 
     @pytest.mark.unit
-    def test_custom_levels_only_included(self, custom_levels_template):
+    def test_custom_levels_only_included(self, custom_levels_template) -> None:
+
         """カスタムレベルのみがlatest_digestsに含まれる"""
         result = custom_levels_template.get_template()
         assert "weekly" in result["latest_digests"]
@@ -249,14 +277,16 @@ class TestShadowTemplateInit:
     """ShadowTemplate 初期化のテスト"""
 
     @pytest.mark.unit
-    def test_stores_levels(self):
+    def test_stores_levels(self) -> None:
+
         """levelsが正しく保存される"""
         levels = ["weekly", "monthly"]
         template = ShadowTemplate(levels=levels)
         assert template.levels == levels
 
     @pytest.mark.unit
-    def test_empty_levels(self):
+    def test_empty_levels(self) -> None:
+
         """空のlevelsでも初期化可能"""
         template = ShadowTemplate(levels=[])
         assert template.levels == []
@@ -264,7 +294,8 @@ class TestShadowTemplateInit:
         assert result["latest_digests"] == {}
 
     @pytest.mark.unit
-    def test_single_level(self):
+    def test_single_level(self) -> None:
+
         """単一レベルでも動作"""
         template = ShadowTemplate(levels=["weekly"])
         result = template.get_template()

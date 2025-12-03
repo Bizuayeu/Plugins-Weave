@@ -34,7 +34,8 @@ class TestValidateDict:
     """validate_dict 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_valid_dict(self):
+    def test_with_valid_dict(self) -> None:
+
         """dictを渡すとそのまま返す"""
         data = {"key": "value"}
         result = validate_dict(data, "test context")
@@ -42,14 +43,16 @@ class TestValidateDict:
         assert result is data  # 同一オブジェクト
 
     @pytest.mark.unit
-    def test_with_empty_dict(self):
+    def test_with_empty_dict(self) -> None:
+
         """空のdictも有効"""
         data = {}
         result = validate_dict(data, "test context")
         assert result == {}
 
     @pytest.mark.unit
-    def test_with_nested_dict(self):
+    def test_with_nested_dict(self) -> None:
+
         """ネストしたdictも有効"""
         data = {"outer": {"inner": "value"}}
         result = validate_dict(data, "test context")
@@ -66,7 +69,8 @@ class TestValidateDict:
             ((1, 2), "tuple"),
         ],
     )
-    def test_with_invalid_type_raises_error(self, invalid_input, expected_type):
+    def test_with_invalid_type_raises_error(self, invalid_input, expected_type) -> None:
+
         """dict以外の型を渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             validate_dict(invalid_input, "test context")
@@ -83,7 +87,8 @@ class TestValidateList:
     """validate_list 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_valid_list(self):
+    def test_with_valid_list(self) -> None:
+
         """listを渡すとそのまま返す"""
         data = ["item1", "item2"]
         result = validate_list(data, "test context")
@@ -91,14 +96,16 @@ class TestValidateList:
         assert result is data
 
     @pytest.mark.unit
-    def test_with_empty_list(self):
+    def test_with_empty_list(self) -> None:
+
         """空のlistも有効"""
         data = []
         result = validate_list(data, "test context")
         assert result == []
 
     @pytest.mark.unit
-    def test_with_nested_list(self):
+    def test_with_nested_list(self) -> None:
+
         """ネストしたlistも有効"""
         data = [[1, 2], [3, 4]]
         result = validate_list(data, "test context")
@@ -115,7 +122,8 @@ class TestValidateList:
             (123, "int"),
         ],
     )
-    def test_with_invalid_type_raises_error(self, invalid_input, expected_type):
+    def test_with_invalid_type_raises_error(self, invalid_input, expected_type) -> None:
+
         """list以外の型を渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             validate_list(invalid_input, "test context")
@@ -132,21 +140,24 @@ class TestValidateSourceFiles:
     """validate_source_files 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_valid_files(self):
+    def test_with_valid_files(self) -> None:
+
         """有効なファイルリストを渡すとそのまま返す"""
         files = ["Loop001.txt", "Loop002.txt"]
         result = validate_source_files(files)
         assert result == files
 
     @pytest.mark.unit
-    def test_with_single_file(self):
+    def test_with_single_file(self) -> None:
+
         """1ファイルでも有効"""
         files = ["Loop001.txt"]
         result = validate_source_files(files)
         assert result == files
 
     @pytest.mark.unit
-    def test_with_none_raises_error(self):
+    def test_with_none_raises_error(self) -> None:
+
         """Noneを渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             validate_source_files(None)
@@ -154,35 +165,40 @@ class TestValidateSourceFiles:
         assert "source_files" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_with_empty_list_raises_error(self):
+    def test_with_empty_list_raises_error(self) -> None:
+
         """空リストを渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             validate_source_files([])
         assert "cannot be empty" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_with_dict_raises_error(self):
+    def test_with_dict_raises_error(self) -> None:
+
         """dictを渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             validate_source_files({"file": "Loop001.txt"})
         assert "expected list" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_with_string_raises_error(self):
+    def test_with_string_raises_error(self) -> None:
+
         """文字列を渡すとValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             validate_source_files("Loop001.txt")
         assert "expected list" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_custom_context(self):
+    def test_custom_context(self) -> None:
+
         """カスタムcontext文字列が使用される"""
         with pytest.raises(ValidationError) as exc_info:
             validate_source_files(None, "custom_context")
         assert "custom_context" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_default_context(self):
+    def test_default_context(self) -> None:
+
         """デフォルトcontextは'source_files'"""
         with pytest.raises(ValidationError) as exc_info:
             validate_source_files(None)
@@ -198,12 +214,14 @@ class TestIsValidDict:
     """is_valid_dict 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_dict_returns_true(self):
+    def test_with_dict_returns_true(self) -> None:
+
         """dictを渡すとTrue"""
         assert is_valid_dict({"key": "value"}) is True
 
     @pytest.mark.unit
-    def test_with_empty_dict_returns_true(self):
+    def test_with_empty_dict_returns_true(self) -> None:
+
         """空dictを渡すとTrue"""
         assert is_valid_dict({}) is True
 
@@ -219,7 +237,8 @@ class TestIsValidDict:
             3.14,
         ],
     )
-    def test_with_non_dict_returns_false(self, invalid_input):
+    def test_with_non_dict_returns_false(self, invalid_input) -> None:
+
         """dict以外を渡すとFalse"""
         assert is_valid_dict(invalid_input) is False
 
@@ -233,12 +252,14 @@ class TestIsValidList:
     """is_valid_list 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_list_returns_true(self):
+    def test_with_list_returns_true(self) -> None:
+
         """listを渡すとTrue"""
         assert is_valid_list([1, 2, 3]) is True
 
     @pytest.mark.unit
-    def test_with_empty_list_returns_true(self):
+    def test_with_empty_list_returns_true(self) -> None:
+
         """空listを渡すとTrue"""
         assert is_valid_list([]) is True
 
@@ -254,7 +275,8 @@ class TestIsValidList:
             3.14,
         ],
     )
-    def test_with_non_list_returns_false(self, invalid_input):
+    def test_with_non_list_returns_false(self, invalid_input) -> None:
+
         """list以外を渡すとFalse"""
         assert is_valid_list(invalid_input) is False
 
@@ -268,7 +290,8 @@ class TestGetDictOrDefault:
     """get_dict_or_default 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_dict_returns_dict(self):
+    def test_with_dict_returns_dict(self) -> None:
+
         """dictを渡すとそのまま返す"""
         data = {"key": "value"}
         result = get_dict_or_default(data)
@@ -276,19 +299,22 @@ class TestGetDictOrDefault:
         assert result is data
 
     @pytest.mark.unit
-    def test_with_non_dict_returns_empty_dict(self):
+    def test_with_non_dict_returns_empty_dict(self) -> None:
+
         """dict以外を渡すと空dictを返す"""
         result = get_dict_or_default("not a dict")
         assert result == {}
 
     @pytest.mark.unit
-    def test_with_none_returns_empty_dict(self):
+    def test_with_none_returns_empty_dict(self) -> None:
+
         """Noneを渡すと空dictを返す"""
         result = get_dict_or_default(None)
         assert result == {}
 
     @pytest.mark.unit
-    def test_with_custom_default(self):
+    def test_with_custom_default(self) -> None:
+
         """カスタムデフォルト値が使用される"""
         default = {"default": "value"}
         result = get_dict_or_default("not a dict", default)
@@ -296,20 +322,23 @@ class TestGetDictOrDefault:
         assert result is default
 
     @pytest.mark.unit
-    def test_with_none_and_custom_default(self):
+    def test_with_none_and_custom_default(self) -> None:
+
         """None + カスタムデフォルト"""
         default = {"default": "value"}
         result = get_dict_or_default(None, default)
         assert result == default
 
     @pytest.mark.unit
-    def test_with_list_returns_default(self):
+    def test_with_list_returns_default(self) -> None:
+
         """listを渡すとデフォルトを返す"""
         result = get_dict_or_default([1, 2, 3])
         assert result == {}
 
     @pytest.mark.unit
-    def test_default_none_becomes_empty_dict(self):
+    def test_default_none_becomes_empty_dict(self) -> None:
+
         """default=Noneの場合も空dictを返す"""
         result = get_dict_or_default("not a dict", None)
         assert result == {}
@@ -324,7 +353,8 @@ class TestGetListOrDefault:
     """get_list_or_default 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_list_returns_list(self):
+    def test_with_list_returns_list(self) -> None:
+
         """listを渡すとそのまま返す"""
         data = [1, 2, 3]
         result = get_list_or_default(data)
@@ -332,19 +362,22 @@ class TestGetListOrDefault:
         assert result is data
 
     @pytest.mark.unit
-    def test_with_non_list_returns_empty_list(self):
+    def test_with_non_list_returns_empty_list(self) -> None:
+
         """list以外を渡すと空listを返す"""
         result = get_list_or_default("not a list")
         assert result == []
 
     @pytest.mark.unit
-    def test_with_none_returns_empty_list(self):
+    def test_with_none_returns_empty_list(self) -> None:
+
         """Noneを渡すと空listを返す"""
         result = get_list_or_default(None)
         assert result == []
 
     @pytest.mark.unit
-    def test_with_custom_default(self):
+    def test_with_custom_default(self) -> None:
+
         """カスタムデフォルト値が使用される"""
         default = ["default", "value"]
         result = get_list_or_default("not a list", default)
@@ -352,26 +385,30 @@ class TestGetListOrDefault:
         assert result is default
 
     @pytest.mark.unit
-    def test_with_none_and_custom_default(self):
+    def test_with_none_and_custom_default(self) -> None:
+
         """None + カスタムデフォルト"""
         default = ["default"]
         result = get_list_or_default(None, default)
         assert result == default
 
     @pytest.mark.unit
-    def test_with_dict_returns_default(self):
+    def test_with_dict_returns_default(self) -> None:
+
         """dictを渡すとデフォルトを返す"""
         result = get_list_or_default({"key": "value"})
         assert result == []
 
     @pytest.mark.unit
-    def test_with_tuple_returns_default(self):
+    def test_with_tuple_returns_default(self) -> None:
+
         """tupleを渡すとデフォルトを返す（tupleはlistではない）"""
         result = get_list_or_default((1, 2, 3))
         assert result == []
 
     @pytest.mark.unit
-    def test_default_none_becomes_empty_list(self):
+    def test_default_none_becomes_empty_list(self) -> None:
+
         """default=Noneの場合も空listを返す"""
         result = get_list_or_default("not a list", None)
         assert result == []

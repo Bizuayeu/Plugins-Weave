@@ -23,7 +23,8 @@ from domain.exceptions import DigestError
 class TestProvisionalLoaderInit:
     """ProvisionalLoader initialization tests"""
 
-    def test_init_with_dependencies(self, temp_plugin_env):
+    def test_init_with_dependencies(self, temp_plugin_env) -> None:
+
         """Initializes with required dependencies"""
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
@@ -48,6 +49,7 @@ class TestGetSourcePathForLevel:
 
     @pytest.fixture
     def loader(self, temp_plugin_env):
+
         """Create ProvisionalLoader instance"""
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
@@ -56,12 +58,14 @@ class TestGetSourcePathForLevel:
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
-    def test_returns_loops_path_for_weekly(self, loader, temp_plugin_env):
+    def test_returns_loops_path_for_weekly(self, loader, temp_plugin_env) -> None:
+
         """Returns loops path for weekly level"""
         result = loader._get_source_path_for_level("weekly")
         assert result == temp_plugin_env.loops_path
 
-    def test_returns_digest_dir_for_monthly(self, loader, temp_plugin_env):
+    def test_returns_digest_dir_for_monthly(self, loader, temp_plugin_env) -> None:
+
         """Returns weekly digest dir for monthly level"""
         result = loader._get_source_path_for_level("monthly")
         assert "1_Weekly" in str(result)
@@ -77,6 +81,7 @@ class TestGetProvisionalPath:
 
     @pytest.fixture
     def loader(self, temp_plugin_env):
+
         """Create ProvisionalLoader instance"""
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
@@ -85,14 +90,16 @@ class TestGetProvisionalPath:
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
-    def test_returns_correct_path_for_weekly(self, loader):
+    def test_returns_correct_path_for_weekly(self, loader) -> None:
+
         """Returns correct provisional path for weekly"""
         result = loader._get_provisional_path("weekly", "0001")
 
         assert "Provisional" in str(result)
         assert result.name == "W0001_Individual.txt"
 
-    def test_returns_correct_path_for_monthly(self, loader):
+    def test_returns_correct_path_for_monthly(self, loader) -> None:
+
         """Returns correct provisional path for monthly"""
         result = loader._get_provisional_path("monthly", "0001")
 
@@ -109,6 +116,7 @@ class TestLoadProvisional:
 
     @pytest.fixture
     def loader(self, temp_plugin_env):
+
         """Create ProvisionalLoader instance"""
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
@@ -117,7 +125,8 @@ class TestLoadProvisional:
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
-    def test_loads_valid_provisional_file(self, loader, tmp_path):
+    def test_loads_valid_provisional_file(self, loader, tmp_path: Path) -> None:
+
         """Loads valid provisional file and returns digests"""
         provisional_data = {
             "individual_digests": [
@@ -134,7 +143,8 @@ class TestLoadProvisional:
         assert digests[0]["source_file"] == "file1.txt"
         assert path == provisional_file
 
-    def test_returns_empty_list_for_missing_digests(self, loader, tmp_path):
+    def test_returns_empty_list_for_missing_digests(self, loader, tmp_path: Path) -> None:
+
         """Returns empty list when individual_digests key is missing"""
         provisional_data = {"other_key": "value"}
         provisional_file = tmp_path / "W0001_Individual.txt"
@@ -145,7 +155,8 @@ class TestLoadProvisional:
         assert digests == []
         assert path == provisional_file
 
-    def test_raises_digest_error_for_invalid_format(self, loader, tmp_path):
+    def test_raises_digest_error_for_invalid_format(self, loader, tmp_path: Path) -> None:
+
         """Raises DigestError for non-dict provisional data"""
         provisional_file = tmp_path / "W0001_Individual.txt"
         provisional_file.write_text(json.dumps(["not", "a", "dict"]))
@@ -164,6 +175,7 @@ class TestLoadOrGenerate:
 
     @pytest.fixture
     def loader(self, temp_plugin_env):
+
         """Create ProvisionalLoader instance"""
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
@@ -172,7 +184,8 @@ class TestLoadOrGenerate:
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
-    def test_loads_existing_provisional(self, loader, temp_plugin_env):
+    def test_loads_existing_provisional(self, loader, temp_plugin_env) -> None:
+
         """Loads existing provisional file when present"""
         # Create provisional file
         provisional_dir = temp_plugin_env.digests_path / "1_Weekly" / "Provisional"
@@ -189,7 +202,8 @@ class TestLoadOrGenerate:
         assert len(digests) == 1
         assert file_to_delete == provisional_file
 
-    def test_generates_from_source_when_no_provisional(self, loader, temp_plugin_env):
+    def test_generates_from_source_when_no_provisional(self, loader, temp_plugin_env) -> None:
+
         """Generates from source files when no provisional exists"""
         # Create source file
         loop_file = temp_plugin_env.loops_path / "Loop00001_test.txt"
@@ -221,6 +235,7 @@ class TestBuildIndividualEntry:
 
     @pytest.fixture
     def loader(self, temp_plugin_env):
+
         """Create ProvisionalLoader instance"""
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
@@ -229,7 +244,8 @@ class TestBuildIndividualEntry:
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
-    def test_builds_entry_from_complete_data(self, loader):
+    def test_builds_entry_from_complete_data(self, loader) -> None:
+
         """Builds complete entry from source data"""
         source_data = {
             "overall_digest": {
@@ -248,7 +264,8 @@ class TestBuildIndividualEntry:
         assert entry["abstract"] == "A conversation about AI"
         assert entry["impression"] == "Interesting discussion"
 
-    def test_builds_entry_with_missing_fields(self, loader):
+    def test_builds_entry_with_missing_fields(self, loader) -> None:
+
         """Builds entry with defaults for missing fields"""
         source_data = {"overall_digest": {}}
 
@@ -260,7 +277,8 @@ class TestBuildIndividualEntry:
         assert entry["abstract"] == ""
         assert entry["impression"] == ""
 
-    def test_builds_entry_with_no_overall_digest(self, loader):
+    def test_builds_entry_with_no_overall_digest(self, loader) -> None:
+
         """Builds entry when overall_digest is missing"""
         source_data = {}
 
@@ -280,6 +298,7 @@ class TestGenerateFromSource:
 
     @pytest.fixture
     def loader(self, temp_plugin_env):
+
         """Create ProvisionalLoader instance"""
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
@@ -288,7 +307,8 @@ class TestGenerateFromSource:
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
-    def test_generates_from_multiple_sources(self, loader, temp_plugin_env):
+    def test_generates_from_multiple_sources(self, loader, temp_plugin_env) -> None:
+
         """Generates digests from multiple source files"""
         # Create source files
         for i in range(1, 4):
@@ -313,7 +333,8 @@ class TestGenerateFromSource:
         assert digests[0]["digest_type"] == "type1"
         assert digests[2]["digest_type"] == "type3"
 
-    def test_skips_missing_files(self, loader, temp_plugin_env):
+    def test_skips_missing_files(self, loader, temp_plugin_env) -> None:
+
         """Skips missing source files and continues"""
         # Create only one file
         loop_file = temp_plugin_env.loops_path / "Loop00001_test.txt"
@@ -327,7 +348,8 @@ class TestGenerateFromSource:
         assert len(digests) == 1
         assert digests[0]["source_file"] == "Loop00001_test.txt"
 
-    def test_skips_invalid_json_files(self, loader, temp_plugin_env):
+    def test_skips_invalid_json_files(self, loader, temp_plugin_env) -> None:
+
         """Skips files with invalid JSON"""
         # Create valid file
         valid_file = temp_plugin_env.loops_path / "Loop00001_test.txt"
@@ -343,7 +365,8 @@ class TestGenerateFromSource:
 
         assert len(digests) == 1
 
-    def test_returns_empty_list_for_no_source_files(self, loader):
+    def test_returns_empty_list_for_no_source_files(self, loader) -> None:
+
         """Returns empty list when no source files"""
         shadow_digest = {"source_files": []}
 
@@ -351,7 +374,8 @@ class TestGenerateFromSource:
 
         assert digests == []
 
-    def test_handles_missing_source_files_key(self, loader):
+    def test_handles_missing_source_files_key(self, loader) -> None:
+
         """Handles missing source_files key"""
         shadow_digest = {}
 

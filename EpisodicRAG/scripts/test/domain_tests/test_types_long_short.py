@@ -22,54 +22,64 @@ pytestmark = pytest.mark.unit
 class TestIsLongShortText:
     """is_long_short_text() のテスト"""
 
-    def test_valid_long_short_text(self):
+    def test_valid_long_short_text(self) -> None:
+
         """有効な{long, short}形式はTrueを返す"""
         text: LongShortText = {"long": "詳細な要約", "short": "簡潔な要約"}
         assert is_long_short_text(text) is True
 
-    def test_empty_strings_valid(self):
+    def test_empty_strings_valid(self) -> None:
+
         """空文字列でも{long, short}形式であればTrue"""
         text = {"long": "", "short": ""}
         assert is_long_short_text(text) is True
 
-    def test_missing_long_key(self):
+    def test_missing_long_key(self) -> None:
+
         """longキーがない場合はFalse"""
         text = {"short": "簡潔な要約"}
         assert is_long_short_text(text) is False
 
-    def test_missing_short_key(self):
+    def test_missing_short_key(self) -> None:
+
         """shortキーがない場合はFalse"""
         text = {"long": "詳細な要約"}
         assert is_long_short_text(text) is False
 
-    def test_non_string_long_value(self):
+    def test_non_string_long_value(self) -> None:
+
         """long値が文字列でない場合はFalse"""
         text = {"long": 123, "short": "簡潔な要約"}
         assert is_long_short_text(text) is False
 
-    def test_non_string_short_value(self):
+    def test_non_string_short_value(self) -> None:
+
         """short値が文字列でない場合はFalse"""
         text = {"long": "詳細な要約", "short": 123}
         assert is_long_short_text(text) is False
 
-    def test_not_a_dict(self):
+    def test_not_a_dict(self) -> None:
+
         """辞書でない場合はFalse"""
         assert is_long_short_text("not a dict") is False
         assert is_long_short_text(None) is False
         assert is_long_short_text(123) is False
         assert is_long_short_text(["long", "short"]) is False
 
-    def test_extra_keys_allowed(self):
+    def test_extra_keys_allowed(self) -> None:
+
         """追加キーがあってもTrue"""
         text = {"long": "詳細", "short": "簡潔", "extra": "追加"}
         assert is_long_short_text(text) is True
 
-    def test_unicode_content(self):
+    def test_unicode_content(self) -> None:
+
         """Unicode文字を含む場合もTrue"""
         text = {"long": "日本語の詳細な要約 🎉", "short": "簡潔 ✨"}
         assert is_long_short_text(text) is True
 
-    def test_multiline_content(self):
+    def test_multiline_content(self) -> None:
+
         """複数行の場合もTrue"""
         text = {
             "long": "1行目\n2行目\n3行目",

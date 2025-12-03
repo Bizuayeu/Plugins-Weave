@@ -40,6 +40,7 @@ pytestmark = pytest.mark.slow
 
 @pytest.fixture
 def level_hierarchy():
+
     """レベル階層情報"""
     return {
         level: {"source": cfg["source"], "next": cfg["next"]}
@@ -49,6 +50,7 @@ def level_hierarchy():
 
 @pytest.fixture
 def cascade_components(temp_plugin_env, level_hierarchy):
+
     """カスケード処理に必要なコンポーネント群"""
     config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
     levels = list(LEVEL_CONFIG.keys())
@@ -78,6 +80,7 @@ def cascade_components(temp_plugin_env, level_hierarchy):
 
 @pytest.fixture
 def cascade_orchestrator(cascade_components, level_hierarchy):
+
     """CascadeOrchestratorインスタンスを提供"""
     return CascadeOrchestrator(
         cascade_processor=cascade_components["cascade_processor"],
@@ -96,7 +99,8 @@ class TestCascadeStepResult:
     """CascadeStepResult dataclass tests"""
 
     @pytest.mark.unit
-    def test_create_step_result(self):
+    def test_create_step_result(self) -> None:
+
         """Create step result with all fields"""
         result = CascadeStepResult(
             step_name="promote",
@@ -113,7 +117,8 @@ class TestCascadeStepResult:
         assert result.details == {"key": "value"}
 
     @pytest.mark.unit
-    def test_step_result_defaults(self):
+    def test_step_result_defaults(self) -> None:
+
         """Step result has sensible defaults"""
         result = CascadeStepResult(
             step_name="test",
@@ -134,7 +139,8 @@ class TestCascadeResult:
     """CascadeResult dataclass tests"""
 
     @pytest.mark.unit
-    def test_create_cascade_result(self):
+    def test_create_cascade_result(self) -> None:
+
         """Create cascade result"""
         steps = [
             CascadeStepResult("promote", CascadeStepStatus.SUCCESS, "OK", 3),
@@ -153,7 +159,8 @@ class TestCascadeResult:
         assert result.next_level == "monthly"
 
     @pytest.mark.unit
-    def test_total_files_processed(self):
+    def test_total_files_processed(self) -> None:
+
         """total_files_processed sums all step counts"""
         steps = [
             CascadeStepResult("promote", CascadeStepStatus.SUCCESS, "OK", 3),
@@ -167,7 +174,8 @@ class TestCascadeResult:
         assert result.total_files_processed == 13
 
     @pytest.mark.unit
-    def test_step_summary(self):
+    def test_step_summary(self) -> None:
+
         """step_summary returns status mapping"""
         steps = [
             CascadeStepResult("promote", CascadeStepStatus.SUCCESS, "OK"),
@@ -193,7 +201,8 @@ class TestCascadeOrchestratorInit:
     """CascadeOrchestrator initialization tests"""
 
     @pytest.mark.unit
-    def test_init_with_components(self, cascade_components, level_hierarchy):
+    def test_init_with_components(self, cascade_components, level_hierarchy) -> None:
+
         """Initialize with all required components"""
         orchestrator = CascadeOrchestrator(
             cascade_processor=cascade_components["cascade_processor"],
@@ -217,7 +226,8 @@ class TestCascadeOrchestratorExecute:
     """CascadeOrchestrator.execute_cascade tests"""
 
     @pytest.mark.integration
-    def test_execute_returns_cascade_result(self, cascade_orchestrator):
+    def test_execute_returns_cascade_result(self, cascade_orchestrator) -> None:
+
         """execute_cascade returns CascadeResult"""
         result = cascade_orchestrator.execute_cascade("weekly")
 
@@ -226,7 +236,8 @@ class TestCascadeOrchestratorExecute:
         assert result.success is True
 
     @pytest.mark.integration
-    def test_execute_has_four_steps(self, cascade_orchestrator):
+    def test_execute_has_four_steps(self, cascade_orchestrator) -> None:
+
         """execute_cascade runs all four steps"""
         result = cascade_orchestrator.execute_cascade("weekly")
 
@@ -238,7 +249,8 @@ class TestCascadeOrchestratorExecute:
         assert "clear" in step_names
 
     @pytest.mark.integration
-    def test_execute_identifies_next_level(self, cascade_orchestrator):
+    def test_execute_identifies_next_level(self, cascade_orchestrator) -> None:
+
         """execute_cascade identifies next level"""
         result = cascade_orchestrator.execute_cascade("weekly")
 
@@ -246,7 +258,8 @@ class TestCascadeOrchestratorExecute:
         assert result.next_level == "monthly"
 
     @pytest.mark.integration
-    def test_execute_top_level_has_no_next(self, cascade_orchestrator):
+    def test_execute_top_level_has_no_next(self, cascade_orchestrator) -> None:
+
         """Top level (centurial) has no next level"""
         result = cascade_orchestrator.execute_cascade("centurial")
 
@@ -260,7 +273,8 @@ class TestCascadeOrchestratorSteps:
     """Individual step execution tests"""
 
     @pytest.mark.integration
-    def test_promote_step_no_data(self, cascade_orchestrator):
+    def test_promote_step_no_data(self, cascade_orchestrator) -> None:
+
         """Promote step returns NO_DATA when shadow is empty"""
         result = cascade_orchestrator.execute_cascade("weekly")
 
@@ -270,7 +284,8 @@ class TestCascadeOrchestratorSteps:
     @pytest.mark.integration
     def test_promote_step_success_with_data(
         self, cascade_orchestrator, cascade_components
-    ):
+    ) -> None:
+
         """Promote step returns SUCCESS when shadow has data"""
         # Add data to shadow
         shadow_io = cascade_components["shadow_io"]
@@ -292,7 +307,8 @@ class TestCascadeOrchestratorSteps:
         assert promote_step.files_processed == 2
 
     @pytest.mark.integration
-    def test_detect_step_no_files(self, cascade_orchestrator):
+    def test_detect_step_no_files(self, cascade_orchestrator) -> None:
+
         """Detect step returns NO_DATA when no new files"""
         result = cascade_orchestrator.execute_cascade("weekly")
 
@@ -300,7 +316,8 @@ class TestCascadeOrchestratorSteps:
         assert detect_step.status == CascadeStepStatus.NO_DATA
 
     @pytest.mark.integration
-    def test_clear_step_always_succeeds(self, cascade_orchestrator):
+    def test_clear_step_always_succeeds(self, cascade_orchestrator) -> None:
+
         """Clear step always returns SUCCESS"""
         result = cascade_orchestrator.execute_cascade("weekly")
 
@@ -317,7 +334,8 @@ class TestCascadeOrchestratorImports:
     """CascadeOrchestrator import path tests"""
 
     @pytest.mark.unit
-    def test_import_from_package(self):
+    def test_import_from_package(self) -> None:
+
         """Import from application.shadow package"""
         from application.shadow import (
             CascadeOrchestrator,
@@ -332,7 +350,8 @@ class TestCascadeOrchestratorImports:
         assert CascadeStepStatus is not None
 
     @pytest.mark.unit
-    def test_import_from_module(self):
+    def test_import_from_module(self) -> None:
+
         """Import from application.shadow.cascade_orchestrator module"""
         from application.shadow.cascade_orchestrator import (
             CascadeOrchestrator,

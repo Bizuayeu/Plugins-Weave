@@ -38,6 +38,7 @@ class TestE2ELoopDetectionToShadow:
 
     @pytest.fixture
     def e2e_env(self, temp_plugin_env):
+
         """E2Eテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -51,7 +52,8 @@ class TestE2ELoopDetectionToShadow:
         }
 
     @pytest.mark.integration
-    def test_new_loops_detected_and_added_to_shadow(self, e2e_env):
+    def test_new_loops_detected_and_added_to_shadow(self, e2e_env) -> None:
+
         """新規Loopファイルが検出されShadowに追加される"""
         env = e2e_env["env"]
         config = e2e_env["config"]
@@ -78,7 +80,8 @@ class TestE2ELoopDetectionToShadow:
         assert len(shadow_digest["source_files"]) == 3
 
     @pytest.mark.integration
-    def test_incremental_loop_detection(self, e2e_env):
+    def test_incremental_loop_detection(self, e2e_env) -> None:
+
         """増分検出：既存ファイルは再検出されない"""
         env = e2e_env["env"]
         config = e2e_env["config"]
@@ -124,6 +127,7 @@ class TestE2EDigestPromotion:
 
     @pytest.fixture
     def promotion_env(self, temp_plugin_env):
+
         """昇格テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -154,7 +158,8 @@ class TestE2EDigestPromotion:
         }
 
     @pytest.mark.integration
-    def test_shadow_to_regular_promotion(self, promotion_env):
+    def test_shadow_to_regular_promotion(self, promotion_env) -> None:
+
         """ShadowからRegularへの昇格が正しく行われる"""
         env = promotion_env["env"]
         config = promotion_env["config"]
@@ -216,6 +221,7 @@ class TestE2ECascadeProcessing:
 
     @pytest.fixture
     def cascade_env(self, temp_plugin_env):
+
         """カスケードテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -234,7 +240,8 @@ class TestE2ECascadeProcessing:
         }
 
     @pytest.mark.integration
-    def test_weekly_finalize_triggers_monthly_shadow_update(self, cascade_env):
+    def test_weekly_finalize_triggers_monthly_shadow_update(self, cascade_env) -> None:
+
         """Weekly確定時にMonthlyShadowが更新される"""
         env = cascade_env["env"]
         config = cascade_env["config"]
@@ -268,6 +275,7 @@ class TestE2EFullWorkflow:
 
     @pytest.fixture
     def full_env(self, temp_plugin_env):
+
         """フルワークフローテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -297,7 +305,8 @@ class TestE2EFullWorkflow:
         }
 
     @pytest.mark.integration
-    def test_complete_workflow_loop_to_grand(self, full_env):
+    def test_complete_workflow_loop_to_grand(self, full_env) -> None:
+
         """Loop作成からGrand更新までの完全なワークフロー"""
         env = full_env["env"]
         config = full_env["config"]
@@ -363,7 +372,8 @@ class TestE2EFullWorkflow:
         assert times_data["weekly"]["last_processed"] == 5  # L00001-L00005を処理
 
     @pytest.mark.integration
-    def test_multiple_weekly_cycles(self, full_env):
+    def test_multiple_weekly_cycles(self, full_env) -> None:
+
         """複数回のWeeklyサイクルが正しく処理される"""
         env = full_env["env"]
         config = full_env["config"]

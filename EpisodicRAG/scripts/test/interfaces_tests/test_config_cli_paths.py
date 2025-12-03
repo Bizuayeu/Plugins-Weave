@@ -20,18 +20,21 @@ import pytest
 class TestConfigCLITrustedPathsCommand(unittest.TestCase):
     """trusted-paths サブコマンドのCLIテスト"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
         self._create_config()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _create_config(self):
+    def _create_config(self) -> None:
+
         """設定ファイルを作成"""
         config_data = {
             "base_dir": ".",
@@ -45,7 +48,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             json.dump(config_data, f)
 
     @pytest.mark.unit
-    def test_trusted_paths_list_empty(self):
+    def test_trusted_paths_list_empty(self) -> None:
+
         """trusted-paths list で空リスト"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -63,7 +67,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert result["trusted_external_paths"] == []
 
     @pytest.mark.unit
-    def test_trusted_paths_list_with_paths(self):
+    def test_trusted_paths_list_with_paths(self) -> None:
+
         """trusted-paths list でパスあり"""
         # 先にパスを追加
         config_data = {
@@ -89,7 +94,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert result["count"] == 2
 
     @pytest.mark.unit
-    def test_trusted_paths_add_valid_absolute_path(self):
+    def test_trusted_paths_add_valid_absolute_path(self) -> None:
+
         """trusted-paths add で有効な絶対パス"""
         # Windowsでも動作するよう、tempディレクトリを使用
         abs_path = str(self.plugin_root / "external")
@@ -109,7 +115,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert abs_path in result["trusted_external_paths"]
 
     @pytest.mark.unit
-    def test_trusted_paths_add_tilde_path(self):
+    def test_trusted_paths_add_tilde_path(self) -> None:
+
         """trusted-paths add で ~ パス"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -126,7 +133,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert "~/DEV/production" in result["trusted_external_paths"]
 
     @pytest.mark.unit
-    def test_trusted_paths_add_relative_path_rejected(self):
+    def test_trusted_paths_add_relative_path_rejected(self) -> None:
+
         """trusted-paths add で相対パスを拒否"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -142,7 +150,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert result["status"] == "error"
 
     @pytest.mark.unit
-    def test_trusted_paths_add_duplicate_handled(self):
+    def test_trusted_paths_add_duplicate_handled(self) -> None:
+
         """trusted-paths add で重複を処理"""
         # 先にパスを追加
         with patch("sys.argv", [
@@ -170,7 +179,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert "already exists" in result["message"].lower()
 
     @pytest.mark.unit
-    def test_trusted_paths_remove_existing(self):
+    def test_trusted_paths_remove_existing(self) -> None:
+
         """trusted-paths remove で既存パス削除"""
         # 先にパスを追加
         config_data = {
@@ -197,7 +207,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert "~/DEV/production" not in result["trusted_external_paths"]
 
     @pytest.mark.unit
-    def test_trusted_paths_remove_nonexistent_error(self):
+    def test_trusted_paths_remove_nonexistent_error(self) -> None:
+
         """trusted-paths remove で存在しないパスはエラー"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -213,7 +224,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert result["status"] == "error"
 
     @pytest.mark.unit
-    def test_trusted_paths_no_subcommand_lists(self):
+    def test_trusted_paths_no_subcommand_lists(self) -> None:
+
         """trusted-paths でサブコマンドなしはリスト表示"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -230,7 +242,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
                 assert "trusted_external_paths" in result
 
     @pytest.mark.unit
-    def test_trusted_paths_output_is_valid_json(self):
+    def test_trusted_paths_output_is_valid_json(self) -> None:
+
         """trusted-paths の出力が有効なJSON"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -250,7 +263,8 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
 class TestConfigCLINoCommand(unittest.TestCase):
     """コマンドなしの場合のテスト"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -259,12 +273,14 @@ class TestConfigCLINoCommand(unittest.TestCase):
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
-    def test_no_command_exits_with_code_1(self):
+    def test_no_command_exits_with_code_1(self) -> None:
+
         """コマンドなしで exit code 1"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -277,7 +293,8 @@ class TestConfigCLINoCommand(unittest.TestCase):
                 assert exc_info.value.code == 1
 
     @pytest.mark.unit
-    def test_invalid_command_exits_with_error(self):
+    def test_invalid_command_exits_with_error(self) -> None:
+
         """無効なコマンドでエラー"""
         with patch("sys.argv", [
             "digest_config.py",

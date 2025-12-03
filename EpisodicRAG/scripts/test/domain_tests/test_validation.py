@@ -22,7 +22,8 @@ class TestValidateType:
     """validate_type 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_valid_dict(self):
+    def test_with_valid_dict(self) -> None:
+
         """dictを期待してdictを渡すとそのまま返す"""
         data = {"key": "value"}
         result = validate_type(data, dict, "test context", "dict")
@@ -30,7 +31,8 @@ class TestValidateType:
         assert result is data  # 同一オブジェクト
 
     @pytest.mark.unit
-    def test_with_valid_list(self):
+    def test_with_valid_list(self) -> None:
+
         """listを期待してlistを渡すとそのまま返す"""
         data = [1, 2, 3]
         result = validate_type(data, list, "test context", "list")
@@ -38,28 +40,32 @@ class TestValidateType:
         assert result is data
 
     @pytest.mark.unit
-    def test_with_valid_str(self):
+    def test_with_valid_str(self) -> None:
+
         """strを期待してstrを渡すとそのまま返す"""
         data = "hello"
         result = validate_type(data, str, "test context", "str")
         assert result == data
 
     @pytest.mark.unit
-    def test_with_valid_int(self):
+    def test_with_valid_int(self) -> None:
+
         """intを期待してintを渡すとそのまま返す"""
         data = 42
         result = validate_type(data, int, "test context", "int")
         assert result == data
 
     @pytest.mark.unit
-    def test_with_empty_dict(self):
+    def test_with_empty_dict(self) -> None:
+
         """空のdictも有効"""
         data = {}
         result = validate_type(data, dict, "test context", "dict")
         assert result == {}
 
     @pytest.mark.unit
-    def test_with_empty_list(self):
+    def test_with_empty_list(self) -> None:
+
         """空のlistも有効"""
         data = []
         result = validate_type(data, list, "test context", "list")
@@ -79,7 +85,8 @@ class TestValidateType:
     )
     def test_with_invalid_type_raises_validation_error(
         self, invalid_input, expected_type, type_name, actual_type_name
-    ):
+    ) -> None:
+
         """型が一致しない場合はValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             validate_type(invalid_input, expected_type, "test context", type_name)
@@ -90,7 +97,8 @@ class TestValidateType:
         assert "test context" in error_message
 
     @pytest.mark.unit
-    def test_error_message_contains_context(self):
+    def test_error_message_contains_context(self) -> None:
+
         """エラーメッセージにコンテキストが含まれる"""
         with pytest.raises(ValidationError) as exc_info:
             validate_type("string", dict, "config.json", "dict")
@@ -98,7 +106,8 @@ class TestValidateType:
         assert "config.json" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_error_message_format(self):
+    def test_error_message_format(self) -> None:
+
         """エラーメッセージのフォーマットを確認"""
         with pytest.raises(ValidationError) as exc_info:
             validate_type([1, 2], dict, "my_context", "dict")
@@ -116,28 +125,32 @@ class TestCollectTypeError:
     """collect_type_error 関数のテスト"""
 
     @pytest.mark.unit
-    def test_with_valid_type_no_error_added(self):
+    def test_with_valid_type_no_error_added(self) -> None:
+
         """型が正しい場合はエラーリストに追加しない"""
         errors = []
         collect_type_error("value", str, "my_key", errors)
         assert errors == []
 
     @pytest.mark.unit
-    def test_with_valid_int_no_error_added(self):
+    def test_with_valid_int_no_error_added(self) -> None:
+
         """intが正しい場合はエラーリストに追加しない"""
         errors = []
         collect_type_error(42, int, "threshold", errors)
         assert errors == []
 
     @pytest.mark.unit
-    def test_with_valid_dict_no_error_added(self):
+    def test_with_valid_dict_no_error_added(self) -> None:
+
         """dictが正しい場合はエラーリストに追加しない"""
         errors = []
         collect_type_error({"key": "value"}, dict, "config", errors)
         assert errors == []
 
     @pytest.mark.unit
-    def test_with_invalid_type_adds_error(self):
+    def test_with_invalid_type_adds_error(self) -> None:
+
         """型が間違っている場合はエラーリストに追加"""
         errors = []
         collect_type_error(123, str, "my_key", errors)
@@ -147,7 +160,8 @@ class TestCollectTypeError:
         assert "got int" in errors[0]
 
     @pytest.mark.unit
-    def test_with_none_adds_error(self):
+    def test_with_none_adds_error(self) -> None:
+
         """Noneを渡すとエラー追加"""
         errors = []
         collect_type_error(None, str, "required_field", errors)
@@ -156,7 +170,8 @@ class TestCollectTypeError:
         assert "got NoneType" in errors[0]
 
     @pytest.mark.unit
-    def test_multiple_errors_accumulated(self):
+    def test_multiple_errors_accumulated(self) -> None:
+
         """複数のエラーが蓄積される"""
         errors = []
         collect_type_error(123, str, "field1", errors)
@@ -169,7 +184,8 @@ class TestCollectTypeError:
         assert "field3" in errors[2]
 
     @pytest.mark.unit
-    def test_error_message_format(self):
+    def test_error_message_format(self) -> None:
+
         """エラーメッセージのフォーマットを確認"""
         errors = []
         collect_type_error([1, 2], str, "items", errors)
@@ -178,7 +194,8 @@ class TestCollectTypeError:
         assert errors[0] == "config['items']: expected str, got list"
 
     @pytest.mark.unit
-    def test_does_not_raise_exception(self):
+    def test_does_not_raise_exception(self) -> None:
+
         """例外を投げずにエラーリストに追加のみ"""
         errors = []
         # 例外が発生しないことを確認
@@ -186,7 +203,8 @@ class TestCollectTypeError:
         assert len(errors) == 1
 
     @pytest.mark.unit
-    def test_preserves_existing_errors(self):
+    def test_preserves_existing_errors(self) -> None:
+
         """既存のエラーを保持しつつ追加"""
         errors = ["existing error"]
         collect_type_error(123, str, "new_key", errors)

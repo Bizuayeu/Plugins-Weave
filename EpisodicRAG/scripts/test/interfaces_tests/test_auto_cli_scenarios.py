@@ -20,17 +20,20 @@ import pytest
 class TestDigestAutoCLIScenarios(unittest.TestCase):
     """統合シナリオテスト"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _setup_plugin_structure(self):
+    def _setup_plugin_structure(self) -> None:
+
         """完全なプラグイン構造を作成"""
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
         (self.plugin_root / "data" / "Digests").mkdir(parents=True)
@@ -80,7 +83,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
             json.dump(times_data, f)
 
     @pytest.mark.unit
-    def test_healthy_system_returns_ok(self):
+    def test_healthy_system_returns_ok(self) -> None:
+
         """問題がないシステムで ok を返す"""
         with patch("sys.argv", [
             "digest_auto.py",
@@ -96,7 +100,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                 assert result["status"] == "ok"
 
     @pytest.mark.unit
-    def test_system_with_unprocessed_loops_returns_warning(self):
+    def test_system_with_unprocessed_loops_returns_warning(self) -> None:
+
         """未処理Loopがあるシステムで warning を返す"""
         # Loopファイルを作成
         for i in range(1, 3):
@@ -123,7 +128,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                     assert "unprocessed_loops" in issue_types
 
     @pytest.mark.unit
-    def test_missing_shadow_returns_error(self):
+    def test_missing_shadow_returns_error(self) -> None:
+
         """ShadowGrandDigestがない場合にエラーを返す"""
         # ShadowGrandDigestを削除
         (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").unlink()
@@ -142,7 +148,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                 assert result["status"] == "error"
 
     @pytest.mark.unit
-    def test_corrupted_config_returns_error(self):
+    def test_corrupted_config_returns_error(self) -> None:
+
         """破損した設定ファイルでエラーを返す"""
 
         # 設定ファイルを破損させる
@@ -170,7 +177,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                 assert result["status"] == "error"
 
     @pytest.mark.unit
-    def test_generatable_levels_included_in_output(self):
+    def test_generatable_levels_included_in_output(self) -> None:
+
         """生成可能なレベルが出力に含まれる"""
         # 5つのLoopファイルを作成（thresholdを満たす）
         for i in range(1, 6):
@@ -199,7 +207,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                 assert isinstance(result["generatable_levels"], list)
 
     @pytest.mark.unit
-    def test_recommendations_included_when_issues_exist(self):
+    def test_recommendations_included_when_issues_exist(self) -> None:
+
         """問題がある場合に推奨アクションが含まれる"""
         # 未処理Loopを作成
         loop_data = {"overall_digest": {"abstract": "Test loop"}}

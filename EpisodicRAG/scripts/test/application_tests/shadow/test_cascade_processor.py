@@ -35,6 +35,7 @@ pytestmark = pytest.mark.slow
 
 @pytest.fixture
 def level_hierarchy():
+
     """レベル階層情報"""
     return {
         level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
@@ -43,6 +44,7 @@ def level_hierarchy():
 
 @pytest.fixture
 def cascade_processor(temp_plugin_env, level_hierarchy):
+
     """CascadeProcessorインスタンスを提供"""
     config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
     levels = list(LEVEL_CONFIG.keys())
@@ -67,13 +69,15 @@ class TestGetShadowDigestForLevel:
     """get_shadow_digest_for_level メソッドのテスト"""
 
     @pytest.mark.unit
-    def test_returns_none_when_no_digest(self, cascade_processor):
+    def test_returns_none_when_no_digest(self, cascade_processor) -> None:
+
         """Shadowダイジェストが空の場合、Noneを返す"""
         result = cascade_processor.get_shadow_digest_for_level("weekly")
         assert result is None
 
     @pytest.mark.integration
-    def test_returns_digest_when_exists(self, cascade_processor, temp_plugin_env):
+    def test_returns_digest_when_exists(self, cascade_processor, temp_plugin_env) -> None:
+
         """Shadowダイジェストが存在する場合、その内容を返す"""
         # Shadowにデータを追加
         shadow_data = cascade_processor.shadow_io.load_or_create()
@@ -95,7 +99,8 @@ class TestGetShadowDigestForLevel:
         assert "L0001_test.txt" in result["source_files"]
 
     @pytest.mark.unit
-    def test_returns_none_when_source_files_empty(self, cascade_processor):
+    def test_returns_none_when_source_files_empty(self, cascade_processor) -> None:
+
         """source_filesが空の場合、Noneを返す"""
         shadow_data = cascade_processor.shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = {
@@ -117,13 +122,15 @@ class TestPromoteShadowToGrand:
     """promote_shadow_to_grand メソッドのテスト"""
 
     @pytest.mark.unit
-    def test_logs_when_no_digest(self, cascade_processor, caplog):
+    def test_logs_when_no_digest(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """Shadowダイジェストがない場合、ログ出力のみ"""
         cascade_processor.promote_shadow_to_grand("weekly")
         assert "昇格対象のShadowダイジェストなし" in caplog.text
 
     @pytest.mark.integration
-    def test_logs_ready_for_promotion(self, cascade_processor, caplog):
+    def test_logs_ready_for_promotion(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """Shadowダイジェストがある場合、準備完了をログ出力"""
         # Shadowにデータを追加
         shadow_data = cascade_processor.shadow_io.load_or_create()
@@ -146,7 +153,8 @@ class TestClearShadowLevel:
     """clear_shadow_level メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_clears_shadow_level(self, cascade_processor):
+    def test_clears_shadow_level(self, cascade_processor) -> None:
+
         """指定レベルのShadowをクリアする"""
         # まずデータを追加
         shadow_data = cascade_processor.shadow_io.load_or_create()
@@ -167,7 +175,8 @@ class TestClearShadowLevel:
         assert not overall.get("source_files") or overall["source_files"] == []
 
     @pytest.mark.integration
-    def test_clear_logs_message(self, cascade_processor, caplog):
+    def test_clear_logs_message(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """クリア時にログを出力"""
         cascade_processor.clear_shadow_level("monthly")
         assert "ShadowGrandDigestクリア完了: レベル monthly" in caplog.text
@@ -182,7 +191,8 @@ class TestCascadeUpdateOnDigestFinalize:
     """cascade_update_on_digest_finalize メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_cascade_logs_start_and_end(self, cascade_processor, caplog):
+    def test_cascade_logs_start_and_end(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """カスケード処理の開始・終了をログ出力"""
         cascade_processor.cascade_update_on_digest_finalize("weekly")
 
@@ -190,7 +200,8 @@ class TestCascadeUpdateOnDigestFinalize:
         assert "[Step 3] カスケード処理完了: レベル weekly" in caplog.text
 
     @pytest.mark.integration
-    def test_cascade_clears_current_level(self, cascade_processor):
+    def test_cascade_clears_current_level(self, cascade_processor) -> None:
+
         """カスケード処理後、現在レベルのShadowがクリアされる"""
         # weeklyにデータを追加
         shadow_data = cascade_processor.shadow_io.load_or_create()
@@ -209,7 +220,8 @@ class TestCascadeUpdateOnDigestFinalize:
         assert not overall.get("source_files") or overall["source_files"] == []
 
     @pytest.mark.integration
-    def test_cascade_centurial_logs_top_level(self, cascade_processor, caplog):
+    def test_cascade_centurial_logs_top_level(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """Centurialレベルは次レベルがないため、top levelログ出力"""
         cascade_processor.cascade_update_on_digest_finalize("centurial")
         assert "centurialに上位レベルなし（最上位）" in caplog.text
@@ -217,7 +229,8 @@ class TestCascadeUpdateOnDigestFinalize:
     @pytest.mark.integration
     def test_cascade_detects_new_files_for_next_level(
         self, cascade_processor, temp_plugin_env, caplog
-    ):
+    ) -> None:
+
         """次レベルの新規ファイルを検出してShadowに追加"""
         # Weekly Digestファイルを作成（monthlyの次レベルはweekly）
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
@@ -252,13 +265,15 @@ class TestCascadeProcessorEdgeCases:
     """CascadeProcessor のエッジケーステスト"""
 
     @pytest.mark.unit
-    def test_all_levels_have_hierarchy_entry(self, cascade_processor, level_hierarchy):
+    def test_all_levels_have_hierarchy_entry(self, cascade_processor, level_hierarchy) -> None:
+
         """すべてのレベルがhierarchyに存在する"""
         for level in LEVEL_CONFIG.keys():
             assert level in level_hierarchy
 
     @pytest.mark.integration
-    def test_cascade_multiple_levels_sequentially(self, cascade_processor, caplog):
+    def test_cascade_multiple_levels_sequentially(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """複数レベルを順次カスケード処理"""
         levels = ["weekly", "monthly", "quarterly"]
 
@@ -279,7 +294,8 @@ class TestGetShadowDigestTypeChecks:
     """get_shadow_digest_for_level の型チェックテスト"""
 
     @pytest.mark.unit
-    def test_get_shadow_digest_with_string_overall_digest(self, cascade_processor, caplog):
+    def test_get_shadow_digest_with_string_overall_digest(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """overall_digestが文字列の場合、Noneを返す（AttributeError回避）"""
         shadow_data = cascade_processor.shadow_io.load_or_create()
         # バグ再現: overall_digestに文字列を設定
@@ -292,7 +308,8 @@ class TestGetShadowDigestTypeChecks:
         assert "Shadowダイジェストなし: レベル weekly" in caplog.text
 
     @pytest.mark.unit
-    def test_get_shadow_digest_with_none(self, cascade_processor, caplog):
+    def test_get_shadow_digest_with_none(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """overall_digestがNoneの場合、Noneを返す"""
         shadow_data = cascade_processor.shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = None
@@ -304,7 +321,8 @@ class TestGetShadowDigestTypeChecks:
         assert "Shadowダイジェストなし: レベル weekly" in caplog.text
 
     @pytest.mark.unit
-    def test_get_shadow_digest_with_invalid_type(self, cascade_processor, caplog):
+    def test_get_shadow_digest_with_invalid_type(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """overall_digestがリストの場合、Noneを返す"""
         shadow_data = cascade_processor.shadow_io.load_or_create()
         # overall_digestにリストを設定
@@ -317,7 +335,8 @@ class TestGetShadowDigestTypeChecks:
         assert "Shadowダイジェストなし: レベル weekly" in caplog.text
 
     @pytest.mark.unit
-    def test_promote_with_invalid_overall_digest(self, cascade_processor, caplog):
+    def test_promote_with_invalid_overall_digest(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+
         """promote_shadow_to_grand: overall_digestが不正な型でも例外が発生しない"""
         shadow_data = cascade_processor.shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = 12345  # 整数

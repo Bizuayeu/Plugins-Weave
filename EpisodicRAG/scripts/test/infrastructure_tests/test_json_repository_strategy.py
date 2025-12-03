@@ -52,12 +52,13 @@ class TestLoadContext:
         assert context.save_on_create is True
         assert context.log_message is None
 
-    def test_init_with_all_args(self, tmp_path: Path) -> None:
+    def test_init_with_all_args(self, tmp_path: Path):
         """全ての引数で初期化"""
         target = tmp_path / "target.json"
         template = tmp_path / "template.json"
 
         def factory():
+
             return {"key": "value"}
 
         context = LoadContext(
@@ -83,7 +84,7 @@ class TestLoadContext:
 class TestFileLoadStrategy:
     """FileLoadStrategy（既存ファイル読み込み戦略）のテスト"""
 
-    def test_load_existing_file(self, tmp_path: Path) -> None:
+    def test_load_existing_file(self, tmp_path: Path):
         """既存ファイルがある場合は読み込む"""
         target = tmp_path / "target.json"
         target.write_text('{"key": "value"}')
@@ -125,7 +126,7 @@ class TestFileLoadStrategy:
 class TestTemplateLoadStrategy:
     """TemplateLoadStrategy（テンプレート読み込み戦略）のテスト"""
 
-    def test_load_from_template(self, tmp_path: Path) -> None:
+    def test_load_from_template(self, tmp_path: Path):
         """テンプレートファイルから読み込む"""
         target = tmp_path / "target.json"
         template = tmp_path / "template.json"
@@ -168,7 +169,7 @@ class TestTemplateLoadStrategy:
 
         assert result is None
 
-    def test_save_on_create_false_does_not_save(self, tmp_path: Path) -> None:
+    def test_save_on_create_false_does_not_save(self, tmp_path: Path):
         """save_on_create=Falseの場合は保存しない"""
         target = tmp_path / "target.json"
         template = tmp_path / "template.json"
@@ -195,7 +196,7 @@ class TestTemplateLoadStrategy:
 class TestFactoryLoadStrategy:
     """FactoryLoadStrategy（ファクトリ生成戦略）のテスト"""
 
-    def test_create_from_factory(self, tmp_path: Path) -> None:
+    def test_create_from_factory(self, tmp_path: Path):
         """ファクトリ関数から作成"""
         target = tmp_path / "target.json"
 
@@ -224,7 +225,7 @@ class TestFactoryLoadStrategy:
 
         assert result is None
 
-    def test_save_on_create_false(self, tmp_path: Path) -> None:
+    def test_save_on_create_false(self, tmp_path: Path):
         """save_on_create=Falseの場合は保存しない"""
         target = tmp_path / "target.json"
 

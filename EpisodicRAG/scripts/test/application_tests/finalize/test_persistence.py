@@ -23,7 +23,8 @@ from domain.exceptions import DigestError, FileIOError, ValidationError
 class TestDigestPersistenceInit:
     """DigestPersistence initialization tests"""
 
-    def test_init_with_all_dependencies(self, temp_plugin_env):
+    def test_init_with_all_dependencies(self, temp_plugin_env) -> None:
+
         """Initializes with all required dependencies"""
         from application.finalize.persistence import DigestPersistence
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
@@ -47,7 +48,8 @@ class TestDigestPersistenceInit:
         assert persistence.shadow_manager is shadow_manager
         assert persistence.times_tracker is times_tracker
 
-    def test_init_with_custom_confirm_callback(self, temp_plugin_env):
+    def test_init_with_custom_confirm_callback(self, temp_plugin_env) -> None:
+
         """Accepts custom confirm callback"""
         from application.finalize.persistence import DigestPersistence
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
@@ -78,6 +80,7 @@ class TestSaveRegularDigest:
 
     @pytest.fixture
     def persistence(self, temp_plugin_env):
+
         """Create DigestPersistence instance for testing"""
         from application.finalize.persistence import DigestPersistence
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
@@ -95,6 +98,7 @@ class TestSaveRegularDigest:
 
     @pytest.fixture
     def sample_regular_digest(self):
+
         """Sample RegularDigest data"""
         return {
             "metadata": {
@@ -114,7 +118,8 @@ class TestSaveRegularDigest:
             "individual_digests": [],
         }
 
-    def test_saves_to_correct_directory(self, persistence, sample_regular_digest, temp_plugin_env):
+    def test_saves_to_correct_directory(self, persistence, sample_regular_digest, temp_plugin_env) -> None:
+
         """Saves digest to correct level directory"""
         result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
 
@@ -124,7 +129,8 @@ class TestSaveRegularDigest:
 
     def test_creates_directory_if_not_exists(
         self, persistence, sample_regular_digest, temp_plugin_env
-    ):
+    ) -> None:
+
         """Creates target directory if it doesn't exist"""
         # Remove the directory first
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
@@ -138,7 +144,8 @@ class TestSaveRegularDigest:
         assert result.exists()
         assert weekly_dir.exists()
 
-    def test_saves_valid_json(self, persistence, sample_regular_digest):
+    def test_saves_valid_json(self, persistence, sample_regular_digest) -> None:
+
         """Saves valid JSON content"""
         result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
 
@@ -148,7 +155,8 @@ class TestSaveRegularDigest:
         assert loaded["metadata"]["level"] == "weekly"
         assert loaded["overall_digest"]["name"] == "W0001"
 
-    def test_raises_validation_error_on_cancel(self, temp_plugin_env, sample_regular_digest):
+    def test_raises_validation_error_on_cancel(self, temp_plugin_env, sample_regular_digest) -> None:
+
         """Raises ValidationError when user cancels overwrite"""
         from application.finalize.persistence import DigestPersistence
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
@@ -171,7 +179,8 @@ class TestSaveRegularDigest:
         with pytest.raises(ValidationError, match="User cancelled"):
             persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
 
-    def test_overwrites_when_confirmed(self, persistence, sample_regular_digest):
+    def test_overwrites_when_confirmed(self, persistence, sample_regular_digest) -> None:
+
         """Overwrites existing file when confirmed"""
         # First save
         persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
@@ -196,6 +205,7 @@ class TestUpdateGrandDigest:
 
     @pytest.fixture
     def persistence_with_mock_grand(self, temp_plugin_env):
+
         """Create DigestPersistence with mocked GrandDigestManager"""
         from application.finalize.persistence import DigestPersistence
         from application.grand import ShadowGrandDigestManager
@@ -212,7 +222,8 @@ class TestUpdateGrandDigest:
             times_tracker=DigestTimesTracker(config),
         )
 
-    def test_calls_grand_manager_update(self, persistence_with_mock_grand):
+    def test_calls_grand_manager_update(self, persistence_with_mock_grand) -> None:
+
         """Calls GrandDigestManager.update_digest with correct arguments"""
         regular_digest = {
             "overall_digest": {
@@ -231,14 +242,16 @@ class TestUpdateGrandDigest:
         assert call_args[0][0] == "weekly"
         assert call_args[0][1] == "W0001"
 
-    def test_raises_digest_error_for_invalid_overall_digest(self, persistence_with_mock_grand):
+    def test_raises_digest_error_for_invalid_overall_digest(self, persistence_with_mock_grand) -> None:
+
         """Raises DigestError when overall_digest is invalid"""
         regular_digest = {"overall_digest": None}
 
         with pytest.raises(DigestError):
             persistence_with_mock_grand.update_grand_digest("weekly", regular_digest, "W0001")
 
-    def test_raises_digest_error_for_missing_overall_digest(self, persistence_with_mock_grand):
+    def test_raises_digest_error_for_missing_overall_digest(self, persistence_with_mock_grand) -> None:
+
         """Raises DigestError when overall_digest is missing"""
         regular_digest = {}
 
@@ -256,6 +269,7 @@ class TestProcessCascadeAndCleanup:
 
     @pytest.fixture
     def persistence_with_mocks(self, temp_plugin_env):
+
         """Create DigestPersistence with mocked dependencies"""
         from application.finalize.persistence import DigestPersistence
         from application.config import DigestConfig
@@ -275,7 +289,8 @@ class TestProcessCascadeAndCleanup:
 
         return persistence, mock_shadow, mock_times
 
-    def test_calls_cascade_update(self, persistence_with_mocks):
+    def test_calls_cascade_update(self, persistence_with_mocks) -> None:
+
         """Calls shadow_manager.cascade_update_on_digest_finalize"""
         persistence, mock_shadow, _ = persistence_with_mocks
 
@@ -283,7 +298,8 @@ class TestProcessCascadeAndCleanup:
 
         mock_shadow.cascade_update_on_digest_finalize.assert_called_once_with("weekly")
 
-    def test_calls_times_tracker_save(self, persistence_with_mocks):
+    def test_calls_times_tracker_save(self, persistence_with_mocks) -> None:
+
         """Calls times_tracker.save with correct arguments"""
         persistence, _, mock_times = persistence_with_mocks
 
@@ -291,7 +307,8 @@ class TestProcessCascadeAndCleanup:
 
         mock_times.save.assert_called_once_with("weekly", ["file1.txt", "file2.txt"])
 
-    def test_deletes_provisional_file(self, persistence_with_mocks, tmp_path):
+    def test_deletes_provisional_file(self, persistence_with_mocks, tmp_path: Path) -> None:
+
         """Deletes provisional file when provided"""
         persistence, _, _ = persistence_with_mocks
 
@@ -303,7 +320,8 @@ class TestProcessCascadeAndCleanup:
 
         assert not provisional_file.exists()
 
-    def test_handles_missing_provisional_file(self, persistence_with_mocks, tmp_path):
+    def test_handles_missing_provisional_file(self, persistence_with_mocks, tmp_path: Path) -> None:
+
         """Handles non-existent provisional file gracefully"""
         persistence, _, _ = persistence_with_mocks
 
@@ -312,7 +330,8 @@ class TestProcessCascadeAndCleanup:
         # Should not raise
         persistence.process_cascade_and_cleanup("weekly", ["file1.txt"], missing_file)
 
-    def test_handles_none_provisional_file(self, persistence_with_mocks):
+    def test_handles_none_provisional_file(self, persistence_with_mocks) -> None:
+
         """Handles None provisional file gracefully"""
         persistence, _, _ = persistence_with_mocks
 
@@ -330,6 +349,7 @@ class TestCleanupProvisionalFile:
 
     @pytest.fixture
     def persistence(self, temp_plugin_env):
+
         """Create DigestPersistence instance"""
         from application.finalize.persistence import DigestPersistence
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
@@ -344,7 +364,8 @@ class TestCleanupProvisionalFile:
             times_tracker=DigestTimesTracker(config),
         )
 
-    def test_deletes_existing_file(self, persistence, tmp_path):
+    def test_deletes_existing_file(self, persistence, tmp_path: Path) -> None:
+
         """Deletes existing file"""
         test_file = tmp_path / "test.txt"
         test_file.write_text("content")
@@ -353,14 +374,16 @@ class TestCleanupProvisionalFile:
 
         assert not test_file.exists()
 
-    def test_handles_file_not_found(self, persistence, tmp_path):
+    def test_handles_file_not_found(self, persistence, tmp_path: Path) -> None:
+
         """Handles FileNotFoundError gracefully"""
         missing_file = tmp_path / "missing.txt"
 
         # Should not raise
         persistence._cleanup_provisional_file(missing_file)
 
-    def test_handles_permission_error(self, persistence, tmp_path):
+    def test_handles_permission_error(self, persistence, tmp_path: Path) -> None:
+
         """Handles PermissionError gracefully (logs warning)"""
         test_file = tmp_path / "test.txt"
         test_file.write_text("content")
@@ -369,7 +392,8 @@ class TestCleanupProvisionalFile:
             # Should not raise, just log warning
             persistence._cleanup_provisional_file(test_file)
 
-    def test_handles_none_input(self, persistence):
+    def test_handles_none_input(self, persistence) -> None:
+
         """Handles None input gracefully"""
         # Should not raise
         persistence._cleanup_provisional_file(None)

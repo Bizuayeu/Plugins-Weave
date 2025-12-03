@@ -20,18 +20,21 @@ import pytest
 class TestConfigCLISetCommandExtended(unittest.TestCase):
     """set サブコマンドの追加CLIテスト"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
         self._create_config()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _create_config(self):
+    def _create_config(self) -> None:
+
         """設定ファイルを作成"""
         config_data = {
             "base_dir": ".",
@@ -47,7 +50,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             json.dump(config_data, f)
 
     @pytest.mark.unit
-    def test_set_missing_key_exits_error(self):
+    def test_set_missing_key_exits_error(self) -> None:
+
         """set で --key がない場合にエラー"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -62,7 +66,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert exc_info.value.code == 2
 
     @pytest.mark.unit
-    def test_set_missing_value_exits_error(self):
+    def test_set_missing_value_exits_error(self) -> None:
+
         """set で --value がない場合にエラー"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -77,7 +82,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert exc_info.value.code == 2
 
     @pytest.mark.unit
-    def test_set_deeply_nested_key(self):
+    def test_set_deeply_nested_key(self) -> None:
+
         """set で深くネストされたキーを設定"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -96,7 +102,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert result["new_value"] == "custom/Loops"
 
     @pytest.mark.unit
-    def test_set_creates_intermediate_keys(self):
+    def test_set_creates_intermediate_keys(self) -> None:
+
         """set が中間キーを作成する"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -119,7 +126,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
         assert saved_config["new_section"]["new_key"] == "new_value"
 
     @pytest.mark.unit
-    def test_set_boolean_true(self):
+    def test_set_boolean_true(self) -> None:
+
         """set で true を設定"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -137,7 +145,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert result["new_value"] is True
 
     @pytest.mark.unit
-    def test_set_boolean_false(self):
+    def test_set_boolean_false(self) -> None:
+
         """set で false を設定"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -155,7 +164,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert result["new_value"] is False
 
     @pytest.mark.unit
-    def test_set_null_value(self):
+    def test_set_null_value(self) -> None:
+
         """set で null を設定"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -173,7 +183,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert result["new_value"] is None
 
     @pytest.mark.unit
-    def test_set_negative_integer(self):
+    def test_set_negative_integer(self) -> None:
+
         """set で負の整数を設定"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -191,7 +202,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert result["new_value"] == -10
 
     @pytest.mark.unit
-    def test_set_threshold_invalid_string_exits_error(self):
+    def test_set_threshold_invalid_string_exits_error(self) -> None:
+
         """set で閾値に無効な文字列を設定するとエラー"""
         with patch("sys.argv", [
             "digest_config.py",
@@ -210,7 +222,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert "integer" in result["error"].lower()
 
     @pytest.mark.unit
-    def test_set_output_shows_old_value(self):
+    def test_set_output_shows_old_value(self) -> None:
+
         """set が古い値を表示"""
         with patch("sys.argv", [
             "digest_config.py",

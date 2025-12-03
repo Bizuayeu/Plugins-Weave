@@ -47,6 +47,7 @@ def many_loop_files(temp_plugin_env) -> List[Path]:
 
 @pytest.fixture
 def deep_hierarchy_setup(temp_plugin_env):
+
     """Setup all 8 levels of the digest hierarchy."""
     from domain.constants import LEVEL_CONFIG
 
@@ -78,7 +79,8 @@ def deep_hierarchy_setup(temp_plugin_env):
 class TestLargeDataVolumes:
     """Tests with large amounts of data."""
 
-    def test_process_500_loops(self, many_loop_files):
+    def test_process_500_loops(self, many_loop_files) -> None:
+
         """System should handle 500+ Loop files efficiently."""
         loops_dir = many_loop_files[0].parent
 
@@ -92,7 +94,8 @@ class TestLargeDataVolumes:
         assert len(loop_files) == 500
         assert elapsed < 1.0, f"Enumeration took {elapsed:.2f}s"
 
-    def test_load_many_json_files(self, many_loop_files):
+    def test_load_many_json_files(self, many_loop_files) -> None:
+
         """Loading many JSON files should be efficient."""
         start = time.perf_counter()
 
@@ -108,7 +111,8 @@ class TestLargeDataVolumes:
         assert loaded_count == 100
         assert elapsed < 5.0, f"Loading 100 files took {elapsed:.2f}s"
 
-    def test_large_digest_list_operations(self, many_loop_files):
+    def test_large_digest_list_operations(self, many_loop_files) -> None:
+
         """Operations on large digest lists should be efficient."""
         from interfaces.provisional import DigestMerger
 
@@ -142,7 +146,8 @@ class TestLargeDataVolumes:
 class TestHierarchyDepth:
     """Tests for the full 8-level hierarchy."""
 
-    def test_all_8_levels_exist(self, deep_hierarchy_setup):
+    def test_all_8_levels_exist(self, deep_hierarchy_setup) -> None:
+
         """All 8 levels should be properly set up."""
         from domain.constants import LEVEL_CONFIG
 
@@ -156,7 +161,8 @@ class TestHierarchyDepth:
             shadow_path = level_dir / shadow_name
             assert shadow_path.exists(), f"Missing Shadow for: {level}"
 
-    def test_level_hierarchy_chain(self, deep_hierarchy_setup):
+    def test_level_hierarchy_chain(self, deep_hierarchy_setup) -> None:
+
         """Verify the level hierarchy chain is complete."""
         from domain.constants import LEVEL_CONFIG
 
@@ -173,7 +179,8 @@ class TestHierarchyDepth:
         assert chain[0] == "weekly"
         assert chain[-1] == "centurial"
 
-    def test_cascade_path_traversal(self, deep_hierarchy_setup):
+    def test_cascade_path_traversal(self, deep_hierarchy_setup) -> None:
+
         """Verify cascade can traverse all levels."""
         from domain.constants import LEVEL_CONFIG
 
@@ -201,7 +208,8 @@ class TestHierarchyDepth:
 class TestMemoryPressure:
     """Tests for memory usage under load."""
 
-    def test_large_json_structure_handling(self, temp_plugin_env):
+    def test_large_json_structure_handling(self, temp_plugin_env) -> None:
+
         """Handle large JSON structures without excessive memory."""
         large_file = temp_plugin_env.digests_path / "large.json"
         large_file.parent.mkdir(parents=True, exist_ok=True)
@@ -228,7 +236,8 @@ class TestMemoryPressure:
 
         assert len(loaded["items"]) == 1000
 
-    def test_iterative_processing_pattern(self, many_loop_files):
+    def test_iterative_processing_pattern(self, many_loop_files) -> None:
+
         """Process files iteratively to avoid memory accumulation."""
         processed_count = 0
         total_keywords = 0
@@ -258,7 +267,8 @@ class TestMemoryPressure:
 class TestThroughput:
     """Tests for operation throughput."""
 
-    def test_file_creation_throughput(self, temp_plugin_env):
+    def test_file_creation_throughput(self, temp_plugin_env) -> None:
+
         """Measure file creation throughput."""
         output_dir = temp_plugin_env.digests_path / "throughput_test"
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -278,7 +288,8 @@ class TestThroughput:
         assert throughput > 50, f"Low throughput: {throughput:.1f} files/sec"
         print(f"\nFile creation throughput: {throughput:.1f} files/sec")
 
-    def test_digest_merge_throughput(self):
+    def test_digest_merge_throughput(self) -> None:
+
         """Measure digest merge operation throughput."""
         from interfaces.provisional import DigestMerger
 

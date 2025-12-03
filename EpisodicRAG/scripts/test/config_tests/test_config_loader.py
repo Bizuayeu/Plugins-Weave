@@ -26,12 +26,14 @@ from domain.exceptions import ConfigError
 
 @pytest.fixture
 def config_file(temp_plugin_env):
+
     """テスト用config.jsonファイルパスを提供"""
     return temp_plugin_env.config_dir / "config.json"
 
 
 @pytest.fixture
 def valid_config_data():
+
     """有効な設定データ"""
     return {
         "base_dir": ".",
@@ -53,6 +55,7 @@ def valid_config_data():
 
 @pytest.fixture
 def config_loader(config_file, valid_config_data):
+
     """テスト用ConfigLoaderインスタンス"""
     with open(config_file, "w", encoding="utf-8") as f:
         json.dump(valid_config_data, f)
@@ -68,21 +71,24 @@ class TestConfigLoaderInit:
     """ConfigLoaderの初期化テスト"""
 
     @pytest.mark.unit
-    def test_init_with_valid_path(self, config_file):
+    def test_init_with_valid_path(self, config_file) -> None:
+
         """有効なパスで初期化できる"""
         loader = ConfigLoader(config_file)
         assert loader.config_file == config_file
         assert loader._config is None  # 初期状態ではキャッシュなし
 
     @pytest.mark.unit
-    def test_init_with_path_object(self, temp_plugin_env):
+    def test_init_with_path_object(self, temp_plugin_env) -> None:
+
         """Pathオブジェクトで初期化できる"""
         config_path = temp_plugin_env.config_dir / "config.json"
         loader = ConfigLoader(config_path)
         assert isinstance(loader.config_file, Path)
 
     @pytest.mark.unit
-    def test_is_loaded_initially_false(self, config_file):
+    def test_is_loaded_initially_false(self, config_file) -> None:
+
         """初期化直後はis_loadedがFalse"""
         loader = ConfigLoader(config_file)
         assert loader.is_loaded is False
@@ -97,7 +103,8 @@ class TestConfigLoaderLoad:
     """load/reloadメソッドのテスト"""
 
     @pytest.mark.unit
-    def test_load_valid_config(self, config_loader):
+    def test_load_valid_config(self, config_loader) -> None:
+
         """有効な設定ファイルを読み込める"""
         config = config_loader.load()
         assert config is not None
@@ -105,13 +112,15 @@ class TestConfigLoaderLoad:
         assert config["base_dir"] == "."
 
     @pytest.mark.unit
-    def test_load_sets_is_loaded_true(self, config_loader):
+    def test_load_sets_is_loaded_true(self, config_loader) -> None:
+
         """load後はis_loadedがTrue"""
         config_loader.load()
         assert config_loader.is_loaded is True
 
     @pytest.mark.unit
-    def test_load_file_not_found(self, temp_plugin_env):
+    def test_load_file_not_found(self, temp_plugin_env) -> None:
+
         """ファイルが存在しない場合ConfigError"""
         nonexistent = temp_plugin_env.config_dir / "nonexistent.json"
         loader = ConfigLoader(nonexistent)
@@ -122,7 +131,8 @@ class TestConfigLoaderLoad:
         assert "File not found" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_invalid_json(self, config_file):
+    def test_load_invalid_json(self, config_file) -> None:
+
         """無効なJSONの場合ConfigError"""
         with open(config_file, "w", encoding="utf-8") as f:
             f.write("{ invalid json }")
@@ -135,7 +145,8 @@ class TestConfigLoaderLoad:
         assert "Invalid JSON" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_reload_clears_cache(self, config_loader, config_file, valid_config_data):
+    def test_reload_clears_cache(self, config_loader, config_file, valid_config_data) -> None:
+
         """reloadでキャッシュがクリアされる"""
         # 最初のload
         config1 = config_loader.load()
@@ -151,7 +162,8 @@ class TestConfigLoaderLoad:
         assert config2["base_dir"] == "new_base"
 
     @pytest.mark.unit
-    def test_get_config_is_load_alias(self, config_loader):
+    def test_get_config_is_load_alias(self, config_loader) -> None:
+
         """get_configはloadのエイリアス"""
         config1 = config_loader.load()
         config2 = config_loader.get_config()
@@ -167,38 +179,44 @@ class TestConfigLoaderGet:
     """get/get_required/has_keyメソッドのテスト"""
 
     @pytest.mark.unit
-    def test_get_existing_key(self, config_loader):
+    def test_get_existing_key(self, config_loader) -> None:
+
         """存在するキーの値を取得"""
         value = config_loader.get("base_dir")
         assert value == "."
 
     @pytest.mark.unit
-    def test_get_missing_key_returns_default(self, config_loader):
+    def test_get_missing_key_returns_default(self, config_loader) -> None:
+
         """存在しないキーはデフォルト値を返す"""
         value = config_loader.get("nonexistent_key", default="default_value")
         assert value == "default_value"
 
     @pytest.mark.unit
-    def test_get_missing_key_returns_none_without_default(self, config_loader):
+    def test_get_missing_key_returns_none_without_default(self, config_loader) -> None:
+
         """デフォルトなしで存在しないキーはNone"""
         value = config_loader.get("nonexistent_key")
         assert value is None
 
     @pytest.mark.unit
-    def test_get_nested_key_returns_dict(self, config_loader):
+    def test_get_nested_key_returns_dict(self, config_loader) -> None:
+
         """ネストされたキーのdict取得"""
         paths = config_loader.get("paths")
         assert isinstance(paths, dict)
         assert "loops_dir" in paths
 
     @pytest.mark.unit
-    def test_get_required_existing_key(self, config_loader):
+    def test_get_required_existing_key(self, config_loader) -> None:
+
         """get_required: 存在するキーの値を取得"""
         value = config_loader.get_required("base_dir")
         assert value == "."
 
     @pytest.mark.unit
-    def test_get_required_missing_key_raises(self, config_loader):
+    def test_get_required_missing_key_raises(self, config_loader) -> None:
+
         """get_required: 存在しないキーでConfigError"""
         with pytest.raises(ConfigError) as exc_info:
             config_loader.get_required("nonexistent_key")
@@ -207,13 +225,15 @@ class TestConfigLoaderGet:
         assert "nonexistent_key" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_has_key_returns_true_for_existing(self, config_loader):
+    def test_has_key_returns_true_for_existing(self, config_loader) -> None:
+
         """has_key: 存在するキーでTrue"""
         assert config_loader.has_key("base_dir") is True
         assert config_loader.has_key("paths") is True
 
     @pytest.mark.unit
-    def test_has_key_returns_false_for_missing(self, config_loader):
+    def test_has_key_returns_false_for_missing(self, config_loader) -> None:
+
         """has_key: 存在しないキーでFalse"""
         assert config_loader.has_key("nonexistent_key") is False
 
@@ -227,13 +247,15 @@ class TestConfigLoaderValidation:
     """validate_required_keysメソッドのテスト"""
 
     @pytest.mark.unit
-    def test_validate_all_required_keys_present(self, config_loader):
+    def test_validate_all_required_keys_present(self, config_loader) -> None:
+
         """全必須キーが存在する場合、空リストを返す"""
         errors = config_loader.validate_required_keys()
         assert errors == []
 
     @pytest.mark.unit
-    def test_validate_missing_required_key(self, config_file):
+    def test_validate_missing_required_key(self, config_file) -> None:
+
         """必須キーが欠けている場合、エラーリストを返す"""
         # 必須キーの一部が欠けた設定
         incomplete_config = {
@@ -254,7 +276,8 @@ class TestConfigLoaderValidation:
         assert any("essences_path" in err for err in errors)
 
     @pytest.mark.unit
-    def test_validate_partial_missing_keys(self, config_file):
+    def test_validate_partial_missing_keys(self, config_file) -> None:
+
         """一部の必須キーのみ欠けている場合"""
         partial_config = {
             "base_dir": ".",
@@ -282,7 +305,8 @@ class TestConfigLoaderCaching:
     """キャッシュ動作のテスト"""
 
     @pytest.mark.unit
-    def test_load_returns_cached_config(self, config_loader):
+    def test_load_returns_cached_config(self, config_loader) -> None:
+
         """2回目のloadはキャッシュを返す"""
         config1 = config_loader.load()
         config2 = config_loader.load()
@@ -291,7 +315,8 @@ class TestConfigLoaderCaching:
         assert config1 is config2
 
     @pytest.mark.unit
-    def test_load_does_not_reread_file(self, config_loader, config_file, valid_config_data):
+    def test_load_does_not_reread_file(self, config_loader, config_file, valid_config_data) -> None:
+
         """キャッシュがある場合、ファイルを再読み込みしない"""
         # 最初のload（キャッシュを作成）
         _ = config_loader.load()
@@ -306,7 +331,8 @@ class TestConfigLoaderCaching:
         assert config2["base_dir"] == "."  # 変更前の値
 
     @pytest.mark.unit
-    def test_reload_rereads_file(self, config_loader, config_file, valid_config_data):
+    def test_reload_rereads_file(self, config_loader, config_file, valid_config_data) -> None:
+
         """reloadはファイルを再読み込みする"""
         # 最初のload
         config1 = config_loader.load()
@@ -326,7 +352,8 @@ class TestConfigLoaderCaching:
         assert config3["base_dir"] == "reloaded_value"
 
     @pytest.mark.unit
-    def test_reload_clears_is_loaded_temporarily(self, config_loader):
+    def test_reload_clears_is_loaded_temporarily(self, config_loader) -> None:
+
         """reloadはキャッシュをクリアしてから再読み込み"""
         config_loader.load()
         assert config_loader.is_loaded is True
@@ -346,7 +373,8 @@ class TestConfigLoaderEdgeCases:
     """エッジケースのテスト"""
 
     @pytest.mark.unit
-    def test_empty_config_file(self, config_file):
+    def test_empty_config_file(self, config_file) -> None:
+
         """空のJSON設定ファイル"""
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump({}, f)
@@ -358,7 +386,8 @@ class TestConfigLoaderEdgeCases:
         assert loader.get("any_key") is None
 
     @pytest.mark.unit
-    def test_config_with_unicode(self, config_file):
+    def test_config_with_unicode(self, config_file) -> None:
+
         """Unicode文字を含む設定"""
         unicode_config = {
             "title": "日本語タイトル",
@@ -374,7 +403,8 @@ class TestConfigLoaderEdgeCases:
         assert "🎉" in config["description"]
 
     @pytest.mark.unit
-    def test_config_with_deeply_nested_structure(self, config_file):
+    def test_config_with_deeply_nested_structure(self, config_file) -> None:
+
         """深くネストされた設定"""
         nested_config = {"level1": {"level2": {"level3": {"value": "deep_value"}}}}
         with open(config_file, "w", encoding="utf-8") as f:
@@ -386,7 +416,8 @@ class TestConfigLoaderEdgeCases:
         assert config["level1"]["level2"]["level3"]["value"] == "deep_value"
 
     @pytest.mark.unit
-    def test_config_with_array_values(self, config_file):
+    def test_config_with_array_values(self, config_file) -> None:
+
         """配列を含む設定"""
         array_config = {
             "items": ["item1", "item2", "item3"],
@@ -402,7 +433,8 @@ class TestConfigLoaderEdgeCases:
         assert config["numbers"][1] == 2
 
     @pytest.mark.unit
-    def test_config_with_null_values(self, config_file):
+    def test_config_with_null_values(self, config_file) -> None:
+
         """null値を含む設定"""
         null_config = {
             "nullable_field": None,
@@ -420,7 +452,8 @@ class TestConfigLoaderEdgeCases:
         assert config["zero"] == 0
 
     @pytest.mark.unit
-    def test_get_with_none_as_stored_value(self, config_file):
+    def test_get_with_none_as_stored_value(self, config_file) -> None:
+
         """None値が保存されている場合とキーが存在しない場合の区別"""
         config_data = {
             "stored_none": None,
@@ -449,7 +482,8 @@ class TestConfigLoaderStructureValidation:
     """config_loaderの構造検証テスト（Phase 4で追加したTypeGuard検証）"""
 
     @pytest.mark.unit
-    def test_load_invalid_paths_structure_raises_config_error(self, config_file):
+    def test_load_invalid_paths_structure_raises_config_error(self, config_file) -> None:
+
         """pathsが無効な構造の場合ConfigError"""
         invalid_config = {"paths": "not_a_dict"}
         with open(config_file, "w", encoding="utf-8") as f:
@@ -463,7 +497,8 @@ class TestConfigLoaderStructureValidation:
         assert "Invalid config structure" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_invalid_levels_structure_raises_config_error(self, config_file):
+    def test_load_invalid_levels_structure_raises_config_error(self, config_file) -> None:
+
         """levelsが無効な構造の場合ConfigError"""
         invalid_config = {"levels": [1, 2, 3]}
         with open(config_file, "w", encoding="utf-8") as f:
@@ -477,7 +512,8 @@ class TestConfigLoaderStructureValidation:
         assert "Invalid config structure" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_valid_paths_and_levels_succeeds(self, config_file):
+    def test_load_valid_paths_and_levels_succeeds(self, config_file) -> None:
+
         """有効なpathsとlevelsの場合は成功"""
         valid_config = {"paths": {"loops_dir": "data"}, "levels": {"threshold": 5}}
         with open(config_file, "w", encoding="utf-8") as f:
@@ -490,7 +526,8 @@ class TestConfigLoaderStructureValidation:
         assert config["levels"]["threshold"] == 5
 
     @pytest.mark.unit
-    def test_error_message_includes_file_path(self, config_file):
+    def test_error_message_includes_file_path(self, config_file) -> None:
+
         """エラーメッセージにファイルパスが含まれる"""
         invalid_config = {"paths": "invalid"}
         with open(config_file, "w", encoding="utf-8") as f:
@@ -505,7 +542,8 @@ class TestConfigLoaderStructureValidation:
         assert str(config_file) in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_error_message_includes_structure_hint(self, config_file):
+    def test_error_message_includes_structure_hint(self, config_file) -> None:
+
         """エラーメッセージに構造ヒントが含まれる"""
         invalid_config = {"levels": None}
         with open(config_file, "w", encoding="utf-8") as f:
@@ -520,7 +558,8 @@ class TestConfigLoaderStructureValidation:
         assert "'paths' and 'levels' must be dict" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_paths_none_raises_config_error(self, config_file):
+    def test_load_paths_none_raises_config_error(self, config_file) -> None:
+
         """pathsがNoneの場合ConfigError"""
         invalid_config = {"paths": None}
         with open(config_file, "w", encoding="utf-8") as f:
@@ -534,7 +573,8 @@ class TestConfigLoaderStructureValidation:
         assert "Invalid config structure" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_both_invalid_raises_config_error(self, config_file):
+    def test_load_both_invalid_raises_config_error(self, config_file) -> None:
+
         """pathsとlevels両方が無効な場合ConfigError"""
         invalid_config = {"paths": "string", "levels": [1, 2, 3]}
         with open(config_file, "w", encoding="utf-8") as f:

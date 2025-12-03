@@ -24,7 +24,8 @@ from domain.level_registry import (
 
 
 @pytest.fixture(autouse=True)
-def reset_registry_between_tests():
+def reset_registry_between_tests() -> None:
+
     """各テスト後にRegistryをリセット"""
     yield
     reset_level_registry()
@@ -39,7 +40,8 @@ class TestLevelMetadata:
     """LevelMetadata dataclass のテスト"""
 
     @pytest.mark.unit
-    def test_create_metadata(self):
+    def test_create_metadata(self) -> None:
+
         """メタデータの作成"""
         metadata = LevelMetadata(
             name="weekly",
@@ -57,7 +59,8 @@ class TestLevelMetadata:
         assert metadata.next_level == "monthly"
 
     @pytest.mark.unit
-    def test_metadata_is_immutable(self):
+    def test_metadata_is_immutable(self) -> None:
+
         """メタデータは不変"""
         metadata = LevelMetadata(
             name="weekly",
@@ -71,7 +74,8 @@ class TestLevelMetadata:
             metadata.name = "changed"
 
     @pytest.mark.unit
-    def test_top_level_metadata(self):
+    def test_top_level_metadata(self) -> None:
+
         """最上位レベルのメタデータ（next_level=None）"""
         metadata = LevelMetadata(
             name="centurial",
@@ -93,7 +97,8 @@ class TestStandardLevelBehavior:
     """StandardLevelBehavior クラスのテスト"""
 
     @pytest.mark.unit
-    def test_format_number_weekly(self):
+    def test_format_number_weekly(self) -> None:
+
         """weeklyレベルのフォーマット"""
         metadata = LevelMetadata("weekly", "W", 4, "1_Weekly", "loops", "monthly")
         behavior = StandardLevelBehavior(metadata)
@@ -102,7 +107,8 @@ class TestStandardLevelBehavior:
         assert behavior.format_number(9999) == "W9999"
 
     @pytest.mark.unit
-    def test_format_number_multi_decadal(self):
+    def test_format_number_multi_decadal(self) -> None:
+
         """multi_decadalレベル（2文字プレフィックス）のフォーマット"""
         metadata = LevelMetadata(
             "multi_decadal", "MD", 2, "7_Multi-decadal", "decadal", "centurial"
@@ -112,14 +118,16 @@ class TestStandardLevelBehavior:
         assert behavior.format_number(3) == "MD03"
 
     @pytest.mark.unit
-    def test_should_cascade_with_next_level(self):
+    def test_should_cascade_with_next_level(self) -> None:
+
         """次レベルがある場合はカスケードする"""
         metadata = LevelMetadata("weekly", "W", 4, "1_Weekly", "loops", "monthly")
         behavior = StandardLevelBehavior(metadata)
         assert behavior.should_cascade() is True
 
     @pytest.mark.unit
-    def test_should_not_cascade_top_level(self):
+    def test_should_not_cascade_top_level(self) -> None:
+
         """最上位レベルはカスケードしない"""
         metadata = LevelMetadata("centurial", "C", 2, "8_Centurial", "multi_decadal", None)
         behavior = StandardLevelBehavior(metadata)
@@ -135,7 +143,8 @@ class TestLoopLevelBehavior:
     """LoopLevelBehavior クラスのテスト"""
 
     @pytest.mark.unit
-    def test_format_number(self):
+    def test_format_number(self) -> None:
+
         """Loopファイルのフォーマット"""
         behavior = LoopLevelBehavior()
         assert behavior.format_number(1) == "L00001"
@@ -143,7 +152,8 @@ class TestLoopLevelBehavior:
         assert behavior.format_number(9999) == "L09999"
 
     @pytest.mark.unit
-    def test_should_not_cascade(self):
+    def test_should_not_cascade(self) -> None:
+
         """Loopはカスケードしない"""
         behavior = LoopLevelBehavior()
         assert behavior.should_cascade() is False
@@ -158,7 +168,8 @@ class TestLevelRegistry:
     """LevelRegistry クラスのテスト"""
 
     @pytest.mark.unit
-    def test_all_levels_registered(self):
+    def test_all_levels_registered(self) -> None:
+
         """全レベルが登録されている"""
         registry = get_level_registry()
         expected = [
@@ -177,7 +188,8 @@ class TestLevelRegistry:
             assert metadata.name == level
 
     @pytest.mark.unit
-    def test_loop_level_registered(self):
+    def test_loop_level_registered(self) -> None:
+
         """Loopレベルが登録されている"""
         registry = get_level_registry()
         metadata = registry.get_metadata("loop")
@@ -185,7 +197,8 @@ class TestLevelRegistry:
         assert metadata.digits == 5
 
     @pytest.mark.unit
-    def test_get_level_names_excludes_loop(self):
+    def test_get_level_names_excludes_loop(self) -> None:
+
         """get_level_names()は'loop'を除外"""
         registry = get_level_registry()
         level_names = registry.get_level_names()
@@ -195,7 +208,8 @@ class TestLevelRegistry:
         assert len(level_names) == 8
 
     @pytest.mark.unit
-    def test_get_all_level_names_includes_loop(self):
+    def test_get_all_level_names_includes_loop(self) -> None:
+
         """get_all_level_names()は'loop'を含む"""
         registry = get_level_registry()
         all_names = registry.get_all_level_names()
@@ -203,25 +217,29 @@ class TestLevelRegistry:
         assert len(all_names) == 9
 
     @pytest.mark.unit
-    def test_should_cascade_weekly(self):
+    def test_should_cascade_weekly(self) -> None:
+
         """weeklyはカスケードする"""
         registry = get_level_registry()
         assert registry.should_cascade("weekly") is True
 
     @pytest.mark.unit
-    def test_should_not_cascade_centurial(self):
+    def test_should_not_cascade_centurial(self) -> None:
+
         """centurialはカスケードしない"""
         registry = get_level_registry()
         assert registry.should_cascade("centurial") is False
 
     @pytest.mark.unit
-    def test_should_not_cascade_loop(self):
+    def test_should_not_cascade_loop(self) -> None:
+
         """loopはカスケードしない"""
         registry = get_level_registry()
         assert registry.should_cascade("loop") is False
 
     @pytest.mark.unit
-    def test_get_all_prefixes_sorted_by_length(self):
+    def test_get_all_prefixes_sorted_by_length(self) -> None:
+
         """プレフィックスは長さ降順でソート"""
         registry = get_level_registry()
         prefixes = registry.get_all_prefixes()
@@ -232,7 +250,8 @@ class TestLevelRegistry:
             assert len(prefixes[i]) >= len(prefixes[i + 1])
 
     @pytest.mark.unit
-    def test_get_level_by_prefix(self):
+    def test_get_level_by_prefix(self) -> None:
+
         """プレフィックスからレベルを逆引き"""
         registry = get_level_registry()
         assert registry.get_level_by_prefix("W") == "weekly"
@@ -241,14 +260,16 @@ class TestLevelRegistry:
         assert registry.get_level_by_prefix("L") == "loop"
 
     @pytest.mark.unit
-    def test_get_level_by_prefix_unknown(self):
+    def test_get_level_by_prefix_unknown(self) -> None:
+
         """不明なプレフィックスはNone"""
         registry = get_level_registry()
         assert registry.get_level_by_prefix("X") is None
         assert registry.get_level_by_prefix("ZZ") is None
 
     @pytest.mark.unit
-    def test_build_prefix_pattern(self):
+    def test_build_prefix_pattern(self) -> None:
+
         """正規表現パターンの生成"""
         registry = get_level_registry()
         pattern = registry.build_prefix_pattern()
@@ -261,7 +282,8 @@ class TestLevelRegistry:
         assert "|" in pattern
 
     @pytest.mark.unit
-    def test_get_behavior_unknown_level(self):
+    def test_get_behavior_unknown_level(self) -> None:
+
         """不明なレベルでConfigError"""
         from domain.exceptions import ConfigError
 
@@ -270,7 +292,8 @@ class TestLevelRegistry:
             registry.get_behavior("unknown")
 
     @pytest.mark.unit
-    def test_get_metadata_unknown_level(self):
+    def test_get_metadata_unknown_level(self) -> None:
+
         """不明なレベルでConfigError"""
         from domain.exceptions import ConfigError
 
@@ -288,14 +311,16 @@ class TestSingleton:
     """Singletonパターンのテスト"""
 
     @pytest.mark.unit
-    def test_singleton_returns_same_instance(self):
+    def test_singleton_returns_same_instance(self) -> None:
+
         """同じインスタンスを返す"""
         registry1 = get_level_registry()
         registry2 = get_level_registry()
         assert registry1 is registry2
 
     @pytest.mark.unit
-    def test_reset_clears_singleton(self):
+    def test_reset_clears_singleton(self) -> None:
+
         """リセット後は新しいインスタンス"""
         registry1 = get_level_registry()
         reset_level_registry()
@@ -312,7 +337,8 @@ class TestFormatDigestNumberIntegration:
     """format_digest_numberとの統合テスト"""
 
     @pytest.mark.integration
-    def test_format_via_registry(self):
+    def test_format_via_registry(self) -> None:
+
         """Registry経由でフォーマット"""
         from domain.file_naming import format_digest_number
 
@@ -321,7 +347,8 @@ class TestFormatDigestNumberIntegration:
         assert format_digest_number("multi_decadal", 3) == "MD03"
 
     @pytest.mark.integration
-    def test_extract_and_format_roundtrip(self):
+    def test_extract_and_format_roundtrip(self) -> None:
+
         """抽出→フォーマットのラウンドトリップ"""
         from domain.file_naming import extract_file_number, format_digest_number
 

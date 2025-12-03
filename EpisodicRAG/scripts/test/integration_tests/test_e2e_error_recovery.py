@@ -27,6 +27,7 @@ class TestCorruptedFileRecovery:
 
     @pytest.fixture
     def recovery_env(self, temp_plugin_env):
+
         """回復テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -39,7 +40,8 @@ class TestCorruptedFileRecovery:
             "config": config,
         }
 
-    def test_recover_from_corrupted_shadow_file(self, recovery_env):
+    def test_recover_from_corrupted_shadow_file(self, recovery_env) -> None:
+
         """
         破損したShadowファイルからの回復
 
@@ -66,7 +68,8 @@ class TestCorruptedFileRecovery:
         new_files = shadow_manager._detector.find_new_files("weekly")
         assert len(new_files) == 1
 
-    def test_recover_from_corrupted_grand_digest(self, recovery_env):
+    def test_recover_from_corrupted_grand_digest(self, recovery_env) -> None:
+
         """
         破損したGrandDigest.txtの読み込み時エラー
 
@@ -89,7 +92,8 @@ class TestCorruptedFileRecovery:
         with pytest.raises(FileIOError):
             grand_manager.load_or_create()
 
-    def test_recover_from_empty_shadow_file(self, recovery_env):
+    def test_recover_from_empty_shadow_file(self, recovery_env) -> None:
+
         """
         空のShadowファイルからの回復
 
@@ -118,6 +122,7 @@ class TestMissingFileRecovery:
 
     @pytest.fixture
     def missing_env(self, temp_plugin_env):
+
         """ファイル欠損テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -130,7 +135,8 @@ class TestMissingFileRecovery:
             "config": config,
         }
 
-    def test_missing_last_digest_times_creates_new(self, missing_env):
+    def test_missing_last_digest_times_creates_new(self, missing_env) -> None:
+
         """
         last_digest_times.json欠損時の自動作成
 
@@ -156,7 +162,8 @@ class TestMissingFileRecovery:
         # 初期状態ではNone
         assert last_processed is None
 
-    def test_missing_shadow_file_creates_new(self, missing_env):
+    def test_missing_shadow_file_creates_new(self, missing_env) -> None:
+
         """
         ShadowGrandDigest.txt欠損時の自動作成
 
@@ -189,6 +196,7 @@ class TestInvalidDataRecovery:
 
     @pytest.fixture
     def invalid_data_env(self, temp_plugin_env):
+
         """不正データテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -201,7 +209,8 @@ class TestInvalidDataRecovery:
             "config": config,
         }
 
-    def test_invalid_loop_file_skipped_gracefully(self, invalid_data_env):
+    def test_invalid_loop_file_skipped_gracefully(self, invalid_data_env) -> None:
+
         """
         不正なLoopファイルは優雅にスキップされる
 
@@ -227,7 +236,8 @@ class TestInvalidDataRecovery:
         new_files = shadow_manager._detector.find_new_files("weekly")
         assert len(new_files) == 2
 
-    def test_shadow_with_null_overall_digest_recovers(self, invalid_data_env):
+    def test_shadow_with_null_overall_digest_recovers(self, invalid_data_env) -> None:
+
         """
         overall_digestがnullのShadowからの回復
 

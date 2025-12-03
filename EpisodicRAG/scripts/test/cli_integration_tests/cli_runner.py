@@ -140,7 +140,8 @@ class CLIRunner:
         scripts_dir: Optional[Path] = None,
         python_executable: Optional[str] = None,
         timeout: int = 30,
-    ):
+    ) -> None:
+
         """
         CLIRunnerを初期化
 

@@ -19,7 +19,8 @@ pytestmark = pytest.mark.slow
 
 
 @pytest.fixture
-def shadow_manager(temp_plugin_env):
+def shadow_manager(temp_plugin_env) -> None:
+
     """ShadowGrandDigestManagerインスタンスを提供"""
     mock_config = MagicMock()
     mock_config.digests_path = temp_plugin_env.digests_path
@@ -52,7 +53,8 @@ class TestShadowGrandDigestManager:
     """ShadowGrandDigestManager の統合テスト"""
 
     @pytest.mark.integration
-    def test_load_or_create_new_file(self, shadow_manager):
+    def test_load_or_create_new_file(self, shadow_manager) -> None:
+
         """新規作成時の動作"""
         data = shadow_manager._io.load_or_create()
 
@@ -61,7 +63,8 @@ class TestShadowGrandDigestManager:
         assert "latest_digests" in data
 
     @pytest.mark.integration
-    def test_load_or_create_existing_file(self, shadow_manager):
+    def test_load_or_create_existing_file(self, shadow_manager) -> None:
+
         """既存ファイル読み込み"""
         # テストデータを作成
         test_data = {
@@ -76,14 +79,16 @@ class TestShadowGrandDigestManager:
         assert data["metadata"]["version"] == "test"
 
     @pytest.mark.integration
-    def test_find_new_files_no_new(self, shadow_manager):
+    def test_find_new_files_no_new(self, shadow_manager) -> None:
+
         """新しいファイルがない場合"""
         shadow_manager._mock_tracker.load_or_create.return_value = {}
         new_files = shadow_manager._detector.find_new_files("weekly")
         assert new_files == []
 
     @pytest.mark.integration
-    def test_find_new_files_with_new(self, shadow_manager):
+    def test_find_new_files_with_new(self, shadow_manager) -> None:
+
         """新しいLoopファイルがある場合"""
         # テストファイルを作成
         loops_path = shadow_manager._temp_env.loops_path
@@ -97,7 +102,8 @@ class TestShadowGrandDigestManager:
         assert any("Loop0001" in f.name for f in new_files)
 
     @pytest.mark.integration
-    def test_clear_shadow_level(self, shadow_manager):
+    def test_clear_shadow_level(self, shadow_manager) -> None:
+
         """Shadowレベルのクリア"""
         # まずデータを作成
         shadow_manager._io.load_or_create()
@@ -113,7 +119,8 @@ class TestShadowGrandDigestManager:
         assert "PLACEHOLDER" in overall["abstract"]
 
     @pytest.mark.integration
-    def test_get_shadow_digest_for_level_empty(self, shadow_manager):
+    def test_get_shadow_digest_for_level_empty(self, shadow_manager) -> None:
+
         """空のShadowダイジェスト取得"""
         shadow_manager._io.load_or_create()
 
@@ -122,7 +129,8 @@ class TestShadowGrandDigestManager:
         assert result is None  # source_filesが空の場合はNone
 
     @pytest.mark.integration
-    def test_get_shadow_digest_for_level_with_files(self, shadow_manager):
+    def test_get_shadow_digest_for_level_with_files(self, shadow_manager) -> None:
+
         """ファイルがあるShadowダイジェスト取得"""
         # テストデータを作成
         data = shadow_manager._io.load_or_create()
@@ -135,7 +143,8 @@ class TestShadowGrandDigestManager:
         assert result["source_files"] == ["Loop0001.txt"]
 
     @pytest.mark.integration
-    def test_promote_shadow_to_grand(self, shadow_manager):
+    def test_promote_shadow_to_grand(self, shadow_manager) -> None:
+
         """ShadowをGrandDigestに昇格（昇格準備確認）"""
         # テストデータを作成
         data = shadow_manager._io.load_or_create()
@@ -157,7 +166,8 @@ class TestShadowGrandDigestManagerInit:
     """ShadowGrandDigestManager 初期化テスト"""
 
     @pytest.mark.integration
-    def test_init_with_none_config(self, temp_plugin_env):
+    def test_init_with_none_config(self, temp_plugin_env) -> None:
+
         """config=Noneでの初期化（デフォルト設定を使用）"""
         # config.jsonを作成
         config_file = temp_plugin_env.config_dir / "config.json"

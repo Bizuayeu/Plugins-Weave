@@ -32,6 +32,7 @@ pytestmark = pytest.mark.slow
 
 @pytest.fixture
 def file_appender(shadow_io, file_detector, template, level_hierarchy, placeholder_manager):
+
     """テスト用FileAppender"""
     return FileAppender(shadow_io, file_detector, template, level_hierarchy, placeholder_manager)
 
@@ -45,7 +46,8 @@ class TestEnsureOverallDigestInitialized:
     """_ensure_overall_digest_initialized メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_initializes_null_overall_digest(self, file_appender, shadow_io):
+    def test_initializes_null_overall_digest(self, file_appender, shadow_io) -> None:
+
         """overall_digestがnullの場合、初期化される"""
         shadow_data = shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = None
@@ -57,7 +59,8 @@ class TestEnsureOverallDigestInitialized:
         assert "source_files" in result
 
     @pytest.mark.integration
-    def test_initializes_non_dict_overall_digest(self, file_appender, shadow_io):
+    def test_initializes_non_dict_overall_digest(self, file_appender, shadow_io) -> None:
+
         """overall_digestがdict以外の場合、初期化される"""
         shadow_data = shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = "invalid"
@@ -68,7 +71,8 @@ class TestEnsureOverallDigestInitialized:
         assert "source_files" in result
 
     @pytest.mark.integration
-    def test_preserves_existing_valid_digest(self, file_appender, shadow_io):
+    def test_preserves_existing_valid_digest(self, file_appender, shadow_io) -> None:
+
         """有効なoverall_digestは保持される"""
         shadow_data = shadow_io.load_or_create()
         existing_digest = {"source_files": ["Loop0001_test.txt"], "abstract": "Existing content"}
@@ -80,7 +84,8 @@ class TestEnsureOverallDigestInitialized:
         assert "Loop0001_test.txt" in result["source_files"]
 
     @pytest.mark.integration
-    def test_adds_source_files_if_missing(self, file_appender, shadow_io):
+    def test_adds_source_files_if_missing(self, file_appender, shadow_io) -> None:
+
         """source_filesがない場合、追加される"""
         shadow_data = shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = {
@@ -103,7 +108,8 @@ class TestLogDigestContent:
     """_log_digest_content メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_log_digest_content_valid_json(self, file_appender, temp_plugin_env, caplog):
+    def test_log_digest_content_valid_json(self, file_appender, temp_plugin_env, caplog: pytest.LogCaptureFixture) -> None:
+
         """有効なJSONファイルの内容をログ出力"""
         # Weekly Digestファイルを作成
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
@@ -126,7 +132,8 @@ class TestLogDigestContent:
         assert "digest_type" in caplog.text or "Read digest content" in caplog.text
 
     @pytest.mark.integration
-    def test_log_digest_content_json_decode_error(self, file_appender, temp_plugin_env, capsys):
+    def test_log_digest_content_json_decode_error(self, file_appender, temp_plugin_env, capsys: pytest.CaptureFixture[str]) -> None:
+
         """無効なJSONファイルの場合、警告を出力"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_invalid.txt"
@@ -140,7 +147,8 @@ class TestLogDigestContent:
         # エラーで落ちないことが重要
 
     @pytest.mark.integration
-    def test_log_digest_content_file_not_found(self, file_appender, temp_plugin_env):
+    def test_log_digest_content_file_not_found(self, file_appender, temp_plugin_env) -> None:
+
         """存在しないファイルの場合、エラーなく終了"""
         nonexistent_file = temp_plugin_env.digests_path / "1_Weekly" / "W9999_nonexistent.txt"
 
@@ -148,7 +156,8 @@ class TestLogDigestContent:
         file_appender._log_digest_content(nonexistent_file, "monthly")
 
     @pytest.mark.integration
-    def test_log_digest_content_non_txt_file(self, file_appender, temp_plugin_env):
+    def test_log_digest_content_non_txt_file(self, file_appender, temp_plugin_env) -> None:
+
         """非テキストファイル（.json等）は無視される"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         json_file = weekly_dir / "W0001_test.json"
@@ -159,7 +168,8 @@ class TestLogDigestContent:
         file_appender._log_digest_content(json_file, "monthly")
 
     @pytest.mark.integration
-    def test_log_digest_content_non_dict_digest(self, file_appender, temp_plugin_env, capsys):
+    def test_log_digest_content_non_dict_digest(self, file_appender, temp_plugin_env, capsys: pytest.CaptureFixture[str]) -> None:
+
         """overall_digestがdict以外の場合、警告を出力"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_non_dict.txt"

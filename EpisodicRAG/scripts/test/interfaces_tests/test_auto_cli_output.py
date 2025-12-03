@@ -20,17 +20,20 @@ import pytest
 class TestDigestAutoCLIOutputFormats(unittest.TestCase):
     """出力形式テスト（JSON vs Text）"""
 
-    def setUp(self):
+    def setUp(self) -> None:
+
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _setup_plugin_structure(self):
+    def _setup_plugin_structure(self) -> None:
+
         """プラグイン構造を作成"""
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
         (self.plugin_root / "data" / "Digests").mkdir(parents=True)
@@ -74,7 +77,8 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
             json.dump(times_data, f)
 
     @pytest.mark.unit
-    def test_json_output_is_valid_json(self):
+    def test_json_output_is_valid_json(self) -> None:
+
         """JSON出力がパース可能"""
         with patch("sys.argv", [
             "digest_auto.py",
@@ -90,7 +94,8 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
                 assert isinstance(result, dict)
 
     @pytest.mark.unit
-    def test_json_output_contains_required_fields(self):
+    def test_json_output_contains_required_fields(self) -> None:
+
         """JSON出力に必須フィールドが含まれる"""
         with patch("sys.argv", [
             "digest_auto.py",
@@ -108,7 +113,8 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
                 assert result["status"] in ["ok", "warning", "error"]
 
     @pytest.mark.unit
-    def test_text_output_contains_header(self):
+    def test_text_output_contains_header(self) -> None:
+
         """テキスト出力にヘッダーが含まれる"""
         from interfaces.digest_auto import AnalysisResult, format_text_report
 
@@ -119,7 +125,8 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
         assert "```text" in formatted
 
     @pytest.mark.unit
-    def test_text_output_contains_status_indicators(self):
+    def test_text_output_contains_status_indicators(self) -> None:
+
         """テキスト出力にステータスインジケータが含まれる"""
         from interfaces.digest_auto import AnalysisResult, Issue, format_text_report
 
@@ -135,7 +142,8 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
         assert "未処理Loop" in formatted
 
     @pytest.mark.unit
-    def test_error_json_contains_status_error(self):
+    def test_error_json_contains_status_error(self) -> None:
+
         """エラー時にJSON出力がstatus=errorを含む"""
         # ShadowGrandDigestを削除してエラーを発生させる
         (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").unlink()
@@ -154,7 +162,8 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
                 assert result["status"] == "error"
 
     @pytest.mark.unit
-    def test_error_json_contains_error_message(self):
+    def test_error_json_contains_error_message(self) -> None:
+
         """エラー時にJSON出力がerrorメッセージを含む"""
         # ShadowGrandDigestを削除してエラーを発生させる
         (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").unlink()

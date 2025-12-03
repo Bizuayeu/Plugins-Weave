@@ -48,13 +48,15 @@ class TestLevelHierarchyInvariants:
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_level_config_exists(self, level):
+    def test_level_config_exists(self, level) -> None:
+
         """全有効レベルにLEVEL_CONFIGが存在する"""
         assert level in LEVEL_CONFIG, f"{level}がLEVEL_CONFIGに存在すること"
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_level_config_has_required_keys(self, level):
+    def test_level_config_has_required_keys(self, level) -> None:
+
         """
         LEVEL_CONFIGは必須キーを持つ
 
@@ -68,7 +70,8 @@ class TestLevelHierarchyInvariants:
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_level_hierarchy_non_circular(self, level):
+    def test_level_hierarchy_non_circular(self, level) -> None:
+
         """
         レベル階層は非循環である
 
@@ -91,7 +94,8 @@ class TestLevelHierarchyInvariants:
 
     @given(idx=level_indices)
     @settings(max_examples=50)
-    def test_level_order_preserved(self, idx):
+    def test_level_order_preserved(self, idx) -> None:
+
         """
         LEVEL_NAMESの順序がカスケード方向と一致する
 
@@ -121,7 +125,8 @@ class TestThresholdInvariants:
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_threshold_is_positive_integer(self, level):
+    def test_threshold_is_positive_integer(self, level) -> None:
+
         """全レベルの閾値は正の整数"""
         config = LEVEL_CONFIG[level]
         threshold = config.get("threshold", 5)  # デフォルト5
@@ -131,7 +136,8 @@ class TestThresholdInvariants:
 
     @given(file_count=valid_file_counts, threshold=valid_thresholds)
     @settings(max_examples=200)
-    def test_threshold_determines_trigger(self, file_count, threshold):
+    def test_threshold_determines_trigger(self, file_count, threshold) -> None:
+
         """
         閾値がトリガー条件を決定する
 
@@ -146,7 +152,8 @@ class TestThresholdInvariants:
 
     @given(threshold=valid_thresholds)
     @settings(max_examples=100)
-    def test_boundary_condition_at_threshold(self, threshold):
+    def test_boundary_condition_at_threshold(self, threshold) -> None:
+
         """
         閾値境界での動作が明確
 
@@ -173,7 +180,8 @@ class TestCascadeFlowInvariants:
 
     @given(start_idx=level_indices)
     @settings(max_examples=50)
-    def test_cascade_reaches_top_or_stops(self, start_idx):
+    def test_cascade_reaches_top_or_stops(self, start_idx) -> None:
+
         """
         カスケードは最上位に到達するか、Noneで停止する
         """
@@ -196,7 +204,8 @@ class TestCascadeFlowInvariants:
 
     @given(idx1=level_indices, idx2=level_indices)
     @settings(max_examples=100)
-    def test_level_ordering_transitive(self, idx1, idx2):
+    def test_level_ordering_transitive(self, idx1, idx2) -> None:
+
         """
         レベル順序は推移的である
 
@@ -232,7 +241,8 @@ class TestDigitFormatInvariants:
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_digits_is_positive(self, level):
+    def test_digits_is_positive(self, level) -> None:
+
         """全レベルの桁数は正の整数"""
         config = LEVEL_CONFIG[level]
         digits = config["digits"]
@@ -242,7 +252,8 @@ class TestDigitFormatInvariants:
 
     @given(level=valid_levels)
     @settings(max_examples=50)
-    def test_prefix_is_non_empty_string(self, level):
+    def test_prefix_is_non_empty_string(self, level) -> None:
+
         """全レベルのプレフィックスは非空文字列"""
         config = LEVEL_CONFIG[level]
         prefix = config["prefix"]
@@ -252,7 +263,8 @@ class TestDigitFormatInvariants:
 
     @given(level=valid_levels, number=st.integers(min_value=0, max_value=99))
     @settings(max_examples=100)
-    def test_formatted_number_length_matches_digits(self, level, number):
+    def test_formatted_number_length_matches_digits(self, level, number) -> None:
+
         """
         フォーマット済み番号の数字部分が指定桁数と一致する
         """

@@ -29,7 +29,8 @@ class TestDigestConfigBuilderInit:
     """DigestConfigBuilder initialization tests"""
 
     @pytest.mark.unit
-    def test_init_creates_empty_builder(self):
+    def test_init_creates_empty_builder(self) -> None:
+
         """Initializes with no configuration"""
         builder = DigestConfigBuilder()
         # Internal state should be None
@@ -42,14 +43,16 @@ class TestDigestConfigBuilderFluentInterface:
     """Fluent interface tests"""
 
     @pytest.mark.unit
-    def test_with_plugin_root_returns_self(self):
+    def test_with_plugin_root_returns_self(self) -> None:
+
         """with_plugin_root returns self for chaining"""
         builder = DigestConfigBuilder()
         result = builder.with_plugin_root(Path("/test"))
         assert result is builder
 
     @pytest.mark.unit
-    def test_with_custom_loader_returns_self(self):
+    def test_with_custom_loader_returns_self(self) -> None:
+
         """with_custom_loader returns self for chaining"""
         builder = DigestConfigBuilder()
         mock_loader = MagicMock(spec=ConfigLoader)
@@ -57,7 +60,8 @@ class TestDigestConfigBuilderFluentInterface:
         assert result is builder
 
     @pytest.mark.unit
-    def test_method_chaining(self):
+    def test_method_chaining(self) -> None:
+
         """Methods can be chained"""
         mock_loader = MagicMock(spec=ConfigLoader)
         builder = (
@@ -79,6 +83,7 @@ class TestDigestConfigBuilderBuild:
 
     @pytest.fixture
     def config_env(self, temp_plugin_env):
+
         """テスト用の設定環境を構築"""
         config_data = {
             "base_dir": ".",
@@ -110,7 +115,8 @@ class TestDigestConfigBuilderBuild:
         }
 
     @pytest.mark.unit
-    def test_build_with_plugin_root(self, config_env):
+    def test_build_with_plugin_root(self, config_env) -> None:
+
         """Build with explicit plugin root"""
         env = config_env["env"]
         config = DigestConfigBuilder().with_plugin_root(env.plugin_root).build()
@@ -120,7 +126,8 @@ class TestDigestConfigBuilderBuild:
         assert config.config_file == config_env["config_file"]
 
     @pytest.mark.unit
-    def test_build_produces_working_config(self, config_env):
+    def test_build_produces_working_config(self, config_env) -> None:
+
         """Built config has all expected functionality"""
         env = config_env["env"]
         config = DigestConfigBuilder().with_plugin_root(env.plugin_root).build()
@@ -132,7 +139,8 @@ class TestDigestConfigBuilderBuild:
         assert config.threshold is not None
 
     @pytest.mark.unit
-    def test_build_with_custom_loader(self, config_env):
+    def test_build_with_custom_loader(self, config_env) -> None:
+
         """Build with custom ConfigLoader"""
         env = config_env["env"]
 
@@ -151,7 +159,8 @@ class TestDigestConfigBuilderBuild:
         mock_loader.load.assert_called_once()
 
     @pytest.mark.unit
-    def test_build_raises_config_error_on_failure(self, config_env):
+    def test_build_raises_config_error_on_failure(self, config_env) -> None:
+
         """Build raises ConfigError on initialization failure"""
         env = config_env["env"]
         # Delete config file to cause failure
@@ -166,6 +175,7 @@ class TestDigestConfigBuilderBuildDefault:
 
     @pytest.fixture
     def config_env(self, temp_plugin_env):
+
         """テスト用の設定環境を構築"""
         config_data = {
             "base_dir": ".",
@@ -197,7 +207,8 @@ class TestDigestConfigBuilderBuildDefault:
         }
 
     @pytest.mark.unit
-    def test_build_default_with_plugin_root(self, config_env):
+    def test_build_default_with_plugin_root(self, config_env) -> None:
+
         """build_default with explicit plugin root"""
         env = config_env["env"]
         config = DigestConfigBuilder.build_default(env.plugin_root)
@@ -206,7 +217,8 @@ class TestDigestConfigBuilderBuildDefault:
         assert config.plugin_root == env.plugin_root
 
     @pytest.mark.unit
-    def test_build_default_produces_same_result(self, config_env):
+    def test_build_default_produces_same_result(self, config_env) -> None:
+
         """build_default produces same result as build()"""
         env = config_env["env"]
 
@@ -230,6 +242,7 @@ class TestDigestConfigBuilderEquivalence:
 
     @pytest.fixture
     def config_env(self, temp_plugin_env):
+
         """テスト用の設定環境を構築"""
         config_data = {
             "base_dir": ".",
@@ -261,7 +274,8 @@ class TestDigestConfigBuilderEquivalence:
         }
 
     @pytest.mark.unit
-    def test_builder_produces_equivalent_config(self, config_env):
+    def test_builder_produces_equivalent_config(self, config_env) -> None:
+
         """Builder produces config equivalent to direct instantiation"""
         env = config_env["env"]
 
@@ -280,7 +294,8 @@ class TestDigestConfigBuilderEquivalence:
         assert direct_config.base_dir == builder_config.base_dir
 
     @pytest.mark.unit
-    def test_builder_config_has_same_methods(self, config_env):
+    def test_builder_config_has_same_methods(self, config_env) -> None:
+
         """Builder config has all the same methods as direct config"""
         env = config_env["env"]
         config = DigestConfigBuilder.build_default(env.plugin_root)
@@ -307,14 +322,16 @@ class TestDigestConfigBuilderImports:
     """DigestConfigBuilder import path tests"""
 
     @pytest.mark.unit
-    def test_import_from_package(self):
+    def test_import_from_package(self) -> None:
+
         """Import from application.config package"""
         from application.config import DigestConfigBuilder
 
         assert DigestConfigBuilder is not None
 
     @pytest.mark.unit
-    def test_import_from_module(self):
+    def test_import_from_module(self) -> None:
+
         """Import from application.config.config_builder module"""
         from application.config.config_builder import DigestConfigBuilder
 

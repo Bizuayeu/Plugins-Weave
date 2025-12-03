@@ -20,21 +20,24 @@ class TestVersionLoading:
     """バージョン読み込みのテスト"""
 
     @pytest.mark.unit
-    def test_version_is_string(self):
+    def test_version_is_string(self) -> None:
+
         """__version__ は文字列"""
         from domain.version import __version__
 
         assert isinstance(__version__, str)
 
     @pytest.mark.unit
-    def test_version_not_empty(self):
+    def test_version_not_empty(self) -> None:
+
         """__version__ は空でない"""
         from domain.version import __version__
 
         assert __version__ != ""
 
     @pytest.mark.unit
-    def test_version_format_semver(self):
+    def test_version_format_semver(self) -> None:
+
         """__version__ は semver 形式"""
         from domain.version import __version__
 
@@ -44,7 +47,8 @@ class TestVersionLoading:
         assert re.match(semver_pattern, __version__), f"'{__version__}' is not semver format"
 
     @pytest.mark.unit
-    def test_digest_format_version_exists(self):
+    def test_digest_format_version_exists(self) -> None:
+
         """DIGEST_FORMAT_VERSION が定義されている"""
         from domain.version import DIGEST_FORMAT_VERSION
 
@@ -52,7 +56,8 @@ class TestVersionLoading:
         assert DIGEST_FORMAT_VERSION != ""
 
     @pytest.mark.unit
-    def test_digest_format_version_is_semver(self):
+    def test_digest_format_version_is_semver(self) -> None:
+
         """DIGEST_FORMAT_VERSION は semver 形式"""
         from domain.version import DIGEST_FORMAT_VERSION
 
@@ -65,7 +70,8 @@ class TestVersionFallback:
     """バージョンフォールバック動作のテスト"""
 
     @pytest.mark.unit
-    def test_fallback_when_plugin_json_missing(self):
+    def test_fallback_when_plugin_json_missing(self) -> None:
+
         """plugin.json が存在しない場合は 0.0.0"""
         from domain.version import _load_version_from_plugin_json
 
@@ -82,7 +88,8 @@ class TestVersionFallback:
         assert isinstance(result, str)
 
     @pytest.mark.integration
-    def test_loads_from_plugin_json(self, tmp_path):
+    def test_loads_from_plugin_json(self, tmp_path: Path) -> None:
+
         """plugin.json から正しくバージョンを読み込む"""
         # テスト用の plugin.json を作成
         plugin_json_path = tmp_path / ".claude-plugin" / "plugin.json"
@@ -99,7 +106,8 @@ class TestVersionFallback:
         assert isinstance(__version__, str)
 
     @pytest.mark.unit
-    def test_invalid_json_returns_fallback(self):
+    def test_invalid_json_returns_fallback(self) -> None:
+
         """不正な JSON の場合は 0.0.0"""
         # この関数は try-except で JSONDecodeError をキャッチする
         # 実装を確認
@@ -111,7 +119,8 @@ class TestVersionFallback:
         assert "json.JSONDecodeError" in source or "JSONDecodeError" in source
 
     @pytest.mark.unit
-    def test_missing_version_key_returns_fallback(self):
+    def test_missing_version_key_returns_fallback(self) -> None:
+
         """version キーがない場合は 0.0.0"""
         # data.get("version", "0.0.0") の実装を確認
         import inspect
@@ -126,7 +135,8 @@ class TestVersionConsistency:
     """バージョン整合性テスト - SSoT検証"""
 
     @pytest.mark.unit
-    def test_plugin_json_pyproject_toml_sync(self):
+    def test_plugin_json_pyproject_toml_sync(self) -> None:
+
         """plugin.json と pyproject.toml のバージョンが一致"""
         # プロジェクトルートを取得
         plugin_root = Path(__file__).parent.parent.parent.parent
@@ -154,7 +164,8 @@ class TestVersionConsistency:
         )
 
     @pytest.mark.unit
-    def test_version_module_matches_plugin_json(self):
+    def test_version_module_matches_plugin_json(self) -> None:
+
         """version.py の __version__ が plugin.json と一致"""
         from domain.version import __version__
 
@@ -168,7 +179,8 @@ class TestVersionConsistency:
         )
 
     @pytest.mark.unit
-    def test_marketplace_json_version_sync(self):
+    def test_marketplace_json_version_sync(self) -> None:
+
         """marketplace.json の EpisodicRAG バージョンが plugin.json と一致"""
         plugin_root = Path(__file__).parent.parent.parent.parent
 
@@ -198,7 +210,8 @@ class TestVersionConsistency:
         )
 
     @pytest.mark.unit
-    def test_changelog_version_sync(self):
+    def test_changelog_version_sync(self) -> None:
+
         """CHANGELOG.md の最新バージョンが plugin.json と一致"""
         plugin_root = Path(__file__).parent.parent.parent.parent
 
@@ -222,7 +235,8 @@ class TestVersionConsistency:
         )
 
     @pytest.mark.unit
-    def test_root_readme_version_badges(self):
+    def test_root_readme_version_badges(self) -> None:
+
         """ルート README.md/README.en.md のバージョンバッジが plugin.json と一致"""
         plugin_root = Path(__file__).parent.parent.parent.parent
 
@@ -248,7 +262,8 @@ class TestVersionConsistency:
             )
 
     @pytest.mark.unit
-    def test_docs_readme_version_badge(self):
+    def test_docs_readme_version_badge(self) -> None:
+
         """docs/README.md のバージョンバッジが plugin.json と一致"""
         plugin_root = Path(__file__).parent.parent.parent.parent
 
@@ -275,28 +290,32 @@ class TestVersionModule:
     """version モジュール全体のテスト"""
 
     @pytest.mark.unit
-    def test_module_exports_version(self):
+    def test_module_exports_version(self) -> None:
+
         """__version__ がエクスポートされている"""
         from domain import version
 
         assert hasattr(version, "__version__")
 
     @pytest.mark.unit
-    def test_module_exports_digest_format_version(self):
+    def test_module_exports_digest_format_version(self) -> None:
+
         """DIGEST_FORMAT_VERSION がエクスポートされている"""
         from domain import version
 
         assert hasattr(version, "DIGEST_FORMAT_VERSION")
 
     @pytest.mark.unit
-    def test_version_is_accessible_from_domain(self):
+    def test_version_is_accessible_from_domain(self) -> None:
+
         """domain パッケージから version にアクセス可能"""
         from domain.version import __version__
 
         assert __version__ is not None
 
     @pytest.mark.unit
-    def test_ssot_comment_exists(self):
+    def test_ssot_comment_exists(self) -> None:
+
         """SSoT コメントが存在する（ドキュメント確認）"""
         import inspect
 
@@ -306,7 +325,8 @@ class TestVersionModule:
         assert "SSoT" in source or "Single Source of Truth" in source
 
     @pytest.mark.unit
-    def test_version_loaded_at_import_time(self):
+    def test_version_loaded_at_import_time(self) -> None:
+
         """バージョンはインポート時に読み込まれる"""
         import importlib
 
