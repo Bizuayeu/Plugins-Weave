@@ -457,3 +457,103 @@ class TestCheckSummary:
         assert d["total_links"] == 50
         assert d["valid"] == 40
         assert d["broken"] == 5
+
+
+class TestSlugifyLycheeCompat:
+    """_slugify メソッドの lychee 互換テスト"""
+
+    def test_emoji_heading_generates_leading_hyphen(self, temp_docs_dir) -> None:
+        """絵文字付き見出しは先頭ハイフンを生成（lychee互換）
+
+        lychee/GitHubでは絵文字が削除された後、スペースがハイフンになり、
+        先頭のハイフンは保持される。
+        例: "## 📥 必須パラメータ" → "-必須パラメータ"
+        """
+        # Setup - 絵文字付き見出しと、先頭ハイフンなしのリンク
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text(
+            "## 📥 必須パラメータ\n\n[リンク](#必須パラメータ)",
+            encoding="utf-8",
+        )
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        # Verify - 絵文字が削除され先頭ハイフンが残るため、リンクは無効
+        assert len(results) == 1
+        assert results[0].status == LinkStatus.ANCHOR_MISSING.value
+
+    def test_emoji_heading_with_correct_anchor(self, temp_docs_dir) -> None:
+        """絵文字付き見出しへの正しいアンカーリンク
+
+        正しいリンクは先頭ハイフンを含む必要がある。
+        """
+        # Setup - 絵文字付き見出しと、先頭ハイフン付きのリンク
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text(
+            "## 📥 必須パラメータ\n\n[リンク](#-必須パラメータ)",
+            encoding="utf-8",
+        )
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        # Verify - 先頭ハイフン付きリンクは有効
+        assert len(results) == 1
+        assert results[0].status == LinkStatus.VALID.value
+
+    def test_heading_without_emoji_no_leading_hyphen(self, temp_docs_dir) -> None:
+        """絵文字なし見出しは先頭ハイフンなし"""
+        # Setup - 絵文字なし見出し
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text(
+            "## 必須パラメータ\n\n[リンク](#必須パラメータ)",
+            encoding="utf-8",
+        )
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        # Verify - 絵文字なしなら先頭ハイフンは不要
+        assert len(results) == 1
+        assert results[0].status == LinkStatus.VALID.value
+
+    def test_underscore_stripped_from_anchor(self, temp_docs_dir) -> None:
+        """アンダースコアはアンカーから除去される（lychee互換）
+
+        GitHubはアンダースコアを保持しないため、link_checkerも同様に振る舞う。
+        """
+        # Setup - アンダースコア付き見出し
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text(
+            "## test_section\n\n[リンク](#testsection)",
+            encoding="utf-8",
+        )
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        # Verify - アンダースコアなしのリンクが有効
+        assert len(results) == 1
+        assert results[0].status == LinkStatus.VALID.value
+
+    def test_multiple_emojis_in_heading(self, temp_docs_dir) -> None:
+        """複数絵文字を含む見出し"""
+        # Setup
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text(
+            "## 🚀 ロケット 🌟 スター\n\n[リンク](#-ロケット--スター)",
+            encoding="utf-8",
+        )
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        # Verify - 絵文字が削除され、スペースがハイフンに、連続ハイフン保持
+        assert len(results) == 1
+        assert results[0].status == LinkStatus.VALID.value

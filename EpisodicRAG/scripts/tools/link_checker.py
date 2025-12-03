@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Markdown Link Checker
-=====================
+Markdown Link Checker (lychee互換)
+==================================
 
 Markdownファイル内のリンクを検証するツール。
+GitHub Actionsで使用するlycheeリンクチェッカーと同じ仕様でアンカーを生成。
 
 Usage:
     python -m tools.link_checker [docs_path]           # 検証実行
@@ -12,10 +13,17 @@ Usage:
 
 Features:
     1. 相対リンクの有効性検証 [text](path/to/file.md)
-    2. アンカーリンクの検証 [text](#section-name)
+    2. アンカーリンクの検証 [text](#section-name) - lychee/GitHub互換
     3. ファイル+アンカーの複合検証 [text](file.md#section)
     4. 外部リンクの検出（検証はスキップ）
     5. 検証結果のサマリー出力
+
+lychee compatibility:
+    - 絵文字は削除される
+    - スペースはハイフンに変換
+    - 先頭・末尾のハイフンは保持（strip しない）
+    - アンダースコアは削除される
+    - 例: "## 📥 必須パラメータ" → "#-必須パラメータ"
 """
 
 import argparse
@@ -80,8 +88,11 @@ class MarkdownLinkChecker:
     # 外部リンクパターン
     EXTERNAL_PATTERN = re.compile(r"^https?://", re.IGNORECASE)
 
-    # アンカーのみパターン
-    ANCHOR_ONLY_PATTERN = re.compile(r"^#[\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF-]+$")
+    # アンカーのみパターン（lychee互換：先頭ハイフン許可、アンダースコア除外）
+    ANCHOR_ONLY_PATTERN = re.compile(
+        r"^#[-a-z0-9\u3040-\u309F\u30A0-\u30FA\u30FC-\u30FF\u4E00-\u9FFF]+$",
+        re.IGNORECASE
+    )
 
     def __init__(self, docs_root: Path):
         """
@@ -326,13 +337,13 @@ class MarkdownLinkChecker:
 
     def _slugify(self, text: str) -> str:
         """
-        見出しテキストをスラッグ化（GitHub風）
+        見出しテキストをスラッグ化（lychee/GitHub互換）
 
-        GitHub's algorithm (per github-slugger):
+        lychee/GitHub's algorithm (per github-slugger):
         1. Lowercase
-        2. Remove punctuation (including CJK punctuation like ・)
-        3. Replace whitespace with hyphens
-        4. Strip leading/trailing hyphens
+        2. Remove punctuation, emojis, special chars (keep letters, numbers, spaces, hyphens)
+        3. Replace spaces with hyphens
+        4. Do NOT strip leading/trailing hyphens (lychee behavior)
 
         Args:
             text: 見出しテキスト
@@ -343,18 +354,22 @@ class MarkdownLinkChecker:
         # 小文字化
         slug = text.lower()
 
-        # 特殊文字を除去（日本語は保持、中黒U+30FBは除外）
+        # 特殊文字・絵文字を除去（日本語・英数字・スペース・ハイフンは保持）
+        # Letters (a-z), numbers (0-9), Japanese (hiragana, katakana, kanji), space, hyphen
+        # Note: \w includes underscore which GitHub strips, so use explicit ranges
         # Katakana range split: U+30A0-30FA (letters), skip U+30FB (nakaguro), U+30FC-30FF (marks)
-        slug = re.sub(r"[^\w\u3040-\u309F\u30A0-\u30FA\u30FC-\u30FF\u4E00-\u9FFF\s-]", "", slug)
+        slug = re.sub(
+            r"[^a-z0-9\u3040-\u309F\u30A0-\u30FA\u30FC-\u30FF\u4E00-\u9FFF \-]",
+            "",
+            slug
+        )
 
-        # スペースをハイフンに（各スペースを個別に置換、GitHubと同じ動作）
-        slug = re.sub(r"\s", "-", slug)
+        # スペースをハイフンに（各スペースを個別に置換）
+        slug = slug.replace(" ", "-")
 
-        # Note: GitHubは連続ハイフンを保持するため、折りたたみは行わない
-        # slug = re.sub(r"-+", "-", slug)
-
-        # 先頭・末尾のハイフンを除去
-        slug = slug.strip("-")
+        # Note: lychee/GitHubは連続ハイフンを保持し、先頭・末尾も削除しない
+        # これにより「## 📥 必須パラメータ」は「-必須パラメータ」となり、
+        # リンク「#必須パラメータ」との不一致を正しく検出できる
 
         return slug
 

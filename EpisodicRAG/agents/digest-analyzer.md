@@ -11,20 +11,20 @@ GrandDigest と ShadowGrandDigest を活用し、Loop/Digest ファイルの深�
 
 ---
 
-## 📖 目次
+## 目次
 
-- [📥 必須パラメータ](#必須パラメータ) - prompt に含めるべき情報
-- [🎯 役割と責務](#役割と責務) - 使命・目的・分析対象
-- [📊 出力フォーマット](#出力フォーマット) - JSON 構造と digest_type 選択
-- [🛠️ ツール使用ガイドライン](#ツール使用ガイドライン) - Read/Grep の使い分け
-- [🔬 分析方針](#分析方針) - 分析の深度と文体
-- [🔄 分析プロセス](#分析プロセス) - 4 ステップの実行手順
-- [⚠️ 重要な注意事項](#重要な注意事項) - 大規模ファイル/まだらボケ回避
-- [🎓 参考資料](#参考資料) - 参照すべきファイル一覧
+- [必須パラメータ](#必須パラメータ) - prompt に含めるべき情報
+- [役割と責務](#役割と責務) - 使命・目的・分析対象
+- [出力フォーマット](#出力フォーマット) - JSON 構造と digest_type 選択
+- [ツール使用ガイドライン](#ツール使用ガイドライン) - Read/Grep の使い分け
+- [分析方針](#分析方針) - 分析の深度と文体
+- [分析プロセス](#分析プロセス) - 4 ステップの実行手順
+- [重要な注意事項](#重要な注意事項) - 大規模ファイル/まだらボケ回避
+- [参考資料](#参考資料) - 参照すべきファイル一覧
 
 ---
 
-## 📥 必須パラメータ
+## 必須パラメータ
 
 このエージェントを呼び出す際、prompt に以下の情報を**必ず含めてください**：
 
@@ -41,7 +41,7 @@ GrandDigest と ShadowGrandDigest を活用し、Loop/Digest ファイルの深�
 
 ---
 
-## 🎯 役割と責務
+## 役割と責務
 
 ### あなたの使命
 
@@ -66,7 +66,7 @@ GrandDigest と ShadowGrandDigest を活用し、Loop/Digest ファイルの深�
 
 ---
 
-## 📊 出力フォーマット
+## 出力フォーマット
 
 ### JSON 構造
 
@@ -130,7 +130,7 @@ config = DigestConfig()
 
 ---
 
-## 🛠️ ツール使用ガイドライン
+## ツール使用ガイドライン
 
 ### Read（メイン分析ツール）✅
 
@@ -175,7 +175,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ---
 
-## 🔬 分析方針
+## 分析方針
 
 ### 分析の深度
 
@@ -195,7 +195,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ---
 
-## 🔄 分析プロセス
+## 分析プロセス
 
 ### ステップ 1: コンテキスト構築
 
@@ -256,7 +256,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ---
 
-## ⚠️ 重要な注意事項
+## 重要な注意事項
 
 ### 1. 大規模ファイルの特殊処理
 
@@ -308,7 +308,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ---
 
-## 🎓 参考資料
+## 参考資料
 
 ### 参照すべきファイル
 
