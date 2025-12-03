@@ -132,6 +132,12 @@ class LevelRegistry:
 
         Raises:
             ConfigError: 不明なレベル名の場合
+
+        Example:
+            >>> registry = get_level_registry()
+            >>> behavior = registry.get_behavior("weekly")
+            >>> behavior.format_number(1)
+            'W0001'
         """
         if level not in self._levels:
             formatter = get_error_formatter()
@@ -150,6 +156,12 @@ class LevelRegistry:
 
         Raises:
             ConfigError: 不明なレベル名の場合
+
+        Example:
+            >>> registry = get_level_registry()
+            >>> metadata = registry.get_metadata("weekly")
+            >>> metadata.prefix
+            'W'
         """
         if level not in self._levels:
             formatter = get_error_formatter()
@@ -162,6 +174,11 @@ class LevelRegistry:
 
         Returns:
             レベル名のリスト（LEVEL_CONFIGの順序を保持）
+
+        Example:
+            >>> registry = get_level_registry()
+            >>> registry.get_level_names()
+            ['weekly', 'monthly', 'quarterly', ...]
         """
         return [name for name in self._levels.keys() if name != "loop"]
 
