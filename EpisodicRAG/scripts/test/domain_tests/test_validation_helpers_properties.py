@@ -113,7 +113,9 @@ class TestValidateDictHasKeysProperties:
 
     @pytest.mark.property
     @given(
-        present_keys=st.lists(st.text(min_size=1, max_size=10), min_size=1, max_size=3, unique=True),
+        present_keys=st.lists(
+            st.text(min_size=1, max_size=10), min_size=1, max_size=3, unique=True
+        ),
         missing_key=st.text(min_size=1, max_size=10),
     )
     @settings(max_examples=100)

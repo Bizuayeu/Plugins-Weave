@@ -227,7 +227,9 @@ class TestShadowIOCreationProperties:
             io2 = ShadowIO(shadow_file, template.get_template)
             data2 = io2.load_or_create()
 
-            assert data2["latest_digests"]["weekly"]["overall_digest"]["source_files"] == ["existing.txt"]
+            assert data2["latest_digests"]["weekly"]["overall_digest"]["source_files"] == [
+                "existing.txt"
+            ]
 
 
 # =============================================================================

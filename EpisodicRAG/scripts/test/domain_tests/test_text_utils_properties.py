@@ -17,10 +17,12 @@ from domain.text_utils import extract_long_value, extract_short_value, extract_v
 # =============================================================================
 
 # Valid LongShortText dictionaries
-long_short_dicts = st.fixed_dictionaries({
-    "long": st.text(min_size=1, max_size=100),
-    "short": st.text(min_size=1, max_size=50),
-})
+long_short_dicts = st.fixed_dictionaries(
+    {
+        "long": st.text(min_size=1, max_size=100),
+        "short": st.text(min_size=1, max_size=50),
+    }
+)
 
 # Arbitrary non-dict values
 non_dict_values = st.one_of(

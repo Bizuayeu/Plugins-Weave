@@ -10,6 +10,7 @@
 - [Fixture Dependency Map](#fixture-dependency-map)
 - [Adding New Tests](#adding-new-tests)
 - [Test Naming Convention](#test-naming-convention)
+- [Property-Based Tests 一覧](#property-based-tests-一覧)
 - [Debugging Tips](#debugging-tips)
 - [Hypothesis Profiles](#hypothesis-profiles)
 - [Performance Targets](#performance-targets)
@@ -57,15 +58,22 @@ test/
 ├── conftest.py              # 共通フィクスチャ
 ├── test_helpers.py          # テストヘルパー
 ├── test_constants.py        # テスト用定数
-├── domain_tests/            # 純粋なビジネスロジック (30 files)
+├── domain_tests/            # 純粋なビジネスロジック (32 files)
+│   └── test_*_properties.py # Property-based (5 files)
 ├── config_tests/            # Config層3層化対応 (14 files) [v4.0.0+]
-├── application_tests/       # ユースケース (18 files)
+│   └── test_config_properties.py
+├── application_tests/       # ユースケース (20 files)
 │   ├── grand/               # GrandDigest関連
 │   ├── shadow/              # Shadow関連（cascade_orchestrator含む）
-│   └── finalize/            # Finalize処理
-│       └── validators/      # バリデータ
-├── infrastructure_tests/    # I/O操作 (11 files)
-│   └── config/              # PathValidatorChain [v4.1.0+]
+│   │   └── test_shadow_io_properties.py
+│   ├── finalize/            # Finalize処理
+│   │   └── validators/      # バリデータ
+│   ├── test_cascade_properties.py
+│   └── test_template_properties.py
+├── infrastructure_tests/    # I/O操作 (12 files)
+│   ├── config/              # PathValidatorChain [v4.1.0+]
+│   ├── test_file_scanner_properties.py
+│   └── test_json_repository_properties.py
 ├── interfaces_tests/        # エントリポイント (22 files)
 │   └── provisional/         # Provisional処理
 ├── integration_tests/       # E2Eシナリオ (14 files)
@@ -82,15 +90,16 @@ test/
 
 | 層 | 主なテストファイル | ファイル数 |
 |----|-------------------|-----------|
-| **Domain** | `test_validators.py`, `test_file_naming.py`, `test_level_registry.py`, `test_formatter_registry.py`, `test_types_imports.py`, `test_level_literals.py` | 30 |
+| **Domain** | `test_validators.py`, `test_file_naming.py`, `test_level_registry.py`, `test_formatter_registry.py`, `test_types_imports.py`, `test_level_literals.py` | 32 |
 | **Config** | `test_config.py`, `test_path_resolver.py`, `test_threshold_provider.py`, `test_config_builder.py` | 14 |
-| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py`, `test_path_validators.py` | 11 |
-| **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_orchestrator.py`, `test_persistence.py` | 18 |
+| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py`, `test_path_validators.py` | 12 |
+| **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_orchestrator.py`, `test_persistence.py` | 20 |
 | **Interfaces** | `test_finalize_from_shadow.py`, `test_*_cli_*.py`, `test_setup_*.py`, `test_auto_*.py`, `test_cli_helpers.py` | 22 |
 | **Integration** | `test_e2e_workflow.py`, `test_full_cascade.py`, `test_config_integration.py` | 14 |
 | **CLI Integration** | `test_digest_*_cli.py`, `test_workflow_cli.py` | 4 |
 | **Performance** | `test_benchmarks.py` | 1 |
 | **Tools** | `test_check_footer.py`, `test_link_checker.py` | 2 |
+| **Property** | `test_*_properties.py` (全11ファイル、各層に分散) | 11 |
 
 > 📊 最新のテスト数: `pytest --collect-only | tail -1`
 > 📁 ファイル数確認: `find scripts/test -name "test_*.py" | wc -l`
@@ -273,6 +282,44 @@ class TestFileNamingInvariants:
 - `test_e2e_<scenario>.py` - E2Eワークフローテスト
 - `test_<component>_properties.py` - Property-based tests
 - `test_concurrent_<aspect>.py` - 並行処理テスト
+
+---
+
+## Property-Based Tests 一覧
+
+Hypothesis を使用したプロパティベーステスト。
+不変条件（invariants）と境界条件を網羅的にテスト。
+
+### ファイル一覧 (11ファイル)
+
+| 層 | ファイル | テスト数 | 対象 |
+|----|---------|---------|-----|
+| Domain | `test_constants_properties.py` | 14 | プレースホルダ生成 |
+| Domain | `test_file_naming_properties.py` | 10 | ファイル命名規則 |
+| Domain | `test_text_utils_properties.py` | 14 | テキスト抽出 |
+| Domain | `test_validation_helpers_properties.py` | 14 | バリデーションヘルパー |
+| Domain | `test_validators_properties.py` | 16 | 型バリデータ |
+| Config | `test_config_properties.py` | 11 | 設定読込 |
+| Application | `test_cascade_properties.py` | 12 | カスケード処理 |
+| Application | `test_template_properties.py` | 13 | テンプレート生成 |
+| Application | `test_shadow_io_properties.py` | 9 | Shadow I/O |
+| Infrastructure | `test_file_scanner_properties.py` | 14 | ファイルスキャン |
+| Infrastructure | `test_json_repository_properties.py` | 8 | JSON永続化 |
+
+**合計**: 約125テストケース (Hypothesisにより各テストで100+の入力を生成)
+
+### 実行方法
+
+```bash
+# Property-based tests のみ実行
+pytest scripts/test/ -m property -v
+
+# CI用プロファイル（500 examples）
+HYPOTHESIS_PROFILE=ci pytest scripts/test/ -m property
+
+# 高速チェック（20 examples）
+HYPOTHESIS_PROFILE=quick pytest scripts/test/ -m property
+```
 
 ---
 
