@@ -153,17 +153,13 @@ def validate_dict_key_type(
 
     if key not in data:
         raise ValidationError(
-            formatter.validation.validation_error(
-                context, f"missing required key '{key}'", None
-            )
+            formatter.validation.validation_error(context, f"missing required key '{key}'", None)
         )
 
     value = data[key]
     if not isinstance(value, expected_type):
         raise ValidationError(
-            formatter.validation.invalid_type(
-                f"{context}.{key}", expected_type.__name__, value
-            )
+            formatter.validation.invalid_type(f"{context}.{key}", expected_type.__name__, value)
         )
 
     return value
@@ -214,8 +210,7 @@ def collect_list_element_errors(
     for i, item in enumerate(lst):
         if not isinstance(item, expected_type):
             errors.append(
-                f"{context}[{i}]: expected {expected_type.__name__}, "
-                f"got {type(item).__name__}"
+                f"{context}[{i}]: expected {expected_type.__name__}, got {type(item).__name__}"
             )
 
 

@@ -46,6 +46,4 @@ class PlaceholderManager:
             _logger.info(f"プレースホルダー初期化: {total_files}ファイル")
         else:
             _logger.info(f"既存分析を保持（現在 {total_files}ファイル）")
-            _logger.info(
-                f"Claudeによる全{total_files}ファイルの再分析が必要（新規コンテンツ統合）"
-            )
+            _logger.info(f"Claudeによる全{total_files}ファイルの再分析が必要（新規コンテンツ統合）")

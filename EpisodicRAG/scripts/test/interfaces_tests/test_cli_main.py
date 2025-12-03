@@ -22,19 +22,16 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
     """finalize_from_shadow.main() のテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
-
         """プラグイン構造を作成"""
         # ディレクトリ構造
         (self.plugin_root / "data" / "Digests").mkdir(parents=True)
@@ -81,7 +78,6 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_invalid_level_exits_with_error(self) -> None:
-
         """無効なレベルでSystemExit"""
         with patch("sys.argv", ["finalize_from_shadow.py", "invalid_level", "TestTitle"]):
             with patch("sys.stderr"):  # argparse エラー出力を抑制
@@ -94,7 +90,6 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_missing_arguments_exits(self) -> None:
-
         """引数不足でSystemExit"""
         with patch("sys.argv", ["finalize_from_shadow.py"]):
             with patch("sys.stderr"):
@@ -106,7 +101,6 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
-
         """--help で exit code 0"""
         with patch("sys.argv", ["finalize_from_shadow.py", "--help"]):
             with patch("sys.stdout"):
@@ -118,7 +112,6 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
 
     @pytest.mark.integration
     def test_main_episodicrag_error_exits_with_1(self) -> None:
-
         """EpisodicRAGError発生時にexit code 1"""
         from domain.exceptions import DigestError
 
@@ -142,19 +135,16 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
     """save_provisional_digest.main() のテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
-
         """プラグイン構造を作成"""
         (self.plugin_root / "data" / "Digests").mkdir(parents=True)
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
@@ -198,7 +188,6 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_invalid_level_exits_with_error(self) -> None:
-
         """無効なレベルでSystemExit"""
         with patch("sys.argv", ["save_provisional_digest.py", "invalid_level", "[]"]):
             with patch("sys.stderr"):
@@ -210,7 +199,6 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_missing_arguments_exits(self) -> None:
-
         """引数不足でSystemExit"""
         with patch("sys.argv", ["save_provisional_digest.py"]):
             with patch("sys.stderr"):
@@ -222,7 +210,6 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
-
         """--help で exit code 0"""
         with patch("sys.argv", ["save_provisional_digest.py", "--help"]):
             with patch("sys.stdout"):
@@ -234,7 +221,6 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_invalid_json_exits_with_1(self) -> None:
-
         """不正なJSON形式でexit code 1"""
         with patch("sys.argv", ["save_provisional_digest.py", "weekly", "{invalid json"]):
             with patch("infrastructure.logging_config.log_error"):
@@ -244,7 +230,6 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
 
     @pytest.mark.integration
     def test_main_file_not_found_exits_with_1(self) -> None:
-
         """存在しないファイル指定でexit code 1"""
         with patch("sys.argv", ["save_provisional_digest.py", "weekly", "/nonexistent/file.json"]):
             with patch("infrastructure.logging_config.log_error"):
@@ -253,7 +238,6 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
 
     @pytest.mark.integration
     def test_main_episodicrag_error_exits_with_1(self) -> None:
-
         """EpisodicRAGError発生時にexit code 1"""
         from domain.exceptions import ValidationError
 
@@ -278,7 +262,6 @@ class TestMainArgumentParsing(unittest.TestCase):
 
     @pytest.mark.unit
     def test_finalize_accepts_all_valid_levels(self) -> None:
-
         """全ての有効レベルがargparseで受け入れられる"""
         valid_levels = [
             "weekly",
@@ -308,14 +291,15 @@ class TestMainArgumentParsing(unittest.TestCase):
 
     @pytest.mark.unit
     def test_save_provisional_append_flag(self) -> None:
-
         """--append フラグが正しく処理される"""
         with patch("sys.argv", ["save_provisional_digest.py", "weekly", "[]", "--append"]):
             with patch("interfaces.save_provisional_digest.DigestConfig") as MockConfig:
                 mock_config = MagicMock()
                 MockConfig.return_value = mock_config
 
-                with patch("interfaces.save_provisional_digest.ProvisionalDigestSaver") as MockSaver:
+                with patch(
+                    "interfaces.save_provisional_digest.ProvisionalDigestSaver"
+                ) as MockSaver:
                     mock_instance = MagicMock()
                     mock_instance.save_provisional.return_value = Path("/tmp/test.txt")
                     MockSaver.return_value = mock_instance

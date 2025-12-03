@@ -16,13 +16,11 @@ class TestDigestMergerMerge(unittest.TestCase):
     """DigestMerger.merge() tests"""
 
     def test_merge_empty_lists(self) -> None:
-
         """Merging two empty lists returns empty list"""
         result = DigestMerger.merge([], [])
         self.assertEqual(result, [])
 
     def test_merge_empty_existing_with_new(self) -> None:
-
         """Merging empty existing with new items returns new items"""
         new_digests = [
             {"source_file": "a.txt", "content": "a"},
@@ -34,7 +32,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertEqual(source_files, {"a.txt", "b.txt"})
 
     def test_merge_existing_with_empty_new(self) -> None:
-
         """Merging existing with empty new returns existing items"""
         existing_digests = [
             {"source_file": "a.txt", "content": "a"},
@@ -44,7 +41,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertEqual(len(result), 2)
 
     def test_merge_no_overlap(self) -> None:
-
         """Merging non-overlapping lists returns combined items"""
         existing = [{"source_file": "a.txt"}]
         new = [{"source_file": "b.txt"}]
@@ -54,7 +50,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertEqual(source_files, {"a.txt", "b.txt"})
 
     def test_merge_with_overlap_new_overwrites(self) -> None:
-
         """When source_file overlaps, new digest overwrites existing"""
         existing = [{"source_file": "a.txt", "content": "old"}]
         new = [{"source_file": "a.txt", "content": "new"}]
@@ -63,7 +58,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertEqual(result[0]["content"], "new")
 
     def test_merge_partial_overlap(self) -> None:
-
         """Partial overlap: some overwritten, some added"""
         existing = [
             {"source_file": "a.txt", "content": "old_a"},
@@ -82,7 +76,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertEqual(result_dict["c.txt"]["content"], "new_c")
 
     def test_merge_multiple_overlaps(self) -> None:
-
         """Multiple overlapping items all get overwritten"""
         existing = [
             {"source_file": "a.txt", "content": "old_a"},
@@ -100,7 +93,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertEqual(result_dict["b.txt"]["content"], "new_b")
 
     def test_missing_source_file_in_existing_raises_error(self) -> None:
-
         """Missing source_file in existing digests raises ValidationError"""
         existing = [{"missing_key": "value"}]
         new = [{"source_file": "a.txt"}]
@@ -110,7 +102,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertIn("missing 'source_file'", str(cm.exception))
 
     def test_missing_source_file_in_new_raises_error(self) -> None:
-
         """Missing source_file in new digests raises ValidationError"""
         existing = [{"source_file": "a.txt"}]
         new = [{"content": "no source file"}]
@@ -120,7 +111,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertIn("missing 'source_file'", str(cm.exception))
 
     def test_non_dict_in_existing_raises_error(self) -> None:
-
         """Non-dict item in existing raises ValidationError"""
         existing = ["not a dict"]
         new = [{"source_file": "a.txt"}]
@@ -130,7 +120,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertIn("expected dict", str(cm.exception))
 
     def test_non_dict_in_new_raises_error(self) -> None:
-
         """Non-dict item in new raises ValidationError"""
         existing = [{"source_file": "a.txt"}]
         new = [123]
@@ -140,7 +129,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertIn("expected dict", str(cm.exception))
 
     def test_preserves_additional_fields(self) -> None:
-
         """Merge preserves additional fields in digests"""
         existing = [
             {
@@ -164,7 +152,6 @@ class TestDigestMergerMerge(unittest.TestCase):
         self.assertNotIn("abstract", result[0])
 
     def test_order_preserved_for_existing(self) -> None:
-
         """Existing items order is preserved, new items appended"""
         existing = [
             {"source_file": "a.txt"},
@@ -182,7 +169,6 @@ class TestDigestMergerEdgeCases(unittest.TestCase):
     """DigestMerger edge case tests"""
 
     def test_source_file_with_special_characters(self) -> None:
-
         """source_file with special characters handled correctly"""
         existing = [{"source_file": "path/to/file with spaces.txt"}]
         new = [{"source_file": "path/to/file with spaces.txt", "updated": True}]
@@ -191,7 +177,6 @@ class TestDigestMergerEdgeCases(unittest.TestCase):
         self.assertTrue(result[0]["updated"])
 
     def test_source_file_unicode(self) -> None:
-
         """Unicode source_file handled correctly"""
         existing = [{"source_file": "日本語ファイル.txt"}]
         new = [{"source_file": "日本語ファイル.txt", "updated": True}]
@@ -200,7 +185,6 @@ class TestDigestMergerEdgeCases(unittest.TestCase):
         self.assertTrue(result[0]["updated"])
 
     def test_empty_source_file_string(self) -> None:
-
         """Empty string source_file is valid but unusual"""
         existing = [{"source_file": ""}]
         new = [{"source_file": "", "updated": True}]

@@ -21,7 +21,6 @@ from typing import Any, List, Optional
 from domain.config.config_constants import REQUIRED_CONFIG_KEYS
 from domain.exceptions import ConfigError
 from domain.types import ConfigData, as_dict, is_config_data
-
 from infrastructure.config.error_messages import (
     config_key_missing_message,
     file_not_found_message,

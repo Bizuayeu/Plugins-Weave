@@ -49,7 +49,6 @@ class TestJsonRoundtripProperties:
     @given(data=simple_json_dicts)
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_save_load_roundtrip(self, data) -> None:
-
         """Any JSON-serializable dict survives save/load roundtrip"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             file_path = Path(tmp_dir) / "test.json"
@@ -64,7 +63,6 @@ class TestJsonRoundtripProperties:
     @given(data=simple_json_dicts)
     @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow])
     def test_save_preserves_unicode(self, data) -> None:
-
         """Unicode characters are preserved in roundtrip"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Add unicode content to data
@@ -92,7 +90,6 @@ class TestTryLoadJsonProperties:
     @given(default=simple_json_dicts)
     @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow])
     def test_returns_default_for_missing_file(self, default) -> None:
-
         """try_load_json returns default for missing file"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             missing = Path(tmp_dir) / "nonexistent.json"
@@ -104,7 +101,6 @@ class TestTryLoadJsonProperties:
     @pytest.mark.property
     @pytest.mark.integration
     def test_never_raises_on_invalid_json(self) -> None:
-
         """try_load_json returns default for truly invalid JSON content"""
         invalid_contents = [
             "not json at all",
@@ -130,7 +126,6 @@ class TestTryLoadJsonProperties:
     @given(data=simple_json_dicts)
     @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow], deadline=1000)
     def test_returns_data_for_valid_file(self, data) -> None:
-
         """try_load_json returns data for valid file"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             file_path = Path(tmp_dir) / "valid.json"
@@ -152,7 +147,6 @@ class TestJsonEdgeCases:
     @pytest.mark.property
     @pytest.mark.integration
     def test_empty_dict_roundtrip(self, tmp_path: Path) -> None:
-
         """Empty dict survives roundtrip"""
         file_path = tmp_path / "empty.json"
 
@@ -169,7 +163,6 @@ class TestJsonEdgeCases:
     )
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_single_key_value_roundtrip(self, key, value) -> None:
-
         """Single key-value pair survives roundtrip"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             file_path = Path(tmp_dir) / "single.json"
@@ -185,7 +178,6 @@ class TestJsonEdgeCases:
     @given(depth=st.integers(min_value=1, max_value=5))
     @settings(max_examples=20)
     def test_nested_dict_roundtrip(self, depth) -> None:
-
         """Nested dicts survive roundtrip"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Create nested structure
@@ -206,7 +198,6 @@ class TestJsonEdgeCases:
     @given(indent=st.integers(min_value=0, max_value=8))
     @settings(max_examples=20)
     def test_different_indents(self, indent) -> None:
-
         """Different indent values work correctly"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             file_path = Path(tmp_dir) / "indented.json"

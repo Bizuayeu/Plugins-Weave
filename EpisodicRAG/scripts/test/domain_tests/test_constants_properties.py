@@ -45,7 +45,6 @@ class TestCreatePlaceholderTextProperties:
     @given(content_type=content_types, char_limit=char_limits)
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_常にマーカーで開始する(self, content_type, char_limit) -> None:
-
         """プレースホルダーテキストは常にPLACEHOLDER_MARKERで開始"""
         result = create_placeholder_text(content_type, char_limit)
         assert result.startswith(PLACEHOLDER_MARKER)
@@ -54,7 +53,6 @@ class TestCreatePlaceholderTextProperties:
     @given(content_type=content_types, char_limit=char_limits)
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_常にエンドで終了する(self, content_type, char_limit) -> None:
-
         """プレースホルダーテキストは常にPLACEHOLDER_ENDで終了"""
         result = create_placeholder_text(content_type, char_limit)
         assert result.endswith(PLACEHOLDER_END)
@@ -63,7 +61,6 @@ class TestCreatePlaceholderTextProperties:
     @given(content_type=content_types, char_limit=char_limits)
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_コンテンツタイプを含む(self, content_type, char_limit) -> None:
-
         """プレースホルダーテキストは入力されたコンテンツタイプを含む"""
         result = create_placeholder_text(content_type, char_limit)
         assert content_type in result
@@ -72,7 +69,6 @@ class TestCreatePlaceholderTextProperties:
     @given(content_type=content_types, char_limit=char_limits)
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_文字数制限を含む(self, content_type, char_limit) -> None:
-
         """プレースホルダーテキストは入力された文字数制限を含む"""
         result = create_placeholder_text(content_type, char_limit)
         assert str(char_limit) in result
@@ -81,7 +77,6 @@ class TestCreatePlaceholderTextProperties:
     @given(content_type=content_types, char_limit=char_limits)
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_文字程度という表記を含む(self, content_type, char_limit) -> None:
-
         """プレースホルダーテキストは'文字程度'という表記を含む"""
         result = create_placeholder_text(content_type, char_limit)
         assert "文字程度" in result
@@ -90,7 +85,6 @@ class TestCreatePlaceholderTextProperties:
     @given(content_type=content_types, char_limit=char_limits)
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_戻り値は文字列(self, content_type, char_limit) -> None:
-
         """プレースホルダーテキストは常に文字列を返す"""
         result = create_placeholder_text(content_type, char_limit)
         assert isinstance(result, str)
@@ -108,7 +102,6 @@ class TestCreatePlaceholderKeywordsProperties:
     @given(count=keyword_counts)
     @settings(max_examples=100)
     def test_リストの長さは指定した数と一致(self, count) -> None:
-
         """キーワードリストの長さは常に指定した数と一致"""
         result = create_placeholder_keywords(count)
         assert len(result) == count
@@ -117,7 +110,6 @@ class TestCreatePlaceholderKeywordsProperties:
     @given(count=st.integers(min_value=1, max_value=50))
     @settings(max_examples=100)
     def test_各キーワードはマーカーで開始(self, count) -> None:
-
         """各キーワードはPLACEHOLDER_MARKERで開始"""
         result = create_placeholder_keywords(count)
         for kw in result:
@@ -127,7 +119,6 @@ class TestCreatePlaceholderKeywordsProperties:
     @given(count=st.integers(min_value=1, max_value=50))
     @settings(max_examples=100)
     def test_各キーワードはエンドで終了(self, count) -> None:
-
         """各キーワードはPLACEHOLDER_ENDで終了"""
         result = create_placeholder_keywords(count)
         for kw in result:
@@ -137,7 +128,6 @@ class TestCreatePlaceholderKeywordsProperties:
     @given(count=st.integers(min_value=1, max_value=50))
     @settings(max_examples=100)
     def test_全てのキーワードはユニーク(self, count) -> None:
-
         """生成されるキーワードは全てユニーク"""
         result = create_placeholder_keywords(count)
         assert len(result) == len(set(result))
@@ -146,7 +136,6 @@ class TestCreatePlaceholderKeywordsProperties:
     @given(count=st.integers(min_value=1, max_value=50))
     @settings(max_examples=100)
     def test_各キーワードにkeywordNが含まれる(self, count) -> None:
-
         """各キーワードはkeywordNの形式を含む（Nは1から連番）"""
         result = create_placeholder_keywords(count)
         for i, kw in enumerate(result, 1):
@@ -156,7 +145,6 @@ class TestCreatePlaceholderKeywordsProperties:
     @given(count=keyword_counts)
     @settings(max_examples=100)
     def test_戻り値はリスト(self, count) -> None:
-
         """create_placeholder_keywordsは常にリストを返す"""
         result = create_placeholder_keywords(count)
         assert isinstance(result, list)
@@ -165,7 +153,6 @@ class TestCreatePlaceholderKeywordsProperties:
     @given(count=st.integers(min_value=1, max_value=50))
     @settings(max_examples=100)
     def test_各要素は文字列(self, count) -> None:
-
         """リストの各要素は文字列"""
         result = create_placeholder_keywords(count)
         for kw in result:
@@ -184,7 +171,6 @@ class TestLevelConfigProperties:
     @given(level=st.sampled_from(LEVEL_NAMES))
     @settings(max_examples=50)
     def test_各レベルに必須キーが存在(self, level) -> None:
-
         """LEVEL_CONFIGの各レベルには必須キーが全て存在"""
         required_keys = {"prefix", "digits", "dir", "source", "next"}
         config = LEVEL_CONFIG[level]
@@ -194,7 +180,6 @@ class TestLevelConfigProperties:
     @given(level=st.sampled_from(LEVEL_NAMES))
     @settings(max_examples=50)
     def test_prefixは非空文字列(self, level) -> None:
-
         """各レベルのprefixは非空の文字列"""
         prefix = LEVEL_CONFIG[level]["prefix"]
         assert isinstance(prefix, str)
@@ -204,7 +189,6 @@ class TestLevelConfigProperties:
     @given(level=st.sampled_from(LEVEL_NAMES))
     @settings(max_examples=50)
     def test_digitsは正の整数(self, level) -> None:
-
         """各レベルのdigitsは正の整数"""
         digits = LEVEL_CONFIG[level]["digits"]
         assert isinstance(digits, int)
@@ -214,7 +198,6 @@ class TestLevelConfigProperties:
     @given(level=st.sampled_from(LEVEL_NAMES))
     @settings(max_examples=50)
     def test_dirは非空文字列(self, level) -> None:
-
         """各レベルのdirは非空の文字列"""
         dir_name = LEVEL_CONFIG[level]["dir"]
         assert isinstance(dir_name, str)
@@ -222,7 +205,6 @@ class TestLevelConfigProperties:
 
     @pytest.mark.property
     def test_カスケードチェーンは非循環(self) -> None:
-
         """nextによるカスケードチェーンは循環しない"""
         for start_level in LEVEL_NAMES:
             visited = set()
@@ -234,7 +216,6 @@ class TestLevelConfigProperties:
 
     @pytest.mark.property
     def test_全てのnextは有効なレベルかNone(self) -> None:
-
         """各レベルのnextは有効なレベル名かNone"""
         for level in LEVEL_NAMES:
             next_level = LEVEL_CONFIG[level]["next"]

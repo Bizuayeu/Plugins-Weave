@@ -11,18 +11,19 @@ ShadowIOクラスの動作を検証。
 import json
 from datetime import datetime
 from pathlib import Path
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -44,19 +45,18 @@ class TestShadowIOLoadOrCreate:
 
     @pytest.fixture
     def template_factory(self):
-
         """テスト用テンプレートファクトリ"""
 
         def factory():
-
             template = ShadowTemplate(levels=LEVEL_NAMES)
             return template.get_template()
 
         return factory
 
     @pytest.mark.integration
-    def test_creates_new_file_when_not_exists(self, temp_plugin_env: "TempPluginEnvironment", template_factory) -> None:
-
+    def test_creates_new_file_when_not_exists(
+        self, temp_plugin_env: "TempPluginEnvironment", template_factory
+    ) -> None:
         """ファイルが存在しない場合、新規作成する"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
         assert not shadow_file.exists()
@@ -70,8 +70,9 @@ class TestShadowIOLoadOrCreate:
         assert "latest_digests" in result
 
     @pytest.mark.integration
-    def test_loads_existing_file(self, temp_plugin_env: "TempPluginEnvironment", template_factory) -> None:
-
+    def test_loads_existing_file(
+        self, temp_plugin_env: "TempPluginEnvironment", template_factory
+    ) -> None:
         """既存ファイルがある場合、それを読み込む"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
@@ -91,8 +92,9 @@ class TestShadowIOLoadOrCreate:
         assert result["latest_digests"]["weekly"]["overall_digest"]["custom"] == "data"
 
     @pytest.mark.integration
-    def test_created_file_has_template_structure(self, temp_plugin_env: "TempPluginEnvironment", template_factory) -> None:
-
+    def test_created_file_has_template_structure(
+        self, temp_plugin_env: "TempPluginEnvironment", template_factory
+    ) -> None:
         """新規作成されたファイルはテンプレート構造を持つ"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
@@ -107,8 +109,9 @@ class TestShadowIOLoadOrCreate:
             assert level in result["latest_digests"]
 
     @pytest.mark.integration
-    def test_template_factory_called_only_when_needed(self, temp_plugin_env: "TempPluginEnvironment"):
-
+    def test_template_factory_called_only_when_needed(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ):
         """テンプレートファクトリは必要な場合のみ呼ばれる"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
@@ -120,7 +123,6 @@ class TestShadowIOLoadOrCreate:
         call_count = 0
 
         def counting_factory():
-
             nonlocal call_count
             call_count += 1
             return {"metadata": {}, "latest_digests": {}}
@@ -141,19 +143,18 @@ class TestShadowIOSave:
 
     @pytest.fixture
     def template_factory(self):
-
         """テスト用テンプレートファクトリ"""
 
         def factory():
-
             template = ShadowTemplate(levels=LEVEL_NAMES)
             return template.get_template()
 
         return factory
 
     @pytest.mark.integration
-    def test_saves_data_to_file(self, temp_plugin_env: "TempPluginEnvironment", template_factory) -> None:
-
+    def test_saves_data_to_file(
+        self, temp_plugin_env: "TempPluginEnvironment", template_factory
+    ) -> None:
         """データがファイルに保存される"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
@@ -167,8 +168,9 @@ class TestShadowIOSave:
         assert saved_data["latest_digests"]["weekly"]["test"] == "data"
 
     @pytest.mark.integration
-    def test_updates_last_updated_timestamp(self, temp_plugin_env: "TempPluginEnvironment", template_factory) -> None:
-
+    def test_updates_last_updated_timestamp(
+        self, temp_plugin_env: "TempPluginEnvironment", template_factory
+    ) -> None:
         """保存時にlast_updatedが更新される"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
@@ -189,8 +191,9 @@ class TestShadowIOSave:
         assert before_save <= last_updated <= after_save
 
     @pytest.mark.integration
-    def test_save_overwrites_existing_file(self, temp_plugin_env: "TempPluginEnvironment", template_factory) -> None:
-
+    def test_save_overwrites_existing_file(
+        self, temp_plugin_env: "TempPluginEnvironment", template_factory
+    ) -> None:
         """既存ファイルを上書きする"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
@@ -208,8 +211,9 @@ class TestShadowIOSave:
         assert saved_data["latest_digests"]["new"] == "content"
 
     @pytest.mark.integration
-    def test_save_preserves_other_metadata_fields(self, temp_plugin_env: "TempPluginEnvironment", template_factory) -> None:
-
+    def test_save_preserves_other_metadata_fields(
+        self, temp_plugin_env: "TempPluginEnvironment", template_factory
+    ) -> None:
         """save時に他のmetadataフィールドは保持される"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
@@ -242,12 +246,10 @@ class TestShadowIOInit:
 
     @pytest.mark.unit
     def test_stores_shadow_digest_file(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """shadow_digest_fileが正しく保存される"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
         def factory():
-
             return {}
 
         io = ShadowIO(shadow_file, factory)
@@ -255,12 +257,10 @@ class TestShadowIOInit:
 
     @pytest.mark.unit
     def test_stores_template_factory(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """template_factoryが正しく保存される"""
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
         def factory():
-
             return {"test": "template"}
 
         io = ShadowIO(shadow_file, factory)

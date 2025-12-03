@@ -32,32 +32,27 @@ class TestGetNextDigestNumber(unittest.TestCase):
     """get_next_digest_number関数のテスト"""
 
     def setUp(self) -> None:
-
         """一時ディレクトリでテスト環境を構築"""
         self.temp_dir = tempfile.mkdtemp()
         self.digests_path = Path(self.temp_dir) / "Digests"
         self.digests_path.mkdir()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir)
 
     def test_empty_directory_returns_1(self) -> None:
-
         """空のディレクトリでは1を返す"""
         result = get_next_digest_number(self.digests_path, "weekly")
         self.assertEqual(result, 1)
 
     def test_nonexistent_directory_returns_1(self) -> None:
-
         """存在しないディレクトリでは1を返す"""
         nonexistent = Path(self.temp_dir) / "NonExistent"
         result = get_next_digest_number(nonexistent, "weekly")
         self.assertEqual(result, 1)
 
     def test_with_existing_files(self) -> None:
-
         """既存ファイルがある場合、最大番号+1を返す"""
         weekly_dir = self.digests_path / "1_Weekly"
         weekly_dir.mkdir()
@@ -70,7 +65,6 @@ class TestGetNextDigestNumber(unittest.TestCase):
         self.assertEqual(result, 6)
 
     def test_invalid_level_raises(self) -> None:
-
         """無効なレベルでConfigError"""
         with self.assertRaises(ConfigError):
             get_next_digest_number(self.digests_path, "invalid_level")
@@ -80,7 +74,6 @@ class TestDigestFinalizerFromShadow(unittest.TestCase):
     """DigestFinalizerFromShadow の統合テスト"""
 
     def setUp(self) -> None:
-
         """TempPluginEnvironmentを使用してテスト環境を構築"""
         self.env = TempPluginEnvironment()
         self.env.__enter__()
@@ -102,44 +95,37 @@ class TestDigestFinalizerFromShadow(unittest.TestCase):
         self.finalizer = DigestFinalizerFromShadow(self.mock_config)
 
     def tearDown(self) -> None:
-
         """TempPluginEnvironmentをクリーンアップ"""
         self.env.__exit__(None, None, None)
 
     def test_validate_shadow_content_valid(self) -> None:
-
         """正常なsource_filesの検証（例外なしで成功）"""
         source_files = ["L00001_test.txt", "L00002_test.txt"]
         # 例外が発生しなければ成功
         self.finalizer.validate_shadow_content("weekly", source_files)
 
     def test_validate_shadow_content_empty(self) -> None:
-
         """空のsource_filesでValidationError"""
         with self.assertRaises(ValidationError):
             self.finalizer.validate_shadow_content("weekly", [])
 
     def test_validate_shadow_content_not_list(self) -> None:
-
         """リストでない場合ValidationError"""
         with self.assertRaises(ValidationError):
             self.finalizer.validate_shadow_content("weekly", "not a list")
 
     def test_validate_shadow_content_invalid_filename(self) -> None:
-
         """無効なファイル名形式でValidationError"""
         source_files = ["invalid_file.txt"]
         with self.assertRaises(ValidationError):
             self.finalizer.validate_shadow_content("weekly", source_files)
 
     def test_finalize_empty_title(self) -> None:
-
         """空タイトルでValidationError"""
         with self.assertRaises(ValidationError):
             self.finalizer.finalize_from_shadow("weekly", "")
 
     def test_finalize_no_shadow(self) -> None:
-
         """ShadowがないでDigestError"""
         with self.assertRaises(DigestError):
             self.finalizer.finalize_from_shadow("weekly", "Test Title")
@@ -149,7 +135,6 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
     """DigestFinalizerFromShadow の統合テスト（フルフロー）"""
 
     def setUp(self) -> None:
-
         """TempPluginEnvironmentを使用して完全なテスト環境を構築"""
         self.env = TempPluginEnvironment()
         self.env.__enter__()
@@ -173,12 +158,10 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         create_test_loop_file(self.loops_path, 2, "test")
 
     def tearDown(self) -> None:
-
         """TempPluginEnvironmentをクリーンアップ"""
         self.env.__exit__(None, None, None)
 
     def _create_finalizer(self):
-
         """DigestConfigとFinalizerを作成"""
         from application.config import DigestConfig
 
@@ -186,7 +169,6 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         return DigestFinalizerFromShadow(config)
 
     def test_finalize_creates_regular_digest_file(self) -> None:
-
         """finalize_from_shadowがRegularDigestファイルを作成する"""
         finalizer = self._create_finalizer()
 
@@ -206,7 +188,6 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         self.assertEqual(digest_data["metadata"]["digest_level"], "weekly")
 
     def test_finalize_updates_grand_digest(self) -> None:
-
         """finalize_from_shadowがGrandDigestを更新する"""
         finalizer = self._create_finalizer()
 
@@ -222,7 +203,6 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         self.assertIn("TestDigest", weekly_digest.get("name", ""))
 
     def test_finalize_updates_last_digest_times(self) -> None:
-
         """finalize_from_shadowがlast_digest_timesを更新する"""
         finalizer = self._create_finalizer()
 
@@ -238,7 +218,6 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         self.assertEqual(times_data["weekly"]["last_processed"], 2)
 
     def test_finalize_cascade_shadow_update(self) -> None:
-
         """finalize_from_shadowがShadowカスケード更新を実行する"""
         finalizer = self._create_finalizer()
 
@@ -255,7 +234,6 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         _ = shadow_data["latest_digests"]["weekly"]["overall_digest"]
 
     def test_finalize_without_provisional_auto_generates(self) -> None:
-
         """Provisionalがない場合、source_filesから自動生成する"""
         finalizer = self._create_finalizer()
 

@@ -22,7 +22,6 @@ class TestOutputHelpers(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_json_formats_correctly(self) -> None:
-
         """output_json が正しいJSON形式で出力する"""
         from interfaces.digest_config import output_json
 
@@ -38,7 +37,6 @@ class TestOutputHelpers(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_basic(self) -> None:
-
         """output_error が基本的なエラーを出力する"""
         from interfaces.digest_config import output_error
 
@@ -55,7 +53,6 @@ class TestOutputHelpers(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_with_details(self) -> None:
-
         """output_error が詳細情報付きでエラーを出力する"""
         from interfaces.digest_config import output_error
 
@@ -73,7 +70,6 @@ class TestConfigCLI(unittest.TestCase):
     """CLI エントリーポイントのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -81,12 +77,10 @@ class TestConfigCLI(unittest.TestCase):
         self._create_config()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-
         """設定ファイルを作成"""
         config_data = {
             "base_dir": ".",
@@ -103,9 +97,10 @@ class TestConfigCLI(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_show_command(self) -> None:
-
         """show コマンドが動作する"""
-        with patch("sys.argv", ["digest_config.py", "--plugin-root", str(self.plugin_root), "show"]):
+        with patch(
+            "sys.argv", ["digest_config.py", "--plugin-root", str(self.plugin_root), "show"]
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:
@@ -114,7 +109,6 @@ class TestConfigCLI(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_set_command(self) -> None:
-
         """set コマンドが動作する"""
         with patch(
             "sys.argv",
@@ -141,7 +135,6 @@ class TestConfigCLI(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
-
         """--help で exit code 0"""
         with patch("sys.argv", ["digest_config.py", "--help"]):
             with patch("sys.stdout"):
@@ -156,7 +149,6 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     """update サブコマンドのCLIテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -164,12 +156,10 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
         self._create_config()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-
         """設定ファイルを作成"""
         config_data = {
             "base_dir": ".",
@@ -186,16 +176,20 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_with_valid_json(self) -> None:
-
         """update --config で有効なJSONを渡す"""
         config_json = json.dumps({"base_dir": "../new_path"})
 
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_config.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "update",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:
@@ -207,14 +201,18 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_with_invalid_json_exits_error(self) -> None:
-
         """update --config に不正なJSONを渡すとエラー"""
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update",
-            "--config", "{invalid json"
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_config.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "update",
+                "--config",
+                "{invalid json",
+            ],
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:
@@ -227,14 +225,18 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_with_empty_json_object(self) -> None:
-
         """update --config で空のJSONオブジェクト"""
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update",
-            "--config", "{}"
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_config.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "update",
+                "--config",
+                "{}",
+            ],
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:
@@ -246,16 +248,20 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_preserves_existing_keys(self) -> None:
-
         """update が既存キーを保持する"""
         config_json = json.dumps({"base_dir": "../updated"})
 
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_config.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "update",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print"):
@@ -269,31 +275,33 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_missing_config_flag_exits_error(self) -> None:
-
         """update で --config フラグがない場合にエラー"""
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update"
-        ]):
+        with patch(
+            "sys.argv", ["digest_config.py", "--plugin-root", str(self.plugin_root), "update"]
+        ):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_config import main
+
                     main()
                 assert exc_info.value.code == 2  # argparse error
 
     @pytest.mark.unit
     def test_update_output_is_valid_json(self) -> None:
-
         """update の出力が有効なJSON"""
         config_json = json.dumps({"base_dir": "."})
 
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_config.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "update",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:
@@ -305,18 +313,20 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_with_partial_config(self) -> None:
-
         """update で一部のキーのみ更新"""
-        config_json = json.dumps({
-            "levels": {"weekly_threshold": 10}
-        })
+        config_json = json.dumps({"levels": {"weekly_threshold": 10}})
 
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_config.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "update",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:
@@ -332,19 +342,20 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_reports_updated_keys(self) -> None:
-
         """update が更新されたキーを報告"""
-        config_json = json.dumps({
-            "base_dir": "../new",
-            "levels": {"weekly_threshold": 7}
-        })
+        config_json = json.dumps({"base_dir": "../new", "levels": {"weekly_threshold": 7}})
 
-        with patch("sys.argv", [
-            "digest_config.py",
-            "--plugin-root", str(self.plugin_root),
-            "update",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_config.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "update",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:

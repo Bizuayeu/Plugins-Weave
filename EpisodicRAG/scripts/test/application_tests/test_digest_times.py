@@ -8,19 +8,20 @@ pytestスタイルに移行済み
 """
 
 from datetime import datetime
-from unittest.mock import MagicMock
-
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -35,7 +36,6 @@ class TestDigestTimesTracker:
 
     @pytest.fixture
     def mock_config(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """モック設定を提供"""
         mock = MagicMock()
         mock.plugin_root = temp_plugin_env.plugin_root
@@ -43,13 +43,11 @@ class TestDigestTimesTracker:
 
     @pytest.fixture
     def tracker(self, mock_config):
-
         """DigestTimesTrackerインスタンスを提供"""
         return DigestTimesTracker(mock_config)
 
     @pytest.mark.integration
     def test_load_or_create_empty(self, tracker) -> None:
-
         """空の状態からの読み込み"""
         data = tracker.load_or_create()
 
@@ -59,7 +57,6 @@ class TestDigestTimesTracker:
 
     @pytest.mark.integration
     def test_save_and_load(self, tracker) -> None:
-
         """保存と読み込み"""
         input_files = ["L00001_Test.txt", "L00002_Test.txt"]
         tracker.save("weekly", input_files)
@@ -72,7 +69,6 @@ class TestDigestTimesTracker:
 
     @pytest.mark.unit
     def test_extract_file_numbers(self, tracker) -> None:
-
         """ファイル番号抽出"""
         files = ["L00001_A.txt", "L00003_B.txt"]
         numbers = tracker.extract_file_numbers("weekly", files)
@@ -81,7 +77,6 @@ class TestDigestTimesTracker:
 
     @pytest.mark.unit
     def test_extract_file_numbers_monthly(self, tracker) -> None:
-
         """Monthlyレベルのファイル番号抽出（Wプレフィックスは4桁維持）"""
         files = ["W0001_A.txt", "W0005_B.txt"]
         numbers = tracker.extract_file_numbers("monthly", files)
@@ -91,7 +86,6 @@ class TestDigestTimesTracker:
 
     @pytest.mark.unit
     def test_load_or_create_initializes_all_levels(self, tracker) -> None:
-
         """load_or_createが全8レベルを初期化"""
         data = tracker.load_or_create()
 
@@ -110,7 +104,6 @@ class TestDigestTimesTracker:
 
     @pytest.mark.integration
     def test_save_updates_timestamp(self, tracker) -> None:
-
         """saveがtimestampを更新"""
         input_files = ["L00001_Test.txt"]
         tracker.save("weekly", input_files)

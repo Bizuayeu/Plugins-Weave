@@ -8,19 +8,20 @@ GrandDigestManager テスト
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
-
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -37,7 +38,6 @@ from domain.version import DIGEST_FORMAT_VERSION
 
 @pytest.fixture
 def grand_manager(temp_plugin_env: "TempPluginEnvironment"):
-
     """GrandDigestManagerインスタンスを提供"""
     mock_config = MagicMock()
     mock_config.essences_path = temp_plugin_env.essences_path
@@ -54,7 +54,6 @@ class TestGrandDigestManagerUnit:
 
     @pytest.mark.unit
     def test_get_template_returns_valid_structure(self, grand_manager) -> None:
-
         """get_template() は有効な構造を返す"""
         template = grand_manager.get_template()
 
@@ -64,7 +63,6 @@ class TestGrandDigestManagerUnit:
 
     @pytest.mark.unit
     def test_get_template_has_all_levels(self, grand_manager) -> None:
-
         """get_template() は全8レベルを含む"""
         template = grand_manager.get_template()
 
@@ -72,7 +70,6 @@ class TestGrandDigestManagerUnit:
 
     @pytest.mark.unit
     def test_get_template_metadata_has_version(self, grand_manager) -> None:
-
         """get_template() のmetadataにversionが含まれる"""
         template = grand_manager.get_template()
 
@@ -81,7 +78,6 @@ class TestGrandDigestManagerUnit:
 
     @pytest.mark.unit
     def test_get_template_metadata_has_last_updated(self, grand_manager) -> None:
-
         """get_template() のmetadataにlast_updatedが含まれる"""
         template = grand_manager.get_template()
 
@@ -90,7 +86,6 @@ class TestGrandDigestManagerUnit:
 
     @pytest.mark.unit
     def test_get_template_levels_have_overall_digest_key(self, grand_manager) -> None:
-
         """get_template() の各レベルにoverall_digestキーが存在"""
         template = grand_manager.get_template()
 
@@ -99,7 +94,6 @@ class TestGrandDigestManagerUnit:
 
     @pytest.mark.unit
     def test_get_template_initial_overall_digests_are_none(self, grand_manager) -> None:
-
         """get_template() の初期状態ではoverall_digestはNone"""
         template = grand_manager.get_template()
 
@@ -108,7 +102,6 @@ class TestGrandDigestManagerUnit:
 
     @pytest.mark.unit
     def test_grand_digest_file_path(self, grand_manager) -> None:
-
         """grand_digest_fileパスが正しく設定される"""
         assert grand_manager.grand_digest_file.name == "GrandDigest.txt"
         assert grand_manager.grand_digest_file.parent == grand_manager.config.essences_path
@@ -124,7 +117,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_load_or_create_creates_file_when_missing(self, grand_manager) -> None:
-
         """load_or_create() はファイルがない場合に新規作成する"""
         assert not grand_manager.grand_digest_file.exists()
 
@@ -136,7 +128,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_load_or_create_loads_existing_file(self, grand_manager) -> None:
-
         """load_or_create() は既存ファイルを読み込む"""
         # ファイルを作成
         test_data = {"metadata": {"custom": True}, "major_digests": {}}
@@ -150,7 +141,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_load_or_create_with_corrupted_file(self, grand_manager) -> None:
-
         """load_or_create() は破損ファイルでFileIOErrorを発生"""
         from domain.exceptions import FileIOError
 
@@ -162,8 +152,9 @@ class TestGrandDigestManagerIntegration:
             grand_manager.load_or_create()
 
     @pytest.mark.integration
-    def test_save_creates_parent_directories(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_save_creates_parent_directories(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """save() は親ディレクトリを自動作成する"""
         import shutil
 
@@ -184,7 +175,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_save_and_load_roundtrip(self, grand_manager) -> None:
-
         """保存と読み込みの整合性"""
         test_data = {"test": "data", "number": 123, "nested": {"key": "value"}}
         grand_manager.save(test_data)
@@ -196,7 +186,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_update_digest_success(self, grand_manager) -> None:
-
         """update_digest() は正常に更新する"""
         overall = {
             "digest_type": "test",
@@ -211,7 +200,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_update_digest_preserves_monthly_when_weekly_updated(self, grand_manager) -> None:
-
         """update_digest() でweekly更新時にmonthlyが保持される"""
         # まずmonthlyを更新
         monthly_digest = {"type": "monthly"}
@@ -227,7 +215,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_update_digest_sets_weekly_correctly(self, grand_manager) -> None:
-
         """update_digest() でweeklyが正しく設定される"""
         # まずmonthlyを更新
         monthly_digest = {"type": "monthly"}
@@ -243,7 +230,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_update_digest_updates_last_updated(self, grand_manager) -> None:
-
         """update_digest() はlast_updatedを更新する"""
         # 初期作成
         grand_manager.load_or_create()
@@ -263,7 +249,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_update_digest_invalid_level_raises(self, grand_manager) -> None:
-
         """update_digest() は無効なレベルでDigestErrorを発生"""
         with pytest.raises(DigestError) as exc_info:
             grand_manager.update_digest("invalid_level", "name", {})
@@ -272,7 +257,6 @@ class TestGrandDigestManagerIntegration:
 
     @pytest.mark.integration
     def test_update_digest_with_missing_major_digests(self, grand_manager) -> None:
-
         """update_digest() はmajor_digestsがない場合にDigestErrorを発生"""
         # major_digestsがないファイルを作成
         grand_manager.grand_digest_file.parent.mkdir(parents=True, exist_ok=True)

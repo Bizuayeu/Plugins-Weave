@@ -15,18 +15,19 @@
 import json
 import tempfile
 from pathlib import Path
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -85,7 +86,6 @@ class TestConfigLoadingInvariants:
     @given(level=valid_levels)
     @settings(max_examples=50)
     def test_level_config_consistency(self, level) -> None:
-
         """
         LEVEL_CONFIGは一貫した構造を持つ
         """
@@ -104,7 +104,6 @@ class TestConfigLoadingInvariants:
     @given(level=valid_levels)
     @settings(max_examples=50)
     def test_dir_format(self, level) -> None:
-
         """
         dirは "N_LevelName" 形式である
         """
@@ -128,7 +127,6 @@ class TestConfigThresholdInvariants:
     @given(level=valid_levels)
     @settings(max_examples=50)
     def test_threshold_from_level_config(self, level) -> None:
-
         """
         LEVEL_CONFIGから取得した閾値は妥当な値である
         """
@@ -143,8 +141,9 @@ class TestConfigThresholdInvariants:
         max_examples=50,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     )
-    def test_threshold_is_positive_integer(self, level, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_threshold_is_positive_integer(
+        self, level, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """
         DigestConfigの閾値は正の整数である
 
@@ -184,8 +183,9 @@ class TestPathResolutionInvariants:
         max_examples=50,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     )
-    def test_level_dir_returns_absolute_path(self, level, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_level_dir_returns_absolute_path(
+        self, level, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """
         get_level_dir()は絶対パスを返す
         """
@@ -201,8 +201,9 @@ class TestPathResolutionInvariants:
         max_examples=50,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     )
-    def test_level_dir_contains_level_name(self, level, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_level_dir_contains_level_name(
+        self, level, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """
         get_level_dir()のパスにレベル関連の名前が含まれる
         """
@@ -229,7 +230,6 @@ class TestConfigStructureInvariants:
     @given(level=valid_levels)
     @settings(max_examples=50)
     def test_level_config_prefix_uniqueness(self, level) -> None:
-
         """
         各レベルのプレフィックスは一意である
         """
@@ -240,7 +240,6 @@ class TestConfigStructureInvariants:
     @given(level=valid_levels)
     @settings(max_examples=50)
     def test_level_config_dir_uniqueness(self, level) -> None:
-
         """
         各レベルのdirは一意である
         """
@@ -250,7 +249,6 @@ class TestConfigStructureInvariants:
     @given(level=valid_levels)
     @settings(max_examples=50)
     def test_level_config_dir_ordering(self, level) -> None:
-
         """
         dirの番号は階層順序と一致する
         """
@@ -278,7 +276,6 @@ class TestJSONRoundtripInvariants:
     @given(config_data=valid_config_dicts)
     @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow])
     def test_config_json_roundtrip(self, config_data) -> None:
-
         """
         設定JSONの書き込み→読み込みで内容が保持される
         """
@@ -302,7 +299,6 @@ class TestJSONRoundtripInvariants:
     )
     @settings(max_examples=50)
     def test_threshold_json_serializable(self, threshold, level) -> None:
-
         """
         閾値はJSON形式で保存可能である
         """

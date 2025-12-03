@@ -7,19 +7,20 @@ Tests that verify system behavior during and after failures.
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -37,8 +38,9 @@ from domain.exceptions import FileIOError
 class TestCascadeFailureRecovery:
     """Tests for cascade processing failure scenarios."""
 
-    def test_cascade_interrupted_by_missing_next_level_dir(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_cascade_interrupted_by_missing_next_level_dir(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Cascade should handle missing next level directory gracefully."""
         from application.config import DigestConfig
 
@@ -58,8 +60,9 @@ class TestCascadeFailureRecovery:
         assert config is not None
         assert config.digests_path.exists()
 
-    def test_cascade_with_corrupted_shadow_file(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_cascade_with_corrupted_shadow_file(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """System should handle corrupted Shadow file gracefully."""
         # Create corrupted Shadow file
         weekly_shadow_path = temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
@@ -86,8 +89,9 @@ class TestCascadeFailureRecovery:
 class TestPartialWriteRecovery:
     """Tests for partial write failure scenarios."""
 
-    def test_recovery_after_interrupted_json_write(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_recovery_after_interrupted_json_write(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """System should detect and handle incomplete JSON files."""
         # Simulate incomplete write (truncated JSON)
         incomplete_file = temp_plugin_env.digests_path / "incomplete.json"
@@ -104,7 +108,6 @@ class TestPartialWriteRecovery:
         assert result is None
 
     def test_atomic_write_behavior(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Verify that writes don't corrupt existing data on failure."""
         target_file = temp_plugin_env.digests_path / "target.json"
         target_file.parent.mkdir(parents=True, exist_ok=True)
@@ -131,8 +134,9 @@ class TestPartialWriteRecovery:
 class TestOrphanedFileDetection:
     """Tests for detecting and handling orphaned temporary files."""
 
-    def test_detect_orphaned_provisional_files(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_detect_orphaned_provisional_files(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Detect provisional files without corresponding Shadow entries."""
         # Create provisional file
         provisional_dir = temp_plugin_env.digests_path / "1_Weekly" / "Provisional"
@@ -155,8 +159,9 @@ class TestOrphanedFileDetection:
             shadow_data = json.load(f)
         assert len(shadow_data.get("pending_sources", [])) == 0
 
-    def test_cleanup_old_provisional_after_finalize(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_cleanup_old_provisional_after_finalize(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Verify provisional files are cleaned up after finalization."""
 
         # Setup provisional directory and file
@@ -188,7 +193,6 @@ class TestErrorStateRecovery:
     """Tests for recovering from various error states."""
 
     def test_recover_from_invalid_config(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """System should handle missing config file by using defaults."""
         from application.config import DigestConfig
 
@@ -200,7 +204,6 @@ class TestErrorStateRecovery:
         assert config.digests_path is not None
 
     def test_recover_from_missing_template(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """System should create from defaults when template is missing."""
         from infrastructure import load_json_with_template
 
@@ -218,8 +221,9 @@ class TestErrorStateRecovery:
         assert result == {"default": True}
         assert target_file.exists()
 
-    def test_graceful_degradation_on_io_error(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_graceful_degradation_on_io_error(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """System should degrade gracefully on I/O errors."""
         from infrastructure import try_load_json
 

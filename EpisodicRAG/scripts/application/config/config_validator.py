@@ -18,12 +18,11 @@ Usage:
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from application.config.level_path_service import LevelPathService
 from domain.config.config_constants import REQUIRED_CONFIG_KEYS, THRESHOLD_KEYS
-from domain.validators.helpers import collect_type_error as _collect_type_error
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.types import ConfigData, as_dict
-
-from application.config.level_path_service import LevelPathService
+from domain.validators.helpers import collect_type_error as _collect_type_error
 
 
 class ConfigValidator:

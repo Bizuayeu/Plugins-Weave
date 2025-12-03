@@ -20,7 +20,6 @@ class TestSetupManager(unittest.TestCase):
     """SetupManager クラスのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -28,12 +27,10 @@ class TestSetupManager(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_templates(self) -> None:
-
         """テンプレートファイルを作成"""
         template_dir = self.plugin_root / ".claude-plugin"
 
@@ -60,7 +57,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_not_configured_when_no_config(self) -> None:
-
         """設定ファイルがない場合、not_configured を返す"""
         from interfaces.digest_setup import SetupManager
 
@@ -73,7 +69,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_configured_when_setup_complete(self) -> None:
-
         """セットアップ完了時に configured を返す"""
         from interfaces.digest_setup import SetupManager
 
@@ -111,7 +106,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_creates_config_file(self) -> None:
-
         """init が設定ファイルを作成する"""
         from interfaces.digest_setup import SetupManager
 
@@ -144,7 +138,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_creates_directories(self) -> None:
-
         """init がディレクトリを作成する"""
         from interfaces.digest_setup import SetupManager
 
@@ -180,7 +173,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_creates_initial_files(self) -> None:
-
         """init が初期ファイルを作成する"""
         from interfaces.digest_setup import SetupManager
 
@@ -215,7 +207,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_fails_without_force_when_config_exists(self) -> None:
-
         """既存設定がある場合、force なしで失敗する"""
         from interfaces.digest_setup import SetupManager
 
@@ -249,7 +240,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_succeeds_with_force_when_config_exists(self) -> None:
-
         """既存設定がある場合でも force で成功する"""
         from interfaces.digest_setup import SetupManager
 
@@ -285,7 +275,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_validates_config_data(self) -> None:
-
         """init が設定データをバリデーションする"""
         from interfaces.digest_setup import SetupManager
 
@@ -300,7 +289,6 @@ class TestSetupManager(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_detects_external_paths(self) -> None:
-
         """init が外部パスを検出する"""
         from interfaces.digest_setup import SetupManager
 
@@ -337,20 +325,17 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
     """SetupManager check() のエッジケーステスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_check_returns_partial_when_config_exists_but_dirs_missing(self) -> None:
-
         """設定ファイルがあるがディレクトリがない場合、partial を返す"""
         from interfaces.digest_setup import SetupManager
 
@@ -375,7 +360,6 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_handles_corrupt_json(self) -> None:
-
         """破損したJSONファイルを処理する"""
         from interfaces.digest_setup import SetupManager
 
@@ -393,7 +377,6 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_handles_missing_keys_in_config(self) -> None:
-
         """設定にpathsキーがない場合を処理する"""
         from interfaces.digest_setup import SetupManager
 

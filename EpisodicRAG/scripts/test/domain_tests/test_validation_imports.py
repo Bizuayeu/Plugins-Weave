@@ -97,6 +97,11 @@ class TestValidatorsUnifiedImport:
     def test_import_all_from_domain_validators(self) -> None:
         """domain.validators から全関数をインポート可能"""
         from domain.validators import (
+            # Helpers (error collectors)
+            collect_list_element_errors,
+            collect_type_error,
+            # Business validators
+            ensure_not_none,
             # Type validators (non-throwing)
             get_dict_or_empty,
             get_list_or_empty,
@@ -105,19 +110,14 @@ class TestValidatorsUnifiedImport:
             is_valid_dict,
             is_valid_int,
             is_valid_list,
+            is_valid_overall_digest,
             is_valid_str,
             is_valid_type,
-            # Business validators
-            ensure_not_none,
-            is_valid_overall_digest,
             # Helpers (throwing validators)
             validate_dict_has_keys,
             validate_dict_key_type,
             validate_list_not_empty,
             validate_type,
-            # Helpers (error collectors)
-            collect_list_element_errors,
-            collect_type_error,
         )
 
         # Type validators

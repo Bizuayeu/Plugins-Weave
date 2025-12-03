@@ -17,13 +17,11 @@ class TestPlaceholderManager:
 
     @pytest.fixture
     def manager(self):
-
         """PlaceholderManagerインスタンス"""
         return PlaceholderManager()
 
     @pytest.fixture
     def empty_overall_digest(self):
-
         """空のoverall_digest"""
         return {
             "timestamp": "2025-01-01T00:00:00",
@@ -36,7 +34,6 @@ class TestPlaceholderManager:
 
     @pytest.fixture
     def placeholder_overall_digest(self):
-
         """PLACEHOLDERを含むoverall_digest"""
         return {
             "timestamp": "2025-01-01T00:00:00",
@@ -49,7 +46,6 @@ class TestPlaceholderManager:
 
     @pytest.fixture
     def analyzed_overall_digest(self):
-
         """分析済みのoverall_digest"""
         return {
             "timestamp": "2025-01-01T00:00:00",
@@ -62,7 +58,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_update_empty_digest(self, manager, empty_overall_digest) -> None:
-
         """空のdigestをPLACEHOLDERで更新"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 
@@ -72,7 +67,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_update_placeholder_digest(self, manager, placeholder_overall_digest) -> None:
-
         """既存PLACEHOLDERを新しいPLACEHOLDERで更新"""
         manager.update_or_preserve(placeholder_overall_digest, total_files=10)
 
@@ -81,7 +75,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_preserve_analyzed_digest(self, manager, analyzed_overall_digest) -> None:
-
         """分析済みdigestは保持"""
         original_abstract = analyzed_overall_digest["abstract"]
         original_impression = analyzed_overall_digest["impression"]
@@ -93,7 +86,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_placeholder_contains_file_count(self, manager, empty_overall_digest) -> None:
-
         """PLACEHOLDERにファイル数が含まれる"""
         manager.update_or_preserve(empty_overall_digest, total_files=7)
 
@@ -101,7 +93,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_placeholder_contains_char_limit(self, manager, empty_overall_digest) -> None:
-
         """PLACEHOLDERに文字数制限が含まれる"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 
@@ -110,7 +101,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_placeholder_keywords_count(self, manager, empty_overall_digest) -> None:
-
         """キーワードの数がPLACEHOLDER_LIMITSと一致"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 
@@ -118,7 +108,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_placeholder_keywords_format(self, manager, empty_overall_digest) -> None:
-
         """キーワードのフォーマットが正しい"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 
@@ -129,7 +118,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_placeholder_impression_format(self, manager, empty_overall_digest) -> None:
-
         """impressionのPLACEHOLDERフォーマット"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 
@@ -141,7 +129,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_none_abstract_treated_as_placeholder(self, manager) -> None:
-
         """abstractがNoneの場合もPLACEHOLDERとして扱う"""
         digest = {
             "timestamp": "",
@@ -160,7 +147,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_zero_files(self, manager, empty_overall_digest) -> None:
-
         """0ファイルの場合"""
         manager.update_or_preserve(empty_overall_digest, total_files=0)
 
@@ -168,7 +154,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_large_file_count(self, manager, empty_overall_digest) -> None:
-
         """大量ファイルの場合"""
         manager.update_or_preserve(empty_overall_digest, total_files=1000)
 
@@ -176,7 +161,6 @@ class TestPlaceholderManager:
 
     @pytest.mark.unit
     def test_placeholder_end_marker(self, manager, empty_overall_digest) -> None:
-
         """PLACEHOLDER_ENDマーカーが含まれる"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 

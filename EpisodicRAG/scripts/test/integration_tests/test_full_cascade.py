@@ -15,27 +15,28 @@ Weekly から Centurial までの完全なカスケードフローを検証。
 
 import json
 from pathlib import Path
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
 import pytest
 from test_helpers import create_test_loop_file
 
+from application.config import DigestConfig
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
-from application.config import DigestConfig
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, build_level_hierarchy
 
 # slow + integration マーカーを適用（ファイル全体）
@@ -50,7 +51,6 @@ class TestFullCascadeInitialization:
 
     @pytest.fixture
     def full_cascade_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """フルカスケードテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -64,7 +64,6 @@ class TestFullCascadeInitialization:
         }
 
     def test_all_eight_levels_exist_in_shadow(self, full_cascade_env) -> None:
-
         """
         ShadowGrandDigestに全8層が存在する
 
@@ -79,7 +78,6 @@ class TestFullCascadeInitialization:
             assert level in shadow_data["latest_digests"], f"{level}がShadowに存在すること"
 
     def test_all_eight_levels_exist_in_grand(self, full_cascade_env) -> None:
-
         """
         GrandDigestに全8層が存在する
 
@@ -94,7 +92,6 @@ class TestFullCascadeInitialization:
             assert level in grand_data["major_digests"], f"{level}がGrandDigestに存在すること"
 
     def test_level_hierarchy_is_correctly_linked(self, full_cascade_env) -> None:
-
         """
         レベル階層が正しくリンクされている
 
@@ -114,7 +111,6 @@ class TestFullCascadeInitialization:
                 assert hierarchy[level]["next"] is None, "centurialの次はNoneであること"
 
     def test_all_eight_level_directories_created(self, full_cascade_env) -> None:
-
         """
         全8層のディレクトリが作成される
 
@@ -133,7 +129,6 @@ class TestFullCascadeFlow:
 
     @pytest.fixture
     def cascade_flow_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """カスケードフローテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -155,7 +150,6 @@ class TestFullCascadeFlow:
         }
 
     def test_weekly_to_monthly_cascade(self, cascade_flow_env) -> None:
-
         """
         Weekly→Monthlyカスケードが正しく動作する
 
@@ -210,7 +204,6 @@ class TestFullCascadeFlow:
             assert len(weekly_shadow_after.get("source_files", [])) == 0
 
     def test_multi_level_cascade_quarterly(self, cascade_flow_env) -> None:
-
         """
         複数レベルのカスケード（Weekly→Monthly→Quarterly）
 
@@ -252,7 +245,6 @@ class TestFullCascadeFlow:
         assert len(monthly_shadow["source_files"]) == 5
 
     def test_cascade_preserves_level_order(self, cascade_flow_env) -> None:
-
         """
         カスケードはレベル順序を保持する
 
@@ -274,7 +266,6 @@ class TestCascadeStopConditions:
 
     @pytest.fixture
     def stop_condition_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """停止条件テスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -287,7 +278,6 @@ class TestCascadeStopConditions:
         }
 
     def test_cascade_stops_at_insufficient_threshold(self, stop_condition_env) -> None:
-
         """
         閾値未満の場合カスケードが停止する
 
@@ -318,7 +308,6 @@ class TestCascadeStopConditions:
         assert len(weekly_shadow["source_files"]) < threshold
 
     def test_cascade_stops_at_centurial(self, stop_condition_env) -> None:
-
         """
         カスケードはcenturialで停止する
 
@@ -335,7 +324,6 @@ class TestMetadataPropagation:
 
     @pytest.fixture
     def metadata_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """メタデータテスト用環境"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -348,7 +336,6 @@ class TestMetadataPropagation:
         }
 
     def test_shadow_metadata_has_last_updated(self, metadata_env) -> None:
-
         """
         ShadowGrandDigestのmetadataにlast_updatedが存在する
         """
@@ -361,7 +348,6 @@ class TestMetadataPropagation:
         assert "last_updated" in shadow_data["metadata"]
 
     def test_grand_metadata_has_version(self, metadata_env) -> None:
-
         """
         GrandDigestのmetadataにversionが存在する
         """
@@ -374,7 +360,6 @@ class TestMetadataPropagation:
         assert "version" in grand_data["metadata"]
 
     def test_source_files_tracked_per_level(self, metadata_env) -> None:
-
         """
         各レベルでsource_filesが追跡される
         """

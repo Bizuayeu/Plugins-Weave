@@ -45,9 +45,9 @@ from domain.constants import (
     LOG_PREFIX_STATE,
     LOG_PREFIX_VALIDATE,
 )
-from domain.file_constants import GRAND_DIGEST_FILENAME
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import DigestError
+from domain.file_constants import GRAND_DIGEST_FILENAME
 from domain.types import GrandDigestData, OverallDigestData, as_dict
 from domain.validators import is_valid_dict
 from domain.version import DIGEST_FORMAT_VERSION

@@ -11,7 +11,6 @@ from pathlib import Path
 
 from domain.exceptions import ConfigError
 from domain.types import ConfigData
-
 from infrastructure.config.error_messages import file_not_found_message, invalid_json_message
 
 

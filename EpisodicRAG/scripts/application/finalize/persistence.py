@@ -186,9 +186,7 @@ class DigestPersistence:
         if provisional_file and provisional_file.exists():
             try:
                 provisional_file.unlink()
-                _logger.info(
-                    f"[Step 5] マージ後のProvisional削除完了: {provisional_file.name}"
-                )
+                _logger.info(f"[Step 5] マージ後のProvisional削除完了: {provisional_file.name}")
             except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
                 # FileNotFoundError: 競合状態でファイルが既に削除された場合
                 # PermissionError: ファイルがロックされている場合

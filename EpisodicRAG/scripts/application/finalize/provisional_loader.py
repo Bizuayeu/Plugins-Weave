@@ -225,7 +225,5 @@ class ProvisionalLoader:
         if skipped_count > 0:
             log_warning(f"エラーにより{skipped_count}/{len(source_files)}ファイルをスキップ")
 
-        _logger.info(
-            f"ソースファイルから{len(individual_digests)}件の個別ダイジェストを自動生成"
-        )
+        _logger.info(f"ソースファイルから{len(individual_digests)}件の個別ダイジェストを自動生成")
         return individual_digests

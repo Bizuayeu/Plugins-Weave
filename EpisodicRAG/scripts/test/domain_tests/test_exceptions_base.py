@@ -28,37 +28,31 @@ class TestExceptionHierarchy:
 
     @pytest.mark.unit
     def test_episodic_rag_error_inherits_from_exception(self) -> None:
-
         """EpisodicRAGError は Exception を継承"""
         assert issubclass(EpisodicRAGError, Exception)
 
     @pytest.mark.unit
     def test_config_error_inherits_from_episodic_rag_error(self) -> None:
-
         """ConfigError は EpisodicRAGError を継承"""
         assert issubclass(ConfigError, EpisodicRAGError)
 
     @pytest.mark.unit
     def test_digest_error_inherits_from_episodic_rag_error(self) -> None:
-
         """DigestError は EpisodicRAGError を継承"""
         assert issubclass(DigestError, EpisodicRAGError)
 
     @pytest.mark.unit
     def test_validation_error_inherits_from_episodic_rag_error(self) -> None:
-
         """ValidationError は EpisodicRAGError を継承"""
         assert issubclass(ValidationError, EpisodicRAGError)
 
     @pytest.mark.unit
     def test_file_io_error_inherits_from_episodic_rag_error(self) -> None:
-
         """FileIOError は EpisodicRAGError を継承"""
         assert issubclass(FileIOError, EpisodicRAGError)
 
     @pytest.mark.unit
     def test_corrupted_data_error_inherits_from_episodic_rag_error(self) -> None:
-
         """CorruptedDataError は EpisodicRAGError を継承"""
         assert issubclass(CorruptedDataError, EpisodicRAGError)
 
@@ -73,14 +67,12 @@ class TestEpisodicRAGError:
 
     @pytest.mark.unit
     def test_can_be_raised(self) -> None:
-
         """例外を発生させることができる"""
         with pytest.raises(EpisodicRAGError):
             raise EpisodicRAGError("Test error")
 
     @pytest.mark.unit
     def test_message_is_preserved(self) -> None:
-
         """エラーメッセージが保持される"""
         try:
             raise EpisodicRAGError("Test message")
@@ -89,7 +81,6 @@ class TestEpisodicRAGError:
 
     @pytest.mark.unit
     def test_can_catch_all_subclasses(self) -> None:
-
         """すべてのサブクラスをキャッチできる"""
         errors = [
             ConfigError("config"),
@@ -113,14 +104,12 @@ class TestConfigError:
 
     @pytest.mark.unit
     def test_can_be_raised(self) -> None:
-
         """例外を発生させることができる"""
         with pytest.raises(ConfigError):
             raise ConfigError("Config not found")
 
     @pytest.mark.unit
     def test_message_is_preserved(self) -> None:
-
         """エラーメッセージが保持される"""
         try:
             raise ConfigError("Invalid config.json format")
@@ -129,14 +118,12 @@ class TestConfigError:
 
     @pytest.mark.unit
     def test_can_be_caught_as_episodic_rag_error(self) -> None:
-
         """EpisodicRAGError としてキャッチできる"""
         with pytest.raises(EpisodicRAGError):
             raise ConfigError("Test")
 
     @pytest.mark.unit
     def test_unicode_message(self) -> None:
-
         """Unicode メッセージを扱える"""
         try:
             raise ConfigError("設定ファイルが見つかりません")
@@ -154,14 +141,12 @@ class TestDigestError:
 
     @pytest.mark.unit
     def test_can_be_raised(self) -> None:
-
         """例外を発生させることができる"""
         with pytest.raises(DigestError):
             raise DigestError("Digest generation failed")
 
     @pytest.mark.unit
     def test_message_is_preserved(self) -> None:
-
         """エラーメッセージが保持される"""
         try:
             raise DigestError("Shadow digest load failed")
@@ -179,14 +164,12 @@ class TestValidationError:
 
     @pytest.mark.unit
     def test_can_be_raised(self) -> None:
-
         """例外を発生させることができる"""
         with pytest.raises(ValidationError):
             raise ValidationError("Invalid data type")
 
     @pytest.mark.unit
     def test_message_is_preserved(self) -> None:
-
         """エラーメッセージが保持される"""
         try:
             raise ValidationError("source_files must be a list")
@@ -195,7 +178,6 @@ class TestValidationError:
 
     @pytest.mark.unit
     def test_can_include_context(self) -> None:
-
         """コンテキスト情報を含められる"""
         try:
             raise ValidationError("Expected dict, got list in 'overall_digest'")
@@ -213,14 +195,12 @@ class TestFileIOError:
 
     @pytest.mark.unit
     def test_can_be_raised(self) -> None:
-
         """例外を発生させることができる"""
         with pytest.raises(FileIOError):
             raise FileIOError("File not found")
 
     @pytest.mark.unit
     def test_message_is_preserved(self) -> None:
-
         """エラーメッセージが保持される"""
         try:
             raise FileIOError("Cannot write to /path/to/file.json")
@@ -229,7 +209,6 @@ class TestFileIOError:
 
     @pytest.mark.unit
     def test_distinct_from_builtin_ioerror(self) -> None:
-
         """組み込みのIOErrorとは別"""
         # FileIOError は EpisodicRAGError を継承しているため、
         # 組み込みの IOError/OSError とは異なる
@@ -251,14 +230,12 @@ class TestCorruptedDataError:
 
     @pytest.mark.unit
     def test_can_be_raised(self) -> None:
-
         """例外を発生させることができる"""
         with pytest.raises(CorruptedDataError):
             raise CorruptedDataError("JSON file corrupted")
 
     @pytest.mark.unit
     def test_message_is_preserved(self) -> None:
-
         """エラーメッセージが保持される"""
         try:
             raise CorruptedDataError("Integrity check failed for GrandDigest.txt")
@@ -276,7 +253,6 @@ class TestExceptionChaining:
 
     @pytest.mark.unit
     def test_config_error_chaining(self) -> None:
-
         """ConfigError で例外チェーンが機能する"""
         original = ValueError("Original error")
         try:
@@ -289,7 +265,6 @@ class TestExceptionChaining:
 
     @pytest.mark.unit
     def test_file_io_error_chaining(self) -> None:
-
         """FileIOError で例外チェーンが機能する"""
         original = OSError("Permission denied")
         try:
@@ -302,7 +277,6 @@ class TestExceptionChaining:
 
     @pytest.mark.unit
     def test_corrupted_data_error_chaining(self) -> None:
-
         """CorruptedDataError で例外チェーンが機能する"""
         import json
 
@@ -317,7 +291,6 @@ class TestExceptionChaining:
 
     @pytest.mark.unit
     def test_chain_preserves_traceback(self) -> None:
-
         """例外チェーンでトレースバックが保持される"""
         import traceback
 

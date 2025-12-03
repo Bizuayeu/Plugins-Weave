@@ -19,10 +19,6 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from infrastructure.json_repository import save_json, try_load_json
-
-from interfaces.cli_helpers import output_error, output_json
-
 from domain.file_constants import (
     CONFIG_FILENAME,
     DIGEST_TIMES_FILENAME,
@@ -33,6 +29,8 @@ from domain.file_constants import (
     SHADOW_GRAND_DIGEST_FILENAME,
     SHADOW_GRAND_DIGEST_TEMPLATE,
 )
+from infrastructure.json_repository import save_json, try_load_json
+from interfaces.cli_helpers import output_error, output_json
 
 
 @dataclass
@@ -144,7 +142,9 @@ class SetupManager:
             # 設定データのバリデーション
             validation_errors = self._validate_config_data(config_data)
             if validation_errors:
-                return SetupResult(status="error", error=f"Invalid config: {', '.join(validation_errors)}")
+                return SetupResult(
+                    status="error", error=f"Invalid config: {', '.join(validation_errors)}"
+                )
 
             created: Dict[str, Any] = {"config_file": None, "directories": [], "files": []}
             warnings: List[str] = []
@@ -246,24 +246,48 @@ class SetupManager:
         # Loopsディレクトリ
         loops_dir = base_dir / paths.get("loops_dir", "data/Loops")
         loops_dir.mkdir(parents=True, exist_ok=True)
-        created_dirs.append(str(loops_dir.relative_to(self.plugin_root) if loops_dir.is_relative_to(self.plugin_root) else loops_dir))
+        created_dirs.append(
+            str(
+                loops_dir.relative_to(self.plugin_root)
+                if loops_dir.is_relative_to(self.plugin_root)
+                else loops_dir
+            )
+        )
 
         # Digestsディレクトリ（8階層 + Provisional）
         digests_dir = base_dir / paths.get("digests_dir", "data/Digests")
         for level_dir in self.LEVEL_DIRS:
             level_path = digests_dir / level_dir
             level_path.mkdir(parents=True, exist_ok=True)
-            created_dirs.append(str(level_path.relative_to(self.plugin_root) if level_path.is_relative_to(self.plugin_root) else level_path))
+            created_dirs.append(
+                str(
+                    level_path.relative_to(self.plugin_root)
+                    if level_path.is_relative_to(self.plugin_root)
+                    else level_path
+                )
+            )
 
             # Provisionalサブディレクトリ
             provisional_path = level_path / "Provisional"
             provisional_path.mkdir(parents=True, exist_ok=True)
-            created_dirs.append(str(provisional_path.relative_to(self.plugin_root) if provisional_path.is_relative_to(self.plugin_root) else provisional_path))
+            created_dirs.append(
+                str(
+                    provisional_path.relative_to(self.plugin_root)
+                    if provisional_path.is_relative_to(self.plugin_root)
+                    else provisional_path
+                )
+            )
 
         # Essencesディレクトリ
         essences_dir = base_dir / paths.get("essences_dir", "data/Essences")
         essences_dir.mkdir(parents=True, exist_ok=True)
-        created_dirs.append(str(essences_dir.relative_to(self.plugin_root) if essences_dir.is_relative_to(self.plugin_root) else essences_dir))
+        created_dirs.append(
+            str(
+                essences_dir.relative_to(self.plugin_root)
+                if essences_dir.is_relative_to(self.plugin_root)
+                else essences_dir
+            )
+        )
 
         return created_dirs
 

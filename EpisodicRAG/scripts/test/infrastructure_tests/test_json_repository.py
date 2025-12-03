@@ -34,7 +34,6 @@ class TestLoadJson:
 
     @pytest.mark.integration
     def test_missing_file_raises_fileiioerror(self, tmp_path: Path) -> None:
-
         """存在しないファイル → FileIOError"""
         missing_file = tmp_path / "missing.json"
         with pytest.raises(FileIOError, match="File not found"):
@@ -42,7 +41,6 @@ class TestLoadJson:
 
     @pytest.mark.integration
     def test_invalid_json_raises_fileiioerror(self, tmp_path: Path) -> None:
-
         """不正なJSON → FileIOError"""
         invalid_file = tmp_path / "invalid.json"
         invalid_file.write_text("{invalid json content")
@@ -52,7 +50,6 @@ class TestLoadJson:
 
     @pytest.mark.integration
     def test_valid_json_returns_dict(self, tmp_path: Path) -> None:
-
         """正常なJSON → dict"""
         valid_file = tmp_path / "valid.json"
         test_data = {"key": "value", "number": 42}
@@ -63,7 +60,6 @@ class TestLoadJson:
 
     @pytest.mark.integration
     def test_utf8_encoding_handled(self, tmp_path: Path) -> None:
-
         """UTF-8エンコーディング処理"""
         utf8_file = tmp_path / "utf8.json"
         test_data = {"japanese": "日本語テスト", "emoji": "🎉"}
@@ -75,7 +71,6 @@ class TestLoadJson:
 
     @pytest.mark.integration
     def test_nested_json_structure(self, tmp_path: Path) -> None:
-
         """ネストされたJSON構造"""
         nested_file = tmp_path / "nested.json"
         test_data = {"level1": {"level2": {"level3": ["a", "b", "c"]}}}
@@ -95,7 +90,6 @@ class TestSaveJson:
 
     @pytest.mark.integration
     def test_creates_parent_directories(self, tmp_path: Path) -> None:
-
         """親ディレクトリを自動作成"""
         deep_path = tmp_path / "a" / "b" / "c" / "test.json"
         test_data = {"key": "value"}
@@ -107,7 +101,6 @@ class TestSaveJson:
 
     @pytest.mark.integration
     def test_saves_valid_json(self, tmp_path: Path) -> None:
-
         """正常にJSONを保存"""
         json_file = tmp_path / "output.json"
         test_data = {"name": "test", "values": [1, 2, 3]}
@@ -121,7 +114,6 @@ class TestSaveJson:
 
     @pytest.mark.integration
     def test_preserves_unicode(self, tmp_path: Path) -> None:
-
         """Unicodeを保持（ensure_ascii=False）"""
         json_file = tmp_path / "unicode.json"
         test_data = {"japanese": "こんにちは", "korean": "안녕하세요"}
@@ -135,7 +127,6 @@ class TestSaveJson:
 
     @pytest.mark.integration
     def test_custom_indent(self, tmp_path: Path) -> None:
-
         """カスタムインデント"""
         json_file = tmp_path / "indented.json"
         test_data = {"key": "value"}
@@ -148,7 +139,6 @@ class TestSaveJson:
 
     @pytest.mark.integration
     def test_overwrites_existing_file(self, tmp_path: Path) -> None:
-
         """既存ファイルを上書き"""
         json_file = tmp_path / "existing.json"
         json_file.write_text('{"old": "data"}')
@@ -171,7 +161,6 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_target_file_exists_load_it(self, tmp_path: Path) -> None:
-
         """ターゲットファイルが存在 → そのまま読み込み"""
         target_file = tmp_path / "target.json"
         target_data = {"source": "target"}
@@ -185,7 +174,6 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_template_file_fallback(self, tmp_path: Path) -> None:
-
         """ターゲットなし、テンプレートあり → テンプレート使用"""
         target_file = tmp_path / "target.json"  # 存在しない
         template_file = tmp_path / "template.json"
@@ -198,12 +186,10 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_default_factory_fallback(self, tmp_path: Path):
-
         """ターゲット・テンプレートなし、ファクトリあり → ファクトリ使用"""
         target_file = tmp_path / "target.json"
 
         def factory():
-
             return {"source": "factory", "created": True}
 
         result = load_json_with_template(target_file, template_file=None, default_factory=factory)
@@ -212,7 +198,6 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_no_fallback_returns_empty_dict(self, tmp_path: Path) -> None:
-
         """全てなし → 空dict"""
         target_file = tmp_path / "target.json"
 
@@ -221,7 +206,6 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_save_on_create_true(self, tmp_path: Path) -> None:
-
         """save_on_create=True → ファイル作成"""
         target_file = tmp_path / "target.json"
         template_file = tmp_path / "template.json"
@@ -233,7 +217,6 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_save_on_create_false(self, tmp_path: Path) -> None:
-
         """save_on_create=False → ファイル作成しない"""
         target_file = tmp_path / "target.json"
         template_file = tmp_path / "template.json"
@@ -245,7 +228,6 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_invalid_target_json_raises_error(self, tmp_path: Path) -> None:
-
         """ターゲットファイルが不正なJSON → FileIOError"""
         target_file = tmp_path / "target.json"
         target_file.write_text("{invalid json")
@@ -255,7 +237,6 @@ class TestLoadJsonWithTemplate:
 
     @pytest.mark.integration
     def test_invalid_template_json_raises_error(self, tmp_path: Path) -> None:
-
         """テンプレートファイルが不正なJSON → FileIOError"""
         target_file = tmp_path / "target.json"  # 存在しない
         template_file = tmp_path / "template.json"
@@ -275,7 +256,6 @@ class TestFileExists:
 
     @pytest.mark.integration
     def test_existing_file_returns_true(self, tmp_path: Path) -> None:
-
         """存在するファイル → True"""
         existing_file = tmp_path / "exists.txt"
         existing_file.write_text("content")
@@ -285,7 +265,6 @@ class TestFileExists:
 
     @pytest.mark.integration
     def test_missing_file_returns_false(self, tmp_path: Path) -> None:
-
         """存在しないファイル → False"""
         missing_file = tmp_path / "missing.txt"
 
@@ -294,7 +273,6 @@ class TestFileExists:
 
     @pytest.mark.integration
     def test_directory_returns_true(self, tmp_path: Path) -> None:
-
         """ディレクトリも True（Path.exists()の挙動）"""
         dir_path = tmp_path / "directory"
         dir_path.mkdir()
@@ -313,7 +291,6 @@ class TestEnsureDirectory:
 
     @pytest.mark.integration
     def test_creates_new_directory(self, tmp_path: Path) -> None:
-
         """新規ディレクトリを作成"""
         new_dir = tmp_path / "new_directory"
         assert not new_dir.exists()
@@ -325,7 +302,6 @@ class TestEnsureDirectory:
 
     @pytest.mark.integration
     def test_creates_nested_directories(self, tmp_path: Path) -> None:
-
         """ネストされたディレクトリを作成（parents=True）"""
         deep_dir = tmp_path / "a" / "b" / "c" / "d"
         assert not deep_dir.exists()
@@ -337,7 +313,6 @@ class TestEnsureDirectory:
 
     @pytest.mark.integration
     def test_existing_directory_no_error(self, tmp_path: Path) -> None:
-
         """既存ディレクトリ → エラーなし（exist_ok=True）"""
         existing_dir = tmp_path / "existing"
         existing_dir.mkdir()
@@ -349,7 +324,6 @@ class TestEnsureDirectory:
 
     @pytest.mark.integration
     def test_file_as_parent_raises_error(self, tmp_path: Path) -> None:
-
         """親パスがファイルの場合 → FileIOError"""
         file_path = tmp_path / "file.txt"
         file_path.write_text("content")
@@ -371,7 +345,6 @@ class TestTryLoadJson:
 
     @pytest.mark.integration
     def test_missing_file_returns_default(self, tmp_path: Path) -> None:
-
         """存在しないファイル → デフォルト値"""
         missing_file = tmp_path / "missing.json"
 
@@ -380,7 +353,6 @@ class TestTryLoadJson:
 
     @pytest.mark.integration
     def test_missing_file_returns_none_when_no_default(self, tmp_path: Path) -> None:
-
         """存在しないファイル、デフォルトなし → None"""
         missing_file = tmp_path / "missing.json"
 
@@ -389,7 +361,6 @@ class TestTryLoadJson:
 
     @pytest.mark.integration
     def test_valid_json_returns_content(self, tmp_path: Path) -> None:
-
         """正常なJSON → 内容を返す"""
         valid_file = tmp_path / "valid.json"
         test_data = {"key": "value"}
@@ -400,7 +371,6 @@ class TestTryLoadJson:
 
     @pytest.mark.integration
     def test_invalid_json_returns_default(self, tmp_path: Path) -> None:
-
         """不正なJSON → デフォルト値"""
         invalid_file = tmp_path / "invalid.json"
         invalid_file.write_text("{invalid json")
@@ -410,7 +380,6 @@ class TestTryLoadJson:
 
     @pytest.mark.integration
     def test_invalid_json_returns_none_when_no_default(self, tmp_path: Path) -> None:
-
         """不正なJSON、デフォルトなし → None"""
         invalid_file = tmp_path / "invalid.json"
         invalid_file.write_text("{invalid json")
@@ -429,7 +398,6 @@ class TestTryReadJsonFromFile:
 
     @pytest.mark.integration
     def test_missing_file_returns_none(self, tmp_path: Path) -> None:
-
         """存在しないファイル → None"""
         missing_file = tmp_path / "missing.txt"
 
@@ -438,7 +406,6 @@ class TestTryReadJsonFromFile:
 
     @pytest.mark.integration
     def test_valid_txt_json_returns_content(self, tmp_path: Path) -> None:
-
         """正常な.txt JSON → 内容を返す"""
         valid_file = tmp_path / "valid.txt"
         test_data = {"source_file": "L00001.txt", "keywords": ["a", "b"]}
@@ -449,7 +416,6 @@ class TestTryReadJsonFromFile:
 
     @pytest.mark.integration
     def test_non_txt_extension_returns_none(self, tmp_path: Path) -> None:
-
         """非.txt拡張子 → None"""
         json_file = tmp_path / "data.json"
         json_file.write_text('{"key": "value"}')
@@ -459,7 +425,6 @@ class TestTryReadJsonFromFile:
 
     @pytest.mark.integration
     def test_invalid_json_returns_none(self, tmp_path: Path) -> None:
-
         """不正なJSON → None"""
         invalid_file = tmp_path / "invalid.txt"
         invalid_file.write_text("{invalid json content")
@@ -469,7 +434,6 @@ class TestTryReadJsonFromFile:
 
     @pytest.mark.integration
     def test_empty_file_returns_none(self, tmp_path: Path) -> None:
-
         """空ファイル → None"""
         empty_file = tmp_path / "empty.txt"
         empty_file.write_text("")
@@ -479,7 +443,6 @@ class TestTryReadJsonFromFile:
 
     @pytest.mark.integration
     def test_utf8_content_handled(self, tmp_path: Path) -> None:
-
         """UTF-8コンテンツを正しく処理"""
         utf8_file = tmp_path / "utf8.txt"
         test_data = {"japanese": "日本語", "keywords": ["キーワード1", "キーワード2"]}
@@ -500,7 +463,6 @@ class TestConfirmFileOverwrite:
 
     @pytest.mark.integration
     def test_missing_file_returns_true(self, tmp_path: Path) -> None:
-
         """存在しないファイル → True（上書き可）"""
         missing_file = tmp_path / "new_file.txt"
 
@@ -509,7 +471,6 @@ class TestConfirmFileOverwrite:
 
     @pytest.mark.integration
     def test_existing_file_returns_false(self, tmp_path: Path) -> None:
-
         """存在するファイル、force=False → False"""
         existing_file = tmp_path / "existing.txt"
         existing_file.write_text("content")
@@ -519,7 +480,6 @@ class TestConfirmFileOverwrite:
 
     @pytest.mark.integration
     def test_existing_file_with_force_returns_true(self, tmp_path: Path) -> None:
-
         """存在するファイル、force=True → True"""
         existing_file = tmp_path / "existing.txt"
         existing_file.write_text("content")
@@ -529,7 +489,6 @@ class TestConfirmFileOverwrite:
 
     @pytest.mark.unit
     def test_force_false_by_default(self, tmp_path: Path) -> None:
-
         """force のデフォルト値は False"""
         existing_file = tmp_path / "existing.txt"
         existing_file.write_text("content")

@@ -34,7 +34,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.fixture
     def valid_shadow_digest(self):
-
         """有効なShadowDigestデータ"""
         return {
             "source_files": ["Loop0001_test.txt", "Loop0002_test.txt"],
@@ -46,7 +45,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.fixture
     def individual_digests(self):
-
         """個別ダイジェストリスト"""
         return [
             {"source_file": "Loop0001_test.txt", "content": "Content 1"},
@@ -54,8 +52,9 @@ class TestRegularDigestBuilderBuild:
         ]
 
     @pytest.mark.unit
-    def test_builds_valid_json_serializable_digest(self, valid_shadow_digest, individual_digests) -> None:
-
+    def test_builds_valid_json_serializable_digest(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """構築されたダイジェストがJSONシリアライズ可能である"""
         import json
 
@@ -73,8 +72,9 @@ class TestRegularDigestBuilderBuild:
         assert restored == result
 
     @pytest.mark.unit
-    def test_builds_complete_digest_structure(self, valid_shadow_digest, individual_digests) -> None:
-
+    def test_builds_complete_digest_structure(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """ダイジェストに必要な全セクションが含まれる"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -97,7 +97,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_metadata_digest_level_matches(self, valid_shadow_digest, individual_digests) -> None:
-
         """metadata.digest_levelが正しい"""
         result = RegularDigestBuilder.build(
             level="monthly",
@@ -110,7 +109,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_metadata_digest_number_matches(self, valid_shadow_digest, individual_digests) -> None:
-
         """metadata.digest_numberが正しい"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -123,7 +121,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_metadata_version_is_correct(self, valid_shadow_digest, individual_digests) -> None:
-
         """metadata.versionが正しい"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -135,8 +132,9 @@ class TestRegularDigestBuilderBuild:
         assert result["metadata"]["version"] == DIGEST_FORMAT_VERSION
 
     @pytest.mark.unit
-    def test_metadata_last_updated_is_iso_format(self, valid_shadow_digest, individual_digests) -> None:
-
+    def test_metadata_last_updated_is_iso_format(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """metadata.last_updatedがISO形式"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -149,8 +147,9 @@ class TestRegularDigestBuilderBuild:
         datetime.fromisoformat(result["metadata"]["last_updated"])
 
     @pytest.mark.unit
-    def test_overall_digest_has_complete_structure(self, valid_shadow_digest, individual_digests) -> None:
-
+    def test_overall_digest_has_complete_structure(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """overall_digestに必須フィールドが全て含まれ、値が正しい型である"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -172,7 +171,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_overall_digest_name_matches(self, valid_shadow_digest, individual_digests) -> None:
-
         """overall_digest.nameが正しい"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -184,8 +182,9 @@ class TestRegularDigestBuilderBuild:
         assert result["overall_digest"]["name"] == "W0001_CustomTitle"
 
     @pytest.mark.unit
-    def test_overall_digest_source_files_from_shadow(self, valid_shadow_digest, individual_digests) -> None:
-
+    def test_overall_digest_source_files_from_shadow(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """overall_digest.source_filesがshadowから取得される"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -200,8 +199,9 @@ class TestRegularDigestBuilderBuild:
         ]
 
     @pytest.mark.unit
-    def test_overall_digest_fields_from_shadow(self, valid_shadow_digest, individual_digests) -> None:
-
+    def test_overall_digest_fields_from_shadow(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """overall_digestのフィールドがshadowから取得される"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -218,7 +218,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_individual_digests_preserved(self, valid_shadow_digest, individual_digests) -> None:
-
         """individual_digestsがそのまま保持される"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -232,7 +231,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_empty_individual_digests(self, valid_shadow_digest) -> None:
-
         """空のindividual_digestsでも動作"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -245,7 +243,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_missing_shadow_fields_use_defaults(self) -> None:
-
         """shadowに欠落フィールドがある場合、デフォルト値を使用"""
         minimal_shadow = {
             # source_files, digest_type等がない
@@ -266,7 +263,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_timestamp_is_recent(self, valid_shadow_digest, individual_digests) -> None:
-
         """timestampが現在時刻に近い"""
         before = datetime.now()
         result = RegularDigestBuilder.build(
@@ -283,7 +279,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_very_long_abstract_preserved(self, individual_digests) -> None:
-
         """非常に長いabstractがそのまま保持される（builderは切り捨てない）"""
         long_abstract = "あ" * LARGE_TEXT_LENGTH
         shadow_with_long_abstract = {
@@ -305,7 +300,6 @@ class TestRegularDigestBuilderBuild:
 
     @pytest.mark.unit
     def test_empty_source_files_list(self, individual_digests) -> None:
-
         """空のsource_filesリストを正しく処理"""
         shadow_with_empty_sources = {
             "source_files": [],

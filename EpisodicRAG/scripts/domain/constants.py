@@ -10,10 +10,9 @@ Usage:
     from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, PLACEHOLDER_LIMITS
 """
 
-from typing import Dict, List
+from typing import Dict
 
 from domain.types.level import LevelConfigData, LevelHierarchyEntry
-
 
 # =============================================================================
 # ファイル拡張子定数

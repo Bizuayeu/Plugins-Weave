@@ -18,10 +18,9 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from infrastructure.json_repository import load_json
-
 from domain.exceptions import FileIOError
 from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR, SHADOW_GRAND_DIGEST_FILENAME
+from infrastructure.json_repository import load_json
 
 # Windows UTF-8対応（pytest実行時はスキップ）
 if sys.platform == "win32" and "pytest" not in sys.modules:

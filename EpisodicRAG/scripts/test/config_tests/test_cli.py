@@ -11,19 +11,20 @@ import json
 import sys
 from io import StringIO
 from pathlib import Path
-from unittest.mock import patch
-
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -35,7 +36,6 @@ class TestCliMain:
 
     @pytest.mark.integration
     def test_main_no_arguments_outputs_json(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """引数なしでJSON出力"""
         from interfaces.config_cli import main
 
@@ -53,8 +53,9 @@ class TestCliMain:
         assert "paths" in parsed or "base_dir" in parsed
 
     @pytest.mark.integration
-    def test_main_show_paths_flag(self, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture) -> None:
-
+    def test_main_show_paths_flag(
+        self, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture
+    ) -> None:
         """--show-paths フラグで paths を表示"""
         import logging
 
@@ -72,7 +73,6 @@ class TestCliMain:
 
     @pytest.mark.integration
     def test_main_plugin_root_override(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """plugin_root 引数でルートをオーバーライド"""
         from interfaces.config_cli import main
 
@@ -88,7 +88,6 @@ class TestCliMain:
 
     @pytest.mark.integration
     def test_main_invalid_plugin_root_exits_1(self, tmp_path: Path) -> None:
-
         """無効なplugin_rootでexit code 1"""
         from interfaces.config_cli import main
 
@@ -106,7 +105,6 @@ class TestCliMain:
 
     @pytest.mark.integration
     def test_json_output_format(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """JSON出力フォーマットの検証"""
         from interfaces.config_cli import main
 
@@ -125,7 +123,6 @@ class TestCliMain:
 
     @pytest.mark.integration
     def test_main_with_args_plugin_root(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """--plugin-root 引数が正しく処理される"""
         from interfaces.config_cli import main
 
@@ -141,7 +138,6 @@ class TestCliMain:
 
     @pytest.mark.unit
     def test_cli_module_has_main(self) -> None:
-
         """cli モジュールに main 関数が存在"""
         from interfaces import config_cli
 
@@ -150,7 +146,6 @@ class TestCliMain:
 
     @pytest.mark.unit
     def test_cli_can_be_run_as_module(self) -> None:
-
         """__main__ ブロックが存在"""
         import inspect
 
@@ -161,7 +156,6 @@ class TestCliMain:
 
     @pytest.mark.integration
     def test_unicode_in_output(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """出力にUnicodeが含まれても正しく処理される"""
         from interfaces.config_cli import main
 

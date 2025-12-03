@@ -22,7 +22,6 @@ from .cli_runner import CLIRunner
 
 
 def pytest_configure(config) -> None:
-
     """カスタムマーカーを登録"""
     config.addinivalue_line("markers", "cli: CLI統合テスト（subprocess経由）")
 
@@ -151,15 +150,18 @@ def _create_config_file(config_dir: Path) -> Path:
 def _create_template_files(config_dir: Path) -> None:
     """テンプレートファイルを作成"""
     levels = [
-        "weekly", "monthly", "quarterly", "annual",
-        "triennial", "decadal", "multi_decadal", "centurial",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "annual",
+        "triennial",
+        "decadal",
+        "multi_decadal",
+        "centurial",
     ]
 
     # last_digest_times.template.json
-    times_template = {
-        level: {"timestamp": "", "last_processed": None}
-        for level in levels
-    }
+    times_template = {level: {"timestamp": "", "last_processed": None} for level in levels}
     with open(config_dir / "last_digest_times.template.json", "w", encoding="utf-8") as f:
         json.dump(times_template, f, indent=2, ensure_ascii=False)
 
@@ -183,8 +185,14 @@ def _create_template_files(config_dir: Path) -> None:
 def _create_essence_files(essences_path: Path) -> None:
     """Essenceファイルを作成"""
     levels = [
-        "weekly", "monthly", "quarterly", "annual",
-        "triennial", "decadal", "multi_decadal", "centurial",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "annual",
+        "triennial",
+        "decadal",
+        "multi_decadal",
+        "centurial",
     ]
 
     # GrandDigest.txt
@@ -207,13 +215,16 @@ def _create_essence_files(essences_path: Path) -> None:
 def _create_times_file(config_dir: Path) -> Path:
     """last_digest_times.json を作成"""
     levels = [
-        "weekly", "monthly", "quarterly", "annual",
-        "triennial", "decadal", "multi_decadal", "centurial",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "annual",
+        "triennial",
+        "decadal",
+        "multi_decadal",
+        "centurial",
     ]
-    times_data = {
-        level: {"timestamp": "", "last_processed": None}
-        for level in levels
-    }
+    times_data = {level: {"timestamp": "", "last_processed": None} for level in levels}
     times_file = config_dir / "last_digest_times.json"
     with open(times_file, "w", encoding="utf-8") as f:
         json.dump(times_data, f, indent=2, ensure_ascii=False)
@@ -264,55 +275,61 @@ def configured_cli_runner(configured_cli_env: Dict[str, Path]) -> CLIRunner:
 @pytest.fixture
 def valid_config_json() -> str:
     """有効な設定JSON文字列を提供"""
-    return json.dumps({
-        "base_dir": ".",
-        "paths": {
-            "loops_dir": "data/Loops",
-            "digests_dir": "data/Digests",
-            "essences_dir": "data/Essences",
-            "identity_file_path": None,
-        },
-        "levels": {
-            "weekly_threshold": 5,
-            "monthly_threshold": 5,
-            "quarterly_threshold": 3,
-            "annual_threshold": 4,
-            "triennial_threshold": 3,
-            "decadal_threshold": 3,
-            "multi_decadal_threshold": 3,
-            "centurial_threshold": 4,
-        },
-    })
+    return json.dumps(
+        {
+            "base_dir": ".",
+            "paths": {
+                "loops_dir": "data/Loops",
+                "digests_dir": "data/Digests",
+                "essences_dir": "data/Essences",
+                "identity_file_path": None,
+            },
+            "levels": {
+                "weekly_threshold": 5,
+                "monthly_threshold": 5,
+                "quarterly_threshold": 3,
+                "annual_threshold": 4,
+                "triennial_threshold": 3,
+                "decadal_threshold": 3,
+                "multi_decadal_threshold": 3,
+                "centurial_threshold": 4,
+            },
+        }
+    )
 
 
 @pytest.fixture
 def sample_loop_json() -> str:
     """サンプルLoopファイルJSON"""
-    return json.dumps({
-        "overall_digest": {
-            "timestamp": "2025-01-01T00:00:00",
-            "digest_type": "テスト",
-            "keywords": ["test", "sample"],
-            "abstract": "テスト用のループ内容です。",
-            "impression": "テスト用の所感です。",
+    return json.dumps(
+        {
+            "overall_digest": {
+                "timestamp": "2025-01-01T00:00:00",
+                "digest_type": "テスト",
+                "keywords": ["test", "sample"],
+                "abstract": "テスト用のループ内容です。",
+                "impression": "テスト用の所感です。",
+            }
         }
-    })
+    )
 
 
 @pytest.fixture
 def sample_digest_json() -> str:
     """サンプルDigestファイルJSON"""
-    return json.dumps({
-        "individual_digests": [
-            {
-                "source_file": "L00001_test.txt",
-                "digest_type": "テスト",
-                "keywords": ["keyword1", "keyword2"],
-                "abstract": "テスト要約",
-                "impression": "テスト所感",
-            }
-        ]
-    })
+    return json.dumps(
+        {
+            "individual_digests": [
+                {
+                    "source_file": "L00001_test.txt",
+                    "digest_type": "テスト",
+                    "keywords": ["keyword1", "keyword2"],
+                    "abstract": "テスト要約",
+                    "impression": "テスト所感",
+                }
+            ]
+        }
+    )
 
 
 def create_loop_file(loops_path: Path, loop_num: int, title: str = "test") -> Path:

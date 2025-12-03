@@ -15,26 +15,27 @@
 """
 
 from pathlib import Path
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
 import pytest
 from test_helpers import create_test_loop_file
 
-from application.grand import ShadowGrandDigestManager
 from application.config import DigestConfig
+from application.grand import ShadowGrandDigestManager
 from domain.constants import LEVEL_NAMES
 
 # 統合テストマーカー
@@ -49,7 +50,6 @@ class TestThresholdBoundaryBase:
 
     @pytest.fixture
     def boundary_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """境界条件テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -89,7 +89,6 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
     """Weekly レベル閾値境界テスト"""
 
     def test_zero_files_no_trigger(self, boundary_env) -> None:
-
         """
         ファイル0件では処理がトリガーされない
 
@@ -107,7 +106,6 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
             assert len(weekly_shadow.get("source_files", [])) == 0
 
     def test_below_threshold_no_trigger(self, boundary_env) -> None:
-
         """
         閾値-1ファイルでは処理がトリガーされない
 
@@ -135,7 +133,6 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         assert len(weekly_shadow["source_files"]) == file_count
 
     def test_exactly_at_threshold_triggers(self, boundary_env) -> None:
-
         """
         閾値ちょうどで処理がトリガーされる
 
@@ -162,7 +159,6 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         assert len(weekly_shadow["source_files"]) == threshold
 
     def test_above_threshold_triggers(self, boundary_env) -> None:
-
         """
         閾値+1で処理がトリガーされる
 
@@ -195,7 +191,6 @@ class TestAllLevelThresholds(TestThresholdBoundaryBase):
 
     @pytest.mark.parametrize("level", TESTABLE_LEVELS)
     def test_threshold_value_is_positive(self, boundary_env, level) -> None:
-
         """
         全レベルの閾値が正の整数であること
 
@@ -210,7 +205,6 @@ class TestAllLevelThresholds(TestThresholdBoundaryBase):
 
     @pytest.mark.parametrize("level", TESTABLE_LEVELS)
     def test_shadow_level_exists(self, boundary_env, level) -> None:
-
         """
         全レベルでShadowレベルが初期化可能であること
 
@@ -238,7 +232,6 @@ class TestAllLevelThresholds(TestThresholdBoundaryBase):
         ],
     )
     def test_default_threshold_values(self, boundary_env, level, expected_threshold) -> None:
-
         """
         デフォルト閾値が期待通りであること
 
@@ -258,7 +251,6 @@ class TestEdgeCases(TestThresholdBoundaryBase):
     """エッジケーステスト"""
 
     def test_large_file_count(self, boundary_env) -> None:
-
         """
         大量ファイル（閾値の10倍）でも正常動作すること
         """
@@ -284,7 +276,6 @@ class TestEdgeCases(TestThresholdBoundaryBase):
         assert len(weekly_shadow["source_files"]) == file_count
 
     def test_incremental_addition_to_threshold(self, boundary_env) -> None:
-
         """
         増分追加で閾値に到達するケース
 
@@ -323,7 +314,6 @@ class TestEdgeCases(TestThresholdBoundaryBase):
         assert len(weekly_shadow["source_files"]) == threshold
 
     def test_duplicate_file_addition_prevented(self, boundary_env) -> None:
-
         """
         同じファイルをShadowに重複追加しても1回しか追加されないこと
 
@@ -365,7 +355,6 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
     """追加のエッジケース境界値テスト"""
 
     def test_threshold_equals_one(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """
         閾値=1の特殊ケース
 
@@ -400,7 +389,6 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
 
     @pytest.mark.slow
     def test_very_large_threshold(self, boundary_env) -> None:
-
         """
         大きな閾値（1000+）のテスト
 
@@ -428,7 +416,6 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
         assert len(weekly_shadow["source_files"]) == file_count
 
     def test_threshold_minus_two(self, boundary_env) -> None:
-
         """
         閾値-2のテスト
 
@@ -455,7 +442,6 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
         assert file_count < threshold, "ファイル数が閾値未満であること"
 
     def test_threshold_plus_two(self, boundary_env) -> None:
-
         """
         閾値+2のテスト
 

@@ -27,14 +27,12 @@ class TestBaseErrorFormatterInit(unittest.TestCase):
     """BaseErrorFormatter initialization tests"""
 
     def test_init_with_path(self) -> None:
-
         """Initializes with provided project root"""
         root = Path("/test/project")
         formatter = BaseErrorFormatter(root)
         self.assertEqual(formatter.project_root, root)
 
     def test_init_with_relative_path(self) -> None:
-
         """Accepts relative path"""
         root = Path("relative/path")
         formatter = BaseErrorFormatter(root)
@@ -45,13 +43,11 @@ class TestFormatPath(unittest.TestCase):
     """format_path() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.root = Path("/project/root")
         self.formatter = BaseErrorFormatter(self.root)
 
     def test_relative_to_project_root(self) -> None:
-
         """Path within project root returns relative path"""
         path = Path("/project/root/data/file.txt")
         result = self.formatter.format_path(path)
@@ -59,20 +55,17 @@ class TestFormatPath(unittest.TestCase):
         self.assertEqual(result, str(Path("data/file.txt")))
 
     def test_path_outside_project_root(self) -> None:
-
         """Path outside project root returns absolute path"""
         path = Path("/other/location/file.txt")
         result = self.formatter.format_path(path)
         self.assertEqual(result, str(path))
 
     def test_project_root_itself(self) -> None:
-
         """Project root itself returns empty or '.'"""
         result = self.formatter.format_path(self.root)
         self.assertEqual(result, ".")
 
     def test_nested_path(self) -> None:
-
         """Deeply nested path returns relative path"""
         path = Path("/project/root/a/b/c/d/file.txt")
         result = self.formatter.format_path(path)
@@ -88,31 +81,26 @@ class TestConfigErrorFormatterInvalidLevel(unittest.TestCase):
     """ConfigErrorFormatter.invalid_level() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ConfigErrorFormatter(Path("/root"))
 
     def test_without_valid_levels(self) -> None:
-
         """Message without valid levels list"""
         result = self.formatter.invalid_level("xyz")
         self.assertEqual(result, "Invalid level: 'xyz'")
 
     def test_with_valid_levels(self) -> None:
-
         """Message includes valid levels when provided"""
         result = self.formatter.invalid_level("xyz", ["weekly", "monthly"])
         self.assertIn("Invalid level: 'xyz'", result)
         self.assertIn("Valid levels: weekly, monthly", result)
 
     def test_with_single_valid_level(self) -> None:
-
         """Message with single valid level"""
         result = self.formatter.invalid_level("bad", ["good"])
         self.assertIn("Valid levels: good", result)
 
     def test_empty_valid_levels(self) -> None:
-
         """Empty valid levels list behaves like None"""
         result = self.formatter.invalid_level("xyz", [])
         self.assertEqual(result, "Invalid level: 'xyz'")
@@ -122,12 +110,10 @@ class TestConfigErrorFormatterUnknownLevel(unittest.TestCase):
     """ConfigErrorFormatter.unknown_level() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ConfigErrorFormatter(Path("/root"))
 
     def test_basic(self) -> None:
-
         """Basic unknown level message"""
         result = self.formatter.unknown_level("bad_level")
         self.assertEqual(result, "Unknown level: 'bad_level'")
@@ -137,12 +123,10 @@ class TestConfigErrorFormatterKeyMissing(unittest.TestCase):
     """ConfigErrorFormatter.config_key_missing() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ConfigErrorFormatter(Path("/root"))
 
     def test_basic(self) -> None:
-
         """Basic config key missing message"""
         result = self.formatter.config_key_missing("api_key")
         self.assertEqual(result, "Required configuration key missing: 'api_key'")
@@ -152,12 +136,10 @@ class TestConfigErrorFormatterInvalidValue(unittest.TestCase):
     """ConfigErrorFormatter.config_invalid_value() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ConfigErrorFormatter(Path("/root"))
 
     def test_with_string_value(self) -> None:
-
         """Message for string actual value"""
         result = self.formatter.config_invalid_value("count", "int", "five")
         self.assertIn("Invalid configuration value for 'count'", result)
@@ -165,13 +147,11 @@ class TestConfigErrorFormatterInvalidValue(unittest.TestCase):
         self.assertIn("got str", result)
 
     def test_with_int_value(self) -> None:
-
         """Message for int actual value"""
         result = self.formatter.config_invalid_value("name", "str", 123)
         self.assertIn("got int", result)
 
     def test_with_list_value(self) -> None:
-
         """Message for list actual value"""
         result = self.formatter.config_invalid_value("value", "dict", [1, 2])
         self.assertIn("got list", result)
@@ -181,18 +161,15 @@ class TestConfigErrorFormatterSectionMissing(unittest.TestCase):
     """ConfigErrorFormatter.config_section_missing() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ConfigErrorFormatter(Path("/root"))
 
     def test_basic_section_missing(self) -> None:
-
         """Basic section missing message"""
         result = self.formatter.config_section_missing("paths")
         self.assertEqual(result, "'paths' section missing in config.json")
 
     def test_with_levels_section(self) -> None:
-
         """Message for levels section"""
         result = self.formatter.config_section_missing("levels")
         self.assertIn("'levels' section missing", result)
@@ -202,12 +179,10 @@ class TestConfigErrorFormatterInitializationFailed(unittest.TestCase):
     """ConfigErrorFormatter.initialization_failed() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ConfigErrorFormatter(Path("/root"))
 
     def test_basic_initialization_failed(self) -> None:
-
         """Basic initialization failure message"""
         error = Exception("Connection refused")
         result = self.formatter.initialization_failed("database", error)
@@ -224,13 +199,11 @@ class TestFileErrorFormatterFileNotFound(unittest.TestCase):
     """FileErrorFormatter.file_not_found() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.root = Path("/project")
         self.formatter = FileErrorFormatter(self.root)
 
     def test_relative_path(self) -> None:
-
         """Message with relative path"""
         path = Path("/project/data/file.txt")
         result = self.formatter.file_not_found(path)
@@ -238,7 +211,6 @@ class TestFileErrorFormatterFileNotFound(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_absolute_path_outside_root(self) -> None:
-
         """Message with absolute path outside root"""
         path = Path("/other/file.txt")
         result = self.formatter.file_not_found(path)
@@ -250,12 +222,10 @@ class TestFileErrorFormatterFileAlreadyExists(unittest.TestCase):
     """FileErrorFormatter.file_already_exists() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = FileErrorFormatter(Path("/project"))
 
     def test_basic(self) -> None:
-
         """Basic file already exists message"""
         path = Path("/project/existing.txt")
         result = self.formatter.file_already_exists(path)
@@ -266,12 +236,10 @@ class TestFileErrorFormatterFileIOError(unittest.TestCase):
     """FileErrorFormatter.file_io_error() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = FileErrorFormatter(Path("/project"))
 
     def test_read_operation(self) -> None:
-
         """Message for read operation"""
         path = Path("/project/file.txt")
         error = IOError("Permission denied")
@@ -280,7 +248,6 @@ class TestFileErrorFormatterFileIOError(unittest.TestCase):
         self.assertIn("Permission denied", result)
 
     def test_write_operation(self) -> None:
-
         """Message for write operation"""
         path = Path("/project/file.txt")
         error = IOError("Disk full")
@@ -292,12 +259,10 @@ class TestFileErrorFormatterDirectoryNotFound(unittest.TestCase):
     """FileErrorFormatter.directory_not_found() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = FileErrorFormatter(Path("/project"))
 
     def test_basic(self) -> None:
-
         """Basic directory not found message"""
         path = Path("/project/data/subdir")
         result = self.formatter.directory_not_found(path)
@@ -309,12 +274,10 @@ class TestFileErrorFormatterInvalidJson(unittest.TestCase):
     """FileErrorFormatter.invalid_json() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = FileErrorFormatter(Path("/project"))
 
     def test_basic(self) -> None:
-
         """Basic invalid JSON message"""
         path = Path("/project/config.json")
         error = ValueError("Expecting value: line 1 column 1")
@@ -327,12 +290,10 @@ class TestFileErrorFormatterDirectoryCreationFailed(unittest.TestCase):
     """FileErrorFormatter.directory_creation_failed() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = FileErrorFormatter(Path("/project"))
 
     def test_basic_directory_creation_failed(self) -> None:
-
         """Basic directory creation failure message"""
         path = Path("/project/data/subdir")
         error = OSError("Permission denied")
@@ -350,24 +311,20 @@ class TestValidationErrorFormatterInvalidType(unittest.TestCase):
     """ValidationErrorFormatter.invalid_type() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ValidationErrorFormatter(Path("/root"))
 
     def test_basic(self) -> None:
-
         """Basic invalid type message"""
         result = self.formatter.invalid_type("config.name", "str", 123)
         self.assertEqual(result, "config.name: expected str, got int")
 
     def test_with_dict(self) -> None:
-
         """Message for dict actual value"""
         result = self.formatter.invalid_type("field", "list", {"key": "value"})
         self.assertIn("got dict", result)
 
     def test_with_none(self) -> None:
-
         """Message for None actual value"""
         result = self.formatter.invalid_type("field", "str", None)
         self.assertIn("got NoneType", result)
@@ -377,18 +334,15 @@ class TestValidationErrorFormatterValidationError(unittest.TestCase):
     """ValidationErrorFormatter.validation_error() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ValidationErrorFormatter(Path("/root"))
 
     def test_without_value(self) -> None:
-
         """Message without actual value"""
         result = self.formatter.validation_error("email", "must be valid email")
         self.assertEqual(result, "Validation failed for 'email': must be valid email")
 
     def test_with_value(self) -> None:
-
         """Message with actual value"""
         result = self.formatter.validation_error("age", "must be positive", -5)
         self.assertIn("Validation failed for 'age'", result)
@@ -400,12 +354,10 @@ class TestValidationErrorFormatterEmptyCollection(unittest.TestCase):
     """ValidationErrorFormatter.empty_collection() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = ValidationErrorFormatter(Path("/root"))
 
     def test_basic(self) -> None:
-
         """Basic empty collection message"""
         result = self.formatter.empty_collection("source_files")
         self.assertEqual(result, "source_files cannot be empty")
@@ -420,12 +372,10 @@ class TestDigestErrorFormatterDigestNotFound(unittest.TestCase):
     """DigestErrorFormatter.digest_not_found() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = DigestErrorFormatter(Path("/root"))
 
     def test_basic(self) -> None:
-
         """Basic digest not found message"""
         result = self.formatter.digest_not_found("weekly", "W0001")
         self.assertEqual(result, "Digest not found: level='weekly', id='W0001'")
@@ -435,12 +385,10 @@ class TestDigestErrorFormatterShadowEmpty(unittest.TestCase):
     """DigestErrorFormatter.shadow_empty() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = DigestErrorFormatter(Path("/root"))
 
     def test_basic(self) -> None:
-
         """Basic shadow empty message"""
         result = self.formatter.shadow_empty("monthly")
         self.assertEqual(result, "Shadow digest for level 'monthly' has no source files")
@@ -450,12 +398,10 @@ class TestDigestErrorFormatterCascadeError(unittest.TestCase):
     """DigestErrorFormatter.cascade_error() tests"""
 
     def setUp(self) -> None:
-
         """Set up test formatter"""
         self.formatter = DigestErrorFormatter(Path("/root"))
 
     def test_basic(self) -> None:
-
         """Basic cascade error message"""
         result = self.formatter.cascade_error("weekly", "monthly", "threshold not met")
         self.assertEqual(result, "Cascade failed from 'weekly' to 'monthly': threshold not met")

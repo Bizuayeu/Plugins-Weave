@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Development Tools**: Footer checker, link checker (`scripts/tools/`)
 
-- **Tests**: 153 tests added (total 2198 tests)
+- **CONCEPT.md / CONCEPT.en.md**: New concept documentation (Japanese/English synced, 210 lines each)
 
 > 📖 See [DESIGN_DECISIONS.md](docs/dev/DESIGN_DECISIONS.md) for details
 

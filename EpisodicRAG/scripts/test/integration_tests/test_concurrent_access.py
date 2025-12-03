@@ -10,19 +10,19 @@ import json
 import threading
 import time
 from pathlib import Path
-from typing import List
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -39,7 +39,6 @@ class TestConcurrentReads:
     """Tests for concurrent read access patterns."""
 
     def test_multiple_readers_same_file(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Multiple threads should be able to read the same file concurrently."""
         # Create test file
         test_file = temp_plugin_env.digests_path / "shared_read.json"
@@ -53,7 +52,6 @@ class TestConcurrentReads:
         errors: List[Exception] = []
 
         def reader_task() -> None:
-
             try:
                 with open(test_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -74,7 +72,6 @@ class TestConcurrentReads:
         assert all(r == test_data for r in results)
 
     def test_read_while_another_reads(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Reads should not block other reads."""
         test_file = temp_plugin_env.digests_path / "concurrent_read.json"
         test_file.parent.mkdir(parents=True, exist_ok=True)
@@ -86,7 +83,6 @@ class TestConcurrentReads:
         read_times: List[float] = []
 
         def timed_reader() -> None:
-
             start = time.perf_counter()
             with open(test_file, "r", encoding="utf-8") as f:
                 json.load(f)
@@ -113,8 +109,9 @@ class TestConcurrentReads:
 class TestSequentialWrites:
     """Tests for sequential write access patterns."""
 
-    def test_sequential_writes_preserve_data(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_sequential_writes_preserve_data(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Sequential writes should preserve data integrity."""
         test_file = temp_plugin_env.digests_path / "sequential_write.json"
         test_file.parent.mkdir(parents=True, exist_ok=True)
@@ -131,7 +128,6 @@ class TestSequentialWrites:
             assert loaded["iteration"] == i
 
     def test_append_operations_accumulate(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Append operations should accumulate data correctly."""
         from interfaces.provisional import DigestMerger
 
@@ -157,7 +153,6 @@ class TestLockContentionSimulation:
     """Tests that simulate lock contention scenarios."""
 
     def test_simulated_write_contention(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Simulate what happens when multiple processes try to write."""
         test_file = temp_plugin_env.digests_path / "contention.json"
         test_file.parent.mkdir(parents=True, exist_ok=True)
@@ -172,7 +167,6 @@ class TestLockContentionSimulation:
         errors: List[Exception] = []
 
         def increment_task() -> None:
-
             try:
                 with lock:  # Simulate file lock
                     with open(test_file, "r", encoding="utf-8") as f:
@@ -196,7 +190,6 @@ class TestLockContentionSimulation:
         assert final_data["counter"] == 10
 
     def test_read_during_write_simulation(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Simulate reading while another process is writing."""
         test_file = temp_plugin_env.digests_path / "read_write.json"
         test_file.parent.mkdir(parents=True, exist_ok=True)
@@ -209,7 +202,6 @@ class TestLockContentionSimulation:
         write_lock = threading.Lock()
 
         def writer_task() -> None:
-
             for i in range(5):
                 with write_lock:
                     with open(test_file, "w", encoding="utf-8") as f:
@@ -217,7 +209,6 @@ class TestLockContentionSimulation:
                 time.sleep(0.01)
 
         def reader_task() -> None:
-
             for _ in range(10):
                 try:
                     with open(test_file, "r", encoding="utf-8") as f:
@@ -253,7 +244,6 @@ class TestShadowUpdateConcurrency:
     """Tests for Shadow update concurrency patterns."""
 
     def test_shadow_updates_are_idempotent(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Multiple identical Shadow updates should produce same result."""
         shadow_path = temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
         shadow_path.parent.mkdir(parents=True, exist_ok=True)
@@ -298,7 +288,6 @@ class TestRaceConditions:
     """競合状態のテスト"""
 
     def test_shadow_update_atomicity(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """Shadow更新がアトミックであること - 部分書き込みが発生しない"""
         test_file = temp_plugin_env.digests_path / "atomicity_test.json"
         test_file.parent.mkdir(parents=True, exist_ok=True)
@@ -313,7 +302,6 @@ class TestRaceConditions:
         completed_writes = []
 
         def atomic_writer(writer_id: int) -> None:
-
             """アトミックな書き込みを行う"""
             for i in range(5):
                 try:
@@ -347,7 +335,6 @@ class TestRaceConditions:
         assert final_data["counter"] == 25
 
     def test_partial_write_detection(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """部分書き込みを検出できること"""
         test_file = temp_plugin_env.digests_path / "partial_write_test.json"
         test_file.parent.mkdir(parents=True, exist_ok=True)
@@ -368,7 +355,6 @@ class TestRaceConditions:
                 json.load(f)
 
     def test_read_during_write_tracking(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """書き込み中の読み取り結果を追跡
 
         Note:
@@ -391,7 +377,6 @@ class TestRaceConditions:
         start_barrier = threading.Barrier(2)
 
         def writer_task() -> None:
-
             start_barrier.wait()  # 両スレッドが準備完了を待つ
             for i in range(10):
                 with write_lock:
@@ -399,7 +384,6 @@ class TestRaceConditions:
                         json.dump({"version": i + 2}, f)
 
         def reader_task() -> None:
-
             start_barrier.wait()  # 両スレッドが準備完了を待つ
             for _ in range(20):
                 try:
@@ -428,7 +412,6 @@ class TestRaceConditions:
         assert final_data["version"] == 11  # 1 + 10回の書き込み
 
     def test_timeout_on_blocked_operation(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """ブロックされた操作のタイムアウト動作"""
         import concurrent.futures
 
@@ -442,7 +425,6 @@ class TestRaceConditions:
         operation_completed = []
 
         def long_running_task():
-
             """長時間実行されるタスクをシミュレート"""
             with long_running_lock:
                 time.sleep(0.5)  # 500ms待機

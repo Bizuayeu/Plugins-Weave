@@ -15,8 +15,9 @@ tools/link_checker.py のテスト
 7. サマリー生成
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from tools.link_checker import (
     CheckSummary,
@@ -28,7 +29,6 @@ from tools.link_checker import (
 
 @pytest.fixture
 def temp_docs_dir(tmp_path: Path):
-
     """テスト用ドキュメントディレクトリ"""
     docs = tmp_path / "docs"
     docs.mkdir()
@@ -39,7 +39,6 @@ class TestMarkdownLinkChecker:
     """MarkdownLinkChecker のテスト"""
 
     def test_valid_relative_link(self, temp_docs_dir) -> None:
-
         """有効な相対リンクの検出"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -58,7 +57,6 @@ class TestMarkdownLinkChecker:
         assert results[0].link_target == "guide.md"
 
     def test_broken_link_detection(self, temp_docs_dir) -> None:
-
         """壊れたリンクの検出"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -74,7 +72,6 @@ class TestMarkdownLinkChecker:
         assert results[0].suggestion is not None
 
     def test_anchor_validation_valid(self, temp_docs_dir) -> None:
-
         """有効なアンカーリンクの検証"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -92,7 +89,6 @@ class TestMarkdownLinkChecker:
         assert results[0].status == LinkStatus.VALID.value
 
     def test_anchor_validation_missing(self, temp_docs_dir) -> None:
-
         """存在しないアンカーの検出"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -107,7 +103,6 @@ class TestMarkdownLinkChecker:
         assert results[0].status == LinkStatus.ANCHOR_MISSING.value
 
     def test_file_with_anchor(self, temp_docs_dir) -> None:
-
         """ファイル+アンカーの複合検証"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -125,7 +120,6 @@ class TestMarkdownLinkChecker:
         assert results[0].status == LinkStatus.VALID.value
 
     def test_nested_directory_resolution(self, temp_docs_dir) -> None:
-
         """ネストしたディレクトリのリンク解決"""
         # Setup
         subdir = temp_docs_dir / "dev"
@@ -146,7 +140,6 @@ class TestMarkdownLinkChecker:
         assert results[0].status == LinkStatus.VALID.value
 
     def test_parent_directory_link(self, temp_docs_dir) -> None:
-
         """親ディレクトリへのリンク解決"""
         # Setup
         subdir = temp_docs_dir / "dev"
@@ -167,7 +160,6 @@ class TestMarkdownLinkChecker:
         assert results[0].status == LinkStatus.VALID.value
 
     def test_external_link_skip(self, temp_docs_dir) -> None:
-
         """外部リンク（http/https）のスキップ"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -185,7 +177,6 @@ class TestMarkdownLinkChecker:
         assert all(r.status == LinkStatus.EXTERNAL.value for r in results)
 
     def test_empty_directory(self, temp_docs_dir) -> None:
-
         """空のドキュメントディレクトリ処理"""
         # Execute
         checker = MarkdownLinkChecker(temp_docs_dir)
@@ -195,7 +186,6 @@ class TestMarkdownLinkChecker:
         assert len(results) == 0
 
     def test_summary_generation(self, temp_docs_dir) -> None:
-
         """サマリー生成"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -220,7 +210,6 @@ class TestMarkdownLinkChecker:
         assert summary.external == 1
 
     def test_get_broken_links(self, temp_docs_dir) -> None:
-
         """壊れたリンクのみ取得"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -241,7 +230,6 @@ class TestMarkdownLinkChecker:
         assert LinkStatus.ANCHOR_MISSING.value in statuses
 
     def test_japanese_heading_anchor(self, temp_docs_dir) -> None:
-
         """日本語見出しのアンカー検証"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -259,7 +247,6 @@ class TestMarkdownLinkChecker:
         assert results[0].status == LinkStatus.VALID.value
 
     def test_multiple_links_in_one_line(self, temp_docs_dir) -> None:
-
         """1行に複数のリンク"""
         # Setup
         file1 = temp_docs_dir / "index.md"
@@ -279,7 +266,6 @@ class TestMarkdownLinkChecker:
         assert all(r.status == LinkStatus.VALID.value for r in results)
 
     def test_link_check_result_to_dict(self, temp_docs_dir) -> None:
-
         """LinkCheckResult の辞書変換"""
         result = LinkCheckResult(
             file_path="index.md",
@@ -297,7 +283,6 @@ class TestMarkdownLinkChecker:
         assert d["status"] == "valid"
 
     def test_nonexistent_docs_dir(self, tmp_path: Path) -> None:
-
         """存在しないディレクトリの処理"""
         nonexistent = tmp_path / "nonexistent"
 
@@ -311,7 +296,6 @@ class TestCheckSummary:
     """CheckSummary のテスト"""
 
     def test_summary_to_dict(self) -> None:
-
         """サマリーの辞書変換"""
         summary = CheckSummary(
             total_files=10,

@@ -20,14 +20,12 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_returns_callable(self) -> None:
-
         """callableを返す"""
         callback = get_default_confirm_callback()
         assert callable(callback)
 
     @pytest.mark.unit
     def test_accepts_y_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
-
         """'y'の回答でTrueを返す"""
         monkeypatch.setattr("builtins.input", lambda _: "y")
         callback = get_default_confirm_callback()
@@ -35,7 +33,6 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_accepts_Y_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
-
         """'Y'（大文字）の回答でもTrueを返す"""
         monkeypatch.setattr("builtins.input", lambda _: "Y")
         callback = get_default_confirm_callback()
@@ -43,7 +40,6 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_rejects_n_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
-
         """'n'の回答でFalseを返す"""
         monkeypatch.setattr("builtins.input", lambda _: "n")
         callback = get_default_confirm_callback()
@@ -51,7 +47,6 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_rejects_N_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
-
         """'N'（大文字）の回答でもFalseを返す"""
         monkeypatch.setattr("builtins.input", lambda _: "N")
         callback = get_default_confirm_callback()
@@ -59,7 +54,6 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_rejects_yes_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
-
         """'yes'（yではない）の回答でFalseを返す"""
         monkeypatch.setattr("builtins.input", lambda _: "yes")
         callback = get_default_confirm_callback()
@@ -67,7 +61,6 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_rejects_empty_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
-
         """空の回答でFalseを返す"""
         monkeypatch.setattr("builtins.input", lambda _: "")
         callback = get_default_confirm_callback()
@@ -75,11 +68,9 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_handles_eof_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-
         """EOFError発生時はTrueを返す（非対話環境での自動承認）"""
 
         def raise_eof(_) -> None:
-
             raise EOFError()
 
         monkeypatch.setattr("builtins.input", raise_eof)
@@ -88,12 +79,10 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_prompt_format(self, monkeypatch: pytest.MonkeyPatch):
-
         """プロンプト形式が正しい"""
         captured_prompt = []
 
         def capture_input(prompt):
-
             captured_prompt.append(prompt)
             return "y"
 
@@ -106,12 +95,10 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_unicode_message(self, monkeypatch: pytest.MonkeyPatch):
-
         """Unicode文字を含むメッセージを受け付ける"""
         captured_prompt = []
 
         def capture_input(prompt):
-
             captured_prompt.append(prompt)
             return "y"
 
@@ -124,7 +111,6 @@ class TestGetDefaultConfirmCallback:
 
     @pytest.mark.unit
     def test_each_call_returns_new_function(self) -> None:
-
         """毎回新しい関数を返す"""
         callback1 = get_default_confirm_callback()
         callback2 = get_default_confirm_callback()

@@ -41,9 +41,7 @@ def validate_long_short_text(value: Any, field_name: str, index: int) -> None:
         )
 
     if not isinstance(value["long"], str) or not isinstance(value["short"], str):
-        raise ValidationError(
-            f"{field_name} at index {index}: 'long' and 'short' must be strings"
-        )
+        raise ValidationError(f"{field_name} at index {index}: 'long' and 'short' must be strings")
 
 
 def validate_individual_digest(digest: Any, index: int, context: str = "") -> None:

@@ -28,11 +28,9 @@ class TestSafeFileOperation:
 
     @pytest.mark.unit
     def test_successful_operation_returns_result(self):
-
         """成功した操作は結果を返す"""
 
         def operation():
-
             return "success"
 
         result = safe_file_operation(operation, "test operation")
@@ -40,11 +38,9 @@ class TestSafeFileOperation:
 
     @pytest.mark.unit
     def test_failed_operation_returns_none(self) -> None:
-
         """失敗した操作は None を返す（on_error なし）"""
 
         def operation() -> None:
-
             raise FileNotFoundError("file not found")
 
         result = safe_file_operation(operation, "test operation")
@@ -52,17 +48,14 @@ class TestSafeFileOperation:
 
     @pytest.mark.unit
     def test_on_error_callback_called(self):
-
         """on_error コールバックが呼ばれる"""
         callback_called = [False]
         captured_exception = [None]
 
         def operation() -> None:
-
             raise PermissionError("permission denied")
 
         def on_error(e):
-
             callback_called[0] = True
             captured_exception[0] = e
             return "fallback"
@@ -74,11 +67,9 @@ class TestSafeFileOperation:
 
     @pytest.mark.unit
     def test_reraise_true_raises_fileiioerror(self) -> None:
-
         """reraise=True で FileIOError を再送出"""
 
         def operation() -> None:
-
             raise FileNotFoundError("file not found")
 
         with pytest.raises(FileIOError):
@@ -86,15 +77,12 @@ class TestSafeFileOperation:
 
     @pytest.mark.unit
     def test_reraise_with_on_error_uses_callback(self):
-
         """reraise=True でも on_error があればコールバックを使用"""
 
         def operation() -> None:
-
             raise FileNotFoundError("file not found")
 
         def on_error(e):
-
             return "fallback"
 
         result = safe_file_operation(operation, "test operation", on_error=on_error, reraise=True)
@@ -111,11 +99,9 @@ class TestSafeFileOperation:
         ],
     )
     def test_catches_common_file_errors(self, exception_class) -> None:
-
         """一般的なファイルエラーをキャッチする"""
 
         def operation() -> None:
-
             raise exception_class("test error")
 
         result = safe_file_operation(operation, "test operation")
@@ -123,11 +109,9 @@ class TestSafeFileOperation:
 
     @pytest.mark.unit
     def test_other_exceptions_not_caught(self) -> None:
-
         """その他の例外はキャッチしない"""
 
         def operation() -> None:
-
             raise ValueError("not a file error")
 
         with pytest.raises(ValueError):
@@ -135,13 +119,11 @@ class TestSafeFileOperation:
 
     @pytest.mark.integration
     def test_real_file_operation(self, tmp_path: Path):
-
         """実際のファイル操作"""
         test_file = tmp_path / "test.txt"
         test_file.write_text("content")
 
         def operation():
-
             return test_file.read_text()
 
         result = safe_file_operation(operation, "read file")
@@ -149,12 +131,10 @@ class TestSafeFileOperation:
 
     @pytest.mark.integration
     def test_missing_file_operation(self, tmp_path: Path):
-
         """存在しないファイルの操作"""
         missing_file = tmp_path / "missing.txt"
 
         def operation():
-
             return missing_file.read_text()
 
         result = safe_file_operation(operation, "read missing file")
@@ -171,12 +151,10 @@ class TestSafeCleanup:
 
     @pytest.mark.unit
     def test_successful_cleanup_returns_false(self) -> None:
-
         """成功したクリーンアップは False を返す（エラーなし）"""
         cleanup_called = [False]
 
         def cleanup() -> None:
-
             cleanup_called[0] = True
 
         safe_cleanup(cleanup, "test cleanup")
@@ -190,11 +168,9 @@ class TestSafeCleanup:
 
     @pytest.mark.unit
     def test_failed_cleanup_returns_true(self) -> None:
-
         """失敗したクリーンアップは True を返す（実装による）"""
 
         def cleanup() -> None:
-
             raise FileNotFoundError("cleanup failed")
 
         safe_cleanup(cleanup, "test cleanup")
@@ -206,12 +182,10 @@ class TestSafeCleanup:
 
     @pytest.mark.unit
     def test_log_on_error_true_logs_warning(self, caplog: pytest.LogCaptureFixture) -> None:
-
         """log_on_error=True で警告をログ出力"""
         import logging
 
         def cleanup() -> None:
-
             raise PermissionError("permission denied")
 
         with caplog.at_level(logging.WARNING):
@@ -223,13 +197,11 @@ class TestSafeCleanup:
 
     @pytest.mark.integration
     def test_real_cleanup_operation(self, tmp_path: Path) -> None:
-
         """実際のクリーンアップ操作"""
         test_file = tmp_path / "temp.txt"
         test_file.write_text("temporary")
 
         def cleanup() -> None:
-
             test_file.unlink()
 
         safe_cleanup(cleanup, "delete temp file")
@@ -246,11 +218,9 @@ class TestWithErrorContext:
 
     @pytest.mark.unit
     def test_successful_operation_returns_result(self):
-
         """成功した操作は結果を返す"""
 
         def operation():
-
             return "success"
 
         result = with_error_context(operation, "test operation")
@@ -258,11 +228,9 @@ class TestWithErrorContext:
 
     @pytest.mark.unit
     def test_failed_operation_raises_with_context(self) -> None:
-
         """失敗した操作はコンテキスト付きで例外を送出"""
 
         def operation() -> None:
-
             raise ValueError("original error")
 
         with pytest.raises(FileIOError) as exc_info:
@@ -272,14 +240,12 @@ class TestWithErrorContext:
 
     @pytest.mark.unit
     def test_custom_error_type(self) -> None:
-
         """カスタム例外型を指定できる"""
 
         class CustomError(Exception):
             pass
 
         def operation() -> None:
-
             raise ValueError("original error")
 
         with pytest.raises(CustomError) as exc_info:
@@ -289,12 +255,10 @@ class TestWithErrorContext:
 
     @pytest.mark.unit
     def test_original_exception_is_chained(self) -> None:
-
         """元の例外がチェーンされる"""
         original_error = ValueError("original error")
 
         def operation() -> None:
-
             raise original_error
 
         with pytest.raises(FileIOError) as exc_info:
@@ -304,11 +268,9 @@ class TestWithErrorContext:
 
     @pytest.mark.unit
     def test_context_message_format(self) -> None:
-
         """コンテキストメッセージのフォーマット"""
 
         def operation() -> None:
-
             raise RuntimeError("specific error")
 
         with pytest.raises(FileIOError) as exc_info:
@@ -320,7 +282,6 @@ class TestWithErrorContext:
 
     @pytest.mark.integration
     def test_with_real_file_operation(self, tmp_path: Path):
-
         """実際のファイル操作でテスト"""
         import json
 
@@ -328,7 +289,6 @@ class TestWithErrorContext:
         invalid_json_file.write_text("{invalid json}")
 
         def operation():
-
             with open(invalid_json_file) as f:
                 return json.load(f)
 

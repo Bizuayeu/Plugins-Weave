@@ -11,27 +11,28 @@ FileDetectorクラスの動作を検証。
 
 import json
 from pathlib import Path
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
 import pytest
 from test_helpers import create_test_loop_file
 
+from application.config import DigestConfig
 from application.shadow import FileDetector
 from application.tracking import DigestTimesTracker
-from application.config import DigestConfig
 from domain.constants import LEVEL_CONFIG
 
 # slow マーカーを適用（ファイル全体）
@@ -47,7 +48,6 @@ class TestFileDetectorGetSourcePath:
 
     @pytest.fixture
     def detector(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """テスト用FileDetectorインスタンス"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         times_tracker = DigestTimesTracker(config)
@@ -69,22 +69,21 @@ class TestFileDetectorGetSourcePath:
     def test_levels_return_correct_source_dir(
         self, detector, temp_plugin_env: "TempPluginEnvironment", level, expected_subdir
     ) -> None:
-
         """各レベルが正しいソースディレクトリを返す"""
         result = detector.get_source_path(level)
         expected = temp_plugin_env.digests_path / expected_subdir
         assert result == expected
 
     @pytest.mark.unit
-    def test_weekly_returns_loops_path(self, detector, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_weekly_returns_loops_path(
+        self, detector, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """weeklyのソースはloops_path"""
         result = detector.get_source_path("weekly")
         assert result == temp_plugin_env.loops_path
 
     @pytest.mark.unit
     def test_all_levels_have_valid_source(self, detector) -> None:
-
         """全レベルが有効なソースパスを持つ"""
         for level in LEVEL_CONFIG.keys():
             result = detector.get_source_path(level)
@@ -103,20 +102,19 @@ class TestFileDetectorGetMaxFileNumber:
 
     @pytest.fixture
     def detector(self, config: "DigestConfig", times_tracker: "DigestTimesTracker"):
-
         """テスト用FileDetector"""
         return FileDetector(config, times_tracker)
 
     @pytest.mark.integration
     def test_returns_none_when_no_data(self, detector) -> None:
-
         """データがない場合はNoneを返す"""
         result = detector.get_max_file_number("weekly")
         assert result is None
 
     @pytest.mark.integration
-    def test_returns_last_processed_when_exists(self, detector, times_tracker: "DigestTimesTracker") -> None:
-
+    def test_returns_last_processed_when_exists(
+        self, detector, times_tracker: "DigestTimesTracker"
+    ) -> None:
         """last_processedが存在する場合はその値を返す"""
         # last_processedを設定（input_filesを渡すことで内部でlast_processedが設定される）
         times_tracker.save("weekly", ["L00005_test.txt"])
@@ -126,8 +124,9 @@ class TestFileDetectorGetMaxFileNumber:
         assert result == 5
 
     @pytest.mark.integration
-    def test_returns_correct_value_for_different_levels(self, detector, times_tracker: "DigestTimesTracker") -> None:
-
+    def test_returns_correct_value_for_different_levels(
+        self, detector, times_tracker: "DigestTimesTracker"
+    ) -> None:
         """各レベルごとに正しい値を返す"""
         times_tracker.save("weekly", ["L00010_test.txt"])
         times_tracker.save("monthly", ["W0003_test.txt"])
@@ -150,20 +149,19 @@ class TestFileDetectorFindNewFiles:
 
     @pytest.fixture
     def detector(self, config: "DigestConfig", times_tracker: "DigestTimesTracker"):
-
         """テスト用FileDetector"""
         return FileDetector(config, times_tracker)
 
     @pytest.mark.integration
     def test_returns_empty_when_no_files(self, detector) -> None:
-
         """ファイルがない場合は空リストを返す"""
         result = detector.find_new_files("weekly")
         assert result == []
 
     @pytest.mark.integration
-    def test_returns_all_files_on_first_run(self, detector, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_returns_all_files_on_first_run(
+        self, detector, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """初回実行時（max_file_number=None）は全ファイルを返す"""
         # Loopファイルを作成
         for i in range(1, 4):
@@ -174,9 +172,11 @@ class TestFileDetectorFindNewFiles:
 
     @pytest.mark.integration
     def test_returns_only_new_files_after_last_processed(
-        self, detector, temp_plugin_env: "TempPluginEnvironment", times_tracker: "DigestTimesTracker"
+        self,
+        detector,
+        temp_plugin_env: "TempPluginEnvironment",
+        times_tracker: "DigestTimesTracker",
     ) -> None:
-
         """last_processedより大きい番号のファイルのみ返す"""
         # Loopファイルを作成（1-5）
         for i in range(1, 6):
@@ -195,8 +195,12 @@ class TestFileDetectorFindNewFiles:
         assert not any("L00003" in name for name in filenames)
 
     @pytest.mark.integration
-    def test_returns_empty_when_no_new_files(self, detector, temp_plugin_env: "TempPluginEnvironment", times_tracker: "DigestTimesTracker") -> None:
-
+    def test_returns_empty_when_no_new_files(
+        self,
+        detector,
+        temp_plugin_env: "TempPluginEnvironment",
+        times_tracker: "DigestTimesTracker",
+    ) -> None:
         """新しいファイルがない場合は空リストを返す"""
         # Loopファイルを作成（1-3）
         for i in range(1, 4):
@@ -210,7 +214,6 @@ class TestFileDetectorFindNewFiles:
 
     @pytest.mark.integration
     def test_files_are_sorted(self, detector, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """返されるファイルはソートされている"""
         # ファイルをランダムな順序で作成
         for i in [3, 1, 5, 2, 4]:
@@ -223,8 +226,9 @@ class TestFileDetectorFindNewFiles:
         assert filenames == sorted(filenames)
 
     @pytest.mark.integration
-    def test_returns_empty_when_source_dir_not_exists(self, detector, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_returns_empty_when_source_dir_not_exists(
+        self, detector, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """ソースディレクトリが存在しない場合は空リストを返す"""
         # loops_pathを削除
         import shutil
@@ -235,8 +239,9 @@ class TestFileDetectorFindNewFiles:
         assert result == []
 
     @pytest.mark.integration
-    def test_monthly_finds_weekly_digests(self, detector, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_monthly_finds_weekly_digests(
+        self, detector, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """monthlyはweekly digestファイルを検出する"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
 
@@ -261,7 +266,6 @@ class TestFileDetectorInit:
 
     @pytest.mark.integration
     def test_stores_config(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """configが正しく保存される"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         times_tracker = DigestTimesTracker(config)
@@ -270,7 +274,6 @@ class TestFileDetectorInit:
 
     @pytest.mark.integration
     def test_stores_times_tracker(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """times_trackerが正しく保存される"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         times_tracker = DigestTimesTracker(config)
@@ -279,7 +282,6 @@ class TestFileDetectorInit:
 
     @pytest.mark.integration
     def test_builds_level_hierarchy(self, temp_plugin_env: "TempPluginEnvironment") -> None:
-
         """レベル階層情報が構築される"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
         times_tracker = DigestTimesTracker(config)

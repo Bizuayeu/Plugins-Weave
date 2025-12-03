@@ -143,7 +143,9 @@ class TestStructuredLoggerState:
         return StructuredLogger("test")
 
     @pytest.mark.unit
-    def test_state_message_only(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_state_message_only(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """メッセージのみの状態ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.state("cascade_update")
@@ -152,7 +154,9 @@ class TestStructuredLoggerState:
         assert "cascade_update" in caplog.text
 
     @pytest.mark.unit
-    def test_state_with_context(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_state_with_context(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """コンテキスト付きの状態ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.state("cascade_update", level="weekly", count=5)
@@ -163,7 +167,9 @@ class TestStructuredLoggerState:
         assert "count=5" in caplog.text
 
     @pytest.mark.unit
-    def test_state_prefix_format(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_state_prefix_format(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """[STATE]プレフィックスが正しくフォーマットされる"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.state("test_message")
@@ -185,7 +191,9 @@ class TestStructuredLoggerFileOp:
         return StructuredLogger("test")
 
     @pytest.mark.unit
-    def test_file_op_message_only(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_file_op_message_only(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """メッセージのみのファイル操作ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.file_op("new_files")
@@ -194,7 +202,9 @@ class TestStructuredLoggerFileOp:
         assert "new_files" in caplog.text
 
     @pytest.mark.unit
-    def test_file_op_with_context(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_file_op_with_context(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """コンテキスト付きのファイル操作ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.file_op("new_files", count=3, path="/tmp")
@@ -205,7 +215,9 @@ class TestStructuredLoggerFileOp:
         assert "path=/tmp" in caplog.text
 
     @pytest.mark.unit
-    def test_file_op_prefix_format(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_file_op_prefix_format(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """[FILE]プレフィックスが正しくフォーマットされる"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.file_op("test_operation")
@@ -227,7 +239,9 @@ class TestStructuredLoggerValidation:
         return StructuredLogger("test")
 
     @pytest.mark.unit
-    def test_validation_message_only(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_validation_message_only(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """メッセージのみの検証ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.validation("overall_digest")
@@ -236,7 +250,9 @@ class TestStructuredLoggerValidation:
         assert "overall_digest" in caplog.text
 
     @pytest.mark.unit
-    def test_validation_with_context(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_validation_with_context(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """コンテキスト付きの検証ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.validation("overall_digest", is_valid=True)
@@ -246,7 +262,9 @@ class TestStructuredLoggerValidation:
         assert "is_valid=True" in caplog.text
 
     @pytest.mark.unit
-    def test_validation_prefix_format(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_validation_prefix_format(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """[VALIDATE]プレフィックスが正しくフォーマットされる"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.validation("test_validation")
@@ -268,7 +286,9 @@ class TestStructuredLoggerDecision:
         return StructuredLogger("test")
 
     @pytest.mark.unit
-    def test_decision_message_only(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_decision_message_only(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """メッセージのみの判断ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.decision("next_level")
@@ -277,7 +297,9 @@ class TestStructuredLoggerDecision:
         assert "next_level" in caplog.text
 
     @pytest.mark.unit
-    def test_decision_with_context(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_decision_with_context(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """コンテキスト付きの判断ログ"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.decision("next_level", level="monthly")
@@ -287,7 +309,9 @@ class TestStructuredLoggerDecision:
         assert "level=monthly" in caplog.text
 
     @pytest.mark.unit
-    def test_decision_prefix_format(self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture) -> None:
+    def test_decision_prefix_format(
+        self, logger: StructuredLogger, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """[DECISION]プレフィックスが正しくフォーマットされる"""
         with caplog.at_level(logging.DEBUG, logger="episodic_rag"):
             logger.decision("test_decision")

@@ -15,7 +15,6 @@ import pytest
 from .cli_runner import CLIRunner
 from .conftest import create_loop_file
 
-
 # =============================================================================
 # セットアップワークフロー E2E テスト
 # =============================================================================
@@ -28,8 +27,9 @@ class TestSetupWorkflowE2E:
     フロー: setup check → init → config show → auto
     """
 
-    def test_unconfigured_to_configured_workflow(self, cli_runner: CLIRunner, cli_plugin_root: Path, valid_config_json: str) -> None:
-
+    def test_unconfigured_to_configured_workflow(
+        self, cli_runner: CLIRunner, cli_plugin_root: Path, valid_config_json: str
+    ) -> None:
         """未設定から設定済みへのワークフロー"""
         # Step 1: check で未設定を確認
         result = cli_runner.run_digest_setup("check")
@@ -46,8 +46,9 @@ class TestSetupWorkflowE2E:
         result.assert_success()
         result.assert_json_status("configured")
 
-    def test_init_then_config_show_workflow(self, cli_runner: CLIRunner, valid_config_json: str) -> None:
-
+    def test_init_then_config_show_workflow(
+        self, cli_runner: CLIRunner, valid_config_json: str
+    ) -> None:
         """init → config show ワークフロー"""
         # Step 1: init
         result = cli_runner.run_digest_setup("init", config=valid_config_json)
@@ -60,7 +61,6 @@ class TestSetupWorkflowE2E:
         assert result.json_output["config"]["base_dir"] == "."
 
     def test_init_then_auto_workflow(self, cli_runner: CLIRunner, valid_config_json: str) -> None:
-
         """init → auto ワークフロー"""
         # Step 1: init
         result = cli_runner.run_digest_setup("init", config=valid_config_json)
@@ -71,8 +71,9 @@ class TestSetupWorkflowE2E:
         result.assert_success()
         assert result.json_output["status"] in ["ok", "warning", "error"]
 
-    def test_config_persistence_after_init(self, cli_runner: CLIRunner, cli_plugin_root: Path, valid_config_json: str) -> None:
-
+    def test_config_persistence_after_init(
+        self, cli_runner: CLIRunner, cli_plugin_root: Path, valid_config_json: str
+    ) -> None:
         """init 後の設定永続化を確認"""
         # init を実行
         cli_runner.run_digest_setup("init", config=valid_config_json)
@@ -101,7 +102,6 @@ class TestConfigModificationWorkflowE2E:
     """
 
     def test_set_and_verify_workflow(self, configured_cli_runner: CLIRunner) -> None:
-
         """set → show で変更を確認"""
         # Step 1: 現在の値を確認
         result = configured_cli_runner.run_digest_config("show")
@@ -110,9 +110,7 @@ class TestConfigModificationWorkflowE2E:
         # Step 2: 値を変更
         new_threshold = original_threshold + 5
         result = configured_cli_runner.run_digest_config(
-            "set",
-            key="levels.weekly_threshold",
-            value=str(new_threshold)
+            "set", key="levels.weekly_threshold", value=str(new_threshold)
         )
         result.assert_success()
 
@@ -121,13 +119,11 @@ class TestConfigModificationWorkflowE2E:
         assert result.json_output["config"]["levels"]["weekly_threshold"] == new_threshold
 
     def test_update_and_verify_workflow(self, configured_cli_runner: CLIRunner) -> None:
-
         """update → show で変更を確認"""
         # Step 1: update で複数キーを変更
-        config_json = json.dumps({
-            "base_dir": "../updated_path",
-            "levels": {"weekly_threshold": 10}
-        })
+        config_json = json.dumps(
+            {"base_dir": "../updated_path", "levels": {"weekly_threshold": 10}}
+        )
         result = configured_cli_runner.run_digest_config("update", config=config_json)
         result.assert_success()
 
@@ -137,7 +133,6 @@ class TestConfigModificationWorkflowE2E:
         assert result.json_output["config"]["levels"]["weekly_threshold"] == 10
 
     def test_trusted_paths_add_and_list_workflow(self, configured_cli_runner: CLIRunner) -> None:
-
         """trusted-paths add → list で追加を確認"""
         # Step 1: パスを追加
         result = configured_cli_runner.run_digest_config("trusted-paths", "add", "~/DEV/external1")
@@ -174,15 +169,15 @@ class TestDigestInternalWorkflowE2E:
     """
 
     def test_shadow_state_checker_for_empty_shadow(self, configured_cli_runner: CLIRunner) -> None:
-
         """空のShadowに対するshadow_state_checker"""
         result = configured_cli_runner.run_shadow_state_checker("weekly")
         result.assert_success()
         # source_filesが空であることを確認
         assert result.json_output.get("source_count", 0) == 0
 
-    def test_shadow_state_checker_detects_source_files(self, configured_cli_env, configured_cli_runner: CLIRunner) -> None:
-
+    def test_shadow_state_checker_detects_source_files(
+        self, configured_cli_env, configured_cli_runner: CLIRunner
+    ) -> None:
         """source_filesがある場合のshadow_state_checker"""
         # Loopファイルを作成
         loops_path = configured_cli_env["loops"]
@@ -216,20 +211,23 @@ class TestDigestInternalWorkflowE2E:
             pytest.skip("shadow_state_checker may not detect updated Shadow file in subprocess")
         assert result.json_output["source_count"] == 3
 
-    def test_save_provisional_digest_creates_file(self, configured_cli_env, configured_cli_runner: CLIRunner) -> None:
-
+    def test_save_provisional_digest_creates_file(
+        self, configured_cli_env, configured_cli_runner: CLIRunner
+    ) -> None:
         """save_provisional_digestがファイルを作成"""
-        digest_json = json.dumps({
-            "individual_digests": [
-                {
-                    "source_file": "L00001_test.txt",
-                    "digest_type": "テスト",
-                    "keywords": ["keyword1"],
-                    "abstract": "テスト要約",
-                    "impression": "テスト所感",
-                }
-            ]
-        })
+        digest_json = json.dumps(
+            {
+                "individual_digests": [
+                    {
+                        "source_file": "L00001_test.txt",
+                        "digest_type": "テスト",
+                        "keywords": ["keyword1"],
+                        "abstract": "テスト要約",
+                        "impression": "テスト所感",
+                    }
+                ]
+            }
+        )
 
         result = configured_cli_runner.run_save_provisional_digest("weekly", digest_json)
         result.assert_success()
@@ -253,7 +251,6 @@ class TestHealthCheckWorkflowE2E:
     """
 
     def test_healthy_system_workflow(self, configured_cli_runner: CLIRunner) -> None:
-
         """正常なシステムの診断ワークフロー"""
         # Step 1: setup check
         result = configured_cli_runner.run_digest_setup("check")
@@ -265,7 +262,6 @@ class TestHealthCheckWorkflowE2E:
         assert result.json_output["status"] == "ok"
 
     def test_unconfigured_system_workflow(self, cli_runner: CLIRunner) -> None:
-
         """未設定システムの診断ワークフロー"""
         # Step 1: setup check
         result = cli_runner.run_digest_setup("check")
@@ -293,7 +289,6 @@ class TestGenerateDigestAutoShE2E:
     """
 
     def test_shell_script_no_args(self, configured_cli_runner: CLIRunner) -> None:
-
         """引数なしで新Loop検出モード"""
         result = configured_cli_runner.run_generate_digest_auto_sh()
 
@@ -306,7 +301,6 @@ class TestGenerateDigestAutoShE2E:
         assert result.exit_code in [0, 1, -1]  # 成功、エラー、またはタイムアウト
 
     def test_shell_script_with_level_arg(self, configured_cli_runner: CLIRunner) -> None:
-
         """レベル引数ありで階層確定モード"""
         result = configured_cli_runner.run_generate_digest_auto_sh(level="weekly")
 
@@ -330,8 +324,9 @@ class TestFullE2EWorkflow:
     初期状態から設定、診断、Loop追加、ダイジェスト生成までの流れをテスト。
     """
 
-    def test_complete_setup_and_diagnosis_workflow(self, cli_runner: CLIRunner, cli_plugin_root: Path, valid_config_json: str) -> None:
-
+    def test_complete_setup_and_diagnosis_workflow(
+        self, cli_runner: CLIRunner, cli_plugin_root: Path, valid_config_json: str
+    ) -> None:
         """完全なセットアップと診断ワークフロー"""
         # Phase 1: セットアップ
         # 1.1 check で未設定を確認

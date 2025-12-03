@@ -19,12 +19,10 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from infrastructure.json_repository import load_json, save_json
-
-from interfaces.cli_helpers import output_error, output_json
-
 from domain.exceptions import FileIOError
 from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR
+from infrastructure.json_repository import load_json, save_json
+from interfaces.cli_helpers import output_error, output_json
 
 
 class ConfigEditor:
@@ -310,7 +308,7 @@ def main(plugin_root: Optional[Path] = None) -> None:
     trusted_parser = subparsers.add_parser("trusted-paths", help="Manage trusted external paths")
     trusted_subparsers = trusted_parser.add_subparsers(dest="trusted_command")
 
-    trusted_list = trusted_subparsers.add_parser("list", help="List trusted paths")
+    _trusted_list = trusted_subparsers.add_parser("list", help="List trusted paths")  # noqa: F841
 
     trusted_add = trusted_subparsers.add_parser("add", help="Add a trusted path")
     trusted_add.add_argument("path", type=str, help="Path to add")

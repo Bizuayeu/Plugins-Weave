@@ -17,18 +17,18 @@ import logging
 from pathlib import Path
 from typing import List, Literal, Optional
 
-from domain.exceptions import ConfigError
-from domain.types import ConfigData
-
-from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root
-from infrastructure.config.error_messages import initialization_failed_message
-
 from application.config.config_builder import DigestConfigBuilder
-from application.config.config_validator import ConfigValidator
-from application.config.config_validator import DirectoryValidator  # 後方互換
+from application.config.config_validator import (
+    ConfigValidator,
+    DirectoryValidator,  # 後方互換
+)
 from application.config.level_path_service import LevelPathService
 from application.config.source_path_resolver import SourcePathResolver
 from application.config.threshold_provider import ThresholdProvider
+from domain.exceptions import ConfigError
+from domain.types import ConfigData
+from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root
+from infrastructure.config.error_messages import initialization_failed_message
 
 # Application Config専用logger
 _logger = logging.getLogger("episodic_rag.config")

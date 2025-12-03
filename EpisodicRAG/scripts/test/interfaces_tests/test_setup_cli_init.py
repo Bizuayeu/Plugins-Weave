@@ -21,7 +21,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
     """init サブコマンドのCLIテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -29,12 +28,10 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         self._create_templates()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_templates(self) -> None:
-
         """テンプレートファイルを作成"""
         template_dir = self.plugin_root / ".claude-plugin"
         grand_template = {"metadata": {"last_updated": "", "version": "1.0"}, "major_digests": {}}
@@ -48,39 +45,44 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             json.dump(times_template, f)
 
     def _get_valid_config_json(self):
-
         """有効な設定JSONを返す"""
-        return json.dumps({
-            "base_dir": ".",
-            "paths": {
-                "loops_dir": "data/Loops",
-                "digests_dir": "data/Digests",
-                "essences_dir": "data/Essences",
-            },
-            "levels": {
-                "weekly_threshold": 5,
-                "monthly_threshold": 5,
-                "quarterly_threshold": 3,
-                "annual_threshold": 4,
-                "triennial_threshold": 3,
-                "decadal_threshold": 3,
-                "multi_decadal_threshold": 3,
-                "centurial_threshold": 4,
-            },
-        })
+        return json.dumps(
+            {
+                "base_dir": ".",
+                "paths": {
+                    "loops_dir": "data/Loops",
+                    "digests_dir": "data/Digests",
+                    "essences_dir": "data/Essences",
+                },
+                "levels": {
+                    "weekly_threshold": 5,
+                    "monthly_threshold": 5,
+                    "quarterly_threshold": 3,
+                    "annual_threshold": 4,
+                    "triennial_threshold": 3,
+                    "decadal_threshold": 3,
+                    "multi_decadal_threshold": 3,
+                    "centurial_threshold": 4,
+                },
+            }
+        )
 
     @pytest.mark.unit
     def test_init_with_valid_config_json(self) -> None:
-
         """init --config で有効なJSONを渡す"""
         config_json = self._get_valid_config_json()
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -92,14 +94,18 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_with_invalid_json_exits_error(self) -> None:
-
         """init --config に不正なJSONを渡すとエラー"""
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", "{invalid json"
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                "{invalid json",
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -112,19 +118,25 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_with_missing_paths_exits_error(self) -> None:
-
         """init --config で paths がないとエラー"""
-        config_json = json.dumps({
-            "base_dir": ".",
-            "levels": {"weekly_threshold": 5},
-        })
+        config_json = json.dumps(
+            {
+                "base_dir": ".",
+                "levels": {"weekly_threshold": 5},
+            }
+        )
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -136,23 +148,29 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_with_missing_levels_exits_error(self) -> None:
-
         """init --config で levels がないとエラー"""
-        config_json = json.dumps({
-            "base_dir": ".",
-            "paths": {
-                "loops_dir": "data/Loops",
-                "digests_dir": "data/Digests",
-                "essences_dir": "data/Essences",
-            },
-        })
+        config_json = json.dumps(
+            {
+                "base_dir": ".",
+                "paths": {
+                    "loops_dir": "data/Loops",
+                    "digests_dir": "data/Digests",
+                    "essences_dir": "data/Essences",
+                },
+            }
+        )
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -164,33 +182,39 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_with_invalid_threshold_exits_error(self) -> None:
-
         """init --config で無効な閾値を渡すとエラー"""
-        config_json = json.dumps({
-            "base_dir": ".",
-            "paths": {
-                "loops_dir": "data/Loops",
-                "digests_dir": "data/Digests",
-                "essences_dir": "data/Essences",
-            },
-            "levels": {
-                "weekly_threshold": -1,  # 無効な値
-                "monthly_threshold": 5,
-                "quarterly_threshold": 3,
-                "annual_threshold": 4,
-                "triennial_threshold": 3,
-                "decadal_threshold": 3,
-                "multi_decadal_threshold": 3,
-                "centurial_threshold": 4,
-            },
-        })
+        config_json = json.dumps(
+            {
+                "base_dir": ".",
+                "paths": {
+                    "loops_dir": "data/Loops",
+                    "digests_dir": "data/Digests",
+                    "essences_dir": "data/Essences",
+                },
+                "levels": {
+                    "weekly_threshold": -1,  # 無効な値
+                    "monthly_threshold": 5,
+                    "quarterly_threshold": 3,
+                    "annual_threshold": 4,
+                    "triennial_threshold": 3,
+                    "decadal_threshold": 3,
+                    "multi_decadal_threshold": 3,
+                    "centurial_threshold": 4,
+                },
+            }
+        )
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -201,16 +225,20 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_creates_directories(self) -> None:
-
         """init がディレクトリを作成する"""
         config_json = self._get_valid_config_json()
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print"):
@@ -223,16 +251,20 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_creates_config_file(self) -> None:
-
         """init が設定ファイルを作成する"""
         config_json = self._get_valid_config_json()
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print"):
@@ -243,7 +275,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_without_force_fails_when_exists(self) -> None:
-
         """既存設定がある場合、force なしで失敗する"""
         # 既存の設定ファイルを作成
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
@@ -251,12 +282,17 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
         config_json = self._get_valid_config_json()
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -267,7 +303,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_with_force_overwrites_existing(self) -> None:
-
         """既存設定がある場合でも force で上書きする"""
         # 既存の設定ファイルを作成
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
@@ -275,13 +310,18 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
         config_json = self._get_valid_config_json()
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json,
-            "--force"
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+                "--force",
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -292,33 +332,39 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_detects_external_paths(self) -> None:
-
         """init が外部パスを検出する"""
-        config_json = json.dumps({
-            "base_dir": "~/external/path",
-            "paths": {
-                "loops_dir": "data/Loops",
-                "digests_dir": "data/Digests",
-                "essences_dir": "data/Essences",
-            },
-            "levels": {
-                "weekly_threshold": 5,
-                "monthly_threshold": 5,
-                "quarterly_threshold": 3,
-                "annual_threshold": 4,
-                "triennial_threshold": 3,
-                "decadal_threshold": 3,
-                "multi_decadal_threshold": 3,
-                "centurial_threshold": 4,
-            },
-        })
+        config_json = json.dumps(
+            {
+                "base_dir": "~/external/path",
+                "paths": {
+                    "loops_dir": "data/Loops",
+                    "digests_dir": "data/Digests",
+                    "essences_dir": "data/Essences",
+                },
+                "levels": {
+                    "weekly_threshold": 5,
+                    "monthly_threshold": 5,
+                    "quarterly_threshold": 3,
+                    "annual_threshold": 4,
+                    "triennial_threshold": 3,
+                    "decadal_threshold": 3,
+                    "multi_decadal_threshold": 3,
+                    "centurial_threshold": 4,
+                },
+            }
+        )
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -330,16 +376,20 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_output_is_valid_json(self) -> None:
-
         """init の出力が有効なJSON"""
         config_json = self._get_valid_config_json()
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -351,16 +401,20 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_output_contains_created_info(self) -> None:
-
         """init の出力が作成情報を含む"""
         config_json = self._get_valid_config_json()
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init",
-            "--config", config_json
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "digest_setup.py",
+                "--plugin-root",
+                str(self.plugin_root),
+                "init",
+                "--config",
+                config_json,
+            ],
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:

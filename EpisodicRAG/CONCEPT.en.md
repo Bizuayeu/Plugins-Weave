@@ -1,3 +1,4 @@
+<!-- Last synced: 2025-12-03 -->
 English | [日本語](CONCEPT.md)
 
 # EpisodicRAG - Concept

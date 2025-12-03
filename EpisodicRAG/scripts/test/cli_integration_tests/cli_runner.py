@@ -78,8 +78,7 @@ class CLIResult:
             )
         else:
             assert self.exit_code != 0, (
-                f"Expected non-zero exit code, got {self.exit_code}\n"
-                f"stdout: {self.stdout}"
+                f"Expected non-zero exit code, got {self.exit_code}\nstdout: {self.stdout}"
             )
 
     def assert_json_status(self, expected_status: str) -> None:
@@ -95,8 +94,7 @@ class CLIResult:
         assert self.json_output is not None, f"Output is not JSON: {self.stdout}"
         actual = self.json_output.get("status")
         assert actual == expected_status, (
-            f"Expected status '{expected_status}', got '{actual}'\n"
-            f"Full output: {self.json_output}"
+            f"Expected status '{expected_status}', got '{actual}'\nFull output: {self.json_output}"
         )
 
     def assert_json_contains(self, key: str, value: Any = None) -> None:
@@ -111,14 +109,10 @@ class CLIResult:
             AssertionError: キーが存在しない、または値が異なる場合
         """
         assert self.json_output is not None, f"Output is not JSON: {self.stdout}"
-        assert key in self.json_output, (
-            f"Key '{key}' not found in output: {self.json_output}"
-        )
+        assert key in self.json_output, f"Key '{key}' not found in output: {self.json_output}"
         if value is not None:
             actual = self.json_output[key]
-            assert actual == value, (
-                f"Expected {key}='{value}', got '{actual}'"
-            )
+            assert actual == value, f"Expected {key}='{value}', got '{actual}'"
 
 
 class CLIRunner:
@@ -141,7 +135,6 @@ class CLIRunner:
         python_executable: Optional[str] = None,
         timeout: int = 30,
     ) -> None:
-
         """
         CLIRunnerを初期化
 
@@ -213,8 +206,16 @@ class CLIRunner:
             stderr = result.stderr or ""
             exit_code = result.returncode
         except subprocess.TimeoutExpired as e:
-            stdout = (e.stdout or b"").decode("utf-8", errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
-            stderr = (e.stderr or b"").decode("utf-8", errors="replace") if isinstance(e.stderr, bytes) else (e.stderr or "")
+            stdout = (
+                (e.stdout or b"").decode("utf-8", errors="replace")
+                if isinstance(e.stdout, bytes)
+                else (e.stdout or "")
+            )
+            stderr = (
+                (e.stderr or b"").decode("utf-8", errors="replace")
+                if isinstance(e.stderr, bytes)
+                else (e.stderr or "")
+            )
             exit_code = -1
 
         # JSON出力のパースを試行
@@ -389,9 +390,7 @@ class CLIRunner:
     # finalize_from_shadow CLI
     # =========================================================================
 
-    def run_finalize_from_shadow(
-        self, level: str, title: str, *args: str, **kwargs
-    ) -> CLIResult:
+    def run_finalize_from_shadow(self, level: str, title: str, *args: str, **kwargs) -> CLIResult:
         """
         finalize_from_shadow.py を実行
 
@@ -412,9 +411,7 @@ class CLIRunner:
     # generate_digest_auto.sh（Bashスクリプト）
     # =========================================================================
 
-    def run_generate_digest_auto_sh(
-        self, level: Optional[str] = None, **kwargs
-    ) -> CLIResult:
+    def run_generate_digest_auto_sh(self, level: Optional[str] = None, **kwargs) -> CLIResult:
         """
         generate_digest_auto.sh を実行
 
@@ -469,9 +466,7 @@ class CLIRunner:
 
         # PATHから検索
         try:
-            result = subprocess.run(
-                ["where", "bash"], capture_output=True, text=True, timeout=5
-            )
+            result = subprocess.run(["where", "bash"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 return result.stdout.strip().split("\n")[0]
         except (subprocess.TimeoutExpired, FileNotFoundError):

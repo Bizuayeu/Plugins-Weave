@@ -10,7 +10,6 @@ from pathlib import Path
 
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
-
 from infrastructure.config.error_messages import invalid_level_message
 
 

@@ -8,9 +8,9 @@ Provisional Digest用TypedDict定義。
 
 from typing import List, TypedDict
 
+from domain.types.digest import IndividualDigestData
 from domain.types.metadata import DigestMetadataComplete
 from domain.types.text import LongShortText
-from domain.types.digest import IndividualDigestData
 
 
 class ProvisionalDigestEntry(TypedDict):

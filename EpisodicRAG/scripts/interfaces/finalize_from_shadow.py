@@ -65,6 +65,8 @@ import argparse
 import sys
 from typing import Optional
 
+# 設定
+from application.config import DigestConfig
 from application.finalize import (
     DigestPersistence,
     ProvisionalLoader,
@@ -75,9 +77,6 @@ from application.finalize import (
 # Application層
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
-
-# 設定
-from application.config import DigestConfig
 
 # Domain層
 from domain.constants import LEVEL_CONFIG, LOG_SEPARATOR

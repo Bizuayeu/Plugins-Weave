@@ -224,7 +224,6 @@ class TempPluginEnvironment:
     """
 
     def __init__(self) -> None:
-
         self.temp_dir: Optional[Path] = None
         self.paths: Optional[Dict[str, Path]] = None
 
@@ -236,7 +235,6 @@ class TempPluginEnvironment:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-
         if self.temp_dir and self.temp_dir.exists():
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
@@ -425,7 +423,11 @@ class CLITestHelper:
 
             # 出力を結合
             if captured_outputs:
-                raw_output = captured_outputs[0] if len(captured_outputs) == 1 else "\n".join(str(o) for o in captured_outputs)
+                raw_output = (
+                    captured_outputs[0]
+                    if len(captured_outputs) == 1
+                    else "\n".join(str(o) for o in captured_outputs)
+                )
             else:
                 raw_output = ""
 
@@ -452,7 +454,9 @@ class CLITestHelper:
             AssertionError: ステータスがokでない場合
         """
         assert isinstance(result, dict), f"Output should be JSON object, got: {type(result)}"
-        assert result.get("status") == "ok", f"Expected status=ok, got {result.get('status')}: {result}"
+        assert result.get("status") == "ok", (
+            f"Expected status=ok, got {result.get('status')}: {result}"
+        )
 
     @staticmethod
     def assert_json_output_error(
@@ -473,8 +477,9 @@ class CLITestHelper:
         assert result.get("status") == "error", f"Expected status=error, got {result.get('status')}"
         if error_contains:
             error_msg = result.get("error", "")
-            assert error_contains.lower() in error_msg.lower(), \
+            assert error_contains.lower() in error_msg.lower(), (
                 f"Expected '{error_contains}' in error message, got: {error_msg}"
+            )
 
     @staticmethod
     def get_valid_config_json() -> str:
@@ -484,22 +489,24 @@ class CLITestHelper:
         Returns:
             JSON文字列
         """
-        return json.dumps({
-            "base_dir": ".",
-            "paths": {
-                "loops_dir": "data/Loops",
-                "digests_dir": "data/Digests",
-                "essences_dir": "data/Essences",
-                "identity_file_path": None,
-            },
-            "levels": {
-                "weekly_threshold": 5,
-                "monthly_threshold": 5,
-                "quarterly_threshold": 3,
-                "annual_threshold": 4,
-                "triennial_threshold": 3,
-                "decadal_threshold": 3,
-                "multi_decadal_threshold": 3,
-                "centurial_threshold": 4,
-            },
-        })
+        return json.dumps(
+            {
+                "base_dir": ".",
+                "paths": {
+                    "loops_dir": "data/Loops",
+                    "digests_dir": "data/Digests",
+                    "essences_dir": "data/Essences",
+                    "identity_file_path": None,
+                },
+                "levels": {
+                    "weekly_threshold": 5,
+                    "monthly_threshold": 5,
+                    "quarterly_threshold": 3,
+                    "annual_threshold": 4,
+                    "triennial_threshold": 3,
+                    "decadal_threshold": 3,
+                    "multi_decadal_threshold": 3,
+                    "centurial_threshold": 4,
+                },
+            }
+        )

@@ -9,28 +9,29 @@ Weekly → Monthly → Quarterly の階層間連携を検証。
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
 import pytest
 from test_helpers import create_test_loop_file
 
+from application.config import DigestConfig
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
-from application.config import DigestConfig
 from domain.constants import LEVEL_NAMES
 
 # slow マーカーを適用（ファイル全体）
@@ -42,7 +43,6 @@ class TestMultiLevelCascade:
 
     @pytest.fixture
     def cascade_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """カスケードテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -56,7 +56,6 @@ class TestMultiLevelCascade:
         }
 
     def test_weekly_finalize_triggers_monthly_shadow_update(self, cascade_env) -> None:
-
         """
         Weekly確定時にMonthly Shadowが更新される
 
@@ -117,7 +116,6 @@ class TestMultiLevelCascade:
             assert len(weekly_shadow_after.get("source_files", [])) == 0
 
     def test_cascade_stops_at_insufficient_threshold(self, cascade_env) -> None:
-
         """
         閾値未満の場合カスケードが発動しない
 
@@ -151,7 +149,6 @@ class TestBoundaryConditions:
 
     @pytest.fixture
     def boundary_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """境界条件テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -165,7 +162,6 @@ class TestBoundaryConditions:
         }
 
     def test_exactly_at_threshold_triggers_processing(self, boundary_env) -> None:
-
         """
         閾値ちょうどの場合は処理が発動する
 
@@ -197,7 +193,6 @@ class TestBoundaryConditions:
         assert len(weekly_shadow["source_files"]) == threshold
 
     def test_empty_loop_directory_initialization(self, boundary_env) -> None:
-
         """
         空のLoopディレクトリでの初回実行
 
@@ -221,7 +216,6 @@ class TestBoundaryConditions:
             assert len(weekly_shadow.get("source_files", [])) == 0
 
     def test_one_file_below_threshold_no_auto_finalize(self, boundary_env) -> None:
-
         """
         閾値-1の場合は自動確定が発生しない
 

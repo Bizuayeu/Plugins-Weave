@@ -23,19 +23,16 @@ class TestLevelBehaviorProtocol:
 
     @pytest.mark.unit
     def test_protocol_defines_format_number(self) -> None:
-
         """format_number メソッドが定義されている"""
         assert hasattr(LevelBehaviorProtocol, "format_number")
 
     @pytest.mark.unit
     def test_protocol_defines_should_cascade(self) -> None:
-
         """should_cascade メソッドが定義されている"""
         assert hasattr(LevelBehaviorProtocol, "should_cascade")
 
     @pytest.mark.unit
     def test_structural_subtyping_with_conforming_class(self):
-
         """適合するクラスはProtocolを満たす"""
 
         class ConformingBehavior:
@@ -52,7 +49,6 @@ class TestLevelBehaviorProtocol:
 
     @pytest.mark.unit
     def test_structural_subtyping_with_non_conforming_class(self):
-
         """適合しないクラスの例（型チェッカーで検出）"""
 
         class NonConformingBehavior:
@@ -67,7 +63,6 @@ class TestLevelBehaviorProtocol:
 
     @pytest.mark.unit
     def test_real_level_behavior_conforms(self) -> None:
-
         """実際の LevelBehavior 実装クラスが Protocol を満たす"""
         from domain.level_registry import LevelMetadata, StandardLevelBehavior
 
@@ -97,25 +92,21 @@ class TestLevelRegistryProtocol:
 
     @pytest.mark.unit
     def test_protocol_defines_build_prefix_pattern(self) -> None:
-
         """build_prefix_pattern メソッドが定義されている"""
         assert hasattr(LevelRegistryProtocol, "build_prefix_pattern")
 
     @pytest.mark.unit
     def test_protocol_defines_get_behavior(self) -> None:
-
         """get_behavior メソッドが定義されている"""
         assert hasattr(LevelRegistryProtocol, "get_behavior")
 
     @pytest.mark.unit
     def test_protocol_defines_get_level_by_prefix(self) -> None:
-
         """get_level_by_prefix メソッドが定義されている"""
         assert hasattr(LevelRegistryProtocol, "get_level_by_prefix")
 
     @pytest.mark.unit
     def test_structural_subtyping_with_conforming_class(self):
-
         """適合するクラスはProtocolを満たす"""
 
         class MockBehavior:
@@ -143,7 +134,6 @@ class TestLevelRegistryProtocol:
 
     @pytest.mark.unit
     def test_real_level_registry_conforms(self) -> None:
-
         """実際の LevelRegistry クラスが Protocol を満たす"""
         from domain.level_registry import LevelRegistry
 
@@ -172,7 +162,6 @@ class TestProtocolGeneral:
 
     @pytest.mark.unit
     def test_protocols_are_exported(self) -> None:
-
         """protocols モジュールから正しくエクスポートされている"""
         from domain import protocols
 
@@ -181,7 +170,6 @@ class TestProtocolGeneral:
 
     @pytest.mark.unit
     def test_protocols_in_all(self) -> None:
-
         """__all__ に含まれている"""
         from domain.protocols import __all__
 
@@ -190,14 +178,12 @@ class TestProtocolGeneral:
 
     @pytest.mark.unit
     def test_protocol_is_typing_protocol(self) -> None:
-
         """Protocol が typing.Protocol のサブクラス"""
         assert issubclass(LevelBehaviorProtocol, Protocol)
         assert issubclass(LevelRegistryProtocol, Protocol)
 
     @pytest.mark.unit
     def test_protocol_not_instantiable_directly(self) -> None:
-
         """Protocol は直接インスタンス化できない"""
         # Protocol は直接インスタンス化できる（TypeError にはならない）
         # ただし、メソッドは ... なので使用するとエラー
@@ -206,7 +192,6 @@ class TestProtocolGeneral:
 
     @pytest.mark.unit
     def test_dependency_inversion_example(self) -> None:
-
         """依存関係逆転の例"""
         # file_naming.py は protocols.py に依存し、
         # level_registry.py を直接 import しない

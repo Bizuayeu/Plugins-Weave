@@ -19,6 +19,8 @@
 ### EpisodicRAG/
 - `README.md`
 - `README.en.md`
+- `CONCEPT.md`
+- `CONCEPT.en.md`
 - `CONTRIBUTING.md`
 - `CONTRIBUTING.en.md`
 

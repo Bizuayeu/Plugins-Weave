@@ -176,7 +176,9 @@ class ShadowValidator:
         shadow_digest = self.shadow_manager.get_shadow_digest_for_level(level)
 
         if shadow_digest is None:
-            _logger.info("先に 'python -m application.grand.shadow_grand_digest' でShadowを更新してください")
+            _logger.info(
+                "先に 'python -m application.grand.shadow_grand_digest' でShadowを更新してください"
+            )
             formatter = get_error_formatter()
             raise DigestError(formatter.digest.digest_not_found(level, "shadow"))
 
@@ -215,9 +217,7 @@ class ShadowValidator:
             raise ValidationError(formatter.validation.empty_collection("digest_type"))
 
         if PLACEHOLDER_MARKER in str(digest_type):
-            raise ValidationError(
-                "digest_type contains placeholder. Run DigestAnalyzer first."
-            )
+            raise ValidationError("digest_type contains placeholder. Run DigestAnalyzer first.")
 
     def validate_and_get_shadow(self, level: str, weave_title: str) -> OverallDigestData:
         """

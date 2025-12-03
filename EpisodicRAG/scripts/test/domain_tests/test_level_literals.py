@@ -6,6 +6,7 @@ Literal Types テスト
 domain.types.level_literals モジュールのLiteral型が
 正しく定義・エクスポートされていることを確認。
 """
+
 from typing import get_args
 
 import pytest

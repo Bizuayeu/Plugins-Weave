@@ -15,10 +15,9 @@ Usage:
 
 from pathlib import Path
 
+from application.config.level_path_service import LevelPathService
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, SOURCE_TYPE_LOOPS
 from domain.exceptions import ConfigError
-
-from application.config.level_path_service import LevelPathService
 
 
 class SourcePathResolver:

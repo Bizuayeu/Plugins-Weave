@@ -21,19 +21,16 @@ class TestShadowStateChecker(unittest.TestCase):
     """ShadowStateChecker クラスのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
-
         """プラグイン構造を作成"""
         # ディレクトリ構造
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
@@ -54,13 +51,10 @@ class TestShadowStateChecker(unittest.TestCase):
                 "monthly_threshold": 5,
             },
         }
-        with open(
-            self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8"
-        ) as f:
+        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def _create_shadow_with_placeholders(self) -> None:
-
         """プレースホルダー付きのShadowGrandDigestを作成"""
         shadow_data = {
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
@@ -84,7 +78,6 @@ class TestShadowStateChecker(unittest.TestCase):
             json.dump(shadow_data, f)
 
     def _create_shadow_analyzed(self) -> None:
-
         """分析済みのShadowGrandDigestを作成"""
         shadow_data = {
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
@@ -108,7 +101,6 @@ class TestShadowStateChecker(unittest.TestCase):
             json.dump(shadow_data, f)
 
     def _create_shadow_empty_level(self) -> None:
-
         """空のレベルを持つShadowGrandDigestを作成"""
         shadow_data = {
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
@@ -134,7 +126,6 @@ class TestShadowStateChecker(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_analyzed_true_when_no_placeholders(self) -> None:
-
         """プレースホルダーなしの場合analyzed=Trueを返す"""
         # Import here to avoid path issues
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
@@ -152,7 +143,6 @@ class TestShadowStateChecker(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_analyzed_false_when_placeholders_exist(self) -> None:
-
         """プレースホルダーありの場合analyzed=Falseを返す"""
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
         from interfaces.shadow_state_checker import ShadowStateChecker
@@ -170,7 +160,6 @@ class TestShadowStateChecker(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_ok_for_empty_level(self) -> None:
-
         """空のレベルの場合も正常に処理"""
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
         from interfaces.shadow_state_checker import ShadowStateChecker
@@ -185,7 +174,6 @@ class TestShadowStateChecker(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_error_for_invalid_level(self) -> None:
-
         """無効なレベルの場合エラーを返す"""
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
         from interfaces.shadow_state_checker import ShadowStateChecker
@@ -200,7 +188,6 @@ class TestShadowStateChecker(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_error_when_config_missing(self) -> None:
-
         """設定ファイル不在の場合エラーを返す"""
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
         from interfaces.shadow_state_checker import ShadowStateChecker
@@ -217,7 +204,6 @@ class TestShadowStateChecker(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_returns_error_when_shadow_missing(self) -> None:
-
         """ShadowGrandDigest不在の場合エラーを返す"""
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
         from interfaces.shadow_state_checker import ShadowStateChecker
@@ -232,7 +218,6 @@ class TestShadowStateChecker(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_detects_null_fields_as_placeholders(self) -> None:
-
         """nullフィールドをプレースホルダーとして検出"""
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
         from interfaces.shadow_state_checker import ShadowStateChecker
@@ -251,7 +236,6 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
     """ShadowStateChecker _get_essences_path メソッドのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -259,13 +243,11 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_get_essences_path_with_relative_base_dir(self) -> None:
-
         """相対パスのbase_dir（'.'）を解決する"""
         from interfaces.shadow_state_checker import ShadowStateChecker
 
@@ -288,7 +270,6 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
 
     @pytest.mark.unit
     def test_get_essences_path_with_absolute_base_dir(self) -> None:
-
         """絶対パスのbase_dirをそのまま使用する"""
         from interfaces.shadow_state_checker import ShadowStateChecker
 
@@ -311,7 +292,6 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
 
     @pytest.mark.unit
     def test_get_essences_path_with_tilde_base_dir(self) -> None:
-
         """チルダ(~)を含むbase_dirを展開する"""
         from interfaces.shadow_state_checker import ShadowStateChecker
 
@@ -337,19 +317,16 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
     """CLI エントリーポイントのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
-
         """プラグイン構造を作成"""
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
@@ -358,9 +335,7 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
             "base_dir": ".",
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(
-            self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8"
-        ) as f:
+        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -386,7 +361,6 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
-
         """--helpで終了コード0"""
         result = subprocess.run(
             [sys.executable, "-m", "interfaces.shadow_state_checker", "--help"],

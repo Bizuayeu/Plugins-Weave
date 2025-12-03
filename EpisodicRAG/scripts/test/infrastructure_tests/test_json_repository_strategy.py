@@ -58,7 +58,6 @@ class TestLoadContext:
         template = tmp_path / "template.json"
 
         def factory():
-
             return {"key": "value"}
 
         context = LoadContext(

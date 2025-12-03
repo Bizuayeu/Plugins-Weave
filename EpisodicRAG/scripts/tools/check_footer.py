@@ -110,7 +110,9 @@ def parse_footer_md(footer_md_path: Path) -> FooterDefinition:
     return FooterDefinition(content=footer_content, target_files=target_files)
 
 
-def check_footer_in_file(file_path: Path, expected_footer: str) -> Tuple[FooterStatus, Optional[str]]:
+def check_footer_in_file(
+    file_path: Path, expected_footer: str
+) -> Tuple[FooterStatus, Optional[str]]:
     """
     ファイル内のフッターをチェック
 
@@ -268,7 +270,9 @@ def print_report(results: List[CheckResult], quiet: bool = False) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Check footer consistency across documentation files")
+    parser = argparse.ArgumentParser(
+        description="Check footer consistency across documentation files"
+    )
     parser.add_argument("--fix", action="store_true", help="Auto-fix missing or mismatched footers")
     parser.add_argument("--quiet", action="store_true", help="Only print summary")
     args = parser.parse_args()

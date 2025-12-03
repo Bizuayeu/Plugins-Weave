@@ -22,7 +22,6 @@ from tools.check_footer import (
     run_check,
 )
 
-
 # =============================================================================
 # parse_footer_md テスト
 # =============================================================================
@@ -286,9 +285,7 @@ class TestRunCheck:
         test_md = base / "EpisodicRAG" / "TEST.md"
         test_md.write_text(f"# TEST\n\n{footer}\n", encoding="utf-8")
 
-        results = run_check(
-            base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True
-        )
+        results = run_check(base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True)
 
         ok_count = sum(1 for r in results if r.status == FooterStatus.OK)
         assert ok_count == 2
@@ -306,9 +303,7 @@ class TestRunCheck:
         test_md = base / "EpisodicRAG" / "TEST.md"
         test_md.write_text("# TEST\n\nNo footer here.\n", encoding="utf-8")
 
-        results = run_check(
-            base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True
-        )
+        results = run_check(base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True)
 
         statuses = {r.status for r in results}
         assert FooterStatus.OK in statuses
@@ -325,9 +320,7 @@ class TestRunCheck:
         test_md = base / "EpisodicRAG" / "TEST.md"
         test_md.write_text("# TEST\n\nNo footer.\n", encoding="utf-8")
 
-        results = run_check(
-            base / "EpisodicRAG" / "_footer.md", base, fix=True, quiet=True
-        )
+        results = run_check(base / "EpisodicRAG" / "_footer.md", base, fix=True, quiet=True)
 
         # 修正後は全てOK
         ok_count = sum(1 for r in results if r.status == FooterStatus.OK)

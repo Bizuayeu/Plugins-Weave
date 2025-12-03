@@ -22,10 +22,10 @@ import argparse
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 
 
 class LinkStatus(Enum):
@@ -398,6 +398,7 @@ def main():
     """CLIエントリーポイント"""
     # Windows環境でのUnicode出力対応
     import io
+
     if sys.stdout.encoding != "utf-8":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
@@ -469,18 +470,18 @@ Examples:
         sys.exit(0 if not broken else 1)
 
     # テキスト出力
-    print(f"\n{'='*60}")
-    print(f"Markdown Link Checker Results")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("Markdown Link Checker Results")
+    print(f"{'=' * 60}")
     print(f"Directory: {docs_path}")
     print(f"Files checked: {summary.total_files}")
     print(f"Total links: {summary.total_links}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  Valid:          {summary.valid}")
     print(f"  Broken:         {summary.broken}")
     print(f"  Anchor missing: {summary.anchor_missing}")
     print(f"  External:       {summary.external}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # 詳細出力
     if args.verbose and not args.errors_only:

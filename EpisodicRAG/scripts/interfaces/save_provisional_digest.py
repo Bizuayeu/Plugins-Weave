@@ -122,7 +122,9 @@ class ProvisionalDigestSaver:
         current_num = self.file_manager.get_current_digest_number(level)
 
         if current_num is None:
-            log_warning("--append指定されましたが既存Provisionalがありません。新規ファイルを作成します。")
+            log_warning(
+                "--append指定されましたが既存Provisionalがありません。新規ファイルを作成します。"
+            )
             return get_next_digest_number(self.config.digests_path, level), individual_digests
 
         _logger.info(
@@ -177,12 +179,13 @@ Note: JSONはファイルまたは--stdinで渡してください。
         help="ダイジェストレベル",
     )
     parser.add_argument(
-        "input_data", nargs="?", default=None,
-        help="JSONファイルパスまたはJSON文字列（--stdin使用時は不要）"
+        "input_data",
+        nargs="?",
+        default=None,
+        help="JSONファイルパスまたはJSON文字列（--stdin使用時は不要）",
     )
     parser.add_argument(
-        "--stdin", action="store_true",
-        help="標準入力からJSONを読み込む（長いJSONに推奨）"
+        "--stdin", action="store_true", help="標準入力からJSONを読み込む（長いJSONに推奨）"
     )
     parser.add_argument(
         "--append", action="store_true", help="既存のProvisionalファイルに追加（新規作成ではなく）"
@@ -215,7 +218,9 @@ Note: JSONはファイルまたは--stdinで渡してください。
 
         # Empty list warning
         if len(individual_digests) == 0:
-            log_warning("保存する個別ダイジェストがありません。空のProvisionalファイルを作成します。")
+            log_warning(
+                "保存する個別ダイジェストがありません。空のProvisionalファイルを作成します。"
+            )
 
         _logger.info(f"個別ダイジェスト {len(individual_digests)}件を読込")
 

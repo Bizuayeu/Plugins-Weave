@@ -15,27 +15,28 @@ pytestスタイルで実装。conftest.pyのフィクスチャを活用。
 
 import json
 from pathlib import Path
-from unittest.mock import patch
-
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
 import pytest
 
 from application.config import DigestConfig
-from domain.exceptions import ConfigError
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
+from domain.exceptions import ConfigError
 
 # =============================================================================
 # DigestConfig テスト
@@ -47,7 +48,6 @@ class TestDigestConfig:
 
     @pytest.fixture
     def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """テスト用の設定環境を構築"""
         # config.json 作成
         config_data = {
@@ -81,7 +81,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_init_with_explicit_plugin_root(self, config_env) -> None:
-
         """明示的なplugin_rootで初期化"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -90,7 +89,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_load_config_success(self, config_env) -> None:
-
         """設定ファイルの読み込み成功"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -100,7 +98,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_load_config_not_found(self, config_env) -> None:
-
         """設定ファイルが見つからない場合"""
         config_env["config_file"].unlink()
         with pytest.raises(ConfigError):
@@ -108,7 +105,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_load_config_invalid_json(self, config_env) -> None:
-
         """無効なJSONの場合"""
         with open(config_env["config_file"], 'w', encoding='utf-8') as f:
             f.write("invalid json {")
@@ -117,7 +113,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_resolve_base_dir_dot(self, config_env) -> None:
-
         """base_dir="." の場合はplugin_rootと同じ"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -125,7 +120,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_resolve_base_dir_relative(self, config_env) -> None:
-
         """相対パスのbase_dir"""
         config_data = config_env["config_data"]
         config_data["base_dir"] = "data"
@@ -138,7 +132,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_path_properties(self, config_env) -> None:
-
         """パスプロパティ（loops_path, digests_path, essences_path）"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -149,7 +142,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_resolve_path_missing_key(self, config_env) -> None:
-
         """存在しないキーの場合"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -158,7 +150,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_resolve_path_missing_paths_section(self, config_env) -> None:
-
         """pathsセクションがない場合、初期化時にエラー"""
         config_data = config_env["config_data"]
         del config_data["paths"]
@@ -172,7 +163,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_get_level_dir_all_levels(self, config_env) -> None:
-
         """全レベルのディレクトリ取得"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -183,7 +173,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_get_level_dir_invalid_level(self, config_env) -> None:
-
         """無効なレベル名の場合"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -192,7 +181,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_get_provisional_dir_all_levels(self, config_env) -> None:
-
         """全レベルのProvisionalディレクトリ取得"""
         env = config_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -202,7 +190,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_init_handles_permission_error(self, config_env) -> None:
-
         """PermissionErrorがConfigErrorに変換される"""
         env = config_env["env"]
 
@@ -217,7 +204,6 @@ class TestDigestConfig:
 
     @pytest.mark.unit
     def test_init_handles_os_error(self, config_env) -> None:
-
         """OSErrorがConfigErrorに変換される"""
         env = config_env["env"]
 
@@ -236,7 +222,6 @@ class TestDigestConfigThresholds:
 
     @pytest.fixture
     def threshold_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """threshold テスト用の設定環境"""
         config_data = {
             "base_dir": ".",
@@ -282,7 +267,6 @@ class TestDigestConfigThresholds:
         ],
     )
     def test_threshold_properties(self, threshold_env, level, expected) -> None:
-
         """全レベルのthresholdプロパティ"""
         env = threshold_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -290,7 +274,6 @@ class TestDigestConfigThresholds:
 
     @pytest.mark.unit
     def test_threshold_properties_default_values(self, threshold_env) -> None:
-
         """thresholdのデフォルト値"""
         config_data = threshold_env["config_data"]
         del config_data["levels"]
@@ -310,7 +293,6 @@ class TestDigestConfigThresholds:
 
     @pytest.mark.unit
     def test_threshold_custom_values(self, threshold_env) -> None:
-
         """カスタムthreshold値"""
         config_data = threshold_env["config_data"]
         config_data["levels"]["weekly_threshold"] = 10
@@ -325,7 +307,6 @@ class TestDigestConfigThresholds:
 
     @pytest.mark.unit
     def test_get_threshold_invalid_level(self, threshold_env) -> None:
-
         """get_threshold()が無効なレベルでConfigErrorを発生させる"""
         env = threshold_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -334,7 +315,6 @@ class TestDigestConfigThresholds:
 
     @pytest.mark.unit
     def test_get_threshold_matches_properties(self, threshold_env) -> None:
-
         """get_threshold()とthresholdプロパティが同じ値を返す"""
         env = threshold_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -351,7 +331,6 @@ class TestDigestConfigIdentityFile:
 
     @pytest.fixture
     def identity_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """identity_file テスト用の設定環境"""
         config_data = {
             "base_dir": ".",
@@ -375,7 +354,6 @@ class TestDigestConfigIdentityFile:
 
     @pytest.mark.unit
     def test_get_identity_file_path_none(self, identity_env) -> None:
-
         """identity_file_pathがNoneの場合"""
         env = identity_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -383,7 +361,6 @@ class TestDigestConfigIdentityFile:
 
     @pytest.mark.unit
     def test_get_identity_file_path_configured(self, identity_env) -> None:
-
         """identity_file_pathが設定されている場合"""
         config_data = identity_env["config_data"]
         config_data["paths"]["identity_file_path"] = "Identity.md"
@@ -407,7 +384,6 @@ class TestLevelConfig:
 
     @pytest.mark.unit
     def test_all_levels_have_required_keys(self) -> None:
-
         """全レベルに必要なキーが存在"""
         required_keys = {"prefix", "digits", "dir", "source", "next"}
         for level, config in LEVEL_CONFIG.items():
@@ -416,13 +392,11 @@ class TestLevelConfig:
 
     @pytest.mark.unit
     def test_level_names_matches_config_keys(self) -> None:
-
         """LEVEL_NAMESとLEVEL_CONFIGのキーが一致"""
         assert set(LEVEL_NAMES) == set(LEVEL_CONFIG.keys())
 
     @pytest.mark.unit
     def test_level_chain_is_valid(self) -> None:
-
         """レベルチェーンが有効（nextが正しく設定されている）"""
         for level, config in LEVEL_CONFIG.items():
             next_level = config["next"]
@@ -442,7 +416,6 @@ class TestDigestConfigShowPaths:
 
     @pytest.fixture
     def show_paths_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """show_paths テスト用の設定環境"""
         config_data = {
             "base_dir": ".",
@@ -465,8 +438,9 @@ class TestDigestConfigShowPaths:
         }
 
     @pytest.mark.unit
-    def test_show_paths_logs_all_paths(self, show_paths_env, caplog: pytest.LogCaptureFixture) -> None:
-
+    def test_show_paths_logs_all_paths(
+        self, show_paths_env, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """show_paths()が全パスをログに出力"""
         import logging
 
@@ -482,7 +456,6 @@ class TestDigestConfigShowPaths:
 
     @pytest.mark.unit
     def test_show_paths_returns_none(self, show_paths_env) -> None:
-
         """show_paths()はNoneを返す"""
         env = show_paths_env["env"]
         config = DigestConfig(plugin_root=env.plugin_root)
@@ -501,7 +474,6 @@ class TestDigestConfigContextManager:
 
     @pytest.fixture
     def context_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """Context Manager テスト用の設定環境を構築"""
         config_data = {
             "base_dir": ".",
@@ -518,7 +490,6 @@ class TestDigestConfigContextManager:
 
     @pytest.mark.unit
     def test_context_manager_enter_returns_self(self, context_env) -> None:
-
         """__enter__がselfを返す"""
         config = DigestConfig(plugin_root=context_env.plugin_root)
 
@@ -527,7 +498,6 @@ class TestDigestConfigContextManager:
 
     @pytest.mark.unit
     def test_context_manager_basic_usage(self, context_env) -> None:
-
         """Context Managerの基本的な使用"""
         with DigestConfig(plugin_root=context_env.plugin_root) as config:
             # スコープ内でconfigが使用可能
@@ -536,7 +506,6 @@ class TestDigestConfigContextManager:
 
     @pytest.mark.unit
     def test_context_manager_exit_does_not_suppress_exception(self, context_env) -> None:
-
         """__exit__が例外を抑制しない"""
         with pytest.raises(ValueError):
             with DigestConfig(plugin_root=context_env.plugin_root) as _:
@@ -544,7 +513,6 @@ class TestDigestConfigContextManager:
 
     @pytest.mark.unit
     def test_context_manager_nested_usage(self, context_env) -> None:
-
         """ネストしたContext Managerの使用"""
         with DigestConfig(plugin_root=context_env.plugin_root) as outer:
             with DigestConfig(plugin_root=context_env.plugin_root) as inner:

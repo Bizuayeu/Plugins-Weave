@@ -9,7 +9,6 @@ Threshold Provider
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
 from domain.exceptions import ConfigError
 from domain.types import ConfigData, as_dict
-
 from infrastructure.config.error_messages import invalid_level_message
 
 __all__ = ["ThresholdProvider"]

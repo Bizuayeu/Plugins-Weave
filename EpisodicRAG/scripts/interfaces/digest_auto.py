@@ -12,15 +12,10 @@ Usage:
 """
 
 import argparse
-import json
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
-from infrastructure.json_repository import load_json, try_load_json
-
-from interfaces.cli_helpers import output_error, output_json
 
 from domain.exceptions import FileIOError
 from domain.file_constants import (
@@ -30,6 +25,8 @@ from domain.file_constants import (
     PLUGIN_CONFIG_DIR,
     SHADOW_GRAND_DIGEST_FILENAME,
 )
+from infrastructure.json_repository import load_json, try_load_json
+from interfaces.cli_helpers import output_error, output_json
 
 
 @dataclass
@@ -153,7 +150,7 @@ class DigestAutoAnalyzer:
             config = self._load_config()
             base_dir = self._resolve_base_dir(config)
             paths = config.get("paths", {})
-            levels_config = config.get("levels", {})
+            _levels_config = config.get("levels", {})  # Reserved for future use
 
             loops_path = base_dir / paths.get("loops_dir", "data/Loops")
             essences_path = base_dir / paths.get("essences_dir", "data/Essences")
@@ -369,7 +366,11 @@ class DigestAutoAnalyzer:
                     if source_dir.exists():
                         # Provisional以外のファイルをカウント
                         current = len(
-                            [f for f in source_dir.glob("*.txt") if "Provisional" not in str(f.parent)]
+                            [
+                                f
+                                for f in source_dir.glob("*.txt")
+                                if "Provisional" not in str(f.parent)
+                            ]
                         )
                     else:
                         current = 0
@@ -471,7 +472,9 @@ def format_text_report(result: AnalysisResult) -> str:
         output.append("⏳ 生成に必要なファイル数")
         for level in result.insufficient_levels:
             need = level.threshold - level.current
-            output.append(f"  ❌ {level.level} ({level.current}/{level.threshold}) - あと{need}個必要")
+            output.append(
+                f"  ❌ {level.level} ({level.current}/{level.threshold}) - あと{need}個必要"
+            )
         output.append("")
 
     # 推奨アクション

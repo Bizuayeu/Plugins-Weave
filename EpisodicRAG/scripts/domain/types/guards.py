@@ -9,8 +9,8 @@ EpisodicRAG TypeGuard関数
 from typing import Any, TypeGuard
 
 from domain.types.config import ConfigData
-from domain.types.level import LevelConfigData
 from domain.types.digest import ShadowDigestData
+from domain.types.level import LevelConfigData
 from domain.types.text import LongShortText
 
 
@@ -44,9 +44,7 @@ def is_config_data(data: Any) -> TypeGuard[ConfigData]:
         return False
 
     # trusted_external_pathsキーが存在する場合、listであることを確認
-    if "trusted_external_paths" in data and not isinstance(
-        data["trusted_external_paths"], list
-    ):
+    if "trusted_external_paths" in data and not isinstance(data["trusted_external_paths"], list):
         return False
 
     return True

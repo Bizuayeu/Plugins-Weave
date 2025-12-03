@@ -142,7 +142,6 @@ class DigestConfigBuilder:
             ConfigError: 構築に失敗した場合
         """
         # 遅延インポート（循環参照回避）
-        from application.config import DigestConfig
         from application.config.config_validator import ConfigValidator
         from application.config.level_path_service import LevelPathService
         from application.config.source_path_resolver import SourcePathResolver
@@ -171,9 +170,7 @@ class DigestConfigBuilder:
             # 他のコンポーネント構築
             threshold_provider = ThresholdProvider(config)
             level_path_service = LevelPathService(path_resolver.digests_path)
-            source_path_resolver = SourcePathResolver(
-                path_resolver.loops_path, level_path_service
-            )
+            source_path_resolver = SourcePathResolver(path_resolver.loops_path, level_path_service)
             config_validator = ConfigValidator(
                 config,
                 path_resolver.loops_path,
@@ -203,9 +200,7 @@ class DigestConfigBuilder:
         try:
             current_file = Path(__file__).resolve()
         except NameError:
-            raise FileNotFoundError(
-                "Cannot determine script location (__file__ not defined)"
-            )
+            raise FileNotFoundError("Cannot determine script location (__file__ not defined)")
         return find_plugin_root(current_file)
 
     def _create_digest_config(

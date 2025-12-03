@@ -21,19 +21,16 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
     """統合シナリオテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
-
         """完全なプラグイン構造を作成"""
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
         (self.plugin_root / "data" / "Digests").mkdir(parents=True)
@@ -68,29 +65,33 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                 "monthly": {"overall_digest": None},
             },
         }
-        with open(self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8") as f:
+        with open(
+            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        ) as f:
             json.dump(shadow_data, f)
 
         grand_data = {
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with open(self.plugin_root / "data" / "Essences" / "GrandDigest.txt", "w", encoding="utf-8") as f:
+        with open(
+            self.plugin_root / "data" / "Essences" / "GrandDigest.txt", "w", encoding="utf-8"
+        ) as f:
             json.dump(grand_data, f)
 
         times_data = {"weekly": {"timestamp": "", "last_processed": None}}
-        with open(self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8") as f:
+        with open(
+            self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8"
+        ) as f:
             json.dump(times_data, f)
 
     @pytest.mark.unit
     def test_healthy_system_returns_ok(self) -> None:
-
         """問題がないシステムで ok を返す"""
-        with patch("sys.argv", [
-            "digest_auto.py",
-            "--output", "json",
-            "--plugin-root", str(self.plugin_root)
-        ]):
+        with patch(
+            "sys.argv",
+            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+        ):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:
@@ -101,19 +102,19 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
     @pytest.mark.unit
     def test_system_with_unprocessed_loops_returns_warning(self) -> None:
-
         """未処理Loopがあるシステムで warning を返す"""
         # Loopファイルを作成
         for i in range(1, 3):
             loop_data = {"overall_digest": {"abstract": f"Test loop {i}"}}
-            with open(self.plugin_root / "data" / "Loops" / f"L{i:05d}_test.txt", "w", encoding="utf-8") as f:
+            with open(
+                self.plugin_root / "data" / "Loops" / f"L{i:05d}_test.txt", "w", encoding="utf-8"
+            ) as f:
                 json.dump(loop_data, f)
 
-        with patch("sys.argv", [
-            "digest_auto.py",
-            "--output", "json",
-            "--plugin-root", str(self.plugin_root)
-        ]):
+        with patch(
+            "sys.argv",
+            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+        ):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:
@@ -129,16 +130,14 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
     @pytest.mark.unit
     def test_missing_shadow_returns_error(self) -> None:
-
         """ShadowGrandDigestがない場合にエラーを返す"""
         # ShadowGrandDigestを削除
         (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").unlink()
 
-        with patch("sys.argv", [
-            "digest_auto.py",
-            "--output", "json",
-            "--plugin-root", str(self.plugin_root)
-        ]):
+        with patch(
+            "sys.argv",
+            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+        ):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:
@@ -149,18 +148,16 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
     @pytest.mark.unit
     def test_corrupted_config_returns_error(self) -> None:
-
         """破損した設定ファイルでエラーを返す"""
 
         # 設定ファイルを破損させる
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
             f.write("{ invalid json")
 
-        with patch("sys.argv", [
-            "digest_auto.py",
-            "--output", "json",
-            "--plugin-root", str(self.plugin_root)
-        ]):
+        with patch(
+            "sys.argv",
+            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+        ):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:
@@ -178,24 +175,26 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
     @pytest.mark.unit
     def test_generatable_levels_included_in_output(self) -> None:
-
         """生成可能なレベルが出力に含まれる"""
         # 5つのLoopファイルを作成（thresholdを満たす）
         for i in range(1, 6):
             loop_data = {"overall_digest": {"abstract": f"Test loop {i}"}}
-            with open(self.plugin_root / "data" / "Loops" / f"L{i:05d}_test.txt", "w", encoding="utf-8") as f:
+            with open(
+                self.plugin_root / "data" / "Loops" / f"L{i:05d}_test.txt", "w", encoding="utf-8"
+            ) as f:
                 json.dump(loop_data, f)
 
         # last_processedを更新して未処理扱いにしない
         times_data = {"weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5}}
-        with open(self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8") as f:
+        with open(
+            self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8"
+        ) as f:
             json.dump(times_data, f)
 
-        with patch("sys.argv", [
-            "digest_auto.py",
-            "--output", "json",
-            "--plugin-root", str(self.plugin_root)
-        ]):
+        with patch(
+            "sys.argv",
+            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+        ):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:
@@ -208,18 +207,18 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
     @pytest.mark.unit
     def test_recommendations_included_when_issues_exist(self) -> None:
-
         """問題がある場合に推奨アクションが含まれる"""
         # 未処理Loopを作成
         loop_data = {"overall_digest": {"abstract": "Test loop"}}
-        with open(self.plugin_root / "data" / "Loops" / "L00001_test.txt", "w", encoding="utf-8") as f:
+        with open(
+            self.plugin_root / "data" / "Loops" / "L00001_test.txt", "w", encoding="utf-8"
+        ) as f:
             json.dump(loop_data, f)
 
-        with patch("sys.argv", [
-            "digest_auto.py",
-            "--output", "json",
-            "--plugin-root", str(self.plugin_root)
-        ]):
+        with patch(
+            "sys.argv",
+            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+        ):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:

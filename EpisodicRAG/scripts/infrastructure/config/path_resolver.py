@@ -11,7 +11,6 @@ from typing import List, Optional
 
 from domain.exceptions import ConfigError
 from domain.types import ConfigData, as_dict
-
 from infrastructure.config.error_messages import (
     config_invalid_value_message,
     config_key_missing_message,

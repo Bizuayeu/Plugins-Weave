@@ -23,12 +23,12 @@ GrandDigest更新後に作成された新しいコンテンツを保持し、
 from pathlib import Path
 from typing import Dict, List, Optional, cast
 
+# Plugin版: application.configをインポート
+from application.config import DigestConfig
+
 # 分割したモジュールをインポート
 from application.shadow import FileDetector, ShadowIO, ShadowTemplate, ShadowUpdater
 from application.tracking import DigestTimesTracker
-
-# Plugin版: application.configをインポート
-from application.config import DigestConfig
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, LOG_SEPARATOR, build_level_hierarchy
 from domain.file_constants import GRAND_DIGEST_FILENAME, SHADOW_GRAND_DIGEST_FILENAME
 from domain.types import LevelHierarchyEntry, OverallDigestData

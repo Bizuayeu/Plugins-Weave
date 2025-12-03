@@ -21,22 +21,21 @@ class TestSetupCLI(unittest.TestCase):
     """CLI エントリーポイントのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_main_check_command(self) -> None:
-
         """check コマンドが動作する"""
-        with patch("sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]):
+        with patch(
+            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
+        ):
             from interfaces.digest_setup import main
 
             # 出力をキャプチャ
@@ -47,7 +46,6 @@ class TestSetupCLI(unittest.TestCase):
 
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
-
         """--help で exit code 0"""
         with patch("sys.argv", ["digest_setup.py", "--help"]):
             with patch("sys.stdout"):
@@ -62,26 +60,21 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
     """check サブコマンドの追加CLIテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_check_not_configured_output_format(self) -> None:
-
         """check の not_configured 出力形式"""
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "check"
-        ]):
+        with patch(
+            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -95,7 +88,6 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_configured_output_format(self) -> None:
-
         """check の configured 出力形式"""
         # 設定ファイルとディレクトリを作成
         config_data = {
@@ -110,11 +102,9 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
             json.dump(config_data, f)
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "check"
-        ]):
+        with patch(
+            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -127,7 +117,6 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_partial_output_format(self) -> None:
-
         """check の partial 出力形式"""
         # 設定ファイルのみ作成（ディレクトリなし）
         config_data = {
@@ -137,11 +126,9 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "check"
-        ]):
+        with patch(
+            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -154,17 +141,14 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_with_corrupted_config(self) -> None:
-
         """check で破損した設定ファイルを処理"""
         # 破損したJSONファイルを作成
         with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
             f.write("{ invalid json")
 
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "check"
-        ]):
+        with patch(
+            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -177,13 +161,10 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
 
     @pytest.mark.unit
     def test_check_output_is_valid_json(self) -> None:
-
         """check の出力が有効なJSON"""
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "check"
-        ]):
+        with patch(
+            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
+        ):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -198,58 +179,48 @@ class TestSetupCLINoCommand(unittest.TestCase):
     """コマンドなしの場合のテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_no_command_exits_with_code_1(self) -> None:
-
         """コマンドなしで exit code 1"""
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root)
-        ]):
+        with patch("sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root)]):
             with patch("sys.stdout"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_setup import main
+
                     main()
                 assert exc_info.value.code == 1
 
     @pytest.mark.unit
     def test_invalid_command_exits_with_error(self) -> None:
-
         """無効なコマンドでエラー"""
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "invalid_command"
-        ]):
+        with patch(
+            "sys.argv",
+            ["digest_setup.py", "--plugin-root", str(self.plugin_root), "invalid_command"],
+        ):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_setup import main
+
                     main()
                 assert exc_info.value.code == 2  # argparse error
 
     @pytest.mark.unit
     def test_init_missing_config_flag_exits_error(self) -> None:
-
         """init で --config フラグがない場合にエラー"""
-        with patch("sys.argv", [
-            "digest_setup.py",
-            "--plugin-root", str(self.plugin_root),
-            "init"
-        ]):
+        with patch("sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "init"]):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_setup import main
+
                     main()
                 assert exc_info.value.code == 2  # argparse error
 

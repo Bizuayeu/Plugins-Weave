@@ -9,27 +9,28 @@ E2E Error Recovery Tests
 
 import json
 from pathlib import Path
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
 import pytest
 from test_helpers import create_test_loop_file
 
+from application.config import DigestConfig
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.tracking import DigestTimesTracker
-from application.config import DigestConfig
 from domain.exceptions import ConfigError, FileIOError
 
 # slow マーカーを適用（ファイル全体）
@@ -41,7 +42,6 @@ class TestCorruptedFileRecovery:
 
     @pytest.fixture
     def recovery_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """回復テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -55,7 +55,6 @@ class TestCorruptedFileRecovery:
         }
 
     def test_recover_from_corrupted_shadow_file(self, recovery_env) -> None:
-
         """
         破損したShadowファイルからの回復
 
@@ -83,7 +82,6 @@ class TestCorruptedFileRecovery:
         assert len(new_files) == 1
 
     def test_recover_from_corrupted_grand_digest(self, recovery_env) -> None:
-
         """
         破損したGrandDigest.txtの読み込み時エラー
 
@@ -107,7 +105,6 @@ class TestCorruptedFileRecovery:
             grand_manager.load_or_create()
 
     def test_recover_from_empty_shadow_file(self, recovery_env) -> None:
-
         """
         空のShadowファイルからの回復
 
@@ -136,7 +133,6 @@ class TestMissingFileRecovery:
 
     @pytest.fixture
     def missing_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """ファイル欠損テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -150,7 +146,6 @@ class TestMissingFileRecovery:
         }
 
     def test_missing_last_digest_times_creates_new(self, missing_env) -> None:
-
         """
         last_digest_times.json欠損時の自動作成
 
@@ -177,7 +172,6 @@ class TestMissingFileRecovery:
         assert last_processed is None
 
     def test_missing_shadow_file_creates_new(self, missing_env) -> None:
-
         """
         ShadowGrandDigest.txt欠損時の自動作成
 
@@ -210,7 +204,6 @@ class TestInvalidDataRecovery:
 
     @pytest.fixture
     def invalid_data_env(self, temp_plugin_env: "TempPluginEnvironment"):
-
         """不正データテスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
@@ -224,7 +217,6 @@ class TestInvalidDataRecovery:
         }
 
     def test_invalid_loop_file_skipped_gracefully(self, invalid_data_env) -> None:
-
         """
         不正なLoopファイルは優雅にスキップされる
 
@@ -251,7 +243,6 @@ class TestInvalidDataRecovery:
         assert len(new_files) == 2
 
     def test_shadow_with_null_overall_digest_recovers(self, invalid_data_env) -> None:
-
         """
         overall_digestがnullのShadowからの回復
 

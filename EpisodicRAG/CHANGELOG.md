@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **開発ツール**: フッターチェッカー、リンクチェッカー（`scripts/tools/`）
 
-- **テスト**: 153テスト追加（合計2198テスト）
+- **CONCEPT.md / CONCEPT.en.md**: コンセプトドキュメント新規作成（日英同期 210行/210行）
 
 > 📖 詳細は [DESIGN_DECISIONS.md](docs/dev/DESIGN_DECISIONS.md) を参照
 

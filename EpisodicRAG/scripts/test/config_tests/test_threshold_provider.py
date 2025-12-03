@@ -8,9 +8,9 @@ config/threshold_provider.py のテスト
 
 import pytest
 
-from domain.exceptions import ConfigError
 from application.config.threshold_provider import ThresholdProvider
 from domain.constants import LEVEL_CONFIG, LEVEL_NAMES
+from domain.exceptions import ConfigError
 
 
 class TestThresholdProvider:
@@ -18,13 +18,11 @@ class TestThresholdProvider:
 
     @pytest.fixture
     def default_config(self):
-
         """デフォルト設定（levels未指定）"""
         return {}
 
     @pytest.fixture
     def custom_config(self):
-
         """カスタム設定"""
         return {
             "levels": {"weekly_threshold": 10, "monthly_threshold": 8, "quarterly_threshold": 6}
@@ -33,7 +31,6 @@ class TestThresholdProvider:
     @pytest.mark.unit
     @pytest.mark.parametrize("level", LEVEL_NAMES)
     def test_get_threshold_for_each_level(self, default_config, level) -> None:
-
         """全8レベルの閾値取得"""
         provider = ThresholdProvider(default_config)
 
@@ -45,7 +42,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_invalid_level_raises_config_error(self, default_config) -> None:
-
         """不正レベル名でConfigError"""
         provider = ThresholdProvider(default_config)
 
@@ -57,7 +53,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_custom_threshold_override(self, custom_config) -> None:
-
         """カスタム閾値の上書き"""
         provider = ThresholdProvider(custom_config)
 
@@ -67,7 +62,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_partial_custom_threshold(self, custom_config) -> None:
-
         """一部のみカスタム、残りはデフォルト"""
         provider = ThresholdProvider(custom_config)
 
@@ -78,7 +72,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_weekly_threshold(self, custom_config) -> None:
-
         """weekly_thresholdプロパティ"""
         provider = ThresholdProvider(custom_config)
 
@@ -86,7 +79,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_monthly_threshold(self, custom_config) -> None:
-
         """monthly_thresholdプロパティ"""
         provider = ThresholdProvider(custom_config)
 
@@ -94,7 +86,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_quarterly_threshold(self, custom_config) -> None:
-
         """quarterly_thresholdプロパティ"""
         provider = ThresholdProvider(custom_config)
 
@@ -102,7 +93,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_annual_threshold(self, default_config) -> None:
-
         """annual_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
@@ -110,7 +100,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_triennial_threshold(self, default_config) -> None:
-
         """triennial_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
@@ -118,7 +107,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_decadal_threshold(self, default_config) -> None:
-
         """decadal_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
@@ -126,7 +114,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_multi_decadal_threshold(self, default_config) -> None:
-
         """multi_decadal_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
@@ -134,7 +121,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_property_centurial_threshold(self, default_config) -> None:
-
         """centurial_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
@@ -142,7 +128,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_empty_levels_section(self) -> None:
-
         """空のlevelsセクション"""
         config = {"levels": {}}
         provider = ThresholdProvider(config)
@@ -152,7 +137,6 @@ class TestThresholdProvider:
 
     @pytest.mark.unit
     def test_zero_threshold_allowed(self) -> None:
-
         """0の閾値も許容"""
         config = {"levels": {"weekly_threshold": 0}}
         provider = ThresholdProvider(config)

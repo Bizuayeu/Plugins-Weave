@@ -15,41 +15,24 @@ Note:
 """
 
 # Metadata types
-from domain.types.metadata import (
-    BaseMetadata,
-    DigestMetadata,
-    DigestMetadataComplete,
-)
-
-# Level types
-from domain.types.level import (
-    LevelConfigData,
-    LevelHierarchyEntry,
-)
-
-# Text types
-from domain.types.text import (
-    LongShortText,
+# Config types
+from domain.types.config import (
+    ConfigData,
+    DigestTimeData,
+    DigestTimesData,
+    LevelsConfigData,
+    PathsConfigData,
 )
 
 # Digest types
 from domain.types.digest import (
-    OverallDigestData,
-    IndividualDigestData,
-    ShadowLevelData,
-    ShadowDigestData,
-    GrandDigestLevelData,
     GrandDigestData,
+    GrandDigestLevelData,
+    IndividualDigestData,
+    OverallDigestData,
     RegularDigestData,
-)
-
-# Config types
-from domain.types.config import (
-    PathsConfigData,
-    LevelsConfigData,
-    ConfigData,
-    DigestTimeData,
-    DigestTimesData,
+    ShadowDigestData,
+    ShadowLevelData,
 )
 
 # Entry types (Provisional)
@@ -58,17 +41,18 @@ from domain.types.entry import (
     ProvisionalDigestFile,
 )
 
-# Utility functions
-from domain.types.utils import (
-    as_dict,
-)
-
 # TypeGuard functions
 from domain.types.guards import (
     is_config_data,
     is_level_config_data,
-    is_shadow_digest_data,
     is_long_short_text,
+    is_shadow_digest_data,
+)
+
+# Level types
+from domain.types.level import (
+    LevelConfigData,
+    LevelHierarchyEntry,
 )
 
 # Literal types
@@ -81,6 +65,21 @@ from domain.types.level_literals import (
     ProvisionalSuffix,
     SourceType,
     ThresholdKey,
+)
+from domain.types.metadata import (
+    BaseMetadata,
+    DigestMetadata,
+    DigestMetadataComplete,
+)
+
+# Text types
+from domain.types.text import (
+    LongShortText,
+)
+
+# Utility functions
+from domain.types.utils import (
+    as_dict,
 )
 
 __all__ = [

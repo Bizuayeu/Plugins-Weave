@@ -14,18 +14,19 @@ Note:
 
 import json
 from pathlib import Path
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any, Dict, List, Tuple
+
     from test_helpers import TempPluginEnvironment
+
     from application.config import DigestConfig
-    from application.tracking import DigestTimesTracker
-    from application.shadow import ShadowTemplate, ShadowIO, FileDetector
+    from application.grand import GrandDigestManager, ShadowGrandDigestManager
+    from application.shadow import FileDetector, ShadowIO, ShadowTemplate
     from application.shadow.placeholder_manager import PlaceholderManager
-    from application.grand import ShadowGrandDigestManager, GrandDigestManager
+    from application.tracking import DigestTimesTracker
     from domain.types.level import LevelHierarchyEntry
 
 
@@ -45,8 +46,13 @@ pytestmark = pytest.mark.slow
 
 
 @pytest.fixture
-def file_appender(shadow_io: "ShadowIO", file_detector: "FileDetector", template: "ShadowTemplate", level_hierarchy: "Dict[str, LevelHierarchyEntry]", placeholder_manager: "PlaceholderManager"):
-
+def file_appender(
+    shadow_io: "ShadowIO",
+    file_detector: "FileDetector",
+    template: "ShadowTemplate",
+    level_hierarchy: "Dict[str, LevelHierarchyEntry]",
+    placeholder_manager: "PlaceholderManager",
+):
     """テスト用FileAppender"""
     return FileAppender(shadow_io, file_detector, template, level_hierarchy, placeholder_manager)
 
@@ -61,7 +67,6 @@ class TestEnsureOverallDigestInitialized:
 
     @pytest.mark.integration
     def test_initializes_null_overall_digest(self, file_appender, shadow_io: "ShadowIO") -> None:
-
         """overall_digestがnullの場合、初期化される"""
         shadow_data = shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = None
@@ -73,8 +78,9 @@ class TestEnsureOverallDigestInitialized:
         assert "source_files" in result
 
     @pytest.mark.integration
-    def test_initializes_non_dict_overall_digest(self, file_appender, shadow_io: "ShadowIO") -> None:
-
+    def test_initializes_non_dict_overall_digest(
+        self, file_appender, shadow_io: "ShadowIO"
+    ) -> None:
         """overall_digestがdict以外の場合、初期化される"""
         shadow_data = shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = "invalid"
@@ -86,7 +92,6 @@ class TestEnsureOverallDigestInitialized:
 
     @pytest.mark.integration
     def test_preserves_existing_valid_digest(self, file_appender, shadow_io: "ShadowIO") -> None:
-
         """有効なoverall_digestは保持される"""
         shadow_data = shadow_io.load_or_create()
         existing_digest = {"source_files": ["Loop0001_test.txt"], "abstract": "Existing content"}
@@ -99,7 +104,6 @@ class TestEnsureOverallDigestInitialized:
 
     @pytest.mark.integration
     def test_adds_source_files_if_missing(self, file_appender, shadow_io: "ShadowIO") -> None:
-
         """source_filesがない場合、追加される"""
         shadow_data = shadow_io.load_or_create()
         shadow_data["latest_digests"]["weekly"]["overall_digest"] = {
@@ -122,8 +126,12 @@ class TestLogDigestContent:
     """_log_digest_content メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_log_digest_content_valid_json(self, file_appender, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture) -> None:
-
+    def test_log_digest_content_valid_json(
+        self,
+        file_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
         """有効なJSONファイルの内容をログ出力"""
         # Weekly Digestファイルを作成
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
@@ -146,8 +154,12 @@ class TestLogDigestContent:
         assert "digest_type" in caplog.text or "Read digest content" in caplog.text
 
     @pytest.mark.integration
-    def test_log_digest_content_json_decode_error(self, file_appender, temp_plugin_env: "TempPluginEnvironment", capsys: pytest.CaptureFixture[str]) -> None:
-
+    def test_log_digest_content_json_decode_error(
+        self,
+        file_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """無効なJSONファイルの場合、警告を出力"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_invalid.txt"
@@ -161,8 +173,9 @@ class TestLogDigestContent:
         # エラーで落ちないことが重要
 
     @pytest.mark.integration
-    def test_log_digest_content_file_not_found(self, file_appender, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_log_digest_content_file_not_found(
+        self, file_appender, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """存在しないファイルの場合、エラーなく終了"""
         nonexistent_file = temp_plugin_env.digests_path / "1_Weekly" / "W9999_nonexistent.txt"
 
@@ -170,8 +183,9 @@ class TestLogDigestContent:
         file_appender._log_digest_content(nonexistent_file, "monthly")
 
     @pytest.mark.integration
-    def test_log_digest_content_non_txt_file(self, file_appender, temp_plugin_env: "TempPluginEnvironment") -> None:
-
+    def test_log_digest_content_non_txt_file(
+        self, file_appender, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """非テキストファイル（.json等）は無視される"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         json_file = weekly_dir / "W0001_test.json"
@@ -182,8 +196,12 @@ class TestLogDigestContent:
         file_appender._log_digest_content(json_file, "monthly")
 
     @pytest.mark.integration
-    def test_log_digest_content_non_dict_digest(self, file_appender, temp_plugin_env: "TempPluginEnvironment", capsys: pytest.CaptureFixture[str]) -> None:
-
+    def test_log_digest_content_non_dict_digest(
+        self,
+        file_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """overall_digestがdict以外の場合、警告を出力"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_non_dict.txt"

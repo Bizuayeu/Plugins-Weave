@@ -128,12 +128,8 @@ class RegularDigestBuilder:
 
         # abstract/impression は string型 または {"long": str, "short": str} 型に対応
         # overall_digest には long 版を使用
-        abstract = RegularDigestBuilder._extract_long_value(
-            shadow_digest.get("abstract", "")
-        )
-        impression = RegularDigestBuilder._extract_long_value(
-            shadow_digest.get("impression", "")
-        )
+        abstract = RegularDigestBuilder._extract_long_value(shadow_digest.get("abstract", ""))
+        impression = RegularDigestBuilder._extract_long_value(shadow_digest.get("impression", ""))
 
         return {
             "metadata": {

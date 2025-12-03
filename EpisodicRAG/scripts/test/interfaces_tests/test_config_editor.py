@@ -22,7 +22,6 @@ class TestConfigEditor(unittest.TestCase):
     """ConfigEditor クラスのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -30,12 +29,10 @@ class TestConfigEditor(unittest.TestCase):
         self._create_config()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-
         """設定ファイルを作成"""
         config_data = {
             "_comment_base_dir": "Data base directory",
@@ -66,7 +63,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_show_returns_current_config(self) -> None:
-
         """show が現在の設定を返す"""
         from interfaces.digest_config import ConfigEditor
 
@@ -80,7 +76,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_show_excludes_comment_fields(self) -> None:
-
         """show がコメントフィールドを除外する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -93,7 +88,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_show_includes_resolved_paths(self) -> None:
-
         """show が解決済みパスを含む"""
         from interfaces.digest_config import ConfigEditor
 
@@ -108,7 +102,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_set_value_updates_nested_key(self) -> None:
-
         """set_value がネストされたキーを更新する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -126,7 +119,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_set_value_converts_threshold_to_int(self) -> None:
-
         """set_value が閾値を整数に変換する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -139,7 +131,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_replaces_config(self) -> None:
-
         """update が設定を更新する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -152,7 +143,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_update_preserves_comments(self) -> None:
-
         """update がコメントを保持する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -167,7 +157,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_add_trusted_path_adds_new_path(self) -> None:
-
         """add_trusted_path が新しいパスを追加する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -179,7 +168,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_add_trusted_path_rejects_relative_paths(self) -> None:
-
         """add_trusted_path が相対パスを拒否する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -191,7 +179,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_add_trusted_path_handles_duplicates(self) -> None:
-
         """add_trusted_path が重複を処理する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -204,7 +191,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_remove_trusted_path_removes_existing(self) -> None:
-
         """remove_trusted_path が既存のパスを削除する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -217,7 +203,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_remove_trusted_path_handles_nonexistent(self) -> None:
-
         """remove_trusted_path が存在しないパスを処理する"""
         from interfaces.digest_config import ConfigEditor
 
@@ -229,7 +214,6 @@ class TestConfigEditor(unittest.TestCase):
 
     @pytest.mark.unit
     def test_list_trusted_paths_returns_all_paths(self) -> None:
-
         """list_trusted_paths が全パスを返す"""
         from interfaces.digest_config import ConfigEditor
 
@@ -247,20 +231,17 @@ class TestConfigEditorErrors(unittest.TestCase):
     """ConfigEditor エラーハンドリングのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_show_raises_when_config_missing(self) -> None:
-
         """設定ファイルがない場合に FileIOError"""
         from interfaces.digest_config import ConfigEditor
 
@@ -274,7 +255,6 @@ class TestConfigEditorResolvePath(unittest.TestCase):
     """ConfigEditor _resolve_path メソッドのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -282,12 +262,10 @@ class TestConfigEditorResolvePath(unittest.TestCase):
         self._create_config()
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-
         """設定ファイルを作成"""
         config_data = {
             "base_dir": ".",
@@ -300,7 +278,6 @@ class TestConfigEditorResolvePath(unittest.TestCase):
 
     @pytest.mark.unit
     def test_resolve_absolute_path(self) -> None:
-
         """絶対パスはそのまま解決される"""
         from interfaces.digest_config import ConfigEditor
 
@@ -313,7 +290,6 @@ class TestConfigEditorResolvePath(unittest.TestCase):
 
     @pytest.mark.unit
     def test_resolve_relative_path(self) -> None:
-
         """相対パスはbase_dirを基準に解決される"""
         from interfaces.digest_config import ConfigEditor
 
@@ -329,7 +305,6 @@ class TestConfigEditorSetValueErrors(unittest.TestCase):
     """ConfigEditor set_value エラーハンドリングのテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
@@ -342,13 +317,11 @@ class TestConfigEditorSetValueErrors(unittest.TestCase):
             json.dump(config_data, f)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_set_invalid_threshold_returns_error(self) -> None:
-
         """無効な閾値（整数に変換できない値）でエラーを返す"""
         from interfaces.digest_config import ConfigEditor
 
@@ -363,20 +336,17 @@ class TestConfigEditorIdentityPath(unittest.TestCase):
     """ConfigEditor identity_file_path 処理のテスト"""
 
     def setUp(self) -> None:
-
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
     def tearDown(self) -> None:
-
         """一時ディレクトリを削除"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
     def test_show_with_identity_file_path(self) -> None:
-
         """identity_file_pathがある場合に解決済みパスに含まれる"""
         from interfaces.digest_config import ConfigEditor
 

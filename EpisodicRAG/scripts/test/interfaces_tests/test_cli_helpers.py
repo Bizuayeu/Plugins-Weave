@@ -20,7 +20,6 @@ class TestOutputJson(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_json_prints_valid_json(self) -> None:
-
         """JSONとして有効な出力を生成"""
         from interfaces.cli_helpers import output_json
 
@@ -36,7 +35,6 @@ class TestOutputJson(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_json_uses_indent(self) -> None:
-
         """インデント付きで出力"""
         from interfaces.cli_helpers import output_json
 
@@ -51,7 +49,6 @@ class TestOutputJson(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_json_preserves_unicode(self) -> None:
-
         """日本語などのUnicodeを保持"""
         from interfaces.cli_helpers import output_json
 
@@ -65,7 +62,6 @@ class TestOutputJson(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_json_handles_nested_data(self) -> None:
-
         """ネストしたデータを正しく出力"""
         from interfaces.cli_helpers import output_json
 
@@ -84,7 +80,6 @@ class TestOutputError(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_includes_status_error(self) -> None:
-
         """status: errorを含む"""
         from interfaces.cli_helpers import output_error
 
@@ -99,7 +94,6 @@ class TestOutputError(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_includes_error_message(self) -> None:
-
         """エラーメッセージを含む"""
         from interfaces.cli_helpers import output_error
 
@@ -113,7 +107,6 @@ class TestOutputError(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_includes_details_when_provided(self) -> None:
-
         """詳細情報を含む"""
         from interfaces.cli_helpers import output_error
 
@@ -130,7 +123,6 @@ class TestOutputError(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_without_details(self) -> None:
-
         """詳細なしでも動作"""
         from interfaces.cli_helpers import output_error
 
@@ -144,7 +136,6 @@ class TestOutputError(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_exits_with_code_1(self) -> None:
-
         """終了コード1で終了"""
         from interfaces.cli_helpers import output_error
 
@@ -156,7 +147,6 @@ class TestOutputError(unittest.TestCase):
 
     @pytest.mark.unit
     def test_output_error_preserves_unicode(self) -> None:
-
         """日本語エラーメッセージを保持"""
         from interfaces.cli_helpers import output_error
 
