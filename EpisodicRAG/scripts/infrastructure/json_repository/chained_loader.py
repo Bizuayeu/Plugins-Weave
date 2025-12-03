@@ -66,6 +66,13 @@ class ChainedLoader(Generic[T]):
 
         Returns:
             最初に成功した戦略の結果、またはすべて失敗した場合はNone
+
+        Example:
+            >>> loader = ChainedLoader([FileLoadStrategy(), TemplateLoadStrategy()])
+            >>> context = LoadContext(target_file=Path("config.json"))
+            >>> result = loader.load(context)
+            >>> result is not None  # 最初に成功した戦略の結果
+            True
         """
         logger.debug(
             f"ChainedLoader: Starting load for {context.target_file}, "

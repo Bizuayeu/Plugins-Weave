@@ -114,6 +114,15 @@ class RegularDigestBuilder:
 
         Returns:
             RegularDigest構造体
+
+        Example:
+            >>> shadow = {"digest_type": "開発", "keywords": ["MCP"], "abstract": "...", "impression": "...", "source_files": ["W0001.txt"]}
+            >>> individuals = [{"source_file": "W0001.txt", "digest_type": "開発", "keywords": ["API"], "abstract": "...", "impression": "..."}]
+            >>> result = RegularDigestBuilder.build("monthly", "2025年11月", "0001", shadow, individuals)
+            >>> result["metadata"]["digest_level"]
+            'monthly'
+            >>> result["overall_digest"]["name"]
+            '2025年11月'
         """
         source_files = shadow_digest.get("source_files", [])
 

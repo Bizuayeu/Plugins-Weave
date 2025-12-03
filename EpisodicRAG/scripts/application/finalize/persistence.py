@@ -78,6 +78,12 @@ class DigestPersistence:
         Raises:
             FileIOError: ファイルの保存に失敗した場合
             ValidationError: ユーザーが上書きをキャンセルした場合
+
+        Example:
+            >>> persistence = DigestPersistence(config, grand_manager, shadow_manager, tracker)
+            >>> path = persistence.save_regular_digest("weekly", regular_digest, "W0042_2025年11月第4週")
+            >>> path.name
+            'W0042_2025年11月第4週.txt'
         """
         config = self.level_config[level]
         target_dir = self.digests_path / str(config["dir"])
@@ -199,6 +205,11 @@ class DigestPersistence:
             level: ダイジェストレベル
             source_files: ソースファイルリスト
             provisional_file_to_delete: 削除するProvisionalファイル
+
+        Example:
+            >>> persistence = DigestPersistence(config, grand_manager, shadow_manager, tracker)
+            >>> persistence.process_cascade_and_cleanup("weekly", ["W0040.txt", "W0041.txt"], provisional_path)
+            # ShadowGrandDigestのカスケード更新、last_digest_times更新、Provisional削除が実行される
         """
         log_debug(f"{LOG_PREFIX_STATE} process_cascade_and_cleanup: level={level}")
         log_debug(f"{LOG_PREFIX_STATE} source_files_count: {len(source_files)}")

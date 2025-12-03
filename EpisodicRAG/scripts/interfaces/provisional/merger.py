@@ -36,6 +36,13 @@ class DigestMerger:
 
         Raises:
             ValidationError: If any digest is missing 'source_file' key
+
+        Example:
+            >>> existing = [{"source_file": "L00001.txt", "digest_type": "開発", ...}]
+            >>> new = [{"source_file": "L00002.txt", "digest_type": "学習", ...}]
+            >>> merged = DigestMerger.merge(existing, new)
+            >>> len(merged)
+            2
         """
         # Validate inputs
         validate_individual_digests_list(existing_digests, context="existing")

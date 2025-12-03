@@ -35,6 +35,15 @@ class InputLoader:
             ValidationError: If input_data is empty or invalid format
             FileNotFoundError: If file path doesn't exist (when not a valid JSON string)
             json.JSONDecodeError: If JSON parsing fails
+
+        Example:
+            >>> # ファイルパスから読み込み
+            >>> digests = InputLoader.load("path/to/digests.json")
+            >>> len(digests)
+            3
+            >>> # JSON文字列から読み込み
+            >>> json_str = '[{"source_file": "L00001.txt", "digest_type": "開発", ...}]'
+            >>> digests = InputLoader.load(json_str)
         """
         # Empty input check
         if not input_data or not input_data.strip():

@@ -41,6 +41,11 @@ class ProvisionalFileManager:
 
         Raises:
             ConfigError: If level is invalid
+
+        Example:
+            >>> manager = ProvisionalFileManager(config)
+            >>> manager.get_current_digest_number("weekly")
+            42
         """
         level_cfg = self._get_level_config(level)
         prefix = str(level_cfg["prefix"])
@@ -92,6 +97,12 @@ class ProvisionalFileManager:
 
         Returns:
             Path to the provisional file
+
+        Example:
+            >>> manager = ProvisionalFileManager(config)
+            >>> path = manager.get_provisional_path("weekly", 42)
+            >>> path.name
+            'W0042_Individual.txt'
         """
         formatted_num = format_digest_number(level, digest_num)
         filename = f"{formatted_num}_Individual.txt"

@@ -94,6 +94,12 @@ class ShadowUpdater:
             - ファイルはsource_filesに追加される
             - overall_digestが未初期化の場合は自動的に初期化
             - プレースホルダーが設定され、Claude分析待ちとなる
+
+        Example:
+            >>> updater = ShadowUpdater(shadow_io, file_detector, template, hierarchy)
+            >>> new_files = [Path("Loops/L00186_test.txt"), Path("Loops/L00187_test.txt")]
+            >>> updater.add_files_to_shadow("weekly", new_files)
+            # shadow["weekly"]["source_files"] に "L00186_test.txt", "L00187_test.txt" が追加される
         """
         return self._file_appender.add_files_to_shadow(level, new_files)
 
@@ -176,5 +182,10 @@ class ShadowUpdater:
             - 確定レベルのShadowはクリアされる
             - 上位レベルのShadowに新しいソースファイルが追加される
             - 8階層カスケード構造に従って処理が連鎖
+
+        Example:
+            >>> updater = ShadowUpdater(shadow_io, file_detector, template, hierarchy)
+            >>> updater.cascade_update_on_digest_finalize("weekly")
+            # weekly Shadowがクリアされ、W0042.txt が monthly Shadow に追加される
         """
         return self._cascade_processor.cascade_update_on_digest_finalize(level)

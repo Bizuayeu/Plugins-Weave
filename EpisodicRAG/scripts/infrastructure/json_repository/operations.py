@@ -81,6 +81,11 @@ def load_json(file_path: Path) -> Dict[str, Any]:
 
     Raises:
         FileIOError: ファイルが存在しない、またはJSONのパースに失敗した場合
+
+    Example:
+        >>> data = load_json(Path("config/settings.json"))
+        >>> data["version"]
+        '4.1.0'
     """
     if not file_path.exists():
         formatter = get_error_formatter()
@@ -102,6 +107,10 @@ def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
 
     Raises:
         FileIOError: ファイルの書き込みに失敗した場合
+
+    Example:
+        >>> save_json(Path("output/result.json"), {"status": "success", "count": 42})
+        # output/result.json が作成される（親ディレクトリも自動作成）
     """
     formatter = get_error_formatter()
     try:

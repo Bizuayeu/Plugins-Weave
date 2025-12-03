@@ -234,6 +234,12 @@ class ShadowValidator:
             ValidationError: weave_titleが空、shadow_digestの形式が不正、
                            またはdigest_typeがプレースホルダーの場合
             DigestError: shadow_digestが見つからない場合
+
+        Example:
+            >>> validator = ShadowValidator(shadow_manager)
+            >>> shadow = validator.validate_and_get_shadow("weekly", "2025年11月第4週")
+            >>> shadow["source_files"]
+            ['W0040.txt', 'W0041.txt', 'W0042.txt']
         """
         # 1. タイトル検証
         self._validate_title(weave_title)

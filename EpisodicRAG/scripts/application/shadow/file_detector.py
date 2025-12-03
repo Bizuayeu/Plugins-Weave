@@ -42,6 +42,11 @@ class FileDetector:
 
         Returns:
             最大ファイル番号（整数）またはNone
+
+        Example:
+            >>> detector = FileDetector(config, times_tracker)
+            >>> detector.get_max_file_number("weekly")
+            42
         """
         times_data = self.times_tracker.load_or_create()
         level_data = times_data.get(level, {})
@@ -72,6 +77,12 @@ class FileDetector:
 
         Returns:
             新しいファイルのPathリスト
+
+        Example:
+            >>> detector = FileDetector(config, times_tracker)
+            >>> new_files = detector.find_new_files("weekly")
+            >>> [f.name for f in new_files]
+            ['L00186_test.txt', 'L00187_test.txt']
         """
         max_file_number = self.get_max_file_number(level)
 

@@ -88,6 +88,12 @@ class ShadowIO:
 
         Returns:
             ShadowGrandDigestのデータ構造
+
+        Example:
+            >>> shadow_io = ShadowIO(Path("ShadowGrandDigest.txt"), template_factory)
+            >>> data = shadow_io.load_or_create()
+            >>> list(data["latest_digests"].keys())
+            ['weekly', 'monthly', 'quarterly', ...]
         """
         log_debug(f"{LOG_PREFIX_FILE} load_or_create: {self.shadow_digest_file}")
         log_debug(f"{LOG_PREFIX_FILE} file_exists: {self.shadow_digest_file.exists()}")

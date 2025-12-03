@@ -124,6 +124,13 @@ class ProvisionalLoader:
         Raises:
             DigestError: Provisionalファイルのフォーマットが不正な場合
             FileIOError: Provisionalファイルの読み込みに失敗した場合
+
+        Example:
+            >>> loader = ProvisionalLoader(config, shadow_manager)
+            >>> shadow = {"source_files": ["W0040.txt", "W0041.txt"], "digest_type": "開発", ...}
+            >>> individuals, provisional_path = loader.load_or_generate("weekly", shadow, "0042")
+            >>> len(individuals)
+            2
         """
         provisional_path = self._get_provisional_path(level, digest_num)
 
