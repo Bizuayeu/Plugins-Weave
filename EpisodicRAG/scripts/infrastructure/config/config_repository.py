@@ -33,9 +33,7 @@ def load_config(config_file: Path) -> ConfigData:
         "."
     """
     if not config_file.exists():
-        raise ConfigError(
-            f"{file_not_found_message(config_file)}\nRun @digest-setup skill"
-        )
+        raise ConfigError(f"{file_not_found_message(config_file)}\nRun @digest-setup skill")
 
     try:
         with open(config_file, 'r', encoding='utf-8') as f:

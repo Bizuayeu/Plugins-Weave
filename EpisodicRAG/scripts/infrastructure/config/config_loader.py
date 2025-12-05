@@ -106,8 +106,7 @@ class ConfigLoader:
         """
         if not self.config_file.exists():
             raise ConfigError(
-                f"{file_not_found_message(self.config_file)}\n"
-                "Run @digest-setup skill"
+                f"{file_not_found_message(self.config_file)}\nRun @digest-setup skill"
             )
 
         try:

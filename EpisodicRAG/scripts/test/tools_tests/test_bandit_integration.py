@@ -130,9 +130,7 @@ class TestSecurityQuality:
             text=True,
         )
         # returncode 0 = no issues found
-        assert result.returncode == 0, (
-            f"HIGH severity security issues detected:\n{result.stdout}"
-        )
+        assert result.returncode == 0, f"HIGH severity security issues detected:\n{result.stdout}"
 
     @pytest.mark.cli
     def test_no_medium_severity_issues_in_production_code(self) -> None:
@@ -159,6 +157,4 @@ class TestSecurityQuality:
                 capture_output=True,
                 text=True,
             )
-            assert result.returncode == 0, (
-                f"MEDIUM severity issues in {dir_name}:\n{result.stdout}"
-            )
+            assert result.returncode == 0, f"MEDIUM severity issues in {dir_name}:\n{result.stdout}"

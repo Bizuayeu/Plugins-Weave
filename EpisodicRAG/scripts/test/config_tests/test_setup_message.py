@@ -38,7 +38,9 @@ class TestSetupMessageRemoved:
 
         error_msg = str(exc_info.value)
         assert "setup.sh" not in error_msg, f"Error message still contains 'setup.sh': {error_msg}"
-        assert "@digest-setup" in error_msg, f"Error message should mention '@digest-setup': {error_msg}"
+        assert "@digest-setup" in error_msg, (
+            f"Error message should mention '@digest-setup': {error_msg}"
+        )
 
     @pytest.mark.unit
     def test_config_loader_no_setup_sh_reference(
@@ -53,4 +55,6 @@ class TestSetupMessageRemoved:
 
         error_msg = str(exc_info.value)
         assert "setup.sh" not in error_msg, f"Error message still contains 'setup.sh': {error_msg}"
-        assert "@digest-setup" in error_msg, f"Error message should mention '@digest-setup': {error_msg}"
+        assert "@digest-setup" in error_msg, (
+            f"Error message should mention '@digest-setup': {error_msg}"
+        )

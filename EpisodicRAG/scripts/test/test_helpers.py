@@ -130,10 +130,7 @@ def create_default_templates(config_dir: Path) -> None:
     """
     # last_digest_times.template.json
     # Use LEVEL_NAMES (includes loop) for tracking all levels
-    times_template = {
-        level: {"timestamp": "", "last_processed": None}
-        for level in LEVEL_NAMES
-    }
+    times_template = {level: {"timestamp": "", "last_processed": None} for level in LEVEL_NAMES}
     with open(config_dir / "last_digest_times.template.json", 'w', encoding='utf-8') as f:
         json.dump(times_template, f, indent=2, ensure_ascii=False)
 
@@ -141,10 +138,7 @@ def create_default_templates(config_dir: Path) -> None:
     # Use DIGEST_LEVEL_NAMES (excludes loop) for digest structures
     grand_template = {
         "metadata": {"last_updated": None, "version": "1.0"},
-        "major_digests": {
-            level: {"overall_digest": None}
-            for level in DIGEST_LEVEL_NAMES
-        },
+        "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
     }
     with open(config_dir / "GrandDigest.template.txt", 'w', encoding='utf-8') as f:
         json.dump(grand_template, f, indent=2, ensure_ascii=False)
@@ -153,10 +147,7 @@ def create_default_templates(config_dir: Path) -> None:
     # Use DIGEST_LEVEL_NAMES (excludes loop) for digest structures
     shadow_template = {
         "metadata": {"last_updated": None, "version": "1.0"},
-        "latest_digests": {
-            level: {"overall_digest": None}
-            for level in DIGEST_LEVEL_NAMES
-        },
+        "latest_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
     }
     with open(config_dir / "ShadowGrandDigest.template.txt", 'w', encoding='utf-8') as f:
         json.dump(shadow_template, f, indent=2, ensure_ascii=False)
