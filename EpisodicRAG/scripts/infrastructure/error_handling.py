@@ -100,8 +100,8 @@ def safe_cleanup(
         ...     lambda: temp_file.unlink(),
         ...     "remove temporary file"
         ... )
-        >>> if not success:
-        ...     print("Cleanup failed but continuing...")
+        >>> success  # True if cleanup succeeded, False otherwise
+        True
     """
 
     def on_error(e: Exception) -> None:

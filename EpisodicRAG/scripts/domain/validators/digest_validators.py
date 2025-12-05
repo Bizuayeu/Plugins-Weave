@@ -13,7 +13,7 @@ Usage:
 
     if is_valid_overall_digest(digest):
         # digest は OverallDigestData として型推論される
-        print(digest["source_files"])
+        digest["source_files"]  # List[str] - type narrowed by TypeGuard
 """
 
 from typing import Any, TypeGuard

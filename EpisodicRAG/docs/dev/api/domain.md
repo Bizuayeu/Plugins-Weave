@@ -32,6 +32,7 @@ from domain import (
 
 **定数・設定**
 - [定数](#定数) - バージョン、LEVEL_CONFIG、PLACEHOLDER
+- [ファイル定数](#ファイル定数domainfile_constantspy) - ファイル名、ディレクトリ名、パターン
 - [例外](#例外domainexceptionspy) - EpisodicRAGError階層
 - [型定義](#型定義domaintypes) - TypedDict、スキーマ *(v4.1.0: パッケージ化)*
 
@@ -119,6 +120,73 @@ PLACEHOLDER_LIMITS: Dict[str, int] = {
     "keyword_count": 5,
 }
 ```
+
+### ファイル定数（domain/file_constants.py）
+
+ファイル名・ディレクトリ名・パターンのSingle Source of Truth。
+
+```python
+from domain.file_constants import (
+    GRAND_DIGEST_FILENAME,
+    CONFIG_FILENAME,
+    LOOP_FILE_PATTERN,
+)
+```
+
+#### Grand Digestファイル名
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `GRAND_DIGEST_FILENAME` | `"GrandDigest.txt"` | 確定済みGrand Digest |
+| `SHADOW_GRAND_DIGEST_FILENAME` | `"ShadowGrandDigest.txt"` | 未確定Shadow |
+
+#### テンプレートファイル名
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `GRAND_DIGEST_TEMPLATE` | `"GrandDigest.template.txt"` | Grand Digestテンプレート |
+| `SHADOW_GRAND_DIGEST_TEMPLATE` | `"ShadowGrandDigest.template.txt"` | Shadowテンプレート |
+| `DIGEST_TIMES_TEMPLATE` | `"last_digest_times.template.json"` | 時刻記録テンプレート |
+| `CONFIG_TEMPLATE` | `"config.template.json"` | 設定テンプレート |
+
+#### 設定ファイル名
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `CONFIG_FILENAME` | `"config.json"` | プラグイン設定 |
+| `DIGEST_TIMES_FILENAME` | `"last_digest_times.json"` | 時刻記録 |
+
+#### ディレクトリ名
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `PLUGIN_CONFIG_DIR` | `".claude-plugin"` | 設定ディレクトリ |
+| `ESSENCES_DIR_NAME` | `"Essences"` | Essences格納 |
+| `LOOPS_DIR_NAME` | `"Loops"` | Loops格納 |
+| `PROVISIONALS_SUBDIR` | `"Provisionals"` | 仮ダイジェスト格納 |
+| `DATA_DIR_NAME` | `"data"` | データルート |
+
+#### ファイルパターン（glob用）
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `LOOP_FILE_PATTERN` | `"L*.txt"` | Loopファイル |
+| `WEEKLY_FILE_PATTERN` | `"W*.txt"` | Weeklyダイジェスト |
+| `MONTHLY_FILE_PATTERN` | `"M*.txt"` | Monthlyダイジェスト |
+
+#### ファイル名サフィックス
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `INDIVIDUAL_DIGEST_SUFFIX` | `"_Individual.txt"` | 個別ダイジェスト |
+| `OVERALL_DIGEST_SUFFIX` | `"_Overall.txt"` | 統合ダイジェスト |
+
+#### ファイル拡張子
+
+| 定数 | 値 | 説明 |
+|------|-----|------|
+| `TXT_EXTENSION` | `".txt"` | テキストファイル |
+| `JSON_EXTENSION` | `".json"` | JSONファイル |
 
 ---
 

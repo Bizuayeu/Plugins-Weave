@@ -87,7 +87,7 @@ class LevelBehavior(ABC):
             >>> behavior.format_number(42)
             'W0042'
         """
-        pass
+        ...
 
     @abstractmethod
     def should_cascade(self) -> bool:
@@ -103,7 +103,7 @@ class LevelBehavior(ABC):
             >>> behavior.should_cascade()
             True
         """
-        pass
+        ...
 
 
 class StandardLevelBehavior(LevelBehavior):

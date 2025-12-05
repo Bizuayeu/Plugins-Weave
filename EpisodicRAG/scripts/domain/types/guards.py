@@ -30,7 +30,7 @@ def is_config_data(data: Any) -> TypeGuard[ConfigData]:
         >>> data = load_json(path)
         >>> if is_config_data(data):
         ...     # data は ConfigData として型推論される
-        ...     print(data.get("base_dir"))
+        ...     data.get("base_dir")  # Safely access ConfigData fields
     """
     if not isinstance(data, dict):
         return False
@@ -64,7 +64,7 @@ def is_level_config_data(data: Any) -> TypeGuard[LevelConfigData]:
         >>> level_data = LEVEL_CONFIG.get("weekly")
         >>> if is_level_config_data(level_data):
         ...     # level_data は LevelConfigData として型推論される
-        ...     print(level_data["prefix"])
+        ...     level_data["prefix"]  # "W" - type-safe access
     """
     if not isinstance(data, dict):
         return False
@@ -86,7 +86,7 @@ def is_shadow_digest_data(data: Any) -> TypeGuard[ShadowDigestData]:
         >>> shadow_data = load_json(shadow_path)
         >>> if is_shadow_digest_data(shadow_data):
         ...     # shadow_data は ShadowDigestData として型推論される
-        ...     print(shadow_data["metadata"])
+        ...     shadow_data["metadata"]  # Dict - type-safe access
     """
     if not isinstance(data, dict):
         return False
@@ -108,7 +108,7 @@ def is_long_short_text(value: Any) -> TypeGuard[LongShortText]:
         >>> text = {"long": "詳細な要約...", "short": "簡潔な要約"}
         >>> if is_long_short_text(text):
         ...     # text は LongShortText として型推論される
-        ...     print(text["long"])
+        ...     text["long"]  # str - type-safe access
     """
     if not isinstance(value, dict):
         return False

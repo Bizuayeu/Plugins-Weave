@@ -33,7 +33,7 @@ Usage:
 
     # レベル情報の取得
     metadata = registry.get_metadata("weekly")
-    print(metadata.prefix)  # "W"
+    metadata.prefix  # "W"
 
     # フォーマット（Strategy経由）
     behavior = registry.get_behavior("weekly")

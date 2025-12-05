@@ -98,6 +98,24 @@ class DigestAutoAnalyzer:
             base_path = self.plugin_root / base_path
         return base_path.resolve()
 
+    def _resolve_paths(self, config: Dict[str, Any]) -> Tuple[Path, Path, Path]:
+        """設定から各種パスを解決
+
+        Args:
+            config: 設定データ
+
+        Returns:
+            (loops_path, essences_path, digests_path) のタプル
+        """
+        base_dir = self._resolve_base_dir(config)
+        paths = config.get("paths", {})
+
+        loops_path = base_dir / paths.get("loops_dir", "data/Loops")
+        essences_path = base_dir / paths.get("essences_dir", "data/Essences")
+        digests_path = base_dir / paths.get("digests_dir", "data/Digests")
+
+        return loops_path, essences_path, digests_path
+
     def _load_json_file(self, file_path: Path) -> Optional[Dict[str, Any]]:
         """JSONファイルを読み込む（存在しない場合はNone）"""
         return try_load_json(file_path, log_on_error=False)
@@ -128,15 +146,9 @@ class DigestAutoAnalyzer:
         recommendations: List[str] = []
 
         try:
-            # 1. 設定ファイル読み込み
+            # 1. 設定とパス解決
             config = self._load_config()
-            base_dir = self._resolve_base_dir(config)
-            paths = config.get("paths", {})
-            _levels_config = config.get("levels", {})  # Reserved for future use
-
-            loops_path = base_dir / paths.get("loops_dir", "data/Loops")
-            essences_path = base_dir / paths.get("essences_dir", "data/Essences")
-            digests_path = base_dir / paths.get("digests_dir", "data/Digests")
+            loops_path, essences_path, digests_path = self._resolve_paths(config)
 
             # 2. 未処理Loop検出
             unprocessed_loops = self._check_unprocessed_loops(loops_path)
@@ -202,24 +214,17 @@ class DigestAutoAnalyzer:
 
             # 推奨アクションの追加
             if generatable:
-                # 下位階層から順に推奨
                 for level_status in generatable:
                     recommendations.append(f"Run /digest {level_status.level} to generate digest")
 
-            # ステータス判定
-            if unprocessed_loops or placeholders:
-                status = "warning"
-            elif generatable:
-                status = "ok"
-            else:
-                status = "ok"
-
-            return AnalysisResult(
-                status=status,
+            # 7. 結果構築
+            return self._build_analysis_result(
                 issues=issues,
-                generatable_levels=generatable,
-                insufficient_levels=insufficient,
                 recommendations=recommendations,
+                generatable=generatable,
+                insufficient=insufficient,
+                has_unprocessed=bool(unprocessed_loops),
+                has_placeholders=bool(placeholders),
             )
 
         except FileIOError as e:
@@ -380,6 +385,42 @@ class DigestAutoAnalyzer:
     def _get_level_dir(self, digests_path: Path, level: str) -> Path:
         """階層のディレクトリパスを取得"""
         return digests_path / LEVEL_CONFIG[level]["dir"]
+
+    def _build_analysis_result(
+        self,
+        issues: List[Issue],
+        recommendations: List[str],
+        generatable: List[LevelStatus],
+        insufficient: List[LevelStatus],
+        has_unprocessed: bool,
+        has_placeholders: bool,
+    ) -> AnalysisResult:
+        """分析結果を構築
+
+        Args:
+            issues: 検出された問題リスト
+            recommendations: 推奨アクションリスト
+            generatable: 生成可能な階層リスト
+            insufficient: 不足している階層リスト
+            has_unprocessed: 未処理Loopがあるか
+            has_placeholders: プレースホルダーがあるか
+
+        Returns:
+            構築された AnalysisResult
+        """
+        # ステータス判定
+        if has_unprocessed or has_placeholders:
+            status = "warning"
+        else:
+            status = "ok"
+
+        return AnalysisResult(
+            status=status,
+            issues=issues,
+            generatable_levels=generatable,
+            insufficient_levels=insufficient,
+            recommendations=recommendations,
+        )
 
 
 def format_text_report(result: AnalysisResult) -> str:

@@ -9,8 +9,8 @@ Usage:
     from application.config import DigestConfig
 
     config = DigestConfig()
-    print(config.loops_path)
-    print(config.threshold.weekly_threshold)
+    config.loops_path  # Path to loops directory
+    config.threshold.weekly_threshold  # Weekly threshold value
 """
 
 import logging

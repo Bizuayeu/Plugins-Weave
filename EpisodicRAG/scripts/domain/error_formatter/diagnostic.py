@@ -50,7 +50,7 @@ def with_diagnostic_context(
         ...     file_count=3,
         ...     threshold=5
         ... )
-        >>> print(msg)
+        >>> msg
         'Processing failed | level: weekly | files: 3/5'
     """
     # 遅延インポートで循環参照を回避

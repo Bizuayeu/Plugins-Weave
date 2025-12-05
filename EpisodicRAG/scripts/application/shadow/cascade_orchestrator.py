@@ -35,9 +35,8 @@ Usage:
     )
 
     result = orchestrator.execute_cascade("weekly")
-    if result.success:
-        for step in result.steps:
-            print(f"{step.step_name}: {step.status}")
+    result.success  # True if all steps succeeded
+    result.steps    # List[CascadeStepResult] with step_name and status
 """
 
 from dataclasses import dataclass, field
@@ -125,8 +124,8 @@ class CascadeOrchestrator:
 
     Example:
         result = orchestrator.execute_cascade("weekly")
-        print(f"Success: {result.success}")
-        print(f"Files processed: {result.total_files_processed}")
+        result.success  # True if cascade completed successfully
+        result.total_files_processed  # Total number of files processed
     """
 
     def __init__(

@@ -11,8 +11,7 @@ Usage:
 
     validator = ConfigValidator(config, loops_path, digests_path, essences_path, level_path_service)
     errors = validator.validate_all()
-    if errors:
-        print("Validation errors:", errors)
+    # errors: List[str] - empty if valid, contains error messages otherwise
 """
 
 from pathlib import Path
@@ -83,8 +82,8 @@ class ConfigValidator:
 
         Example:
             >>> errors = validator.validate_all()
-            >>> if errors:
-            ...     print("Validation failed:", errors)
+            >>> len(errors) == 0  # True if all validations pass
+            True
         """
         errors: List[str] = []
         errors.extend(self.validate_required_keys())

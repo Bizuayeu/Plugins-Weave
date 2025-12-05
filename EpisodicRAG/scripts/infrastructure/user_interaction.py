@@ -27,8 +27,8 @@ def get_default_confirm_callback() -> Callable[[str], bool]:
 
     Example:
         callback = get_default_confirm_callback()
-        if callback("Continue?"):
-            print("User approved")
+        approved = callback("Continue?")
+        approved  # True if user entered 'y', False otherwise
     """
 
     def _default_confirm(message: str) -> bool:

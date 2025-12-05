@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-03 -->
+<!-- Last synced: 2025-12-06 -->
 English | [日本語](CONTRIBUTING.md)
 
 # Contributing to EpisodicRAG Plugin
@@ -350,6 +350,29 @@ For details, see [TROUBLESHOOTING.md](docs/user/TROUBLESHOOTING.md#開発環境�
 ## Development Tools *(v4.1.0+)*
 
 The `scripts/tools/` directory contains quality management tools for documentation.
+
+### Security Analysis (Bandit) *(v5.0.0+)*
+
+[Bandit](https://bandit.readthedocs.io/) is used to scan for security vulnerabilities.
+
+```bash
+cd plugins-weave/EpisodicRAG
+
+# Run security check
+make security
+
+# Or run directly
+python -m bandit -r scripts/ --exclude scripts/test --severity-level medium
+```
+
+**Example output** (when no issues):
+```text
+Run started...
+...
+Run completed
+Total time: 0.5s
+No issues identified.
+```
 
 ### Footer Checker (check_footer.py)
 

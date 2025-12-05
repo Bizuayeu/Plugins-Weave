@@ -100,7 +100,7 @@ def is_valid_dict(data: Any) -> TypeGuard[Dict[str, Any]]:
         >>> data: Any = {"key": "value"}
         >>> if is_valid_dict(data):
         ...     # data は Dict[str, Any] として型推論される
-        ...     print(data.keys())
+        ...     data.keys()  # dict_keys(['key'])
     """
     return isinstance(data, dict)
 
@@ -121,7 +121,7 @@ def is_valid_list(data: Any) -> TypeGuard[List[Any]]:
         >>> data: Any = [1, 2, 3]
         >>> if is_valid_list(data):
         ...     # data は List[Any] として型推論される
-        ...     print(len(data))
+        ...     len(data)  # 3
     """
     return isinstance(data, list)
 
