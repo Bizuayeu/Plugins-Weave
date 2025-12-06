@@ -15,8 +15,6 @@ EpisodicRAGシステムの基本操作を提供するコマンドです。
 - [注意事項](#注意事項)
 - [基本的な使い方](#基本的な使い方)
 - [実行フロー概要](#実行フロー概要)
-- [CLIスクリプト](#cliスクリプト)
-- [Claude対話処理](#claude対話処理)
 - [セットアップ・管理用スキル](#セットアップ管理用スキル)
 - [出力例](#出力例)
 
@@ -25,22 +23,6 @@ EpisodicRAGシステムの基本操作を提供するコマンドです。
 ## 用語説明
 
 > 📖 用語・共通概念は [用語集](../README.md) を参照
-
----
-
-## MUST TO DO（エラー防止）
-
-1. **digest_entry.py でパス情報を取得**
-   ```bash
-   cd scripts && python -m interfaces.digest_entry --output json
-   ```
-   - plugin_root, loops_path, digests_path が出力される
-   - パスやJSONスキーマを推測しない
-
-2. **このファイルのTodoリストに従う**
-   - 下記「パターン1 Todoリスト」「パターン2 Todoリスト」を使用
-   - **ステップを飛ばさない**（特にProvisional保存）
-   - ファイル更新ごとに完了をマーク
 
 ---
 
