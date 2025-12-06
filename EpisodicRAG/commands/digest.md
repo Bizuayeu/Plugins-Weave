@@ -95,7 +95,7 @@ TodoWrite items for Pattern 1:
 9. 次アクション提示 - threshold値を参照
 ```
 
-**各ステップの詳細**:
+**各ステップの概要**:
 
 | Step | 実行内容 | 使用スクリプト/処理 |
 |------|---------|-------------------|
@@ -108,6 +108,165 @@ TodoWrite items for Pattern 1:
 | 7 | SDG統合更新 | long結果を統合しSDGの4要素を更新（digest_type, keywords, abstract, impression） |
 | 8 | 処理完了記録 | `python -m interfaces.update_digest_times loop <最終番号>` |
 | 9 | 次アクション提示 | digest_entry.py出力とthreshold値を参照 |
+
+### 各ステップの詳細
+
+#### Step 1: パス情報・新規Loop確認
+
+**実行ディレクトリ**: `{plugin_root}/scripts`
+
+**コマンド**:
+```bash
+python -m interfaces.digest_entry --output json
+```
+
+**出力から確認する項目**:
+- `new_loops`: 未処理のLoop番号リスト（例: `["L00260", "L00261"]`）
+- `essences_path`: ShadowGrandDigest.txtの格納先
+- `loops_path`: Loopファイルの格納先
+
+**判定**:
+- `new_loops_count > 0` → 新規Loop処理へ進む
+- `new_loops_count == 0` → 処理不要
+
+---
+
+#### Step 2: SDG読み込み
+
+**対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+
+**操作**: Readツールでファイル全体を読み込む
+
+**確認ポイント**:
+- `weekly.overall_digest.source_files`の現在のリスト
+- 次のStepで追加するファイル名の重複がないこと
+
+---
+
+#### Step 3: source_files追加
+
+**対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+
+**操作**: Editツールで`weekly.overall_digest.source_files`配列に新規Loopファイル名を追加
+
+**追加形式**: `"L00260_タイトル.txt"` （フルファイル名）
+
+**例**:
+```json
+"source_files": [
+  "L00258_既存.txt",
+  "L00259_既存.txt",
+  "L00260_新規追加.txt"
+]
+```
+
+---
+
+#### Step 4: DigestAnalyzer起動
+
+**使用ツール**: `Task(subagent_type="EpisodicRAG-Plugin:DigestAnalyzer")`
+
+**起動方法**: Step 3で追加した各Loopに対して**並列**でTaskを起動
+
+**プロンプトに含める情報**:
+- 対象ファイルのフルパス: `{loops_path}/L00260_タイトル.txt`
+- 出力形式の指示（long/short両方）
+
+---
+
+#### Step 5: 分析結果受信
+
+DigestAnalyzerからJSON形式で結果を受け取る。
+
+**期待する出力形式**:
+```json
+{
+  "source_file": "L00260_タイトル.txt",
+  "digest_type": "テーマ（10-20文字）",
+  "keywords": ["キーワード1", "キーワード2", "..."],
+  "abstract": {
+    "long": "2400文字の詳細分析",
+    "short": "300文字の要約"
+  },
+  "impression": {
+    "long": "800文字の所感",
+    "short": "100文字の要約"
+  }
+}
+```
+
+---
+
+#### Step 6: Provisional保存
+
+**実行ディレクトリ**: `{plugin_root}/scripts`
+
+**コマンド**:
+```bash
+python -m interfaces.save_provisional_digest weekly --stdin --append
+```
+
+**入力**: Step 5の結果を`individual_digests`配列でラップ
+
+```json
+{
+  "individual_digests": [
+    {
+      "source_file": "L00260_タイトル.txt",
+      "digest_type": "...",
+      "keywords": ["..."],
+      "abstract": {"long": "...", "short": "..."},
+      "impression": {"long": "...", "short": "..."}
+    }
+  ]
+}
+```
+
+**注意**: abstract/impressionは`{long, short}`形式が必須
+
+---
+
+#### Step 7: SDG統合更新
+
+**対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+
+**更新対象フィールド**（`weekly.overall_digest`内）:
+- `digest_type`: 全source_filesを統合したテーマ
+- `keywords`: 統合キーワード5個
+- `abstract`: 統合分析（long版を使用）
+- `impression`: 統合所感（long版を使用）
+
+**操作**: Editツールで各フィールドを更新
+
+---
+
+#### Step 8: 処理完了記録
+
+**実行ディレクトリ**: `{plugin_root}/scripts`
+
+**コマンド**:
+```bash
+python -m interfaces.update_digest_times loop <最終Loop番号>
+```
+
+**例**: L00260まで処理した場合
+```bash
+python -m interfaces.update_digest_times loop 260
+```
+
+---
+
+#### Step 9: 次アクション提示
+
+**確認項目**:
+- `weekly_source_count`: 現在のsource_files数
+- `weekly_threshold`: 確定に必要な数（通常5）
+
+**提示例**:
+- source_count < threshold → 「あと N 個のLoopが必要」
+- source_count >= threshold → 「`/digest weekly`で確定可能」
+
+---
 
 ### パターン2: `/digest <type>` (階層確定)
 
