@@ -11,11 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#500---2025-12-05)
+- [v5.x](#510---2025-12-07)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.1.0] - 2025-12-07
+
+### Changed
+
+- **digest.md リファクタリング**
+  - パターン2を7ステップ→9ステップに再構成
+  - 目次をパターン別に分離（読み飛ばしやすく）
+  - 「出力例」→「エラー出力例」に改名（成功例は各Step 9へ移動）
 
 ---
 

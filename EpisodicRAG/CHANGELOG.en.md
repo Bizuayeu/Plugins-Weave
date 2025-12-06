@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-06 -->
+<!-- Last synced: 2025-12-07 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,11 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#500---2025-12-05)
+- [v5.x](#510---2025-12-07)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.1.0] - 2025-12-07
+
+### Changed
+
+- **digest.md refactoring**
+  - Pattern 2 restructured from 7 to 9 steps
+  - TOC split by pattern for easier navigation
+  - Renamed "Output Examples" to "Error Output Examples" (success examples moved to each Step 9)
 
 ---
 

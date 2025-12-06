@@ -40,9 +40,10 @@ from interfaces import (
 6. [Provisionalサブパッケージ](#provisionalサブパッケージinterfacesprovisional)
 7. [ヘルパー関数](#ヘルパー関数interfacesinterface_helperspy)
 8. [CLI共通ヘルパー](#cli共通ヘルパーinterfacescli_helperspy) *(v4.1.0+)*
-9. [UpdateDigestTimes CLI](#updatedigesttimes-cliupdate_digest_timespy) *(v5.x.x+)*
+9. [UpdateDigestTimes CLI](#updatedigesttimes-cliupdate_digest_timespy) *(v5.0.0+)*
 10. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
-11. [FindPluginRoot CLI](#findpluginroot-clifind_plugin_rootpy) *(v5.0.0+)*
+11. [DigestReadinessChecker（digest_readiness.py）](#digestreadinesscheckerdigest_readinesspy) *(v5.1.0+)*
+12. [FindPluginRoot CLI](#findpluginroot-clifind_plugin_rootpy) *(v5.1.0+)*
 
 ---
 
@@ -562,6 +563,81 @@ python -m interfaces.shadow_state_checker monthly
   "source_count": 2,
   "placeholder_fields": ["abstract", "impression"],
   "message": "Placeholders detected in: abstract, impression - run DigestAnalyzer"
+}
+```
+
+---
+
+## DigestReadinessChecker（digest_readiness.py）
+
+Digest確定可否判定CLI。SDGとProvisionalの完備状態を確認し、Digest確定が可能かを判定。
+
+> `/digest <type>` の Step 3 で使用。
+
+```python
+class DigestReadinessChecker:
+    def __init__(self, plugin_root: Optional[Path] = None): ...
+
+    def check(self, level: str) -> DigestReadinessResult: ...
+```
+
+| メソッド | 説明 | 戻り値 |
+|---------|------|--------|
+| `check(level)` | 指定レベルのDigest確定可否判定 | `DigestReadinessResult` |
+
+**DigestReadinessResult構造**:
+```python
+@dataclass
+class DigestReadinessResult:
+    status: str  # "ok" | "error"
+    level: str
+    source_count: int = 0
+    level_threshold: int = 5
+    threshold_met: bool = False
+    sdg_ready: bool = False
+    missing_sdg_files: List[str] = field(default_factory=list)
+    provisional_ready: bool = False
+    missing_provisionals: List[str] = field(default_factory=list)
+    can_finalize: bool = False
+    blockers: List[str] = field(default_factory=list)
+    message: str = ""
+    error: Optional[str] = None
+```
+
+**判定ロジック**:
+- `threshold_met`: `source_count >= level_threshold`
+- `sdg_ready`: overall_digest存在 AND 4要素がPLACEHOLDERでない
+- `provisional_ready`: source_files全てにindividual_digestsエントリ存在
+- `can_finalize`: `threshold_met AND sdg_ready AND provisional_ready`
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+
+# Monthly階層の確定可否確認
+python -m interfaces.digest_readiness monthly
+
+# Weekly階層の確定可否確認
+python -m interfaces.digest_readiness weekly
+```
+
+**出力例**:
+```json
+{
+  "status": "ok",
+  "level": "monthly",
+  "source_count": 4,
+  "level_threshold": 5,
+  "threshold_met": false,
+  "sdg_ready": true,
+  "provisional_ready": false,
+  "can_finalize": false,
+  "blockers": [
+    "threshold未達: 4/5 (あと1ファイル必要)",
+    "Provisional未完備: W0051_xxx.txt が不足"
+  ],
+  "message": "Digest確定不可: 2件の未達条件あり"
 }
 ```
 
