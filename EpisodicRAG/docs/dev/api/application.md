@@ -651,6 +651,47 @@ tracker.save("weekly", ["L00001_xxx.txt", "L00002_yyy.txt", "L00005_zzz.txt"])
 
 ---
 
+#### update_direct()
+
+```python
+def update_direct(self, level: str, last_processed: int) -> None
+```
+
+last_processedを直接設定。CLIから呼び出し用。
+
+| パラメータ | 型 | 説明 |
+|-----------|------|------|
+| `level` | `str` | ダイジェストレベル（loop, weekly等） |
+| `last_processed` | `int` | 設定する番号 |
+
+**使用例**:
+```python
+tracker = DigestTimesTracker(config)
+tracker.update_direct("loop", 259)
+# last_digest_times.json の loop.last_processed が 259 に更新される
+```
+
+**save()との違い**:
+- `save()`: ファイル名リストから番号を抽出して保存
+- `update_direct()`: 番号を直接指定して保存
+
+---
+
+#### _save_level_data()（内部メソッド）
+
+```python
+def _save_level_data(self, level: str, last_processed: Optional[int]) -> None
+```
+
+`save()`と`update_direct()`の共通保存ロジック。直接呼び出しは非推奨。
+
+| パラメータ | 型 | 説明 |
+|-----------|------|------|
+| `level` | `str` | ダイジェストレベル |
+| `last_processed` | `Optional[int]` | 設定する番号（Noneも許容） |
+
+---
+
 ## 設定管理（application/config/）
 
 > v4.0.0で追加。詳細は [config.md](config.md) を参照。

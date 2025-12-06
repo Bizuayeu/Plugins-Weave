@@ -40,8 +40,9 @@ from interfaces import (
 6. [Provisionalサブパッケージ](#provisionalサブパッケージinterfacesprovisional)
 7. [ヘルパー関数](#ヘルパー関数interfacesinterface_helperspy)
 8. [CLI共通ヘルパー](#cli共通ヘルパーinterfacescli_helperspy) *(v4.1.0+)*
-9. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
-10. [FindPluginRoot CLI](#findpluginroot-clifind_plugin_rootpy) *(v5.0.0+)*
+9. [UpdateDigestTimes CLI](#updatedigesttimes-cliupdate_digest_timespy) *(v5.x.x+)*
+10. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
+11. [FindPluginRoot CLI](#findpluginroot-clifind_plugin_rootpy) *(v5.0.0+)*
 
 ---
 
@@ -461,6 +462,50 @@ try:
 except Exception as e:
     output_error(str(e), details={"suggestion": "Check configuration"})
 ```
+
+---
+
+## UpdateDigestTimes CLI（update_digest_times.py）
+
+last_digest_times.json更新CLI。パターン1フローでloop処理完了を記録。
+
+> `finalize_from_shadow.py`を呼ばないワークフローで使用。
+
+```bash
+# CLI usage
+python -m interfaces.update_digest_times loop 259
+python -m interfaces.update_digest_times weekly 51
+```
+
+| 引数 | 説明 |
+|------|------|
+| `level` | ダイジェストレベル（loop, weekly, monthly等） |
+| `last_processed` | 設定する番号（int） |
+| `--plugin-root` | プラグインルートパス（オプション） |
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+
+# Loop処理完了記録（パターン1フロー）
+python -m interfaces.update_digest_times loop 259
+
+# Weekly処理完了記録
+python -m interfaces.update_digest_times weekly 51
+
+# プラグインルート指定
+python -m interfaces.update_digest_times loop 259 --plugin-root /path/to/plugin
+```
+
+**出力例**:
+```
+更新完了: loop.last_processed = 259
+```
+
+**用途**:
+- パターン1フロー（新Loop検出）でloop処理完了を記録
+- `finalize_from_shadow.py`を呼ばないワークフローで使用
 
 ---
 
