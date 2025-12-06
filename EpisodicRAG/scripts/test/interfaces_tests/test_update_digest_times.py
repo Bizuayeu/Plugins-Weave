@@ -38,7 +38,10 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """loopレベルのlast_processedを更新"""
         from interfaces.update_digest_times import main
 
-        with patch("sys.argv", ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)]):
+        with patch(
+            "sys.argv",
+            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+        ):
             with patch("builtins.print") as mock_print:
                 main()
                 # 出力確認
@@ -57,7 +60,10 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """weeklyレベルのlast_processedを更新"""
         from interfaces.update_digest_times import main
 
-        with patch("sys.argv", ["update_digest_times.py", "weekly", "51", "--plugin-root", str(self.temp_dir)]):
+        with patch(
+            "sys.argv",
+            ["update_digest_times.py", "weekly", "51", "--plugin-root", str(self.temp_dir)],
+        ):
             with patch("builtins.print"):
                 main()
 
@@ -70,7 +76,10 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """無効なレベル指定でエラー"""
         from interfaces.update_digest_times import main
 
-        with patch("sys.argv", ["update_digest_times.py", "invalid_level", "259", "--plugin-root", str(self.temp_dir)]):
+        with patch(
+            "sys.argv",
+            ["update_digest_times.py", "invalid_level", "259", "--plugin-root", str(self.temp_dir)],
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code != 0
@@ -90,7 +99,9 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """last_processed引数不足でエラー"""
         from interfaces.update_digest_times import main
 
-        with patch("sys.argv", ["update_digest_times.py", "loop", "--plugin-root", str(self.temp_dir)]):
+        with patch(
+            "sys.argv", ["update_digest_times.py", "loop", "--plugin-root", str(self.temp_dir)]
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code != 0
@@ -100,17 +111,15 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """既存レベルのデータを保持"""
         # 事前データ作成
         times_file = self.plugin_dir / "last_digest_times.json"
-        initial_data = {
-            "weekly": {
-                "timestamp": "2025-01-01T00:00:00",
-                "last_processed": 40
-            }
-        }
+        initial_data = {"weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 40}}
         times_file.write_text(json.dumps(initial_data, ensure_ascii=False), encoding="utf-8")
 
         from interfaces.update_digest_times import main
 
-        with patch("sys.argv", ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)]):
+        with patch(
+            "sys.argv",
+            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+        ):
             with patch("builtins.print"):
                 main()
 
