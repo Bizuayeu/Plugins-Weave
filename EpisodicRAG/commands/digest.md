@@ -89,7 +89,8 @@ TodoWrite items for Pattern 1:
 3. DigestAnalyzer並列起動 - 各Loopのlong/short分析
 4. Provisional保存実行 - individual_digests自動生成
 5. Shadow統合更新 - overall_digest更新
-6. 次アクション提示 - Weekly生成可能か確認
+6. update_digest_times実行 - loop処理完了を記録
+7. 次アクション提示 - Weekly生成可能か確認
 ```
 
 **各ステップの詳細**:
@@ -101,7 +102,8 @@ TodoWrite items for Pattern 1:
 | 3 | 各Loopを分析 | Task(DigestAnalyzer) 並列起動 |
 | 4 | individual_digests保存 | `python -m interfaces.save_provisional_digest weekly --stdin --append` |
 | 5 | overall_digest更新 | ShadowGrandDigest.txtを直接編集 |
-| 6 | 次アクション提示 | digest_entry.pyの出力を参照 |
+| 6 | loop処理完了記録 | `python -m interfaces.update_digest_times loop <最終番号>` |
+| 7 | 次アクション提示 | digest_entry.pyの出力を参照 |
 
 ### パターン2: `/digest <type>` (階層確定)
 
@@ -247,6 +249,26 @@ python -m interfaces.finalize_from_shadow weekly "承認されたタイトル"
 - 次レベルのShadowへカスケード
 - last_digest_times.json更新
 - Provisionalファイル削除
+
+---
+
+### update_digest_times.py
+
+last_digest_times.json更新（パターン1フロー用）。
+
+**配置先**: `scripts/interfaces/update_digest_times.py`
+
+```bash
+# Loop処理完了記録
+python -m interfaces.update_digest_times loop 259
+
+# その他のレベルも指定可能
+python -m interfaces.update_digest_times weekly 51
+```
+
+**用途**:
+- パターン1フロー（新Loop検出）でloop処理完了を記録
+- `finalize_from_shadow.py`を呼ばないワークフローで使用
 
 ---
 

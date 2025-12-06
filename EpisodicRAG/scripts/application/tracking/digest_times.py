@@ -91,6 +91,21 @@ class DigestTimesTracker:
         last_file_str = file_numbers[-1]
         return extract_number_only(last_file_str)
 
+    def _save_level_data(self, level: str, last_processed: Optional[int]) -> None:
+        """
+        共通保存ロジック（内部用）
+
+        Args:
+            level: ダイジェストレベル
+            last_processed: 最後に処理した番号（Noneも許容）
+        """
+        times = self.load_or_create()
+        times[level] = {
+            "timestamp": datetime.now().isoformat(),
+            "last_processed": last_processed,
+        }
+        save_json(self.last_digest_file, times)
+
     def save(self, level: str, input_files: Optional[List[str]] = None) -> None:
         """
         最終ダイジェスト生成時刻と最新処理済みファイル番号を保存
@@ -108,16 +123,33 @@ class DigestTimesTracker:
         if input_files is not None and len(input_files) == 0:
             log_warning(f"入力ファイルリストが空です: レベル {level}")
 
-        times = self.load_or_create()
-
         # 連番抽出と最終番号取得
         file_numbers = self.extract_file_numbers(level, input_files or [])
         last_processed = self._extract_last_processed(file_numbers)
 
-        # 保存
-        times[level] = {"timestamp": datetime.now().isoformat(), "last_processed": last_processed}
-        save_json(self.last_digest_file, times)
+        # 共通ロジックで保存
+        self._save_level_data(level, last_processed)
 
         _logger.info(f"last_digest_times.json更新完了: レベル {level}")
         if last_processed:
             _logger.info(f"最終処理番号: {last_processed}")
+
+    def update_direct(self, level: str, last_processed: int) -> None:
+        """
+        last_processedを直接設定（CLIから呼び出し用）
+
+        現在のsave()はファイル名リストから番号を抽出するが、
+        CLIからは番号を直接指定したいケースがある。
+
+        Args:
+            level: ダイジェストレベル（loop, weekly等）
+            last_processed: 設定する番号
+
+        Example:
+            >>> tracker = DigestTimesTracker(config)
+            >>> tracker.update_direct("loop", 259)
+            # last_digest_times.json の loop.last_processed が 259 に更新される
+        """
+        # 共通ロジックで保存
+        self._save_level_data(level, last_processed)
+        _logger.info(f"last_digest_times.json更新: {level} = {last_processed}")
