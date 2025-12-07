@@ -382,16 +382,18 @@ class TestRaceConditions:
                 with write_lock:
                     with open(test_file, "w", encoding="utf-8") as f:
                         json.dump({"version": i + 2}, f)
+                time.sleep(0.001)  # 1ms待機して読み取りにチャンスを与える
 
         def reader_task() -> None:
             start_barrier.wait()  # 両スレッドが準備完了を待つ
-            for _ in range(20):
+            for _ in range(50):  # 読み取り試行回数を増加
                 try:
                     with open(test_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     read_successes.append(data)
                 except (IOError, json.JSONDecodeError) as e:
                     read_failures.append(e)
+                time.sleep(0.0005)  # 0.5ms待機
 
         writer = threading.Thread(target=writer_task)
         reader = threading.Thread(target=reader_task)
