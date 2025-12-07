@@ -59,8 +59,8 @@ def _recursive_search(base_path: Path, max_depth: int, current_depth: int = 0) -
                     results.append(item)
                 else:
                     results.extend(_recursive_search(item, max_depth, current_depth + 1))
-    except PermissionError:
-        pass  # アクセス権限がないディレクトリはスキップ
+    except (PermissionError, OSError):
+        pass  # アクセス権限がない/無効なパスはスキップ
 
     return results
 
@@ -81,8 +81,11 @@ def find_in_search_paths(
         見つかった場合はプラグインルートパス、見つからない場合はNone
     """
     for base_path in search_paths:
-        if not base_path.exists():
-            continue
+        try:
+            if not base_path.exists():
+                continue
+        except OSError:
+            continue  # 無効なパス文字でも安全にスキップ
 
         # 直接チェック（EpisodicRAG サブディレクトリ）
         candidate = base_path / "EpisodicRAG"

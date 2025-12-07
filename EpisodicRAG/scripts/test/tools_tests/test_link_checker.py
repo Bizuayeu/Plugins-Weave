@@ -557,3 +557,251 @@ class TestSlugifyLycheeCompat:
         # Verify - 絵文字が削除され、スペースがハイフンに、連続ハイフン保持
         assert len(results) == 1
         assert results[0].status == LinkStatus.VALID.value
+
+
+# =============================================================================
+# main() CLI テスト
+# =============================================================================
+
+
+class TestLinkCheckerMain:
+    """main() CLIエントリポイントのテスト (subprocess使用)"""
+
+    def test_main_with_valid_docs(self, temp_docs_dir) -> None:
+        """有効なドキュメントディレクトリでのmain実行"""
+        import subprocess
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("# Title\n\n[Valid](index.md)", encoding="utf-8")
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir)],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 0
+        assert "All links are valid" in result.stdout
+
+    def test_main_with_broken_link(self, temp_docs_dir) -> None:
+        """壊れたリンクがある場合の終了コード1"""
+        import subprocess
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Broken](missing.md)", encoding="utf-8")
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir)],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 1
+        assert "Broken links" in result.stdout or "broken" in result.stdout.lower()
+
+    def test_main_nonexistent_directory(self, tmp_path) -> None:
+        """存在しないディレクトリでの終了コード1"""
+        import subprocess
+        import sys
+
+        nonexistent = tmp_path / "nonexistent"
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(nonexistent)],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 1
+        assert "Error" in result.stderr or "not found" in result.stderr
+
+    def test_main_json_output(self, temp_docs_dir) -> None:
+        """--json オプションでJSON出力"""
+        import json as json_module
+        import subprocess
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)", encoding="utf-8")
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--json"],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 0
+        output = json_module.loads(result.stdout)
+        assert "summary" in output
+        assert "broken_links" in output
+
+    def test_main_json_with_broken(self, temp_docs_dir) -> None:
+        """--json オプションで壊れたリンクがある場合"""
+        import json as json_module
+        import subprocess
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Broken](missing.md)", encoding="utf-8")
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--json"],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 1
+        output = json_module.loads(result.stdout)
+        assert len(output["broken_links"]) > 0
+
+    def test_main_verbose_output(self, temp_docs_dir) -> None:
+        """--verbose オプションで詳細出力"""
+        import subprocess
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)\n[Ext](https://example.com)", encoding="utf-8")
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--verbose"],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 0
+        assert "All links:" in result.stdout
+        assert "[OK]" in result.stdout
+        assert "[EXT]" in result.stdout
+
+    def test_main_errors_only_output(self, temp_docs_dir) -> None:
+        """--errors-only オプション"""
+        import subprocess
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)\n[Broken](missing.md)", encoding="utf-8")
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--errors-only"],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 1
+        assert "Broken links" in result.stdout or "broken" in result.stdout.lower()
+
+    def test_main_json_verbose(self, temp_docs_dir) -> None:
+        """--json --verbose オプションでall_linksを含む"""
+        import json as json_module
+        import subprocess
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)", encoding="utf-8")
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--json", "--verbose"],
+            capture_output=True,
+            cwd=str(Path(__file__).parent.parent.parent),
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        assert result.returncode == 0
+        output = json_module.loads(result.stdout)
+        assert "all_links" in output
+
+
+# =============================================================================
+# エッジケーステスト
+# =============================================================================
+
+
+class TestLinkCheckerEdgeCases:
+    """エッジケースのテスト"""
+
+    def test_check_file_nonexistent(self, temp_docs_dir) -> None:
+        """存在しないファイルを個別にcheck_file"""
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_file(temp_docs_dir / "nonexistent.md")
+        assert len(results) == 0
+
+    def test_empty_link_target_in_resolve_path(self, temp_docs_dir) -> None:
+        """空のリンクターゲットの解決"""
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        result = checker._resolve_path(temp_docs_dir / "index.md", "")
+        assert result is None
+
+    def test_url_encoded_path(self, temp_docs_dir) -> None:
+        """URLエンコードされたパス（%20）の解決"""
+        # Setup
+        file1 = temp_docs_dir / "index.md"
+        file2 = temp_docs_dir / "my file.md"
+
+        file1.write_text("[Link](my%20file.md)", encoding="utf-8")
+        file2.write_text("# My File", encoding="utf-8")
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        # Verify
+        assert len(results) == 1
+        assert results[0].status == LinkStatus.VALID.value
+
+    def test_case_insensitive_suggestion(self, temp_docs_dir) -> None:
+        """大文字小文字違いの修正提案（Unix系のみ有効）
+
+        Note: Windowsではファイルシステムが大文字小文字を区別しないため、
+        readme.md と README.md は同じファイルとして扱われる。
+        """
+        import sys
+
+        file1 = temp_docs_dir / "index.md"
+        file2 = temp_docs_dir / "README.md"
+
+        file1.write_text("[Link](readme.md)", encoding="utf-8")
+        file2.write_text("# README", encoding="utf-8")
+
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        assert len(results) == 1
+        # Windowsでは大文字小文字を区別しないのでVALID
+        if sys.platform == "win32":
+            assert results[0].status == LinkStatus.VALID.value
+        else:
+            assert results[0].status == LinkStatus.BROKEN.value
+            assert "README.md" in results[0].suggestion
+
+    def test_skipped_status_in_summary(self, temp_docs_dir) -> None:
+        """SKIPPEDステータスがサマリーで正しくカウントされる"""
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        # 手動でSKIPPED結果を追加
+        checker.results.append(
+            LinkCheckResult(
+                file_path="test.md",
+                line_number=1,
+                link_text="Test",
+                link_target="test",
+                status=LinkStatus.SKIPPED.value,
+            )
+        )
+        summary = checker.get_summary()
+        assert summary.skipped == 1
