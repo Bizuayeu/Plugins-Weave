@@ -211,3 +211,56 @@ class TestShadowGrandDigestManagerInit:
             # managerが正しく初期化されていることを確認
             assert manager.config is mock_config
             assert manager.digests_path == temp_plugin_env.digests_path
+
+
+class TestShadowGrandDigestMain:
+    """main() 関数のテスト"""
+
+    @pytest.mark.integration
+    def test_main_function(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+        """main()関数の動作テスト"""
+        from application.grand.shadow_grand_digest import main
+
+        # config.jsonを作成
+        config_file = temp_plugin_env.config_dir / "config.json"
+        config_data = {
+            "base_dir": str(temp_plugin_env.plugin_root),
+            "paths": {
+                "loops_dir": "data/Loops",
+                "digests_dir": "data/Digests",
+                "essences_dir": "data/Essences",
+            },
+        }
+        config_file.write_text(json.dumps(config_data))
+
+        # last_digest_times.jsonも作成
+        times_file = temp_plugin_env.config_dir / "last_digest_times.json"
+        times_file.write_text("{}")
+
+        with (
+            patch("application.grand.shadow_grand_digest.DigestConfig") as mock_config_class,
+            patch(
+                "application.grand.shadow_grand_digest.ShadowGrandDigestManager"
+            ) as mock_manager_class,
+            patch("application.grand.shadow_grand_digest._logger") as mock_logger,
+            patch("application.grand.shadow_grand_digest.log_warning") as mock_warning,
+        ):
+            mock_config = MagicMock()
+            mock_config_class.return_value = mock_config
+
+            mock_manager = MagicMock()
+            mock_manager_class.return_value = mock_manager
+
+            # main実行
+            main()
+
+            # DigestConfigとShadowGrandDigestManagerが呼ばれたことを確認
+            mock_config_class.assert_called_once()
+            mock_manager_class.assert_called_once_with(mock_config)
+
+            # update_shadow_for_new_loopsが呼ばれたことを確認
+            mock_manager.update_shadow_for_new_loops.assert_called_once()
+
+            # ログ出力が呼ばれたことを確認
+            assert mock_logger.info.call_count >= 5
+            assert mock_warning.call_count == 2

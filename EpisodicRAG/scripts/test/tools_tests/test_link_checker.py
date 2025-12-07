@@ -733,6 +733,167 @@ class TestLinkCheckerMain:
 # =============================================================================
 
 
+class TestLinkCheckerMainDirect:
+    """main() 関数の直接テスト（カバレッジ計測用）"""
+
+    def test_main_direct_with_valid_docs(self, temp_docs_dir) -> None:
+        """main()を直接呼び出し（モック使用）"""
+        from unittest.mock import patch
+
+        from tools.link_checker import main
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)", encoding="utf-8")
+
+        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir)]):
+            with patch("builtins.print"):
+                try:
+                    main()
+                except SystemExit as e:
+                    assert e.code == 0
+
+    def test_main_direct_with_broken_links(self, temp_docs_dir) -> None:
+        """壊れたリンクがある場合のmain()直接呼び出し"""
+        from unittest.mock import patch
+
+        from tools.link_checker import main
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Broken](missing.md)", encoding="utf-8")
+
+        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir)]):
+            with patch("builtins.print"):
+                try:
+                    main()
+                except SystemExit as e:
+                    assert e.code == 1
+
+    def test_main_direct_nonexistent_dir(self, tmp_path) -> None:
+        """存在しないディレクトリでのmain()直接呼び出し"""
+        from unittest.mock import patch
+
+        from tools.link_checker import main
+
+        nonexistent = tmp_path / "nonexistent"
+
+        with patch("sys.argv", ["link_checker.py", str(nonexistent)]):
+            with patch("builtins.print"):
+                try:
+                    main()
+                except SystemExit as e:
+                    assert e.code == 1
+
+    def test_main_direct_json_output(self, temp_docs_dir) -> None:
+        """--json オプションでのmain()直接呼び出し"""
+        from unittest.mock import patch
+
+        from tools.link_checker import main
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)", encoding="utf-8")
+
+        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--json"]):
+            with patch("builtins.print") as mock_print:
+                try:
+                    main()
+                except SystemExit as e:
+                    assert e.code == 0
+                output = mock_print.call_args[0][0]
+                assert "summary" in output
+
+    def test_main_direct_verbose(self, temp_docs_dir) -> None:
+        """--verbose オプションでのmain()直接呼び出し"""
+        from unittest.mock import patch
+
+        from tools.link_checker import main
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)\n[Ext](https://example.com)", encoding="utf-8")
+
+        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--verbose"]):
+            with patch("builtins.print"):
+                try:
+                    main()
+                except SystemExit as e:
+                    assert e.code == 0
+
+    def test_main_direct_errors_only(self, temp_docs_dir) -> None:
+        """--errors-only オプションでのmain()直接呼び出し"""
+        from unittest.mock import patch
+
+        from tools.link_checker import main
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)\n[Broken](missing.md)", encoding="utf-8")
+
+        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--errors-only"]):
+            with patch("builtins.print"):
+                try:
+                    main()
+                except SystemExit as e:
+                    assert e.code == 1
+
+    def test_main_direct_json_verbose(self, temp_docs_dir) -> None:
+        """--json --verbose でall_linksを含む"""
+        from unittest.mock import patch
+
+        from tools.link_checker import main
+
+        file1 = temp_docs_dir / "index.md"
+        file1.write_text("[Valid](index.md)", encoding="utf-8")
+
+        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--json", "--verbose"]):
+            with patch("builtins.print") as mock_print:
+                try:
+                    main()
+                except SystemExit as e:
+                    assert e.code == 0
+                output = mock_print.call_args[0][0]
+                assert "all_links" in output
+
+
+class TestLinkCheckerUnicodeErrors:
+    """UnicodeDecodeError関連のテスト"""
+
+    def test_check_file_unicode_decode_error(self, temp_docs_dir) -> None:
+        """ファイル読み込み時のUnicodeDecodeError処理"""
+        # Setup - バイナリファイルを作成
+        file1 = temp_docs_dir / "binary.md"
+        file1.write_bytes(b"\x80\x81\x82\x83")  # 無効なUTF-8
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_file(file1)
+
+        # Verify - 空のリストが返される
+        assert len(results) == 0
+
+    def test_get_headings_unicode_decode_error(self, temp_docs_dir) -> None:
+        """_get_headings でのUnicodeDecodeError処理"""
+        # Setup
+        file1 = temp_docs_dir / "index.md"
+        binary_file = temp_docs_dir / "binary.md"
+
+        file1.write_text("[Link](binary.md#section)", encoding="utf-8")
+        binary_file.write_bytes(b"\x80\x81\x82\x83")  # 無効なUTF-8
+
+        # Execute
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        results = checker.check_all()
+
+        # Verify - バイナリファイルへのリンクは存在するがアンカーは見つからない
+        assert len(results) == 1
+        # バイナリファイルは存在するのでBROKENではなく、
+        # アンカー検証時にUnicodeDecodeErrorで空のheadingsが返される
+        assert results[0].status == LinkStatus.ANCHOR_MISSING.value
+
+    def test_get_headings_nonexistent_file(self, temp_docs_dir) -> None:
+        """_get_headings で存在しないファイルを参照"""
+        checker = MarkdownLinkChecker(temp_docs_dir)
+        headings = checker._get_headings(temp_docs_dir / "nonexistent.md")
+        assert len(headings) == 0
+
+
 class TestLinkCheckerEdgeCases:
     """エッジケースのテスト"""
 

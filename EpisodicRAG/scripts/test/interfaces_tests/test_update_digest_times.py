@@ -128,5 +128,59 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         assert data["weekly"]["last_processed"] == 40  # 既存データ保持
 
 
+class TestUpdateDigestTimesErrorHandling(unittest.TestCase):
+    """エラーハンドリングのテスト"""
+
+    def setUp(self) -> None:
+        """テスト用の一時ディレクトリを作成"""
+        self.temp_dir = Path(tempfile.mkdtemp())
+        paths = create_standard_test_structure(self.temp_dir)
+        self.plugin_dir = paths["config_dir"]
+        create_default_config(self.plugin_dir)
+
+    def tearDown(self) -> None:
+        """一時ディレクトリを削除"""
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    @pytest.mark.integration
+    def test_episodic_rag_error_handling(self) -> None:
+        """EpisodicRAGErrorが発生した場合のエラーハンドリング"""
+        from domain.exceptions import EpisodicRAGError
+        from interfaces.update_digest_times import main
+
+        with patch(
+            "sys.argv",
+            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+        ):
+            with patch(
+                "interfaces.update_digest_times.DigestTimesTracker.update_direct",
+                side_effect=EpisodicRAGError("Test error"),
+            ):
+                with patch("interfaces.update_digest_times.log_error") as mock_log:
+                    main()
+                    mock_log.assert_called_once()
+                    call_args = mock_log.call_args
+                    assert "Test error" in str(call_args)
+
+    @pytest.mark.integration
+    def test_os_error_handling(self) -> None:
+        """OSErrorが発生した場合のエラーハンドリング"""
+        from interfaces.update_digest_times import main
+
+        with patch(
+            "sys.argv",
+            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+        ):
+            with patch(
+                "interfaces.update_digest_times.DigestTimesTracker.update_direct",
+                side_effect=OSError("Permission denied"),
+            ):
+                with patch("interfaces.update_digest_times.log_error") as mock_log:
+                    main()
+                    mock_log.assert_called_once()
+                    call_args = mock_log.call_args
+                    assert "File I/O error" in str(call_args)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
