@@ -167,12 +167,14 @@ class DigestReadinessChecker:
             return False, []
 
         # 4要素のPLACEHOLDER確認
-        has_placeholder = any([
-            self._has_placeholder(overall_digest.get("digest_type", "")),
-            self._has_placeholder(overall_digest.get("abstract", "")),
-            self._has_placeholder(overall_digest.get("impression", "")),
-            self._keywords_has_placeholder(overall_digest.get("keywords", [])),
-        ])
+        has_placeholder = any(
+            [
+                self._has_placeholder(overall_digest.get("digest_type", "")),
+                self._has_placeholder(overall_digest.get("abstract", "")),
+                self._has_placeholder(overall_digest.get("impression", "")),
+                self._keywords_has_placeholder(overall_digest.get("keywords", [])),
+            ]
+        )
 
         if has_placeholder:
             return False, []
@@ -255,7 +257,9 @@ class DigestReadinessChecker:
 
         if not threshold_met:
             need = level_threshold - source_count
-            blockers.append(f"threshold未達: {source_count}/{level_threshold} (あと{need}ファイル必要)")
+            blockers.append(
+                f"threshold未達: {source_count}/{level_threshold} (あと{need}ファイル必要)"
+            )
 
         if not sdg_ready:
             # PLACEHOLDERがある場合

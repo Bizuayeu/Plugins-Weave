@@ -65,8 +65,13 @@ class TestDigestReadinessChecker(unittest.TestCase):
             "latest_digests": {
                 "weekly": {
                     "overall_digest": {
-                        "source_files": ["L00001_test.txt", "L00002_test.txt", "L00003_test.txt",
-                                         "L00004_test.txt", "L00005_test.txt"],
+                        "source_files": [
+                            "L00001_test.txt",
+                            "L00002_test.txt",
+                            "L00003_test.txt",
+                            "L00004_test.txt",
+                            "L00005_test.txt",
+                        ],
                         "digest_type": "テスト分析",
                         "keywords": ["キーワード1", "キーワード2", "キーワード3"],
                         "abstract": "これは分析済みの要約です。",
@@ -75,8 +80,12 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 },
                 "monthly": {
                     "overall_digest": {
-                        "source_files": ["W0001_test.txt", "W0002_test.txt",
-                                         "W0003_test.txt", "W0004_test.txt"],
+                        "source_files": [
+                            "W0001_test.txt",
+                            "W0002_test.txt",
+                            "W0003_test.txt",
+                            "W0004_test.txt",
+                        ],
                         "digest_type": "月次テスト",
                         "keywords": ["月次1", "月次2"],
                         "abstract": "月次要約",
@@ -177,10 +186,24 @@ class TestDigestReadinessChecker(unittest.TestCase):
                     },
                 ]
             }
-            provisional_path = self.plugin_root / "data" / "Digests" / "2_Monthly" / "Provisional" / "M0001_Individual.txt"
+            provisional_path = (
+                self.plugin_root
+                / "data"
+                / "Digests"
+                / "2_Monthly"
+                / "Provisional"
+                / "M0001_Individual.txt"
+            )
         else:
             provisional_data = {"individual_digests": []}
-            provisional_path = self.plugin_root / "data" / "Digests" / "3_Quarterly" / "Provisional" / "Q001_Individual.txt"
+            provisional_path = (
+                self.plugin_root
+                / "data"
+                / "Digests"
+                / "3_Quarterly"
+                / "Provisional"
+                / "Q001_Individual.txt"
+            )
 
         with open(provisional_path, "w", encoding="utf-8") as f:
             json.dump(provisional_data, f)
@@ -215,7 +238,14 @@ class TestDigestReadinessChecker(unittest.TestCase):
                     },
                 ]
             }
-            provisional_path = self.plugin_root / "data" / "Digests" / "2_Monthly" / "Provisional" / "M0001_Individual.txt"
+            provisional_path = (
+                self.plugin_root
+                / "data"
+                / "Digests"
+                / "2_Monthly"
+                / "Provisional"
+                / "M0001_Individual.txt"
+            )
             with open(provisional_path, "w", encoding="utf-8") as f:
                 json.dump(provisional_data, f)
 
