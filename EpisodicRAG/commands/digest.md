@@ -413,8 +413,8 @@ python -m interfaces.digest_readiness <level>
 ```
 
 **判定**:
-- `can_finalize: true` → Step 4-6をスキップし、Step 7へ
-- `can_finalize: false` → Step 4-6を実行して不足を補完
+- `can_finalize: true` → Step 4-5をスキップし、Step 6へ
+- `can_finalize: false` → Step 4-5を実行して不足を補完
 
 ---
 
