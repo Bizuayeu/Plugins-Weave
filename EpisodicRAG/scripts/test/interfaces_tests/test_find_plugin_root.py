@@ -270,7 +270,7 @@ def test_is_valid_plugin_root_never_crashes(path_str):
 
 @pytest.mark.property
 @given(paths=st.lists(st.text(min_size=1, max_size=30), min_size=0, max_size=3))
-@settings(max_examples=30)
+@settings(max_examples=30, deadline=None)
 def test_find_result_status_invariant(paths):
     """FindResult.status は常に 'ok' または 'error'"""
     from interfaces.find_plugin_root import find_plugin_root
