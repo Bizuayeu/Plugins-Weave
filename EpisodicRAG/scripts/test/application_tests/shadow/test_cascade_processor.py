@@ -483,6 +483,7 @@ class TestCascadeWithProvisionalAppender:
         )
         # 新規Weeklyファイルが追加されている可能性を確認（times_trackerの状態による）
         # この確認は実装依存のため、エラーなく完了することを主に確認
+        assert isinstance(monthly_source_files, list)
 
     @pytest.mark.unit
     def test_centurial_skips_all_cascade(

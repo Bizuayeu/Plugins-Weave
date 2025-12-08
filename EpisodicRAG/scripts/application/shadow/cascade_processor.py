@@ -41,7 +41,7 @@ Note:
     4. 現在レベルのShadowをクリア
 """
 
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 __all__ = ["CascadeProcessor"]
 

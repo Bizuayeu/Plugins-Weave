@@ -23,11 +23,11 @@ Related Modules:
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from application.config import DigestConfig
 from domain.constants import LEVEL_CONFIG
-from domain.types import LevelHierarchyEntry, RegularDigestData
+from domain.types import LevelConfigData, LevelHierarchyEntry, RegularDigestData
 from infrastructure import get_structured_logger, save_json, try_read_json_from_file
 
 __all__ = ["ProvisionalAppender"]
@@ -156,7 +156,7 @@ class ProvisionalAppender:
 
         # ファイル名を構築 (e.g., W0053_タイトル.txt)
         level = metadata.get("digest_level", "")
-        level_cfg = self.level_config.get(level, {})
+        level_cfg: Union[LevelConfigData, Dict[str, Any]] = self.level_config.get(level, {})
         prefix = level_cfg.get("prefix", "X")
         digest_num = metadata.get("digest_number", "0000")
 
