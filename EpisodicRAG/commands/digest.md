@@ -284,6 +284,7 @@ TodoWrite items for Pattern 2:
 6. SGDとProvisional更新 - 分析結果をアペンド
 7. Digest名確定 - ユーザーにタイトルを提案して承認を取得
 8. Digestカスケード - finalize_from_shadow.pyを実行
+8.5. 次階層への統合 - 次階層SGDのabstract/impressionを更新（centurial以外）
 9. 処理完了提示 - GrandDigestと次階層のDigest要否を確認
 ```
 
@@ -299,6 +300,7 @@ TodoWrite items for Pattern 2:
 | 6 | SGDとProvisional更新 | SGDの4要素更新 + save_provisional_digest実行 |
 | 7 | Digest名確定 | Claudeが提案、ユーザー承認 |
 | 8 | Digestカスケード | `python -m interfaces.finalize_from_shadow <level> "タイトル"` |
+| 8.5 | 次階層への統合 | Task(DigestAnalyzer)並列 + 次階層SGD更新（centurial以外） |
 | 9 | 処理完了提示 | GrandDigest確認 + 次階層のDigest要否を案内 |
 
 ### 各ステップの詳細
@@ -560,6 +562,59 @@ python -m interfaces.finalize_from_shadow monthly "理論的深化・実装加�
 - 次レベルのShadowへカスケード（source_filesに追加）
 - last_digest_times.json更新
 - Provisionalファイル削除
+
+---
+
+#### Step 8.5: 次階層への統合（centurial以外）
+
+**前提**: finalize_from_shadow.pyが自動で次階層Provisionalにindividual_digestを追加済み
+
+**注意**: centurialは最上位のため本ステップは不要（スキップ）
+
+**Claude実行内容**:
+1. 次階層のsource_files全てをDigestAnalyzerで並列分析
+2. 分析結果で次階層SGDのabstract/impressionを更新
+
+**操作**:
+
+1. **次階層のShadow source_files確認**
+
+   ShadowGrandDigest.txtの次階層セクションを読み込み、
+   source_filesに新しく追加されたファイルを確認
+
+2. **DigestAnalyzer並列起動**
+
+   ```python
+   Task(
+       subagent_type="EpisodicRAG-Plugin:DigestAnalyzer",
+       description=f"Analyze {source_file} for next level digest",
+       prompt=f"""
+   分析対象ファイル: {file_path}
+
+   このファイルを深層分析し、以下の形式でJSON出力してください：
+   {{
+     "digest_type": "...",
+     "keywords": [...],
+     "abstract": {{"long": "...", "short": "..."}},
+     "impression": {{"long": "...", "short": "..."}}
+   }}
+   """
+   )
+   ```
+
+3. **次階層SGD更新**
+
+   **対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+
+   **更新対象フィールド**（`<next_level>.overall_digest`内）:
+   - `digest_type`: 全source_filesを統合したテーマ
+   - `keywords`: 統合キーワード5個
+   - `abstract`: 統合分析（long版を使用）
+   - `impression`: 統合所感（long版を使用）
+
+**自動処理済み（プログラム）**:
+- 次階層Shadowのsource_filesに確定ファイル名を追加 ✓
+- 次階層Provisionalにindividual_digestエントリを追加 ✓
 
 ---
 

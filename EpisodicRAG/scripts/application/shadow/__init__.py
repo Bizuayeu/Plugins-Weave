@@ -21,6 +21,7 @@ from .cascade_orchestrator import (
 )
 from .cascade_processor import CascadeProcessor
 from .file_detector import FileDetector
+from .provisional_appender import ProvisionalAppender
 from .shadow_io import ShadowIO
 from .shadow_updater import ShadowUpdater
 from .template import ShadowTemplate
@@ -35,4 +36,5 @@ __all__ = [
     "CascadeResult",
     "CascadeStepResult",
     "CascadeStepStatus",
+    "ProvisionalAppender",
 ]

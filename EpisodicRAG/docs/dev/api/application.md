@@ -197,6 +197,7 @@ keywords = get_dict_or_default(raw_data.get("keywords"), {})
 | `CascadeProcessor` | ダイジェスト確定時のカスケード処理 |
 | `PlaceholderManager` | PLACEHOLDER管理（更新・保持判定） |
 | `FileAppender` | Shadowへのファイル追加 |
+| `ProvisionalAppender` | 次レベルProvisionalへのindividual_digest追加 |
 
 ### ShadowTemplate
 
@@ -255,7 +256,8 @@ class ShadowUpdater:
         shadow_io: ShadowIO,
         file_detector: FileDetector,
         template: ShadowTemplate,
-        level_hierarchy: Dict[str, LevelHierarchyEntry]
+        level_hierarchy: Dict[str, LevelHierarchyEntry],
+        config: Optional[DigestConfig] = None  # ProvisionalAppender用
     ): ...
 
     def add_files_to_shadow(self, level: str, new_files: List[Path]) -> None
@@ -263,6 +265,9 @@ class ShadowUpdater:
     def get_shadow_digest_for_level(self, level: str) -> Optional[OverallDigestData]
     def promote_shadow_to_grand(self, level: str) -> None
     def update_shadow_for_new_loops(self) -> None
+    def cascade_update_on_digest_finalize(
+        self, level: str, finalized_digest: Optional[RegularDigestData] = None
+    ) -> None
 ```
 
 ### CascadeOrchestrator *(v4.1.0+)*
@@ -409,7 +414,7 @@ class ShadowGrandDigestManager:
 | `get_shadow_digest_for_level(level) -> Optional[OverallDigestData]` | Shadowダイジェスト取得 |
 | `promote_shadow_to_grand(level) -> None` | Shadow→Grand昇格 |
 | `update_shadow_for_new_loops() -> None` | 新規Loop検出→weekly Shadow更新 |
-| `cascade_update_on_digest_finalize(level) -> None` | 確定時カスケード処理 |
+| `cascade_update_on_digest_finalize(level, finalized_digest=None) -> None` | 確定時カスケード処理 |
 
 **使用例**:
 
@@ -530,7 +535,7 @@ class DigestPersistence:
 |---------|------|------|
 | `save_regular_digest(level, regular_digest, new_digest_name) -> Path` | RegularDigestをファイルに保存 | `FileIOError`, `ValidationError`（上書きキャンセル時） |
 | `update_grand_digest(level, regular_digest, new_digest_name) -> None` | GrandDigestを更新 | `DigestError` |
-| `process_cascade_and_cleanup(level, source_files, provisional_file_to_delete) -> None` | カスケード処理とProvisional削除 | - |
+| `process_cascade_and_cleanup(level, next_num, provisional_file_to_delete, finalized_digest=None) -> None` | カスケード処理とProvisional削除 | - |
 
 **save_regular_digest動作**:
 1. 既存ファイルがあれば上書き確認（対話/非対話モード対応）

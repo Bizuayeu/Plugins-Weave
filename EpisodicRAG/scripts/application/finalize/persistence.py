@@ -148,7 +148,9 @@ class DigestPersistence:
             level, new_digest_name, cast(OverallDigestData, overall_digest)
         )
 
-    def _update_shadow_cascade(self, level: str) -> None:
+    def _update_shadow_cascade(
+        self, level: str, finalized_digest: Optional[RegularDigestData] = None
+    ) -> None:
         """
         ShadowGrandDigestのカスケード更新を実行
 
@@ -156,6 +158,7 @@ class DigestPersistence:
 
         Args:
             level: ダイジェストレベル
+            finalized_digest: 確定したRegularDigest（Provisional追加用）
         """
         registry = get_level_registry()
         should_cascade = registry.should_cascade(level)
@@ -165,7 +168,7 @@ class DigestPersistence:
         if should_cascade:
             _logger.info("[Step 3] ShadowGrandDigestカスケード処理")
             log_debug(f"{LOG_PREFIX_STATE} starting cascade for level={level}")
-            self.shadow_manager.cascade_update_on_digest_finalize(level)
+            self.shadow_manager.cascade_update_on_digest_finalize(level, finalized_digest)
         else:
             _logger.info(f"[Step 3] スキップ（{level}は最上位、カスケード不要）")
 
@@ -198,7 +201,11 @@ class DigestPersistence:
                 log_warning(f"Provisionalダイジェストの削除に失敗: {e}")
 
     def process_cascade_and_cleanup(
-        self, level: str, digest_number: int, provisional_file_to_delete: Optional[Path]
+        self,
+        level: str,
+        digest_number: int,
+        provisional_file_to_delete: Optional[Path],
+        finalized_digest: Optional[RegularDigestData] = None,
     ) -> None:
         """
         カスケード処理とProvisional削除（オーケストレーター）
@@ -207,17 +214,18 @@ class DigestPersistence:
             level: ダイジェストレベル
             digest_number: 確定したダイジェスト番号
             provisional_file_to_delete: 削除するProvisionalファイル
+            finalized_digest: 確定したRegularDigest（次レベルProvisional追加用）
 
         Example:
             >>> persistence = DigestPersistence(config, grand_manager, shadow_manager, tracker)
-            >>> persistence.process_cascade_and_cleanup("weekly", 52, provisional_path)
+            >>> persistence.process_cascade_and_cleanup("weekly", 52, provisional_path, finalized_digest)
             # ShadowGrandDigestのカスケード更新、last_digest_times更新、Provisional削除が実行される
         """
         log_debug(f"{LOG_PREFIX_STATE} process_cascade_and_cleanup: level={level}")
         log_debug(f"{LOG_PREFIX_STATE} digest_number: {digest_number}")
         log_debug(f"{LOG_PREFIX_FILE} provisional_to_delete: {provisional_file_to_delete}")
 
-        self._update_shadow_cascade(level)
+        self._update_shadow_cascade(level, finalized_digest)
         self._update_digest_times(level, digest_number)
         self._cleanup_provisional_file(provisional_file_to_delete)
 

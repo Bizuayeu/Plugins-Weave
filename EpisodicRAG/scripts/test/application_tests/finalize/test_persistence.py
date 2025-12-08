@@ -301,12 +301,38 @@ class TestProcessCascadeAndCleanup:
         return persistence, mock_shadow, mock_times
 
     def test_calls_cascade_update(self, persistence_with_mocks) -> None:
-        """Calls shadow_manager.cascade_update_on_digest_finalize"""
+        """Calls shadow_manager.cascade_update_on_digest_finalize（後方互換性テスト）"""
         persistence, mock_shadow, _ = persistence_with_mocks
 
         persistence.process_cascade_and_cleanup("weekly", 52, None)
 
-        mock_shadow.cascade_update_on_digest_finalize.assert_called_once_with("weekly")
+        # finalized_digestがNoneの場合（後方互換性）
+        mock_shadow.cascade_update_on_digest_finalize.assert_called_once_with("weekly", None)
+
+    def test_passes_finalized_digest_to_cascade(self, persistence_with_mocks) -> None:
+        """finalized_digestをcascade_update_on_digest_finalizeに渡す"""
+        persistence, mock_shadow, _ = persistence_with_mocks
+
+        finalized_digest = {
+            "metadata": {
+                "digest_level": "weekly",
+                "digest_number": "0053",
+            },
+            "overall_digest": {
+                "source_files": ["L00261_test.txt"],
+                "digest_type": "テスト",
+                "keywords": ["test"],
+                "abstract": "Test",
+                "impression": "Test",
+            },
+        }
+
+        persistence.process_cascade_and_cleanup("weekly", 53, None, finalized_digest)
+
+        # finalized_digestが渡されていることを確認
+        mock_shadow.cascade_update_on_digest_finalize.assert_called_once_with(
+            "weekly", finalized_digest
+        )
 
     def test_calls_times_tracker_save_digest_number(self, persistence_with_mocks) -> None:
         """Calls times_tracker.save_digest_number with correct arguments"""

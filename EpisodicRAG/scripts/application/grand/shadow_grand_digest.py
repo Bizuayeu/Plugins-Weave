@@ -36,7 +36,7 @@ from domain.constants import (
     build_level_hierarchy,
 )
 from domain.file_constants import GRAND_DIGEST_FILENAME, SHADOW_GRAND_DIGEST_FILENAME
-from domain.types import OverallDigestData
+from domain.types import OverallDigestData, RegularDigestData
 from infrastructure import get_structured_logger, log_warning
 
 _logger = get_structured_logger(__name__)
@@ -82,7 +82,7 @@ class ShadowGrandDigestManager:
         self._detector = FileDetector(config, self.digest_times_tracker)
         self._io = ShadowIO(self.shadow_digest_file, self._template.get_template)
         self._updater = ShadowUpdater(
-            self._io, self._detector, self._template, self.level_hierarchy
+            self._io, self._detector, self._template, self.level_hierarchy, config
         )
 
     # ========================================
@@ -166,21 +166,25 @@ class ShadowGrandDigestManager:
         """
         self._updater.update_shadow_for_new_loops()
 
-    def cascade_update_on_digest_finalize(self, level: str) -> None:
+    def cascade_update_on_digest_finalize(
+        self, level: str, finalized_digest: Optional[RegularDigestData] = None
+    ) -> None:
         """
         ダイジェスト確定時のカスケード処理
 
         Args:
             level: 確定したレベル（"weekly", "monthly"等）
+            finalized_digest: 確定したRegularDigest（次レベルProvisional追加用）
 
         Note:
             ShadowUpdater.cascade_update_on_digest_finalize() に委譲。
             確定レベルをクリアし、上位レベルのShadowを更新。
+            finalized_digestが渡された場合、次レベルのProvisionalに追加。
 
         Example:
-            >>> manager.cascade_update_on_digest_finalize("weekly")
+            >>> manager.cascade_update_on_digest_finalize("weekly", finalized_digest)
         """
-        self._updater.cascade_update_on_digest_finalize(level)
+        self._updater.cascade_update_on_digest_finalize(level, finalized_digest)
 
 
 def main() -> None:

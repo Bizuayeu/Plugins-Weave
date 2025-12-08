@@ -116,7 +116,7 @@ from infrastructure.error_handling import handle_error
 |---------|---------|
 | `validators.py` | バリデーション関数（`validate_dict`, `is_valid_list`） |
 | `tracking/` | 時間追跡（`DigestTimesTracker`） |
-| `shadow/` | Shadow管理（`ShadowTemplate`, `ShadowUpdater`, `ShadowIO`, `FileDetector`, `CascadeProcessor`, `CascadeOrchestrator` *(v4.1.0+)*, `FileAppender`, `PlaceholderManager`） |
+| `shadow/` | Shadow管理（`ShadowTemplate`, `ShadowUpdater`, `ShadowIO`, `FileDetector`, `CascadeProcessor`, `CascadeOrchestrator` *(v4.1.0+)*, `FileAppender`, `PlaceholderManager`, `ProvisionalAppender`） |
 | `grand/` | GrandDigest管理（`GrandDigestManager`, `ShadowGrandDigestManager`） |
 | `finalize/` | Finalize処理（`ShadowValidator`, `ProvisionalLoader`, `RegularDigestBuilder`, `DigestPersistence`） |
 
@@ -142,6 +142,8 @@ from application.validators import validate_dict, is_valid_list
 | `cli_helpers.py` | - | CLI共通ヘルパー（`output_json`, `output_error`）*(v4.1.0+)* |
 | `find_plugin_root.py` | - | プラグインルート検出 |
 | `digest_entry.py` | - | Digestエントリーポイント |
+| `digest_readiness.py` | - | Digest準備状態チェック |
+| `update_digest_times.py` | - | Digestタイムスタンプ更新 |
 | `provisional/` | - | Provisionalマージ処理（`file_manager`, `input_loader`, `merger`, `validator`） |
 
 ```python

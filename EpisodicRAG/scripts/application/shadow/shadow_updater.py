@@ -7,17 +7,21 @@ ShadowGrandDigestの更新、カスケード処理を担当（Facade）
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
-from domain.types import LevelHierarchyEntry, OverallDigestData
+from domain.types import LevelHierarchyEntry, OverallDigestData, RegularDigestData
 from infrastructure import get_structured_logger
 
 from .cascade_processor import CascadeProcessor
 from .file_appender import FileAppender
 from .file_detector import FileDetector
 from .placeholder_manager import PlaceholderManager
+from .provisional_appender import ProvisionalAppender
 from .shadow_io import ShadowIO
 from .template import ShadowTemplate
+
+if TYPE_CHECKING:
+    from application.config import DigestConfig
 
 _logger = get_structured_logger(__name__)
 
@@ -54,6 +58,7 @@ class ShadowUpdater:
         file_detector: FileDetector,
         template: ShadowTemplate,
         level_hierarchy: Dict[str, LevelHierarchyEntry],
+        config: Optional["DigestConfig"] = None,
     ):
         """
         初期化
@@ -63,6 +68,7 @@ class ShadowUpdater:
             file_detector: FileDetector インスタンス
             template: ShadowTemplate インスタンス
             level_hierarchy: レベル階層情報
+            config: DigestConfig インスタンス（ProvisionalAppender用、オプション）
         """
         self.shadow_io = shadow_io
         self.file_detector = file_detector
@@ -74,8 +80,19 @@ class ShadowUpdater:
         self._file_appender = FileAppender(
             shadow_io, file_detector, template, level_hierarchy, self._placeholder_manager
         )
+
+        # ProvisionalAppender（configが提供された場合のみ）
+        provisional_appender = None
+        if config is not None:
+            provisional_appender = ProvisionalAppender(config, level_hierarchy)
+
         self._cascade_processor = CascadeProcessor(
-            shadow_io, file_detector, template, level_hierarchy, self._file_appender
+            shadow_io,
+            file_detector,
+            template,
+            level_hierarchy,
+            self._file_appender,
+            provisional_appender,
         )
 
     # =========================================================================
@@ -190,7 +207,9 @@ class ShadowUpdater:
         file_names = [f.name for f in new_files]
         self.file_detector.times_tracker.save("loop", file_names)
 
-    def cascade_update_on_digest_finalize(self, level: str) -> None:
+    def cascade_update_on_digest_finalize(
+        self, level: str, finalized_digest: Optional[RegularDigestData] = None
+    ) -> None:
         """
         ダイジェスト確定時のカスケード処理
 
@@ -199,15 +218,17 @@ class ShadowUpdater:
 
         Args:
             level: 確定したレベル（"weekly", "monthly"等）
+            finalized_digest: 確定したRegularDigest（次レベルProvisional追加用）
 
         Note:
             - 確定レベルのShadowはクリアされる
             - 上位レベルのShadowに新しいソースファイルが追加される
+            - finalized_digestが渡された場合、次レベルのProvisionalに追加される
             - 8階層カスケード構造に従って処理が連鎖
 
         Example:
             >>> updater = ShadowUpdater(shadow_io, file_detector, template, hierarchy)
-            >>> updater.cascade_update_on_digest_finalize("weekly")
-            # weekly Shadowがクリアされ、W0042.txt が monthly Shadow に追加される
+            >>> updater.cascade_update_on_digest_finalize("weekly", finalized_digest)
+            # weekly Shadowがクリアされ、W0042.txt が monthly Shadow/Provisional に追加される
         """
-        return self._cascade_processor.cascade_update_on_digest_finalize(level)
+        return self._cascade_processor.cascade_update_on_digest_finalize(level, finalized_digest)

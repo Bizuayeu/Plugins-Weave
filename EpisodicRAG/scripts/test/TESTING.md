@@ -72,10 +72,11 @@ test/
 │   └── test_*_properties.py # Property-based (5 files)
 ├── config_tests/            # Config層3層化対応 (15 files) [v4.0.0+]
 │   └── test_config_properties.py
-├── application_tests/       # ユースケース (24 files)
+├── application_tests/       # ユースケース (25 files)
 │   ├── grand/               # GrandDigest関連
 │   ├── shadow/              # Shadow関連（cascade_orchestrator含む）
-│   │   └── test_shadow_io_properties.py
+│   │   ├── test_shadow_io_properties.py
+│   │   └── test_provisional_appender.py
 │   ├── finalize/            # Finalize処理
 │   │   └── validators/      # バリデータ
 │   ├── test_cascade_properties.py
