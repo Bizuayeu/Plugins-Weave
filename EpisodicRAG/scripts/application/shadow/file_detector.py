@@ -69,7 +69,8 @@ class FileDetector:
             return level
 
         # それ以外はソースレベル名をそのまま返す
-        return source
+        # sourceがNoneの場合は自身のレベルを返す（フォールバック）
+        return source if source is not None else level
 
     def get_max_file_number(self, level: str) -> Optional[int]:
         """
