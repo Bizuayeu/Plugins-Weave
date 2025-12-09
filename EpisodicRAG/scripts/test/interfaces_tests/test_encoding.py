@@ -2,11 +2,11 @@
 
 TDD Red Phase: このテストは stdin のUTF-8対応前は失敗する
 """
-import subprocess
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
-import shutil
 from pathlib import Path
 
 import pytest
