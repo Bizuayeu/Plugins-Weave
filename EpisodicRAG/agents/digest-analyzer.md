@@ -306,6 +306,17 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 プレースホルダーを放置すると、記憶が断片化（まだらボケ）します。
 
+### 3. 出力の保存方法
+
+DigestAnalyzerの出力は長文JSON（4000文字以上）のため、
+**stdinパイプで渡すこと**を推奨します。
+
+```bash
+echo '{"individual_digests": [...]}' | python -m interfaces.save_provisional_digest weekly --stdin --append
+```
+
+**注意**: コマンドライン引数での直接渡しは、長文で切断される可能性があるため使用しないでください。
+
 ---
 
 ## 参考資料
