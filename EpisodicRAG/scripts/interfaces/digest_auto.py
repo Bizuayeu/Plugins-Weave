@@ -250,11 +250,13 @@ class DigestAutoAnalyzer:
             return []
 
         # last_processed を取得
+        # file_detector.py と同様に、loop.last_processed を参照
+        # (weekly.last_processed は Weekly番号であり、Loop番号ではない)
         last_digest_data = self._load_json_file(self.last_digest_file)
         last_processed = None
         if last_digest_data:
-            weekly_data = last_digest_data.get("weekly", {})
-            last_processed = weekly_data.get("last_processed")
+            loop_data = last_digest_data.get("loop", {})
+            last_processed = loop_data.get("last_processed")
 
         # last_processedより後のLoopを検出
         unprocessed = []
