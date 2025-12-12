@@ -168,7 +168,7 @@ class AnalysisResult:
 ```
 
 **検出項目**:
-- 未処理Loopファイル（`last_processed`より後）
+- 未処理Loopファイル（`loop.last_processed`より後）
 - プレースホルダー（まだらボケ: `<!-- PLACEHOLDER -->`マーカー）
 - 連番ギャップ（中間ファイルスキップ）
 - 生成可能なダイジェスト階層
