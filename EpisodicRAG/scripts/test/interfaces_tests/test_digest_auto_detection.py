@@ -73,9 +73,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with open(
-            self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8"
-        ) as f:
+        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         # ShadowGrandDigest.txt
@@ -124,9 +122,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
 
         # Arrange: 10個のLoopファイルを作成
         for i in range(1, 11):
-            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text(
-                "content"
-            )
+            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text("content")
 
         # last_digest_times.json を設定
         # loop.last_processed = 9 → L00001-L00009 までshadowに追加済み
@@ -167,9 +163,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
 
         # Arrange: 5個のLoopファイルを作成
         for i in range(1, 6):
-            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text(
-                "content"
-            )
+            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text("content")
 
         # loop.last_processed = 5 → 全て処理済み
         times_data = {
