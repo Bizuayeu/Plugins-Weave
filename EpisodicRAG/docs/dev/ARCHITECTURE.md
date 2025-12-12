@@ -676,6 +676,18 @@ DigestAnalyzerが生成した個別ダイジェストの中間ファイル（JSO
 | `timestamp` | string | ISO形式の処理日時 |
 | `last_processed` | int \| null | 最終処理ファイル番号（数値のみ） |
 
+**各レベルの`last_processed`の意味:**
+
+| レベル | 値の意味 | 例 |
+|-------|---------|-----|
+| `loop` | ShadowGrandDigestに追加済みの最後の**Loop番号** | 269 → L00269まで処理済み |
+| `weekly` | 確定済みの最後の**Weekly番号** | 53 → W0053まで確定済み |
+| `monthly` | 確定済みの最後の**Monthly番号** | 10 → M0010まで確定済み |
+| その他 | 同様に、そのレベルの確定済みダイジェスト番号 | - |
+
+> **Important**: 未処理Loop検出（`@digest-auto`等）は `loop.last_processed` を参照します。
+> `weekly.last_processed` はWeeklyダイジェスト番号であり、Loop番号ではありません。
+
 > **Note**: v5.0.0でLoop層が追加されました。全レベル（Loop含む）で最新の`/digest`対象を把握可能です。
 
 ---
