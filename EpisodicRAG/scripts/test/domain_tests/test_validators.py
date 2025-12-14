@@ -53,6 +53,7 @@ def get_list_or_default(data: Any, default: Optional[List[Any]] = None) -> List[
     """list取得またはデフォルト値"""
     return get_or_default(data, list, lambda: default if default is not None else [])
 
+
 # =============================================================================
 # validate_dict テスト
 # =============================================================================
