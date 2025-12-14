@@ -1,10 +1,10 @@
 {
   "_comment_base_dir": "データの基準ディレクトリ（永続化ディレクトリがデフォルト）",
   "base_dir": "~/.claude/plugins/.episodicrag",
-
   "_comment_trusted_external_paths": "plugin_root外でアクセスを許可するパス（base_dirが外部の場合は必須）",
-  "trusted_external_paths": ["~/.claude/plugins/.episodicrag"],
-
+  "trusted_external_paths": [
+    "~/.claude/plugins/.episodicrag"
+  ],
   "_comment_paths": "base_dirからの相対パスでデータ配置先を指定",
   "paths": {
     "loops_dir": "data/Loops",
@@ -12,7 +12,6 @@
     "essences_dir": "data/Essences",
     "identity_file_path": null
   },
-
   "_comment_levels": "各階層のダイジェスト生成に必要なファイル数（Threshold）",
   "levels": {
     "weekly_threshold": 5,
