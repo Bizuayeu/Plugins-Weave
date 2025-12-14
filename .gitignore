@@ -25,3 +25,17 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# EpisodicRAG - User-specific files
+config.json
+last_digest_times.json
+
+# EpisodicRAG - User data directories
+Loop/
+Loops/
+Digest/
+Digests/
+Essence/
+Essences/
+Identity/
+Identities/

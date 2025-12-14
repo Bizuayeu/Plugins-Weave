@@ -98,7 +98,7 @@ TodoWrite items for Pattern 1:
 4. DigestAnalyzer起動 - 各Loopファイルの分析を並列起動
 5. 分析結果受信 - long/short分析結果を受け取る
 6. Provisional保存 - 分析結果をProvisionalにアペンド
-7. SGD統合更新 - long結果で4要素を更新
+7. SGD統合更新 - long結果で5要素を更新
 8. 処理完了記録 - update_digest_timesを実行
 9. 次アクション提示 - threshold値を参照
 ```
@@ -113,7 +113,7 @@ TodoWrite items for Pattern 1:
 | 4 | DigestAnalyzer起動 | Step 3のLoopファイル別に`Task(DigestAnalyzer)`を並列起動 |
 | 5 | 分析結果受信 | 各DigestAnalyzerからlong/short分析結果を受け取る |
 | 6 | Provisional保存 | 分析結果をProvisionalに完全な形式でアペンド（`save_provisional_digest`） |
-| 7 | SGD統合更新 | long結果を統合しSGDの4要素を更新（digest_type, keywords, abstract, impression） |
+| 7 | SGD統合更新 | long結果を統合しSGDの5要素を更新（last_updated, digest_type, keywords, abstract, impression） |
 | 8 | 処理完了記録 | `python -m interfaces.update_digest_times loop <最終番号>` |
 | 9 | 次アクション提示 | digest_entry.py出力とthreshold値を参照 |
 
@@ -238,7 +238,12 @@ python -m interfaces.save_provisional_digest weekly --stdin --append
 
 **対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
 
-**更新対象フィールド**（`weekly.overall_digest`内）:
+**更新対象フィールド**:
+
+`metadata`内:
+- `last_updated`: 処理実行日時（ISO 8601形式）
+
+`weekly.overall_digest`内:
 - `digest_type`: 全source_filesを統合したテーマ
 - `keywords`: 統合キーワード5個
 - `abstract`: 統合分析（long版を使用）
@@ -336,7 +341,7 @@ TodoWrite items for Pattern 2:
 | 3 | 再分析要否判断 | `python -m interfaces.digest_readiness <level>` |
 | 4 | DigestAnalyzer起動 | Task(DigestAnalyzer) 並列起動（Step 3で必要と判定された場合） |
 | 5 | 分析結果受信 | 各DigestAnalyzerからlong/short分析結果を受け取る |
-| 6 | SGDとProvisional更新 | SGDの4要素更新 + save_provisional_digest実行 |
+| 6 | SGDとProvisional更新 | SGDの5要素更新 + save_provisional_digest実行 |
 | 7 | Digest名確定 | Claudeが提案、ユーザー承認 |
 | 8 | Digestカスケード | `python -m interfaces.finalize_from_shadow <level> "タイトル"` |
 | 8.5 | 次階層への統合 | Task(DigestAnalyzer)並列 + 次階層SGD更新（centurial以外） |
@@ -523,11 +528,16 @@ DigestAnalyzerからJSON形式で結果を受け取る。
 
 **前提条件**: Step 4-5で分析結果を取得した場合のみ実行
 
-**操作1**: ShadowGrandDigestの4要素を更新
+**操作1**: ShadowGrandDigestの5要素を更新
 
 **対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
 
-**更新対象フィールド**（`<level>.overall_digest`内）:
+**更新対象フィールド**:
+
+`metadata`内:
+- `last_updated`: 処理実行日時（ISO 8601形式）
+
+`<level>.overall_digest`内:
 - `digest_type`: 全source_filesを統合したテーマ
 - `keywords`: 統合キーワード5個
 - `abstract`: 統合分析（long版を使用）
@@ -645,7 +655,12 @@ python -m interfaces.finalize_from_shadow monthly "理論的深化・実装加�
 
    **対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
 
-   **更新対象フィールド**（`<next_level>.overall_digest`内）:
+   **更新対象フィールド**:
+
+   `metadata`内:
+   - `last_updated`: 処理実行日時（ISO 8601形式）
+
+   `<next_level>.overall_digest`内:
    - `digest_type`: 全source_filesを統合したテーマ
    - `keywords`: 統合キーワード5個
    - `abstract`: 統合分析（long版を使用）
