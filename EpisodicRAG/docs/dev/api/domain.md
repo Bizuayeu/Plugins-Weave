@@ -1,5 +1,3 @@
-[EpisodicRAG](../../../README.md) > [Docs](../../README.md) > [API](../API_REFERENCE.md) > Domain
-
 # Domain層 API
 
 コアビジネスロジック。外部に依存しない純粋な定義。

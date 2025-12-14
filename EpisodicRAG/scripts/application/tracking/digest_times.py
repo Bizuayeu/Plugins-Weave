@@ -17,6 +17,7 @@ from domain.file_naming import extract_number_only, extract_numbers_formatted
 from domain.types import DigestTimesData
 from domain.validators import is_valid_list
 from infrastructure import get_structured_logger, load_json_with_template, log_warning, save_json
+from infrastructure.config import get_persistent_config_dir
 
 _logger = get_structured_logger(__name__)
 
@@ -26,7 +27,9 @@ class DigestTimesTracker:
 
     def __init__(self, config: DigestConfig):
         self.config = config
-        self.last_digest_file = config.plugin_root / PLUGIN_CONFIG_DIR / DIGEST_TIMES_FILENAME
+        # 永続化ディレクトリに保存（auto-update対象外）
+        self.last_digest_file = get_persistent_config_dir() / DIGEST_TIMES_FILENAME
+        # テンプレートはプラグインディレクトリに残す
         self.template_file = config.plugin_root / PLUGIN_CONFIG_DIR / DIGEST_TIMES_TEMPLATE
 
     def _get_default_template(self) -> DigestTimesData:

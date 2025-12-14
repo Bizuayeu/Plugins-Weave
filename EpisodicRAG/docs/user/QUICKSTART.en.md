@@ -1,7 +1,5 @@
-<!-- Last synced: 2025-12-02 -->
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > QUICKSTART (English)
-
-[日本語](QUICKSTART.md) | English
+<!-- Last synced: 2025-12-14 -->
+English | [日本語](QUICKSTART.md)
 
 # 5-Minute Quickstart
 
@@ -76,9 +74,9 @@ flowchart LR
 Select **[1] (default)** for all questions:
 
 ```text
-Q1: Loop file location → [1] Inside Plugin (self-contained)
-Q2: Digest file output → [1] Inside Plugin (self-contained)
-Q3: Essences file location → [1] Inside Plugin (self-contained)
+Q1: Loop file location → [1] Persistent directory (recommended)
+Q2: Digest file output → [1] Persistent directory (recommended)
+Q3: Essences file location → [1] Persistent directory (recommended)
 Q4: External Identity.md file → [1] Don't use
 Q5-Q12: Threshold for each layer → [1] Default value
 ```
@@ -106,7 +104,7 @@ Create a file with the following content:
 
 **Filename**: `L00001_TestConversation.txt`
 
-**Location**: `{plugin_root}/data/Loops/` (with default settings)
+**Location**: `~/.claude/plugins/.episodicrag/data/Loops/` (with default settings)
 
 **Content** (copy-paste ready):
 
@@ -147,7 +145,7 @@ ShadowGrandDigest.txt has been updated
 Please verify the following:
 
 - [ ] `@digest-setup` completed successfully
-- [ ] Loop file is placed in `data/Loops/`
+- [ ] Loop file is placed in `~/.claude/plugins/.episodicrag/data/Loops/`
 - [ ] `/digest` detected the unprocessed Loop
 - [ ] `ShadowGrandDigest.txt` was updated
 

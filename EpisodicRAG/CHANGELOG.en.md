@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-07 -->
+<!-- Last synced: 2025-12-14 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,11 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#510---2025-12-07)
+- [v5.x](#520---2025-12-14)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.2.0] - 2025-12-14
+
+### Changed
+
+- **Persistent config directory**
+  - Moved config.json and last_digest_times.json to `~/.claude/plugins/.episodicrag/`
+  - Configuration is no longer lost during Claude Code plugin auto-updates (delete → re-clone)
+  - Environment variable `EPISODICRAG_CONFIG_DIR` allows custom path specification (for testing)
 
 ---
 

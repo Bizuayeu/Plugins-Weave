@@ -8,6 +8,7 @@ test_digest_config.py から分割。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -26,14 +27,25 @@ class TestConfigEditor(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._create_config()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-        """設定ファイルを作成"""
+        """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
             "_comment_base_dir": "Data base directory",
             "base_dir": ".",
@@ -58,7 +70,7 @@ class TestConfigEditor(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -112,8 +124,8 @@ class TestConfigEditor(unittest.TestCase):
         assert result["old_value"] == 5
         assert result["new_value"] == 7
 
-        # ファイルが更新されていることを確認
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "r", encoding="utf-8") as f:
+        # ファイルが更新されていることを確認（永続化ディレクトリ）
+        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
             saved_config = json.load(f)
         assert saved_config["levels"]["weekly_threshold"] == 7
 
@@ -150,7 +162,7 @@ class TestConfigEditor(unittest.TestCase):
         new_config = {"base_dir": "../other"}
         editor.update(new_config)
 
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "r", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
             saved_config = json.load(f)
 
         assert "_comment_base_dir" in saved_config
@@ -235,9 +247,20 @@ class TestConfigEditorErrors(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成（config.jsonは作成しない）
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
@@ -259,21 +282,32 @@ class TestConfigEditorResolvePath(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._create_config()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-        """設定ファイルを作成"""
+        """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
             "base_dir": ".",
             "paths": {
                 "loops_dir": "data/Loops",
             },
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -309,15 +343,26 @@ class TestConfigEditorSetValueErrors(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         config_data = {
             "base_dir": ".",
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
@@ -340,9 +385,20 @@ class TestConfigEditorIdentityPath(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
@@ -359,7 +415,7 @@ class TestConfigEditorIdentityPath(unittest.TestCase):
                 "identity_file_path": "identity.json",
             },
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         editor = ConfigEditor(plugin_root=self.plugin_root)

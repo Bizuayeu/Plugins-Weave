@@ -1,5 +1,3 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > FAQ
-
 # よくある質問 (FAQ)
 
 > **対応バージョン**: EpisodicRAG Plugin v5.0.0+ / ファイルフォーマット 1.0
@@ -186,7 +184,7 @@ flowchart TB
 
 | 削除ファイル | 復旧方法 |
 |------------|---------|
-| Loopファイル | Gitバックアップから復元、または手動で再作成 |
+| Loopファイル | バックアップから復元 |
 | ShadowGrandDigest | `/digest`を実行して再生成 |
 | GrandDigest | `/digest weekly`を実行して再生成 |
 | config.json | `@digest-setup`を実行して再作成 |

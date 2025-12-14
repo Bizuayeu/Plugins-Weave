@@ -21,12 +21,14 @@ from infrastructure.config.path_validators import (
     ValidationContext,
     ValidationResult,
 )
+from infrastructure.config.persistent_path import get_persistent_config_dir
 from infrastructure.config.plugin_root_resolver import find_plugin_root
 
 __all__ = [
     "ConfigLoader",
     "PathResolver",
     "find_plugin_root",
+    "get_persistent_config_dir",
     "load_config",
     # Path validators
     "PathValidator",

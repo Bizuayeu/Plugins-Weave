@@ -41,7 +41,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from domain.exceptions import ConfigError
-from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root
+from domain.file_constants import CONFIG_FILENAME
+from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root, get_persistent_config_dir
 from infrastructure.config.error_messages import initialization_failed_message
 
 if TYPE_CHECKING:
@@ -175,7 +176,8 @@ class DigestConfigBuilder:
             if plugin_root is None:
                 plugin_root = self._detect_plugin_root()
 
-            config_file = plugin_root / ".claude-plugin" / "config.json"
+            # 永続化ディレクトリに保存（auto-update対象外）
+            config_file = get_persistent_config_dir() / CONFIG_FILENAME
 
             # ConfigLoader（カスタムまたはデフォルト）
             config_loader = self._config_loader

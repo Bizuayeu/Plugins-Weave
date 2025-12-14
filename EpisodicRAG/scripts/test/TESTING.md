@@ -18,6 +18,10 @@
 - [Property-Based Tests](#property-based-tests)
 - [CLI Integration Tests](#cli-integration-tests-v400)
 - [Tools Tests](#tools-tests-v410)
+- [Encoding Tests](#encoding-tests-v420)
+- [Plugin Root Auto-Detection Tests](#plugin-root-auto-detection-tests-v500)
+- [Bandit Security Scan Integration](#bandit-security-scan-integration-v500)
+- [Persistent Configuration Directory](#persistent-configuration-directory-v520)
 
 **Running Tests**
 - [Debugging Tips](#debugging-tips)
@@ -103,9 +107,9 @@ test/
 |----|-------------------|-----------|
 | **Domain** | `test_validators.py`, `test_file_naming.py`, `test_level_registry.py`, `test_formatter_registry.py`, `test_types_imports.py`, `test_level_literals.py`, `test_constants.py` | 33 |
 | **Config** | `test_config.py`, `test_path_resolver.py`, `test_threshold_provider.py`, `test_config_builder.py` | 15 |
-| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py`, `test_path_validators.py` | 12 |
+| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py`, `test_path_validators.py`, `test_persistent_path.py` | 13 |
 | **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_orchestrator.py`, `test_persistence.py` | 24 |
-| **Interfaces** | `test_finalize_from_shadow.py`, `test_*_cli_*.py`, `test_setup_*.py`, `test_auto_*.py`, `test_digest_auto_detection.py`, `test_cli_helpers.py`, `test_find_plugin_root.py`, `test_digest_readiness.py`, `test_digest_entry.py`, `test_encoding.py` | 28 |
+| **Interfaces** | `test_finalize_from_shadow.py`, `test_*_cli_*.py`, `test_setup_*.py`, `test_auto_*.py`, `test_digest_auto_detection.py`, `test_cli_helpers.py`, `test_find_plugin_root.py` (v5.0.0+), `test_digest_readiness.py`, `test_digest_entry.py`, `test_encoding.py` | 28 |
 | **Integration** | `test_e2e_workflow.py`, `test_full_cascade.py`, `test_config_integration.py` | 14 |
 | **CLI Integration** | `test_digest_*_cli.py`, `test_workflow_cli.py` | 4 |
 | **Performance** | `test_benchmarks.py` | 1 |
@@ -187,6 +191,7 @@ def test_something(temp_plugin_env):
 - `.digests_path` - data/Digests ディレクトリ
 - `.essences_path` - data/Essences ディレクトリ
 - `.config_dir` - .claude-plugin ディレクトリ
+- `.persistent_config_dir` - 永続化設定ディレクトリ（v5.2.0+）
 
 #### `shared_plugin_env` (module scope)
 
@@ -426,6 +431,94 @@ Windows環境でsubprocess経由でstdinに日本語を渡す際、UTF-8エン�
 # エンコーディングテストのみ
 pytest scripts/test/interfaces_tests/test_encoding.py -v
 ```
+
+---
+
+## Plugin Root Auto-Detection Tests [v5.0.0+]
+
+プラグインルート自動検出機能のテスト。任意のディレクトリから `/digest` を実行可能にする。
+
+### テストファイル
+
+| ファイル | テスト数 | 対象 |
+|---------|---------|------|
+| `interfaces_tests/test_find_plugin_root.py` | 16 | プラグインルート検出 |
+
+### テスト構成
+
+- **Stage 1-3**: 単体テスト（`is_valid_plugin_root()`, `find_in_search_paths()`, `find_plugin_root()`）
+- **Stage 4**: CLI統合テスト（JSON/Text出力、エラー処理）
+- **Stage 5**: Property-based テスト（Hypothesis）
+
+### 実行方法
+
+```bash
+pytest scripts/test/interfaces_tests/test_find_plugin_root.py -v
+```
+
+---
+
+## Bandit Security Scan Integration [v5.0.0+]
+
+セキュリティスキャン統合テスト。
+
+### テストファイル
+
+| ファイル | テスト数 | 対象 |
+|---------|---------|------|
+| `tools_tests/test_bandit_integration.py` | 6 | Bandit統合 |
+
+### テスト内容
+
+| クラス | 検証内容 |
+|-------|---------|
+| `TestBanditExecution` | Banditのインストール・実行確認 |
+| `TestBanditConfiguration` | `.bandit` 設定ファイル検証 |
+| `TestSecurityQuality` | HIGH/MEDIUM severity 脆弱性がないことを確認 |
+
+### 実行方法
+
+```bash
+# セキュリティテストのみ
+pytest scripts/test/tools_tests/test_bandit_integration.py -v
+
+# 手動セキュリティスキャン
+make security
+```
+
+---
+
+## Persistent Configuration Directory [v5.2.0+]
+
+永続化設定ディレクトリ（`~/.claude/plugins/.episodicrag/`）のテスト。
+
+### 背景
+
+Claude Code のプラグイン自動更新により `.gitignore` 内の `config.json` が消失する問題を解決するため、
+marketplaces/ 外の永続化ディレクトリを導入。
+
+### テストファイル
+
+| ファイル | 対象 | テスト数 |
+|---------|------|--------|
+| `infrastructure_tests/config/test_persistent_path.py` | `get_persistent_config_dir()` | 7 |
+| `config_tests/test_config.py` | DigestConfig（永続化統合） | 30+ |
+| `config_tests/test_config_builder.py` | DigestConfigBuilder | 15+ |
+
+### 実行方法
+
+```bash
+# 永続化パステストのみ
+pytest scripts/test/infrastructure_tests/config/test_persistent_path.py -v
+
+# Config層全体（永続化統合テスト含む）
+pytest scripts/test/config_tests/ -v
+```
+
+### テスト環境
+
+- `TempPluginEnvironment` が自動的に `get_persistent_config_dir()` をモック
+- 環境変数 `EPISODICRAG_CONFIG_DIR` でカスタムパス指定可能（テスト用）
 
 ---
 

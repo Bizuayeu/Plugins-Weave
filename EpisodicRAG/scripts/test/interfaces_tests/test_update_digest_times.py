@@ -7,14 +7,12 @@ TDD Phase 1-2: update_direct() CLIの統合テスト
 """
 
 import json
-import shutil
-import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from test_helpers import create_default_config, create_standard_test_structure
+from test_helpers import TempPluginEnvironment
 
 
 class TestUpdateDigestTimesCLI(unittest.TestCase):
@@ -22,16 +20,14 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
 
     def setUp(self) -> None:
         """テスト用の一時ディレクトリを作成"""
-        self.temp_dir = Path(tempfile.mkdtemp())
-        # 標準テスト構造を作成（helper関数使用）
-        paths = create_standard_test_structure(self.temp_dir)
-        self.plugin_dir = paths["config_dir"]
-        # config.json作成（正しいフォーマット）
-        create_default_config(self.plugin_dir)
+        self.env = TempPluginEnvironment()
+        self.env.__enter__()
+        self.temp_dir = self.env.plugin_root
+        self.persistent_dir = self.env.persistent_config_dir
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+        self.env.__exit__(None, None, None)
 
     @pytest.mark.integration
     def test_update_loop_last_processed(self) -> None:
@@ -49,8 +45,8 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
                 output = str(mock_print.call_args)
                 assert "259" in output or "更新完了" in output
 
-        # ファイル内容確認
-        times_file = self.plugin_dir / "last_digest_times.json"
+        # ファイル内容確認（永続化ディレクトリに保存される）
+        times_file = self.persistent_dir / "last_digest_times.json"
         assert times_file.exists()
         data = json.loads(times_file.read_text(encoding="utf-8"))
         assert data["loop"]["last_processed"] == 259
@@ -67,7 +63,8 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
             with patch("builtins.print"):
                 main()
 
-        times_file = self.plugin_dir / "last_digest_times.json"
+        # 永続化ディレクトリをチェック
+        times_file = self.persistent_dir / "last_digest_times.json"
         data = json.loads(times_file.read_text(encoding="utf-8"))
         assert data["weekly"]["last_processed"] == 51
 
@@ -109,8 +106,8 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
     @pytest.mark.integration
     def test_preserves_existing_levels(self) -> None:
         """既存レベルのデータを保持"""
-        # 事前データ作成
-        times_file = self.plugin_dir / "last_digest_times.json"
+        # 事前データ作成（永続化ディレクトリに保存）
+        times_file = self.persistent_dir / "last_digest_times.json"
         initial_data = {"weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 40}}
         times_file.write_text(json.dumps(initial_data, ensure_ascii=False), encoding="utf-8")
 
@@ -133,14 +130,14 @@ class TestUpdateDigestTimesErrorHandling(unittest.TestCase):
 
     def setUp(self) -> None:
         """テスト用の一時ディレクトリを作成"""
-        self.temp_dir = Path(tempfile.mkdtemp())
-        paths = create_standard_test_structure(self.temp_dir)
-        self.plugin_dir = paths["config_dir"]
-        create_default_config(self.plugin_dir)
+        self.env = TempPluginEnvironment()
+        self.env.__enter__()
+        self.temp_dir = self.env.plugin_root
+        self.persistent_dir = self.env.persistent_config_dir
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+        self.env.__exit__(None, None, None)
 
     @pytest.mark.integration
     def test_episodic_rag_error_handling(self) -> None:

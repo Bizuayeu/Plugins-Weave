@@ -49,7 +49,7 @@ class TestDigestConfig:
     @pytest.fixture
     def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """テスト用の設定環境を構築"""
-        # config.json 作成
+        # config.json 作成（永続化ディレクトリに配置）
         config_data = {
             "base_dir": ".",
             "paths": {
@@ -69,7 +69,8 @@ class TestDigestConfig:
                 "centurial_threshold": 4,
             },
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置（auto-update対象外の場所）
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
@@ -242,7 +243,8 @@ class TestDigestConfigThresholds:
                 "centurial_threshold": 4,
             },
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
@@ -342,7 +344,8 @@ class TestDigestConfigIdentityFile:
             },
             "levels": {},
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
@@ -427,7 +430,8 @@ class TestDigestConfigShowPaths:
             },
             "levels": {},
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
@@ -483,7 +487,8 @@ class TestDigestConfigContextManager:
                 "essences_dir": "data/Essences",
             },
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config_data, f)
         return temp_plugin_env

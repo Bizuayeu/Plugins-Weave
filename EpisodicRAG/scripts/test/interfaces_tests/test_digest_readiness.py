@@ -14,6 +14,8 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any, List
+from unittest.mock import patch
 
 import pytest
 
@@ -21,14 +23,35 @@ import pytest
 class TestDigestReadinessChecker(unittest.TestCase):
     """DigestReadinessChecker クラスのテスト"""
 
+    # get_persistent_config_dir()のモック対象パス
+    _PERSISTENT_CONFIG_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_persistent_config_dir",
+        "infrastructure.config.get_persistent_config_dir",
+        "application.config.get_persistent_config_dir",
+        "application.config.config_builder.get_persistent_config_dir",
+        "application.tracking.digest_times.get_persistent_config_dir",
+    ]
+
     def setUp(self) -> None:
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
+        # get_persistent_config_dir()のモックを開始
+        self._patchers: List[Any] = []
+        for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
+            patcher = patch(target, return_value=self.persistent_config_dir)
+            patcher.start()
+            self._patchers.append(patcher)
+
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 全てのパッチを解除
+        for patcher in self._patchers:
+            patcher.stop()
+        self._patchers.clear()
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -41,7 +64,11 @@ class TestDigestReadinessChecker(unittest.TestCase):
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
-        # config.json
+        # 永続化設定ディレクトリ
+        self.persistent_config_dir = self.plugin_root / ".persistent_config"
+        self.persistent_config_dir.mkdir(parents=True, exist_ok=True)
+
+        # config.json（永続化ディレクトリに配置）
         config_data = {
             "base_dir": ".",
             "paths": {
@@ -55,7 +82,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 "monthly_threshold": 4,
             },
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config_dir / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def _create_shadow_complete(self, level: str = "weekly") -> None:
@@ -421,14 +448,35 @@ class TestDigestReadinessChecker(unittest.TestCase):
 class TestDigestReadinessEdgeCases(unittest.TestCase):
     """DigestReadinessChecker エッジケースのテスト"""
 
+    # get_persistent_config_dir()のモック対象パス
+    _PERSISTENT_CONFIG_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_persistent_config_dir",
+        "infrastructure.config.get_persistent_config_dir",
+        "application.config.get_persistent_config_dir",
+        "application.config.config_builder.get_persistent_config_dir",
+        "application.tracking.digest_times.get_persistent_config_dir",
+    ]
+
     def setUp(self) -> None:
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
+        # get_persistent_config_dir()のモックを開始
+        self._patchers: List[Any] = []
+        for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
+            patcher = patch(target, return_value=self.persistent_config_dir)
+            patcher.start()
+            self._patchers.append(patcher)
+
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 全てのパッチを解除
+        for patcher in self._patchers:
+            patcher.stop()
+        self._patchers.clear()
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -437,6 +485,10 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(parents=True)
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+
+        # 永続化設定ディレクトリ
+        self.persistent_config_dir = self.plugin_root / ".persistent_config"
+        self.persistent_config_dir.mkdir(parents=True, exist_ok=True)
 
         config_data = {
             "base_dir": ".",
@@ -447,7 +499,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config_dir / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def _create_shadow_empty_overall(self) -> None:
@@ -694,14 +746,35 @@ class TestDigestReadinessCLI(unittest.TestCase):
 class TestDigestReadinessCoverageImprovements(unittest.TestCase):
     """カバレッジ改善用の追加テスト"""
 
+    # get_persistent_config_dir()のモック対象パス
+    _PERSISTENT_CONFIG_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_persistent_config_dir",
+        "infrastructure.config.get_persistent_config_dir",
+        "application.config.get_persistent_config_dir",
+        "application.config.config_builder.get_persistent_config_dir",
+        "application.tracking.digest_times.get_persistent_config_dir",
+    ]
+
     def setUp(self) -> None:
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         self._setup_plugin_structure()
 
+        # get_persistent_config_dir()のモックを開始
+        self._patchers: List[Any] = []
+        for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
+            patcher = patch(target, return_value=self.persistent_config_dir)
+            patcher.start()
+            self._patchers.append(patcher)
+
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 全てのパッチを解除
+        for patcher in self._patchers:
+            patcher.stop()
+        self._patchers.clear()
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -710,6 +783,10 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
         (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(parents=True)
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+
+        # 永続化設定ディレクトリ
+        self.persistent_config_dir = self.plugin_root / ".persistent_config"
+        self.persistent_config_dir.mkdir(parents=True, exist_ok=True)
 
         config_data = {
             "base_dir": ".",
@@ -720,7 +797,7 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config_dir / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit

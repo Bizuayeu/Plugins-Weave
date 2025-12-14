@@ -6,15 +6,15 @@ description: EpisodicRAG設定変更（対話的）
 # digest-config - 設定変更スキル
 
 EpisodicRAG プラグインの設定を対話的に変更するスキルです。
+このスキルは**自律的には起動しません**（ユーザーの明示的な呼び出しが必要）。
 
 ## 目次
 
 - [用語説明](#用語説明)
 - [実装時の注意事項](#実装時の注意事項)
-- [設定変更フロー](#設定変更フロー)
-- [CLIスクリプト](#cliスクリプト)
-- [スキルの自律判断](#スキルの自律判断)
+- [実行フロー](#実行フロー)
 - [使用例](#使用例)
+- [出力例](#出力例)
 
 ---
 
@@ -34,9 +34,18 @@ EpisodicRAG プラグインの設定を対話的に変更するスキルです�
 
 ---
 
-## 設定変更フロー
+## 実行フロー
 
-### 概要
+**⚠️ 重要: 以下のTodoリストをTodoWriteで作成し、順番に実行すること**
+
+```
+TodoWrite items:
+1. 現在設定取得 - digest_config showを実行
+2. 変更項目確認 - ユーザーに変更内容を質問
+3. 変更内容確認 - 変更前後を表示してユーザーに確認
+4. 設定更新 - digest_config setを実行
+5. 結果報告 - 更新結果をユーザーに報告
+```
 
 | Step | 実行内容 | 使用スクリプト/処理 |
 |------|---------|-------------------|
@@ -46,119 +55,7 @@ EpisodicRAG プラグインの設定を対話的に変更するスキルです�
 | 4 | 設定更新 | `python -m interfaces.digest_config set --key "..." --value ...` |
 | 5 | 結果報告 | Claude がユーザーに報告 |
 
----
-
-## CLIスクリプト
-
-### 配置先
-
-```
-scripts/interfaces/digest_config.py
-```
-
-### コマンド
-
-#### 現在の設定を取得
-
-```bash
-python -m interfaces.digest_config show
-```
-
-**出力例:**
-```json
-{
-  "status": "ok",
-  "config": {
-    "base_dir": ".",
-    "trusted_external_paths": [],
-    "paths": {
-      "loops_dir": "data/Loops",
-      "digests_dir": "data/Digests",
-      "essences_dir": "data/Essences",
-      "identity_file_path": null
-    },
-    "levels": {
-      "weekly_threshold": 5,
-      "monthly_threshold": 5,
-      ...
-    }
-  },
-  "resolved_paths": {
-    "plugin_root": "/path/to/plugin",
-    "base_dir": "/path/to/plugin",
-    "loops_path": "/path/to/plugin/data/Loops",
-    "digests_path": "/path/to/plugin/data/Digests",
-    "essences_path": "/path/to/plugin/data/Essences"
-  }
-}
-```
-
-#### 個別設定の更新
-
-```bash
-# 閾値の変更
-python -m interfaces.digest_config set --key "levels.weekly_threshold" --value 7
-
-# パスの変更
-python -m interfaces.digest_config set --key "paths.loops_dir" --value "custom/Loops"
-
-# base_dirの変更
-python -m interfaces.digest_config set --key "base_dir" --value "~/DEV/data"
-```
-
-**出力例:**
-```json
-{
-  "status": "ok",
-  "message": "Updated levels.weekly_threshold",
-  "old_value": 5,
-  "new_value": 7
-}
-```
-
-#### 設定を完全更新
-
-```bash
-python -m interfaces.digest_config update --config '{
-  "base_dir": ".",
-  "paths": {...},
-  "levels": {...}
-}'
-```
-
-#### trusted_external_paths の管理
-
-```bash
-# 一覧表示
-python -m interfaces.digest_config trusted-paths list
-
-# パスを追加
-python -m interfaces.digest_config trusted-paths add "~/DEV/production"
-
-# パスを削除
-python -m interfaces.digest_config trusted-paths remove "~/DEV/production"
-```
-
-**出力例（list）:**
-```json
-{
-  "status": "ok",
-  "trusted_external_paths": ["~/DEV/production"],
-  "count": 1
-}
-```
-
----
-
-## スキルの自律判断
-
-このスキルは**自律的には起動しません**。必ずユーザーの明示的な呼び出しが必要です。
-
-理由：
-
-- 設定変更はユーザーの意図を確認する必要がある
-- 誤った設定変更を防ぐため
-- 対話的な確認が必要
+**配置先**: `scripts/interfaces/digest_config.py`
 
 ---
 
@@ -194,6 +91,61 @@ Claudeの動作:
 Claudeの動作:
 1. `show` を実行
 2. 結果をユーザーに分かりやすく表示
+
+---
+
+## 出力例
+
+### show（設定取得）
+
+```json
+{
+  "status": "ok",
+  "config": {
+    "base_dir": "~/.claude/plugins/.episodicrag",
+    "trusted_external_paths": ["~/.claude/plugins/.episodicrag"],
+    "paths": {
+      "loops_dir": "data/Loops",
+      "digests_dir": "data/Digests",
+      "essences_dir": "data/Essences",
+      "identity_file_path": null
+    },
+    "levels": {
+      "weekly_threshold": 5,
+      "monthly_threshold": 5,
+      ...
+    }
+  },
+  "resolved_paths": {
+    "plugin_root": "/path/to/plugin",
+    "base_dir": "/home/user/.claude/plugins/.episodicrag",
+    "loops_path": "/home/user/.claude/plugins/.episodicrag/data/Loops",
+    "digests_path": "/home/user/.claude/plugins/.episodicrag/data/Digests",
+    "essences_path": "/home/user/.claude/plugins/.episodicrag/data/Essences"
+  }
+}
+```
+
+### set（設定更新）
+
+```json
+{
+  "status": "ok",
+  "message": "Updated levels.weekly_threshold",
+  "old_value": 5,
+  "new_value": 7
+}
+```
+
+### trusted-paths list
+
+```json
+{
+  "status": "ok",
+  "trusted_external_paths": ["~/DEV/production"],
+  "count": 1
+}
+```
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

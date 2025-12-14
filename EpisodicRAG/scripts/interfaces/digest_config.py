@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from domain.exceptions import FileIOError
 from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR
+from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import load_json, save_json
 from interfaces.cli_helpers import output_error, output_json
 
@@ -39,7 +40,7 @@ class ConfigEditor:
             # スクリプトの場所から推測
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
-        self.config_file = self.plugin_root / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
+        self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
 
     def _load_config(self) -> Dict[str, Any]:
         """設定ファイルを読み込む"""

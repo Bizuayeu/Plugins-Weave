@@ -7,6 +7,7 @@ ShadowStateChecker クラスと CLI エントリーポイントのテスト。
 """
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -24,10 +25,21 @@ class TestShadowStateChecker(unittest.TestCase):
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -38,7 +50,7 @@ class TestShadowStateChecker(unittest.TestCase):
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
-        # config.json
+        # config.json（永続化ディレクトリに）
         config_data = {
             "base_dir": ".",
             "paths": {
@@ -51,7 +63,7 @@ class TestShadowStateChecker(unittest.TestCase):
                 "monthly_threshold": 5,
             },
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def _create_shadow_with_placeholders(self) -> None:
@@ -192,8 +204,8 @@ class TestShadowStateChecker(unittest.TestCase):
         sys.path.insert(0, str(self.plugin_root.parent / "scripts"))
         from interfaces.shadow_state_checker import ShadowStateChecker
 
-        # config.jsonを削除
-        (self.plugin_root / ".claude-plugin" / "config.json").unlink()
+        # config.jsonを削除（永続化ディレクトリから）
+        (self.persistent_config / "config.json").unlink()
 
         checker = ShadowStateChecker(plugin_root=self.plugin_root)
         result = checker.check("weekly")
@@ -241,9 +253,20 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
@@ -251,12 +274,12 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
         """相対パスのbase_dir（'.'）を解決する"""
         from interfaces.shadow_state_checker import ShadowStateChecker
 
-        # config.jsonを作成（base_dir='.'）
+        # config.jsonを作成（base_dir='.'、永続化ディレクトリに）
         config_data = {
             "base_dir": ".",
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         checker = ShadowStateChecker(plugin_root=self.plugin_root)
@@ -273,13 +296,13 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
         """絶対パスのbase_dirをそのまま使用する"""
         from interfaces.shadow_state_checker import ShadowStateChecker
 
-        # config.jsonを作成（絶対パス）
+        # config.jsonを作成（絶対パス、永続化ディレクトリに）
         abs_path = str(self.plugin_root / "absolute" / "path")
         config_data = {
             "base_dir": abs_path,
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         checker = ShadowStateChecker(plugin_root=self.plugin_root)
@@ -295,12 +318,12 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
         """チルダ(~)を含むbase_dirを展開する"""
         from interfaces.shadow_state_checker import ShadowStateChecker
 
-        # config.jsonを作成（チルダパス）
+        # config.jsonを作成（チルダパス、永続化ディレクトリに）
         config_data = {
             "base_dir": "~/test/path",
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         checker = ShadowStateChecker(plugin_root=self.plugin_root)
@@ -320,10 +343,21 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -335,7 +369,7 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
             "base_dir": ".",
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         shadow_data = {

@@ -1,5 +1,3 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > ADVANCED
-
 # Advanced Features - EpisodicRAG Plugin
 
 > **対応バージョン**: EpisodicRAG Plugin v5.0.0+ / ファイルフォーマット 1.0
@@ -245,8 +243,8 @@ EpisodicRAGの長期記憶は以下の4層で構成されます。**再構築可
 | **階層Digest** | `{digests_dir}/1_Weekly/` 〜 `8_Centurial/` | 確定済み階層Digest | 下位階層から再生成 | 推奨 |
 | **Essence** | `{essences_dir}/GrandDigest.txt` | 統合ビュー（確定済み） | 階層Digestから再構築 | 任意 |
 | **Essence** | `{essences_dir}/ShadowGrandDigest.txt` | 統合ビュー（未確定） | Provisionalから再構築 | 任意 |
-| 設定 | `.claude-plugin/config.json` | プラグイン設定 | - | 推奨 |
-| 設定 | `.claude-plugin/last_digest_times.json` | 最終処理日時 | - | 任意 |
+| 設定 | `~/.claude/plugins/.episodicrag/config.json` | プラグイン設定 | - | 推奨 |
+| 設定 | `~/.claude/plugins/.episodicrag/last_digest_times.json` | 最終処理日時 | - | 任意 |
 
 **ポイント**: Loopファイルだけが真に必須です。他のファイルは再構築可能なため、バックアップ容量を節約したい場合はLoopのみでも復旧可能です。
 

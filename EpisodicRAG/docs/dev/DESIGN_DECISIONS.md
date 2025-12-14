@@ -1,5 +1,3 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > DESIGN_DECISIONS
-
 # 設計判断記録
 
 本ドキュメントは、EpisodicRAGプロジェクトにおける主要な設計判断とその根拠を記録する。

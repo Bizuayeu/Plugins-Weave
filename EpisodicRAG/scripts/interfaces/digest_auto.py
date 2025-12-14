@@ -27,6 +27,7 @@ from domain.file_constants import (
     PLUGIN_CONFIG_DIR,
     SHADOW_GRAND_DIGEST_FILENAME,
 )
+from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import load_json, try_load_json
 from interfaces.cli_helpers import output_error, output_json
 
@@ -83,8 +84,9 @@ class DigestAutoAnalyzer:
         else:
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
-        self.config_file = self.plugin_root / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
-        self.last_digest_file = self.plugin_root / PLUGIN_CONFIG_DIR / DIGEST_TIMES_FILENAME
+        persistent_config_dir = get_persistent_config_dir()
+        self.config_file = persistent_config_dir / CONFIG_FILENAME
+        self.last_digest_file = persistent_config_dir / DIGEST_TIMES_FILENAME
 
     def _load_config(self) -> Dict[str, Any]:
         """設定ファイルを読み込む"""

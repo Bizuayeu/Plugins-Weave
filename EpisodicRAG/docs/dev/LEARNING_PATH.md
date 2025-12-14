@@ -1,5 +1,3 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > LEARNING_PATH
-
 # Learning Path - EpisodicRAGで学ぶエンタープライズPython開発
 
 このドキュメントでは、EpisodicRAGプラグインのコードベースを通じて学べるエンタープライズPython開発のベストプラクティスを紹介します。
@@ -158,12 +156,10 @@ EpisodicRAGは依存関係ルールに基づく4層構造を採用していま�
 | 観点 | 実装 |
 |------|------|
 | オーディエンス分離 | `docs/user/` vs `docs/dev/` |
-| パンくずナビ | 各ファイル先頭に配置 |
 | SSoT準拠 | 相互リンクで詳細を1箇所に集約 |
 
 **学習ポイント**:
 - `docs/` のディレクトリ構造を確認
-- 各ファイルの先頭パンくずを確認
 
 ---
 

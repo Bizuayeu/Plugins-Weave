@@ -74,12 +74,17 @@ def create_standard_test_structure(base_path: Path) -> Dict[str, Path]:
         # 正しい構造: Provisional は各レベルディレクトリの中
         (level_path / "Provisional").mkdir(exist_ok=True)
 
+    # 永続化設定ディレクトリ（テスト用：一時ディレクトリ内に作成）
+    persistent_config = base_path / ".persistent_config"
+    persistent_config.mkdir(parents=True, exist_ok=True)
+
     return {
         "plugin_root": plugin_root,
         "loops": loops_path,
         "digests": digests_path,
         "essences": essences_path,
         "config_dir": config_dir,
+        "persistent_config": persistent_config,
     }
 
 
@@ -192,17 +197,41 @@ class TempPluginEnvironment:
         with TempPluginEnvironment() as env:
             config = DigestConfig(plugin_root=env.plugin_root)
             # ... テスト実行 ...
+
+    Note:
+        get_persistent_config_dir()を自動的にモックし、
+        永続化パスをテスト用一時ディレクトリに向ける。
     """
+
+    # get_persistent_config_dir()のモック対象パス
+    _PERSISTENT_CONFIG_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_persistent_config_dir",
+        "infrastructure.config.get_persistent_config_dir",
+        "application.config.get_persistent_config_dir",
+        "application.config.config_builder.get_persistent_config_dir",
+        "application.tracking.digest_times.get_persistent_config_dir",
+    ]
 
     def __init__(self) -> None:
         self.temp_dir: Optional[Path] = None
         self.paths: Optional[Dict[str, Path]] = None
+        self._patchers: List[Any] = []  # Active mock patchers
 
     def __enter__(self) -> "TempPluginEnvironment":
         self.temp_dir = Path(tempfile.mkdtemp())
         self.paths = create_standard_test_structure(self.temp_dir)
         create_default_config(self.paths["config_dir"])
         create_default_templates(self.paths["config_dir"])
+        # 永続化ディレクトリにもconfig.jsonをコピー（テスト用）
+        create_default_config(self.paths["persistent_config"])
+
+        # get_persistent_config_dir()をモック
+        # 全てのインポート先でパッチする必要がある
+        for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
+            patcher = patch(target, return_value=self.paths["persistent_config"])
+            patcher.start()
+            self._patchers.append(patcher)
+
         return self
 
     def __exit__(
@@ -211,6 +240,11 @@ class TempPluginEnvironment:
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
+        # 全てのパッチを解除
+        for patcher in self._patchers:
+            patcher.stop()
+        self._patchers.clear()
+
         if self.temp_dir and self.temp_dir.exists():
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
@@ -238,6 +272,12 @@ class TempPluginEnvironment:
     def config_dir(self) -> Path:
         assert self.paths is not None, "Environment not initialized. Use as context manager."
         return self.paths["config_dir"]
+
+    @property
+    def persistent_config_dir(self) -> Path:
+        """永続化設定ディレクトリ（テスト用）"""
+        assert self.paths is not None, "Environment not initialized. Use as context manager."
+        return self.paths["persistent_config"]
 
     def create_grand_digest(self, initial_data: Optional[Dict[str, Any]] = None) -> Path:
         """

@@ -11,6 +11,7 @@ weekly.last_processed を参照している。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -26,10 +27,21 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -54,7 +66,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             (self.plugin_root / "data" / "Digests" / subdir).mkdir()
             (self.plugin_root / "data" / "Digests" / subdir / "Provisional").mkdir()
 
-        # config.json
+        # config.json（永続化ディレクトリに）
         config_data = {
             "base_dir": ".",
             "paths": {
@@ -73,7 +85,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         # ShadowGrandDigest.txt
@@ -124,7 +136,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
         for i in range(1, 11):
             (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text("content")
 
-        # last_digest_times.json を設定
+        # last_digest_times.json を設定（永続化ディレクトリに）
         # loop.last_processed = 9 → L00001-L00009 までshadowに追加済み
         # weekly.last_processed = 2 → W0002 まで確定済み（関係ないはず）
         times_data = {
@@ -132,7 +144,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 2},
         }
         with open(
-            self.plugin_root / ".claude-plugin" / "last_digest_times.json",
+            self.persistent_config / "last_digest_times.json",
             "w",
             encoding="utf-8",
         ) as f:
@@ -165,13 +177,13 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
         for i in range(1, 6):
             (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text("content")
 
-        # loop.last_processed = 5 → 全て処理済み
+        # loop.last_processed = 5 → 全て処理済み（永続化ディレクトリに）
         times_data = {
             "loop": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5},
             "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 1},
         }
         with open(
-            self.plugin_root / ".claude-plugin" / "last_digest_times.json",
+            self.persistent_config / "last_digest_times.json",
             "w",
             encoding="utf-8",
         ) as f:

@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Optional
 
 from domain.exceptions import FileIOError
 from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR, SHADOW_GRAND_DIGEST_FILENAME
+from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import load_json
 
 # Windows UTF-8対応（pytest実行時はスキップ）
@@ -73,7 +74,7 @@ class ShadowStateChecker:
         else:
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
-        self.config_file = self.plugin_root / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
+        self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
         self.shadow_file: Optional[Path] = None
 
     def _load_config(self) -> Dict[str, Any]:

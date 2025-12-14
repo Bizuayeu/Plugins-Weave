@@ -1,5 +1,3 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > ARCHITECTURE
-
 # Architecture - EpisodicRAG Plugin
 
 このドキュメントでは、EpisodicRAGプラグインの技術仕様とアーキテクチャについて説明します。
@@ -29,10 +27,15 @@
 ### Plugin構造（完全自己完結）
 
 ```text
+# 永続化設定ディレクトリ（v5.2.0+、プラグイン更新で消えない）
+~/.claude/plugins/.episodicrag/
+├── config.json                          # 設定ファイル（@digest-setupで生成）
+└── last_digest_times.json               # Digest処理時刻
+
+# プラグイン本体
 ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/
 ├── .claude-plugin/
 │   ├── CLAUDE.md                        # AIエージェント向け指示
-│   ├── config.json                      # 設定ファイル（@digest-setupで生成）
 │   ├── config.template.json             # 設定テンプレート
 │   ├── last_digest_times.template.json  # Digest時刻テンプレート
 │   ├── GrandDigest.template.txt         # GrandDigest初期化テンプレート
@@ -476,10 +479,10 @@ class DigestConfig:
 
 ### パス解決の例
 
-**設定例1: 完全自己完結型（デフォルト）**
+**設定例1: 永続化ディレクトリ使用（デフォルト）**
 ```json
 {
-  "base_dir": ".",
+  "base_dir": "~/.claude/plugins/.episodicrag",
   "paths": {
     "loops_dir": "data/Loops"
   }
@@ -489,9 +492,9 @@ class DigestConfig:
 **解決:**
 ```text
 plugin_root = ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
-base_dir = plugin_root / . = {plugin_root}
+base_dir = ~/.claude/plugins/.episodicrag （永続化ディレクトリ）
 loops_path = base_dir / data/Loops
-           = {plugin_root}/data/Loops
+           = ~/.claude/plugins/.episodicrag/data/Loops
 ```
 
 **設定例2: 外部ディレクトリ統合型**
@@ -715,7 +718,7 @@ python -m pytest test/ -m fast
 - **ローカルファイルシステムのみ使用**: ネットワーク通信なし
 - **GitHub連携は任意**: オプション機能（高度な使い方）
 - **データの完全なユーザー管理**: すべてのデータはユーザーの管理下に保存
-- **設定ファイルの自己完結**: Plugin内に完全に配置
+- **設定ファイルの永続化**: `~/.claude/plugins/.episodicrag/`に配置（プラグイン更新で消えない）
 
 ### trusted_external_paths（v4.0.0+）
 

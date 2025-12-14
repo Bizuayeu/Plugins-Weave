@@ -60,6 +60,9 @@ DIGEST_TIMES_FILENAME = "last_digest_times.json"
 PLUGIN_CONFIG_DIR = ".claude-plugin"
 """プラグイン設定ディレクトリ名（ドット始まり）"""
 
+PERSISTENT_CONFIG_DIR_NAME = ".episodicrag"
+"""永続化設定ディレクトリ名（~/.claude/plugins/配下、auto-update対象外）"""
+
 ESSENCES_DIR_NAME = "Essences"
 """Essences（ダイジェスト格納）ディレクトリ名"""
 

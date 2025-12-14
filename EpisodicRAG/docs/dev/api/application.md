@@ -1,5 +1,3 @@
-[EpisodicRAG](../../../README.md) > [Docs](../../README.md) > [API](../API_REFERENCE.md) > Application
-
 # Application層 API
 
 ビジネスロジックの実装。

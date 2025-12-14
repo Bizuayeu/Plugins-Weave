@@ -10,7 +10,7 @@ pytest 共通設定
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Generator, List, Tuple
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -157,10 +157,59 @@ def sample_loop_files(
 # =============================================================================
 
 
+@pytest.fixture(autouse=True)
+def mock_persistent_config_dir(
+    request: pytest.FixtureRequest,
+) -> Generator[None, None, None]:
+    """
+    get_persistent_config_dir()をモックして一時ディレクトリを返す
+
+    テスト時に本番の~/.claude/plugins/.episodicrag/を使用しないようにする。
+
+    Note:
+        autouse=Trueで全テストに自動適用。
+        temp_plugin_envフィクスチャを使用するテストでのみモックが有効。
+
+        Pythonのインポートシステムでは、関数がインポートされると
+        インポート先のモジュールに新しい参照が作成される。
+        そのため、定義元ではなく使用箇所でパッチする必要がある。
+    """
+    from contextlib import ExitStack
+
+    # temp_plugin_envを使用しているかチェック
+    if "temp_plugin_env" in request.fixturenames:
+        env = request.getfixturevalue("temp_plugin_env")
+
+        # 全ての使用箇所でパッチ（インポート先でパッチが必要）
+        patch_targets = [
+            "infrastructure.config.persistent_path.get_persistent_config_dir",
+            "infrastructure.config.get_persistent_config_dir",
+            "application.config.get_persistent_config_dir",
+            "application.config.config_builder.get_persistent_config_dir",
+            "application.tracking.digest_times.get_persistent_config_dir",
+        ]
+
+        with ExitStack() as stack:
+            for target in patch_targets:
+                stack.enter_context(
+                    patch(target, return_value=env.persistent_config_dir)
+                )
+            yield
+    else:
+        # temp_plugin_envを使用しないテストはモックなしで実行
+        yield
+
+
 @pytest.fixture
-def digest_config(temp_plugin_env: TempPluginEnvironment) -> "DigestConfig":
+def digest_config(
+    temp_plugin_env: TempPluginEnvironment,
+) -> "DigestConfig":
     """
     初期化済みのDigestConfigインスタンスを提供
+
+    Note:
+        mock_persistent_config_dirがautouse=Trueで自動適用されるため、
+        永続化パスは自動的にテスト用ディレクトリにモックされる。
     """
     from application.config import DigestConfig
 

@@ -7,6 +7,7 @@ CLI E2Eテスト専用フィクスチャとマーカー定義。
 """
 
 import json
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -44,15 +45,29 @@ def cli_temp_dir() -> Generator[Path, None, None]:
 
 
 @pytest.fixture
-def cli_plugin_root(cli_temp_dir: Path) -> Path:
+def cli_plugin_root(cli_temp_dir: Path) -> Generator[Path, None, None]:
     """
     CLI E2Eテスト用のプラグインルートを提供
 
     基本的なディレクトリ構造のみ作成（設定ファイルなし）。
+    環境変数で永続化設定ディレクトリを設定。
     """
     plugin_root = cli_temp_dir
     (plugin_root / ".claude-plugin").mkdir(parents=True)
-    return plugin_root
+    persistent_config = plugin_root / ".persistent_config"
+    persistent_config.mkdir(parents=True)
+
+    # 環境変数を設定（subprocess用）
+    old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+    os.environ["EPISODICRAG_CONFIG_DIR"] = str(persistent_config)
+
+    yield plugin_root
+
+    # 環境変数をリセット
+    if old_env is not None:
+        os.environ["EPISODICRAG_CONFIG_DIR"] = old_env
+    else:
+        os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
 
 
 @pytest.fixture
@@ -93,6 +108,7 @@ def _create_full_plugin_structure(plugin_root: Path) -> Dict[str, Path]:
         作成されたパスの辞書
     """
     config_dir = plugin_root / ".claude-plugin"
+    persistent_config = plugin_root / ".persistent_config"
     data_dir = plugin_root / "data"
     loops_path = data_dir / "Loops"
     digests_path = data_dir / "Digests"
@@ -100,6 +116,7 @@ def _create_full_plugin_structure(plugin_root: Path) -> Dict[str, Path]:
 
     # ディレクトリ作成
     config_dir.mkdir(parents=True, exist_ok=True)
+    persistent_config.mkdir(parents=True, exist_ok=True)
     loops_path.mkdir(parents=True, exist_ok=True)
     digests_path.mkdir(parents=True, exist_ok=True)
     essences_path.mkdir(parents=True, exist_ok=True)
@@ -113,6 +130,7 @@ def _create_full_plugin_structure(plugin_root: Path) -> Dict[str, Path]:
     return {
         "plugin_root": plugin_root,
         "config_dir": config_dir,
+        "persistent_config": persistent_config,
         "loops": loops_path,
         "digests": digests_path,
         "essences": essences_path,
@@ -232,25 +250,40 @@ def _create_times_file(config_dir: Path) -> Path:
 
 
 @pytest.fixture
-def configured_cli_env(cli_temp_dir: Path) -> Dict[str, Path]:
+def configured_cli_env(cli_temp_dir: Path) -> Generator[Dict[str, Path], None, None]:
     """
     設定済みのCLI環境を提供
 
     - 完全なディレクトリ構造
-    - 設定ファイル
+    - 設定ファイル（persistent_config内）
     - テンプレートファイル
     - Essenceファイル
-    - last_digest_times.json
+    - last_digest_times.json（persistent_config内）
 
-    Returns:
+    Note:
+        subprocess経由のテストのため、環境変数でpersistent_config_dirを設定。
+
+    Yields:
         パスの辞書
     """
     paths = _create_full_plugin_structure(cli_temp_dir)
-    _create_config_file(paths["config_dir"])
+    # 永続化ファイルはpersistent_config内に作成
+    _create_config_file(paths["persistent_config"])
     _create_template_files(paths["config_dir"])
     _create_essence_files(paths["essences"])
-    _create_times_file(paths["config_dir"])
-    return paths
+    _create_times_file(paths["persistent_config"])
+
+    # 環境変数を設定（subprocess用）
+    old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+    os.environ["EPISODICRAG_CONFIG_DIR"] = str(paths["persistent_config"])
+
+    yield paths
+
+    # 環境変数をリセット
+    if old_env is not None:
+        os.environ["EPISODICRAG_CONFIG_DIR"] = old_env
+    else:
+        os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
 
 
 @pytest.fixture

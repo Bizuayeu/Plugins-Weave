@@ -7,7 +7,7 @@ Digest Setup CLI
 
 Usage:
     python -m interfaces.digest_setup check
-    python -m interfaces.digest_setup init --config '{"base_dir": ".", ...}'
+    python -m interfaces.digest_setup init --config '{"base_dir": "~/.claude/plugins/.episodicrag", ...}'
     python -m interfaces.digest_setup init --config '...' --force
 """
 
@@ -30,8 +30,12 @@ from domain.file_constants import (
     SHADOW_GRAND_DIGEST_FILENAME,
     SHADOW_GRAND_DIGEST_TEMPLATE,
 )
+from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import save_json, try_load_json
 from interfaces.cli_helpers import output_error, output_json
+
+# デフォルトのbase_dir（永続化ディレクトリ）
+DEFAULT_BASE_DIR = "~/.claude/plugins/.episodicrag"
 
 
 @dataclass
@@ -63,7 +67,8 @@ class SetupManager:
             self.plugin_root = Path(__file__).resolve().parent.parent.parent
 
         self.config_dir = self.plugin_root / PLUGIN_CONFIG_DIR
-        self.config_file = self.config_dir / CONFIG_FILENAME
+        self.persistent_config_dir = get_persistent_config_dir()
+        self.config_file = self.persistent_config_dir / CONFIG_FILENAME
         self.template_dir = self.config_dir
 
     def check(self) -> Dict[str, Any]:
@@ -81,7 +86,7 @@ class SetupManager:
             config_data = try_load_json(self.config_file, log_on_error=False)
             if config_data is not None:
                 try:
-                    base_dir = self._resolve_base_dir(config_data.get("base_dir", "."))
+                    base_dir = self._resolve_base_dir(config_data.get("base_dir", DEFAULT_BASE_DIR))
                     paths = config_data.get("paths", {})
                     loops_dir = base_dir / paths.get("loops_dir", "data/Loops")
                     directories_exist = loops_dir.exists()
@@ -209,15 +214,16 @@ class SetupManager:
 
     def _create_config_file(self, config_data: Dict[str, Any]) -> Path:
         """設定ファイル作成"""
-        # .claude-pluginディレクトリ作成
+        # .claude-pluginディレクトリ作成（テンプレート用）
         self.config_dir.mkdir(parents=True, exist_ok=True)
+        # 永続化ディレクトリは get_persistent_config_dir() で自動作成される
 
         # コメント付きで保存
         full_config = {
-            "_comment_base_dir": "データの基準ディレクトリ（. = プラグイン内、~/path = 外部パス）",
-            "base_dir": config_data.get("base_dir", "."),
-            "_comment_trusted_external_paths": "plugin_root外でアクセスを許可する絶対パス（セキュリティ: デフォルトは空）",
-            "trusted_external_paths": config_data.get("trusted_external_paths", []),
+            "_comment_base_dir": "データの基準ディレクトリ（永続化ディレクトリがデフォルト）",
+            "base_dir": config_data.get("base_dir", DEFAULT_BASE_DIR),
+            "_comment_trusted_external_paths": "plugin_root外でアクセスを許可するパス（base_dirが外部の場合は必須）",
+            "trusted_external_paths": config_data.get("trusted_external_paths", [DEFAULT_BASE_DIR]),
             "_comment_paths": "base_dirからの相対パスでデータ配置先を指定",
             "paths": config_data.get("paths", {}),
             "_comment_levels": "各階層のダイジェスト生成に必要なファイル数（Threshold）",
@@ -232,7 +238,7 @@ class SetupManager:
         """ディレクトリ作成"""
         created_dirs = []
 
-        base_dir = self._resolve_base_dir(config_data.get("base_dir", "."))
+        base_dir = self._resolve_base_dir(config_data.get("base_dir", DEFAULT_BASE_DIR))
         paths = config_data.get("paths", {})
 
         # Loopsディレクトリ
@@ -287,7 +293,7 @@ class SetupManager:
         """初期ファイル作成（テンプレートから）"""
         created_files = []
 
-        base_dir = self._resolve_base_dir(config_data.get("base_dir", "."))
+        base_dir = self._resolve_base_dir(config_data.get("base_dir", DEFAULT_BASE_DIR))
         paths = config_data.get("paths", {})
         essences_dir = base_dir / paths.get("essences_dir", "data/Essences")
 
@@ -295,7 +301,7 @@ class SetupManager:
         template_files = [
             (GRAND_DIGEST_TEMPLATE, essences_dir / GRAND_DIGEST_FILENAME),
             (SHADOW_GRAND_DIGEST_TEMPLATE, essences_dir / SHADOW_GRAND_DIGEST_FILENAME),
-            (DIGEST_TIMES_TEMPLATE, self.config_dir / DIGEST_TIMES_FILENAME),
+            (DIGEST_TIMES_TEMPLATE, self.persistent_config_dir / DIGEST_TIMES_FILENAME),
         ]
 
         for template_name, dest_path in template_files:
@@ -311,7 +317,7 @@ class SetupManager:
         external_paths = []
 
         # base_dirのチェック
-        base_dir_str = config_data.get("base_dir", ".")
+        base_dir_str = config_data.get("base_dir", DEFAULT_BASE_DIR)
         if self._is_external_path(base_dir_str):
             external_paths.append(f"base_dir: {base_dir_str}")
 

@@ -209,8 +209,8 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         # 例外なしで成功
         finalizer.finalize_from_shadow("weekly", "TestDigest")
 
-        # last_digest_times.jsonが更新されたことを確認（.claude-pluginディレクトリ）
-        with open(self.config_dir / "last_digest_times.json", 'r', encoding='utf-8') as f:
+        # last_digest_times.jsonが更新されたことを確認（永続化ディレクトリ）
+        with open(self.env.persistent_config_dir / "last_digest_times.json", 'r', encoding='utf-8') as f:
             times_data = json.load(f)
 
         self.assertNotEqual(times_data["weekly"]["timestamp"], "")

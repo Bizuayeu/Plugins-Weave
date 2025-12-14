@@ -31,9 +31,16 @@ EpisodicRAGプラグインで使用される専門用語の定義集です。
 ### plugin_root
 **定義**: プラグインのインストール先ディレクトリ
 
-- `.claude-plugin/config.json` が存在するディレクトリ
+- `.claude-plugin/` ディレクトリが存在するディレクトリ
 - スキルやスクリプトはこのディレクトリを基準に動作
 - 例: `C:\Users\anyth\.claude\plugins\marketplaces\Plugins-Weave\EpisodicRAG`
+
+### 永続化設定ディレクトリ (v5.2.0+)
+**定義**: プラグイン自動更新で消えない設定保存先
+
+- **配置**: `~/.claude/plugins/.episodicrag/`
+- **保存されるファイル**: `config.json`, `last_digest_times.json`
+- Claude Codeのプラグイン自動更新時も設定が保持される
 
 ### パス形式の違い
 
@@ -45,7 +52,7 @@ EpisodicRAGは環境によって異なるパスを使用します：
 | **マーケットプレース** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
 | **プラグイン直接インストール** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/` |
 
-**重要**: 設定ファイル（config.json）やデータは常にインストール先に配置します。開発環境のソースコードディレクトリには配置しないでください。
+**重要**: 設定ファイル（config.json）は永続化ディレクトリ（`~/.claude/plugins/.episodicrag/`）に自動配置されます。データはインストール先に配置します。開発環境のソースコードディレクトリには配置しないでください。
 
 ### base_dir
 **定義**: データ配置の基準ディレクトリ
@@ -307,7 +314,7 @@ L00001追加 → L00002追加 → /digest
 ### Threshold（閾値）
 **定義**: 各階層のDigest生成に必要な最小ファイル数
 
-- **設定場所**: `{plugin_root}/.claude-plugin/config.json`
+- **設定場所**: `~/.claude/plugins/.episodicrag/config.json`
 - **変更方法**: `@digest-config` スキルで対話的に変更
 
 ### プレースホルダー
@@ -373,7 +380,7 @@ L00001追加 → L00002追加 → /digest
 ## 設定ファイル
 
 ### config.json
-**配置**: `{plugin_root}/.claude-plugin/config.json`
+**配置**: `~/.claude/plugins/.episodicrag/config.json`
 
 ```json
 {

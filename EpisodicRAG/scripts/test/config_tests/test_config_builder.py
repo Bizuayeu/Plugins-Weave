@@ -111,7 +111,8 @@ class TestDigestConfigBuilderBuild:
                 "centurial_threshold": 4,
             },
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
@@ -198,7 +199,8 @@ class TestDigestConfigBuilderBuildDefault:
                 "centurial_threshold": 4,
             },
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
@@ -262,7 +264,8 @@ class TestDigestConfigBuilderEquivalence:
                 "centurial_threshold": 4,
             },
         }
-        config_file = temp_plugin_env.config_dir / "config.json"
+        # 永続化ディレクトリにconfig.jsonを配置
+        config_file = temp_plugin_env.persistent_config_dir / "config.json"
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 

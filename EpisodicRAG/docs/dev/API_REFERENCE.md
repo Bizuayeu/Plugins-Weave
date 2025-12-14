@@ -1,5 +1,3 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > API_REFERENCE
-
 # API リファレンス
 
 EpisodicRAGプラグインの**Python API仕様書**です。

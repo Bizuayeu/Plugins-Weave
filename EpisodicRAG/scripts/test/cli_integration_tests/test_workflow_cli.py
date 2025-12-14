@@ -78,8 +78,8 @@ class TestSetupWorkflowE2E:
         # init を実行
         cli_runner.run_digest_setup("init", config=valid_config_json)
 
-        # 設定ファイルが存在することを確認
-        config_file = cli_plugin_root / ".claude-plugin" / "config.json"
+        # 設定ファイルが存在することを確認（永続化ディレクトリ内）
+        config_file = cli_plugin_root / ".persistent_config" / "config.json"
         assert config_file.exists()
 
         # 設定内容を確認

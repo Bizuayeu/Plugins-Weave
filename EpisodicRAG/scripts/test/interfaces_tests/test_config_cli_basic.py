@@ -8,6 +8,7 @@ test_digest_config.py から分割。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -74,14 +75,25 @@ class TestConfigCLI(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._create_config()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-        """設定ファイルを作成"""
+        """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
             "base_dir": ".",
             "trusted_external_paths": [],
@@ -92,7 +104,7 @@ class TestConfigCLI(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -128,8 +140,8 @@ class TestConfigCLI(unittest.TestCase):
             with patch("builtins.print"):
                 main()
 
-        # 値が更新されていることを確認
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "r", encoding="utf-8") as f:
+        # 値が更新されていることを確認（永続化ディレクトリから）
+        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
             config = json.load(f)
         assert config["levels"]["weekly_threshold"] == 7
 
@@ -153,14 +165,25 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._create_config()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-        """設定ファイルを作成"""
+        """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
             "base_dir": ".",
             "trusted_external_paths": [],
@@ -171,7 +194,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -267,8 +290,8 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
             with patch("builtins.print"):
                 main()
 
-        # levels キーが保持されていることを確認
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "r", encoding="utf-8") as f:
+        # levels キーが保持されていることを確認（永続化ディレクトリから）
+        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
             saved_config = json.load(f)
         assert "levels" in saved_config
         assert saved_config["levels"]["weekly_threshold"] == 5
@@ -335,8 +358,8 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
                 result = json.loads(output)
                 assert result["status"] == "ok"
 
-        # 更新されていることを確認
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "r", encoding="utf-8") as f:
+        # 更新されていることを確認（永続化ディレクトリから）
+        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
             saved_config = json.load(f)
         assert saved_config["levels"]["weekly_threshold"] == 10
 

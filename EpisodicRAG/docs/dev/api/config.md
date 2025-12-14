@@ -1,5 +1,3 @@
-[EpisodicRAG](../../../README.md) > [Docs](../../README.md) > [API](../API_REFERENCE.md) > Config
-
 # 設定 API
 
 config.json仕様とDigestConfigクラス。
@@ -59,7 +57,10 @@ from infrastructure.config import (
 
 ### 設定ファイルの場所
 
-`~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/.claude-plugin/config.json`
+`~/.claude/plugins/.episodicrag/config.json`
+
+> **v5.2.0変更**: 設定ファイルはプラグイン外の永続化ディレクトリに保存されるようになりました。
+> これにより、Claude Codeのプラグイン自動更新時に設定が消失しなくなります。
 
 ### 設定項目詳細
 

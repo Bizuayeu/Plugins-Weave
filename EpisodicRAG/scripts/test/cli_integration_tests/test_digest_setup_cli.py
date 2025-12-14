@@ -79,9 +79,10 @@ class TestDigestSetupInitE2E:
     def test_init_creates_config_file(
         self, cli_runner: CLIRunner, cli_plugin_root, valid_config_json: str
     ) -> None:
-        """init が設定ファイルを作成"""
+        """init が設定ファイルを作成（永続化ディレクトリに）"""
         cli_runner.run_digest_setup("init", config=valid_config_json)
-        config_file = cli_plugin_root / ".claude-plugin" / "config.json"
+        # config.json は永続化ディレクトリに作成される
+        config_file = cli_plugin_root / ".persistent_config" / "config.json"
         assert config_file.exists()
 
     def test_init_creates_directories(
@@ -143,7 +144,22 @@ class TestDigestSetupErrorsE2E:
 
     def test_nonexistent_plugin_root_returns_error(self, cli_temp_dir) -> None:
         """存在しないplugin-rootでエラー"""
-        runner = CLIRunner(plugin_root=cli_temp_dir / "nonexistent")
-        result = runner.run_digest_setup("check")
-        # ディレクトリが存在しなくてもcheckは動作するが、config_existsはfalse
-        result.assert_json_contains("config_exists", False)
+        import os
+
+        # 永続化ディレクトリを空のtempに設定（config.jsonがない状態）
+        persistent_config = cli_temp_dir / ".empty_persistent_config"
+        persistent_config.mkdir(parents=True)
+        old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(persistent_config)
+
+        try:
+            runner = CLIRunner(plugin_root=cli_temp_dir / "nonexistent")
+            result = runner.run_digest_setup("check")
+            # ディレクトリが存在しなくてもcheckは動作するが、config_existsはfalse
+            result.assert_json_contains("config_exists", False)
+        finally:
+            # 環境変数をリセット
+            if old_env is not None:
+                os.environ["EPISODICRAG_CONFIG_DIR"] = old_env
+            else:
+                os.environ.pop("EPISODICRAG_CONFIG_DIR", None)

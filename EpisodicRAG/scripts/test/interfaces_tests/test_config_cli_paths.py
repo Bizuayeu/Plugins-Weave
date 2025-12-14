@@ -8,6 +8,7 @@ test_digest_config.py から分割。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -25,14 +26,25 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._create_config()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-        """設定ファイルを作成"""
+        """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
             "base_dir": ".",
             "trusted_external_paths": [],
@@ -41,7 +53,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -71,7 +83,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         with patch(
@@ -208,7 +220,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         with patch(
@@ -294,12 +306,23 @@ class TestConfigCLINoCommand(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         config_data = {"base_dir": ".", "levels": {"weekly_threshold": 5}}
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit

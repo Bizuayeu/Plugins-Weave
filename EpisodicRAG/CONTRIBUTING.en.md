@@ -176,7 +176,7 @@ python -m interfaces.digest_setup check
   "status": "configured",
   "config_exists": true,
   "directories_exist": true,
-  "config_file": "[Your Project]/plugins-weave/EpisodicRAG/.claude-plugin/config.json",
+  "config_file": "~/.claude/plugins/.episodicrag/config.json",
   "message": "Setup already completed"
 }
 ```

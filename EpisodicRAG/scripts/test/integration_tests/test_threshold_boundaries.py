@@ -53,8 +53,8 @@ class TestThresholdBoundaryBase:
         """境界条件テスト用の環境を構築"""
         config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
 
-        # last_digest_times.json を初期化
-        times_file = temp_plugin_env.config_dir / "last_digest_times.json"
+        # last_digest_times.json を初期化（永続化ディレクトリに配置）
+        times_file = temp_plugin_env.persistent_config_dir / "last_digest_times.json"
         times_file.write_text("{}")
 
         return {
@@ -364,16 +364,16 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
 
         env = temp_plugin_env
 
-        # 閾値=1の設定を作成
-        config_file = env.config_dir / "config.json"
+        # 閾値=1の設定を作成（永続化ディレクトリに配置）
+        config_file = env.persistent_config_dir / "config.json"
         config_data = json.loads(config_file.read_text())
         config_data["levels"] = {"weekly_threshold": 1}
         config_file.write_text(json.dumps(config_data, indent=2))
 
         config = DigestConfig(plugin_root=env.plugin_root)
 
-        # last_digest_times.json を初期化
-        times_file = env.config_dir / "last_digest_times.json"
+        # last_digest_times.json を初期化（永続化ディレクトリに配置）
+        times_file = env.persistent_config_dir / "last_digest_times.json"
         times_file.write_text("{}")
 
         # 閾値が1であることを確認

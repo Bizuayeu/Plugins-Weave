@@ -1,5 +1,3 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > QUICKSTART
-
 [English](QUICKSTART.en.md) | 日本語
 
 # 5分クイックスタート
@@ -75,9 +73,9 @@ flowchart LR
 すべての質問で **[1]（デフォルト）** を選択してください：
 
 ```
-Q1: Loopファイルの配置先 → [1] Plugin内（自己完結）
-Q2: Digestファイルの出力先 → [1] Plugin内（自己完結）
-Q3: Essencesファイルの配置先 → [1] Plugin内（自己完結）
+Q1: Loopファイルの配置先 → [1] 永続化ディレクトリ（推奨）
+Q2: Digestファイルの出力先 → [1] 永続化ディレクトリ（推奨）
+Q3: Essencesファイルの配置先 → [1] 永続化ディレクトリ（推奨）
 Q4: 外部Identity.mdファイル → [1] 使用しない
 Q5〜Q12: 各階層のthreshold → [1] デフォルト値
 ```
@@ -105,7 +103,7 @@ Q5〜Q12: 各階層のthreshold → [1] デフォルト値
 
 **ファイル名**: `L00001_テスト会話.txt`
 
-**配置先**: `{plugin_root}/data/Loops/`（デフォルト設定の場合）
+**配置先**: `~/.claude/plugins/.episodicrag/data/Loops/`（デフォルト設定の場合）
 
 **内容**（コピペ可能）:
 
@@ -146,7 +144,7 @@ ShadowGrandDigest.txt を更新しました
 以下を確認してください：
 
 - [ ] `@digest-setup` が正常に完了した
-- [ ] Loopファイルが `data/Loops/` に配置されている
+- [ ] Loopファイルが `~/.claude/plugins/.episodicrag/data/Loops/` に配置されている
 - [ ] `/digest` で未処理Loopが検出された
 - [ ] `ShadowGrandDigest.txt` が更新された
 

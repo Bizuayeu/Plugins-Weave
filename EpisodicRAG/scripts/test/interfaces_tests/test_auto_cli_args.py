@@ -8,6 +8,7 @@ test_digest_auto.py から分割。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -24,10 +25,21 @@ class TestDigestAutoCLI(unittest.TestCase):
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -45,7 +57,7 @@ class TestDigestAutoCLI(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -106,10 +118,21 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _setup_plugin_structure(self) -> None:
@@ -127,7 +150,7 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -176,8 +199,8 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
     def test_plugin_root_without_config_exits_with_error(self) -> None:
         """config.json がない場合にエラー"""
 
-        # config.json を削除
-        (self.plugin_root / ".claude-plugin" / "config.json").unlink()
+        # config.json を削除（永続化ディレクトリから）
+        (self.persistent_config / "config.json").unlink()
 
         with patch("sys.argv", ["digest_auto.py", "--plugin-root", str(self.plugin_root)]):
             from interfaces.digest_auto import main

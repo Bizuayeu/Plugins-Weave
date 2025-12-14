@@ -8,6 +8,7 @@ test_digest_setup.py から分割。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -25,10 +26,21 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._create_templates()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_templates(self) -> None:
@@ -251,7 +263,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
 
     @pytest.mark.unit
     def test_init_creates_config_file(self) -> None:
-        """init が設定ファイルを作成する"""
+        """init が設定ファイルを作成する（永続化ディレクトリに）"""
         config_json = self._get_valid_config_json()
 
         with patch(
@@ -270,14 +282,14 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             with patch("builtins.print"):
                 main()
 
-        # 設定ファイルが作成されていることを確認
-        assert (self.plugin_root / ".claude-plugin" / "config.json").exists()
+        # 設定ファイルが永続化ディレクトリに作成されていることを確認
+        assert (self.persistent_config / "config.json").exists()
 
     @pytest.mark.unit
     def test_init_without_force_fails_when_exists(self) -> None:
         """既存設定がある場合、force なしで失敗する"""
-        # 既存の設定ファイルを作成
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        # 既存の設定ファイルを作成（永続化ディレクトリに）
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump({}, f)
 
         config_json = self._get_valid_config_json()
@@ -304,8 +316,8 @@ class TestSetupCLIInitCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_init_with_force_overwrites_existing(self) -> None:
         """既存設定がある場合でも force で上書きする"""
-        # 既存の設定ファイルを作成
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        # 既存の設定ファイルを作成（永続化ディレクトリに）
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump({"old": "config"}, f)
 
         config_json = self._get_valid_config_json()

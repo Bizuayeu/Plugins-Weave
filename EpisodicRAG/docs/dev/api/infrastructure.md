@@ -1,5 +1,3 @@
-[EpisodicRAG](../../../README.md) > [Docs](../../README.md) > [API](../API_REFERENCE.md) > Infrastructure
-
 # Infrastructure層 API
 
 外部関心事（ファイルI/O、ロギング）。
@@ -32,6 +30,8 @@ from infrastructure.config import (
     # パス検証 (v4.1.0+)
     PathValidatorChain, PluginRootValidator, TrustedExternalPathValidator,
     ValidationContext, ValidationResult,
+    # 永続化パス (v5.2.0+)
+    get_persistent_config_dir,
 )
 ```
 
@@ -51,6 +51,7 @@ from infrastructure.config import (
 - [エラーハンドリング](#エラーハンドリングinfrastructureerror_handlingpy) - 安全なファイル操作
 - [設定管理](#設定管理infrastructureconfig) - ConfigLoader, PathResolver *(v4.0.0+)*
 - [パス検証](#パス検証infrastructureconfigpath_validatorspy-v410) - PathValidatorChain *(v4.1.0+)*
+- [永続化パス](#永続化パスinfrastructureconfigpersistent_pathpy-v520) - get_persistent_config_dir() *(v5.2.0+)*
 - [ユーザーインタラクション](#ユーザーインタラクションinfrastructureuser_interactionpy) - 確認コールバック
 
 ---
@@ -570,6 +571,46 @@ if not result.is_valid:
 
 ---
 
+## 永続化パス（infrastructure/config/persistent_path.py） *(v5.2.0+)*
+
+Claude Codeのプラグイン自動更新に影響されない永続化ディレクトリを提供。
+
+> **背景**: Claude Codeはプラグイン更新時に`~/.claude/plugins/marketplaces/`を削除→再cloneするため、`.gitignore`に含まれるファイル（config.json等）が消失する問題を解決。
+
+### get_persistent_config_dir()
+
+```python
+def get_persistent_config_dir() -> Path
+```
+
+永続化設定ディレクトリを取得（なければ作成）。
+
+**戻り値**: `~/.claude/plugins/.episodicrag/` のパス
+
+**特徴**:
+- ディレクトリが存在しない場合は自動的に作成される
+- このディレクトリはClaude Codeのauto-update対象外
+- 環境変数`EPISODICRAG_CONFIG_DIR`で上書き可能（テスト用）
+
+**使用例**:
+
+```python
+from infrastructure.config.persistent_path import get_persistent_config_dir
+
+config_dir = get_persistent_config_dir()
+config_file = config_dir / "config.json"
+last_digest_file = config_dir / "last_digest_times.json"
+```
+
+**テスト時の使用**:
+
+```bash
+# 環境変数で一時ディレクトリを指定
+EPISODICRAG_CONFIG_DIR=/tmp/test_config pytest ...
+```
+
+---
+
 ## ユーザーインタラクション（infrastructure/user_interaction.py）
 
 ### get_default_confirm_callback()
@@ -591,6 +632,7 @@ if callback("ファイルを上書きしますか？"):
 > **v4.0.0 更新**: 設定管理が `infrastructure/config/` サブパッケージとして追加されました。
 > **v4.1.0 更新**: PathValidatorChain（Chain of Responsibility）が追加されました。
 > **v5.0.0 更新**: LEVEL_CONFIGにloop層が追加されました（9レベル化）。
+> **v5.2.0 更新**: `get_persistent_config_dir()` が追加されました。config.jsonとlast_digest_times.jsonが永続化ディレクトリ（`~/.claude/plugins/.episodicrag/`）に移動。
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

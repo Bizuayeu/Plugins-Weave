@@ -8,6 +8,7 @@ test_digest_config.py から分割。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -25,14 +26,25 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         self._create_config()
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_config(self) -> None:
-        """設定ファイルを作成"""
+        """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
             "base_dir": ".",
             "trusted_external_paths": [],
@@ -43,7 +55,7 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5, "monthly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -130,8 +142,8 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 result = json.loads(output)
                 assert result["status"] == "ok"
 
-        # ファイルを確認
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "r", encoding="utf-8") as f:
+        # ファイルを確認（永続化ディレクトリから）
+        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
             saved_config = json.load(f)
         assert saved_config["new_section"]["new_key"] == "new_value"
 

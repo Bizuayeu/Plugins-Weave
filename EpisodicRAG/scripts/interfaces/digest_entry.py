@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 
 from domain.constants import DIGEST_LEVEL_NAMES
 from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR
+from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import load_json
 
 
@@ -63,7 +64,7 @@ def find_plugin_root_path() -> Optional[Path]:
 
 def get_paths_from_config(plugin_root: Path) -> Dict[str, Path]:
     """config.json からパス情報を取得"""
-    config_file = plugin_root / PLUGIN_CONFIG_DIR / CONFIG_FILENAME
+    config_file = get_persistent_config_dir() / CONFIG_FILENAME
     config = load_json(config_file)
 
     base_dir_str = config.get("base_dir", ".")

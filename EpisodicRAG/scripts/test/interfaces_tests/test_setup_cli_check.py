@@ -8,6 +8,7 @@ test_digest_setup.py から分割。
 """
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -25,9 +26,20 @@ class TestSetupCLI(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
@@ -64,9 +76,20 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit
@@ -89,7 +112,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
     @pytest.mark.unit
     def test_check_configured_output_format(self) -> None:
         """check の configured 出力形式"""
-        # 設定ファイルとディレクトリを作成
+        # 設定ファイルとディレクトリを作成（永続化ディレクトリに）
         config_data = {
             "base_dir": ".",
             "paths": {
@@ -98,7 +121,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
                 "essences_dir": "data/Essences",
             },
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
 
@@ -118,12 +141,12 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
     @pytest.mark.unit
     def test_check_partial_output_format(self) -> None:
         """check の partial 出力形式"""
-        # 設定ファイルのみ作成（ディレクトリなし）
+        # 設定ファイルのみ作成（永続化ディレクトリに、ディレクトリなし）
         config_data = {
             "base_dir": ".",
             "paths": {"loops_dir": "data/Loops"},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         with patch(
@@ -142,8 +165,8 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
     @pytest.mark.unit
     def test_check_with_corrupted_config(self) -> None:
         """check で破損した設定ファイルを処理"""
-        # 破損したJSONファイルを作成
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        # 破損したJSONファイルを作成（永続化ディレクトリに）
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             f.write("{ invalid json")
 
         with patch(
@@ -183,9 +206,20 @@ class TestSetupCLINoCommand(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
+        # 環境変数を設定
+        self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
 
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
+        # 環境変数をリセット
+        if self._old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = self._old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @pytest.mark.unit

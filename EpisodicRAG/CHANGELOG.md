@@ -11,11 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#510---2025-12-07)
+- [v5.x](#520---2025-12-14)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.2.0] - 2025-12-14
+
+### Changed
+
+- **永続化設定ディレクトリ**
+  - config.json と last_digest_times.json を `~/.claude/plugins/.episodicrag/` に移動
+  - Claude Codeのプラグイン自動更新（削除→再clone）時に設定が消失しなくなりました
+  - 環境変数 `EPISODICRAG_CONFIG_DIR` でカスタムパスを指定可能（テスト用）
 
 ---
 

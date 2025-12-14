@@ -1,5 +1,3 @@
-[EpisodicRAG](../../../README.md) > [Docs](../../README.md) > [API](../API_REFERENCE.md) > Interfaces
-
 # Interfaces層 API
 
 外部からのエントリーポイント。

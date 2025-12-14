@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-03 (CONCEPT.en.md references added) -->
+<!-- Last synced: 2025-12-14 -->
 English | [日本語](README.md)
 
 # EpisodicRAG Plugin - Glossary & Reference
@@ -32,9 +32,16 @@ A collection of terminology definitions used in the EpisodicRAG plugin.
 ### plugin_root
 **Definition**: The plugin installation directory
 
-- The directory where `.claude-plugin/config.json` exists
+- The directory where `.claude-plugin/` directory exists
 - Skills and scripts operate relative to this directory
 - Example: `C:\Users\anyth\.claude\plugins\marketplaces\Plugins-Weave\EpisodicRAG`
+
+### Persistent Config Directory (v5.2.0+)
+**Definition**: Configuration storage that survives plugin auto-updates
+
+- **Location**: `~/.claude/plugins/.episodicrag/`
+- **Stored files**: `config.json`, `last_digest_times.json`
+- Configuration is preserved during Claude Code plugin auto-updates
 
 ### Path Format Differences
 
@@ -46,7 +53,7 @@ EpisodicRAG uses different paths depending on the environment:
 | **Marketplace** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
 | **Direct Plugin Install** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/` |
 
-**Important**: Configuration files (config.json) and data should always be placed in the installation directory, not in the development source code directory.
+**Important**: Configuration files (config.json) are automatically stored in the persistent directory (`~/.claude/plugins/.episodicrag/`). Data is placed in the installation directory. Do not place them in the development source code directory.
 
 ### base_dir
 **Definition**: The base directory for data placement
@@ -308,7 +315,7 @@ L00001 added → L00002 added → /digest
 ### Threshold
 **Definition**: Minimum number of files required to generate each hierarchy's Digest
 
-- **Location**: `{plugin_root}/.claude-plugin/config.json`
+- **Location**: `~/.claude/plugins/.episodicrag/config.json`
 - **Change method**: Interactively change with `@digest-config` skill
 
 ### Placeholder
@@ -374,7 +381,7 @@ Examples: W0001_CognitiveArchitecture.txt
 ## Configuration Files
 
 ### config.json
-**Location**: `{plugin_root}/.claude-plugin/config.json`
+**Location**: `~/.claude/plugins/.episodicrag/config.json`
 
 ```json
 {

@@ -1,9 +1,9 @@
 {
-  "_comment_base_dir": "データの基準ディレクトリ（. = プラグイン内、~/path = 外部パス）",
-  "base_dir": ".",
+  "_comment_base_dir": "データの基準ディレクトリ（永続化ディレクトリがデフォルト）",
+  "base_dir": "~/.claude/plugins/.episodicrag",
 
-  "_comment_trusted_external_paths": "plugin_root外でアクセスを許可する絶対パス（セキュリティ: デフォルトは空）",
-  "trusted_external_paths": [],
+  "_comment_trusted_external_paths": "plugin_root外でアクセスを許可するパス（base_dirが外部の場合は必須）",
+  "trusted_external_paths": ["~/.claude/plugins/.episodicrag"],
 
   "_comment_paths": "base_dirからの相対パスでデータ配置先を指定",
   "paths": {

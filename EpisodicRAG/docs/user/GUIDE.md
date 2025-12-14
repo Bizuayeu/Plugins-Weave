@@ -1,8 +1,6 @@
-[EpisodicRAG](../../README.md) > [Docs](../README.md) > GUIDE
-
 # EpisodicRAG Plugin ユーザーガイド
 
-> **対応バージョン**: EpisodicRAG Plugin v5.0.0+ / ファイルフォーマット 1.0
+> **対応バージョン**: EpisodicRAG Plugin v5.2.0+ / ファイルフォーマット 1.0
 
 このガイドでは、EpisodicRAGを日常的に使いこなすための実践的な知識を提供します。
 
@@ -110,16 +108,17 @@ flowchart LR
 ### 設定ファイルの場所
 
 ```text
-{plugin_root}/.claude-plugin/config.json
+~/.claude/plugins/.episodicrag/config.json
 ```
 
-> 📖 `plugin_root` の環境別パスは [用語集](../../README.md#パス形式の違い) を参照
+> **v5.2.0+**: 設定ファイルは永続化ディレクトリに保存されます。
+> プラグイン自動更新時も設定が保持されます。
 
 ### 主な設定項目
 
 | 設定 | 説明 | デフォルト |
 |------|------|-----------|
-| `base_dir` | データ基準ディレクトリ | `"."` |
+| `base_dir` | データ基準ディレクトリ | `"~/.claude/plugins/.episodicrag"` |
 | `paths.loops_dir` | Loopファイル配置先 | `"data/Loops"` |
 | `levels.weekly_threshold` | Weekly生成に必要なLoop数 | `5` |
 

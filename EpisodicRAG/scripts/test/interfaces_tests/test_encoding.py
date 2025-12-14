@@ -4,6 +4,7 @@ TDD Red Phase: このテストは stdin のUTF-8対応前は失敗する
 """
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -31,7 +32,11 @@ class TestStdinEncoding:
         (temp_path / "Digests" / "1_Weekly" / "Provisional").mkdir(parents=True)
         (temp_path / ".claude-plugin").mkdir(parents=True)
 
-        # 設定ファイルを作成（.claude-plugin/config.json）
+        # 永続化設定ディレクトリを作成
+        persistent_config_dir = temp_path / ".persistent_config"
+        persistent_config_dir.mkdir(parents=True)
+
+        # 設定ファイルを作成（永続化ディレクトリに配置）
         config = {
             "base_dir": str(temp_path),
             "trusted_external_paths": [],
@@ -52,10 +57,20 @@ class TestStdinEncoding:
                 "centurial_threshold": 4,
             },
         }
-        config_file = temp_path / ".claude-plugin" / "config.json"
+        config_file = persistent_config_dir / "config.json"
         config_file.write_text(json.dumps(config), encoding='utf-8')
 
+        # 環境変数を設定（subprocess用）
+        old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+        os.environ["EPISODICRAG_CONFIG_DIR"] = str(persistent_config_dir)
+
         yield temp_path
+
+        # 環境変数をリセット
+        if old_env is not None:
+            os.environ["EPISODICRAG_CONFIG_DIR"] = old_env
+        else:
+            os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
 
         # クリーンアップ
         shutil.rmtree(temp_dir, ignore_errors=True)

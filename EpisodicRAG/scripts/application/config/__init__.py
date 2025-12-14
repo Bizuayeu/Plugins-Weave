@@ -26,8 +26,9 @@ from application.config.level_path_service import LevelPathService
 from application.config.source_path_resolver import SourcePathResolver
 from application.config.threshold_provider import ThresholdProvider
 from domain.exceptions import ConfigError
+from domain.file_constants import CONFIG_FILENAME
 from domain.types import ConfigData
-from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root
+from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root, get_persistent_config_dir
 from infrastructure.config.error_messages import initialization_failed_message
 
 # Application Config専用logger
@@ -80,7 +81,8 @@ class DigestConfig:
                 plugin_root = self._find_plugin_root()
 
             self.plugin_root = plugin_root
-            self.config_file = self.plugin_root / ".claude-plugin" / "config.json"
+            # 永続化ディレクトリに保存（auto-update対象外）
+            self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
 
             # ConfigLoader を使用して設定を読み込み
             self._config_loader = ConfigLoader(self.config_file)

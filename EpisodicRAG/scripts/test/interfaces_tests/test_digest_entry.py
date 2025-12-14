@@ -7,6 +7,7 @@ digest_entry テスト
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Dict
 from unittest.mock import MagicMock, patch
@@ -21,6 +22,22 @@ from interfaces.digest_entry import (
     run_pattern2,
 )
 from interfaces.shadow_state_checker import ShadowStateResult
+
+
+@pytest.fixture
+def persistent_config_env(tmp_path: Path):
+    """永続化設定ディレクトリを設定してテストに提供するフィクスチャ"""
+    persistent_config = tmp_path / ".persistent_config"
+    persistent_config.mkdir(parents=True)
+    (tmp_path / ".claude-plugin").mkdir(parents=True, exist_ok=True)
+    old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
+    os.environ["EPISODICRAG_CONFIG_DIR"] = str(persistent_config)
+    yield {"tmp_path": tmp_path, "persistent_config": persistent_config}
+    # Cleanup
+    if old_env is not None:
+        os.environ["EPISODICRAG_CONFIG_DIR"] = old_env
+    else:
+        os.environ.pop("EPISODICRAG_CONFIG_DIR", None)
 
 # =============================================================================
 # DigestEntryResult データクラステスト
@@ -93,12 +110,12 @@ class TestDigestEntryResult:
 class TestGetPathsFromConfig:
     """get_paths_from_config のテスト"""
 
-    def test_loads_paths_from_config(self, tmp_path: Path) -> None:
+    def test_loads_paths_from_config(self, persistent_config_env) -> None:
         """config.jsonからパスを読み込む"""
-        # テスト用config.jsonを作成
-        config_dir = tmp_path / ".claude-plugin"
-        config_dir.mkdir()
-        config_file = config_dir / "config.json"
+        tmp_path = persistent_config_env["tmp_path"]
+        persistent_config = persistent_config_env["persistent_config"]
+        # テスト用config.jsonを作成（永続化ディレクトリに）
+        config_file = persistent_config / "config.json"
         config_file.write_text(
             json.dumps(
                 {
@@ -120,11 +137,12 @@ class TestGetPathsFromConfig:
         assert "essences_path" in paths
         assert paths["weekly_threshold"] == 7
 
-    def test_uses_defaults_when_keys_missing(self, tmp_path: Path) -> None:
+    def test_uses_defaults_when_keys_missing(self, persistent_config_env) -> None:
         """キーがない場合はデフォルト値を使用"""
-        config_dir = tmp_path / ".claude-plugin"
-        config_dir.mkdir()
-        config_file = config_dir / "config.json"
+        tmp_path = persistent_config_env["tmp_path"]
+        persistent_config = persistent_config_env["persistent_config"]
+        # config.jsonを作成（永続化ディレクトリに）
+        config_file = persistent_config / "config.json"
         config_file.write_text(json.dumps({}))
 
         paths = get_paths_from_config(tmp_path)
@@ -141,12 +159,12 @@ class TestGetPathsFromConfig:
 class TestRunPattern1:
     """run_pattern1 (新Loop検出) のテスト"""
 
-    def test_returns_result_with_new_loops(self, tmp_path: Path) -> None:
+    def test_returns_result_with_new_loops(self, persistent_config_env) -> None:
         """新規Loopがある場合の結果"""
-        # テスト用の環境をセットアップ
-        config_dir = tmp_path / ".claude-plugin"
-        config_dir.mkdir()
-        config_file = config_dir / "config.json"
+        tmp_path = persistent_config_env["tmp_path"]
+        persistent_config = persistent_config_env["persistent_config"]
+        # テスト用の環境をセットアップ（永続化ディレクトリに）
+        config_file = persistent_config / "config.json"
         config_file.write_text(
             json.dumps(
                 {
