@@ -28,7 +28,12 @@ from application.config.threshold_provider import ThresholdProvider
 from domain.exceptions import ConfigError
 from domain.file_constants import CONFIG_FILENAME
 from domain.types import ConfigData
-from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root, get_persistent_config_dir
+from infrastructure.config import (
+    ConfigLoader,
+    PathResolver,
+    find_plugin_root,
+    get_persistent_config_dir,
+)
 from infrastructure.config.error_messages import initialization_failed_message
 
 # Application Config専用logger

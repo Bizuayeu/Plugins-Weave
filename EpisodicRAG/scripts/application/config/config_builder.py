@@ -42,7 +42,12 @@ from typing import TYPE_CHECKING, Optional
 
 from domain.exceptions import ConfigError
 from domain.file_constants import CONFIG_FILENAME
-from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root, get_persistent_config_dir
+from infrastructure.config import (
+    ConfigLoader,
+    PathResolver,
+    find_plugin_root,
+    get_persistent_config_dir,
+)
 from infrastructure.config.error_messages import initialization_failed_message
 
 if TYPE_CHECKING:

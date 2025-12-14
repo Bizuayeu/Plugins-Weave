@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from domain.exceptions import FileIOError
-from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR, SHADOW_GRAND_DIGEST_FILENAME
+from domain.file_constants import CONFIG_FILENAME, SHADOW_GRAND_DIGEST_FILENAME
 from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import load_json
 

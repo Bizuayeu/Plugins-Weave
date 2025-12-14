@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from domain.constants import DIGEST_LEVEL_NAMES
-from domain.file_constants import CONFIG_FILENAME, PLUGIN_CONFIG_DIR
+from domain.file_constants import CONFIG_FILENAME
 from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import load_json
 

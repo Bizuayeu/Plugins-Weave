@@ -24,7 +24,6 @@ from domain.file_constants import (
     CONFIG_FILENAME,
     DIGEST_TIMES_FILENAME,
     GRAND_DIGEST_FILENAME,
-    PLUGIN_CONFIG_DIR,
     SHADOW_GRAND_DIGEST_FILENAME,
 )
 from infrastructure.config import get_persistent_config_dir
