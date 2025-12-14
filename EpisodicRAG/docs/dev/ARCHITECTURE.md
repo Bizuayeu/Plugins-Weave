@@ -255,7 +255,7 @@ from infrastructure.user_interaction import get_default_confirm_callback
 from application.shadow import ShadowTemplate, ShadowUpdater, CascadeProcessor
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.finalize import RegularDigestBuilder, DigestPersistence
-from application.validators import validate_dict, is_valid_list
+from domain.validators import validate_type, is_valid_dict, is_valid_list
 
 # Interfaces層（エントリーポイント）
 from interfaces import DigestFinalizerFromShadow, ProvisionalDigestSaver

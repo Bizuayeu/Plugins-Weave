@@ -85,6 +85,10 @@ class DigestConfig:
             if plugin_root is None:
                 plugin_root = self._find_plugin_root()
 
+            # plugin_root の存在検証
+            if not plugin_root.exists():
+                raise ConfigError(f"Plugin root directory does not exist: {plugin_root}")
+
             self.plugin_root = plugin_root
             # 永続化ディレクトリに保存（auto-update対象外）
             self.config_file = get_persistent_config_dir() / CONFIG_FILENAME

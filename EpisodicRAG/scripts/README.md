@@ -124,7 +124,7 @@ from infrastructure.error_handling import handle_error
 from application.shadow import ShadowTemplate, ShadowUpdater
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
 from application.finalize import RegularDigestBuilder, DigestPersistence
-from application.validators import validate_dict, is_valid_list
+from domain.validators import validate_type, is_valid_dict, is_valid_list
 ```
 
 ### interfaces/ - エントリーポイント

@@ -86,8 +86,8 @@ from domain.config import REQUIRED_CONFIG_KEYS
 # Infrastructure層
 from infrastructure import load_json, save_json
 
-# Application層
-from application.validators import validate_dict
+# Domain層（バリデーション）
+from domain.validators import validate_type, is_valid_dict
 from application.config import DigestConfig
 
 # Interfaces層

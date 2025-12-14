@@ -9,10 +9,6 @@
 
 ```python
 from application import (
-    # Validators
-    validate_dict, validate_list, validate_source_files,
-    is_valid_dict, is_valid_list,
-    get_dict_or_default, get_list_or_default,
     # Tracking
     DigestTimesTracker,
     # Shadow (Facades)
@@ -25,6 +21,13 @@ from application import (
 # Config (separate import)
 from application.config import DigestConfig, DigestConfigBuilder  # v4.1.0+
 
+# Validators (domain層を使用)
+from domain.validators import (
+    validate_type, validate_list_not_empty,
+    is_valid_dict, is_valid_list,
+    get_or_default, get_dict_or_empty, get_list_or_empty,
+)
+
 # Cascade Orchestrator (v4.1.0+)
 from application.shadow import (
     CascadeOrchestrator, CascadeResult, CascadeStepResult, CascadeStepStatus,
@@ -35,7 +38,7 @@ from application.shadow import (
 
 ## 目次
 
-1. [バリデーション（validators.py）](#バリデーションapplicationvalidatorspy)
+1. [バリデーション（domain/validators）](#バリデーションdomainvalidators)
 2. [Shadow管理（shadow/）](#shadow管理applicationshadow)
    - [CascadeOrchestrator](#cascadeorchestrator-v410) *(v4.1.0+)*
 3. [GrandDigest管理（grand/）](#granddigest管理applicationgrand)
@@ -46,140 +49,28 @@ from application.shadow import (
 
 ---
 
-## バリデーション（application/validators.py）
+## バリデーション（domain/validators）
 
-データ型検証の共通関数群。重複する`isinstance`チェックを統一し、一貫したエラーメッセージを提供。
+> バリデーション関数は `domain.validators` に統合されています。
+> 詳細は [domain API Reference](domain.md) を参照してください。
 
-### validate_dict()
-
-```python
-def validate_dict(data: Any, context: str) -> Dict[str, Any]
-```
-
-データがdictであることを検証。
-
-| パラメータ | 型 | 説明 |
-|-----------|------|------|
-| `data` | `Any` | 検証対象のデータ |
-| `context` | `str` | エラーメッセージに含める文脈情報（例: `"config.json"`） |
-
-| 戻り値 | 説明 |
-|--------|------|
-| `Dict[str, Any]` | 検証済みのdict |
-
-| 例外 | 発生条件 |
-|------|----------|
-| `ValidationError` | `data`がdictでない場合 |
-
-**使用例**:
-```python
-from application.validators import validate_dict
-
-raw_data = load_some_json()
-config = validate_dict(raw_data, "config.json")  # 失敗時はValidationError
-```
-
-### validate_list()
+### 使用例
 
 ```python
-def validate_list(data: Any, context: str) -> List[Any]
-```
+from domain.validators import validate_type, is_valid_dict
 
-データがlistであることを検証。
+# dict型検証（失敗時はValidationError）
+validated = validate_type(data, dict, "config.json", "dict")
 
-| パラメータ | 型 | 説明 |
-|-----------|------|------|
-| `data` | `Any` | 検証対象のデータ |
-| `context` | `str` | エラーメッセージに含める文脈情報 |
-
-| 戻り値 | 説明 |
-|--------|------|
-| `List[Any]` | 検証済みのlist |
-
-| 例外 | 発生条件 |
-|------|----------|
-| `ValidationError` | `data`がlistでない場合 |
-
-### validate_source_files()
-
-```python
-def validate_source_files(files: Any, context: str = "source_files") -> List[str]
-```
-
-source_filesの形式を検証。
-
-| パラメータ | 型 | デフォルト | 説明 |
-|-----------|------|-----------|------|
-| `files` | `Any` | - | 検証対象のデータ |
-| `context` | `str` | `"source_files"` | エラーメッセージに含める文脈情報 |
-
-| 戻り値 | 説明 |
-|--------|------|
-| `List[str]` | 検証済みのファイルリスト |
-
-| 例外 | 発生条件 |
-|------|----------|
-| `ValidationError` | `files`がNone、listでない、または空の場合 |
-
-**使用例**:
-```python
-from application.validators import validate_source_files
-
-files = validate_source_files(shadow_digest.get("source_files"))
-# files: ["L00001_xxx.txt", "L00002_yyy.txt"]
-```
-
-### is_valid_dict() / is_valid_list()
-
-```python
-def is_valid_dict(data: Any) -> bool
-def is_valid_list(data: Any) -> bool
-```
-
-例外を投げずにboolで型チェック。条件分岐での使用に適している。
-
-| パラメータ | 型 | 説明 |
-|-----------|------|------|
-| `data` | `Any` | 検証対象のデータ |
-
-| 戻り値 | 説明 |
-|--------|------|
-| `bool` | `data`が期待する型なら`True` |
-
-**使用例**:
-```python
-from application.validators import is_valid_dict, is_valid_list
-
+# 型チェック（例外を投げない）
 if is_valid_dict(data):
-    process_dict(data)
-elif is_valid_list(data):
-    process_list(data)
-```
+    process(data)
 
-### get_dict_or_default() / get_list_or_default()
-
-```python
-def get_dict_or_default(data: Any, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]
-def get_list_or_default(data: Any, default: Optional[List[Any]] = None) -> List[Any]
-```
-
-型が一致すればそのまま返し、不一致ならデフォルト値を返す。
-
-| パラメータ | 型 | デフォルト | 説明 |
-|-----------|------|-----------|------|
-| `data` | `Any` | - | 検証対象のデータ |
-| `default` | `Optional[Dict]` / `Optional[List]` | `None`（空のdict/list） | 型不一致時の戻り値 |
-
-| 戻り値 | 説明 |
-|--------|------|
-| `Dict[str, Any]` / `List[Any]` | `data`が期待する型なら`data`、そうでなければ`default` |
-
-**使用例**:
-```python
-from application.validators import get_dict_or_default
-
-# Noneや不正な型でも安全に空dictを取得
-keywords = get_dict_or_default(raw_data.get("keywords"), {})
+# デフォルト値付き取得
+from domain.validators import get_or_default, get_dict_or_empty
+result = get_or_default(data, dict, lambda: {})
+# または
+result = get_dict_or_empty(data)  # 常に空dictがデフォルト
 ```
 
 ---
