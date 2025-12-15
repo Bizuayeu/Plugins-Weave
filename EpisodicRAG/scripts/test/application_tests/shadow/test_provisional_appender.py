@@ -92,7 +92,7 @@ def provisional_appender(
     from application.config import DigestConfig
     from application.shadow.provisional_appender import ProvisionalAppender
 
-    config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+    config = DigestConfig()
     return ProvisionalAppender(config, level_hierarchy)
 
 

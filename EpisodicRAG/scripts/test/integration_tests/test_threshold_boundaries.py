@@ -51,7 +51,7 @@ class TestThresholdBoundaryBase:
     @pytest.fixture
     def boundary_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """境界条件テスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化（永続化ディレクトリに配置）
         times_file = temp_plugin_env.persistent_config_dir / "last_digest_times.json"
@@ -370,7 +370,7 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
         config_data["levels"] = {"weekly_threshold": 1}
         config_file.write_text(json.dumps(config_data, indent=2))
 
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化（永続化ディレクトリに配置）
         times_file = env.persistent_config_dir / "last_digest_times.json"

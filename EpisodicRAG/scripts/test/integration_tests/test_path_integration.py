@@ -28,7 +28,7 @@ class TestProvisionalDirectoryStructure(unittest.TestCase):
         間違い: Digests/Provisional/1_Weekly/
         """
         with TempPluginEnvironment() as env:
-            config = DigestConfig(plugin_root=env.plugin_root)
+            config = DigestConfig()
 
             for level in DIGEST_LEVEL_NAMES:
                 prov_dir = config.get_provisional_dir(level)
@@ -41,7 +41,7 @@ class TestProvisionalDirectoryStructure(unittest.TestCase):
     def test_all_level_dirs_have_correct_names(self) -> None:
         """各レベルディレクトリ名がLEVEL_CONFIGと一致することを検証"""
         with TempPluginEnvironment() as env:
-            config = DigestConfig(plugin_root=env.plugin_root)
+            config = DigestConfig()
 
             for level in DIGEST_LEVEL_NAMES:
                 level_dir = config.get_level_dir(level)
@@ -53,7 +53,7 @@ class TestProvisionalDirectoryStructure(unittest.TestCase):
     def test_provisional_dirs_exist_inside_level_dirs(self) -> None:
         """Provisionalディレクトリがレベルディレクトリ内に存在することを検証"""
         with TempPluginEnvironment() as env:
-            config = DigestConfig(plugin_root=env.plugin_root)
+            config = DigestConfig()
 
             for level in DIGEST_LEVEL_NAMES:
                 prov_dir = config.get_provisional_dir(level)
@@ -129,14 +129,14 @@ class TestValidateDirectoryStructure(unittest.TestCase):
     def test_valid_structure_returns_empty_list(self) -> None:
         """正しい構造では空のエラーリストを返す"""
         with TempPluginEnvironment() as env:
-            config = DigestConfig(plugin_root=env.plugin_root)
+            config = DigestConfig()
             errors = config.validate_directory_structure()
             self.assertEqual(errors, [])
 
     def test_missing_loops_detected(self) -> None:
         """Loopsディレクトリが欠落している場合を検出"""
         with TempPluginEnvironment() as env:
-            config = DigestConfig(plugin_root=env.plugin_root)
+            config = DigestConfig()
             # Loopsを削除
             import shutil
 
@@ -148,7 +148,7 @@ class TestValidateDirectoryStructure(unittest.TestCase):
     def test_missing_provisional_detected(self) -> None:
         """Provisionalディレクトリが欠落している場合を検出"""
         with TempPluginEnvironment() as env:
-            config = DigestConfig(plugin_root=env.plugin_root)
+            config = DigestConfig()
             # 1_Weekly/Provisionalを削除
             import shutil
 

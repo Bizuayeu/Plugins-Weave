@@ -68,7 +68,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
 
         # config.json（永続化ディレクトリに）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -151,7 +151,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             json.dump(times_data, f)
 
         # Act
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         # Assert
@@ -190,7 +190,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             json.dump(times_data, f)
 
         # Act
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         # Assert: 未処理は0件

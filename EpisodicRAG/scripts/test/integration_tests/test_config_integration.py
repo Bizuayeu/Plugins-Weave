@@ -52,7 +52,7 @@ class TestConfigPathResolution:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """設定読み込み後、必要なディレクトリが存在する"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         assert config.loops_path.exists()
         assert config.digests_path.exists()
@@ -62,7 +62,7 @@ class TestConfigPathResolution:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """全ダイジェストレベルディレクトリにアクセス可能"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # Note: loop は dir="" のため除外（Loopsディレクトリは別管理）
         for level in DIGEST_LEVEL_NAMES:
@@ -74,7 +74,7 @@ class TestConfigPathResolution:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """全ダイジェストレベルのProvisionalディレクトリにアクセス可能"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # Note: loop は dir="" のため除外（Loopsディレクトリは別管理）
         for level in DIGEST_LEVEL_NAMES:
@@ -84,7 +84,7 @@ class TestConfigPathResolution:
 
     def test_source_dir_for_each_level(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """各レベルのソースディレクトリが正しく解決される"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # weekly のソースは loops
         assert config.get_source_dir("weekly") == config.loops_path
@@ -106,7 +106,7 @@ class TestConfigApplicationIntegration:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """FileDetectorがConfigのパスを正しく使用する"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
         detector = FileDetector(config, times_tracker)
 
@@ -122,7 +122,7 @@ class TestConfigApplicationIntegration:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """DigestTimesTrackerがConfigのパスを正しく使用する"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
 
         # last_digest_times.json が正しい場所（.claude-plugin/）に作成される
@@ -145,7 +145,7 @@ class TestThresholdApplication:
 
     def test_default_thresholds_available(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """デフォルト閾値が全ダイジェストレベルで利用可能"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # Note: loop は threshold=None のため除外（閾値なし、手動トリガー）
         for level in DIGEST_LEVEL_NAMES:
@@ -157,7 +157,7 @@ class TestThresholdApplication:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """閾値がthresholdプロパティ経由で取得可能"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # ARCHITECTURE: コンポーネント公開パターン
         # config.threshold経由でThresholdProviderにアクセス
@@ -177,7 +177,7 @@ class TestErrorHandlingIntegration:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """無効なレベル名でConfigErrorが発生"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         with pytest.raises(ConfigError):
             config.get_threshold("invalid_level")
@@ -186,7 +186,7 @@ class TestErrorHandlingIntegration:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """Config検証が問題を検出"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # 正常な設定ではディレクトリ構造検証エラーなし
         errors = config.validate_directory_structure()
@@ -206,7 +206,7 @@ class TestEndToEndConfigFlow:
     ) -> None:
         """設定からファイル検出までの完全なフロー"""
         # 1. Config初期化
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # 2. Application層コンポーネント初期化
         times_tracker = DigestTimesTracker(config)
@@ -232,7 +232,7 @@ class TestEndToEndConfigFlow:
 
     def test_threshold_affects_behavior(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """閾値がApplication層の動作に影響を与える"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # 閾値を取得
         weekly_threshold = config.get_threshold("weekly")

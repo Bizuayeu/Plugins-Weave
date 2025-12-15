@@ -50,7 +50,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -102,7 +102,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
         """問題がないシステムで ok を返す"""
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 
@@ -125,7 +125,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 
@@ -148,7 +148,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 
@@ -168,7 +168,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 
@@ -205,7 +205,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 
@@ -229,7 +229,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 

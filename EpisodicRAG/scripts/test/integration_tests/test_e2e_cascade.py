@@ -44,7 +44,7 @@ class TestMultiLevelCascade:
     @pytest.fixture
     def cascade_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """カスケードテスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
@@ -150,7 +150,7 @@ class TestBoundaryConditions:
     @pytest.fixture
     def boundary_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """境界条件テスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"

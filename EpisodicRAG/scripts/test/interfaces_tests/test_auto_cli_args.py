@@ -49,7 +49,7 @@ class TestDigestAutoCLI(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -74,7 +74,7 @@ class TestDigestAutoCLI(unittest.TestCase):
         """JSON出力が動作する"""
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 
@@ -91,7 +91,7 @@ class TestDigestAutoCLI(unittest.TestCase):
         """テキスト出力が動作する"""
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "text", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "text"],
         ):
             from interfaces.digest_auto import main
 
@@ -142,7 +142,7 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -171,8 +171,6 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
                 "digest_auto.py",
                 "--output",
                 "invalid_format",
-                "--plugin-root",
-                str(self.plugin_root),
             ],
         ):
             with patch("sys.stderr"):
@@ -185,7 +183,7 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
     @pytest.mark.unit
     def test_default_output_is_json(self) -> None:
         """--output 省略時はJSONがデフォルト"""
-        with patch("sys.argv", ["digest_auto.py", "--plugin-root", str(self.plugin_root)]):
+        with patch("sys.argv", ["digest_auto.py"]):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:
@@ -196,27 +194,13 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
                 assert isinstance(result, dict)
 
     @pytest.mark.unit
-    def test_plugin_root_without_config_exits_with_error(self) -> None:
+    def test_missing_config_exits_with_error(self) -> None:
         """config.json がない場合にエラー"""
 
         # config.json を削除（永続化ディレクトリから）
         (self.persistent_config / "config.json").unlink()
 
-        with patch("sys.argv", ["digest_auto.py", "--plugin-root", str(self.plugin_root)]):
-            from interfaces.digest_auto import main
-
-            with patch("builtins.print") as mock_print:
-                # Note: digest_auto returns exit code 0 even with status="error"
-                main()
-                output = mock_print.call_args[0][0]
-                result = json.loads(output)
-                assert result["status"] == "error"
-
-    @pytest.mark.unit
-    def test_nonexistent_plugin_root(self) -> None:
-        """存在しない plugin-root でエラー"""
-
-        with patch("sys.argv", ["digest_auto.py", "--plugin-root", "/nonexistent/path/to/plugin"]):
+        with patch("sys.argv", ["digest_auto.py"]):
             from interfaces.digest_auto import main
 
             with patch("builtins.print") as mock_print:
@@ -231,7 +215,7 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
         """--output json オプションが動作"""
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--output", "json", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--output", "json"],
         ):
             from interfaces.digest_auto import main
 
@@ -258,7 +242,7 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
         """未知のオプションでエラー終了"""
         with patch(
             "sys.argv",
-            ["digest_auto.py", "--unknown-option", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "--unknown-option"],
         ):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
@@ -268,13 +252,13 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
                 assert exc_info.value.code == 2
 
     @pytest.mark.unit
-    def test_positional_args_accepted(self) -> None:
-        """位置引数はargparseで定義されていないためエラー（または無視）"""
+    def test_positional_args_rejected(self) -> None:
+        """位置引数はargparseで定義されていないためエラー"""
 
         # argparseの設定によっては位置引数がエラーになる
         with patch(
             "sys.argv",
-            ["digest_auto.py", "unexpected_positional", "--plugin-root", str(self.plugin_root)],
+            ["digest_auto.py", "unexpected_positional"],
         ):
             with patch("sys.stderr"):
                 # 位置引数がエラーになるかどうかを確認

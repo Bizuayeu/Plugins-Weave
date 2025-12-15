@@ -46,7 +46,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
     def _create_config(self) -> None:
         """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "trusted_external_paths": [],
             "paths": {
                 "loops_dir": "data/Loops",
@@ -61,7 +61,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
         """trusted-paths list で空リスト"""
         with patch(
             "sys.argv",
-            ["digest_config.py", "--plugin-root", str(self.plugin_root), "trusted-paths", "list"],
+            ["digest_config.py", "trusted-paths", "list"],
         ):
             from interfaces.digest_config import main
 
@@ -78,7 +78,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
         """trusted-paths list でパスあり"""
         # 先にパスを追加
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "trusted_external_paths": ["~/path1", "~/path2"],
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
@@ -88,7 +88,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["digest_config.py", "--plugin-root", str(self.plugin_root), "trusted-paths", "list"],
+            ["digest_config.py", "trusted-paths", "list"],
         ):
             from interfaces.digest_config import main
 
@@ -108,8 +108,6 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "trusted-paths",
                 "add",
                 abs_path,
@@ -131,8 +129,6 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "trusted-paths",
                 "add",
                 "~/DEV/production",
@@ -154,8 +150,6 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "trusted-paths",
                 "add",
                 "relative/path",
@@ -177,8 +171,6 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "trusted-paths",
                 "add",
                 "~/DEV/test",
@@ -194,8 +186,6 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "trusted-paths",
                 "add",
                 "~/DEV/test",
@@ -215,7 +205,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
         """trusted-paths remove で既存パス削除"""
         # 先にパスを追加
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "trusted_external_paths": ["~/DEV/production"],
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
@@ -227,8 +217,6 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "trusted-paths",
                 "remove",
                 "~/DEV/production",
@@ -250,8 +238,6 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "trusted-paths",
                 "remove",
                 "~/nonexistent",
@@ -270,7 +256,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
         """trusted-paths でサブコマンドなしはリスト表示"""
         with patch(
             "sys.argv",
-            ["digest_config.py", "--plugin-root", str(self.plugin_root), "trusted-paths"],
+            ["digest_config.py", "trusted-paths"],
         ):
             from interfaces.digest_config import main
 
@@ -286,7 +272,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
         """trusted-paths の出力が有効なJSON"""
         with patch(
             "sys.argv",
-            ["digest_config.py", "--plugin-root", str(self.plugin_root), "trusted-paths", "list"],
+            ["digest_config.py", "trusted-paths", "list"],
         ):
             from interfaces.digest_config import main
 
@@ -312,7 +298,7 @@ class TestConfigCLINoCommand(unittest.TestCase):
         # 環境変数を設定
         self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
         os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
-        config_data = {"base_dir": ".", "levels": {"weekly_threshold": 5}}
+        config_data = {"base_dir": str(self.plugin_root), "levels": {"weekly_threshold": 5}}
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
@@ -328,7 +314,7 @@ class TestConfigCLINoCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_no_command_exits_with_code_1(self) -> None:
         """コマンドなしで exit code 1"""
-        with patch("sys.argv", ["digest_config.py", "--plugin-root", str(self.plugin_root)]):
+        with patch("sys.argv", ["digest_config.py"]):
             with patch("sys.stdout"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_config import main
@@ -341,7 +327,7 @@ class TestConfigCLINoCommand(unittest.TestCase):
         """無効なコマンドでエラー"""
         with patch(
             "sys.argv",
-            ["digest_config.py", "--plugin-root", str(self.plugin_root), "invalid_command"],
+            ["digest_config.py", "invalid_command"],
         ):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:

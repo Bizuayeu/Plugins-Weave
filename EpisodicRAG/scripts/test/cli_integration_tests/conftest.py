@@ -53,9 +53,9 @@ def cli_plugin_root(cli_temp_dir: Path) -> Generator[Path, None, None]:
     環境変数で永続化設定ディレクトリを設定。
     """
     plugin_root = cli_temp_dir
-    (plugin_root / ".claude-plugin").mkdir(parents=True)
+    (plugin_root / ".claude-plugin").mkdir(parents=True, exist_ok=True)
     persistent_config = plugin_root / ".persistent_config"
-    persistent_config.mkdir(parents=True)
+    persistent_config.mkdir(parents=True, exist_ok=True)
 
     # 環境変数を設定（subprocess用）
     old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
@@ -137,10 +137,10 @@ def _create_full_plugin_structure(plugin_root: Path) -> Dict[str, Path]:
     }
 
 
-def _create_config_file(config_dir: Path) -> Path:
+def _create_config_file(config_dir: Path, plugin_root: Path) -> Path:
     """設定ファイルを作成"""
     config_data = {
-        "base_dir": ".",
+        "base_dir": str(plugin_root),
         "trusted_external_paths": [],
         "paths": {
             "loops_dir": "data/Loops",
@@ -268,7 +268,7 @@ def configured_cli_env(cli_temp_dir: Path) -> Generator[Dict[str, Path], None, N
     """
     paths = _create_full_plugin_structure(cli_temp_dir)
     # 永続化ファイルはpersistent_config内に作成
-    _create_config_file(paths["persistent_config"])
+    _create_config_file(paths["persistent_config"], paths["plugin_root"])
     _create_template_files(paths["config_dir"])
     _create_essence_files(paths["essences"])
     _create_times_file(paths["persistent_config"])
@@ -306,11 +306,11 @@ def configured_cli_runner(configured_cli_env: Dict[str, Path]) -> CLIRunner:
 
 
 @pytest.fixture
-def valid_config_json() -> str:
-    """有効な設定JSON文字列を提供"""
+def valid_config_json(cli_plugin_root: Path) -> str:
+    """有効な設定JSON文字列を提供（base_dirは絶対パス）"""
     return json.dumps(
         {
-            "base_dir": ".",
+            "base_dir": str(cli_plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",

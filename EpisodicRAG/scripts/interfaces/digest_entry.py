@@ -32,7 +32,7 @@ class DigestEntryResult:
 
     status: str  # "ok" | "error"
     pattern: int  # 1 or 2
-    plugin_root: Optional[str] = None
+    base_dir: Optional[str] = None
     loops_path: Optional[str] = None
     digests_path: Optional[str] = None
     essences_path: Optional[str] = None
@@ -52,31 +52,22 @@ class DigestEntryResult:
     error: Optional[str] = None
 
 
-def find_plugin_root_path() -> Optional[Path]:
-    """Plugin rootを検出"""
-    from interfaces.find_plugin_root import find_plugin_root
-
-    result = find_plugin_root()
-    if result.status == "ok" and result.plugin_root:
-        return Path(result.plugin_root)
-    return None
-
-
-def get_paths_from_config(plugin_root: Path) -> Dict[str, Path]:
+def get_paths_from_config() -> Dict[str, Any]:
     """config.json からパス情報を取得"""
     config_file = get_persistent_config_dir() / CONFIG_FILENAME
     config = load_json(config_file)
 
-    base_dir_str = config.get("base_dir", ".")
-    base_path = Path(base_dir_str).expanduser()
-    if not base_path.is_absolute():
-        base_path = plugin_root / base_path
-    base_path = base_path.resolve()
+    base_dir_str = config.get("base_dir", "")
+    if not base_dir_str:
+        raise ValueError("base_dir is required in config.json")
+
+    base_path = Path(base_dir_str).expanduser().resolve()
 
     paths = config.get("paths", {})
     levels = config.get("levels", {})
 
     return {
+        "base_dir": base_path,
         "loops_path": base_path / paths.get("loops_dir", "data/Loops"),
         "digests_path": base_path / paths.get("digests_dir", "data/Digests"),
         "essences_path": base_path / paths.get("essences_dir", "data/Essences"),
@@ -84,12 +75,12 @@ def get_paths_from_config(plugin_root: Path) -> Dict[str, Path]:
     }
 
 
-def get_new_loops(plugin_root: Path) -> List[str]:
+def get_new_loops() -> List[str]:
     """新規Loopファイルを検出（ShadowUpdaterと同じロジック）"""
     from application.config import DigestConfig
     from application.grand import ShadowGrandDigestManager
 
-    config = DigestConfig(plugin_root=plugin_root)
+    config = DigestConfig()
     manager = ShadowGrandDigestManager(config)
 
     # FileDetectorを使って新規ファイルを検出
@@ -97,19 +88,19 @@ def get_new_loops(plugin_root: Path) -> List[str]:
     return [f.stem for f in new_files]
 
 
-def get_weekly_source_count(plugin_root: Path) -> int:
+def get_weekly_source_count() -> int:
     """weekly Shadowのsource_files数を取得"""
     from interfaces.shadow_state_checker import ShadowStateChecker
 
-    checker = ShadowStateChecker(plugin_root=plugin_root)
+    checker = ShadowStateChecker()
     result = checker.check("weekly")
     return result.source_count
 
 
-def run_pattern1(plugin_root: Path, paths: Dict[str, Any]) -> DigestEntryResult:
+def run_pattern1(paths: Dict[str, Any]) -> DigestEntryResult:
     """Pattern 1: 新Loop検出"""
-    new_loops = get_new_loops(plugin_root)
-    weekly_source_count = get_weekly_source_count(plugin_root)
+    new_loops = get_new_loops()
+    weekly_source_count = get_weekly_source_count()
     weekly_threshold = paths["weekly_threshold"]
 
     if new_loops:
@@ -120,7 +111,7 @@ def run_pattern1(plugin_root: Path, paths: Dict[str, Any]) -> DigestEntryResult:
     return DigestEntryResult(
         status="ok",
         pattern=1,
-        plugin_root=str(plugin_root),
+        base_dir=str(paths["base_dir"]),
         loops_path=str(paths["loops_path"]),
         digests_path=str(paths["digests_path"]),
         essences_path=str(paths["essences_path"]),
@@ -132,21 +123,21 @@ def run_pattern1(plugin_root: Path, paths: Dict[str, Any]) -> DigestEntryResult:
     )
 
 
-def run_pattern2(plugin_root: Path, paths: Dict[str, Any], level: str) -> DigestEntryResult:
+def run_pattern2(paths: Dict[str, Any], level: str) -> DigestEntryResult:
     """Pattern 2: 階層確定準備"""
     from interfaces.shadow_state_checker import ShadowStateChecker
 
-    checker = ShadowStateChecker(plugin_root=plugin_root)
+    checker = ShadowStateChecker()
     shadow_result = checker.check(level)
 
-    weekly_source_count = get_weekly_source_count(plugin_root)
+    weekly_source_count = get_weekly_source_count()
     weekly_threshold = paths["weekly_threshold"]
 
     if shadow_result.status == "error":
         return DigestEntryResult(
             status="error",
             pattern=2,
-            plugin_root=str(plugin_root),
+            base_dir=str(paths["base_dir"]),
             level=level,
             error=shadow_result.error,
         )
@@ -158,7 +149,7 @@ def run_pattern2(plugin_root: Path, paths: Dict[str, Any], level: str) -> Digest
     return DigestEntryResult(
         status="ok",
         pattern=2,
-        plugin_root=str(plugin_root),
+        base_dir=str(paths["base_dir"]),
         loops_path=str(paths["loops_path"]),
         digests_path=str(paths["digests_path"]),
         essences_path=str(paths["essences_path"]),
@@ -192,7 +183,7 @@ def format_text_output(result: DigestEntryResult) -> str:
 
     # パス情報
     lines.append("📁 パス情報")
-    lines.append(f"  plugin_root: {result.plugin_root}")
+    lines.append(f"  base_dir: {result.base_dir}")
     lines.append(f"  loops_path: {result.loops_path}")
     lines.append(f"  digests_path: {result.digests_path}")
     lines.append("")
@@ -260,42 +251,23 @@ Examples:
         default="json",
         help="出力形式 (default: json)",
     )
-    parser.add_argument(
-        "--plugin-root",
-        type=Path,
-        default=None,
-        help="Pluginルートパス（テスト用）",
-    )
 
     args = parser.parse_args()
 
-    # Plugin root取得
-    if args.plugin_root:
-        plugin_root = args.plugin_root
-    else:
-        plugin_root = find_plugin_root_path()
+    try:
+        paths = get_paths_from_config()
 
-    if plugin_root is None:
+        if args.level is None:
+            result = run_pattern1(paths)
+        else:
+            result = run_pattern2(paths, args.level)
+
+    except Exception as e:
         result = DigestEntryResult(
             status="error",
             pattern=1 if args.level is None else 2,
-            error="EpisodicRAG plugin not found",
+            error=str(e),
         )
-    else:
-        try:
-            paths = get_paths_from_config(plugin_root)
-
-            if args.level is None:
-                result = run_pattern1(plugin_root, paths)
-            else:
-                result = run_pattern2(plugin_root, paths, args.level)
-
-        except Exception as e:
-            result = DigestEntryResult(
-                status="error",
-                pattern=1 if args.level is None else 2,
-                error=str(e),
-            )
 
     # 出力
     if args.output == "json":

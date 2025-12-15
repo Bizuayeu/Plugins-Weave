@@ -192,13 +192,6 @@ Note: JSONはファイルまたは--stdinで渡してください。
     parser.add_argument(
         "--append", action="store_true", help="既存のProvisionalファイルに追加（新規作成ではなく）"
     )
-    parser.add_argument(
-        "--plugin-root",
-        type=str,
-        default=None,
-        help="Pluginルートパス（デフォルト: 自動検出）",
-    )
-
     args = parser.parse_args()
 
     # Validate: either input_data or --stdin must be provided
@@ -206,9 +199,7 @@ Note: JSONはファイルまたは--stdinで渡してください。
         parser.error("input_data is required unless --stdin is specified")
 
     try:
-        # plugin_root が指定されている場合は DigestConfig に渡す
-        plugin_root = Path(args.plugin_root) if args.plugin_root else None
-        config = DigestConfig(plugin_root=plugin_root)
+        config = DigestConfig()
         saver = ProvisionalDigestSaver(config=config)
 
         # Load individual digests using InputLoader

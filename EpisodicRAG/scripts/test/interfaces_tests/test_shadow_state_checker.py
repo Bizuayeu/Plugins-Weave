@@ -52,7 +52,7 @@ class TestShadowStateChecker(unittest.TestCase):
 
         # config.json（永続化ディレクトリに）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -144,7 +144,7 @@ class TestShadowStateChecker(unittest.TestCase):
         from interfaces.shadow_state_checker import ShadowStateChecker
 
         self._create_shadow_analyzed()
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "ok")
@@ -160,7 +160,7 @@ class TestShadowStateChecker(unittest.TestCase):
         from interfaces.shadow_state_checker import ShadowStateChecker
 
         self._create_shadow_with_placeholders()
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "ok")
@@ -177,7 +177,7 @@ class TestShadowStateChecker(unittest.TestCase):
         from interfaces.shadow_state_checker import ShadowStateChecker
 
         self._create_shadow_empty_level()
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "ok")
@@ -191,7 +191,7 @@ class TestShadowStateChecker(unittest.TestCase):
         from interfaces.shadow_state_checker import ShadowStateChecker
 
         self._create_shadow_analyzed()
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         result = checker.check("invalid_level")
 
         self.assertEqual(result.status, "error")
@@ -207,7 +207,7 @@ class TestShadowStateChecker(unittest.TestCase):
         # config.jsonを削除（永続化ディレクトリから）
         (self.persistent_config / "config.json").unlink()
 
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "error")
@@ -221,7 +221,7 @@ class TestShadowStateChecker(unittest.TestCase):
         from interfaces.shadow_state_checker import ShadowStateChecker
 
         # ShadowGrandDigest.txtを作成しない
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "error")
@@ -235,7 +235,7 @@ class TestShadowStateChecker(unittest.TestCase):
         from interfaces.shadow_state_checker import ShadowStateChecker
 
         self._create_shadow_empty_level()
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         result = checker.check("monthly")
 
         self.assertEqual(result.status, "ok")
@@ -276,13 +276,13 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
 
         # config.jsonを作成（base_dir='.'、永続化ディレクトリに）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {"essences_dir": "data/Essences"},
         }
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         config = checker._load_config()
         result = checker._get_essences_path(config)
 
@@ -305,7 +305,7 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         config = checker._load_config()
         result = checker._get_essences_path(config)
 
@@ -326,7 +326,7 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        checker = ShadowStateChecker(plugin_root=self.plugin_root)
+        checker = ShadowStateChecker()
         config = checker._load_config()
         result = checker._get_essences_path(config)
 
@@ -366,7 +366,7 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {"essences_dir": "data/Essences"},
         }
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:

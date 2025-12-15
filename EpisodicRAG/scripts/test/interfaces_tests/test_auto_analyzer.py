@@ -65,7 +65,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
 
         # config.json（永続化ディレクトリに）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -118,7 +118,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         """問題がない場合に ok を返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         assert result.status == "ok"
@@ -133,7 +133,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         (self.plugin_root / "data" / "Loops" / "L00001_Test.txt").write_text("content")
         (self.plugin_root / "data" / "Loops" / "L00002_Test.txt").write_text("content")
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         # 未処理Loopの問題が検出される
@@ -163,7 +163,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         ) as f:
             json.dump(shadow_data, f)
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         placeholder_issues = [i for i in result.issues if i.type == "placeholders"]
@@ -192,7 +192,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         ) as f:
             json.dump(shadow_data, f)
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         gap_issues = [i for i in result.issues if i.type == "gaps"]
@@ -215,7 +215,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         ) as f:
             json.dump(times_data, f)
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         # weeklyが生成可能
@@ -231,7 +231,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         # 未処理Loopを作成
         (self.plugin_root / "data" / "Loops" / "L00001_Test.txt").write_text("content")
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         assert len(result.recommendations) > 0
@@ -244,7 +244,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         # config.jsonを削除（永続化ディレクトリから）
         (self.persistent_config / "config.json").unlink()
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         assert result.status == "error"
@@ -258,7 +258,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         # ShadowGrandDigest.txtを削除
         (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").unlink()
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         assert result.status == "error"
@@ -282,7 +282,7 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         """ファイル名から番号を抽出する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
 
         assert analyzer._extract_file_number("L00001_Test.txt") == 1
         assert analyzer._extract_file_number("W0005_Weekly.txt") == 5
@@ -294,7 +294,7 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         """連番のギャップを検出する"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
 
         assert analyzer._find_gaps([1, 2, 3]) == []
         assert analyzer._find_gaps([1, 3, 5]) == [2, 4]
@@ -310,7 +310,7 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         invalid_json_file = self.plugin_root / "invalid.json"
         invalid_json_file.write_text("{ invalid json content")
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer._load_json_file(invalid_json_file)
 
         assert result is None
@@ -320,7 +320,7 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         """存在しないファイルに対してNoneを返す"""
         from interfaces.digest_auto import DigestAutoAnalyzer
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer._load_json_file(self.plugin_root / "nonexistent.json")
 
         assert result is None
@@ -334,7 +334,7 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
         valid_json_file = self.plugin_root / "valid.json"
         valid_json_file.write_text('{"key": "value"}')
 
-        analyzer = DigestAutoAnalyzer(plugin_root=self.plugin_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer._load_json_file(valid_json_file)
 
         assert result is not None

@@ -53,7 +53,7 @@ class TestDigestEntryResult:
         result = DigestEntryResult(status="ok", pattern=1)
         assert result.status == "ok"
         assert result.pattern == 1
-        assert result.plugin_root is None
+        assert result.base_dir is None
         assert result.new_loops == []
         assert result.error is None
 
@@ -62,7 +62,7 @@ class TestDigestEntryResult:
         result = DigestEntryResult(
             status="ok",
             pattern=1,
-            plugin_root="/path/to/plugin",
+            base_dir="/path/to/plugin",
             loops_path="/path/to/loops",
             digests_path="/path/to/digests",
             essences_path="/path/to/essences",
@@ -82,7 +82,7 @@ class TestDigestEntryResult:
         result = DigestEntryResult(
             status="ok",
             pattern=2,
-            plugin_root="/path/to/plugin",
+            base_dir="/path/to/plugin",
             level="weekly",
             shadow_state={"source_count": 5, "analyzed": True},
             message="weekly 確定準備",
@@ -131,7 +131,7 @@ class TestGetPathsFromConfig:
             )
         )
 
-        paths = get_paths_from_config(tmp_path)
+        paths = get_paths_from_config()
 
         assert "loops_path" in paths
         assert "digests_path" in paths
@@ -142,11 +142,11 @@ class TestGetPathsFromConfig:
         """キーがない場合はデフォルト値を使用"""
         tmp_path = persistent_config_env["tmp_path"]
         persistent_config = persistent_config_env["persistent_config"]
-        # config.jsonを作成（永続化ディレクトリに）
+        # config.jsonを作成（永続化ディレクトリに、base_dirは必須）
         config_file = persistent_config / "config.json"
-        config_file.write_text(json.dumps({}))
+        config_file.write_text(json.dumps({"base_dir": str(tmp_path)}))
 
-        paths = get_paths_from_config(tmp_path)
+        paths = get_paths_from_config()
 
         assert "loops_path" in paths
         assert paths["weekly_threshold"] == 5  # デフォルト値
@@ -177,6 +177,7 @@ class TestRunPattern1:
         )
 
         paths = {
+            "base_dir": tmp_path,
             "loops_path": tmp_path / "data" / "Loops",
             "digests_path": tmp_path / "data" / "Digests",
             "essences_path": tmp_path / "data" / "Essences",
@@ -188,7 +189,7 @@ class TestRunPattern1:
             with patch("interfaces.digest_entry.get_weekly_source_count") as mock_count:
                 mock_count.return_value = 3
 
-                result = run_pattern1(tmp_path, paths)
+                result = run_pattern1(paths)
 
         assert result.status == "ok"
         assert result.pattern == 1
@@ -198,6 +199,7 @@ class TestRunPattern1:
     def test_returns_result_with_no_new_loops(self, tmp_path: Path) -> None:
         """新規Loopがない場合の結果"""
         paths = {
+            "base_dir": tmp_path,
             "loops_path": tmp_path / "data" / "Loops",
             "digests_path": tmp_path / "data" / "Digests",
             "essences_path": tmp_path / "data" / "Essences",
@@ -209,7 +211,7 @@ class TestRunPattern1:
             with patch("interfaces.digest_entry.get_weekly_source_count") as mock_count:
                 mock_count.return_value = 0
 
-                result = run_pattern1(tmp_path, paths)
+                result = run_pattern1(paths)
 
         assert result.status == "ok"
         assert result.new_loops_count == 0
@@ -227,6 +229,7 @@ class TestRunPattern2:
     def test_returns_result_for_weekly(self, tmp_path: Path) -> None:
         """weekly レベルの結果"""
         paths = {
+            "base_dir": tmp_path,
             "loops_path": tmp_path / "data" / "Loops",
             "digests_path": tmp_path / "data" / "Digests",
             "essences_path": tmp_path / "data" / "Essences",
@@ -251,7 +254,7 @@ class TestRunPattern2:
             with patch("interfaces.digest_entry.get_weekly_source_count") as mock_count:
                 mock_count.return_value = 3
 
-                result = run_pattern2(tmp_path, paths, "weekly")
+                result = run_pattern2(paths, "weekly")
 
         assert result.status == "ok"
         assert result.pattern == 2
@@ -260,6 +263,7 @@ class TestRunPattern2:
     def test_returns_error_on_shadow_error(self, tmp_path: Path) -> None:
         """Shadow状態エラー時"""
         paths = {
+            "base_dir": tmp_path,
             "loops_path": tmp_path / "data" / "Loops",
             "digests_path": tmp_path / "data" / "Digests",
             "essences_path": tmp_path / "data" / "Essences",
@@ -279,7 +283,7 @@ class TestRunPattern2:
             mock_instance.check.return_value = shadow_result
             mock_checker.return_value = mock_instance
 
-            result = run_pattern2(tmp_path, paths, "weekly")
+            result = run_pattern2(paths, "weekly")
 
         assert result.status == "error"
         assert result.error is not None
@@ -298,7 +302,7 @@ class TestFormatTextOutput:
         result = DigestEntryResult(
             status="ok",
             pattern=1,
-            plugin_root="/path/to/plugin",
+            base_dir="/path/to/plugin",
             loops_path="/path/to/loops",
             digests_path="/path/to/digests",
             essences_path="/path/to/essences",
@@ -321,7 +325,7 @@ class TestFormatTextOutput:
         result = DigestEntryResult(
             status="ok",
             pattern=2,
-            plugin_root="/path/to/plugin",
+            base_dir="/path/to/plugin",
             loops_path="/path/to/loops",
             digests_path="/path/to/digests",
             essences_path="/path/to/essences",
@@ -357,7 +361,7 @@ class TestFormatTextOutput:
         result = DigestEntryResult(
             status="ok",
             pattern=1,
-            plugin_root="/path/to/plugin",
+            base_dir="/path/to/plugin",
             loops_path="/path/to/loops",
             digests_path="/path/to/digests",
             essences_path="/path/to/essences",
@@ -385,38 +389,36 @@ class TestDigestEntryMain:
         """Pattern 1 のJSON出力"""
         from interfaces.digest_entry import main
 
-        with patch("interfaces.digest_entry.find_plugin_root_path") as mock_find:
-            mock_find.return_value = tmp_path
+        with patch("interfaces.digest_entry.get_paths_from_config") as mock_paths:
+            mock_paths.return_value = {
+                "base_dir": tmp_path,
+                "loops_path": tmp_path / "Loops",
+                "digests_path": tmp_path / "Digests",
+                "essences_path": tmp_path / "Essences",
+                "weekly_threshold": 5,
+            }
 
-            with patch("interfaces.digest_entry.get_paths_from_config") as mock_paths:
-                mock_paths.return_value = {
-                    "loops_path": tmp_path / "Loops",
-                    "digests_path": tmp_path / "Digests",
-                    "essences_path": tmp_path / "Essences",
-                    "weekly_threshold": 5,
-                }
+            with patch("interfaces.digest_entry.get_new_loops") as mock_new:
+                mock_new.return_value = []
 
-                with patch("interfaces.digest_entry.get_new_loops") as mock_new:
-                    mock_new.return_value = []
+                with patch("interfaces.digest_entry.get_weekly_source_count") as mock_count:
+                    mock_count.return_value = 0
 
-                    with patch("interfaces.digest_entry.get_weekly_source_count") as mock_count:
-                        mock_count.return_value = 0
+                    with patch("sys.argv", ["digest_entry.py"]):
+                        with patch("builtins.print") as mock_print:
+                            main()
 
-                        with patch("sys.argv", ["digest_entry.py"]):
-                            with patch("builtins.print") as mock_print:
-                                main()
+                            output = mock_print.call_args[0][0]
+                            parsed = json.loads(output)
+                            assert parsed["status"] == "ok"
+                            assert parsed["pattern"] == 1
 
-                                output = mock_print.call_args[0][0]
-                                parsed = json.loads(output)
-                                assert parsed["status"] == "ok"
-                                assert parsed["pattern"] == 1
-
-    def test_error_when_plugin_not_found(self) -> None:
-        """Plugin未検出時のエラー"""
+    def test_error_when_config_not_found(self) -> None:
+        """config.json未検出時のエラー"""
         from interfaces.digest_entry import main
 
-        with patch("interfaces.digest_entry.find_plugin_root_path") as mock_find:
-            mock_find.return_value = None
+        with patch("interfaces.digest_entry.get_paths_from_config") as mock_paths:
+            mock_paths.side_effect = FileNotFoundError("config.json not found")
 
             with patch("sys.argv", ["digest_entry.py"]):
                 with patch("builtins.print") as mock_print:

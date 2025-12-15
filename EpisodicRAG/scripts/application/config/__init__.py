@@ -26,15 +26,13 @@ from application.config.level_path_service import LevelPathService
 from application.config.source_path_resolver import SourcePathResolver
 from application.config.threshold_provider import ThresholdProvider
 from domain.exceptions import ConfigError
-from domain.file_constants import CONFIG_FILENAME
 from domain.types import ConfigData
 from infrastructure.config import (
     ConfigLoader,
     PathResolver,
-    find_plugin_root,
-    get_persistent_config_dir,
 )
 from infrastructure.config.error_messages import initialization_failed_message
+from infrastructure.config.persistent_path import get_config_path
 
 # Application Config専用logger
 _logger = logging.getLogger("episodic_rag.config")
@@ -52,10 +50,9 @@ __all__ = [
 
 class DigestConfig:
     """
-    設定管理クラス（Plugin自己完結版）- Facade
+    設定管理クラス - Facade
 
     薄い Facade として機能し、各コンポーネントに責任を委譲。
-    後方互換性を維持しつつ、内部実装を分離。
 
     Design Pattern: Facade
         複雑なサブシステム（PathResolver, ThresholdProvider等）を
@@ -70,35 +67,23 @@ class DigestConfig:
         - _config_validator: ConfigValidator - 設定とディレクトリ構造の検証
     """
 
-    def __init__(self, plugin_root: Optional[Path] = None):
+    def __init__(self):
         """
         初期化
-
-        Args:
-            plugin_root: Pluginルート（省略時は自動検出）
 
         Raises:
             ConfigError: 設定の読み込みまたは初期化に失敗した場合
         """
         try:
-            # Pluginルート検出
-            if plugin_root is None:
-                plugin_root = self._find_plugin_root()
-
-            # plugin_root の存在検証
-            if not plugin_root.exists():
-                raise ConfigError(f"Plugin root directory does not exist: {plugin_root}")
-
-            self.plugin_root = plugin_root
-            # 永続化ディレクトリに保存（auto-update対象外）
-            self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
+            # 永続化ディレクトリからconfig.jsonを読み込み
+            self.config_file = get_config_path()
 
             # ConfigLoader を使用して設定を読み込み
             self._config_loader = ConfigLoader(self.config_file)
             self.config = self._config_loader.load()
 
             # 各コンポーネントを即時初期化（軽量オブジェクトのため遅延不要）
-            self._path_resolver = PathResolver(self.plugin_root, self.config)
+            self._path_resolver = PathResolver(self.config)
             self._threshold_provider = ThresholdProvider(self.config)
             self._level_path_service = LevelPathService(self._path_resolver.digests_path)
             self._source_path_resolver = SourcePathResolver(
@@ -114,7 +99,7 @@ class DigestConfig:
                 self._level_path_service,
             )
 
-            # 後方互換性のためbase_dirを公開
+            # base_dirを公開
             self.base_dir = self._path_resolver.base_dir
 
             # 後方互換性のため _directory_validator も公開（_config_validator へのエイリアス）
@@ -139,23 +124,6 @@ class DigestConfig:
     ) -> Literal[False]:
         """Context Manager終了"""
         return False
-
-    def _find_plugin_root(self) -> Path:
-        """
-        Plugin自身のルートディレクトリを検出
-
-        Returns:
-            PluginルートのPath
-
-        Raises:
-            FileNotFoundError: __file__が定義されていない場合、またはPluginルートが見つからない場合
-        """
-        try:
-            current_file = Path(__file__).resolve()
-        except NameError:
-            raise FileNotFoundError("Cannot determine script location (__file__ not defined)")
-
-        return find_plugin_root(current_file)
 
     def load_config(self) -> ConfigData:
         """設定読み込み"""
@@ -219,9 +187,8 @@ class DigestConfig:
 
     def show_paths(self) -> None:
         """パス設定を表示（デバッグ用）"""
-        _logger.info(f"プラグインルート: {self.plugin_root}")
         _logger.info(f"設定ファイル: {self.config_file}")
-        _logger.info(f"ベースディレクトリ (設定値): {self.config.get('base_dir', '.')}")
+        _logger.info(f"ベースディレクトリ (設定値): {self.config.get('base_dir', '')}")
         _logger.info(f"ベースディレクトリ (解決後): {self.base_dir}")
         _logger.info(f"Loopsパス: {self.loops_path}")
         _logger.info(f"Digestsパス: {self.digests_path}")

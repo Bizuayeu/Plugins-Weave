@@ -115,7 +115,7 @@ def temp_plugin_env() -> Generator[TempPluginEnvironment, None, None]:
     Usage:
         def test_something(temp_plugin_env) -> None:
 
-            config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+            config = DigestConfig()  # get_config_path() は自動モック済み
             # ... テスト実行 ...
     """
     with TempPluginEnvironment() as env:
@@ -162,7 +162,7 @@ def mock_persistent_config_dir(
     request: pytest.FixtureRequest,
 ) -> Generator[None, None, None]:
     """
-    get_persistent_config_dir()をモックして一時ディレクトリを返す
+    get_persistent_config_dir()とget_config_path()をモックして一時ディレクトリを返す
 
     テスト時に本番の~/.claude/plugins/.episodicrag/を使用しないようにする。
 
@@ -180,18 +180,27 @@ def mock_persistent_config_dir(
     if "temp_plugin_env" in request.fixturenames:
         env = request.getfixturevalue("temp_plugin_env")
 
-        # 全ての使用箇所でパッチ（インポート先でパッチが必要）
-        patch_targets = [
+        # get_persistent_config_dir() のパッチ対象
+        persistent_dir_targets = [
             "infrastructure.config.persistent_path.get_persistent_config_dir",
             "infrastructure.config.get_persistent_config_dir",
-            "application.config.get_persistent_config_dir",
-            "application.config.config_builder.get_persistent_config_dir",
             "application.tracking.digest_times.get_persistent_config_dir",
         ]
 
+        # get_config_path() のパッチ対象
+        config_path_targets = [
+            "infrastructure.config.persistent_path.get_config_path",
+            "application.config.get_config_path",
+            "application.config.config_builder.get_config_path",
+        ]
+
+        config_path = env.persistent_config_dir / "config.json"
+
         with ExitStack() as stack:
-            for target in patch_targets:
+            for target in persistent_dir_targets:
                 stack.enter_context(patch(target, return_value=env.persistent_config_dir))
+            for target in config_path_targets:
+                stack.enter_context(patch(target, return_value=config_path))
             yield
     else:
         # temp_plugin_envを使用しないテストはモックなしで実行
@@ -211,7 +220,7 @@ def digest_config(
     """
     from application.config import DigestConfig
 
-    return DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+    return DigestConfig()
 
 
 @pytest.fixture
@@ -254,7 +263,7 @@ def shadow_io(temp_plugin_env: TempPluginEnvironment, template: "ShadowTemplate"
     """テスト用ShadowIO"""
     from application.shadow import ShadowIO
 
-    shadow_file = temp_plugin_env.plugin_root / ".claude-plugin" / "ShadowGrandDigest.txt"
+    shadow_file = temp_plugin_env.config_dir / "ShadowGrandDigest.txt"
     return ShadowIO(shadow_file, template.get_template)
 
 
@@ -299,7 +308,7 @@ def mock_digest_config(temp_plugin_env: TempPluginEnvironment) -> MagicMock:
     from application.config import DigestConfig
 
     mock = MagicMock(spec=DigestConfig)
-    mock.plugin_root = temp_plugin_env.plugin_root
+    mock.base_dir = temp_plugin_env.plugin_root
     mock.loops_path = temp_plugin_env.loops_path
     mock.digests_path = temp_plugin_env.digests_path
     mock.essences_path = temp_plugin_env.essences_path

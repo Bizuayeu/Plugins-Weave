@@ -46,7 +46,7 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
     def _create_config(self) -> None:
         """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "trusted_external_paths": [],
             "paths": {
                 "loops_dir": "data/Loops",
@@ -63,7 +63,7 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
         """set で --key がない場合にエラー"""
         with patch(
             "sys.argv",
-            ["digest_config.py", "--plugin-root", str(self.plugin_root), "set", "--value", "7"],
+            ["digest_config.py", "set", "--value", "7"],
         ):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
@@ -79,8 +79,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "levels.weekly_threshold",
@@ -100,8 +98,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "paths.loops_dir",
@@ -125,8 +121,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "new_section.new_key",
@@ -154,8 +148,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "some_flag",
@@ -178,8 +170,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "some_flag",
@@ -202,8 +192,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "paths.identity_file_path",
@@ -226,8 +214,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "some_value",
@@ -250,8 +236,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "levels.weekly_threshold",
@@ -275,8 +259,6 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "levels.weekly_threshold",

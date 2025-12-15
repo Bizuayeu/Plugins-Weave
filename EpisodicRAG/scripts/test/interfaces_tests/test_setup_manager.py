@@ -72,7 +72,7 @@ class TestSetupManager(unittest.TestCase):
         """設定ファイルがない場合、not_configured を返す"""
         from interfaces.digest_setup import SetupManager
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.check()
 
         assert result["status"] == "not_configured"
@@ -86,7 +86,7 @@ class TestSetupManager(unittest.TestCase):
 
         # 設定ファイルを作成
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -109,7 +109,7 @@ class TestSetupManager(unittest.TestCase):
         # ディレクトリを作成
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.check()
 
         assert result["status"] == "configured"
@@ -124,7 +124,7 @@ class TestSetupManager(unittest.TestCase):
         self._create_templates()
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -142,7 +142,7 @@ class TestSetupManager(unittest.TestCase):
             },
         }
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.init(config_data)
 
         assert result.status == "ok"
@@ -158,7 +158,7 @@ class TestSetupManager(unittest.TestCase):
         self._create_templates()
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -176,7 +176,7 @@ class TestSetupManager(unittest.TestCase):
             },
         }
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.init(config_data)
 
         assert result.status == "ok"
@@ -193,7 +193,7 @@ class TestSetupManager(unittest.TestCase):
         self._create_templates()
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -211,7 +211,7 @@ class TestSetupManager(unittest.TestCase):
             },
         }
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.init(config_data)
 
         assert result.status == "ok"
@@ -232,7 +232,7 @@ class TestSetupManager(unittest.TestCase):
             json.dump({}, f)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -250,7 +250,7 @@ class TestSetupManager(unittest.TestCase):
             },
         }
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.init(config_data)
 
         assert result.status == "already_configured"
@@ -267,7 +267,7 @@ class TestSetupManager(unittest.TestCase):
             json.dump({}, f)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -285,7 +285,7 @@ class TestSetupManager(unittest.TestCase):
             },
         }
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.init(config_data, force=True)
 
         assert result.status == "ok"
@@ -298,7 +298,7 @@ class TestSetupManager(unittest.TestCase):
         # 必須フィールドがない設定
         config_data = {"base_dir": "."}
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.init(config_data)
 
         assert result.status == "error"
@@ -330,7 +330,7 @@ class TestSetupManager(unittest.TestCase):
             },
         }
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.init(config_data)
 
         assert result.status == "ok"
@@ -369,7 +369,7 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
 
         # 設定ファイルを作成（永続化ディレクトリに、ディレクトリは作成しない）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -379,7 +379,7 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.check()
 
         assert result["status"] == "partial"
@@ -395,7 +395,7 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             f.write("{ invalid json content")
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.check()
 
         # JSONDecodeErrorをキャッチしてpartialまたはnot_configuredを返す
@@ -408,12 +408,12 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
         """設定にpathsキーがない場合を処理する"""
         from interfaces.digest_setup import SetupManager
 
-        # pathsキーがない設定ファイルを作成（永続化ディレクトリに）
-        config_data = {"base_dir": "."}  # pathsがない
+        # pathsキーがない設定ファイルを作成（永続化ディレクトリに、base_dirは絶対パス）
+        config_data = {"base_dir": str(self.plugin_root)}  # pathsがない
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        manager = SetupManager(plugin_root=self.plugin_root)
+        manager = SetupManager()
         result = manager.check()
 
         # KeyErrorをキャッチして処理

@@ -64,16 +64,8 @@ class ShadowStateChecker:
         "centurial",
     ]
 
-    def __init__(self, plugin_root: Optional[Path] = None):
-        """
-        Args:
-            plugin_root: Pluginルート（指定しない場合は自動検出）
-        """
-        if plugin_root:
-            self.plugin_root = Path(plugin_root).resolve()
-        else:
-            self.plugin_root = Path(__file__).resolve().parent.parent.parent
-
+    def __init__(self) -> None:
+        """Initialize ShadowStateChecker"""
         self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
         self.shadow_file: Optional[Path] = None
 
@@ -83,11 +75,10 @@ class ShadowStateChecker:
 
     def _get_essences_path(self, config: Dict[str, Any]) -> Path:
         """Essencesパスを取得"""
-        base_dir = config.get("base_dir", ".")
-        if base_dir == ".":
-            base_path = self.plugin_root
-        else:
-            base_path = Path(base_dir).expanduser().resolve()
+        base_dir = config.get("base_dir", "")
+        if not base_dir:
+            raise ValueError("base_dir is required in config.json")
+        base_path = Path(base_dir).expanduser().resolve()
 
         paths = config.get("paths", {})
         essences_dir = str(paths.get("essences_dir", "data/Essences"))
@@ -218,18 +209,10 @@ Examples:
         choices=ShadowStateChecker.LEVEL_NAMES,
         help="確認対象レベル",
     )
-    parser.add_argument(
-        "--plugin-root",
-        type=str,
-        default=None,
-        help="Pluginルートパス（デフォルト: 自動検出）",
-    )
-
     args = parser.parse_args()
 
     # チェック実行
-    plugin_root = Path(args.plugin_root) if args.plugin_root else None
-    checker = ShadowStateChecker(plugin_root=plugin_root)
+    checker = ShadowStateChecker()
     result = checker.check(args.level)
 
     # JSON出力

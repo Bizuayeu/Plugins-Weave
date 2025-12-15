@@ -57,7 +57,7 @@ def cascade_orchestrator(
     level_hierarchy: "Dict[str, LevelHierarchyEntry]",
 ) -> CascadeOrchestrator:
     """CascadeOrchestratorインスタンスを提供"""
-    config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+    config = DigestConfig()
     levels = list(LEVEL_CONFIG.keys())
     template = ShadowTemplate(levels)
     times_tracker = DigestTimesTracker(config)

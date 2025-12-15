@@ -113,6 +113,8 @@ class TestStdinEncoding:
         - 保存されたファイルに日本語が正しく含まれる
         - 文字化けパターン「?」や「???」が含まれない
         """
+        # 永続化設定ディレクトリの環境変数を含む環境
+        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(temp_plugin_root / ".persistent_config")}
         result = subprocess.run(
             [
                 sys.executable,
@@ -120,14 +122,13 @@ class TestStdinEncoding:
                 "interfaces.save_provisional_digest",
                 "weekly",
                 "--stdin",
-                "--plugin-root",
-                str(temp_plugin_root),
             ],
             input=japanese_input_json,
             capture_output=True,
             text=True,
             encoding='utf-8',
             cwd=scripts_dir,
+            env=env,
         )
 
         # コマンドが成功したことを確認
@@ -165,6 +166,8 @@ class TestStdinEncoding:
         """
         source_fileのファイル名が正しく保持されること
         """
+        # 永続化設定ディレクトリの環境変数を含む環境
+        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(temp_plugin_root / ".persistent_config")}
         result = subprocess.run(
             [
                 sys.executable,
@@ -172,14 +175,13 @@ class TestStdinEncoding:
                 "interfaces.save_provisional_digest",
                 "weekly",
                 "--stdin",
-                "--plugin-root",
-                str(temp_plugin_root),
             ],
             input=japanese_input_json,
             capture_output=True,
             text=True,
             encoding='utf-8',
             cwd=scripts_dir,
+            env=env,
         )
 
         assert result.returncode == 0, f"コマンド失敗: {result.stderr}"

@@ -95,7 +95,7 @@ class TestConfigCLI(unittest.TestCase):
     def _create_config(self) -> None:
         """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "trusted_external_paths": [],
             "paths": {
                 "loops_dir": "data/Loops",
@@ -110,9 +110,7 @@ class TestConfigCLI(unittest.TestCase):
     @pytest.mark.unit
     def test_main_show_command(self) -> None:
         """show コマンドが動作する"""
-        with patch(
-            "sys.argv", ["digest_config.py", "--plugin-root", str(self.plugin_root), "show"]
-        ):
+        with patch("sys.argv", ["digest_config.py", "show"]):
             from interfaces.digest_config import main
 
             with patch("builtins.print") as mock_print:
@@ -126,8 +124,6 @@ class TestConfigCLI(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "set",
                 "--key",
                 "levels.weekly_threshold",
@@ -185,7 +181,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     def _create_config(self) -> None:
         """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "trusted_external_paths": [],
             "paths": {
                 "loops_dir": "data/Loops",
@@ -200,14 +196,13 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_update_with_valid_json(self) -> None:
         """update --config で有効なJSONを渡す"""
-        config_json = json.dumps({"base_dir": "../new_path"})
+        # base_dirを絶対パスで指定
+        config_json = json.dumps({"base_dir": str(self.plugin_root / "new_path")})
 
         with patch(
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "update",
                 "--config",
                 config_json,
@@ -229,8 +224,6 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "update",
                 "--config",
                 "{invalid json",
@@ -253,8 +246,6 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "update",
                 "--config",
                 "{}",
@@ -272,14 +263,12 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_update_preserves_existing_keys(self) -> None:
         """update が既存キーを保持する"""
-        config_json = json.dumps({"base_dir": "../updated"})
+        config_json = json.dumps({"base_dir": str(self.plugin_root / "updated")})
 
         with patch(
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "update",
                 "--config",
                 config_json,
@@ -299,9 +288,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_update_missing_config_flag_exits_error(self) -> None:
         """update で --config フラグがない場合にエラー"""
-        with patch(
-            "sys.argv", ["digest_config.py", "--plugin-root", str(self.plugin_root), "update"]
-        ):
+        with patch("sys.argv", ["digest_config.py", "update"]):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_config import main
@@ -312,14 +299,12 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_update_output_is_valid_json(self) -> None:
         """update の出力が有効なJSON"""
-        config_json = json.dumps({"base_dir": "."})
+        config_json = json.dumps({"base_dir": str(self.plugin_root)})
 
         with patch(
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "update",
                 "--config",
                 config_json,
@@ -343,8 +328,6 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "update",
                 "--config",
                 config_json,
@@ -366,14 +349,14 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_update_reports_updated_keys(self) -> None:
         """update が更新されたキーを報告"""
-        config_json = json.dumps({"base_dir": "../new", "levels": {"weekly_threshold": 7}})
+        config_json = json.dumps(
+            {"base_dir": str(self.plugin_root / "new"), "levels": {"weekly_threshold": 7}}
+        )
 
         with patch(
             "sys.argv",
             [
                 "digest_config.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "update",
                 "--config",
                 config_json,

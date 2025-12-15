@@ -195,11 +195,11 @@ class TempPluginEnvironment:
 
     Usage:
         with TempPluginEnvironment() as env:
-            config = DigestConfig(plugin_root=env.plugin_root)
+            config = DigestConfig()  # get_config_path() は自動モック済み
             # ... テスト実行 ...
 
     Note:
-        get_persistent_config_dir()を自動的にモックし、
+        get_persistent_config_dir() と get_config_path() を自動的にモックし、
         永続化パスをテスト用一時ディレクトリに向ける。
     """
 
@@ -207,9 +207,14 @@ class TempPluginEnvironment:
     _PERSISTENT_CONFIG_PATCH_TARGETS = [
         "infrastructure.config.persistent_path.get_persistent_config_dir",
         "infrastructure.config.get_persistent_config_dir",
-        "application.config.get_persistent_config_dir",
-        "application.config.config_builder.get_persistent_config_dir",
         "application.tracking.digest_times.get_persistent_config_dir",
+    ]
+
+    # get_config_path()のモック対象パス
+    _CONFIG_PATH_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_config_path",
+        "application.config.get_config_path",
+        "application.config.config_builder.get_config_path",
     ]
 
     def __init__(self) -> None:
@@ -220,15 +225,24 @@ class TempPluginEnvironment:
     def __enter__(self) -> "TempPluginEnvironment":
         self.temp_dir = Path(tempfile.mkdtemp())
         self.paths = create_standard_test_structure(self.temp_dir)
-        create_default_config(self.paths["config_dir"])
+        # base_dirは絶対パス必須（新しいPathResolverの要件）
+        base_dir = str(self.paths["plugin_root"])
+        create_default_config(self.paths["config_dir"], base_dir=base_dir)
         create_default_templates(self.paths["config_dir"])
         # 永続化ディレクトリにもconfig.jsonをコピー（テスト用）
-        create_default_config(self.paths["persistent_config"])
+        create_default_config(self.paths["persistent_config"], base_dir=base_dir)
 
         # get_persistent_config_dir()をモック
         # 全てのインポート先でパッチする必要がある
         for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
             patcher = patch(target, return_value=self.paths["persistent_config"])
+            patcher.start()
+            self._patchers.append(patcher)
+
+        # get_config_path()をモック
+        config_path = self.paths["persistent_config"] / "config.json"
+        for target in self._CONFIG_PATH_PATCH_TARGETS:
+            patcher = patch(target, return_value=config_path)
             patcher.start()
             self._patchers.append(patcher)
 
@@ -401,7 +415,6 @@ class CLITestHelper:
         exit_code, output = CLITestHelper.run_cli_command(
             "digest_config",
             ["show"],
-            plugin_root
         )
         CLITestHelper.assert_json_output_ok(output)
     """
@@ -410,7 +423,6 @@ class CLITestHelper:
     def run_cli_command(
         module_name: str,
         args: List[str],
-        plugin_root: Path,
     ) -> Tuple[int, Union[Dict[str, Any], str]]:
         """
         CLIコマンドを実行し、終了コードと出力を返す
@@ -419,14 +431,13 @@ class CLITestHelper:
             module_name: "digest_auto" | "digest_config" | "digest_setup" |
                         "finalize_from_shadow" | "save_provisional_digest" |
                         "shadow_state_checker"
-            args: コマンドライン引数リスト（--plugin-root は自動追加）
-            plugin_root: テスト用プラグインルート
+            args: コマンドライン引数リスト
 
         Returns:
             (exit_code, output): 終了コードと出力
             - outputはJSONとしてパース可能ならdict、それ以外はstr
         """
-        full_args = [f"{module_name}.py", "--plugin-root", str(plugin_root)] + args
+        full_args = [f"{module_name}.py"] + args
 
         exit_code = 0
         output: Union[Dict[str, Any], str] = ""

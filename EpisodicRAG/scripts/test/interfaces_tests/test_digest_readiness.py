@@ -8,6 +8,7 @@ TDD: Red → Green → Refactor
 """
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -27,9 +28,13 @@ class TestDigestReadinessChecker(unittest.TestCase):
     _PERSISTENT_CONFIG_PATCH_TARGETS = [
         "infrastructure.config.persistent_path.get_persistent_config_dir",
         "infrastructure.config.get_persistent_config_dir",
-        "application.config.get_persistent_config_dir",
-        "application.config.config_builder.get_persistent_config_dir",
         "application.tracking.digest_times.get_persistent_config_dir",
+    ]
+    # get_config_path()のモック対象パス
+    _CONFIG_PATH_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_config_path",
+        "application.config.get_config_path",
+        "application.config.config_builder.get_config_path",
     ]
 
     def setUp(self) -> None:
@@ -42,6 +47,13 @@ class TestDigestReadinessChecker(unittest.TestCase):
         self._patchers: List[Any] = []
         for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
             patcher = patch(target, return_value=self.persistent_config_dir)
+            patcher.start()
+            self._patchers.append(patcher)
+
+        # get_config_path()のモックを開始
+        config_path = self.persistent_config_dir / "config.json"
+        for target in self._CONFIG_PATH_PATCH_TARGETS:
+            patcher = patch(target, return_value=config_path)
             patcher.start()
             self._patchers.append(patcher)
 
@@ -70,7 +82,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
 
         # config.json（永続化ディレクトリに配置）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -287,7 +299,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_complete("weekly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "ok")
@@ -302,7 +314,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_missing_source_files()
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "ok")
@@ -322,7 +334,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_complete("weekly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         self.assertTrue(result.sgd_ready)
@@ -335,7 +347,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_with_placeholders("weekly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         self.assertFalse(result.sgd_ready)
@@ -355,7 +367,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
 
         self._create_shadow_complete("monthly")
         self._create_provisional_complete("monthly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("monthly")
 
         self.assertTrue(result.provisional_ready)
@@ -369,7 +381,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
 
         self._create_shadow_complete("monthly")
         self._create_provisional_missing("monthly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("monthly")
 
         self.assertFalse(result.provisional_ready)
@@ -389,7 +401,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
 
         self._create_shadow_complete("monthly")
         self._create_provisional_complete("monthly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("monthly")
 
         self.assertTrue(result.can_finalize)
@@ -403,7 +415,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_with_placeholders("weekly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         self.assertFalse(result.can_finalize)
@@ -421,7 +433,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_missing_source_files()
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         # threshold未達のblockerが含まれる
@@ -438,7 +450,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_complete("weekly")
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("invalid_level")
 
         self.assertEqual(result.status, "error")
@@ -452,9 +464,13 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
     _PERSISTENT_CONFIG_PATCH_TARGETS = [
         "infrastructure.config.persistent_path.get_persistent_config_dir",
         "infrastructure.config.get_persistent_config_dir",
-        "application.config.get_persistent_config_dir",
-        "application.config.config_builder.get_persistent_config_dir",
         "application.tracking.digest_times.get_persistent_config_dir",
+    ]
+    # get_config_path()のモック対象パス
+    _CONFIG_PATH_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_config_path",
+        "application.config.get_config_path",
+        "application.config.config_builder.get_config_path",
     ]
 
     def setUp(self) -> None:
@@ -467,6 +483,13 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         self._patchers: List[Any] = []
         for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
             patcher = patch(target, return_value=self.persistent_config_dir)
+            patcher.start()
+            self._patchers.append(patcher)
+
+        # get_config_path()のモックを開始
+        config_path = self.persistent_config_dir / "config.json"
+        for target in self._CONFIG_PATH_PATCH_TARGETS:
+            patcher = patch(target, return_value=config_path)
             patcher.start()
             self._patchers.append(patcher)
 
@@ -491,7 +514,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         self.persistent_config_dir.mkdir(parents=True, exist_ok=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -544,7 +567,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_empty_overall()
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "ok")
@@ -556,7 +579,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_none_values()
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         self.assertEqual(result.status, "ok")
@@ -567,7 +590,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         """_has_placeholder にNoneを渡した場合"""
         from interfaces.digest_readiness import DigestReadinessChecker
 
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         self.assertTrue(checker._has_placeholder(None))
 
     @pytest.mark.unit
@@ -575,7 +598,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         """_keywords_has_placeholder に空リストを渡した場合"""
         from interfaces.digest_readiness import DigestReadinessChecker
 
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         self.assertTrue(checker._keywords_has_placeholder([]))
 
     @pytest.mark.unit
@@ -583,7 +606,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         """_keywords_has_placeholder にPLACEHOLDER含むリストを渡した場合"""
         from interfaces.digest_readiness import DigestReadinessChecker
 
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         self.assertTrue(checker._keywords_has_placeholder(["kw1", "<!-- PLACEHOLDER -->"]))
 
     @pytest.mark.unit
@@ -592,7 +615,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         self._create_shadow_empty_overall()
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         ready, missing = checker._check_provisional_ready("weekly", [])
 
         self.assertTrue(ready)
@@ -603,7 +626,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         """_generate_blockers で全条件をテスト"""
         from interfaces.digest_readiness import DigestReadinessChecker
 
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
 
         # 全て未達
         blockers = checker._generate_blockers(
@@ -631,7 +654,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         """Provisionalファイルなしの場合のblocker"""
         from interfaces.digest_readiness import DigestReadinessChecker
 
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
 
         blockers = checker._generate_blockers(
             threshold_met=True,
@@ -654,6 +677,9 @@ class TestDigestReadinessCLI(unittest.TestCase):
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
@@ -666,11 +692,12 @@ class TestDigestReadinessCLI(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {"essences_dir": "data/Essences"},
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        # 永続化ディレクトリに設定ファイルを作成
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -710,19 +737,20 @@ class TestDigestReadinessCLI(unittest.TestCase):
     @pytest.mark.unit
     def test_main_with_valid_level(self) -> None:
         """有効なレベルでCLI実行"""
+        # 環境変数を渡してサブプロセスを実行
+        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(self.persistent_config)}
         result = subprocess.run(
             [
                 sys.executable,
                 "-m",
                 "interfaces.digest_readiness",
                 "weekly",
-                "--plugin-root",
-                str(self.plugin_root),
             ],
             capture_output=True,
             cwd=str(Path(__file__).parent.parent.parent),
             encoding="utf-8",
             errors="replace",
+            env=env,
         )
         # JSON出力が得られるかどうか（stdoutまたはstderr）
         output_text = result.stdout.strip()
@@ -750,9 +778,13 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
     _PERSISTENT_CONFIG_PATCH_TARGETS = [
         "infrastructure.config.persistent_path.get_persistent_config_dir",
         "infrastructure.config.get_persistent_config_dir",
-        "application.config.get_persistent_config_dir",
-        "application.config.config_builder.get_persistent_config_dir",
         "application.tracking.digest_times.get_persistent_config_dir",
+    ]
+    # get_config_path()のモック対象パス
+    _CONFIG_PATH_PATCH_TARGETS = [
+        "infrastructure.config.persistent_path.get_config_path",
+        "application.config.get_config_path",
+        "application.config.config_builder.get_config_path",
     ]
 
     def setUp(self) -> None:
@@ -765,6 +797,13 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
         self._patchers: List[Any] = []
         for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
             patcher = patch(target, return_value=self.persistent_config_dir)
+            patcher.start()
+            self._patchers.append(patcher)
+
+        # get_config_path()のモックを開始
+        config_path = self.persistent_config_dir / "config.json"
+        for target in self._CONFIG_PATH_PATCH_TARGETS:
+            patcher = patch(target, return_value=config_path)
             patcher.start()
             self._patchers.append(patcher)
 
@@ -789,7 +828,7 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
         self.persistent_config_dir.mkdir(parents=True, exist_ok=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -821,7 +860,7 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         # ShadowGrandDigestファイルが存在しない状態で実行
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
         result = checker.check("weekly")
 
         # エラー状態が返される
@@ -833,7 +872,7 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
         """_check_provisional_ready()が例外をキャッチ（lines 241-242）"""
         from interfaces.digest_readiness import DigestReadinessChecker
 
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
 
         # 存在しないProvisionalディレクトリでテスト
         # 内部でディレクトリ取得に失敗し、例外がキャッチされる
@@ -850,7 +889,7 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
         """_generate_blockers()のmissing_sgd_filesブランチ（lines 278-279）"""
         from interfaces.digest_readiness import DigestReadinessChecker
 
-        checker = DigestReadinessChecker(plugin_root=self.plugin_root)
+        checker = DigestReadinessChecker()
 
         # sgd_ready=False かつ PLACEHOLDERなし、missing_sgd_filesあり
         blockers = checker._generate_blockers(
@@ -880,6 +919,9 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
         """テスト環境をセットアップ"""
         self.temp_dir = tempfile.mkdtemp()
         self.plugin_root = Path(self.temp_dir)
+        # 永続化設定ディレクトリを作成
+        self.persistent_config = self.plugin_root / ".persistent_config"
+        self.persistent_config.mkdir(parents=True)
         self._setup_plugin_structure()
 
     def tearDown(self) -> None:
@@ -892,11 +934,12 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {"essences_dir": "data/Essences"},
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.plugin_root / ".claude-plugin" / "config.json", "w", encoding="utf-8") as f:
+        # 永続化ディレクトリに設定ファイルを作成
+        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def _create_shadow_complete(self) -> None:
@@ -927,19 +970,20 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
         """main()がJSON出力を生成（line 321）"""
         self._create_shadow_complete()
 
+        # 環境変数を渡してサブプロセスを実行
+        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(self.persistent_config)}
         result = subprocess.run(
             [
                 sys.executable,
                 "-m",
                 "interfaces.digest_readiness",
                 "weekly",
-                "--plugin-root",
-                str(self.plugin_root),
             ],
             capture_output=True,
             cwd=str(Path(__file__).parent.parent.parent),
             encoding="utf-8",
             errors="replace",
+            env=env,
         )
 
         # 出力がJSONとして解析可能
@@ -953,20 +997,20 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
     @pytest.mark.cli
     def test_main_error_returns_exit_code_1(self) -> None:
         """main()がエラー時に終了コード1を返す（lines 324-325）"""
-        # ShadowGrandDigestなしで実行 → エラー
+        # 環境変数を渡してサブプロセスを実行（ShadowGrandDigestなしで実行 → エラー）
+        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(self.persistent_config)}
         result = subprocess.run(
             [
                 sys.executable,
                 "-m",
                 "interfaces.digest_readiness",
                 "weekly",
-                "--plugin-root",
-                str(self.plugin_root),
             ],
             capture_output=True,
             cwd=str(Path(__file__).parent.parent.parent),
             encoding="utf-8",
             errors="replace",
+            env=env,
         )
 
         # エラー時は終了コード1

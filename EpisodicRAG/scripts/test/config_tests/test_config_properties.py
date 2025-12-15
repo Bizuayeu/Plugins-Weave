@@ -155,7 +155,7 @@ class TestConfigThresholdInvariants:
         from application.config import DigestConfig
         from domain.constants import LEVEL_CONFIG
 
-        digest_config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        digest_config = DigestConfig()
 
         attr_name = f"{level.replace('-', '_')}_threshold"
         # config.thresholdプロパティ経由でアクセス
@@ -193,7 +193,7 @@ class TestPathResolutionInvariants:
         """
         from application.config import DigestConfig
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         level_dir = config.get_level_dir(level)
 
         assert level_dir.is_absolute(), f"{level}のディレクトリは絶対パスであること"
@@ -211,7 +211,7 @@ class TestPathResolutionInvariants:
         """
         from application.config import DigestConfig
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         level_dir = config.get_level_dir(level)
 
         # パスにdirが含まれる

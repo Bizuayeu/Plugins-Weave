@@ -29,17 +29,8 @@ from interfaces.cli_helpers import output_error, output_json
 class ConfigEditor:
     """設定エディタ"""
 
-    def __init__(self, plugin_root: Optional[Path] = None):
-        """
-        Args:
-            plugin_root: Pluginルート（指定しない場合は自動検出を試みる）
-        """
-        if plugin_root:
-            self.plugin_root = Path(plugin_root).resolve()
-        else:
-            # スクリプトの場所から推測
-            self.plugin_root = Path(__file__).resolve().parent.parent.parent
-
+    def __init__(self) -> None:
+        """Initialize ConfigEditor"""
         self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
 
     def _load_config(self) -> Dict[str, Any]:
@@ -56,9 +47,9 @@ class ConfigEditor:
         if not path.is_absolute():
             # base_dirを考慮して解決
             config = self._load_config()
-            base_dir = Path(config.get("base_dir", ".")).expanduser()
+            base_dir = Path(config.get("base_dir", "")).expanduser()
             if not base_dir.is_absolute():
-                base_dir = self.plugin_root / base_dir
+                raise ValueError("base_dir must be an absolute path")
             path = base_dir / path
         return path.resolve()
 
@@ -75,15 +66,13 @@ class ConfigEditor:
         clean_config = {k: v for k, v in config_data.items() if not k.startswith("_comment")}
 
         # 解決後のパスを計算
-        base_dir_str = config_data.get("base_dir", ".")
-        base_dir = Path(base_dir_str).expanduser()
-        if not base_dir.is_absolute():
-            base_dir = self.plugin_root / base_dir
-        base_dir = base_dir.resolve()
+        base_dir_str = config_data.get("base_dir", "")
+        if not base_dir_str:
+            raise ValueError("base_dir is required in config.json")
+        base_dir = Path(base_dir_str).expanduser().resolve()
 
         paths = config_data.get("paths", {})
         resolved_paths = {
-            "plugin_root": str(self.plugin_root),
             "base_dir": str(base_dir),
             "loops_path": str(base_dir / paths.get("loops_dir", "data/Loops")),
             "digests_path": str(base_dir / paths.get("digests_dir", "data/Digests")),
@@ -269,7 +258,7 @@ class ConfigEditor:
         }
 
 
-def main(plugin_root: Optional[Path] = None) -> None:
+def main() -> None:
     """CLIエントリーポイント"""
     parser = argparse.ArgumentParser(
         description="EpisodicRAG Configuration Editor",
@@ -317,20 +306,10 @@ def main(plugin_root: Optional[Path] = None) -> None:
     trusted_remove = trusted_subparsers.add_parser("remove", help="Remove a trusted path")
     trusted_remove.add_argument("path", type=str, help="Path to remove")
 
-    # --plugin-root オプション（全コマンド共通）
-    parser.add_argument(
-        "--plugin-root",
-        type=Path,
-        help="Override plugin root (for testing)",
-    )
-
     args = parser.parse_args()
 
-    # plugin_rootの決定
-    effective_root = args.plugin_root if args.plugin_root else plugin_root
-
     try:
-        editor = ConfigEditor(plugin_root=effective_root)
+        editor = ConfigEditor()
 
         if args.command == "show":
             result = editor.show()

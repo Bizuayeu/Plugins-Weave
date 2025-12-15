@@ -36,7 +36,7 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+            ["update_digest_times.py", "loop", "259"],
         ):
             with patch("builtins.print") as mock_print:
                 main()
@@ -58,7 +58,7 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["update_digest_times.py", "weekly", "51", "--plugin-root", str(self.temp_dir)],
+            ["update_digest_times.py", "weekly", "51"],
         ):
             with patch("builtins.print"):
                 main()
@@ -75,7 +75,7 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["update_digest_times.py", "invalid_level", "259", "--plugin-root", str(self.temp_dir)],
+            ["update_digest_times.py", "invalid_level", "259"],
         ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
@@ -97,7 +97,7 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         from interfaces.update_digest_times import main
 
         with patch(
-            "sys.argv", ["update_digest_times.py", "loop", "--plugin-root", str(self.temp_dir)]
+            "sys.argv", ["update_digest_times.py", "loop"]
         ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
@@ -115,7 +115,7 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+            ["update_digest_times.py", "loop", "259"],
         ):
             with patch("builtins.print"):
                 main()
@@ -147,7 +147,7 @@ class TestUpdateDigestTimesErrorHandling(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+            ["update_digest_times.py", "loop", "259"],
         ):
             with patch(
                 "interfaces.update_digest_times.DigestTimesTracker.update_direct",
@@ -166,7 +166,7 @@ class TestUpdateDigestTimesErrorHandling(unittest.TestCase):
 
         with patch(
             "sys.argv",
-            ["update_digest_times.py", "loop", "259", "--plugin-root", str(self.temp_dir)],
+            ["update_digest_times.py", "loop", "259"],
         ):
             with patch(
                 "interfaces.update_digest_times.DigestTimesTracker.update_direct",

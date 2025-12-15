@@ -60,7 +60,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         """有効な設定JSONを返す"""
         return json.dumps(
             {
-                "base_dir": ".",
+                "base_dir": str(self.plugin_root),
                 "paths": {
                     "loops_dir": "data/Loops",
                     "digests_dir": "data/Digests",
@@ -88,8 +88,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -111,8 +109,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 "{invalid json",
@@ -133,7 +129,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         """init --config で paths がないとエラー"""
         config_json = json.dumps(
             {
-                "base_dir": ".",
+                "base_dir": str(self.plugin_root),
                 "levels": {"weekly_threshold": 5},
             }
         )
@@ -142,8 +138,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -163,7 +157,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         """init --config で levels がないとエラー"""
         config_json = json.dumps(
             {
-                "base_dir": ".",
+                "base_dir": str(self.plugin_root),
                 "paths": {
                     "loops_dir": "data/Loops",
                     "digests_dir": "data/Digests",
@@ -176,8 +170,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -197,7 +189,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
         """init --config で無効な閾値を渡すとエラー"""
         config_json = json.dumps(
             {
-                "base_dir": ".",
+                "base_dir": str(self.plugin_root),
                 "paths": {
                     "loops_dir": "data/Loops",
                     "digests_dir": "data/Digests",
@@ -220,8 +212,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -244,8 +234,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -270,8 +258,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -298,8 +284,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -326,8 +310,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -370,8 +352,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -395,8 +375,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,
@@ -420,8 +398,6 @@ class TestSetupCLIInitCommand(unittest.TestCase):
             "sys.argv",
             [
                 "digest_setup.py",
-                "--plugin-root",
-                str(self.plugin_root),
                 "init",
                 "--config",
                 config_json,

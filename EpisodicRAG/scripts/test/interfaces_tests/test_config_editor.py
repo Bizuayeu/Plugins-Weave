@@ -48,7 +48,7 @@ class TestConfigEditor(unittest.TestCase):
         """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
             "_comment_base_dir": "Data base directory",
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "_comment_trusted_external_paths": "Trusted paths",
             "trusted_external_paths": [],
             "_comment_paths": "Paths config",
@@ -78,20 +78,20 @@ class TestConfigEditor(unittest.TestCase):
         """show が現在の設定を返す"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.show()
 
         assert result["status"] == "ok"
         assert "config" in result
         assert "resolved_paths" in result
-        assert result["config"]["base_dir"] == "."
+        assert result["config"]["base_dir"] == str(self.plugin_root)
 
     @pytest.mark.unit
     def test_show_excludes_comment_fields(self) -> None:
         """show がコメントフィールドを除外する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.show()
 
         config = result["config"]
@@ -103,11 +103,11 @@ class TestConfigEditor(unittest.TestCase):
         """show が解決済みパスを含む"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.show()
 
         resolved = result["resolved_paths"]
-        assert "plugin_root" in resolved
+        assert "base_dir" in resolved
         assert "loops_path" in resolved
         assert "digests_path" in resolved
         assert "essences_path" in resolved
@@ -117,7 +117,7 @@ class TestConfigEditor(unittest.TestCase):
         """set_value がネストされたキーを更新する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.set_value("levels.weekly_threshold", 7)
 
         assert result["status"] == "ok"
@@ -134,7 +134,7 @@ class TestConfigEditor(unittest.TestCase):
         """set_value が閾値を整数に変換する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.set_value("levels.weekly_threshold", "10")
 
         assert result["status"] == "ok"
@@ -146,7 +146,7 @@ class TestConfigEditor(unittest.TestCase):
         """update が設定を更新する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         new_config = {"base_dir": "../other"}
         result = editor.update(new_config)
 
@@ -158,7 +158,7 @@ class TestConfigEditor(unittest.TestCase):
         """update がコメントを保持する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         new_config = {"base_dir": "../other"}
         editor.update(new_config)
 
@@ -172,7 +172,7 @@ class TestConfigEditor(unittest.TestCase):
         """add_trusted_path が新しいパスを追加する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.add_trusted_path("~/DEV/production")
 
         assert result["status"] == "ok"
@@ -183,7 +183,7 @@ class TestConfigEditor(unittest.TestCase):
         """add_trusted_path が相対パスを拒否する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.add_trusted_path("relative/path")
 
         assert result["status"] == "error"
@@ -194,7 +194,7 @@ class TestConfigEditor(unittest.TestCase):
         """add_trusted_path が重複を処理する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         editor.add_trusted_path("~/DEV/production")
         result = editor.add_trusted_path("~/DEV/production")
 
@@ -206,7 +206,7 @@ class TestConfigEditor(unittest.TestCase):
         """remove_trusted_path が既存のパスを削除する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         editor.add_trusted_path("~/DEV/production")
         result = editor.remove_trusted_path("~/DEV/production")
 
@@ -218,7 +218,7 @@ class TestConfigEditor(unittest.TestCase):
         """remove_trusted_path が存在しないパスを処理する"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.remove_trusted_path("~/nonexistent")
 
         assert result["status"] == "error"
@@ -229,7 +229,7 @@ class TestConfigEditor(unittest.TestCase):
         """list_trusted_paths が全パスを返す"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         editor.add_trusted_path("~/path1")
         editor.add_trusted_path("~/path2")
         result = editor.list_trusted_paths()
@@ -268,7 +268,7 @@ class TestConfigEditorErrors(unittest.TestCase):
         """設定ファイルがない場合に FileIOError"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
 
         with pytest.raises(FileIOError):
             editor.show()
@@ -302,7 +302,7 @@ class TestConfigEditorResolvePath(unittest.TestCase):
     def _create_config(self) -> None:
         """設定ファイルを作成（永続化ディレクトリに）"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
             },
@@ -315,7 +315,7 @@ class TestConfigEditorResolvePath(unittest.TestCase):
         """絶対パスはそのまま解決される"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         # Windowsでも動作するよう、tempディレクトリを使用
         abs_path = str(self.plugin_root / "some" / "path")
         result = editor._resolve_path(abs_path)
@@ -327,11 +327,11 @@ class TestConfigEditorResolvePath(unittest.TestCase):
         """相対パスはbase_dirを基準に解決される"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor._resolve_path("subdir/file.txt")
 
         assert result.is_absolute()
-        # plugin_root配下に解決されることを確認
+        # base_dir配下に解決されることを確認
         assert str(self.plugin_root) in str(result)
 
 
@@ -370,7 +370,7 @@ class TestConfigEditorSetValueErrors(unittest.TestCase):
         """無効な閾値（整数に変換できない値）でエラーを返す"""
         from interfaces.digest_config import ConfigEditor
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.set_value("levels.weekly_threshold", "not_a_number")
 
         assert result["status"] == "error"
@@ -418,7 +418,7 @@ class TestConfigEditorIdentityPath(unittest.TestCase):
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        editor = ConfigEditor(plugin_root=self.plugin_root)
+        editor = ConfigEditor()
         result = editor.show()
 
         assert "identity_file_path" in result["resolved_paths"]

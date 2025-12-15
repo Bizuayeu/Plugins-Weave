@@ -73,16 +73,8 @@ class DigestAutoAnalyzer:
 
     # 階層の親子関係とレベル順序は domain.constants.LEVEL_CONFIG, DIGEST_LEVEL_NAMES を使用
 
-    def __init__(self, plugin_root: Optional[Path] = None):
-        """
-        Args:
-            plugin_root: Pluginルート（指定しない場合は自動検出を試みる）
-        """
-        if plugin_root:
-            self.plugin_root = Path(plugin_root).resolve()
-        else:
-            self.plugin_root = Path(__file__).resolve().parent.parent.parent
-
+    def __init__(self) -> None:
+        """Initialize DigestAutoAnalyzer"""
         persistent_config_dir = get_persistent_config_dir()
         self.config_file = persistent_config_dir / CONFIG_FILENAME
         self.last_digest_file = persistent_config_dir / DIGEST_TIMES_FILENAME
@@ -93,10 +85,12 @@ class DigestAutoAnalyzer:
 
     def _resolve_base_dir(self, config: Dict[str, Any]) -> Path:
         """base_dirを解決"""
-        base_dir_str = config.get("base_dir", ".")
+        base_dir_str = config.get("base_dir", "")
+        if not base_dir_str:
+            raise ValueError("base_dir is required in config.json")
         base_path = Path(base_dir_str).expanduser()
         if not base_path.is_absolute():
-            base_path = self.plugin_root / base_path
+            raise ValueError("base_dir must be an absolute path")
         return base_path.resolve()
 
     def _resolve_paths(self, config: Dict[str, Any]) -> Tuple[Path, Path, Path]:
@@ -513,7 +507,7 @@ def print_text_report(result: AnalysisResult) -> None:
     print(format_text_report(result))
 
 
-def main(plugin_root: Optional[Path] = None) -> None:
+def main() -> None:
     """CLIエントリーポイント"""
     parser = argparse.ArgumentParser(
         description="EpisodicRAG Health Diagnostic",
@@ -527,19 +521,10 @@ def main(plugin_root: Optional[Path] = None) -> None:
         help="Output format (default: json)",
     )
 
-    parser.add_argument(
-        "--plugin-root",
-        type=Path,
-        help="Override plugin root (for testing)",
-    )
-
     args = parser.parse_args()
 
-    # plugin_rootの決定
-    effective_root = args.plugin_root if args.plugin_root else plugin_root
-
     try:
-        analyzer = DigestAutoAnalyzer(plugin_root=effective_root)
+        analyzer = DigestAutoAnalyzer()
         result = analyzer.analyze()
 
         if args.output == "json":

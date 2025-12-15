@@ -255,7 +255,7 @@ class CLIRunner:
         Returns:
             引数リスト
         """
-        cmd = [self.python, "-m", module_name, "--plugin-root", str(self.plugin_root)]
+        cmd = [self.python, "-m", module_name]
         cmd.extend(args)
 
         for key, value in kwargs.items():

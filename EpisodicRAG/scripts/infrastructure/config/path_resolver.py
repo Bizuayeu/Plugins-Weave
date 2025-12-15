@@ -23,15 +23,16 @@ __all__ = ["PathResolver"]
 class PathResolver:
     """パス解決クラス"""
 
-    def __init__(self, plugin_root: Path, config: ConfigData):
+    def __init__(self, config: ConfigData):
         """
         初期化
 
         Args:
-            plugin_root: Pluginルート
-            config: 設定辞書（ConfigData型）
+            config: 設定辞書（ConfigData型）。base_dirは絶対パス必須。
+
+        Raises:
+            ConfigError: base_dirが絶対パスでない場合
         """
-        self.plugin_root = plugin_root
         self.config = config
         self._trusted_external_paths = self._parse_trusted_paths()
         self.base_dir = self._resolve_base_dir()
@@ -95,8 +96,6 @@ class PathResolver:
         base_dir設定を解釈して基準ディレクトリを返す
 
         base_dir設定値:
-          - ".": プラグインルート自身（デフォルト）
-          - "subdir": プラグインルート配下のサブディレクトリ
           - "~/path": ホームディレクトリからの絶対パス（チルダ展開）
           - "C:/path": 絶対パス（trusted_external_pathsで許可が必要）
 
@@ -104,43 +103,47 @@ class PathResolver:
             解決された基準ディレクトリのPath
 
         Raises:
-            ConfigError: base_dirがplugin_rootまたはtrusted_external_paths外を指す場合
+            ConfigError: base_dirが絶対パスでない場合、
+                         またはtrusted_external_paths外を指す場合
 
         Note:
-            - plugin_root内は常に許可
-            - plugin_root外はtrusted_external_pathsで明示的な許可が必要
+            - 相対パスは禁止（絶対パスのみ）
             - チルダ展開（~）をサポート
+            - trusted_external_pathsで明示的な許可が必要
         """
-        base_dir_setting = self.config.get("base_dir", ".")
+        base_dir_setting = self.config.get("base_dir", "")
 
-        # チルダ展開または絶対パスの処理
-        base_path = Path(base_dir_setting).expanduser()
-        if base_path.is_absolute():
-            resolved = base_path.resolve()
-        else:
-            resolved = (self.plugin_root / base_dir_setting).resolve()
-
-        plugin_root_resolved = self.plugin_root.resolve()
-
-        # 1. まずplugin_root内かチェック
-        try:
-            resolved.relative_to(plugin_root_resolved)
-            return resolved  # plugin_root内なのでOK
-        except ValueError:
-            pass  # plugin_root外 - 次のチェックへ
-
-        # 2. trusted_external_paths内かチェック
-        if self._is_within_trusted_paths(resolved):
-            return resolved  # 信頼済み外部パス内なのでOK
-
-        # 3. どちらにも該当しない場合はエラー
-        raise ConfigError(
-            config_invalid_value_message(
-                "base_dir",
-                "path within plugin root or trusted_external_paths",
-                f"'{base_dir_setting}' (resolves outside allowed paths)",
+        if not base_dir_setting:
+            raise ConfigError(
+                config_key_missing_message("base_dir")
             )
-        )
+
+        # チルダ展開
+        base_path = Path(base_dir_setting).expanduser()
+
+        # 絶対パスチェック（チルダ展開後）
+        if not base_path.is_absolute():
+            raise ConfigError(
+                config_invalid_value_message(
+                    "base_dir",
+                    "absolute path (e.g., '~/.claude/plugins/.episodicrag' or 'C:/path')",
+                    f"'{base_dir_setting}' (relative paths not allowed)",
+                )
+            )
+
+        resolved = base_path.resolve()
+
+        # trusted_external_paths内かチェック（設定されている場合のみ）
+        if self._trusted_external_paths and not self._is_within_trusted_paths(resolved):
+            raise ConfigError(
+                config_invalid_value_message(
+                    "base_dir",
+                    "path within trusted_external_paths",
+                    f"'{base_dir_setting}' (resolves outside allowed paths)",
+                )
+            )
+
+        return resolved
 
     def resolve_path(self, key: str) -> Path:
         """

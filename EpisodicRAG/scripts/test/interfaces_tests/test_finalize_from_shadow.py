@@ -165,7 +165,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         """DigestConfigとFinalizerを作成"""
         from application.config import DigestConfig
 
-        config = DigestConfig(plugin_root=self.plugin_root)
+        config = DigestConfig()  # get_config_path() は TempPluginEnvironment でモック済み
         return DigestFinalizerFromShadow(config)
 
     def test_finalize_creates_regular_digest_file(self) -> None:

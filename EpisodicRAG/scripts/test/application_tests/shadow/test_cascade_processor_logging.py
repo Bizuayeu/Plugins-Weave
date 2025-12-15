@@ -56,7 +56,7 @@ def cascade_processor(
     level_hierarchy: "Dict[str, LevelHierarchyEntry]",
 ) -> CascadeProcessor:
     """CascadeProcessorインスタンスを提供"""
-    config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+    config = DigestConfig()
     levels = list(LEVEL_CONFIG.keys())
     template = ShadowTemplate(levels)
     times_tracker = DigestTimesTracker(config)

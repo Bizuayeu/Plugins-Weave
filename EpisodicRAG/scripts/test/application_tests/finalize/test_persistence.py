@@ -45,7 +45,7 @@ class TestDigestPersistenceInit:
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
         from application.tracking import DigestTimesTracker
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         grand_manager = GrandDigestManager(config)
         shadow_manager = ShadowGrandDigestManager(config)
         times_tracker = DigestTimesTracker(config)
@@ -71,7 +71,7 @@ class TestDigestPersistenceInit:
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
         from application.tracking import DigestTimesTracker
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         custom_callback = MagicMock(return_value=True)
 
         persistence = DigestPersistence(
@@ -101,7 +101,7 @@ class TestSaveRegularDigest:
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
         from application.tracking import DigestTimesTracker
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return DigestPersistence(
             config=config,
             grand_digest_manager=GrandDigestManager(config),
@@ -176,7 +176,7 @@ class TestSaveRegularDigest:
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
         from application.tracking import DigestTimesTracker
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         persistence = DigestPersistence(
             config=config,
             grand_digest_manager=GrandDigestManager(config),
@@ -223,7 +223,7 @@ class TestUpdateGrandDigest:
         from application.grand import ShadowGrandDigestManager
         from application.tracking import DigestTimesTracker
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         mock_grand = MagicMock()
 
         return DigestPersistence(
@@ -285,7 +285,7 @@ class TestProcessCascadeAndCleanup:
         from application.config import DigestConfig
         from application.finalize.persistence import DigestPersistence
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         mock_grand = MagicMock()
         mock_shadow = MagicMock()
@@ -387,7 +387,7 @@ class TestCleanupProvisionalFile:
         from application.grand import GrandDigestManager, ShadowGrandDigestManager
         from application.tracking import DigestTimesTracker
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return DigestPersistence(
             config=config,
             grand_digest_manager=GrandDigestManager(config),

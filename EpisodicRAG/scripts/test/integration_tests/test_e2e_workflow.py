@@ -54,7 +54,7 @@ class TestE2ELoopDetectionToShadow:
     @pytest.fixture
     def e2e_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """E2Eテスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
@@ -141,7 +141,7 @@ class TestE2EDigestPromotion:
     @pytest.fixture
     def promotion_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """昇格テスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # 必要なディレクトリを作成
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
@@ -234,7 +234,7 @@ class TestE2ECascadeProcessing:
     @pytest.fixture
     def cascade_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """カスケードテスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # 必要なディレクトリを作成
         for i, name in enumerate(["1_Weekly", "2_Monthly"], start=1):
@@ -286,7 +286,7 @@ class TestE2EFullWorkflow:
     @pytest.fixture
     def full_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """フルワークフローテスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # 必要なディレクトリを作成
         for name in ["1_Weekly", "2_Monthly"]:

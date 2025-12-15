@@ -47,7 +47,7 @@ class TestSetupWorkflowE2E:
         result.assert_json_status("configured")
 
     def test_init_then_config_show_workflow(
-        self, cli_runner: CLIRunner, valid_config_json: str
+        self, cli_runner: CLIRunner, cli_plugin_root: Path, valid_config_json: str
     ) -> None:
         """init → config show ワークフロー"""
         # Step 1: init
@@ -58,7 +58,7 @@ class TestSetupWorkflowE2E:
         result = cli_runner.run_digest_config("show")
         result.assert_success()
         assert "config" in result.json_output
-        assert result.json_output["config"]["base_dir"] == "."
+        assert result.json_output["config"]["base_dir"] == str(cli_plugin_root)
 
     def test_init_then_auto_workflow(self, cli_runner: CLIRunner, valid_config_json: str) -> None:
         """init → auto ワークフロー"""
@@ -85,7 +85,7 @@ class TestSetupWorkflowE2E:
         # 設定内容を確認
         with open(config_file, "r", encoding="utf-8") as f:
             saved_config = json.load(f)
-        assert saved_config["base_dir"] == "."
+        assert saved_config["base_dir"] == str(cli_plugin_root)
         assert "levels" in saved_config
 
 
@@ -302,7 +302,7 @@ class TestFullE2EWorkflow:
         # 2.1 show で設定を確認
         result = cli_runner.run_digest_config("show")
         result.assert_success()
-        assert result.json_output["config"]["base_dir"] == "."
+        assert result.json_output["config"]["base_dir"] == str(cli_plugin_root)
 
         # Phase 3: 健全性診断
         # 3.1 auto で診断

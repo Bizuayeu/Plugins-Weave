@@ -43,7 +43,7 @@ class TestCorruptedFileRecovery:
     @pytest.fixture
     def recovery_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """回復テスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
@@ -134,7 +134,7 @@ class TestMissingFileRecovery:
     @pytest.fixture
     def missing_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """ファイル欠損テスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
@@ -205,7 +205,7 @@ class TestInvalidDataRecovery:
     @pytest.fixture
     def invalid_data_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """不正データテスト用の環境を構築"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"

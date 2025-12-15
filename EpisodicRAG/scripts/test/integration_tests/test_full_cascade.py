@@ -52,7 +52,7 @@ class TestFullCascadeInitialization:
     @pytest.fixture
     def full_cascade_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """フルカスケードテスト用環境"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
@@ -130,7 +130,7 @@ class TestFullCascadeFlow:
     @pytest.fixture
     def cascade_flow_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """カスケードフローテスト用環境"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         # last_digest_times.json を初期化
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
@@ -267,7 +267,7 @@ class TestCascadeStopConditions:
     @pytest.fixture
     def stop_condition_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """停止条件テスト用環境"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
         times_file.write_text("{}")
@@ -325,7 +325,7 @@ class TestMetadataPropagation:
     @pytest.fixture
     def metadata_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """メタデータテスト用環境"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
 
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
         times_file.write_text("{}")

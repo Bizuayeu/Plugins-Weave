@@ -12,12 +12,13 @@ from typing import List, Optional, Union, cast
 
 from application.config import DigestConfig
 from domain.constants import LEVEL_NAMES
-from domain.file_constants import DIGEST_TIMES_FILENAME, DIGEST_TIMES_TEMPLATE, PLUGIN_CONFIG_DIR
+from domain.file_constants import DIGEST_TIMES_FILENAME, DIGEST_TIMES_TEMPLATE
 from domain.file_naming import extract_number_only, extract_numbers_formatted
 from domain.types import DigestTimesData
 from domain.validators import is_valid_list
 from infrastructure import get_structured_logger, load_json_with_template, log_warning, save_json
 from infrastructure.config import get_persistent_config_dir
+from infrastructure.config.persistent_path import get_template_dir
 
 _logger = get_structured_logger(__name__)
 
@@ -29,8 +30,9 @@ class DigestTimesTracker:
         self.config = config
         # 永続化ディレクトリに保存（auto-update対象外）
         self.last_digest_file = get_persistent_config_dir() / DIGEST_TIMES_FILENAME
-        # テンプレートはプラグインディレクトリに残す
-        self.template_file = config.plugin_root / PLUGIN_CONFIG_DIR / DIGEST_TIMES_TEMPLATE
+        # テンプレートは.claude-plugin/ディレクトリから取得
+        template_dir = get_template_dir()
+        self.template_file = template_dir / DIGEST_TIMES_TEMPLATE if template_dir else None
 
     def _get_default_template(self) -> DigestTimesData:
         """テンプレートがない場合のデフォルト構造を返す"""

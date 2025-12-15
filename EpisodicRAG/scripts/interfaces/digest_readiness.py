@@ -54,17 +54,9 @@ class DigestReadinessResult:
 class DigestReadinessChecker:
     """Digest確定可否判定クラス"""
 
-    def __init__(self, plugin_root: Optional[Path] = None):
-        """
-        Args:
-            plugin_root: Pluginルート（指定しない場合は自動検出）
-        """
-        if plugin_root:
-            self.plugin_root = Path(plugin_root).resolve()
-        else:
-            self.plugin_root = Path(__file__).resolve().parent.parent.parent
-
-        self.config = DigestConfig(plugin_root=self.plugin_root)
+    def __init__(self) -> None:
+        """Initialize DigestReadinessChecker"""
+        self.config = DigestConfig()
 
     def check(self, level: str) -> DigestReadinessResult:
         """
@@ -304,18 +296,10 @@ Examples:
         choices=DIGEST_LEVEL_NAMES,
         help="確認対象レベル",
     )
-    parser.add_argument(
-        "--plugin-root",
-        type=str,
-        default=None,
-        help="Pluginルートパス（デフォルト: 自動検出）",
-    )
-
     args = parser.parse_args()
 
     # チェック実行
-    plugin_root = Path(args.plugin_root) if args.plugin_root else None
-    checker = DigestReadinessChecker(plugin_root=plugin_root)
+    checker = DigestReadinessChecker()
     result = checker.check(args.level)
 
     # JSON出力

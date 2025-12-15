@@ -31,7 +31,6 @@ Usage:
     # カスタムコンポーネント注入
     config = (
         DigestConfigBuilder()
-        .with_plugin_root(Path("/custom/root"))
         .with_custom_loader(my_loader)
         .build()
     )
@@ -41,14 +40,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from domain.exceptions import ConfigError
-from domain.file_constants import CONFIG_FILENAME
 from infrastructure.config import (
     ConfigLoader,
     PathResolver,
-    find_plugin_root,
-    get_persistent_config_dir,
 )
 from infrastructure.config.error_messages import initialization_failed_message
+from infrastructure.config.persistent_path import get_config_path
 
 if TYPE_CHECKING:
     from application.config import DigestConfig
@@ -66,7 +63,6 @@ class DigestConfigBuilder:
     オプショナルな依存性注入と段階的な構築をサポート。
 
     Attributes:
-        _plugin_root: カスタムPluginルート
         _config_loader: カスタムConfigLoader
         _path_resolver: カスタムPathResolver
 
@@ -74,17 +70,9 @@ class DigestConfigBuilder:
         # シンプルな使用法
         config = DigestConfigBuilder.build_default()
 
-        # カスタム設定
-        config = (
-            DigestConfigBuilder()
-            .with_plugin_root(Path("/my/plugin"))
-            .build()
-        )
-
         # テスト用モック注入
         config = (
             DigestConfigBuilder()
-            .with_plugin_root(Path("/test"))
             .with_custom_loader(mock_loader)
             .build()
         )
@@ -92,26 +80,8 @@ class DigestConfigBuilder:
 
     def __init__(self) -> None:
         """Initialize builder with no configuration"""
-        self._plugin_root: Optional[Path] = None
         self._config_loader: Optional[ConfigLoader] = None
         self._path_resolver: Optional[PathResolver] = None
-
-    def with_plugin_root(self, path: Path) -> "DigestConfigBuilder":
-        """
-        Pluginルートを設定
-
-        Args:
-            path: Pluginルートパス
-
-        Returns:
-            self (fluent interface)
-
-        Example:
-            >>> builder = DigestConfigBuilder().with_plugin_root(Path("/my/plugin"))
-            >>> config = builder.build()
-        """
-        self._plugin_root = path
-        return self
 
     def with_custom_loader(self, loader: ConfigLoader) -> "DigestConfigBuilder":
         """
@@ -165,9 +135,9 @@ class DigestConfigBuilder:
             ConfigError: 構築に失敗した場合
 
         Example:
-            >>> config = DigestConfigBuilder().with_plugin_root(Path("/plugin")).build()
-            >>> config.plugin_root
-            Path('/plugin')
+            >>> config = DigestConfigBuilder().build()
+            >>> config.config_file.name
+            'config.json'
         """
         # 遅延インポート（循環参照回避）
         from application.config.config_validator import ConfigValidator
@@ -176,13 +146,8 @@ class DigestConfigBuilder:
         from application.config.threshold_provider import ThresholdProvider
 
         try:
-            # Plugin root 決定
-            plugin_root = self._plugin_root
-            if plugin_root is None:
-                plugin_root = self._detect_plugin_root()
-
-            # 永続化ディレクトリに保存（auto-update対象外）
-            config_file = get_persistent_config_dir() / CONFIG_FILENAME
+            # 永続化ディレクトリのconfig.jsonを使用
+            config_file = get_config_path()
 
             # ConfigLoader（カスタムまたはデフォルト）
             config_loader = self._config_loader
@@ -194,7 +159,7 @@ class DigestConfigBuilder:
             # PathResolver（カスタムまたはデフォルト）
             path_resolver = self._path_resolver
             if path_resolver is None:
-                path_resolver = PathResolver(plugin_root, config)
+                path_resolver = PathResolver(config)
 
             # 他のコンポーネント構築
             threshold_provider = ThresholdProvider(config)
@@ -210,7 +175,6 @@ class DigestConfigBuilder:
 
             # DigestConfig インスタンス構築（内部構築）
             return self._create_digest_config(
-                plugin_root=plugin_root,
                 config_file=config_file,
                 config_loader=config_loader,
                 config=config,
@@ -224,17 +188,8 @@ class DigestConfigBuilder:
         except (PermissionError, OSError) as e:
             raise ConfigError(initialization_failed_message("configuration", e)) from e
 
-    def _detect_plugin_root(self) -> Path:
-        """Plugin root を自動検出"""
-        try:
-            current_file = Path(__file__).resolve()
-        except NameError:
-            raise FileNotFoundError("Cannot determine script location (__file__ not defined)")
-        return find_plugin_root(current_file)
-
     def _create_digest_config(
         self,
-        plugin_root: Path,
         config_file: Path,
         config_loader: ConfigLoader,
         config: "ConfigData",
@@ -263,7 +218,6 @@ class DigestConfigBuilder:
         instance = object.__new__(DigestConfig)
 
         # 属性を直接設定
-        instance.plugin_root = plugin_root
         instance.config_file = config_file
         instance._config_loader = config_loader
         instance.config = config
@@ -278,23 +232,16 @@ class DigestConfigBuilder:
         return instance
 
     @classmethod
-    def build_default(cls, plugin_root: Optional[Path] = None) -> "DigestConfig":
+    def build_default(cls) -> "DigestConfig":
         """
         デフォルト設定でDigestConfigを構築
 
         標準的な使用法のための便利メソッド。
-
-        Args:
-            plugin_root: オプションのPluginルート（省略時は自動検出）
 
         Returns:
             構築されたDigestConfig
 
         Example:
             config = DigestConfigBuilder.build_default()
-            config = DigestConfigBuilder.build_default(Path("/my/plugin"))
         """
-        builder = cls()
-        if plugin_root is not None:
-            builder.with_plugin_root(plugin_root)
-        return builder.build()
+        return cls().build()

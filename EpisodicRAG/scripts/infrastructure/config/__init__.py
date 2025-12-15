@@ -6,7 +6,7 @@ Infrastructure Config パッケージ
 設定ファイルI/O操作を提供。
 
 Usage:
-    from infrastructure.config import ConfigLoader, PathResolver, find_plugin_root, load_config
+    from infrastructure.config import ConfigLoader, PathResolver, load_config
     from infrastructure.config import PathValidatorChain, PluginRootValidator
 """
 
@@ -22,12 +22,10 @@ from infrastructure.config.path_validators import (
     ValidationResult,
 )
 from infrastructure.config.persistent_path import get_persistent_config_dir
-from infrastructure.config.plugin_root_resolver import find_plugin_root
 
 __all__ = [
     "ConfigLoader",
     "PathResolver",
-    "find_plugin_root",
     "get_persistent_config_dir",
     "load_config",
     # Path validators

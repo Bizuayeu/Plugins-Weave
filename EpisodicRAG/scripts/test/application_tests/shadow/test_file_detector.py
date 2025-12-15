@@ -49,7 +49,7 @@ class TestFileDetectorGetSourcePath:
     @pytest.fixture
     def detector(self, temp_plugin_env: "TempPluginEnvironment"):
         """テスト用FileDetectorインスタンス"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
         return FileDetector(config, times_tracker)
 
@@ -270,7 +270,7 @@ class TestFileDetectorInit:
     @pytest.mark.integration
     def test_stores_config(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """configが正しく保存される"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
         detector = FileDetector(config, times_tracker)
         assert detector.config is config
@@ -278,7 +278,7 @@ class TestFileDetectorInit:
     @pytest.mark.integration
     def test_stores_times_tracker(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """times_trackerが正しく保存される"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
         detector = FileDetector(config, times_tracker)
         assert detector.times_tracker is times_tracker
@@ -286,7 +286,7 @@ class TestFileDetectorInit:
     @pytest.mark.integration
     def test_builds_level_hierarchy(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """レベル階層情報が構築される"""
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
         detector = FileDetector(config, times_tracker)
 

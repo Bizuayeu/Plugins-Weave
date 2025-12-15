@@ -50,8 +50,9 @@ class TestDigestConfig:
     def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """テスト用の設定環境を構築"""
         # config.json 作成（永続化ディレクトリに配置）
+        # base_dirは絶対パス必須
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -81,19 +82,29 @@ class TestDigestConfig:
         }
 
     @pytest.mark.unit
-    def test_init_with_explicit_plugin_root(self, config_env) -> None:
-        """明示的なplugin_rootで初期化"""
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
-        assert config.plugin_root == env.plugin_root
-        assert config.config_file == config_env["config_file"]
+    def test_no_plugin_root_parameter(self) -> None:
+        """DigestConfig は plugin_root パラメータを持たない"""
+        import inspect
+
+        sig = inspect.signature(DigestConfig.__init__)
+        params = list(sig.parameters.keys())
+
+        assert "plugin_root" not in params
+        # selfのみ
+        assert params == ["self"]
+
+    @pytest.mark.unit
+    def test_config_file_uses_persistent_dir(self, config_env) -> None:
+        """config_fileは永続化ディレクトリを使用"""
+        from infrastructure.config.persistent_path import get_config_path
+
+        config = DigestConfig()
+        assert config.config_file == get_config_path()
 
     @pytest.mark.unit
     def test_load_config_success(self, config_env) -> None:
         """設定ファイルの読み込み成功"""
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
-        assert config.config["base_dir"] == "."
+        config = DigestConfig()
         assert "paths" in config.config
         assert "levels" in config.config
 
@@ -102,7 +113,7 @@ class TestDigestConfig:
         """設定ファイルが見つからない場合"""
         config_env["config_file"].unlink()
         with pytest.raises(ConfigError):
-            DigestConfig(plugin_root=config_env["env"].plugin_root)
+            DigestConfig()
 
     @pytest.mark.unit
     def test_load_config_invalid_json(self, config_env) -> None:
@@ -110,32 +121,26 @@ class TestDigestConfig:
         with open(config_env["config_file"], 'w', encoding='utf-8') as f:
             f.write("invalid json {")
         with pytest.raises(ConfigError):
-            DigestConfig(plugin_root=config_env["env"].plugin_root)
+            DigestConfig()
 
     @pytest.mark.unit
-    def test_resolve_base_dir_dot(self, config_env) -> None:
-        """base_dir="." の場合はplugin_rootと同じ"""
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
-        assert config.base_dir == env.plugin_root.resolve()
-
-    @pytest.mark.unit
-    def test_resolve_base_dir_relative(self, config_env) -> None:
-        """相対パスのbase_dir"""
+    def test_base_dir_must_be_absolute(self, config_env) -> None:
+        """base_dirは絶対パス必須"""
         config_data = config_env["config_data"]
-        config_data["base_dir"] = "data"
+        config_data["base_dir"] = "."  # 相対パス
         with open(config_env["config_file"], 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
-        assert config.base_dir == (env.plugin_root / "data").resolve()
+        with pytest.raises(ConfigError) as exc_info:
+            DigestConfig()
+
+        assert "base_dir" in str(exc_info.value)
 
     @pytest.mark.unit
     def test_path_properties(self, config_env) -> None:
         """パスプロパティ（loops_path, digests_path, essences_path）"""
         env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
 
         assert config.loops_path == (env.plugin_root / "data" / "Loops").resolve()
         assert config.digests_path == (env.plugin_root / "data" / "Digests").resolve()
@@ -144,8 +149,7 @@ class TestDigestConfig:
     @pytest.mark.unit
     def test_resolve_path_missing_key(self, config_env) -> None:
         """存在しないキーの場合"""
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         with pytest.raises(ConfigError):
             config.resolve_path("nonexistent_key")
 
@@ -157,16 +161,14 @@ class TestDigestConfig:
         with open(config_env["config_file"], 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
-        env = config_env["env"]
         # 即時初期化により、DigestConfigコンストラクタでエラーが発生
         with pytest.raises(ConfigError):
-            DigestConfig(plugin_root=env.plugin_root)
+            DigestConfig()
 
     @pytest.mark.unit
     def test_get_level_dir_all_levels(self, config_env) -> None:
         """全レベルのディレクトリ取得"""
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         for level in LEVEL_NAMES:
             level_dir = config.get_level_dir(level)
             expected_subdir = LEVEL_CONFIG[level]["dir"]
@@ -175,16 +177,14 @@ class TestDigestConfig:
     @pytest.mark.unit
     def test_get_level_dir_invalid_level(self, config_env) -> None:
         """無効なレベル名の場合"""
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         with pytest.raises(ConfigError):
             config.get_level_dir("invalid_level")
 
     @pytest.mark.unit
     def test_get_provisional_dir_all_levels(self, config_env) -> None:
         """全レベルのProvisionalディレクトリ取得"""
-        env = config_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         for level in LEVEL_NAMES:
             prov_dir = config.get_provisional_dir(level)
             assert str(prov_dir).endswith("Provisional")
@@ -192,28 +192,24 @@ class TestDigestConfig:
     @pytest.mark.unit
     def test_init_handles_permission_error(self, config_env) -> None:
         """PermissionErrorがConfigErrorに変換される"""
-        env = config_env["env"]
-
         # ConfigLoader.load を PermissionError を発生させるようにモック
         from infrastructure.config import ConfigLoader
 
         with patch.object(ConfigLoader, "load", side_effect=PermissionError("Access denied")):
             with pytest.raises(ConfigError) as exc_info:
-                DigestConfig(plugin_root=env.plugin_root)
+                DigestConfig()
 
             assert "Failed to initialize configuration" in str(exc_info.value)
 
     @pytest.mark.unit
     def test_init_handles_os_error(self, config_env) -> None:
         """OSErrorがConfigErrorに変換される"""
-        env = config_env["env"]
-
         # ConfigLoader.load を OSError を発生させるようにモック
         from infrastructure.config import ConfigLoader
 
         with patch.object(ConfigLoader, "load", side_effect=OSError("Disk error")):
             with pytest.raises(ConfigError) as exc_info:
-                DigestConfig(plugin_root=env.plugin_root)
+                DigestConfig()
 
             assert "Failed to initialize configuration" in str(exc_info.value)
 
@@ -225,7 +221,7 @@ class TestDigestConfigThresholds:
     def threshold_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """threshold テスト用の設定環境"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -270,8 +266,7 @@ class TestDigestConfigThresholds:
     )
     def test_threshold_properties(self, threshold_env, level, expected) -> None:
         """全レベルのthresholdプロパティ"""
-        env = threshold_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         assert config.get_threshold(level) == expected
 
     @pytest.mark.unit
@@ -282,8 +277,7 @@ class TestDigestConfigThresholds:
         with open(threshold_env["config_file"], 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
-        env = threshold_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
 
         # デフォルト値が返されることを確認
         # ARCHITECTURE: コンポーネント公開パターン
@@ -302,24 +296,21 @@ class TestDigestConfigThresholds:
         with open(threshold_env["config_file"], 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
-        env = threshold_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         assert config.threshold.weekly_threshold == 10
         assert config.threshold.monthly_threshold == 8
 
     @pytest.mark.unit
     def test_get_threshold_invalid_level(self, threshold_env) -> None:
         """get_threshold()が無効なレベルでConfigErrorを発生させる"""
-        env = threshold_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         with pytest.raises(ConfigError):
             config.get_threshold("invalid_level")
 
     @pytest.mark.unit
     def test_get_threshold_matches_properties(self, threshold_env) -> None:
         """get_threshold()とthresholdプロパティが同じ値を返す"""
-        env = threshold_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
 
         # config.get_threshold() は後方互換性のため維持
         # 新規コードでは config.threshold.get_threshold() を推奨
@@ -335,7 +326,7 @@ class TestDigestConfigIdentityFile:
     def identity_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """identity_file テスト用の設定環境"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -358,8 +349,7 @@ class TestDigestConfigIdentityFile:
     @pytest.mark.unit
     def test_get_identity_file_path_none(self, identity_env) -> None:
         """identity_file_pathがNoneの場合"""
-        env = identity_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         assert config.get_identity_file_path() is None
 
     @pytest.mark.unit
@@ -370,8 +360,7 @@ class TestDigestConfigIdentityFile:
         with open(identity_env["config_file"], 'w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
-        env = identity_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
         identity_path = config.get_identity_file_path()
         assert identity_path is not None
         assert str(identity_path).endswith("Identity.md")
@@ -421,7 +410,7 @@ class TestDigestConfigShowPaths:
     def show_paths_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """show_paths テスト用の設定環境"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -448,8 +437,7 @@ class TestDigestConfigShowPaths:
         """show_paths()が全パスをログに出力"""
         import logging
 
-        env = show_paths_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
 
         with caplog.at_level(logging.INFO, logger="episodic_rag.config"):
             config.show_paths()
@@ -461,8 +449,7 @@ class TestDigestConfigShowPaths:
     @pytest.mark.unit
     def test_show_paths_returns_none(self, show_paths_env) -> None:
         """show_paths()はNoneを返す"""
-        env = show_paths_env["env"]
-        config = DigestConfig(plugin_root=env.plugin_root)
+        config = DigestConfig()
 
         result = config.show_paths()
         assert result is None
@@ -480,7 +467,7 @@ class TestDigestConfigContextManager:
     def context_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """Context Manager テスト用の設定環境を構築"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -496,7 +483,7 @@ class TestDigestConfigContextManager:
     @pytest.mark.unit
     def test_context_manager_enter_returns_self(self, context_env) -> None:
         """__enter__がselfを返す"""
-        config = DigestConfig(plugin_root=context_env.plugin_root)
+        config = DigestConfig()
 
         with config as ctx:
             assert ctx is config
@@ -504,21 +491,20 @@ class TestDigestConfigContextManager:
     @pytest.mark.unit
     def test_context_manager_basic_usage(self, context_env) -> None:
         """Context Managerの基本的な使用"""
-        with DigestConfig(plugin_root=context_env.plugin_root) as config:
+        with DigestConfig() as config:
             # スコープ内でconfigが使用可能
-            assert config.plugin_root == context_env.plugin_root
             assert config.loops_path.name == "Loops"
 
     @pytest.mark.unit
     def test_context_manager_exit_does_not_suppress_exception(self, context_env) -> None:
         """__exit__が例外を抑制しない"""
         with pytest.raises(ValueError):
-            with DigestConfig(plugin_root=context_env.plugin_root) as _:
+            with DigestConfig() as _:
                 raise ValueError("Test exception")
 
     @pytest.mark.unit
     def test_context_manager_nested_usage(self, context_env) -> None:
         """ネストしたContext Managerの使用"""
-        with DigestConfig(plugin_root=context_env.plugin_root) as outer:
-            with DigestConfig(plugin_root=context_env.plugin_root) as inner:
-                assert outer.plugin_root == inner.plugin_root
+        with DigestConfig() as outer:
+            with DigestConfig() as inner:
+                assert outer.base_dir == inner.base_dir

@@ -45,9 +45,7 @@ class TestSetupCLI(unittest.TestCase):
     @pytest.mark.unit
     def test_main_check_command(self) -> None:
         """check コマンドが動作する"""
-        with patch(
-            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
-        ):
+        with patch("sys.argv", ["digest_setup.py", "check"]):
             from interfaces.digest_setup import main
 
             # 出力をキャプチャ
@@ -95,9 +93,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
     @pytest.mark.unit
     def test_check_not_configured_output_format(self) -> None:
         """check の not_configured 出力形式"""
-        with patch(
-            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
-        ):
+        with patch("sys.argv", ["digest_setup.py", "check"]):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -114,7 +110,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
         """check の configured 出力形式"""
         # 設定ファイルとディレクトリを作成（永続化ディレクトリに）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -125,9 +121,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
             json.dump(config_data, f)
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
 
-        with patch(
-            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
-        ):
+        with patch("sys.argv", ["digest_setup.py", "check"]):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -143,15 +137,13 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
         """check の partial 出力形式"""
         # 設定ファイルのみ作成（永続化ディレクトリに、ディレクトリなし）
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(self.plugin_root),
             "paths": {"loops_dir": "data/Loops"},
         }
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
-        with patch(
-            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
-        ):
+        with patch("sys.argv", ["digest_setup.py", "check"]):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -169,9 +161,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
         with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
             f.write("{ invalid json")
 
-        with patch(
-            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
-        ):
+        with patch("sys.argv", ["digest_setup.py", "check"]):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -185,9 +175,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
     @pytest.mark.unit
     def test_check_output_is_valid_json(self) -> None:
         """check の出力が有効なJSON"""
-        with patch(
-            "sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "check"]
-        ):
+        with patch("sys.argv", ["digest_setup.py", "check"]):
             from interfaces.digest_setup import main
 
             with patch("builtins.print") as mock_print:
@@ -225,7 +213,7 @@ class TestSetupCLINoCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_no_command_exits_with_code_1(self) -> None:
         """コマンドなしで exit code 1"""
-        with patch("sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root)]):
+        with patch("sys.argv", ["digest_setup.py"]):
             with patch("sys.stdout"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_setup import main
@@ -236,10 +224,7 @@ class TestSetupCLINoCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_invalid_command_exits_with_error(self) -> None:
         """無効なコマンドでエラー"""
-        with patch(
-            "sys.argv",
-            ["digest_setup.py", "--plugin-root", str(self.plugin_root), "invalid_command"],
-        ):
+        with patch("sys.argv", ["digest_setup.py", "invalid_command"]):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_setup import main
@@ -250,7 +235,7 @@ class TestSetupCLINoCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_init_missing_config_flag_exits_error(self) -> None:
         """init で --config フラグがない場合にエラー"""
-        with patch("sys.argv", ["digest_setup.py", "--plugin-root", str(self.plugin_root), "init"]):
+        with patch("sys.argv", ["digest_setup.py", "init"]):
             with patch("sys.stderr"):
                 with pytest.raises(SystemExit) as exc_info:
                     from interfaces.digest_setup import main

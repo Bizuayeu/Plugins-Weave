@@ -56,7 +56,7 @@ class TestCascadeFailureRecovery:
             json.dump(shadow_data, f, ensure_ascii=False)
 
         # DigestConfig should work even without all level directories
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         assert config is not None
         assert config.digests_path.exists()
 
@@ -198,7 +198,7 @@ class TestErrorStateRecovery:
 
         # Don't create config file - DigestConfig should use template/defaults
         # TempPluginEnvironment already sets up proper structure
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         assert config is not None
         assert config.loops_path is not None
         assert config.digests_path is not None

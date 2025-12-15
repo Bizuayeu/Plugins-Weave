@@ -31,6 +31,7 @@ from domain.file_constants import (
     SHADOW_GRAND_DIGEST_TEMPLATE,
 )
 from infrastructure.config import get_persistent_config_dir
+from infrastructure.config.persistent_path import get_template_dir
 from infrastructure.json_repository import save_json, try_load_json
 from interfaces.cli_helpers import output_error, output_json
 
@@ -55,21 +56,11 @@ class SetupManager:
     # 8階層のディレクトリ構成（LEVEL_CONFIGからSSoTとして生成）
     LEVEL_DIRS = [cfg["dir"] for cfg in LEVEL_CONFIG.values()]
 
-    def __init__(self, plugin_root: Optional[Path] = None):
-        """
-        Args:
-            plugin_root: Pluginルート（指定しない場合は自動検出を試みる）
-        """
-        if plugin_root:
-            self.plugin_root = Path(plugin_root).resolve()
-        else:
-            # スクリプトの場所から推測
-            self.plugin_root = Path(__file__).resolve().parent.parent.parent
-
-        self.config_dir = self.plugin_root / PLUGIN_CONFIG_DIR
+    def __init__(self) -> None:
+        """Initialize SetupManager"""
         self.persistent_config_dir = get_persistent_config_dir()
         self.config_file = self.persistent_config_dir / CONFIG_FILENAME
-        self.template_dir = self.config_dir
+        self.template_dir = get_template_dir()
 
     def check(self) -> Dict[str, Any]:
         """
@@ -206,23 +197,21 @@ class SetupManager:
         return errors
 
     def _resolve_base_dir(self, base_dir_str: str) -> Path:
-        """base_dirを解決"""
+        """base_dirを解決（絶対パス必須）"""
         base_path = Path(base_dir_str).expanduser()
         if not base_path.is_absolute():
-            base_path = self.plugin_root / base_path
+            raise ValueError(f"base_dir must be an absolute path: {base_dir_str}")
         return base_path.resolve()
 
     def _create_config_file(self, config_data: Dict[str, Any]) -> Path:
         """設定ファイル作成"""
-        # .claude-pluginディレクトリ作成（テンプレート用）
-        self.config_dir.mkdir(parents=True, exist_ok=True)
         # 永続化ディレクトリは get_persistent_config_dir() で自動作成される
 
         # コメント付きで保存
         full_config = {
-            "_comment_base_dir": "データの基準ディレクトリ（永続化ディレクトリがデフォルト）",
+            "_comment_base_dir": "データの基準ディレクトリ（絶対パス必須）",
             "base_dir": config_data.get("base_dir", DEFAULT_BASE_DIR),
-            "_comment_trusted_external_paths": "plugin_root外でアクセスを許可するパス（base_dirが外部の場合は必須）",
+            "_comment_trusted_external_paths": "外部パスへのアクセス許可リスト",
             "trusted_external_paths": config_data.get("trusted_external_paths", [DEFAULT_BASE_DIR]),
             "_comment_paths": "base_dirからの相対パスでデータ配置先を指定",
             "paths": config_data.get("paths", {}),
@@ -244,54 +233,34 @@ class SetupManager:
         # Loopsディレクトリ
         loops_dir = base_dir / paths.get("loops_dir", "data/Loops")
         loops_dir.mkdir(parents=True, exist_ok=True)
-        created_dirs.append(
-            str(
-                loops_dir.relative_to(self.plugin_root)
-                if loops_dir.is_relative_to(self.plugin_root)
-                else loops_dir
-            )
-        )
+        created_dirs.append(str(loops_dir))
 
         # Digestsディレクトリ（8階層 + Provisional）
         digests_dir = base_dir / paths.get("digests_dir", "data/Digests")
         for level_dir in self.LEVEL_DIRS:
             level_path = digests_dir / level_dir
             level_path.mkdir(parents=True, exist_ok=True)
-            created_dirs.append(
-                str(
-                    level_path.relative_to(self.plugin_root)
-                    if level_path.is_relative_to(self.plugin_root)
-                    else level_path
-                )
-            )
+            created_dirs.append(str(level_path))
 
             # Provisionalサブディレクトリ
             provisional_path = level_path / "Provisional"
             provisional_path.mkdir(parents=True, exist_ok=True)
-            created_dirs.append(
-                str(
-                    provisional_path.relative_to(self.plugin_root)
-                    if provisional_path.is_relative_to(self.plugin_root)
-                    else provisional_path
-                )
-            )
+            created_dirs.append(str(provisional_path))
 
         # Essencesディレクトリ
         essences_dir = base_dir / paths.get("essences_dir", "data/Essences")
         essences_dir.mkdir(parents=True, exist_ok=True)
-        created_dirs.append(
-            str(
-                essences_dir.relative_to(self.plugin_root)
-                if essences_dir.is_relative_to(self.plugin_root)
-                else essences_dir
-            )
-        )
+        created_dirs.append(str(essences_dir))
 
         return created_dirs
 
     def _create_initial_files(self, config_data: Dict[str, Any]) -> List[str]:
         """初期ファイル作成（テンプレートから）"""
         created_files = []
+
+        # テンプレートディレクトリがない場合はスキップ
+        if self.template_dir is None:
+            return created_files
 
         base_dir = self._resolve_base_dir(config_data.get("base_dir", DEFAULT_BASE_DIR))
         paths = config_data.get("paths", {})
@@ -329,33 +298,25 @@ class SetupManager:
         return external_paths
 
     def _is_external_path(self, path_str: Optional[str]) -> bool:
-        """パスがplugin_root外を指すか判定"""
+        """パスが永続化ディレクトリ外を指すか判定"""
         if path_str is None:
             return False
 
         path = Path(path_str).expanduser()
 
-        # 絶対パスの場合
+        # 絶対パスの場合は永続化ディレクトリ外かチェック
         if path.is_absolute():
             try:
-                path.resolve().relative_to(self.plugin_root.resolve())
-                return False  # plugin_root内
+                path.resolve().relative_to(self.persistent_config_dir.resolve())
+                return False  # 永続化ディレクトリ内
             except ValueError:
-                return True  # plugin_root外
+                return True  # 永続化ディレクトリ外
 
-        # 相対パスで上位ディレクトリに出る場合
-        if ".." in str(path):
-            resolved = (self.plugin_root / path).resolve()
-            try:
-                resolved.relative_to(self.plugin_root.resolve())
-                return False
-            except ValueError:
-                return True
-
-        return False
+        # 相対パスは常に外部とみなす（base_dirは絶対パス必須のため）
+        return True
 
 
-def main(plugin_root: Optional[Path] = None) -> None:
+def main() -> None:
     """CLIエントリーポイント"""
     parser = argparse.ArgumentParser(
         description="EpisodicRAG Initial Setup",
@@ -381,20 +342,10 @@ def main(plugin_root: Optional[Path] = None) -> None:
         help="Force overwrite existing config",
     )
 
-    # --plugin-root オプション（全コマンド共通）
-    parser.add_argument(
-        "--plugin-root",
-        type=Path,
-        help="Override plugin root (for testing)",
-    )
-
     args = parser.parse_args()
 
-    # plugin_rootの決定
-    effective_root = args.plugin_root if args.plugin_root else plugin_root
-
     try:
-        manager = SetupManager(plugin_root=effective_root)
+        manager = SetupManager()
 
         if args.command == "check":
             result = manager.check()

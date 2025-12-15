@@ -101,5 +101,65 @@ class TestPersistentConfigDirConstant:
         assert PERSISTENT_CONFIG_DIR_NAME == ".episodicrag"
 
 
+class TestGetConfigPath:
+    """get_config_path()のテスト"""
+
+    @pytest.mark.unit
+    def test_returns_config_json_in_persistent_dir(self) -> None:
+        """永続化ディレクトリ内のconfig.jsonパスを返す"""
+        from infrastructure.config.persistent_path import get_config_path
+
+        config_path = get_config_path()
+
+        assert config_path.name == "config.json"
+        assert ".episodicrag" in str(config_path)
+
+    @pytest.mark.unit
+    def test_path_is_absolute(self) -> None:
+        """絶対パスを返す"""
+        from infrastructure.config.persistent_path import get_config_path
+
+        config_path = get_config_path()
+
+        assert config_path.is_absolute()
+
+    @pytest.mark.unit
+    def test_parent_is_persistent_config_dir(self) -> None:
+        """親ディレクトリが永続化ディレクトリと一致"""
+        from infrastructure.config.persistent_path import (
+            get_config_path,
+            get_persistent_config_dir,
+        )
+
+        config_path = get_config_path()
+        persistent_dir = get_persistent_config_dir()
+
+        assert config_path.parent == persistent_dir
+
+
+class TestGetTemplateDir:
+    """get_template_dir()のテスト"""
+
+    @pytest.mark.unit
+    def test_returns_claude_plugin_dir_or_none(self) -> None:
+        """正常なディレクトリ名またはNoneを返す"""
+        from infrastructure.config.persistent_path import get_template_dir
+
+        template_dir = get_template_dir()
+
+        # None または .claude-plugin ディレクトリ
+        assert template_dir is None or template_dir.name == ".claude-plugin"
+
+    @pytest.mark.unit
+    def test_returns_absolute_path_when_found(self) -> None:
+        """見つかった場合は絶対パスを返す"""
+        from infrastructure.config.persistent_path import get_template_dir
+
+        template_dir = get_template_dir()
+
+        if template_dir is not None:
+            assert template_dir.is_absolute()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

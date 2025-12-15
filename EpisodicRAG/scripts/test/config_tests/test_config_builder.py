@@ -47,20 +47,18 @@ class TestDigestConfigBuilderInit:
         """Initializes with no configuration"""
         builder = DigestConfigBuilder()
         # Internal state should be None
-        assert builder._plugin_root is None
         assert builder._config_loader is None
         assert builder._path_resolver is None
+
+    @pytest.mark.unit
+    def test_no_plugin_root_attribute(self) -> None:
+        """DigestConfigBuilder does not have _plugin_root attribute"""
+        builder = DigestConfigBuilder()
+        assert not hasattr(builder, "_plugin_root")
 
 
 class TestDigestConfigBuilderFluentInterface:
     """Fluent interface tests"""
-
-    @pytest.mark.unit
-    def test_with_plugin_root_returns_self(self) -> None:
-        """with_plugin_root returns self for chaining"""
-        builder = DigestConfigBuilder()
-        result = builder.with_plugin_root(Path("/test"))
-        assert result is builder
 
     @pytest.mark.unit
     def test_with_custom_loader_returns_self(self) -> None:
@@ -74,10 +72,7 @@ class TestDigestConfigBuilderFluentInterface:
     def test_method_chaining(self) -> None:
         """Methods can be chained"""
         mock_loader = MagicMock(spec=ConfigLoader)
-        builder = (
-            DigestConfigBuilder().with_plugin_root(Path("/test")).with_custom_loader(mock_loader)
-        )
-        assert builder._plugin_root == Path("/test")
+        builder = DigestConfigBuilder().with_custom_loader(mock_loader)
         assert builder._config_loader is mock_loader
 
 
@@ -93,7 +88,7 @@ class TestDigestConfigBuilderBuild:
     def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """テスト用の設定環境を構築"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -123,20 +118,17 @@ class TestDigestConfigBuilderBuild:
         }
 
     @pytest.mark.unit
-    def test_build_with_plugin_root(self, config_env) -> None:
-        """Build with explicit plugin root"""
-        env = config_env["env"]
-        config = DigestConfigBuilder().with_plugin_root(env.plugin_root).build()
+    def test_build_returns_digest_config(self, config_env) -> None:
+        """Build returns DigestConfig instance"""
+        config = DigestConfigBuilder().build()
 
         assert isinstance(config, DigestConfig)
-        assert config.plugin_root == env.plugin_root
         assert config.config_file == config_env["config_file"]
 
     @pytest.mark.unit
     def test_build_produces_working_config(self, config_env) -> None:
         """Built config has all expected functionality"""
-        env = config_env["env"]
-        config = DigestConfigBuilder().with_plugin_root(env.plugin_root).build()
+        config = DigestConfigBuilder().build()
 
         # Verify core properties work
         assert config.loops_path is not None
@@ -147,18 +139,11 @@ class TestDigestConfigBuilderBuild:
     @pytest.mark.unit
     def test_build_with_custom_loader(self, config_env) -> None:
         """Build with custom ConfigLoader"""
-        env = config_env["env"]
-
         # Create a mock loader
         mock_loader = MagicMock(spec=ConfigLoader)
         mock_loader.load.return_value = config_env["config_data"]
 
-        config = (
-            DigestConfigBuilder()
-            .with_plugin_root(env.plugin_root)
-            .with_custom_loader(mock_loader)
-            .build()
-        )
+        config = DigestConfigBuilder().with_custom_loader(mock_loader).build()
 
         assert isinstance(config, DigestConfig)
         mock_loader.load.assert_called_once()
@@ -166,12 +151,11 @@ class TestDigestConfigBuilderBuild:
     @pytest.mark.unit
     def test_build_raises_config_error_on_failure(self, config_env) -> None:
         """Build raises ConfigError on initialization failure"""
-        env = config_env["env"]
         # Delete config file to cause failure
         config_env["config_file"].unlink()
 
         with pytest.raises(ConfigError):
-            DigestConfigBuilder().with_plugin_root(env.plugin_root).build()
+            DigestConfigBuilder().build()
 
 
 class TestDigestConfigBuilderBuildDefault:
@@ -181,7 +165,7 @@ class TestDigestConfigBuilderBuildDefault:
     def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """テスト用の設定環境を構築"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -211,24 +195,18 @@ class TestDigestConfigBuilderBuildDefault:
         }
 
     @pytest.mark.unit
-    def test_build_default_with_plugin_root(self, config_env) -> None:
-        """build_default with explicit plugin root"""
-        env = config_env["env"]
-        config = DigestConfigBuilder.build_default(env.plugin_root)
+    def test_build_default_returns_digest_config(self, config_env) -> None:
+        """build_default returns DigestConfig instance"""
+        config = DigestConfigBuilder.build_default()
 
         assert isinstance(config, DigestConfig)
-        assert config.plugin_root == env.plugin_root
 
     @pytest.mark.unit
     def test_build_default_produces_same_result(self, config_env) -> None:
         """build_default produces same result as build()"""
-        env = config_env["env"]
+        config1 = DigestConfigBuilder().build()
+        config2 = DigestConfigBuilder.build_default()
 
-        config1 = DigestConfigBuilder().with_plugin_root(env.plugin_root).build()
-        config2 = DigestConfigBuilder.build_default(env.plugin_root)
-
-        # Both should have same plugin root
-        assert config1.plugin_root == config2.plugin_root
         # Both should have same paths
         assert config1.loops_path == config2.loops_path
         assert config1.digests_path == config2.digests_path
@@ -246,7 +224,7 @@ class TestDigestConfigBuilderEquivalence:
     def config_env(self, temp_plugin_env: "TempPluginEnvironment"):
         """テスト用の設定環境を構築"""
         config_data = {
-            "base_dir": ".",
+            "base_dir": str(temp_plugin_env.plugin_root),
             "paths": {
                 "loops_dir": "data/Loops",
                 "digests_dir": "data/Digests",
@@ -278,16 +256,13 @@ class TestDigestConfigBuilderEquivalence:
     @pytest.mark.unit
     def test_builder_produces_equivalent_config(self, config_env) -> None:
         """Builder produces config equivalent to direct instantiation"""
-        env = config_env["env"]
-
         # Direct instantiation
-        direct_config = DigestConfig(plugin_root=env.plugin_root)
+        direct_config = DigestConfig()
 
         # Builder instantiation
-        builder_config = DigestConfigBuilder.build_default(env.plugin_root)
+        builder_config = DigestConfigBuilder.build_default()
 
         # Should have same paths
-        assert direct_config.plugin_root == builder_config.plugin_root
         assert direct_config.config_file == builder_config.config_file
         assert direct_config.loops_path == builder_config.loops_path
         assert direct_config.digests_path == builder_config.digests_path
@@ -297,8 +272,7 @@ class TestDigestConfigBuilderEquivalence:
     @pytest.mark.unit
     def test_builder_config_has_same_methods(self, config_env) -> None:
         """Builder config has all the same methods as direct config"""
-        env = config_env["env"]
-        config = DigestConfigBuilder.build_default(env.plugin_root)
+        config = DigestConfigBuilder.build_default()
 
         # Verify key methods exist and work
         assert hasattr(config, "get_level_dir")
@@ -349,11 +323,9 @@ class TestDigestConfigBuilderPathResolver:
         mock_resolver = MagicMock(spec=PathResolver)
         builder = (
             DigestConfigBuilder()
-            .with_plugin_root(Path("/test"))
             .with_custom_loader(mock_loader)
             .with_custom_path_resolver(mock_resolver)
         )
-        assert builder._plugin_root == Path("/test")
         assert builder._config_loader is mock_loader
         assert builder._path_resolver is mock_resolver
 

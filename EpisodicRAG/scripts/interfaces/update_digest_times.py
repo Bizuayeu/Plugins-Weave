@@ -62,18 +62,10 @@ Examples:
         type=int,
         help="設定する番号",
     )
-    parser.add_argument(
-        "--plugin-root",
-        type=str,
-        default=None,
-        help="Pluginルートパス（デフォルト: 自動検出）",
-    )
-
     args = parser.parse_args()
 
     try:
-        plugin_root = Path(args.plugin_root) if args.plugin_root else None
-        config = DigestConfig(plugin_root=plugin_root)
+        config = DigestConfig()
         tracker = DigestTimesTracker(config)
 
         tracker.update_direct(args.level, args.last_processed)

@@ -44,7 +44,7 @@ class TestProvisionalLoaderInit:
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         shadow_manager = ShadowGrandDigestManager(config)
 
         loader = ProvisionalLoader(config=config, shadow_manager=shadow_manager)
@@ -68,7 +68,7 @@ class TestGetSourcePathForLevel:
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
     def test_returns_loops_path_for_weekly(
@@ -101,7 +101,7 @@ class TestGetProvisionalPath:
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
     def test_returns_correct_path_for_weekly(self, loader) -> None:
@@ -133,7 +133,7 @@ class TestLoadProvisional:
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
     def test_loads_valid_provisional_file(self, loader, tmp_path: Path) -> None:
@@ -188,7 +188,7 @@ class TestLoadOrGenerate:
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
     def test_loads_existing_provisional(
@@ -249,7 +249,7 @@ class TestBuildIndividualEntry:
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
     def test_builds_entry_from_complete_data(self, loader) -> None:
@@ -308,7 +308,7 @@ class TestGenerateFromSource:
         from application.finalize.provisional_loader import ProvisionalLoader
         from application.grand import ShadowGrandDigestManager
 
-        config = DigestConfig(plugin_root=temp_plugin_env.plugin_root)
+        config = DigestConfig()
         return ProvisionalLoader(config=config, shadow_manager=ShadowGrandDigestManager(config))
 
     def test_generates_from_multiple_sources(
