@@ -71,9 +71,9 @@ test/
 ├── conftest.py              # 共通フィクスチャ
 ├── test_helpers.py          # テストヘルパー
 ├── test_constants.py        # テスト用定数
-├── domain_tests/            # 純粋なビジネスロジック (33 files)
+├── domain_tests/            # 純粋なビジネスロジック (34 files)
 │   └── test_*_properties.py # Property-based (5 files)
-├── config_tests/            # Config層3層化対応 (15 files) [v4.0.0+]
+├── config_tests/            # Config層3層化対応 (14 files) [v4.0.0+]
 │   └── test_config_properties.py
 ├── application_tests/       # ユースケース (26 files)
 │   ├── grand/               # GrandDigest関連
@@ -85,11 +85,11 @@ test/
 │   │   └── validators/      # バリデータ
 │   ├── test_cascade_properties.py
 │   └── test_template_properties.py
-├── infrastructure_tests/    # I/O操作 (12 files)
+├── infrastructure_tests/    # I/O操作 (14 files)
 │   ├── config/              # PathValidatorChain [v4.1.0+]
 │   ├── test_file_scanner_properties.py
 │   └── test_json_repository_properties.py
-├── interfaces_tests/        # エントリポイント (28 files)
+├── interfaces_tests/        # エントリポイント (30 files)
 │   ├── provisional/         # Provisional処理
 │   └── digest_auto/         # digest_auto パッケージ [v5.3.0+]
 │       └── (test_auto_*.py がパッケージ内モジュールをテスト)
@@ -107,11 +107,11 @@ test/
 
 | 層 | 主なテストファイル | ファイル数 |
 |----|-------------------|-----------|
-| **Domain** | `test_validators.py`, `test_file_naming.py`, `test_level_registry.py`, `test_formatter_registry.py`, `test_types_imports.py`, `test_level_literals.py`, `test_constants.py` | 33 |
-| **Config** | `test_config.py`, `test_path_resolver.py`, `test_threshold_provider.py`, `test_config_builder.py` | 15 |
-| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py`, `test_path_validators.py`, `test_persistent_path.py` | 13 |
-| **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_orchestrator.py`, `test_persistence.py` | 24 |
-| **Interfaces** | `test_finalize_from_shadow.py`, `test_*_cli_*.py`, `test_setup_*.py`, `test_auto_*.py` (digest_autoパッケージ対応 v5.3.0+), `test_digest_auto_detection.py`, `test_cli_helpers.py`, `test_digest_readiness.py`, `test_digest_entry.py`, `test_encoding.py` | 27 |
+| **Domain** | `test_validators.py`, `test_file_naming.py`, `test_level_registry.py`, `test_formatter_registry.py`, `test_types_imports.py`, `test_level_literals.py`, `test_constants.py`, `test_singleton_docs.py` | 34 |
+| **Config** | `test_config.py`, `test_path_resolver.py`, `test_threshold_provider.py`, `test_config_builder.py` | 14 |
+| **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py`, `test_path_validators.py`, `test_persistent_path.py`, `test_json_repository_types.py` | 14 |
+| **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_orchestrator.py`, `test_persistence.py`, `test_shadow_components.py` | 26 |
+| **Interfaces** | `test_finalize_from_shadow.py`, `test_*_cli_*.py`, `test_setup_*.py`, `test_auto_*.py` (digest_autoパッケージ対応 v5.2.0+), `test_digest_auto_detection.py`, `test_cli_helpers.py`, `test_digest_readiness.py`, `test_digest_entry.py`, `test_encoding.py`, `test_auto_models.py`, `test_auto_report.py`, `test_path_resolver.py` | 30 |
 | **Integration** | `test_e2e_workflow.py`, `test_full_cascade.py`, `test_config_integration.py` | 14 |
 | **CLI Integration** | `test_digest_*_cli.py`, `test_workflow_cli.py` | 4 |
 | **Performance** | `test_benchmarks.py` | 1 |
