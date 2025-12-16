@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration is no longer lost during Claude Code plugin auto-updates (delete → re-clone)
   - Environment variable `EPISODICRAG_CONFIG_DIR` allows custom path specification (for testing)
 
+### Added
+
+- **Internal Refactoring (TDD Improvements)**
+  - Split `digest_auto.py` into `digest_auto/` package (548 lines → 5 modules: models, analyzer, path_resolver, file_scanner, report)
+  - Added `CascadeComponents` parameter object (Parameter Object Pattern)
+  - Documented reset methods in singleton module docstrings (`level_registry`, `error_formatter`, `file_naming`)
+
 ### Documentation
 
 - **INDEX.md / INDEX.en.md added**
@@ -43,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation structure cleanup**
   - Simplified `_footer.md` to footer SSoT only
   - Added INDEX.md links from all READMEs
+
+> 📖 See [DESIGN_DECISIONS.md](docs/dev/DESIGN_DECISIONS.md) for details
 
 ---
 

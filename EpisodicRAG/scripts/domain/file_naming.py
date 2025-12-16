@@ -5,6 +5,24 @@ File Naming Utilities
 
 ファイル名のパース・フォーマットに関するドメインロジック
 
+## 使用デザインパターン
+
+### Singleton Pattern (Module-level)
+_registry_instanceモジュール変数でRegistryインスタンスを保持。
+set_registry()で設定し、reset_registry()でリセット可能。
+
+テスト時はreset_registry()でリセットすること。
+
+## テスト時の注意
+
+テスト間でSingletonの状態が共有されるため、各テストの前後でリセットが必要。
+pytest使用時はconftest.pyのreset_all_singletons() fixtureが自動的にリセットを行う。
+
+手動リセット::
+
+    from domain.file_naming import reset_registry
+    reset_registry()
+
 Usage:
     from domain.file_naming import extract_file_number, format_digest_number
     from domain.file_naming import find_max_number, filter_files_after

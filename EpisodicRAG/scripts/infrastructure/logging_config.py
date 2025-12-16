@@ -5,6 +5,20 @@ Logging Configuration
 
 ロギング設定とユーティリティ関数を提供するインフラストラクチャ層。
 
+## Global State
+
+このモジュールはPython標準のloggingモジュールを使用しており、
+logging.getLogger()で取得するLoggerはグローバルに共有される。
+
+ハンドラーの追加・削除はグローバルに影響するため、テスト時は注意が必要。
+
+## テスト時の注意
+
+テスト間でロガーの状態が共有される可能性がある。
+必要に応じてハンドラーをクリアすること::
+
+    logging.getLogger("episodic_rag").handlers.clear()
+
 Usage:
     from infrastructure.logging_config import get_logger, log_info, log_warning, log_error
 

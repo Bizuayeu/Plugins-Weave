@@ -11,6 +11,7 @@ Components:
     - ShadowUpdater: Shadow更新・カスケード処理
     - CascadeProcessor: カスケードデータ操作
     - CascadeOrchestrator: カスケードワークフロー制御
+    - CascadeComponents: カスケード処理用パラメータオブジェクト
 """
 
 from .cascade_orchestrator import (
@@ -20,6 +21,7 @@ from .cascade_orchestrator import (
     CascadeStepStatus,
 )
 from .cascade_processor import CascadeProcessor
+from .components import CascadeComponents
 from .file_detector import FileDetector
 from .provisional_appender import ProvisionalAppender
 from .shadow_io import ShadowIO
@@ -36,5 +38,6 @@ __all__ = [
     "CascadeResult",
     "CascadeStepResult",
     "CascadeStepStatus",
+    "CascadeComponents",
     "ProvisionalAppender",
 ]

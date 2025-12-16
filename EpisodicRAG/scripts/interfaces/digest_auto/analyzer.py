@@ -1,20 +1,14 @@
 #!/usr/bin/env python3
 """
-Digest Auto CLI
-===============
+Digest Auto Analyzer
+====================
 
-健全性診断CLI。Claudeから呼び出され、システム状態を分析し、
-まだらボケを検出、生成可能なダイジェスト階層を推奨する。
+健全性診断の中核クラス。
 
-Usage:
-    python -m interfaces.digest_auto --output json
-    python -m interfaces.digest_auto --output text
+Classes:
+    DigestAutoAnalyzer: 健全性診断クラス
 """
 
-import argparse
-import re
-import sys
-from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -28,48 +22,22 @@ from domain.file_constants import (
 )
 from infrastructure.config import get_persistent_config_dir
 from infrastructure.json_repository import load_json, try_load_json
-from interfaces.cli_helpers import output_error, output_json
 
-# 表示制限の定数
-MAX_DISPLAY_FILES = 5  # テキストレポートに表示する最大ファイル数
+from .file_scanner import extract_file_number, find_gaps
+from .models import AnalysisResult, Issue, LevelStatus
+from .path_resolver import resolve_paths
 
-
-@dataclass
-class Issue:
-    """検出された問題"""
-
-    type: str  # "unprocessed_loops" | "placeholders" | "gaps"
-    level: Optional[str] = None
-    count: int = 0
-    files: List[str] = field(default_factory=list)
-    details: Optional[Dict[str, Any]] = None
-
-
-@dataclass
-class LevelStatus:
-    """階層の状態"""
-
-    level: str
-    current: int
-    threshold: int
-    ready: bool
-    source_type: str  # "loops" | level name
-
-
-@dataclass
-class AnalysisResult:
-    """分析結果"""
-
-    status: str  # "ok" | "warning" | "error"
-    issues: List[Issue] = field(default_factory=list)
-    generatable_levels: List[LevelStatus] = field(default_factory=list)
-    insufficient_levels: List[LevelStatus] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    error: Optional[str] = None
+__all__ = [
+    "DigestAutoAnalyzer",
+]
 
 
 class DigestAutoAnalyzer:
-    """健全性診断クラス"""
+    """健全性診断クラス
+
+    システム状態を分析し、まだらボケを検出、
+    生成可能なダイジェスト階層を推奨する。
+    """
 
     # 階層の親子関係とレベル順序は domain.constants.LEVEL_CONFIG, DIGEST_LEVEL_NAMES を使用
 
@@ -83,67 +51,26 @@ class DigestAutoAnalyzer:
         """設定ファイルを読み込む"""
         return load_json(self.config_file)
 
-    def _resolve_base_dir(self, config: Dict[str, Any]) -> Path:
-        """base_dirを解決"""
-        base_dir_str = config.get("base_dir", "")
-        if not base_dir_str:
-            raise ValueError("base_dir is required in config.json")
-        base_path = Path(base_dir_str).expanduser()
-        if not base_path.is_absolute():
-            raise ValueError("base_dir must be an absolute path")
-        return base_path.resolve()
-
-    def _resolve_paths(self, config: Dict[str, Any]) -> Tuple[Path, Path, Path]:
-        """設定から各種パスを解決
-
-        Args:
-            config: 設定データ
-
-        Returns:
-            (loops_path, essences_path, digests_path) のタプル
-        """
-        base_dir = self._resolve_base_dir(config)
-        paths = config.get("paths", {})
-
-        loops_path = base_dir / paths.get("loops_dir", "data/Loops")
-        essences_path = base_dir / paths.get("essences_dir", "data/Essences")
-        digests_path = base_dir / paths.get("digests_dir", "data/Digests")
-
-        return loops_path, essences_path, digests_path
-
     def _load_json_file(self, file_path: Path) -> Optional[Dict[str, Any]]:
         """JSONファイルを読み込む（存在しない場合はNone）"""
         return try_load_json(file_path, log_on_error=False)
 
-    def _extract_file_number(self, filename: str) -> Optional[int]:
-        """ファイル名から番号を抽出"""
-        # L00001, W0001, M001 などのパターンにマッチ
-        match = re.search(r"[A-Z]+(\d+)", filename)
-        if match:
-            return int(match.group(1))
-        return None
-
-    def _find_gaps(self, numbers: List[int]) -> List[int]:
-        """連番のギャップを検出"""
-        if len(numbers) < 2:
-            return []
-
-        sorted_nums = sorted(numbers)
-        gaps = []
-        for i in range(len(sorted_nums) - 1):
-            for n in range(sorted_nums[i] + 1, sorted_nums[i + 1]):
-                gaps.append(n)
-        return gaps
-
     def analyze(self) -> AnalysisResult:
-        """分析実行"""
+        """分析実行
+
+        Returns:
+            分析結果
+
+        Note:
+            エラーが発生した場合も AnalysisResult を返す（status="error"）
+        """
         issues: List[Issue] = []
         recommendations: List[str] = []
 
         try:
             # 1. 設定とパス解決
             config = self._load_config()
-            loops_path, essences_path, digests_path = self._resolve_paths(config)
+            loops_path, essences_path, digests_path = resolve_paths(config)
 
             # 2. 未処理Loop検出
             unprocessed_loops = self._check_unprocessed_loops(loops_path)
@@ -256,7 +183,7 @@ class DigestAutoAnalyzer:
         # last_processedより後のLoopを検出
         unprocessed = []
         for f in loop_files:
-            file_num = self._extract_file_number(f.stem)
+            file_num = extract_file_number(f.stem)
             if file_num is not None:
                 if last_processed is None or file_num > last_processed:
                     unprocessed.append(f.stem)
@@ -283,7 +210,7 @@ class DigestAutoAnalyzer:
 
     def _check_gaps(self, shadow_data: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         """中間ファイルスキップ検出"""
-        gaps = {}
+        gaps: Dict[str, Dict[str, Any]] = {}
         latest_digests = shadow_data.get("latest_digests", {})
 
         for level in DIGEST_LEVEL_NAMES:
@@ -295,12 +222,12 @@ class DigestAutoAnalyzer:
                 if len(source_files) > 1:
                     numbers = []
                     for f in source_files:
-                        num = self._extract_file_number(f)
+                        num = extract_file_number(f)
                         if num is not None:
                             numbers.append(num)
 
                     if numbers:
-                        missing = self._find_gaps(numbers)
+                        missing = find_gaps(numbers)
                         if missing:
                             gaps[level] = {
                                 "range": f"{source_files[0]}～{source_files[-1]}",
@@ -418,131 +345,3 @@ class DigestAutoAnalyzer:
             insufficient_levels=insufficient,
             recommendations=recommendations,
         )
-
-
-def format_text_report(result: AnalysisResult) -> str:
-    """テキスト形式でレポートをフォーマット（テスト可能）
-
-    Args:
-        result: 分析結果
-
-    Returns:
-        フォーマットされたテキストレポート
-    """
-    output = []
-    output.append("```text")
-    output.append("━" * 40)
-    output.append("📊 EpisodicRAG システム状態")
-    output.append("━" * 40)
-    output.append("")
-
-    # エラーの場合
-    if result.status == "error":
-        output.append(f"❌ エラー: {result.error}")
-        if result.recommendations:
-            output.append("")
-            for rec in result.recommendations:
-                output.append(f"  → {rec}")
-        output.append("")
-        output.append("━" * 40)
-        output.append("```")
-        return "\n".join(output)
-
-    # 問題の表示
-    if result.issues:
-        for issue in result.issues:
-            if issue.type == "unprocessed_loops":
-                output.append(f"⚠️ 未処理Loop検出: {issue.count}個")
-                for f in issue.files[:MAX_DISPLAY_FILES]:
-                    output.append(f"  - {f}")
-                if len(issue.files) > MAX_DISPLAY_FILES:
-                    output.append(f"  ... 他{len(issue.files) - MAX_DISPLAY_FILES}個")
-                output.append("")
-
-            elif issue.type == "placeholders":
-                output.append(f"⚠️ プレースホルダー検出 ({issue.level}): {issue.count}個")
-                output.append("")
-
-            elif issue.type == "gaps":
-                output.append(f"⚠️ 中間ファイルスキップ ({issue.level})")
-                if issue.details:
-                    output.append(f"  範囲: {issue.details.get('range', '')}")
-                    missing = issue.details.get("missing", [])
-                    output.append(f"  欠番: {len(missing)}個")
-                output.append("")
-
-    # 生成可能な階層
-    if result.generatable_levels:
-        output.append("✅ 生成可能なダイジェスト")
-        for level in result.generatable_levels:
-            output.append(f"  ✅ {level.level} ({level.current}/{level.threshold})")
-        output.append("")
-
-    # 不足している階層
-    if result.insufficient_levels:
-        output.append("⏳ 生成に必要なファイル数")
-        for level in result.insufficient_levels:
-            need = level.threshold - level.current
-            output.append(
-                f"  ❌ {level.level} ({level.current}/{level.threshold}) - あと{need}個必要"
-            )
-        output.append("")
-
-    # 推奨アクション
-    if result.recommendations:
-        output.append("━" * 40)
-        output.append("📈 推奨アクション")
-        output.append("━" * 40)
-        for i, rec in enumerate(result.recommendations, 1):
-            output.append(f"  {i}. {rec}")
-        output.append("")
-
-    output.append("━" * 40)
-    output.append("```")
-    return "\n".join(output)
-
-
-def print_text_report(result: AnalysisResult) -> None:
-    """テキスト形式でレポートを出力（VSCode対応）"""
-    print(format_text_report(result))
-
-
-def main() -> None:
-    """CLIエントリーポイント"""
-    parser = argparse.ArgumentParser(
-        description="EpisodicRAG Health Diagnostic",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-
-    parser.add_argument(
-        "--output",
-        choices=["json", "text"],
-        default="json",
-        help="Output format (default: json)",
-    )
-
-    args = parser.parse_args()
-
-    try:
-        analyzer = DigestAutoAnalyzer()
-        result = analyzer.analyze()
-
-        if args.output == "json":
-            output_json(asdict(result))
-        else:
-            print_text_report(result)
-
-    except Exception as e:
-        output_error(str(e))
-
-
-if __name__ == "__main__":
-    import io
-
-    # Windows UTF-8入出力対応
-    if sys.platform == "win32":
-        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
-
-    main()

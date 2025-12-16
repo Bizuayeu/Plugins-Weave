@@ -49,6 +49,7 @@ from infrastructure import get_structured_logger
 
 if TYPE_CHECKING:
     from .cascade_processor import CascadeProcessor
+    from .components import CascadeComponents
     from .file_appender import FileAppender
     from .file_detector import FileDetector
 
@@ -148,6 +149,28 @@ class CascadeOrchestrator:
         self.file_detector = file_detector
         self.file_appender = file_appender
         self.level_hierarchy = level_hierarchy
+
+    @classmethod
+    def from_components(cls, components: "CascadeComponents") -> "CascadeOrchestrator":
+        """
+        CascadeComponentsからインスタンスを生成
+
+        Args:
+            components: CascadeComponentsインスタンス
+
+        Returns:
+            CascadeOrchestrator: 構築されたオーケストレーター
+
+        Example:
+            >>> components = CascadeComponents.from_config(config)
+            >>> orchestrator = CascadeOrchestrator.from_components(components)
+        """
+        return cls(
+            cascade_processor=components.cascade_processor,
+            file_detector=components.file_detector,
+            file_appender=components.file_appender,
+            level_hierarchy=components.level_hierarchy,
+        )
 
     def execute_cascade(self, level: str) -> CascadeResult:
         """

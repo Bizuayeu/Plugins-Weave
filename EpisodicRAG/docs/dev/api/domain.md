@@ -673,6 +673,11 @@ def get_level_registry() -> LevelRegistry   # Singletonインスタンス取得
 def reset_level_registry() -> None          # テスト用リセット
 ```
 
+> **Note (v5.2.0+)**: `LevelRegistry`はシングルトンパターンを使用しています。
+> テスト間でシングルトンの状態が共有されるため、pytestでは`conftest.py`の
+> `reset_all_singletons`フィクスチャが自動的にリセットを行います。
+> 手動リセットが必要な場合は`reset_level_registry()`を呼び出してください。
+
 ---
 
 ## 定数ユーティリティ関数（domain/constants.py）
@@ -780,6 +785,11 @@ class CompositeErrorFormatter:
 def get_error_formatter(project_root: Optional[Path] = None) -> CompositeErrorFormatter
 def reset_error_formatter() -> None  # テスト用リセット
 ```
+
+> **Note (v5.2.0+)**: `CompositeErrorFormatter`はシングルトンパターンを使用しています。
+> テスト間でシングルトンの状態が共有されるため、pytestでは`conftest.py`の
+> `reset_all_singletons`フィクスチャが自動的にリセットを行います。
+> 手動リセットが必要な場合は`reset_error_formatter()`を呼び出してください。
 
 ### FormatterRegistry *(v4.1.0+)*
 

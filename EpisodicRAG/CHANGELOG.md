@@ -28,6 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Claude Codeのプラグイン自動更新（削除→再clone）時に設定が消失しなくなりました
   - 環境変数 `EPISODICRAG_CONFIG_DIR` でカスタムパスを指定可能（テスト用）
 
+### Added
+
+- **内部リファクタリング（TDD改善）**
+  - `digest_auto.py` を `digest_auto/` パッケージに分割（548行→5モジュール: models, analyzer, path_resolver, file_scanner, report）
+  - `CascadeComponents` パラメータオブジェクト追加（Parameter Object Pattern）
+  - シングルトンモジュール（`level_registry`, `error_formatter`, `file_naming`）のdocstringにリセット方法を明記
+
 ### Documentation
 
 - **INDEX.md / INDEX.en.md 新規作成**
@@ -42,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ドキュメント構成整理**
   - `_footer.md` をフッターSSoTのみに簡素化
   - 各READMEからINDEX.mdへのリンク追加
+
+> 📖 詳細は [DESIGN_DECISIONS.md](docs/dev/DESIGN_DECISIONS.md) を参照
 
 ---
 

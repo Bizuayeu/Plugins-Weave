@@ -31,6 +31,7 @@ from domain.validators import (
 # Cascade Orchestrator (v4.1.0+)
 from application.shadow import (
     CascadeOrchestrator, CascadeResult, CascadeStepResult, CascadeStepStatus,
+    CascadeComponents,  # v5.2.0+
 )
 ```
 
@@ -41,6 +42,7 @@ from application.shadow import (
 1. [バリデーション（domain/validators）](#バリデーションdomainvalidators)
 2. [Shadow管理（shadow/）](#shadow管理applicationshadow)
    - [CascadeOrchestrator](#cascadeorchestrator-v410) *(v4.1.0+)*
+   - [CascadeComponents](#cascadecomponents-v520) *(v5.2.0+)*
 3. [GrandDigest管理（grand/）](#granddigest管理applicationgrand)
 4. [Finalize処理（finalize/）](#finalize処理applicationfinalize)
 5. [時間追跡（tracking/）](#時間追跡applicationtracking)
@@ -247,6 +249,57 @@ if result.success:
 else:
     print(f"Cascade failed: {result.error_message}")
 ```
+
+### CascadeComponents *(v5.2.0+)*
+
+カスケード処理に必要なコンポーネント群をまとめるパラメータオブジェクト。
+
+> 📖 Parameter Object Pattern - [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) 参照
+
+```python
+from application.shadow import CascadeComponents
+```
+
+#### CascadeComponents
+
+```python
+@dataclass(frozen=True)
+class CascadeComponents:
+    """カスケード処理に必要なコンポーネント群"""
+    cascade_processor: CascadeProcessor
+    file_detector: FileDetector
+    file_appender: FileAppender
+    level_hierarchy: Dict[str, LevelHierarchyEntry]
+```
+
+| フィールド | 型 | 説明 |
+|-----------|------|------|
+| `cascade_processor` | `CascadeProcessor` | カスケード処理ロジック |
+| `file_detector` | `FileDetector` | 新規ファイル検出 |
+| `file_appender` | `FileAppender` | Shadowへのファイル追加 |
+| `level_hierarchy` | `Dict[str, LevelHierarchyEntry]` | レベル階層情報 |
+
+**使用例**:
+
+```python
+from application.shadow import CascadeComponents, CascadeOrchestrator
+
+# コンポーネント群をまとめる
+components = CascadeComponents(
+    cascade_processor=processor,
+    file_detector=detector,
+    file_appender=appender,
+    level_hierarchy=hierarchy,
+)
+
+# CascadeOrchestratorをコンポーネントから生成
+orchestrator = CascadeOrchestrator.from_components(components)
+```
+
+**設計意図**:
+- 4つの依存コンポーネントを1つのオブジェクトにまとめる（Parameter Object Pattern）
+- `frozen=True`で不変性を保証
+- テスト時のモック注入が容易
 
 ---
 

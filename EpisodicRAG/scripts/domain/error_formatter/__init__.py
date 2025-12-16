@@ -8,6 +8,13 @@ EpisodicRAG Error Formatter Package
 
 ## 使用デザインパターン
 
+### Singleton Pattern
+get_error_formatter()でアクセスするSingletonインスタンス。
+エラーフォーマッタはアプリケーション全体で共有されるため、
+複数インスタンスを作成する意味がない。
+
+テスト時はreset_error_formatter()でリセット可能。
+
 ### Composite Pattern
 CompositeErrorFormatterクラスが複数のカテゴリ別フォーマッタを
 統合し、単一のインターフェースで提供する。
@@ -32,6 +39,16 @@ BaseErrorFormatterクラスのformat_path()がテンプレートメソッド。
 1. BaseErrorFormatterを継承した新クラスを作成
 2. CompositeErrorFormatterに新属性として追加
 既存コードの変更は最小限。
+
+## テスト時の注意
+
+テスト間でSingletonの状態が共有されるため、各テストの前後でリセットが必要。
+pytest使用時はconftest.pyのreset_all_singletons() fixtureが自動的にリセットを行う。
+
+手動リセット::
+
+    from domain.error_formatter import reset_error_formatter
+    reset_error_formatter()
 
 Usage:
     from domain.error_formatter import get_error_formatter

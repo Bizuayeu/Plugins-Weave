@@ -75,11 +75,12 @@ test/
 │   └── test_*_properties.py # Property-based (5 files)
 ├── config_tests/            # Config層3層化対応 (15 files) [v4.0.0+]
 │   └── test_config_properties.py
-├── application_tests/       # ユースケース (25 files)
+├── application_tests/       # ユースケース (26 files)
 │   ├── grand/               # GrandDigest関連
 │   ├── shadow/              # Shadow関連（cascade_orchestrator含む）
 │   │   ├── test_shadow_io_properties.py
-│   │   └── test_provisional_appender.py
+│   │   ├── test_provisional_appender.py
+│   │   └── test_shadow_components.py  # CascadeComponents [v5.2.0+]
 │   ├── finalize/            # Finalize処理
 │   │   └── validators/      # バリデータ
 │   ├── test_cascade_properties.py
@@ -89,7 +90,9 @@ test/
 │   ├── test_file_scanner_properties.py
 │   └── test_json_repository_properties.py
 ├── interfaces_tests/        # エントリポイント (28 files)
-│   └── provisional/         # Provisional処理
+│   ├── provisional/         # Provisional処理
+│   └── digest_auto/         # digest_auto パッケージ [v5.3.0+]
+│       └── (test_auto_*.py がパッケージ内モジュールをテスト)
 ├── integration_tests/       # E2Eシナリオ (14 files)
 ├── cli_integration_tests/   # CLI E2E (4 files) [v4.0.0+]
 ├── performance_tests/       # ベンチマーク (1 file)
@@ -108,7 +111,7 @@ test/
 | **Config** | `test_config.py`, `test_path_resolver.py`, `test_threshold_provider.py`, `test_config_builder.py` | 15 |
 | **Infrastructure** | `test_json_repository.py`, `test_file_scanner.py`, `test_logging_config.py`, `test_path_validators.py`, `test_persistent_path.py` | 13 |
 | **Application** | `test_shadow_*.py`, `test_grand_digest.py`, `test_cascade_orchestrator.py`, `test_persistence.py` | 24 |
-| **Interfaces** | `test_finalize_from_shadow.py`, `test_*_cli_*.py`, `test_setup_*.py`, `test_auto_*.py`, `test_digest_auto_detection.py`, `test_cli_helpers.py`, `test_digest_readiness.py`, `test_digest_entry.py`, `test_encoding.py` | 27 |
+| **Interfaces** | `test_finalize_from_shadow.py`, `test_*_cli_*.py`, `test_setup_*.py`, `test_auto_*.py` (digest_autoパッケージ対応 v5.3.0+), `test_digest_auto_detection.py`, `test_cli_helpers.py`, `test_digest_readiness.py`, `test_digest_entry.py`, `test_encoding.py` | 27 |
 | **Integration** | `test_e2e_workflow.py`, `test_full_cascade.py`, `test_config_integration.py` | 14 |
 | **CLI Integration** | `test_digest_*_cli.py`, `test_workflow_cli.py` | 4 |
 | **Performance** | `test_benchmarks.py` | 1 |
@@ -216,9 +219,26 @@ def test_with_loops(sample_loop_files):
 
 テスト間の状態分離を保証する自動実行フィクスチャ。
 
-- `level_registry`: レベル設定のシングルトン
-- `file_naming`: ファイル命名用レジストリ参照
-- `error_formatter`: エラーフォーマッタのデフォルトインスタンス
+**リセット対象 [v5.2.0+ 更新]:**
+
+| モジュール | リセット関数 | 説明 |
+|-----------|-------------|------|
+| `level_registry` | `reset_level_registry()` | レベル設定のシングルトン |
+| `file_naming` | `reset_registry()` | ファイル命名用レジストリ参照 |
+| `error_formatter` | `reset_error_formatter()` | エラーフォーマッタのデフォルトインスタンス |
+
+**手動リセット例:**
+```python
+from domain.level_registry import reset_level_registry
+from domain.file_naming import reset_registry
+from domain.error_formatter import reset_error_formatter
+
+reset_level_registry()
+reset_registry()
+reset_error_formatter()
+```
+
+> **Note**: 各シングルトンモジュールのdocstringにリセット方法が記載されています（v5.2.0+）。
 
 #### `mock_digest_config`
 

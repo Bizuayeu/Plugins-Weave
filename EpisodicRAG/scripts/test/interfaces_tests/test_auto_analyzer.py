@@ -280,26 +280,22 @@ class TestDigestAutoAnalyzerHelpers(unittest.TestCase):
     @pytest.mark.unit
     def test_extract_file_number(self) -> None:
         """ファイル名から番号を抽出する"""
-        from interfaces.digest_auto import DigestAutoAnalyzer
+        from interfaces.digest_auto.file_scanner import extract_file_number
 
-        analyzer = DigestAutoAnalyzer()
-
-        assert analyzer._extract_file_number("L00001_Test.txt") == 1
-        assert analyzer._extract_file_number("W0005_Weekly.txt") == 5
-        assert analyzer._extract_file_number("M003_Monthly.txt") == 3
-        assert analyzer._extract_file_number("invalid") is None
+        assert extract_file_number("L00001_Test.txt") == 1
+        assert extract_file_number("W0005_Weekly.txt") == 5
+        assert extract_file_number("M003_Monthly.txt") == 3
+        assert extract_file_number("invalid") is None
 
     @pytest.mark.unit
     def test_find_gaps(self) -> None:
         """連番のギャップを検出する"""
-        from interfaces.digest_auto import DigestAutoAnalyzer
+        from interfaces.digest_auto.file_scanner import find_gaps
 
-        analyzer = DigestAutoAnalyzer()
-
-        assert analyzer._find_gaps([1, 2, 3]) == []
-        assert analyzer._find_gaps([1, 3, 5]) == [2, 4]
-        assert analyzer._find_gaps([1]) == []
-        assert analyzer._find_gaps([]) == []
+        assert find_gaps([1, 2, 3]) == []
+        assert find_gaps([1, 3, 5]) == [2, 4]
+        assert find_gaps([1]) == []
+        assert find_gaps([]) == []
 
     @pytest.mark.unit
     def test_load_json_file_returns_none_for_invalid_json(self) -> None:

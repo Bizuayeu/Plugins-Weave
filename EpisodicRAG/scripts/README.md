@@ -116,7 +116,7 @@ from infrastructure.error_handling import handle_error
 |---------|---------|
 | `validators.py` | バリデーション関数（`validate_dict`, `is_valid_list`） |
 | `tracking/` | 時間追跡（`DigestTimesTracker`） |
-| `shadow/` | Shadow管理（`ShadowTemplate`, `ShadowUpdater`, `ShadowIO`, `FileDetector`, `CascadeProcessor`, `CascadeOrchestrator` *(v4.1.0+)*, `FileAppender`, `PlaceholderManager`, `ProvisionalAppender`） |
+| `shadow/` | Shadow管理（`ShadowTemplate`, `ShadowUpdater`, `ShadowIO`, `FileDetector`, `CascadeProcessor`, `CascadeOrchestrator` *(v4.1.0+)*, `CascadeComponents` *(v5.2.0+)*, `FileAppender`, `PlaceholderManager`, `ProvisionalAppender`） |
 | `grand/` | GrandDigest管理（`GrandDigestManager`, `ShadowGrandDigestManager`） |
 | `finalize/` | Finalize処理（`ShadowValidator`, `ProvisionalLoader`, `RegularDigestBuilder`, `DigestPersistence`） |
 
@@ -135,7 +135,7 @@ from domain.validators import validate_type, is_valid_dict, is_valid_list
 | `save_provisional_digest.py` | `ProvisionalDigestSaver` | Provisional保存 |
 | `digest_setup.py` | - | 初期セットアップCLI (`python -m interfaces.digest_setup`) |
 | `digest_config.py` | - | 設定変更CLI (`python -m interfaces.digest_config`) |
-| `digest_auto.py` | - | 健全性診断CLI (`python -m interfaces.digest_auto`) |
+| `digest_auto/` | - | 健全性診断CLIパッケージ (`python -m interfaces.digest_auto`) *(v5.2.0+パッケージ化)* |
 | `shadow_state_checker.py` | - | Shadow状態チェッカー |
 | `config_cli.py` | - | 設定CLIエントリーポイント |
 | `interface_helpers.py` | - | ヘルパー関数（`sanitize_filename`, `get_next_digest_number`） |

@@ -51,6 +51,7 @@
 | 永続化設定ディレクトリ (v5.2.0+) | プラグイン内配置, 環境変数 | 自動更新耐性、設定保持、データ保護 |
 | キャッシュディレクトリ権限制御 (v5.2.0+) | 権限なし, 読み取り専用 | 動作安定性、キャッシュ汚染防止 |
 | Loop ID 5桁化 (v3.0.0+) | 4桁維持, 可変長, UUID | 10万件対応、ソート順維持、可読性 |
+| Parameter Object (CascadeComponents) v5.2.0+ | 個別引数, Dict, Builder | 依存性のグループ化、コンストラクタ簡素化、変更耐性 |
 
 ---
 
@@ -109,6 +110,46 @@
 - **目的**: パス検証ルールの順次適用
 - **設計判断**: PluginRootValidator → TrustedExternalPathValidatorの順で検証
 - **SOLID**: OCP（新Validator追加が容易）、SRP（各Validatorが単一検証ルール）
+
+### Parameter Object Pattern (v5.2.0+)
+- **実装**: `application/shadow/components.py` (CascadeComponents)
+- **目的**: 複数の依存性をグループ化し、コンストラクタの引数を簡素化
+- **設計判断**: 関連する依存性を不変（frozen）のdataclassとしてまとめる
+- **SOLID**: SRP（依存性管理の責務を分離）、OCP（新依存性追加が容易）
+
+**なぜParameter Objectを導入したか**:
+
+| 観点 | 個別引数 | Dict | Builder | Parameter Object |
+|------|---------|------|---------|------------------|
+| 型安全性 | 高 | 低 | 中〜高 | 高 |
+| 可読性 | 引数多いと低下 | 低 | 高 | 高 |
+| IDE補完 | ○ | × | ○ | ○ |
+| 変更耐性 | 低（シグネチャ変更） | 高 | 高 | 高 |
+| イミュータビリティ | 制御可能 | 不可 | 制御可能 | frozen=True |
+
+**選択理由**: CascadeOrchestratorのコンストラクタが4つ以上の依存性を持ち、
+関連する依存性をグループ化することでコードの意図が明確になる。
+frozenなdataclassにより不変性を保証し、型安全性とIDE補完を両立。
+
+**使用例**:
+```python
+# Before: 個別引数
+orchestrator = CascadeOrchestrator(
+    cascade_processor=processor,
+    file_detector=detector,
+    file_appender=appender,
+    level_hierarchy=hierarchy,
+)
+
+# After: Parameter Object
+components = CascadeComponents(
+    cascade_processor=processor,
+    file_detector=detector,
+    file_appender=appender,
+    level_hierarchy=hierarchy,
+)
+orchestrator = CascadeOrchestrator(components)
+```
 
 ---
 

@@ -150,6 +150,7 @@ scripts/
 │   │   ├── shadow_updater.py        # ShadowUpdater
 │   │   ├── cascade_processor.py     # CascadeProcessor
 │   │   ├── cascade_orchestrator.py  # CascadeOrchestrator (v4.1.0+)
+│   │   ├── components.py            # CascadeComponents (v5.2.0+)
 │   │   ├── file_appender.py         # FileAppender
 │   │   └── placeholder_manager.py   # PlaceholderManager
 │   ├── grand/                       # GrandDigest
@@ -177,7 +178,14 @@ scripts/
 │   ├── config_cli.py                # 設定CLIエントリーポイント
 │   ├── digest_setup.py              # @digest-setup CLI (v4.0.0+)
 │   ├── digest_config.py             # @digest-config CLI (v4.0.0+)
-│   ├── digest_auto.py               # @digest-auto CLI (v4.0.0+)
+│   ├── digest_auto/                 # @digest-auto CLI (v5.2.0+パッケージ化)
+│   │   ├── __init__.py              # 公開API
+│   │   ├── models.py                # Issue, LevelStatus, AnalysisResult
+│   │   ├── analyzer.py              # DigestAutoAnalyzer
+│   │   ├── path_resolver.py         # パス解決ユーティリティ
+│   │   ├── file_scanner.py          # ファイルスキャンユーティリティ
+│   │   ├── report.py                # レポートフォーマット
+│   │   └── __main__.py              # CLIエントリーポイント
 │   ├── shadow_state_checker.py      # Shadow状態チェッカー
 │   └── provisional/                 # Provisionalサブパッケージ
 │       ├── __init__.py

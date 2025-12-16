@@ -99,6 +99,7 @@ EpisodicRAGで使用されているデザインパターン一覧：
 | **Registry** *(v4.1.0+)* | `FormatterRegistry` | エラーフォーマッタの動的登録と取得 |
 | **Orchestrator** *(v4.1.0+)* | `CascadeOrchestrator` | カスケード処理のワークフロー制御と結果構造化 |
 | **Chain of Responsibility** *(v4.1.0+)* | `ChainedLoader`, `PathValidatorChain` | 処理戦略の順次試行・検証ルールの順次適用 |
+| **Parameter Object** *(v5.2.0+)* | `CascadeComponents` | 複数の依存性をグループ化しコンストラクタを簡素化 |
 
 > 📖 パターン選択の根拠: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)
 

@@ -32,7 +32,7 @@ from interfaces import (
 
 1. [SetupManager（digest_setup.py）](#setupmanagerdigest_setuppy)
 2. [ConfigEditor（digest_config.py）](#configeditordigest_configpy)
-3. [DigestAutoAnalyzer（digest_auto.py）](#digestautoanalyzerdigest_autopy)
+3. [DigestAutoAnalyzer（digest_auto/ パッケージ）](#digestautoanalyzerdigest_auto-パッケージ) *(v5.2.0+分割)*
 4. [DigestFinalizerFromShadow](#digestfinalizerfromshadow)
 5. [ProvisionalDigestSaver](#provisionaldigestsaver)
 6. [Provisionalサブパッケージ](#provisionalサブパッケージinterfacesprovisional)
@@ -137,11 +137,31 @@ python -m interfaces.digest_config trusted-paths remove "~/DEV/production"
 
 ---
 
-## DigestAutoAnalyzer（digest_auto.py）
+## DigestAutoAnalyzer（digest_auto/ パッケージ）
 
 健全性診断CLI。システム状態を分析し、まだらボケを検出、生成可能なダイジェスト階層を推奨。
 
+> **v5.2.0+**: `digest_auto.py`は`digest_auto/`パッケージに分割されました。
+> 後方互換性のため、同じインポートパスで使用可能です。
+
+### パッケージ構成 *(v5.2.0+)*
+
+```text
+interfaces/digest_auto/
+├── __init__.py              # 公開API
+├── models.py                # Issue, LevelStatus, AnalysisResult
+├── analyzer.py              # DigestAutoAnalyzer本体
+├── path_resolver.py         # パス解決ユーティリティ
+├── file_scanner.py          # ファイルスキャンユーティリティ
+├── report.py                # レポートフォーマット
+└── __main__.py              # CLIエントリーポイント
+```
+
+### DigestAutoAnalyzer
+
 ```python
+from interfaces.digest_auto import DigestAutoAnalyzer, AnalysisResult
+
 class DigestAutoAnalyzer:
     def __init__(self) -> None: ...
 
