@@ -4,6 +4,8 @@
 
 AI/Claudeエージェント向けの技術仕様ハブです。
 
+> 📖 ドキュメント一覧: [INDEX.md](../INDEX.md) - 全ドキュメントへのナビゲーション
+>
 > 📖 ユーザー向けドキュメント: [プロジェクト README](../../README.md)
 >
 > 📖 開発参加ガイド: [CONTRIBUTING.md](../CONTRIBUTING.md)

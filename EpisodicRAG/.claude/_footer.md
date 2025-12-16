@@ -10,63 +10,8 @@
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
 ```
 
-## 適用ファイル一覧
+## 適用対象
 
-### ルート（plugins-weave/）
-- `README.md`
-- `README.en.md`
+すべての `.md` ファイルに適用されます。
 
-### EpisodicRAG/
-- `README.md`
-- `README.en.md`
-- `CONCEPT.md`
-- `CONCEPT.en.md`
-- `CONTRIBUTING.md`
-- `CONTRIBUTING.en.md`
-- `CHANGELOG.md`
-- `CHANGELOG.en.md`
-
-### EpisodicRAG/.claude/
-- `CLAUDE.md`
-
-### EpisodicRAG/docs/
-- `README.md`
-
-### EpisodicRAG/docs/user/
-- `QUICKSTART.md`
-- `QUICKSTART.en.md`
-- `GUIDE.md`
-- `FAQ.md`
-- `ADVANCED.md`
-- `TROUBLESHOOTING.md`
-- `CHEATSHEET.md`
-- `CHEATSHEET.en.md`
-
-### EpisodicRAG/docs/dev/
-- `ARCHITECTURE.md`
-- `API_REFERENCE.md`
-- `DESIGN_DECISIONS.md`
-- `LEARNING_PATH.md`
-- `ERROR_RECOVERY_PATTERNS.md`
-
-### EpisodicRAG/docs/dev/api/
-- `domain.md`
-- `interfaces.md`
-- `application.md`
-- `config.md`
-- `infrastructure.md`
-
-### EpisodicRAG/scripts/
-- `README.md`
-- `test/TESTING.md`
-
-### EpisodicRAG/agents/
-- `digest-analyzer.md`
-
-### EpisodicRAG/commands/
-- `digest.md`
-
-### EpisodicRAG/skills/
-- `digest-setup/SKILL.md`
-- `digest-config/SKILL.md`
-- `digest-auto/SKILL.md`
+> 📖 ドキュメント一覧: [INDEX.md](../INDEX.md)

@@ -463,6 +463,7 @@ Multilingual documentation policy for EpisodicRAG:
 
 ## Related Documents
 
+- [Document Index](INDEX.en.md) - Navigation to all documents
 - [Main README](../README.md) - Project Overview
 - [CONCEPT](CONCEPT.en.md) - Design Philosophy
 - [AI Spec Hub](docs/README.md) - Command, Skill & Agent Specifications

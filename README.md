@@ -33,6 +33,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 
 | あなたは... | 読むべきドキュメント |
 |------------|---------------------|
+| 📚 **全ドキュメント一覧** | [INDEX.md](EpisodicRAG/INDEX.md) |
 | 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [用語集](EpisodicRAG/README.md) |
 | 📘 **日常的に使う** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) |
 | 📝 **早見表** | [CHEATSHEET](EpisodicRAG/docs/user/CHEATSHEET.md) |
