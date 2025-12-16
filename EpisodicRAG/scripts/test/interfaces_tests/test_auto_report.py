@@ -87,9 +87,7 @@ class TestFormatTextReport(unittest.TestCase):
         files = [f"L{i:05d}_test.txt" for i in range(1, 8)]  # 7 files
         result = AnalysisResult(
             status="warning",
-            issues=[
-                Issue(type="unprocessed_loops", count=7, files=files)
-            ],
+            issues=[Issue(type="unprocessed_loops", count=7, files=files)],
         )
         output = format_text_report(result)
 
@@ -104,9 +102,7 @@ class TestFormatTextReport(unittest.TestCase):
         """プレースホルダー検出の表示"""
         result = AnalysisResult(
             status="warning",
-            issues=[
-                Issue(type="placeholders", level="weekly", count=2)
-            ],
+            issues=[Issue(type="placeholders", level="weekly", count=2)],
         )
         output = format_text_report(result)
 
@@ -195,9 +191,7 @@ class TestFormatTextReport(unittest.TestCase):
         files = [f"L{i:05d}_test.txt" for i in range(1, 6)]  # 5 files
         result = AnalysisResult(
             status="warning",
-            issues=[
-                Issue(type="unprocessed_loops", count=5, files=files)
-            ],
+            issues=[Issue(type="unprocessed_loops", count=5, files=files)],
         )
         output = format_text_report(result)
 

@@ -70,6 +70,7 @@ class TestResolvePaths(unittest.TestCase):
     def tearDown(self) -> None:
         """一時ディレクトリを削除"""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_default_paths(self) -> None:
