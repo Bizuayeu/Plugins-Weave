@@ -11,10 +11,10 @@ Functions tested:
     - MAX_DISPLAY_FILES: 表示上限定数
 """
 
+import sys
 import unittest
 from pathlib import Path
 
-import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from interfaces.digest_auto.models import AnalysisResult, Issue, LevelStatus

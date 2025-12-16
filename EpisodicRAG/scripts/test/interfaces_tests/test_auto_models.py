@@ -13,11 +13,11 @@ Classes tested:
 """
 
 import json
+import sys
 import unittest
 from dataclasses import asdict
 from pathlib import Path
 
-import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from interfaces.digest_auto.models import AnalysisResult, Issue, LevelStatus

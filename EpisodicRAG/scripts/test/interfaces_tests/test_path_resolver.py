@@ -11,11 +11,11 @@ Functions tested:
     - resolve_paths: loops, essences, digests パスの解決
 """
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from interfaces.digest_auto.path_resolver import resolve_base_dir, resolve_paths
