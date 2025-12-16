@@ -67,7 +67,9 @@ class TestCascadeComponents:
 
 
 @pytest.mark.integration
-@pytest.mark.skip(reason="from_config requires additional DigestConfig properties - future enhancement")
+@pytest.mark.skip(
+    reason="from_config requires additional DigestConfig properties - future enhancement"
+)
 class TestCascadeComponentsFromConfig:
     """CascadeComponents.from_configファクトリメソッドのテスト
 

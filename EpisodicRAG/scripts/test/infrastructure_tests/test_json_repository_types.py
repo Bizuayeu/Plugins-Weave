@@ -74,9 +74,7 @@ class TestJsonRepositoryTypeSafety:
 
         assert result is None
 
-    def test_safe_read_json_with_valid_file(
-        self, temp_plugin_env: "TempPluginEnvironment"
-    ) -> None:
+    def test_safe_read_json_with_valid_file(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """safe_read_jsonが有効なファイルを読み込めることを確認"""
         from infrastructure.json_repository import safe_read_json
 
