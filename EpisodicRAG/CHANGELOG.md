@@ -28,6 +28,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Claude Codeのプラグイン自動更新（削除→再clone）時に設定が消失しなくなりました
   - 環境変数 `EPISODICRAG_CONFIG_DIR` でカスタムパスを指定可能（テスト用）
 
+### Documentation
+
+- **INDEX.md / INDEX.en.md 新規作成**
+  - 全ドキュメントへのナビゲーション
+  - 読者別ガイド（初心者/日常利用/トラブル時/開発者/AI向け）
+  - ドキュメント更新時のチェックリストとしても機能
+
+- **CLAUDE.md 改善**
+  - 「利用可能な機能」セクション追加（コマンド/スキル/エージェント/基本ワークフロー）
+  - AIが初見でもプラグインを使えるように
+
+- **ドキュメント構成整理**
+  - `_footer.md` をフッターSSoTのみに簡素化
+  - 各READMEからINDEX.mdへのリンク追加
+
 ---
 
 ## [5.1.0] - 2025-12-07

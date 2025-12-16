@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-14 -->
+<!-- Last synced: 2025-12-16 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -28,6 +28,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Moved config.json and last_digest_times.json to `~/.claude/plugins/.episodicrag/`
   - Configuration is no longer lost during Claude Code plugin auto-updates (delete → re-clone)
   - Environment variable `EPISODICRAG_CONFIG_DIR` allows custom path specification (for testing)
+
+### Documentation
+
+- **INDEX.md / INDEX.en.md added**
+  - Navigation to all documents
+  - Reader-based guide (beginners/daily use/troubleshooting/developers/AI)
+  - Also serves as a checklist for documentation updates
+
+- **CLAUDE.md improvements**
+  - Added "Available Features" section (commands/skills/agents/basic workflow)
+  - AI can now use the plugin from first encounter
+
+- **Documentation structure cleanup**
+  - Simplified `_footer.md` to footer SSoT only
+  - Added INDEX.md links from all READMEs
 
 ---
 
