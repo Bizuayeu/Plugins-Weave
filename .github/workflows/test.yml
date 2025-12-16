@@ -63,8 +63,8 @@ jobs:
         run: pip install mypy
 
       - name: Run mypy
-        working-directory: EpisodicRAG
-        run: mypy scripts/
+        working-directory: EpisodicRAG/scripts
+        run: mypy --explicit-package-bases .
 
   test:
     runs-on: ubuntu-latest

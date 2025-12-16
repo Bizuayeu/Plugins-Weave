@@ -39,6 +39,8 @@ Usage:
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict
 
+from domain.constants import DIGEST_LEVEL_NAMES, build_level_hierarchy
+from domain.file_constants import SHADOW_GRAND_DIGEST_FILENAME
 from domain.types import LevelHierarchyEntry
 
 if TYPE_CHECKING:
@@ -97,28 +99,31 @@ class CascadeComponents:
         from application.shadow.cascade_processor import CascadeProcessor
         from application.shadow.file_appender import FileAppender
         from application.shadow.file_detector import FileDetector
+        from application.shadow.placeholder_manager import PlaceholderManager
         from application.shadow.provisional_appender import ProvisionalAppender
         from application.shadow.shadow_io import ShadowIO
         from application.shadow.template import ShadowTemplate
         from application.tracking import DigestTimesTracker
 
+        # レベル階層を構築
+        level_hierarchy = build_level_hierarchy()
+
         # 依存コンポーネントの構築
-        times_tracker = DigestTimesTracker(config.persistent_config_dir)
-        template = ShadowTemplate(config.digest_level_names)
+        times_tracker = DigestTimesTracker(config)
+        template = ShadowTemplate(DIGEST_LEVEL_NAMES)
+        shadow_digest_file = config.essences_path / SHADOW_GRAND_DIGEST_FILENAME
         shadow_io = ShadowIO(
-            config.shadow_digest_file,
+            shadow_digest_file,
             template_factory=template.get_template,
         )
 
         # PlaceholderManager
-        from application.shadow.placeholder_manager import PlaceholderManager
-
-        placeholder_manager = PlaceholderManager(template.get_template)
+        placeholder_manager = PlaceholderManager()
 
         # ProvisionalAppender
         provisional_appender = ProvisionalAppender(
-            template=template,
-            level_hierarchy=config.level_hierarchy,
+            config=config,
+            level_hierarchy=level_hierarchy,
         )
 
         # FileDetector
@@ -129,7 +134,7 @@ class CascadeComponents:
             shadow_io=shadow_io,
             file_detector=file_detector,
             template=template,
-            level_hierarchy=config.level_hierarchy,
+            level_hierarchy=level_hierarchy,
             placeholder_manager=placeholder_manager,
         )
 
@@ -138,7 +143,7 @@ class CascadeComponents:
             shadow_io=shadow_io,
             file_detector=file_detector,
             template=template,
-            level_hierarchy=config.level_hierarchy,
+            level_hierarchy=level_hierarchy,
             file_appender=file_appender,
             provisional_appender=provisional_appender,
         )
@@ -147,5 +152,5 @@ class CascadeComponents:
             cascade_processor=cascade_processor,
             file_detector=file_detector,
             file_appender=file_appender,
-            level_hierarchy=config.level_hierarchy,
+            level_hierarchy=level_hierarchy,
         )

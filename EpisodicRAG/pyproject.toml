@@ -135,7 +135,6 @@ known-third-party = ["pytest", "hypothesis"]
 
 [tool.mypy]
 python_version = "3.10"
-mypy_path = "scripts"
 
 # Strict mode settings (equivalent to --strict flag)
 strict = true
@@ -244,17 +243,6 @@ disallow_incomplete_defs = true
 # TypedDict/Union型エラーは設定で抑制不可のため、テスト層は型チェック対象外
 [[tool.mypy.overrides]]
 module = [
-    "application_tests.*",
-    "cli_integration_tests.*",
-    "config_tests.*",
-    "conftest",
-    "domain_tests.*",
-    "infrastructure_tests.*",
-    "integration_tests.*",
-    "interfaces_tests.*",
-    "performance_tests.*",
-    "test_constants",
-    "test_helpers",
-    "tools_tests.*",
+    "test.*",
 ]
 ignore_errors = true

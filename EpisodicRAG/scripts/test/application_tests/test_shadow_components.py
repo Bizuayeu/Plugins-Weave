@@ -96,8 +96,8 @@ class TestCascadeOrchestratorWithComponents:
 
     def test_orchestrator_accepts_components(self) -> None:
         """CascadeOrchestratorがCascadeComponentsを受け入れる"""
-        from application.shadow.components import CascadeComponents
         from application.shadow.cascade_orchestrator import CascadeOrchestrator
+        from application.shadow.components import CascadeComponents
 
         cascade_processor = MagicMock()
         file_detector = MagicMock()

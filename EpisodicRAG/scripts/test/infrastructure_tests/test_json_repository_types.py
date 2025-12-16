@@ -38,7 +38,7 @@ class TestJsonRepositoryTypeSafety:
 
     def test_save_json_accepts_dict(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """save_jsonがDict型を受け入れることを確認"""
-        from infrastructure.json_repository import save_json, load_json
+        from infrastructure.json_repository import load_json, save_json
 
         test_file = temp_plugin_env.plugin_root / "output.json"
         data = {"status": "success", "items": [1, 2, 3]}
@@ -110,8 +110,8 @@ class TestJsonRepositoryErrorHandling:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """load_jsonがファイル不在時にFileIOErrorを発生させることを確認"""
-        from infrastructure.json_repository import load_json
         from domain.exceptions import FileIOError
+        from infrastructure.json_repository import load_json
 
         missing_file = temp_plugin_env.plugin_root / "missing.json"
 
@@ -122,8 +122,8 @@ class TestJsonRepositoryErrorHandling:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """load_jsonが無効なJSONでFileIOErrorを発生させることを確認"""
-        from infrastructure.json_repository import load_json
         from domain.exceptions import FileIOError
+        from infrastructure.json_repository import load_json
 
         test_file = temp_plugin_env.plugin_root / "invalid.json"
         test_file.write_text('{"broken": }', encoding="utf-8")
@@ -135,8 +135,8 @@ class TestJsonRepositoryErrorHandling:
         self, temp_plugin_env: "TempPluginEnvironment"
     ) -> None:
         """safe_read_jsonがraise_on_error=Trueで例外を発生させることを確認"""
-        from infrastructure.json_repository import safe_read_json
         from domain.exceptions import FileIOError
+        from infrastructure.json_repository import safe_read_json
 
         test_file = temp_plugin_env.plugin_root / "invalid.json"
         test_file.write_text('not valid json', encoding="utf-8")

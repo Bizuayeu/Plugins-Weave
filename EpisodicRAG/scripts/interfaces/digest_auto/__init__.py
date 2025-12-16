@@ -44,7 +44,6 @@ __all__ = [
 def main() -> None:
     """CLIエントリーポイント"""
     import argparse
-    import sys
 
     from interfaces.cli_helpers import output_error, output_json
 
