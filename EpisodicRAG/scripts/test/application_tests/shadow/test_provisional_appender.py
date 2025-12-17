@@ -57,6 +57,7 @@ def sample_finalized_digest() -> "Dict[str, Any]":
             "version": "1.0",
         },
         "overall_digest": {
+            "name": "W0053_テストタイトル",  # フル名（RegularDigestBuilder.buildで生成）
             "timestamp": "2025-12-08T00:00:00",
             "source_files": ["L00261_test.txt", "L00262_test.txt"],
             "digest_type": "weekly",
@@ -325,3 +326,79 @@ class TestProvisionalAppenderEdgeCases:
             data = json.load(f)
 
         assert data["metadata"]["last_updated"] != old_timestamp
+
+
+# =============================================================================
+# filename フォーマットテスト（SGD source_files との整合性）
+# =============================================================================
+
+
+class TestProvisionalFilenameMatchesSGD:
+    """Provisional filename が SGD source_files と一致するテスト
+
+    digest_readiness.py は SGD.source_files と Provisional.filename を
+    完全一致で比較するため、filename にはフル名（タイトル含む）が必要。
+    """
+
+    @pytest.mark.integration
+    def test_filename_includes_full_digest_name(
+        self,
+        provisional_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        sample_finalized_digest: "Dict[str, Any]",
+    ) -> None:
+        """追加されるエントリのfilenameがoverall_digest.name + .txt形式であること"""
+        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+
+        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        provisional_file = list(monthly_provisional_dir.glob("M*_Individual.txt"))[0]
+
+        with open(provisional_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        entry = data["individual_digests"][0]
+        # source_fileフィールドを使用（digest_readiness.pyとの整合性）
+        assert "source_file" in entry
+        # フル名 (W0053_テストタイトル.txt) であること
+        assert entry["source_file"] == "W0053_テストタイトル.txt"
+        # 短縮名 (W0053.txt) ではないこと
+        assert entry["source_file"] != "W0053.txt"
+
+    @pytest.mark.integration
+    def test_filename_fallback_when_name_missing(
+        self,
+        provisional_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+    ) -> None:
+        """overall_digest.name がない場合、prefix+number.txt にフォールバック"""
+        # nameフィールドなしのダイジェスト
+        digest_without_name = {
+            "metadata": {
+                "digest_level": "weekly",
+                "digest_number": "0099",
+                "created_at": "2025-12-08T00:00:00",
+                "version": "1.0",
+            },
+            "overall_digest": {
+                # "name" フィールドなし（レガシーデータ対応）
+                "timestamp": "2025-12-08T00:00:00",
+                "source_files": [],
+                "digest_type": "test",
+                "keywords": [],
+                "abstract": "",
+                "impression": "",
+            },
+            "individual_digests": [],
+        }
+
+        provisional_appender.append_to_next_provisional("weekly", digest_without_name)
+
+        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        provisional_file = list(monthly_provisional_dir.glob("M*_Individual.txt"))[0]
+
+        with open(provisional_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        entry = data["individual_digests"][0]
+        # フォールバック: W0099.txt
+        assert entry["source_file"] == "W0099.txt"

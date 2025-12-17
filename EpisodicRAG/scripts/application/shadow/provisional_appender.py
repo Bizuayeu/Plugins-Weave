@@ -154,17 +154,19 @@ class ProvisionalAppender:
         metadata = finalized_digest.get("metadata", {})
         overall = finalized_digest.get("overall_digest", {})
 
-        # ファイル名を構築 (e.g., W0053_タイトル.txt)
+        # ファイル名を構築: overall_digest.name にフル名が格納されている
+        # (e.g., "W0053_タイトル" → "W0053_タイトル.txt")
         level = metadata.get("digest_level", "")
         level_cfg: Union[LevelConfigData, Dict[str, Any]] = self.level_config.get(level, {})
         prefix = level_cfg.get("prefix", "X")
         digest_num = metadata.get("digest_number", "0000")
 
-        # 基本ファイル名（タイトルなしの場合）
-        filename = f"{prefix}{digest_num}.txt"
+        # overall_digest.name からフル名を取得（なければフォールバック）
+        digest_name = overall.get("name", f"{prefix}{digest_num}")
+        filename = f"{digest_name}.txt"
 
         return {
-            "filename": filename,
+            "source_file": filename,  # digest_readiness.pyとの整合性のためsource_fileを使用
             "digest_type": overall.get("digest_type", ""),
             "keywords": overall.get("keywords", []),
             "abstract": overall.get("abstract", ""),
@@ -184,13 +186,14 @@ class ProvisionalAppender:
         Returns:
             重複していればTrue
         """
-        new_filename = new_entry.get("filename", "")
+        new_source_file = new_entry.get("source_file", "")
         # プレフィックス+番号でマッチング (e.g., "W0053" の部分)
-        new_base = new_filename.split("_")[0].replace(".txt", "")
+        new_base = new_source_file.split("_")[0].replace(".txt", "")
 
         for existing in individual_digests:
-            existing_filename = existing.get("filename", "")
-            existing_base = existing_filename.split("_")[0].replace(".txt", "")
+            # 既存データは filename または source_file のどちらかを持つ可能性がある
+            existing_source_file = existing.get("source_file") or existing.get("filename", "")
+            existing_base = existing_source_file.split("_")[0].replace(".txt", "")
             if new_base == existing_base:
                 return True
         return False
