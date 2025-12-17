@@ -429,7 +429,7 @@ class TestCascadeWithProvisionalAppender:
 
         assert "individual_digests" in data
         assert len(data["individual_digests"]) == 1
-        assert "W0053" in data["individual_digests"][0].get("filename", "")
+        assert "W0053" in data["individual_digests"][0].get("source_file", "")
 
     @pytest.mark.integration
     def test_cascade_preserves_source_files_addition(
