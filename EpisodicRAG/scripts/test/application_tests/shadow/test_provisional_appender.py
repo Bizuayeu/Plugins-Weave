@@ -487,6 +487,7 @@ class TestProvisionalNumberingFromExistingRegular:
         # ディレクトリ自体も存在しない状態を確認
         if monthly_dir.exists():
             import shutil
+
             shutil.rmtree(monthly_dir)
 
         # Act
