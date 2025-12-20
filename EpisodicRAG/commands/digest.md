@@ -44,14 +44,20 @@ cd <your-dev-folder>/plugins-weave/EpisodicRAG/scripts
 ### 2. 出力の保存方法
 
 DigestAnalyzerの出力は長文JSON（4000文字以上）のため、
-**stdinパイプで渡すこと**を推奨します。
+**一時ファイル経由で渡すこと**を推奨します。
 
 ```bash
-echo '{"individual_digests": [...]}' | python -m interfaces.save_provisional_digest weekly --stdin --append
+# 1. Writeツールで一時ファイルに書き込み
+# パス例: {digests_path}/temp_individual_digests.json
+
+# 2. スクリプトにファイルパスを渡す
+python -m interfaces.save_provisional_digest weekly temp_individual_digests.json --append
+
+# 3. 一時ファイルを削除
 ```
 
 **注意**:
-- コマンドライン引数での直接渡しは、長文で切断される可能性があるため使用しないでください
+- stdinパイプ（`echo '...' | python ...`）はシェルのコマンドライン長制限で切断されるため使用しないでください
 - 保存後、必ずProvisionalファイルの内容を確認し、入力データと一致しているか検証してください
 
 ### 3. UIメッセージ出力
@@ -209,28 +215,41 @@ DigestAnalyzerからJSON形式で結果を受け取る。
 
 **実行ディレクトリ**: `{plugin_root}/scripts`
 
-**コマンド**:
-```bash
-python -m interfaces.save_provisional_digest weekly --stdin --append
-```
+**手順**:
 
-**入力**: Step 5の結果を`individual_digests`配列でラップ
+1. **Writeツールで一時ファイルに書き込み**
 
-```json
-{
-  "individual_digests": [
-    {
-      "source_file": "L00260_タイトル.txt",
-      "digest_type": "...",
-      "keywords": ["..."],
-      "abstract": {"long": "...", "short": "..."},
-      "impression": {"long": "...", "short": "..."}
-    }
-  ]
-}
-```
+   パス: `{digests_path}/temp_individual_digests.json`
 
-**注意**: abstract/impressionは`{long, short}`形式が必須
+   ```json
+   {
+     "individual_digests": [
+       {
+         "source_file": "L00260_タイトル.txt",
+         "digest_type": "...",
+         "keywords": ["..."],
+         "abstract": {"long": "...", "short": "..."},
+         "impression": {"long": "...", "short": "..."}
+       }
+     ]
+   }
+   ```
+
+2. **スクリプト実行**
+
+   ```bash
+   python -m interfaces.save_provisional_digest weekly temp_individual_digests.json --append
+   ```
+
+3. **一時ファイル削除**
+
+   ```bash
+   rm temp_individual_digests.json
+   ```
+
+**注意**:
+- abstract/impressionは`{long, short}`形式が必須
+- stdinパイプはシェル制限で切断されるため使用しないこと
 
 ---
 
@@ -547,32 +566,44 @@ DigestAnalyzerからJSON形式で結果を受け取る。
 
 **実行ディレクトリ**: `{plugin_root}/scripts`
 
-**コマンド**:
-```bash
-python -m interfaces.save_provisional_digest <next_level> --stdin --append
-```
+**手順**:
 
-**注意**: `<next_level>`は現在レベルの**次**（weekly→monthly, monthly→quarterly）
+1. **Writeツールで一時ファイルに書き込み**
 
-**例**: Monthly確定時（次階層はquarterly）
-```bash
-python -m interfaces.save_provisional_digest quarterly --stdin --append
-```
+   パス: `{digests_path}/temp_individual_digests.json`
 
-**入力JSON**:
-```json
-{
-  "individual_digests": [
-    {
-      "source_file": "M0012_タイトル.txt",
-      "digest_type": "...",
-      "keywords": ["..."],
-      "abstract": {"long": "...", "short": "..."},
-      "impression": {"long": "...", "short": "..."}
-    }
-  ]
-}
-```
+   ```json
+   {
+     "individual_digests": [
+       {
+         "source_file": "M0012_タイトル.txt",
+         "digest_type": "...",
+         "keywords": ["..."],
+         "abstract": {"long": "...", "short": "..."},
+         "impression": {"long": "...", "short": "..."}
+       }
+     ]
+   }
+   ```
+
+2. **スクリプト実行**
+
+   **注意**: `<next_level>`は現在レベルの**次**（weekly→monthly, monthly→quarterly）
+
+   ```bash
+   python -m interfaces.save_provisional_digest <next_level> temp_individual_digests.json --append
+   ```
+
+   **例**: Monthly確定時（次階層はquarterly）
+   ```bash
+   python -m interfaces.save_provisional_digest quarterly temp_individual_digests.json --append
+   ```
+
+3. **一時ファイル削除**
+
+   ```bash
+   rm temp_individual_digests.json
+   ```
 
 ---
 
