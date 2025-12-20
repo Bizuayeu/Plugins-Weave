@@ -98,10 +98,14 @@ class ProvisionalAppender:
             # 既存ファイルがあれば最新のものを使用
             return max(existing_files, key=lambda p: p.stat().st_mtime)
 
-        # 新規作成：番号は0001から
+        # 新規作成：既存RegularDigestから次番号を決定
+        # NOTE: 循環インポート回避のためローカルインポート
+        from interfaces.interface_helpers import get_next_digest_number
+
         digits = level_cfg["digits"]
-        new_number = "0001".zfill(digits)
-        return provisional_dir / f"{prefix}{new_number}_Individual.txt"
+        next_number = get_next_digest_number(self.config.digests_path, next_level)
+        formatted_number = str(next_number).zfill(digits)
+        return provisional_dir / f"{prefix}{formatted_number}_Individual.txt"
 
     def _load_or_create_provisional(
         self, provisional_path: Path, next_level: str

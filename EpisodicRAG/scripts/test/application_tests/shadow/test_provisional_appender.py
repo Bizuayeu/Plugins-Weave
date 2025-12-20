@@ -402,3 +402,101 @@ class TestProvisionalFilenameMatchesSGD:
         entry = data["individual_digests"][0]
         # フォールバック: W0099.txt
         assert entry["source_file"] == "W0099.txt"
+
+
+# =============================================================================
+# 既存RegularDigestからの番号決定テスト
+# =============================================================================
+
+
+class TestProvisionalNumberingFromExistingRegular:
+    """既存RegularDigestから正しい番号を決定するテスト
+
+    BUG FIX: 既存Provisionalがない場合でも、既存RegularDigestから
+    次番号を決定すべき。0001ハードコードではなく。
+    """
+
+    @pytest.mark.integration
+    def test_uses_next_number_after_existing_regular_digest(
+        self,
+        provisional_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        sample_finalized_digest: "Dict[str, Any]",
+    ) -> None:
+        """
+        既存RegularDigest（M0011）がある場合、
+        新規ProvisionalはM0012_Individual.txtで作成される
+        """
+        # Arrange: M0011のRegularDigestを作成
+        monthly_dir = temp_plugin_env.digests_path / "2_Monthly"
+        monthly_dir.mkdir(parents=True, exist_ok=True)
+        (monthly_dir / "M0011_テスト.txt").write_text("{}", encoding="utf-8")
+
+        # Act: weekly確定時のProvisional追加
+        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+
+        # Assert: M0012_Individual.txtが作成される（M0001ではない）
+        provisional_dir = monthly_dir / "Provisional"
+        provisional_files = list(provisional_dir.glob("M*_Individual.txt"))
+        assert len(provisional_files) == 1
+        assert "M0012" in provisional_files[0].name, (
+            f"Expected M0012 but got {provisional_files[0].name}"
+        )
+
+    @pytest.mark.integration
+    def test_uses_next_number_when_no_provisional_but_regular_exists(
+        self,
+        provisional_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        sample_finalized_digest: "Dict[str, Any]",
+    ) -> None:
+        """
+        Provisionalは空だがRegularが複数存在する場合、
+        最大番号+1でProvisionalを作成
+        """
+        # Arrange: M0005, M0010のRegularDigestを作成（連番でない）
+        monthly_dir = temp_plugin_env.digests_path / "2_Monthly"
+        monthly_dir.mkdir(parents=True, exist_ok=True)
+        (monthly_dir / "M0005_古い.txt").write_text("{}", encoding="utf-8")
+        (monthly_dir / "M0010_新しい.txt").write_text("{}", encoding="utf-8")
+
+        # Act
+        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+
+        # Assert: M0011_Individual.txt（最大M0010の次）
+        provisional_dir = monthly_dir / "Provisional"
+        provisional_files = list(provisional_dir.glob("M*_Individual.txt"))
+        assert len(provisional_files) == 1
+        assert "M0011" in provisional_files[0].name, (
+            f"Expected M0011 but got {provisional_files[0].name}"
+        )
+
+    @pytest.mark.integration
+    def test_uses_0001_when_no_regular_and_no_provisional(
+        self,
+        provisional_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        sample_finalized_digest: "Dict[str, Any]",
+    ) -> None:
+        """
+        RegularDigestもProvisionalも存在しない場合、
+        M0001_Individual.txtで作成される（正しい動作）
+        """
+        # Arrange: 何もない状態（temp_plugin_envがクリーンな状態を提供）
+        monthly_dir = temp_plugin_env.digests_path / "2_Monthly"
+        # ディレクトリ自体も存在しない状態を確認
+        if monthly_dir.exists():
+            import shutil
+            shutil.rmtree(monthly_dir)
+
+        # Act
+        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+
+        # Assert: M0001_Individual.txt
+        monthly_dir = temp_plugin_env.digests_path / "2_Monthly"
+        provisional_dir = monthly_dir / "Provisional"
+        provisional_files = list(provisional_dir.glob("M*_Individual.txt"))
+        assert len(provisional_files) == 1
+        assert "M0001" in provisional_files[0].name, (
+            f"Expected M0001 but got {provisional_files[0].name}"
+        )
