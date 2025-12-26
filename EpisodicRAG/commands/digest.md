@@ -44,7 +44,7 @@ cd <your-dev-folder>/plugins-weave/EpisodicRAG/scripts
 ### 2. 出力の保存方法
 
 DigestAnalyzerの出力は長文JSON（4000文字以上）のため、
-**一時ファイル経由で渡すこと**を推奨します。
+**一時ファイル経由で渡すこと**を強く推奨します。
 
 ```bash
 # 1. Writeツールで一時ファイルに書き込み
