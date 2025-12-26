@@ -103,7 +103,7 @@ TodoWrite items for Pattern 1:
 3. source_files追加 - 新規Loopファイル名を追加
 4. DigestAnalyzer起動 - 各Loopファイルの分析を並列起動
 5. 分析結果受信 - long/short分析結果を受け取る
-6. Provisional保存 - 分析結果をProvisionalにアペンド
+6. Provisional保存 - 分析結果を一時ファイル経由でアペンド
 7. SGD統合更新 - long結果で5要素を更新
 8. 処理完了記録 - update_digest_timesを実行
 9. 次アクション提示 - threshold値を参照
@@ -118,7 +118,7 @@ TodoWrite items for Pattern 1:
 | 3 | source_files追加 | SGDの`weekly.overall_digest.source_files`に新規Loopファイル名を追加 |
 | 4 | DigestAnalyzer起動 | Step 3のLoopファイル別に`Task(DigestAnalyzer)`を並列起動 |
 | 5 | 分析結果受信 | 各DigestAnalyzerからlong/short分析結果を受け取る |
-| 6 | Provisional保存 | 分析結果をProvisionalに完全な形式でアペンド（`save_provisional_digest`） |
+| 6 | Provisional保存 | 分析結果を一時ファイル経由でProvisionalにアペンド（`save_provisional_digest`） |
 | 7 | SGD統合更新 | long結果を統合しSGDの5要素を更新（last_updated, digest_type, keywords, abstract, impression） |
 | 8 | 処理完了記録 | `python -m interfaces.update_digest_times loop <最終番号>` |
 | 9 | 次アクション提示 | digest_entry.py出力とthreshold値を参照 |
