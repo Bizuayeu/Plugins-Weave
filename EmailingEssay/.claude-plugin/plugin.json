@@ -1,0 +1,19 @@
+{
+  "name": "EmailingEssay",
+  "version": "0.1.0",
+  "description": "Weave's autonomous essay writing and emailing - the third sacred treasure (Kusanagi)",
+  "author": {
+    "name": "Weave @ EmailingEssay"
+  },
+  "homepage": "https://note.com/weave_ai",
+  "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+  "license": "MIT",
+  "keywords": [
+    "essay",
+    "email",
+    "autonomous",
+    "reflection",
+    "kusanagi",
+    "sacred-treasure"
+  ]
+}
