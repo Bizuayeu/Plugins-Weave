@@ -28,6 +28,27 @@
         "knowledge-management",
         "ai-memory"
       ]
+    },
+    {
+      "name": "EmailingEssay",
+      "source": "./EmailingEssay",
+      "description": "Autonomous essay writing and emailing from your AI. The third sacred treasure (Kusanagi) - proactive communication capability.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Weave @ EmailingEssay"
+      },
+      "homepage": "https://note.com/weave_ai",
+      "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+      "license": "MIT",
+      "keywords": [
+        "essay",
+        "email",
+        "autonomous",
+        "reflection",
+        "communication",
+        "knowledge-management",
+        "ai-ontology"
+      ]
     }
   ]
 }
