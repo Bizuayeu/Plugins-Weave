@@ -175,23 +175,6 @@ See `skills/send_email` for implementation details.
 
 Register recurring essay schedules using OS scheduler (Windows Task Scheduler / cron).
 
-### Usage
-
-```bash
-# Daily schedule
-/essay schedule daily HH:MM [OPTIONS]
-
-# Weekly schedule
-/essay schedule weekly DAY HH:MM [OPTIONS]
-
-# Monthly schedule
-/essay schedule monthly DAY_SPEC HH:MM [OPTIONS]
-
-# Management
-/essay schedule list
-/essay schedule remove NAME
-```
-
 ### Frequency
 
 | Type | Format | Example |
