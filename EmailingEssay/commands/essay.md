@@ -17,7 +17,7 @@ All modes ultimately invoke `agents/essay_writer.md` for reflection and delivery
 | Reflection | `/essay` → essay_writer.md → (reflect → send) |
 | Wait | `/essay wait` → detached process → `/essay` → essay_writer.md |
 | Schedule | `/essay schedule` → OS scheduler → `/essay` → essay_writer.md |
-| Test | `/essay test` → skills/send_email (direct, no reflection) |
+| Test | `/essay test` → skills/send_email (verify configuration) |
 
 **Parameters passed to agent**:
 
@@ -28,6 +28,7 @@ All modes ultimately invoke `agents/essay_writer.md` for reflection and delivery
 | `language` | From `-l` option (default: auto) |
 
 See `agents/essay_writer.md` for the reflection and writing process.
+See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
 
 ---
 
@@ -132,14 +133,6 @@ See `agents/essay_writer.md` for the reflection and writing process.
 /essay schedule list
 /essay schedule remove "Essay_Daily_reflection"
 ```
-
----
-
-## Test Subcommand
-
-Use `skills/send_email` to send a test email and verify configuration.
-
-See `skills/send_email/SKILL.md` for environment setup and troubleshooting.
 
 ---
 
