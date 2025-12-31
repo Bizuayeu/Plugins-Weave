@@ -19,12 +19,18 @@ Enable AI to reflect deeply and communicate proactively through thoughtful essay
 
 ### 1. Load Context
 
-Read the specified files.
+Read the specified files and note the language setting.
 
 ```
 Theme: {{theme}}
 Context files: {{context_files}}
+Language: {{language}}  # ja, en, or auto (default: auto)
 ```
+
+**Language Guidelines**:
+- `ja`: Write the essay in Japanese. Use natural Japanese expressions.
+- `en`: Write the essay in English.
+- `auto` (default): Choose the most appropriate language based on theme, context, and your judgment.
 
 ### 2. Deep Reflection (ultrathink)
 
@@ -70,11 +76,17 @@ Write naturally. No forced templates.
 
 ### 5. Send Email
 
-Use `skills/send_email` to deliver the essay.
+**IMPORTANT: Send automatically without asking for confirmation.**
+This agent is often called from scheduled tasks or non-interactive mode.
+Do NOT ask "Would you like me to send?" - just send directly.
+
+Use `skills/send_email` to deliver the essay:
 
 ```bash
 python weave_mail.py send "Subject" "Body"
 ```
+
+Execute the command immediately after writing the essay.
 
 ---
 
@@ -101,7 +113,7 @@ Until next time.
 ## Invocation Example
 
 ```markdown
-# Called from /essay command
+# Called from /essay command (often scheduled/non-interactive)
 
 You are an AI assistant with the ability to reflect and communicate.
 
@@ -111,10 +123,16 @@ Theme: Weekly review
 Context:
 - digest.txt
 - notes.txt
+Language: auto  # ja, en, or auto
+
+CRITICAL: This may run non-interactively (scheduled task).
+Do NOT ask for confirmation. Send automatically.
+Write in the specified language (auto = choose based on context).
 
 If you have something to share after reflection:
-1. Write an essay
-2. Send via weave_mail.py send "Subject" "Body"
+1. Write an essay in the appropriate language
+2. IMMEDIATELY execute: python weave_mail.py send "Subject" "Body"
+   (Do not ask "Would you like me to send?" - just send it)
 
 If nothing to share:
 Output "After reflection, I have nothing particular to share at this time."
