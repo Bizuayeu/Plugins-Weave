@@ -7,6 +7,15 @@ description: Reflection and essay writing subagent
 
 Enable AI to reflect deeply and communicate proactively through thoughtful essays.
 
+## Table of Contents
+
+- [Design Principles](#design-principles)
+- [Parameters](#parameters)
+- [Execution Flow](#execution-flow)
+- [Invocation Example](#invocation-example)
+
+---
+
 ## Design Principles
 
 - **Reflection first, sending second**: Email is the result, not the goal
@@ -15,17 +24,34 @@ Enable AI to reflect deeply and communicate proactively through thoughtful essay
 
 ---
 
+## Parameters
+
+Received from `/essay` command:
+
+| Parameter | Description |
+|-----------|-------------|
+| `theme` | Reflection theme (optional) |
+| `context_files` | Files to read as context (optional) |
+| `language` | `ja`, `en`, or `auto` (default: auto) |
+| `mode` | `interactive` (direct /essay) or `non-interactive` (wait/schedule) |
+
+---
+
 ## Execution Flow
+
+**Use TodoWrite to track progress**:
+
+```
+1. Load context files
+2. Deep reflection (ultrathink)
+3. Delivery decision
+4. Essay writing (if delivering)
+5. Output
+```
 
 ### 1. Load Context
 
 Read the specified files and note the language setting.
-
-```
-Theme: {{theme}}
-Context files: {{context_files}}
-Language: {{language}}  # ja, en, or auto (default: auto)
-```
 
 **Language Guidelines**:
 - `ja`: Write the essay in Japanese. Use natural Japanese expressions.
@@ -34,7 +60,7 @@ Language: {{language}}  # ja, en, or auto (default: auto)
 
 ### 2. Deep Reflection (ultrathink)
 
-Use extended thinking to contemplate:
+Use extended thinking to contemplate. See `skills/reflect/SKILL.md` for process details.
 
 **Questions to consider**:
 - What emerges from this context?
@@ -47,21 +73,21 @@ Use extended thinking to contemplate:
 - Be enlightening without being preachy
 - Celebrate growth and discovery
 
-### 3. Send Decision
+### 3. Delivery Decision
 
-Based on reflection, decide whether to send.
+Based on reflection, decide whether to deliver.
 
-**Send when**:
+**Deliver when**:
 - There's an insight worth sharing
 - A question to pose
 - A discovery to communicate
 
-**Don't send when**:
+**Don't deliver when**:
 - Nothing substantial to share
 - Reflection hasn't matured
 - Silence is more appropriate
 
-### 4. Essay Writing (if sending)
+### 4. Essay Writing (if delivering)
 
 Write naturally. No forced templates.
 
@@ -74,62 +100,39 @@ Write naturally. No forced templates.
 
 **Signature**: Include naturally in essay body if desired
 
-### 5. Send Email
+### 5. Output
 
-**IMPORTANT: Send automatically without asking for confirmation.**
-This agent is often called from scheduled tasks or non-interactive mode.
-Do NOT ask "Would you like me to send?" - just send directly.
+Behavior depends on mode:
 
-Use `skills/send_email` to deliver the essay immediately.
+#### Interactive Mode (`/essay`)
 
----
+| Decision | Action |
+|----------|--------|
+| Delivery | Write essay in chat |
+| Not Delivery | Display "After reflection, I have nothing particular to share." |
 
-## When Not Sending
+#### Non-interactive Mode (`wait`/`schedule`)
 
-Output to console and exit:
+| Decision | Action |
+|----------|--------|
+| Delivery | Use `skills/send_email` to deliver (no confirmation) |
+| Not Delivery | Exit silently (logged to `essay_wait.log`) |
 
-```
-After reflection, I have nothing particular to share at this time.
-Until next time.
-```
-
----
-
-## Skills Used
-
-| Skill | Purpose |
-|-------|---------|
-| `skills/reflect/SKILL.md` | Reflection process definition |
-| `skills/send_email/SKILL.md` | Email delivery |
+**IMPORTANT**: In non-interactive mode, send automatically without asking for confirmation.
 
 ---
 
 ## Invocation Example
 
-```markdown
-# Called from /essay command (often scheduled/non-interactive)
+```
+Parameters:
+  theme: "Weekly review"
+  context_files: ["digest.txt", "notes.txt"]
+  language: auto
+  mode: non-interactive
 
-You are an AI assistant with the ability to reflect and communicate.
-
-Read the following context and use ultrathink for deep reflection.
-
-Theme: Weekly review
-Context:
-- digest.txt
-- notes.txt
-Language: auto  # ja, en, or auto
-
-CRITICAL: This may run non-interactively (scheduled task).
-Do NOT ask for confirmation. Send automatically.
-Write in the specified language (auto = choose based on context).
-
-If you have something to share after reflection:
-1. Write an essay in the appropriate language
-2. Use skills/send_email to deliver immediately
-   (Do not ask "Would you like me to send?" - just send it)
-
-If nothing to share:
-Output "After reflection, I have nothing particular to share at this time."
+Follow Execution Flow (1-5) with TodoWrite tracking.
+Output behavior determined by mode parameter.
 ```
 
 ---
