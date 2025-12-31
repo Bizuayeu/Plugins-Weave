@@ -157,6 +157,8 @@ See `skills/send_email` for implementation details.
 
 Register recurring essay schedules using OS scheduler (Windows Task Scheduler / cron).
 
+See `skills/send_email` for OS scheduler integration details.
+
 ### Frequency
 
 | Type | Format | Example |
