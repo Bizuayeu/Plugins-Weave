@@ -8,6 +8,7 @@ Usage:
   python weave_mail.py test                                    # Test send
   python weave_mail.py send "Subject" "Body"                   # Custom send
   python weave_mail.py wait "22:00" -t "theme"                 # Today/tomorrow
+  python weave_mail.py wait "22:00" -t "theme" -l ja           # With language
   python weave_mail.py wait "2025-01-05 22:00" -t "theme"      # Specific date
   python weave_mail.py schedule daily 22:00 -t "theme"         # Daily schedule
   python weave_mail.py schedule weekly monday 09:00            # Weekly schedule
@@ -174,7 +175,8 @@ def wait_until(target: datetime):
         time.sleep(60)  # Check every minute
 
 
-def spawn_waiter(target_time: str, theme: str = "", context_file: str = "", file_list: str = ""):
+def spawn_waiter(target_time: str, theme: str = "", context_file: str = "",
+                 file_list: str = "", lang: str = ""):
     """Spawn a detached process that waits and executes essay
 
     Args:
@@ -182,6 +184,7 @@ def spawn_waiter(target_time: str, theme: str = "", context_file: str = "", file
         theme: Essay theme (optional)
         context_file: Single context file path (optional)
         file_list: File containing list of context files (optional)
+        lang: Language ja, en, or auto (optional)
     """
 
     # Build the Claude command (escape quotes for embedding in script)
@@ -193,6 +196,8 @@ def spawn_waiter(target_time: str, theme: str = "", context_file: str = "", file
         claude_args.append(f"-c '{context_file}'")
     if file_list:
         claude_args.append(f"-f '{file_list}'")
+    if lang:
+        claude_args.append(f"-l {lang}")
     claude_args_str = " ".join(claude_args) if claude_args else ""
 
     # Log file for debugging (in persistent directory)
@@ -292,6 +297,8 @@ except Exception as e:
         print(f"Context: {context_file}")
     if file_list:
         print(f"File list: {file_list}")
+    if lang:
+        print(f"Language: {lang}")
 
 
 # ============================================================================
@@ -960,17 +967,20 @@ if __name__ == "__main__":
             print("  -t, --theme TEXT  - Essay theme")
             print("  -c, --context FILE - Context file")
             print("  -f, --file-list FILE - File containing list of context files")
+            print("  -l, --lang LANG   - Language: ja, en, auto (default: auto)")
             print()
             print("Examples:")
             print("  python weave_mail.py wait \"22:00\" -t \"Weekly review\"")
             print("  python weave_mail.py wait \"22:00\" -t \"Review\" -c \"GrandDigest.txt\"")
             print("  python weave_mail.py wait \"22:00\" -t \"Review\" -f \"context_list.txt\"")
+            print("  python weave_mail.py wait \"22:00\" -t \"振り返り\" -l ja")
             sys.exit(1)
 
         target_time = sys.argv[2]
         theme = ""
         context_file = ""
         file_list = ""
+        lang = ""
 
         # Parse options
         i = 3
@@ -985,6 +995,9 @@ if __name__ == "__main__":
             elif arg in ("-f", "--file-list") and i + 1 < len(sys.argv):
                 file_list = sys.argv[i + 1]
                 i += 2
+            elif arg in ("-l", "--lang") and i + 1 < len(sys.argv):
+                lang = sys.argv[i + 1]
+                i += 2
             else:
                 # Legacy positional arguments for backward compatibility
                 if not theme:
@@ -993,7 +1006,7 @@ if __name__ == "__main__":
                     context_file = arg
                 i += 1
 
-        spawn_waiter(target_time, theme, context_file, file_list)
+        spawn_waiter(target_time, theme, context_file, file_list, lang)
     elif cmd == "schedule":
         if len(sys.argv) < 3:
             print("Usage: python weave_mail.py schedule <subcommand> [OPTIONS]")

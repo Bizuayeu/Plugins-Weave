@@ -16,7 +16,7 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 /essay                                    # Free reflection
 /essay "Weekly thoughts"                  # Reflection with theme
 /essay -c context.txt                     # With context file
-/essay "theme" -c file1.txt -c file2.txt  # Theme + context
+/essay "theme" -f context_list.txt        # Theme + multiple files
 ```
 
 ### Test Email
@@ -34,8 +34,8 @@ Sends a test email to verify system configuration.
 | Option | Description |
 |--------|-------------|
 | `"theme"` | Specify reflection theme (quoted) |
-| `-c file` | Context file (multiple allowed) |
-| `-f list` | File list (one path per line) |
+| `-c file` | Single context file |
+| `-f list` | Multiple files (one path per line) |
 | `-l lang` | Language: `ja`, `en`, or `auto` (default: auto) |
 | `--wait TIME` | Schedule essay (HH:MM or YYYY-MM-DD HH:MM) |
 | `schedule` | Recurring schedule (daily/weekly via OS scheduler) |
@@ -50,20 +50,20 @@ Sends a test email to verify system configuration.
 # Themed reflection
 /essay "What I've been thinking about"
 
-# With context files
+# With single context file
 /essay -c memories.txt
-/essay -c digest.txt -c notes.txt
+
+# With multiple context files (use -f)
+/essay -f context_list.txt
 
 # Theme + context
-/essay "Weekly review" -c digest.txt -c recent.txt
-
-# From file list
-/essay -f context_list.txt
+/essay "Weekly review" -c digest.txt
+/essay "Weekly review" -f context_list.txt
 
 # Language option
 /essay -l ja                              # Japanese
 /essay -l en                              # English
-/essay "今週の振り返り" -c digest.txt -l ja  # Theme + context + Japanese
+/essay "今週の振り返り" -f context_list.txt -l ja  # Theme + files + Japanese
 # Without -l option: auto (Claude chooses based on context)
 
 # Schedule for later (detached process, sleep-resilient)
@@ -230,8 +230,8 @@ Register recurring essay schedules using OS scheduler (Windows Task Scheduler / 
 | Option | Description |
 |--------|-------------|
 | `-t, --theme TEXT` | Essay theme |
-| `-c, --context FILE` | Context file |
-| `-f, --file-list FILE` | File containing list of context files |
+| `-c, --context FILE` | Single context file |
+| `-f, --file-list FILE` | Multiple files (one path per line) |
 | `-l, --lang LANG` | Language: `ja`, `en`, `auto` (default: auto) |
 | `--name NAME` | Custom task name (auto-generated if omitted) |
 
