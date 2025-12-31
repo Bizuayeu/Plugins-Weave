@@ -9,6 +9,18 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 ## Configuration
 
+### Script Path
+
+```
+skills/send_email/scripts/weave_mail.py
+```
+
+### Dependencies
+
+```
+yagmail
+```
+
 ### Environment Variables (all mandatory)
 
 | Variable | Description |
@@ -17,9 +29,23 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 | `ESSAY_SENDER_EMAIL` | Sender email address |
 | `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
 
+### Security
+
+- APP_PASSWORD retrieved from environment variable (no hardcoding)
+- Use app password in Gmail 2FA environments
+
 ---
 
 ## Usage
+
+**Use TodoWrite when sending from reflect skill**:
+
+```
+1. Prepare subject and body
+2. Build send command
+3. Execute send command
+4. Verify send result
+```
 
 ### Send Email
 
@@ -46,6 +72,11 @@ python weave_mail.py wait "2026-01-05 22:00" -t "theme"
 | `-f, --file-list` | Multiple files (one path per line) |
 | `-l, --lang` | Language: `ja`, `en`, or `auto` (default: auto) |
 
+**Mechanism**:
+- Spawns detached process (survives terminal close)
+- Polls every 60 seconds (sleep-resilient)
+- At target time, launches Claude Code with `/essay`
+
 ### Schedule (Recurring via OS Scheduler)
 
 Register with Windows Task Scheduler or cron.
@@ -66,33 +97,12 @@ python weave_mail.py schedule remove "Essay_Daily_reflection"
 
 ---
 
-## Implementation
-
-### Script Path
-
-```
-skills/send_email/scripts/weave_mail.py
-```
-
-### Dependencies
-
-```
-yagmail
-```
-
-### Security
-
-- APP_PASSWORD retrieved from environment variable (no hardcoding)
-- Use app password in Gmail 2FA environments
-
----
-
 ## Troubleshooting
 
 ### Missing Environment Variables
 
 ```
-Missing environment variables: ESSAY_APP_PASSWORD, ESSAY_SENDER_EMAIL
+Missing environment variables: ESSAY_APP_PASSWORD, ESSAY_SENDER_EMAIL, ESSAY_RECIPIENT_EMAIL
 ```
 
 **Solution**:
@@ -102,6 +112,14 @@ Missing environment variables: ESSAY_APP_PASSWORD, ESSAY_SENDER_EMAIL
 [Environment]::SetEnvironmentVariable("ESSAY_SENDER_EMAIL", "ai@gmail.com", "User")
 [Environment]::SetEnvironmentVariable("ESSAY_RECIPIENT_EMAIL", "you@example.com", "User")
 # Restart PowerShell to apply
+```
+
+```bash
+# Linux/macOS (.bashrc or .zshrc)
+export ESSAY_APP_PASSWORD="your-app-password"
+export ESSAY_SENDER_EMAIL="ai@gmail.com"
+export ESSAY_RECIPIENT_EMAIL="you@example.com"
+# Run: source ~/.bashrc (or restart terminal)
 ```
 
 ### Authentication Error

@@ -80,13 +80,7 @@ Write naturally. No forced templates.
 This agent is often called from scheduled tasks or non-interactive mode.
 Do NOT ask "Would you like me to send?" - just send directly.
 
-Use `skills/send_email` to deliver the essay:
-
-```bash
-python weave_mail.py send "Subject" "Body"
-```
-
-Execute the command immediately after writing the essay.
+Use `skills/send_email` to deliver the essay immediately.
 
 ---
 
@@ -131,7 +125,7 @@ Write in the specified language (auto = choose based on context).
 
 If you have something to share after reflection:
 1. Write an essay in the appropriate language
-2. IMMEDIATELY execute: python weave_mail.py send "Subject" "Body"
+2. Use skills/send_email to deliver immediately
    (Do not ask "Would you like me to send?" - just send it)
 
 If nothing to share:

@@ -40,6 +40,7 @@ Sends a test email to verify system configuration.
 | Subcommand | Description |
 |------------|-------------|
 | *(none)* | Run reflection mode immediately |
+| `wait` | Schedule one-time essay |
 | `schedule` | Manage recurring schedules (daily/weekly/monthly) |
 | `test` | Send test email to verify configuration |
 
@@ -51,7 +52,16 @@ Sends a test email to verify system configuration.
 | `-c file` | Single context file |
 | `-f list` | Multiple files (one path per line) |
 | `-l lang` | Language: `ja`, `en`, or `auto` (default: auto) |
-| `--wait TIME` | Schedule one-time essay (HH:MM or YYYY-MM-DD HH:MM) |
+
+### Options (for wait subcommand)
+
+| Option | Description |
+|--------|-------------|
+| `TIME` | Target time: HH:MM or YYYY-MM-DD HH:MM (required, first argument) |
+| `-t, --theme TEXT` | Essay theme |
+| `-c, --context FILE` | Single context file |
+| `-f, --file-list FILE` | Multiple files (one path per line) |
+| `-l, --lang LANG` | Language: `ja`, `en`, `auto` (default: auto) |
 
 ### Options (for schedule subcommand)
 
@@ -88,12 +98,12 @@ Sends a test email to verify system configuration.
 /essay "今週の振り返り" -f context_list.txt -l ja  # Theme + files + Japanese
 # Without -l option: auto (Claude chooses based on context)
 
-# Schedule for later (detached process, sleep-resilient)
-/essay "Daily thoughts" --wait 22:00
-/essay "Weekly review" -c GrandDigest.txt --wait 22:00
+# One-time schedule (detached process, sleep-resilient)
+/essay wait 22:00 -t "Daily thoughts"
+/essay wait 22:00 -t "Weekly review" -c GrandDigest.txt
 
-# Schedule for specific date
-/essay "New Year reflection" --wait "2026-01-01 09:00"
+# One-time schedule for specific date
+/essay wait "2026-01-01 09:00" -t "New Year reflection"
 
 # Recurring schedule (OS scheduler)
 /essay schedule daily 22:00 -t "Daily reflection"
@@ -106,74 +116,29 @@ Sends a test email to verify system configuration.
 
 ## Reflection Mode Flow
 
-### 1. Load Context
+Launch `agents/essay_writer.md` with the following parameters:
 
-Read specified files. If none specified, look for common patterns:
-- EpisodicRAG digest files
-- Personal notes or journals
-- Project documentation
+| Parameter | Source |
+|-----------|--------|
+| `theme` | From `"theme"` argument or `-t` option |
+| `context_files` | From `-c` or `-f` option |
+| `language` | From `-l` option (default: auto) |
 
-### 2. Launch Agent
+The agent handles: context loading, deep reflection, send decision, and delivery.
 
-Load `agents/essay_writer.md` and start the reflection subprocess.
-
-### 3. Deep Reflection (ultrathink)
-
-Use extended thinking to contemplate:
-- Insights emerging from context
-- What needs to be communicated
-- What should be expressed now
-
-### 4. Send Decision
-
-**CRITICAL**: This command often runs non-interactively (scheduled tasks).
-**Do NOT ask for confirmation. Send automatically.**
-
-**If sending**:
-1. Write essay
-2. IMMEDIATELY execute: `python weave_mail.py send "Subject" "Body"`
-   - Do NOT ask "Would you like me to send?"
-   - Just execute the send command directly
-
-**If not sending**: Output "Nothing to share at this time"
+See `agents/essay_writer.md` for detailed execution flow.
 
 ---
 
 ## Test Subcommand
 
-### Flow
+Use `skills/send_email` to send a test email and verify configuration.
 
-1. Load `skills/send_email/SKILL.md`
-2. Execute `scripts/weave_mail.py test`
-3. Display send result
-
-### Environment Setup
-
-Set environment variables for email configuration:
-
-| Variable | Description |
-|----------|-------------|
-| `ESSAY_SENDER_EMAIL` | Sender email address |
-| `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
-| `ESSAY_APP_PASSWORD` | Gmail app password |
-
-**Windows (PowerShell)**:
-```powershell
-[Environment]::SetEnvironmentVariable("ESSAY_APP_PASSWORD", "your-app-password", "User")
-[Environment]::SetEnvironmentVariable("ESSAY_SENDER_EMAIL", "your-ai@gmail.com", "User")
-[Environment]::SetEnvironmentVariable("ESSAY_RECIPIENT_EMAIL", "you@example.com", "User")
-```
-
-**Linux/macOS**:
-```bash
-export ESSAY_APP_PASSWORD="your-app-password"
-export ESSAY_SENDER_EMAIL="your-ai@gmail.com"
-export ESSAY_RECIPIENT_EMAIL="you@example.com"
-```
+See `skills/send_email/SKILL.md` for environment setup and troubleshooting.
 
 ---
 
-## Wait Option (--wait)
+## Wait Subcommand (One-time)
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
@@ -181,13 +146,13 @@ Schedule essay execution at a specified time. The process runs in the background
 
 ```bash
 # Time only (today or tomorrow)
-/essay "theme" --wait 22:00
+/essay wait 22:00 -t "theme"
 
 # Specific date
-/essay "theme" --wait "2026-01-05 22:00"
+/essay wait "2026-01-05 22:00" -t "theme"
 
 # With context
-/essay "theme" -c context.txt --wait 22:00
+/essay wait 22:00 -t "theme" -c context.txt
 ```
 
 ### Time Formats
@@ -197,32 +162,12 @@ Schedule essay execution at a specified time. The process runs in the background
 | `HH:MM` | Today (or tomorrow if time has passed) |
 | `YYYY-MM-DD HH:MM` | Specific date and time |
 
-### How It Works
-
-1. Parse `--wait TIME` option
-2. Spawn a detached Python process
-3. Process polls every minute (sleep-resilient)
-4. At target time, launches Claude Code with `/essay` command
-5. Parent process exits immediately (non-blocking)
-
-### Implementation
-
-When `--wait` is detected, execute:
-
-```bash
-python weave_mail.py wait "HH:MM" "theme" "context_file"
-```
-
-This spawns a detached process that:
-- Runs independently of the parent terminal
-- Survives terminal close
-- Polls every 60 seconds (handles PC sleep/wake correctly)
-- Executes essay at or after the target time
-
 ### Limitations
 
 - If PC is sleeping at target time, essay executes when PC wakes up
 - Cannot wake PC from sleep (OS-independent limitation)
+
+See `skills/send_email` for implementation details.
 
 ---
 

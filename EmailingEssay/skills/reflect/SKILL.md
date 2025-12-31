@@ -33,6 +33,16 @@ Design principle: "Reflection first, sending second."
 
 ## Reflection Process
 
+**Use TodoWrite to track progress**:
+
+```
+1. Load context files
+2. Deep thinking (ultrathink)
+3. Make send decision
+4. Write essay (if sending)
+5. Deliver via send_email (if sending)
+```
+
 ### 1. Load Context
 
 Read specified files as material for reflection.
@@ -72,7 +82,7 @@ Output: **Chat display only** (no email)
 - **Sending**: Write essay in chat
 - **Not Sending**: Display "After reflection, I have nothing particular to share."
 
-### Non-interactive Mode (`--wait`/`schedule`)
+### Non-interactive Mode (`wait`/`schedule`)
 
 Output: **Email** (user is not present)
 
