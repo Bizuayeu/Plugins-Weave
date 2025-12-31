@@ -40,6 +40,14 @@ All modes ultimately invoke `agents/essay_writer.md` for reflection and delivery
 | Schedule | OS scheduler → `/essay` → essay_writer.md |
 | Test | `/essay test` → skills/send_email (direct, no reflection) |
 
+**Parameters passed to agent**:
+
+| Parameter | Source |
+|-----------|--------|
+| `theme` | From `"theme"` argument or `-t` option |
+| `context_files` | From `-c` or `-f` option |
+| `language` | From `-l` option (default: auto) |
+
 See `agents/essay_writer.md` for the reflection and writing process.
 
 ---
@@ -126,18 +134,6 @@ See `agents/essay_writer.md` for the reflection and writing process.
 /essay schedule list
 /essay schedule remove "Essay_Daily_reflection"
 ```
-
----
-
-## Agent Parameters
-
-Parameters passed to `agents/essay_writer.md`:
-
-| Parameter | Source |
-|-----------|--------|
-| `theme` | From `"theme"` argument or `-t` option |
-| `context_files` | From `-c` or `-f` option |
-| `language` | From `-l` option (default: auto) |
 
 ---
 
