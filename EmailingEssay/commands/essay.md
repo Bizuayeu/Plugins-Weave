@@ -32,25 +32,6 @@ See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
 
 ---
 
-## Quick Start
-
-```bash
-# Reflection (interactive)
-/essay                          # Free reflection
-/essay "Weekly thoughts"        # With theme
-
-# One-time schedule
-/essay wait 22:00 -t "Daily thoughts"
-
-# Recurring schedule
-/essay schedule daily 22:00 -t "Daily reflection"
-
-# Test configuration
-/essay test
-```
-
----
-
 ## Command Structure
 
 ```
@@ -132,6 +113,9 @@ See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
 /essay schedule weekly monday 09:00 -t "Weekly review"
 /essay schedule list
 /essay schedule remove "Essay_Daily_reflection"
+
+# Test configuration
+/essay test
 ```
 
 ---
