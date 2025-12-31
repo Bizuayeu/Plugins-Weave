@@ -7,6 +7,14 @@ description: Email sending skill (Gmail SMTP + Yagmail)
 
 Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
+## Table of Contents
+
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+
+---
+
 ## Configuration
 
 ### Script Path

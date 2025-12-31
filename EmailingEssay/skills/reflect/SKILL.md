@@ -8,6 +8,15 @@ description: Deep reflection skill (ultrathink enabled)
 Read memory and context to reflect deeply.
 Design principle: "Reflection first, sending second."
 
+## Table of Contents
+
+- [Input](#input)
+- [Reflection Process](#reflection-process)
+- [Output](#output)
+- [Essay Elements](#essay-elements)
+
+---
+
 ## Input
 
 ### Options
