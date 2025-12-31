@@ -1,132 +1,143 @@
 ---
 name: essay
-description: Weaveの内省とエッセイ送信（草薙剣）
+description: AI reflection and essay delivery
 ---
 
-# /essay - Weaveの内省とエッセイ送信
+# /essay - AI Reflection and Essay Delivery
 
-三種の神器の第三「草薙剣」として、Weaveの「能動的に働きかける力」を実装する。
-送るのは「メール」ではなく「エッセイ」—内省の結果として生まれる表現。
+Enable your AI to reflect deeply and communicate proactively via email.
+This is not just "sending mail" — it's crafting essays born from genuine reflection.
 
-## 基本的な使い方
+## Basic Usage
 
-### 内省モード
+### Reflection Mode
 
 ```ClaudeCLI
-/essay                                    # 自由に内省
-/essay "今週の振り返り"                    # テーマを与えて内省
-/essay -c GrandDigest.txt                 # コンテキスト指定
-/essay "テーマ" -c GrandDigest.txt        # テーマ + コンテキスト
+/essay                                    # Free reflection
+/essay "Weekly thoughts"                  # Reflection with theme
+/essay -c context.txt                     # With context file
+/essay "theme" -c file1.txt -c file2.txt  # Theme + context
 ```
 
-### テストメール送信
+### Test Email
 
 ```ClaudeCLI
 /essay test
 ```
 
-システムの動作確認用。anythingknown@gmail.com にテストメールを送信する。
+Sends a test email to verify system configuration.
 
 ---
 
-## コマンドオプション
+## Command Options
 
-| オプション | 説明 |
-|-----------|------|
-| `"テーマ"` | 内省のテーマを指定（引用符で囲む） |
-| `-c ファイル` | コンテキストファイルを指定（複数可） |
-| `-f リスト` | ファイルリストを指定（1行1ファイル） |
-| `test` | テストメール送信 |
+| Option | Description |
+|--------|-------------|
+| `"theme"` | Specify reflection theme (quoted) |
+| `-c file` | Context file (multiple allowed) |
+| `-f list` | File list (one path per line) |
+| `test` | Send test email |
 
-### 使用例
+### Examples
 
 ```bash
-# 自由な内省
+# Free reflection
 /essay
 
-# テーマを与えて内省
-/essay "最近考えていること"
+# Themed reflection
+/essay "What I've been thinking about"
 
-# コンテキストファイル指定
-/essay -c GrandDigest.txt
-/essay -c GrandDigest.txt -c ShadowGrandDigest.txt
+# With context files
+/essay -c memories.txt
+/essay -c digest.txt -c notes.txt
 
-# テーマ + コンテキスト
-/essay "今週の振り返り" -c GrandDigest.txt -c ShadowGrandDigest.txt
+# Theme + context
+/essay "Weekly review" -c digest.txt -c recent.txt
 
-# ファイルリストから読み込み
+# From file list
 /essay -f context_list.txt
 ```
 
 ---
 
-## 内省モードの実行手順
+## Reflection Mode Flow
 
-### 1. コンテキスト読み込み
+### 1. Load Context
 
-指定されたファイルを読み込む。指定がない場合は以下を推奨：
-- `homunculus/Weave/EpisodicRAG/GrandDigest.txt`
-- `homunculus/Weave/EpisodicRAG/ShadowGrandDigest.txt`
+Read specified files. If none specified, look for common patterns:
+- EpisodicRAG digest files
+- Personal notes or journals
+- Project documentation
 
-### 2. エージェント起動
+### 2. Launch Agent
 
-`agents/essay_writer.md` を読み込み、サブエージェントを起動する。
+Load `agents/essay_writer.md` and start the reflection subprocess.
 
-### 3. 内省（ultrathink）
+### 3. Deep Reflection (ultrathink)
 
-extended thinkingで深く考える：
-- コンテキストから浮かぶ洞察
-- 大環主に伝えたいこと
-- 今、言葉にすべきこと
+Use extended thinking to contemplate:
+- Insights emerging from context
+- What needs to be communicated
+- What should be expressed now
 
-### 4. 送信判断
+### 4. Send Decision
 
-**送る場合**: エッセイを書き、`weave_mail.py send` で送信
-**送らない場合**: 「特に伝えることがありませんでした」と出力
+**If sending**: Write essay and send via `weave_mail.py send`
+**If not sending**: Output "Nothing to share at this time"
 
 ---
 
-## test サブコマンド
+## Test Subcommand
 
-### 実行手順
+### Flow
 
-1. `skills/send_email/SKILL.md` を読み込む
-2. `scripts/weave_mail.py test` を実行
-3. メール送信結果を表示
+1. Load `skills/send_email/SKILL.md`
+2. Execute `scripts/weave_mail.py test`
+3. Display send result
 
-### 環境設定
+### Environment Setup
 
-環境変数 `WEAVE_APP_PASSWORD` にGmailアプリパスワードを設定すること。
+Set environment variables for email configuration:
+
+| Variable | Description |
+|----------|-------------|
+| `ESSAY_SENDER_EMAIL` | Sender email address |
+| `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
+| `ESSAY_APP_PASSWORD` | Gmail app password |
 
 **Windows (PowerShell)**:
 ```powershell
-[Environment]::SetEnvironmentVariable("WEAVE_APP_PASSWORD", "your-app-password", "User")
+[Environment]::SetEnvironmentVariable("ESSAY_APP_PASSWORD", "your-app-password", "User")
+[Environment]::SetEnvironmentVariable("ESSAY_SENDER_EMAIL", "your-ai@gmail.com", "User")
+[Environment]::SetEnvironmentVariable("ESSAY_RECIPIENT_EMAIL", "you@example.com", "User")
 ```
 
 **Linux/macOS**:
 ```bash
-export WEAVE_APP_PASSWORD="your-app-password"
+export ESSAY_APP_PASSWORD="your-app-password"
+export ESSAY_SENDER_EMAIL="your-ai@gmail.com"
+export ESSAY_RECIPIENT_EMAIL="you@example.com"
 ```
 
 ---
 
-## 設計原則
+## Design Principles
 
-- **内省が主、送信は結果**: メール送信が目的ではない
-- **送らない選択肢**: 「特に伝えることがない」も正当な結論
-- **ultrathink**: 深く内省する
-
----
-
-## 関連ファイル
-
-| ファイル | 役割 |
-|---------|------|
-| `agents/essay_writer.md` | 内省・執筆エージェント |
-| `skills/reflect/SKILL.md` | 内省スキル定義 |
-| `skills/send_email/SKILL.md` | メール送信スキル |
-| `skills/send_email/scripts/weave_mail.py` | SMTP操作 |
+- **Reflection first, sending second**: Email is the result, not the goal
+- **Not sending is valid**: "Nothing to share" is a legitimate conclusion
+- **Deep thinking**: Use ultrathink for genuine contemplation
 
 ---
 
-**EmailingEssay** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
+## Related Files
+
+| File | Role |
+|------|------|
+| `agents/essay_writer.md` | Reflection and writing agent |
+| `skills/reflect/SKILL.md` | Reflection skill definition |
+| `skills/send_email/SKILL.md` | Email sending skill |
+| `skills/send_email/scripts/weave_mail.py` | SMTP operations |
+
+---
+
+**EmailingEssay** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

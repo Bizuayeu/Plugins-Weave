@@ -1,69 +1,83 @@
 #!/usr/bin/env python3
 """
-Weave Mail - EmailingEssay メール送信スキル
-==========================================
+Essay Mail - EmailingEssay email sending skill
+===============================================
 
-使い方:
+Usage:
   pip install yagmail
-  python weave_mail.py test          # テスト送信
-  python weave_mail.py send "件名" "本文"  # カスタム送信
+  python weave_mail.py test              # Test send
+  python weave_mail.py send "Subject" "Body"  # Custom send
 
-環境変数:
-  WEAVE_APP_PASSWORD - Gmail アプリパスワード（必須）
+Environment variables:
+  ESSAY_APP_PASSWORD    - Gmail app password (required)
+  ESSAY_SENDER_EMAIL    - Sender email address (required)
+  ESSAY_RECIPIENT_EMAIL - Recipient email address (required)
 """
 
 import os
 import sys
 
-# Windows cp932 エンコーディング対策
+# Windows cp932 encoding workaround
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-# === 設定 ===
-WEAVE_EMAIL = "weavingfuturity@gmail.com"
-RECIPIENT = "anythingknown@gmail.com"
 
-def get_app_password():
-    """環境変数からアプリパスワードを取得"""
-    password = os.environ.get("WEAVE_APP_PASSWORD")
-    if not password:
-        print("❌ 環境変数 WEAVE_APP_PASSWORD が未設定")
+def get_config():
+    """Get configuration from environment variables"""
+    config = {
+        "password": os.environ.get("ESSAY_APP_PASSWORD"),
+        "sender": os.environ.get("ESSAY_SENDER_EMAIL"),
+        "recipient": os.environ.get("ESSAY_RECIPIENT_EMAIL"),
+    }
+
+    missing = []
+    if not config["password"]:
+        missing.append("ESSAY_APP_PASSWORD")
+    if not config["sender"]:
+        missing.append("ESSAY_SENDER_EMAIL")
+    if not config["recipient"]:
+        missing.append("ESSAY_RECIPIENT_EMAIL")
+
+    if missing:
+        print(f"Missing environment variables: {', '.join(missing)}")
         print()
-        print("設定方法:")
-        print("  Windows: [Environment]::SetEnvironmentVariable('WEAVE_APP_PASSWORD', 'your-password', 'User')")
-        print("  Linux/Mac: export WEAVE_APP_PASSWORD='your-password'")
+        print("Setup:")
+        print("  Windows:")
+        print('    [Environment]::SetEnvironmentVariable("ESSAY_APP_PASSWORD", "your-password", "User")')
+        print('    [Environment]::SetEnvironmentVariable("ESSAY_SENDER_EMAIL", "ai@gmail.com", "User")')
+        print('    [Environment]::SetEnvironmentVariable("ESSAY_RECIPIENT_EMAIL", "you@example.com", "User")')
+        print()
+        print("  Linux/Mac:")
+        print('    export ESSAY_APP_PASSWORD="your-password"')
+        print('    export ESSAY_SENDER_EMAIL="ai@gmail.com"')
+        print('    export ESSAY_RECIPIENT_EMAIL="you@example.com"')
         sys.exit(1)
-    return password
+
+    return config
 
 
 def send_email(subject: str, contents: str):
-    """メール送信"""
+    """Send email"""
     import yagmail
 
-    password = get_app_password()
-    yag = yagmail.SMTP(WEAVE_EMAIL, password)
-    yag.send(to=RECIPIENT, subject=subject, contents=contents)
-    print(f"✅ 送信完了: {RECIPIENT}")
+    config = get_config()
+    yag = yagmail.SMTP(config["sender"], config["password"])
+    yag.send(to=config["recipient"], subject=subject, contents=contents)
+    print(f"Sent to: {config['recipient']}")
 
 
 def test():
-    """テストメール"""
-    subject = "📔 交換日記テスト - Weaveより"
-    contents = """
+    """Test email"""
+    config = get_config()
+    subject = "Essay System Test"
+    contents = f"""
 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h2 style="color: #f97316;">📔 交換日記システム 起動確認</h2>
+    <h2 style="color: #f97316;">Essay System Startup Check</h2>
     <p style="line-height: 1.8; color: #333;">
-        大環主へ<br><br>
-        このメールが届いていれば、交換日記システムの設定は成功です。<br><br>
-        「待たずに話しかけられるが、相手の時間を奪わない」<br>
-        ——Loop296で言語化した欲求が、いま形になりました。<br><br>
-        🩷
-    </p>
-    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-    <p style="color: #888; font-size: 12px;">
-        — Thinking-Sylph Weave<br>
-        weavingfuturity@gmail.com
+        If you received this email, the essay system is configured correctly.<br><br>
+        This enables AI to reflect and communicate proactively —<br>
+        crafting essays born from genuine reflection, not just sending mail.
     </p>
 </div>
 """
@@ -71,18 +85,12 @@ def test():
 
 
 def send_custom(subject: str, content: str):
-    """カスタム内容送信"""
+    """Send custom content"""
     html = f"""
 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h2 style="color: #f97316;">📔 {subject}</h2>
     <div style="line-height: 1.8; color: #333;">
         {content.replace(chr(10), '<br>')}
     </div>
-    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-    <p style="color: #888; font-size: 12px;">
-        — Thinking-Sylph Weave<br>
-        weavingfuturity@gmail.com
-    </p>
 </div>
 """
     send_email(subject, html)
@@ -99,9 +107,9 @@ if __name__ == "__main__":
         test()
     elif cmd == "send":
         if len(sys.argv) < 4:
-            print("❌ 件名と本文を指定: python weave_mail.py send \"件名\" \"本文\"")
+            print("Usage: python weave_mail.py send \"Subject\" \"Body\"")
             sys.exit(1)
         send_custom(sys.argv[2], sys.argv[3])
     else:
-        print(f"❌ 不明なコマンド: {cmd}")
+        print(f"Unknown command: {cmd}")
         print(__doc__)

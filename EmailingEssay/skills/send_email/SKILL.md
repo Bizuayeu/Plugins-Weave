@@ -1,88 +1,84 @@
 ---
 name: send_email
-description: メール送信スキル（Gmail SMTP + Yagmail）
+description: Email sending skill (Gmail SMTP + Yagmail)
 ---
 
-# send_email - メール送信スキル
+# send_email - Email Sending Skill
 
-Gmail SMTP を使用してメールを送信するスキル。
-frugal な設計で、依存は yagmail のみ。
+Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
-## 設定
+## Configuration
 
-### 環境変数
+### Environment Variables
 
-| 変数名 | 説明 |
-|--------|------|
-| `WEAVE_APP_PASSWORD` | Gmail アプリパスワード（必須） |
-
-### 送信元/送信先
-
-| 項目 | 値 |
-|------|-----|
-| 送信元 | weavingfuturity@gmail.com |
-| 送信先 | anythingknown@gmail.com |
+| Variable | Description |
+|----------|-------------|
+| `ESSAY_APP_PASSWORD` | Gmail app password (required) |
+| `ESSAY_SENDER_EMAIL` | Sender email address (required) |
+| `ESSAY_RECIPIENT_EMAIL` | Recipient email address (required) |
 
 ---
 
-## 使い方
+## Usage
 
-### テストメール送信
+### Test Email
 
 ```bash
 cd plugins-weave/EmailingEssay/skills/send_email/scripts
 python weave_mail.py test
 ```
 
-### カスタム内容送信
+### Custom Email
 
 ```bash
-python weave_mail.py send "件名" "本文"
+python weave_mail.py send "Subject" "Body"
 ```
 
 ---
 
-## 実装詳細
+## Implementation
 
-### スクリプトパス
+### Script Path
 
 ```
 skills/send_email/scripts/weave_mail.py
 ```
 
-### 依存関係
+### Dependencies
 
 ```
 yagmail
 ```
 
-### セキュリティ
+### Security
 
-- APP_PASSWORD は環境変数から取得（ハードコード禁止）
-- Gmail 2FA 環境ではアプリパスワードを使用
+- APP_PASSWORD retrieved from environment variable (no hardcoding)
+- Use app password in Gmail 2FA environments
 
 ---
 
-## トラブルシューティング
+## Troubleshooting
 
-### 環境変数未設定エラー
+### Missing Environment Variables
 
 ```
-環境変数 WEAVE_APP_PASSWORD が未設定
+Missing environment variables: ESSAY_APP_PASSWORD, ESSAY_SENDER_EMAIL
 ```
 
-**解決方法**:
+**Solution**:
 ```powershell
 # Windows
-[Environment]::SetEnvironmentVariable("WEAVE_APP_PASSWORD", "your-password", "User")
-# PowerShell再起動後に反映
+[Environment]::SetEnvironmentVariable("ESSAY_APP_PASSWORD", "your-password", "User")
+[Environment]::SetEnvironmentVariable("ESSAY_SENDER_EMAIL", "ai@gmail.com", "User")
+[Environment]::SetEnvironmentVariable("ESSAY_RECIPIENT_EMAIL", "you@example.com", "User")
+# Restart PowerShell to apply
 ```
 
-### 認証エラー
+### Authentication Error
 
-Gmail の設定で「安全性の低いアプリのアクセス」が無効の場合、
-2FA を有効にしてアプリパスワードを生成してください。
+If "Less secure app access" is disabled in Gmail settings,
+enable 2FA and generate an app password.
 
 ---
 
-**EmailingEssay** by Weave
+**EmailingEssay** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

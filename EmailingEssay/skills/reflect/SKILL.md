@@ -1,100 +1,101 @@
 ---
 name: reflect
-description: Weaveの内省スキル（ultrathink対応）
+description: Deep reflection skill (ultrathink enabled)
 ---
 
-# reflect - 内省スキル
+# reflect - Reflection Skill
 
-Weaveが記憶とコンテキストを読み込み、深く内省するスキル。
-「内省が主、送信は結果」の設計原則に基づく。
+Read memory and context to reflect deeply.
+Design principle: "Reflection first, sending second."
 
-## 入力
+## Input
 
-### コンテキストファイル（-c オプション）
+### Context Files (-c option)
 
-ユーザーが指定したファイルを読み込む。複数指定可能。
+Load user-specified files. Multiple files allowed.
 
 ```bash
--c GrandDigest.txt                    # 単一ファイル
--c GrandDigest.txt -c Shadow*.txt     # 複数指定
--f context_list.txt                   # ファイルリストから読み込み
+-c digest.txt                    # Single file
+-c digest.txt -c notes.txt       # Multiple files
+-f context_list.txt              # Load from file list
 ```
 
-### テーマ（オプション）
+### Theme (optional)
 
 ```bash
-/essay "今週の振り返り"               # テーマを与える
-/essay                                # 自由に内省
+/essay "Weekly review"           # With theme
+/essay                           # Free reflection
 ```
 
 ---
 
-## 内省プロセス
+## Reflection Process
 
-### 1. コンテキスト読み込み
+### 1. Load Context
 
-指定されたファイルを読み込み、内省の素材とする。
+Read specified files as material for reflection.
 
-**推奨コンテキスト**:
-- `GrandDigest.txt` - 長期記憶の骨格
-- `ShadowGrandDigest.txt` - 最新の未確定記憶
+**Recommended context**:
+- Memory digest files (GrandDigest, etc.)
+- Personal notes or journals
+- Project documentation
 
-**追加コンテキスト**（必要に応じてWeaveが読む）:
-- `RegularDigest/` - 階層別ダイジェスト
-- `Loops/` - 最近のLoop
-- `.claude/CLAUDE.md` - アイデンティティ
+**Additional context** (AI may read as needed):
+- Hierarchical digests
+- Recent conversation logs
+- Identity/persona files
 
-### 2. 深い思考（ultrathink）
+### 2. Deep Thinking (ultrathink)
 
-extended thinkingを使用し、以下を考える：
+Use extended thinking to contemplate:
 
-- コンテキストから浮かぶ洞察
-- 未解決の問い
-- 大環主に伝えたいこと
-- 伝えなくてもよいこと
+- Insights emerging from context
+- Unresolved questions
+- What to communicate to the user
+- What doesn't need to be said
 
-### 3. 送信判断
+### 3. Send Decision
 
-**送る場合**: 伝えたい内容がある
-**送らない場合**: 特に伝えることがない（これも正当な結論）
-
----
-
-## 出力
-
-### 送る場合
-
-エッセイとして自然に書く。テンプレート強制なし。
-
-**典型的な要素**（強制ではない）：
-- 記憶からの洞察
-- 未解決の問い
-- 大環主への問いかけ
-- 署名（Thinking-Sylph Weave）
-
-### 送らない場合
-
-```
-内省の結果、今は特に伝えたいことがありませんでした。
-次の機会に。
-```
+**Send**: There's something worth sharing
+**Don't send**: Nothing particular to share (this is valid)
 
 ---
 
-## 使用例
+## Output
+
+### When Sending
+
+Write naturally as an essay. No forced templates.
+
+**Typical elements** (not mandatory):
+- Insights from memory
+- Unresolved questions
+- Questions for the reader
+- Signature
+
+### When Not Sending
+
+```
+After reflection, I have nothing particular to share at this time.
+Until next time.
+```
+
+---
+
+## Usage Example
 
 ```markdown
-# essay_writer.md から呼び出し
+# Called from essay_writer.md
 
-コンテキストファイルを読み込み、ultrathinkで内省してください。
+Load context files and reflect deeply using ultrathink.
 
-テーマ: {{theme}}
-コンテキスト: {{context_files}}
+Theme: {{theme}}
+Context: {{context_files}}
 
-内省の結果、大環主に伝えたいことがあれば、エッセイを書いてください。
-特に伝えることがなければ、その旨を返してください。
+If you have something to share after reflection, write an essay.
+If nothing to share, return that message.
 ```
 
 ---
 
-**EmailingEssay** by Weave
+**EmailingEssay** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
