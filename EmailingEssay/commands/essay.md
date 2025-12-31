@@ -76,7 +76,7 @@ See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
 | `-l, --lang LANG` | Language: `ja`, `en`, `auto` (default: auto) |
 | `--name NAME` | Custom task name (auto-generated if omitted) |
 
-### Examples
+### Usage
 
 ```bash
 # Free reflection
@@ -124,7 +124,16 @@ See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
-### Usage
+### Time Formats
+
+| Format | Description |
+|--------|-------------|
+| `HH:MM` | Today (or tomorrow if time has passed) |
+| `YYYY-MM-DD HH:MM` | Specific date and time |
+
+See `skills/send_email` for implementation details.
+
+### Examples
 
 ```bash
 # Time only (today or tomorrow)
@@ -137,19 +146,10 @@ Schedule essay execution at a specified time. The process runs in the background
 /essay wait 22:00 -t "theme" -c context.txt
 ```
 
-### Time Formats
-
-| Format | Description |
-|--------|-------------|
-| `HH:MM` | Today (or tomorrow if time has passed) |
-| `YYYY-MM-DD HH:MM` | Specific date and time |
-
 ### Limitations
 
 - If PC is sleeping at target time, essay executes when PC wakes up
 - Cannot wake PC from sleep (OS-independent limitation)
-
-See `skills/send_email` for implementation details.
 
 ---
 
