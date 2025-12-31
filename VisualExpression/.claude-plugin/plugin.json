@@ -1,0 +1,20 @@
+{
+  "name": "VisualExpression",
+  "version": "1.0.0",
+  "description": "Visual expression system for AI responses with seven-color indicator integration and Artifact support",
+  "author": {
+    "name": "Weave"
+  },
+  "homepage": "https://note.com/weave_ai",
+  "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+  "license": "MIT",
+  "keywords": [
+    "expression",
+    "visual",
+    "artifact",
+    "avatar",
+    "claude-ai",
+    "vel",
+    "visual-embodiment-layer"
+  ]
+}

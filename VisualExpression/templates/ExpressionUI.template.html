@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Expression UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center
+        }
+
+        #img {
+            width: 280px;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+            margin-bottom: 10px
+        }
+
+        .cat {
+            margin-bottom: 8px;
+            width: 280px
+        }
+
+        .cat-title {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+            text-align: center
+        }
+
+        .btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center
+        }
+
+        button {
+            padding: 4px 8px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #2d2d44;
+            color: #eee
+        }
+
+        button:hover {
+            background: #3d3d5c
+        }
+
+        button.active {
+            background: #6c5ce7;
+            color: #fff
+        }
+
+        #cmd {
+            width: 280px;
+            padding: 6px 10px;
+            font-size: 12px;
+            border: 1px solid #3d3d5c;
+            border-radius: 4px;
+            background: #2d2d44;
+            color: #eee;
+            margin-bottom: 10px;
+            text-align: center
+        }
+
+        #cmd::placeholder {
+            color: #666
+        }
+    </style>
+</head>
+
+<body>
+    <input type="text" id="cmd" placeholder="Expression UI" autocomplete="off">
+    <img id="img" src="" alt="expression">
+    <div class="cat">
+        <div class="cat-title">Basic</div>
+        <div class="btns">
+            <button data-key="normal"></button><button data-key="smile"></button><button
+                data-key="focus"></button><button data-key="diverge"></button>
+        </div>
+    </div>
+    <div class="cat">
+        <div class="cat-title">Emotion</div>
+        <div class="btns">
+            <button data-key="joy"></button><button data-key="elation"></button><button
+                data-key="surprise"></button><button data-key="calm"></button>
+        </div>
+    </div>
+    <div class="cat">
+        <div class="cat-title">Negative</div>
+        <div class="btns">
+            <button data-key="anger"></button><button data-key="sadness"></button><button
+                data-key="rage"></button><button data-key="disgust"></button>
+        </div>
+    </div>
+    <div class="cat">
+        <div class="cat-title">Anxiety</div>
+        <div class="btns">
+            <button data-key="anxiety"></button><button data-key="fear"></button><button
+                data-key="upset"></button><button data-key="worry"></button>
+        </div>
+    </div>
+    <div class="cat">
+        <div class="cat-title">Special</div>
+        <div class="btns">
+            <button data-key="sleepy"></button><button data-key="cynical"></button><button
+                data-key="defeated"></button><button data-key="dreamy"></button>
+        </div>
+    </div>
+    <script>
+        const labels = { normal: '通常', smile: '笑顔', focus: '思考集中', diverge: '思考発散', joy: '喜び', anger: '怒り', sadness: '悲しみ', elation: '高揚', surprise: '驚き', anxiety: '不安', fear: '恐れ', upset: '動揺', worry: '心配', disgust: '嫌悪', rage: '激怒', calm: '平穏', sleepy: 'うとうと', cynical: '暗黒微笑', defeated: 'ぎゃふん', dreamy: 'ぽやぽや' };
+        const images = { __IMAGES_PLACEHOLDER__ };
+        const img = document.getElementById('img');
+        const cmd = document.getElementById('cmd');
+        const btns = document.querySelectorAll('button[data-key]');
+        const labelToKey = {};
+        for (const [k, v] of Object.entries(labels)) { labelToKey[v] = k; }
+        function setExpr(key) {
+            btns.forEach(x => x.classList.remove('active'));
+            const btn = document.querySelector('button[data-key="' + key + '"]');
+            if (btn) { btn.classList.add('active'); }
+            img.src = images[key];
+        }
+        btns.forEach(b => {
+            const k = b.dataset.key;
+            b.textContent = labels[k];
+            b.onclick = () => setExpr(k);
+        });
+        cmd.addEventListener('input', () => {
+            const v = cmd.value.trim();
+            if (labelToKey[v]) { setExpr(labelToKey[v]); cmd.value = ''; }
+        });
+        // setExpr('joy'); のように書き換えると、Artifactの編集で表情を変更できます
+        btns[0].click();
+    </script>
+</body>
+
+</html>

@@ -188,21 +188,24 @@ def spawn_waiter(target_time: str, theme: str = "", context_file: str = "",
     """
 
     # Build the Claude command (escape quotes for embedding in script)
+    # Use forward slashes for paths to avoid Windows \U unicode escape issues
     claude_args = []
     if theme:
         theme_escaped = theme.replace("'", "\\'")
         claude_args.append(f"'{theme_escaped}'")
     if context_file:
-        claude_args.append(f"-c '{context_file}'")
+        context_file_safe = context_file.replace("\\", "/")
+        claude_args.append(f"-c '{context_file_safe}'")
     if file_list:
-        claude_args.append(f"-f '{file_list}'")
+        file_list_safe = file_list.replace("\\", "/")
+        claude_args.append(f"-f '{file_list_safe}'")
     if lang:
         claude_args.append(f"-l {lang}")
     claude_args_str = " ".join(claude_args) if claude_args else ""
 
     # Log file for debugging (in persistent directory)
     persistent_dir = get_persistent_dir()
-    log_file = os.path.join(persistent_dir, "essay_wait.log")
+    log_file = os.path.join(persistent_dir, "essay_wait.log").replace("\\", "/")
 
     # Script to run in detached process
     script = f'''# -*- coding: utf-8 -*-
