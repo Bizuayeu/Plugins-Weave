@@ -59,7 +59,7 @@ yagmail
 
 ```bash
 python weave_mail.py send "Subject" "Body"
-python weave_mail.py test    # Test with default message
+python weave_mail.py test    # Send test email
 ```
 
 ### Wait (One-time Scheduling)
