@@ -249,8 +249,8 @@ try:
     log("Target time reached: " + datetime.now().strftime("%H:%M"))
     log("Launching Claude Code for essay...")
 
-    # Execute Claude Code
-    cmd = 'claude -p "/essay ' + CLAUDE_ARGS + '"'
+    # Execute Claude Code (--dangerously-skip-permissions for non-interactive)
+    cmd = 'claude --dangerously-skip-permissions -p "/essay ' + CLAUDE_ARGS + '"'
     log("Command: " + cmd)
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     log("Return code: " + str(result.returncode))
