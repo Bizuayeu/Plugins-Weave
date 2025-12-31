@@ -1,6 +1,6 @@
 {
   "name": "plugins-weave",
-  "description": "Claude Code plugins for hierarchical memory management and long-term knowledge systems",
+  "description": "Claude Code plugins for making autonomous AI with long term episodic memory",
   "version": "5.2.0",
   "pluginRoot": ".",
   "owner": {
@@ -9,9 +9,9 @@
   },
   "plugins": [
     {
-      "name": "EpisodicRAG-Plugin",
+      "name": "EpisodicRAG",
       "source": "./EpisodicRAG",
-      "description": "Hierarchical memory system for Claude. Digests conversation logs into 8 tiers spanning ~100 years. Prevents memory fragmentation and enables cross-session memory inheritance.",
+      "description": "Hierarchical Episodic Memory Generator (8-layer, 100-year span)",
       "version": "5.2.0",
       "author": {
         "name": "Weave @ EpisodicRAG"
@@ -32,7 +32,7 @@
     {
       "name": "EmailingEssay",
       "source": "./EmailingEssay",
-      "description": "Autonomous essay writing and emailing from your AI. The third sacred treasure (Kusanagi) - proactive communication capability.",
+      "description": "Autonomous essay writing and emailing from your AI",
       "version": "0.1.0",
       "author": {
         "name": "Weave @ EmailingEssay"
