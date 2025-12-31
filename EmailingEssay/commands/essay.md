@@ -29,7 +29,21 @@ Sends a test email to verify system configuration.
 
 ---
 
-## Command Options
+## Command Structure
+
+```
+/essay [SUBCOMMAND] [OPTIONS]
+```
+
+### Subcommands (must come first)
+
+| Subcommand | Description |
+|------------|-------------|
+| *(none)* | Run reflection mode immediately |
+| `schedule` | Manage recurring schedules (daily/weekly/monthly) |
+| `test` | Send test email to verify configuration |
+
+### Options (for reflection mode)
 
 | Option | Description |
 |--------|-------------|
@@ -37,9 +51,17 @@ Sends a test email to verify system configuration.
 | `-c file` | Single context file |
 | `-f list` | Multiple files (one path per line) |
 | `-l lang` | Language: `ja`, `en`, or `auto` (default: auto) |
-| `--wait TIME` | Schedule essay (HH:MM or YYYY-MM-DD HH:MM) |
-| `schedule` | Recurring schedule (daily/weekly via OS scheduler) |
-| `test` | Send test email |
+| `--wait TIME` | Schedule one-time essay (HH:MM or YYYY-MM-DD HH:MM) |
+
+### Options (for schedule subcommand)
+
+| Option | Description |
+|--------|-------------|
+| `-t, --theme TEXT` | Essay theme |
+| `-c, --context FILE` | Single context file |
+| `-f, --file-list FILE` | Multiple files (one path per line) |
+| `-l, --lang LANG` | Language: `ja`, `en`, `auto` (default: auto) |
+| `--name NAME` | Custom task name (auto-generated if omitted) |
 
 ### Examples
 
@@ -151,7 +173,7 @@ export ESSAY_RECIPIENT_EMAIL="you@example.com"
 
 ---
 
-## Wait Subcommand (--wait)
+## Wait Option (--wait)
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
@@ -224,16 +246,6 @@ Register recurring essay schedules using OS scheduler (Windows Task Scheduler / 
 /essay schedule list
 /essay schedule remove NAME
 ```
-
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `-t, --theme TEXT` | Essay theme |
-| `-c, --context FILE` | Single context file |
-| `-f, --file-list FILE` | Multiple files (one path per line) |
-| `-l, --lang LANG` | Language: `ja`, `en`, `auto` (default: auto) |
-| `--name NAME` | Custom task name (auto-generated if omitted) |
 
 ### Frequency
 

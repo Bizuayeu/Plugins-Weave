@@ -9,30 +9,60 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 ## Configuration
 
-### Environment Variables
+### Environment Variables (all mandatory)
 
 | Variable | Description |
 |----------|-------------|
-| `ESSAY_APP_PASSWORD` | Gmail app password (required) |
-| `ESSAY_SENDER_EMAIL` | Sender email address (required) |
-| `ESSAY_RECIPIENT_EMAIL` | Recipient email address (required) |
+| `ESSAY_APP_PASSWORD` | Gmail app password |
+| `ESSAY_SENDER_EMAIL` | Sender email address |
+| `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
 
 ---
 
 ## Usage
 
-### Test Email
-
-```bash
-cd plugins-weave/EmailingEssay/skills/send_email/scripts
-python weave_mail.py test
-```
-
-### Custom Email
+### Send Email
 
 ```bash
 python weave_mail.py send "Subject" "Body"
+python weave_mail.py test    # Test with default message
 ```
+
+### Wait (One-time Scheduling)
+
+Schedule essay for a specific time. Runs in detached process.
+
+```bash
+python weave_mail.py wait "22:00" -t "theme"
+python weave_mail.py wait "22:00" -t "theme" -c "context.txt"
+python weave_mail.py wait "22:00" -t "theme" -f "context_list.txt" -l ja
+python weave_mail.py wait "2026-01-05 22:00" -t "theme"
+```
+
+| Option | Description |
+|--------|-------------|
+| `-t, --theme` | Essay theme |
+| `-c, --context` | Single context file |
+| `-f, --file-list` | Multiple files (one path per line) |
+| `-l, --lang` | Language: `ja`, `en`, or `auto` (default: auto) |
+
+### Schedule (Recurring via OS Scheduler)
+
+Register with Windows Task Scheduler or cron.
+
+```bash
+# Daily/Weekly/Monthly
+python weave_mail.py schedule daily 22:00 -t "Daily reflection"
+python weave_mail.py schedule weekly monday 09:00 -t "Weekly review"
+python weave_mail.py schedule monthly 15 09:00 -t "Monthly review"
+python weave_mail.py schedule monthly last-fri 17:00 -t "Month-end"
+
+# Management
+python weave_mail.py schedule list
+python weave_mail.py schedule remove "Essay_Daily_reflection"
+```
+
+**Important**: Use absolute paths for `-c` and `-f` options (scheduled tasks run without working directory context).
 
 ---
 

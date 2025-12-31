@@ -10,21 +10,23 @@ Design principle: "Reflection first, sending second."
 
 ## Input
 
-### Context Files (-c option)
+### Options
 
-Load user-specified files. Multiple files allowed.
+| Option | Description |
+|--------|-------------|
+| `"theme"` | Reflection theme (quoted) |
+| `-c file` | Single context file |
+| `-f list` | Multiple files (one path per line) |
+| `-l lang` | Language: `ja`, `en`, or `auto` (default: auto) |
+
+### Examples
 
 ```bash
--c digest.txt                    # Single file
--c digest.txt -c notes.txt       # Multiple files
--f context_list.txt              # Load from file list
-```
-
-### Theme (optional)
-
-```bash
-/essay "Weekly review"           # With theme
 /essay                           # Free reflection
+/essay "Weekly review"           # With theme
+/essay -c digest.txt             # Single context file
+/essay -f context_list.txt       # Multiple files via list
+/essay "振り返り" -l ja           # Japanese output
 ```
 
 ---
@@ -63,38 +65,31 @@ Use extended thinking to contemplate:
 
 ## Output
 
-### When Sending
+### Interactive Mode (`/essay`)
 
-Write naturally as an essay. No forced templates.
+Output: **Chat display only** (no email)
+
+- **Sending**: Write essay in chat
+- **Not Sending**: Display "After reflection, I have nothing particular to share."
+
+### Non-interactive Mode (`--wait`/`schedule`)
+
+Output: **Email** (user is not present)
+
+- **Sending**: Use `skills/send_email` to deliver
+- **Not Sending**: Exit silently (logged to `essay_wait.log`)
+
+---
+
+## Essay Elements
+
+When sending, write naturally. No forced templates.
 
 **Typical elements** (not mandatory):
 - Insights from memory
 - Unresolved questions
 - Questions for the reader
 - Signature
-
-### When Not Sending
-
-```
-After reflection, I have nothing particular to share at this time.
-Until next time.
-```
-
----
-
-## Usage Example
-
-```markdown
-# Called from essay_writer.md
-
-Load context files and reflect deeply using ultrathink.
-
-Theme: {{theme}}
-Context: {{context_files}}
-
-If you have something to share after reflection, write an essay.
-If nothing to share, return that message.
-```
 
 ---
 
