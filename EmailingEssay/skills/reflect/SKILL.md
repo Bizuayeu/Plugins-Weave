@@ -10,16 +10,24 @@ Design principle: "Reflection first, sending second."
 
 ## Table of Contents
 
-- [Input](#input)
+- [Invocation](#invocation)
+- [Options](#options)
 - [Reflection Process](#reflection-process)
 - [Output](#output)
 - [Essay Elements](#essay-elements)
 
 ---
 
-## Input
+## Invocation
 
-### Options
+| Source | Description |
+|--------|-------------|
+| `/reflect` | Direct skill call |
+| `/essay` | Via command (→ reflect → send_email) |
+| `essay_writer.md` | Via agent |
+
+---
+## Options
 
 | Option | Description |
 |--------|-------------|
@@ -27,16 +35,6 @@ Design principle: "Reflection first, sending second."
 | `-c file` | Single context file |
 | `-f list` | Multiple files (one path per line) |
 | `-l lang` | Language: `ja`, `en`, or `auto` (default: auto) |
-
-### Examples
-
-```bash
-/essay                           # Free reflection
-/essay "Weekly review"           # With theme
-/essay -c digest.txt             # Single context file
-/essay -f context_list.txt       # Multiple files via list
-/essay "振り返り" -l ja           # Japanese output
-```
 
 ---
 

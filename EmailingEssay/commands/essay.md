@@ -8,9 +8,19 @@ description: AI reflection and essay delivery
 Enable your AI to reflect deeply and communicate proactively via email.
 This is not just "sending mail" — it's crafting essays born from genuine reflection.
 
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Command Structure](#command-structure)
+- [Wait Subcommand (One-time)](#wait-subcommand-one-time)
+- [Schedule Subcommand (Recurring)](#schedule-subcommand-recurring)
+- [Related Files](#related-files)
+
+---
+
 ## Architecture
 
-All modes ultimately invoke `agents/essay_writer.md` for reflection and delivery:
+Execution flow for each mode:
 
 | Mode | Execution Flow |
 |------|----------------|
@@ -124,14 +134,14 @@ See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
+See `skills/send_email` for implementation details.
+
 ### Time Formats
 
 | Format | Description |
 |--------|-------------|
 | `HH:MM` | Today (or tomorrow if time has passed) |
 | `YYYY-MM-DD HH:MM` | Specific date and time |
-
-See `skills/send_email` for implementation details.
 
 ### Examples
 
@@ -212,21 +222,6 @@ See `skills/send_email` for OS scheduler integration details.
 /essay schedule remove "Essay_Daily_reflection"
 ```
 
-### How It Works
-
-1. Parse schedule command and options
-2. Register with OS scheduler:
-   - **Windows**: `schtasks /create /tn "Essay_..." /sc daily|weekly|monthly ...`
-   - **Linux/Mac**: crontab entry with `# Essay_...` comment
-3. Save backup to `schedules.json`
-4. At scheduled time, OS launches `claude -p "/essay ..."`
-
-**Monthly schedule notes**:
-- On Windows, most monthly patterns use native Task Scheduler features
-- For `last` (last day of month), a runner script is used that checks daily
-- On Linux/Mac, all monthly schedules use a runner script approach
-- If the specified day doesn't exist (e.g., 31st in February), that month is skipped
-
 ### Important: Use Absolute Paths
 
 **OS schedulers run without a working directory context.** All file paths must be absolute:
@@ -248,18 +243,18 @@ C:/Users/you/path/to/file1.txt
 C:/Users/you/path/to/file2.txt
 ```
 
-### Advantages over --wait
+### Advantages over Wait Subcommand
 
-| Feature | --wait | schedule |
-|---------|--------|----------|
+| Feature | wait | schedule |
+|---------|------|----------|
 | One-time | Yes | No |
 | Recurring | No | Yes |
 | Survives reboot | No* | Yes |
 | OS managed | No | Yes |
 
-*`--wait` survives terminal close but not PC restart.
+*`wait` survives terminal close but not PC restart.
 
-### Management Commands
+### Schedule Management Commands
 
 ```bash
 # View all registered schedules
@@ -271,21 +266,13 @@ C:/Users/you/path/to/file2.txt
 
 ---
 
-## Design Principles
-
-- **Reflection first, sending second**: Email is the result, not the goal
-- **Not sending is valid**: "Nothing to share" is a legitimate conclusion
-- **Deep thinking**: Use ultrathink for genuine contemplation
-
----
-
 ## Related Files
 
 | File | Role |
 |------|------|
 | `agents/essay_writer.md` | Reflection and writing agent |
 | `skills/reflect/SKILL.md` | Reflection skill definition |
-| `skills/send_email/SKILL.md` | Email sending skill |
+| `skills/send_email/SKILL.md` | Emailing skill definition |
 | `skills/send_email/scripts/weave_mail.py` | SMTP operations |
 
 ---

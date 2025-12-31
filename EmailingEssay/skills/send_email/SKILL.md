@@ -9,9 +9,35 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 ## Table of Contents
 
+- [Invocation](#invocation)
+- [Options](#options-for-waitschedule)
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## Invocation
+
+| Source | Operation | Input |
+|--------|-----------|-------|
+| `/send_email` | send | Subject, Body |
+| `essay_writer.md` | send | Subject, Body |
+| `/essay test` | test | (none) |
+| `/essay wait` | wait | theme, context, lang |
+| `/essay schedule` | schedule | theme, context, lang |
+
+---
+
+## Options (for wait/schedule)
+
+| Option | Description |
+|--------|-------------|
+| `-t, --theme` | Essay theme |
+| `-c, --context` | Single context file |
+| `-f, --file-list` | Multiple files (one path per line) |
+| `-l, --lang` | Language: `ja`, `en`, or `auto` (default: auto) |
+| `--name` | Custom task name (schedule only, auto-generated if omitted) |
 
 ---
 
@@ -46,20 +72,20 @@ yagmail
 
 ## Usage
 
-**Use TodoWrite when sending from reflect skill**:
+### Send
 
-```
-1. Prepare subject and body
-2. Build send command
-3. Execute send command
-4. Verify send result
-```
-
-### Send Email
+Send email immediately with specified subject and body.
 
 ```bash
 python weave_mail.py send "Subject" "Body"
-python weave_mail.py test    # Send test email
+```
+
+### Test
+
+Verify email configuration by sending a test email.
+
+```bash
+python weave_mail.py test
 ```
 
 ### Wait (One-time Scheduling)
@@ -72,13 +98,6 @@ python weave_mail.py wait "22:00" -t "theme" -c "context.txt"
 python weave_mail.py wait "22:00" -t "theme" -f "context_list.txt" -l ja
 python weave_mail.py wait "2026-01-05 22:00" -t "theme"
 ```
-
-| Option | Description |
-|--------|-------------|
-| `-t, --theme` | Essay theme |
-| `-c, --context` | Single context file |
-| `-f, --file-list` | Multiple files (one path per line) |
-| `-l, --lang` | Language: `ja`, `en`, or `auto` (default: auto) |
 
 **Mechanism**:
 - Spawns detached process (survives terminal close)
@@ -100,6 +119,20 @@ python weave_mail.py schedule monthly last-fri 17:00 -t "Month-end"
 python weave_mail.py schedule list
 python weave_mail.py schedule remove "Essay_Daily_reflection"
 ```
+
+**How It Works**:
+1. Parse schedule command and options
+2. Register with OS scheduler:
+   - **Windows**: `schtasks /create /tn "Essay_..." /sc daily|weekly|monthly ...`
+   - **Linux/Mac**: crontab entry with `# Essay_...` comment
+3. Save backup to `schedules.json`
+4. At scheduled time, OS launches `claude -p "/essay ..."`
+
+**Monthly schedule notes**:
+- On Windows, most monthly patterns use native Task Scheduler features
+- For `last` (last day of month), a runner script is used that checks daily
+- On Linux/Mac, all monthly schedules use a runner script approach
+- If the specified day doesn't exist (e.g., 31st in February), that month is skipped
 
 **Important**: Use absolute paths for `-c` and `-f` options (scheduled tasks run without working directory context).
 
