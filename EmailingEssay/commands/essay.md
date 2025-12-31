@@ -37,7 +37,7 @@ All modes ultimately invoke `agents/essay_writer.md` for reflection and delivery
 |------|----------------|
 | Reflection | `/essay` → essay_writer.md → (reflect → send) |
 | Wait | `/essay wait` → detached process → `/essay` → essay_writer.md |
-| Schedule | OS scheduler → `/essay` → essay_writer.md |
+| Schedule | `/essay schedule` → OS scheduler → `/essay` → essay_writer.md |
 | Test | `/essay test` → skills/send_email (direct, no reflection) |
 
 **Parameters passed to agent**:
