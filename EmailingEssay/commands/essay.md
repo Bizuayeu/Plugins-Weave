@@ -8,27 +8,6 @@ description: AI reflection and essay delivery
 Enable your AI to reflect deeply and communicate proactively via email.
 This is not just "sending mail" — it's crafting essays born from genuine reflection.
 
-## Basic Usage
-
-### Reflection Mode
-
-```ClaudeCLI
-/essay                                    # Free reflection
-/essay "Weekly thoughts"                  # Reflection with theme
-/essay -c context.txt                     # With context file
-/essay "theme" -f context_list.txt        # Theme + multiple files
-```
-
-### Test Email
-
-```ClaudeCLI
-/essay test
-```
-
-Sends a test email to verify system configuration.
-
----
-
 ## Architecture
 
 All modes ultimately invoke `agents/essay_writer.md` for reflection and delivery:
@@ -49,6 +28,25 @@ All modes ultimately invoke `agents/essay_writer.md` for reflection and delivery
 | `language` | From `-l` option (default: auto) |
 
 See `agents/essay_writer.md` for the reflection and writing process.
+
+---
+
+## Quick Start
+
+```bash
+# Reflection (interactive)
+/essay                          # Free reflection
+/essay "Weekly thoughts"        # With theme
+
+# One-time schedule
+/essay wait 22:00 -t "Daily thoughts"
+
+# Recurring schedule
+/essay schedule daily 22:00 -t "Daily reflection"
+
+# Test configuration
+/essay test
+```
 
 ---
 
