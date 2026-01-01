@@ -44,8 +44,17 @@ EmailingEssay/
     │   └── SKILL.md          # Reflection skill
     └── send_email/
         ├── SKILL.md          # Email sending skill
-        └── scripts/
-            └── main.py       # SMTP operations (Clean Architecture)
+        └── scripts/          # Clean Architecture implementation
+            ├── main.py       # Entry point
+            ├── domain/       # Core entities (models.py)
+            ├── usecases/     # Business logic (ports.py, schedule_essay.py, wait_essay.py)
+            ├── adapters/     # Interface implementations
+            │   ├── cli/      # CLI handlers & parser
+            │   ├── mail/     # yagmail adapter
+            │   ├── scheduler/ # cron/Task Scheduler adapters
+            │   └── storage/  # JSON persistence
+            ├── frameworks/   # External frameworks (templates)
+            └── tests/        # Comprehensive test suite
 ```
 
 ---
