@@ -14,7 +14,6 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 - [Command Structure](#command-structure)
 - [Wait Subcommand (One-time)](#wait-subcommand-one-time)
 - [Schedule Subcommand (Recurring)](#schedule-subcommand-recurring)
-- [Related Files](#related-files)
 
 ---
 
@@ -134,7 +133,7 @@ See `SETUP.md` → **Environment Variables** / **Troubleshooting** section.
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
-See `skills/send_email/SKILL.md` → **Usage** section.
+See `skills/send_email/SKILL.md` → **CLI Usage** section.
 
 ### Time Formats
 
@@ -167,7 +166,7 @@ See `skills/send_email/SKILL.md` → **Usage** section.
 
 Register recurring essay schedules using OS scheduler (Windows Task Scheduler / cron).
 
-See `skills/send_email/SKILL.md` → **Usage** section.
+See `skills/send_email/SKILL.md` → **CLI Usage** section.
 
 ### Frequency
 
