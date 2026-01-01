@@ -82,6 +82,16 @@ class StorageError(AdapterError):
     pass
 
 
+class StorageCorruptionError(StorageError):
+    """
+    ストレージファイル破損エラー。
+
+    JSONファイルの破損を検出した場合に発生。
+    バックアップからの復旧を試行した結果も含む。
+    """
+    pass
+
+
 class TemplateError(AdapterError):
     """
     テンプレート処理エラー。

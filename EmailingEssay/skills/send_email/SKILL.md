@@ -49,6 +49,7 @@ yagmail
 | test | `python main.py test` | Send test email to verify configuration |
 | send | `python main.py send "Subject" "Body"` | Send email with custom subject and body |
 | wait | `python main.py wait TIME [OPTIONS]` | Schedule one-time essay (detached process) |
+| wait list | `python main.py wait list` | View all active waiting processes |
 | schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Register recurring schedule (OS scheduler) |
 | list | `python main.py schedule list` | View all registered schedules |
 | remove | `python main.py schedule remove "name"` | Remove a registered schedule |
@@ -73,6 +74,7 @@ python main.py send "Subject" "Body"
 python main.py wait "22:00" -t "theme"
 python main.py wait "22:00" -t "theme" -c context.txt -l ja
 python main.py wait "2025-01-05 22:00" -t "theme"
+python main.py wait list                     # List active waiting processes
 
 # Schedule (recurring)
 python main.py schedule daily 22:00 -t "theme"
@@ -95,6 +97,7 @@ python main.py schedule remove "name"
 |------|----------|-------------|
 | `essay_wait.log` | `~/.claude/plugins/.emailingessay/` | Logs for wait/schedule operations |
 | `schedules.json` | `~/.claude/plugins/.emailingessay/` | Backup of registered schedules |
+| `active_waiters.json` | `~/.claude/plugins/.emailingessay/` | Active waiting process tracking |
 | `runners/` | `~/.claude/plugins/.emailingessay/runners/` | Monthly schedule runner scripts |
 
 Note: Persistent data directory is created automatically if not exists.

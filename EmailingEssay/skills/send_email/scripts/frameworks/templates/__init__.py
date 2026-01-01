@@ -7,8 +7,8 @@ TemplateError は domain.exceptions に移動済み。
 """
 from __future__ import annotations
 
-import os
 import re
+from pathlib import Path
 from typing import Any
 
 from domain.exceptions import TemplateError
@@ -16,7 +16,7 @@ from domain.exceptions import TemplateError
 
 def get_templates_dir() -> str:
     """テンプレートディレクトリのパスを取得"""
-    return os.path.dirname(os.path.abspath(__file__))
+    return str(Path(__file__).parent)
 
 
 def load_template(name: str) -> str:
@@ -32,8 +32,8 @@ def load_template(name: str) -> str:
     Raises:
         TemplateError: ファイルが存在しない場合
     """
-    template_path = os.path.join(get_templates_dir(), name)
-    if not os.path.exists(template_path):
+    template_path = Path(get_templates_dir()) / name
+    if not template_path.exists():
         raise TemplateError(f"Template not found: {name}")
 
     with open(template_path, "r", encoding="utf-8") as f:

@@ -6,9 +6,9 @@
 """
 from __future__ import annotations
 
-import os
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.models import MonthlyPattern, MonthlyType
@@ -205,15 +205,33 @@ class ScheduleEssayUseCase:
     def _generate_task_name(
         self, frequency: str, time_spec: str, theme: str, name: str, day_spec: str
     ) -> str:
-        """タスク名を生成"""
+        """
+        タスク名を生成する。
+
+        明示的に名前が指定された場合はそのまま使用（既存動作：上書き可能）。
+        自動生成の場合、既存タスクとの衝突を検出したらタイムスタンプ接尾辞を付与。
+        """
+        # 明示的な名前指定の場合はそのまま使用（上書き許可）
         if name:
             return name
+
+        # 自動生成
         if frequency == "monthly" and day_spec:
             base = theme if theme else f"{frequency}_{day_spec}_{time_spec.replace(':', '')}"
         else:
             base = theme if theme else f"{frequency}_{time_spec.replace(':', '')}"
         safe_name = "".join(c if c.isalnum() or c in "_-" else "_" for c in base)
-        return f"Essay_{safe_name}"
+        base_name = f"Essay_{safe_name}"
+
+        # 既存タスク名との衝突チェック（自動生成名のみ）
+        existing_names = {s["name"] for s in self._storage.load_schedules()}
+        if base_name in existing_names:
+            # タイムスタンプ接尾辞を付与してユニーク化
+            suffix = datetime.now().strftime("%Y%m%d%H%M%S")
+            base_name = f"{base_name}_{suffix}"
+            logger.info(f"Task name collision detected, using unique name: {base_name}")
+
+        return base_name
 
     def _build_claude_command(
         self, theme: str = "", context_file: str = "", file_list: str = "", lang: str = ""
@@ -237,7 +255,7 @@ class ScheduleEssayUseCase:
         args_str = " ".join(args)
 
         if sys.platform == "win32":
-            claude_path = os.path.expanduser("~/.local/bin/claude.exe")
+            claude_path = str(Path.home() / ".local" / "bin" / "claude.exe")
             return f'"{claude_path}" --dangerously-skip-permissions -p "/essay {args_str}"'
         return f'claude --dangerously-skip-permissions -p "/essay {args_str}"'
 
@@ -269,8 +287,8 @@ class ScheduleEssayUseCase:
         """月末用ランナースクリプトを作成"""
         from frameworks.templates import load_template, render_template
 
-        runners_dir = self._storage.get_runners_dir()
-        runner_path = os.path.join(runners_dir, f"{task_name}.py")
+        runners_dir = Path(self._storage.get_runners_dir())
+        runner_path = runners_dir / f"{task_name}.py"
 
         # 月末判定コード
         pattern = MonthlyPattern.parse(day_spec)
@@ -287,14 +305,14 @@ class ScheduleEssayUseCase:
         with open(runner_path, "w", encoding="utf-8") as f:
             f.write(script_content)
 
-        return runner_path
+        return str(runner_path)
 
     def _remove_runner_script(self, name: str) -> None:
         """ランナースクリプトを削除"""
-        runners_dir = self._storage.get_runners_dir()
-        runner_path = os.path.join(runners_dir, f"{name}.py")
-        if os.path.exists(runner_path):
-            os.remove(runner_path)
+        runners_dir = Path(self._storage.get_runners_dir())
+        runner_path = runners_dir / f"{name}.py"
+        if runner_path.exists():
+            runner_path.unlink()
 
     def _save_schedule_entry(
         self,

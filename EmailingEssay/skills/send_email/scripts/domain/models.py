@@ -25,6 +25,21 @@ class MonthlyType(Enum):
     LAST_DAY = "last_day"       # 月末
 
 
+# 月次条件判定コードのテンプレート（安全な固定パターン）
+_CONDITION_TEMPLATES: dict[MonthlyType, str] = {
+    MonthlyType.DATE: "today.day == {day_num}",
+    MonthlyType.LAST_DAY: "(today + timedelta(days=1)).month != today.month",
+    MonthlyType.LAST_WEEKDAY: (
+        "today.weekday() == {weekday_num} and "
+        "(today + timedelta(days=7)).month != today.month"
+    ),
+    MonthlyType.NTH_WEEKDAY: (
+        "today.weekday() == {weekday_num} and "
+        "((today.day - 1) // 7 + 1) == {ordinal}"
+    ),
+}
+
+
 @dataclass
 class MonthlyPattern:
     """
@@ -85,30 +100,22 @@ class MonthlyPattern:
         """
         Runnerスクリプト用のPython条件判定コードを生成する。
 
+        テンプレートベースの安全な実装。整数値のみを代入し、
+        コードインジェクションのリスクを排除する。
+
         Returns:
             Python条件式の文字列
         """
-        if self.type == MonthlyType.DATE:
-            return f"today.day == {self.day_num}"
+        template = _CONDITION_TEMPLATES.get(self.type, "")
+        if not template:
+            return ""
 
-        if self.type == MonthlyType.LAST_DAY:
-            return "(today + timedelta(days=1)).month != today.month"
-
-        if self.type == MonthlyType.LAST_WEEKDAY:
-            weekday_num = self._weekday_to_num(self.weekday)
-            return (
-                f"today.weekday() == {weekday_num} and "
-                f"(today + timedelta(days=7)).month != today.month"
-            )
-
-        if self.type == MonthlyType.NTH_WEEKDAY:
-            weekday_num = self._weekday_to_num(self.weekday)
-            return (
-                f"today.weekday() == {weekday_num} and "
-                f"((today.day - 1) // 7 + 1) == {self.ordinal}"
-            )
-
-        return ""
+        # 整数値のみを代入（安全）
+        return template.format(
+            day_num=int(self.day_num) if self.day_num else 0,
+            weekday_num=self._weekday_to_num(self.weekday) if self.weekday else 0,
+            ordinal=int(self.ordinal) if self.ordinal else 0
+        )
 
     @staticmethod
     def _weekday_to_num(weekday: str) -> int:

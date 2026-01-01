@@ -7,8 +7,8 @@ WaiterError は domain.exceptions に移動済み。
 """
 from __future__ import annotations
 
-import os
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.exceptions import WaiterError
@@ -17,7 +17,13 @@ if TYPE_CHECKING:
     from .ports import StoragePort, ProcessSpawnerPort
 
 # 後方互換性のため再エクスポート
-__all__ = ["WaitEssayUseCase", "WaiterError", "get_persistent_dir", "parse_target_time"]
+__all__ = [
+    "WaitEssayUseCase",
+    "WaiterError",
+    "get_persistent_dir",
+    "parse_target_time",
+    "wait_list",
+]
 
 
 def get_persistent_dir() -> str:
@@ -34,10 +40,9 @@ def get_persistent_dir() -> str:
         この関数は後方互換性のために残されています。
         新しいコードでは StoragePort.get_persistent_dir() を使用してください。
     """
-    home = os.path.expanduser("~")
-    path = os.path.join(home, ".claude", "plugins", ".emailingessay")
-    os.makedirs(path, exist_ok=True)
-    return path
+    path = Path.home() / ".claude" / "plugins" / ".emailingessay"
+    path.mkdir(parents=True, exist_ok=True)
+    return str(path)
 
 
 def parse_target_time(time_str: str) -> datetime:
@@ -122,19 +127,22 @@ class WaitEssayUseCase:
         claude_args = self._build_claude_args(theme, context, file_list, lang)
 
         # 永続ディレクトリを取得（DIされたストレージを使用）
-        persistent_dir = self._storage.get_persistent_dir()
-        log_file = os.path.join(persistent_dir, "essay_wait.log").replace("\\", "/")
+        persistent_dir = Path(self._storage.get_persistent_dir())
+        log_file = str(persistent_dir / "essay_wait.log").replace("\\", "/")
 
         # 待機スクリプトを生成
         script = self._generate_waiter_script(target_time, claude_args, log_file)
 
         # スクリプトファイルに書き込み
-        script_file = os.path.join(persistent_dir, "essay_waiter_temp.py")
+        script_file = str(persistent_dir / "essay_waiter_temp.py")
         with open(script_file, "w", encoding="utf-8") as f:
             f.write(script)
 
         # デタッチドプロセスを起動（DIされたスポーナーを使用）
         pid = self._spawner.spawn_detached(script_file)
+
+        # 待機プロセスを登録（PIDトラッキング）
+        self._storage.register_waiter(pid, target_time, theme)
 
         # 情報を表示
         target = parse_target_time(target_time)
@@ -190,3 +198,37 @@ class WaitEssayUseCase:
             target_time=target_time,
             claude_args=claude_args_str
         )
+
+    def list_waiters(self) -> list[dict]:
+        """
+        アクティブな待機プロセス一覧を取得する。
+
+        Returns:
+            待機プロセスのリスト
+        """
+        return self._storage.get_active_waiters()
+
+
+def wait_list() -> None:
+    """待機プロセス一覧を表示する（便利関数）"""
+    from adapters.storage import JsonStorageAdapter
+
+    storage = JsonStorageAdapter()
+    waiters = storage.get_active_waiters()
+
+    if not waiters:
+        print("No active waiting processes.")
+        return
+
+    print(f"Active waiting processes: {len(waiters)}")
+    print("-" * 60)
+    for w in waiters:
+        pid = w.get("pid", "?")
+        target = w.get("target_time", "?")
+        theme = w.get("theme", "") or "(no theme)"
+        registered = w.get("registered_at", "?")
+        print(f"  PID: {pid}")
+        print(f"    Target: {target}")
+        print(f"    Theme:  {theme}")
+        print(f"    Registered: {registered}")
+        print()

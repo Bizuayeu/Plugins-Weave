@@ -10,7 +10,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .ports import SchedulerPort, StoragePort, ProcessSpawnerPort
+    from .ports import SchedulerPort, StoragePort, ProcessSpawnerPort, MailPort
+
+
+def get_mail_adapter() -> "MailPort":
+    """メールアダプターを取得する"""
+    from adapters.mail import YagmailAdapter
+    return YagmailAdapter()
 
 
 def get_scheduler() -> "SchedulerPort":
@@ -93,6 +99,7 @@ from .schedule_essay import ScheduleEssayUseCase  # noqa: E402
 from .wait_essay import WaitEssayUseCase  # noqa: E402
 
 __all__ = [
+    "get_mail_adapter",
     "get_scheduler",
     "get_storage",
     "get_spawner",

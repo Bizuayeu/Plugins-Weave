@@ -36,6 +36,14 @@ class TaskInfo(TypedDict):
     name: str
 
 
+class WaiterEntry(TypedDict):
+    """待機プロセスエントリの型定義"""
+    pid: int
+    target_time: str
+    theme: str
+    registered_at: str
+
+
 # =============================================================================
 # ポートインターフェース
 # =============================================================================
@@ -103,6 +111,14 @@ class StoragePort(Protocol):
         """ランナースクリプト用ディレクトリのパスを取得する"""
         ...
 
+    def register_waiter(self, pid: int, target_time: str, theme: str) -> None:
+        """待機プロセスを登録する"""
+        ...
+
+    def get_active_waiters(self) -> list[WaiterEntry]:
+        """アクティブな待機プロセス一覧を取得する（死亡プロセスは除外）"""
+        ...
+
 
 @runtime_checkable
 class ProcessSpawnerPort(Protocol):
@@ -153,6 +169,7 @@ class WaiterPort(Protocol):
 __all__ = [
     "ScheduleEntry",
     "TaskInfo",
+    "WaiterEntry",
     "MailPort",
     "SchedulerPort",
     "StoragePort",

@@ -12,6 +12,7 @@ Usage:
   python main.py wait "22:00" -t "theme"                 # Today/tomorrow
   python main.py wait "22:00" -t "theme" -l ja           # With language
   python main.py wait "2025-01-05 22:00" -t "theme"      # Specific date
+  python main.py wait list                               # List active waiters
   python main.py schedule daily 22:00 -t "theme"         # Daily schedule
   python main.py schedule weekly monday 09:00            # Weekly schedule
   python main.py schedule monthly 15 09:00 -t "theme"    # Monthly (day)
@@ -36,10 +37,10 @@ if sys.platform == "win32":
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 from adapters.cli.parser import create_parser
-from adapters.mail import YagmailAdapter
 from domain.exceptions import EmailingEssayError
-from usecases.wait_essay import WaitEssayUseCase
+from usecases.wait_essay import WaitEssayUseCase, wait_list
 from usecases.schedule_essay import schedule_add, schedule_list, schedule_remove
+from usecases.factories import get_mail_adapter
 from frameworks.logging_config import configure_logging, get_logger
 
 # ロギング初期化
@@ -59,25 +60,29 @@ def main() -> int:
 
     try:
         if args.command == "test":
-            # 新しいモジュールを使用
-            mail = YagmailAdapter()
+            # ファクトリー経由でアダプターを取得
+            mail = get_mail_adapter()
             mail.test()
 
         elif args.command == "send":
-            # 新しいモジュールを使用
-            mail = YagmailAdapter()
+            # ファクトリー経由でアダプターを取得
+            mail = get_mail_adapter()
             mail.send_custom(args.subject, args.body)
 
         elif args.command == "wait":
-            # 新しいモジュールを使用
-            waiter = WaitEssayUseCase()
-            waiter.spawn(
-                target_time=args.time,
-                theme=args.theme,
-                context=args.context,
-                file_list=args.file_list,
-                lang=args.lang
-            )
+            if args.time == "list":
+                # 待機プロセス一覧を表示
+                wait_list()
+            else:
+                # 新しいモジュールを使用
+                waiter = WaitEssayUseCase()
+                waiter.spawn(
+                    target_time=args.time,
+                    theme=args.theme,
+                    context=args.context,
+                    file_list=args.file_list,
+                    lang=args.lang
+                )
 
         elif args.command == "schedule":
             if args.schedule_cmd == "list":

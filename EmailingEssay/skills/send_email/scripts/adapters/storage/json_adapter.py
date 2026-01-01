@@ -3,12 +3,16 @@
 JSON ストレージアダプター
 
 スケジュール情報をJSONファイルで永続化する。
+バックアップ/復旧機能により、破損時のデータ回復を支援。
+待機プロセスのPIDトラッキング機能も提供。
 """
 from __future__ import annotations
 
 import json
 import logging
-import os
+import shutil
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 
@@ -26,38 +30,85 @@ class JsonStorageAdapter:
         Args:
             base_dir: 基底ディレクトリ（テスト用）。Noneの場合はデフォルトを使用
         """
-        self._base_dir = base_dir
+        self._base_dir = Path(base_dir) if base_dir else None
 
     def get_persistent_dir(self) -> str:
         """永続化ディレクトリのパスを取得（なければ作成）"""
         if self._base_dir:
-            os.makedirs(self._base_dir, exist_ok=True)
-            return self._base_dir
+            self._base_dir.mkdir(parents=True, exist_ok=True)
+            return str(self._base_dir)
 
-        home = os.path.expanduser("~")
-        persistent_dir = os.path.join(home, ".claude", "plugins", PERSISTENT_DIR_NAME)
-        os.makedirs(persistent_dir, exist_ok=True)
-        return persistent_dir
+        persistent_dir = Path.home() / ".claude" / "plugins" / PERSISTENT_DIR_NAME
+        persistent_dir.mkdir(parents=True, exist_ok=True)
+        return str(persistent_dir)
 
     def get_schedules_file(self) -> str:
         """スケジュールファイルのパスを取得"""
-        return os.path.join(self.get_persistent_dir(), "schedules.json")
+        return str(Path(self.get_persistent_dir()) / "schedules.json")
 
     def get_runners_dir(self) -> str:
         """ランナースクリプト用ディレクトリのパスを取得（なければ作成）"""
-        runners_dir = os.path.join(self.get_persistent_dir(), "runners")
-        os.makedirs(runners_dir, exist_ok=True)
-        return runners_dir
+        runners_dir = Path(self.get_persistent_dir()) / "runners"
+        runners_dir.mkdir(parents=True, exist_ok=True)
+        return str(runners_dir)
+
+    def _backup_file(self, filepath: Path) -> Path | None:
+        """
+        書き込み前にバックアップを作成する。
+
+        Args:
+            filepath: バックアップ対象のファイルパス
+
+        Returns:
+            バックアップファイルのパス。ファイルが存在しない場合はNone
+        """
+        if filepath.exists():
+            backup = filepath.with_suffix('.json.bak')
+            try:
+                shutil.copy2(filepath, backup)
+                logger.debug(f"Created backup: {backup}")
+                return backup
+            except OSError as e:
+                logger.warning(f"Failed to create backup: {e}")
+        return None
+
+    def _restore_from_backup(self, filepath: Path) -> bool:
+        """
+        バックアップからの復旧を試行する。
+
+        Args:
+            filepath: 復旧対象のファイルパス
+
+        Returns:
+            復旧に成功した場合はTrue
+        """
+        backup = filepath.with_suffix('.json.bak')
+        if not backup.exists():
+            return False
+
+        try:
+            with open(backup, 'r', encoding='utf-8') as f:
+                content = f.read()
+                if not content.strip():
+                    return False
+                data = json.loads(content)
+                if isinstance(data, dict) and "schedules" in data:
+                    shutil.copy2(backup, filepath)
+                    logger.info(f"Restored from backup: {backup}")
+                    return True
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning(f"Backup also corrupted or inaccessible: {e}")
+        return False
 
     def load_schedules(self) -> list[dict[str, Any]]:
         """
         スケジュール一覧を読み込む。
 
-        破損したJSONファイルや無効なデータ構造の場合は空リストを返す。
-        これによりサービス継続性を確保する。
+        破損したJSONファイルの場合はバックアップからの復旧を試行。
+        復旧に失敗した場合は空リストを返し、サービス継続性を確保する。
         """
-        schedules_file = self.get_schedules_file()
-        if not os.path.exists(schedules_file):
+        schedules_file = Path(self.get_schedules_file())
+        if not schedules_file.exists():
             return []
 
         try:
@@ -72,11 +123,144 @@ class JsonStorageAdapter:
                     return []
                 return data.get("schedules", [])
         except (json.JSONDecodeError, KeyError, TypeError) as e:
-            # 破損したJSONの場合は警告ログを出力して空リストを返す
-            logger.warning(f"Corrupted schedules.json, returning empty list: {e}")
+            # 破損したJSONの場合はバックアップからの復旧を試行
+            logger.warning(f"Corrupted schedules.json: {e}")
+            if self._restore_from_backup(schedules_file):
+                # 復旧成功、再度読み込み
+                return self.load_schedules()
+            logger.error("No valid backup available, returning empty list")
             return []
 
     def save_schedules(self, schedules: list[dict[str, Any]]) -> None:
-        """スケジュール一覧を保存する"""
-        with open(self.get_schedules_file(), "w", encoding="utf-8") as f:
+        """
+        スケジュール一覧を保存する。
+
+        書き込み前に既存ファイルのバックアップを作成する。
+        """
+        schedules_file = Path(self.get_schedules_file())
+        # 既存ファイルをバックアップ
+        self._backup_file(schedules_file)
+        # 新しいデータを書き込み
+        with open(schedules_file, "w", encoding="utf-8") as f:
             json.dump({"schedules": schedules}, f, indent=2, ensure_ascii=False)
+
+    # =========================================================================
+    # 待機プロセス（Waiter）トラッキング
+    # =========================================================================
+
+    def get_active_waiters_file(self) -> str:
+        """アクティブ待機プロセスファイルのパスを取得"""
+        return str(Path(self.get_persistent_dir()) / "active_waiters.json")
+
+    def _is_process_alive(self, pid: int) -> bool:
+        """
+        プロセスが生存しているかチェックする。
+
+        Args:
+            pid: プロセスID
+
+        Returns:
+            プロセスが存在する場合はTrue
+        """
+        import os
+        import sys
+
+        try:
+            if sys.platform == "win32":
+                # Windows: os.kill(pid, 0) は動作しないため、ctypesを使用
+                import ctypes
+                kernel32 = ctypes.windll.kernel32
+                SYNCHRONIZE = 0x00100000
+                handle = kernel32.OpenProcess(SYNCHRONIZE, False, pid)
+                if handle:
+                    kernel32.CloseHandle(handle)
+                    return True
+                return False
+            else:
+                # Unix: シグナル0を送信（実際にはシグナルを送らず存在確認のみ）
+                os.kill(pid, 0)
+                return True
+        except (OSError, PermissionError):
+            return False
+
+    def register_waiter(self, pid: int, target_time: str, theme: str) -> None:
+        """
+        待機プロセスを登録する。
+
+        Args:
+            pid: プロセスID
+            target_time: 目標時刻
+            theme: エッセイのテーマ
+        """
+        waiters_file = Path(self.get_active_waiters_file())
+
+        # 既存データを読み込み
+        waiters: list[dict[str, Any]] = []
+        if waiters_file.exists():
+            try:
+                with open(waiters_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    if content.strip():
+                        data = json.loads(content)
+                        if isinstance(data, dict):
+                            waiters = data.get("waiters", [])
+            except (json.JSONDecodeError, OSError) as e:
+                logger.warning(f"Failed to read waiters file: {e}")
+
+        # 新しいエントリを追加
+        entry = {
+            "pid": pid,
+            "target_time": target_time,
+            "theme": theme,
+            "registered_at": datetime.now().isoformat()
+        }
+        waiters.append(entry)
+
+        # 保存
+        with open(waiters_file, "w", encoding="utf-8") as f:
+            json.dump({"waiters": waiters}, f, indent=2, ensure_ascii=False)
+
+        logger.debug(f"Registered waiter: PID={pid}, target={target_time}")
+
+    def get_active_waiters(self) -> list[dict[str, Any]]:
+        """
+        アクティブな待機プロセス一覧を取得する。
+
+        死亡したプロセスは自動的に除外され、ファイルも更新される。
+
+        Returns:
+            アクティブな待機プロセスのリスト
+        """
+        waiters_file = Path(self.get_active_waiters_file())
+
+        if not waiters_file.exists():
+            return []
+
+        # 既存データを読み込み
+        try:
+            with open(waiters_file, "r", encoding="utf-8") as f:
+                content = f.read()
+                if not content.strip():
+                    return []
+                data = json.loads(content)
+                if not isinstance(data, dict):
+                    return []
+                waiters = data.get("waiters", [])
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning(f"Failed to read waiters file: {e}")
+            return []
+
+        # 生存プロセスのみフィルタ
+        active_waiters = [
+            w for w in waiters
+            if self._is_process_alive(w.get("pid", 0))
+        ]
+
+        # 死亡プロセスがあった場合はファイルを更新
+        if len(active_waiters) != len(waiters):
+            removed_count = len(waiters) - len(active_waiters)
+            logger.debug(f"Removed {removed_count} dead waiter(s)")
+            with open(waiters_file, "w", encoding="utf-8") as f:
+                json.dump({"waiters": active_waiters}, f, indent=2, ensure_ascii=False)
+
+        return active_waiters

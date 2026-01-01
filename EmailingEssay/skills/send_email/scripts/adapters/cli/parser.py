@@ -55,6 +55,8 @@ def create_parser() -> argparse.ArgumentParser:
     - test: テストメール送信
     - send: カスタムメール送信
     - wait: 一回限りのエッセイ配信
+        - <time>: 指定時刻に待機
+        - list: アクティブな待機プロセス一覧
     - schedule: 定期配信管理
         - list: スケジュール一覧
         - remove: スケジュール削除
@@ -74,6 +76,7 @@ Examples:
   python main.py test                          # Send test email
   python main.py send "Subject" "Body"         # Send custom email
   python main.py wait 09:30 -t "morning"       # Schedule one-time essay
+  python main.py wait list                     # List active waiting processes
   python main.py schedule daily 09:00          # Add daily schedule
   python main.py schedule weekly monday 10:00  # Add weekly schedule
   python main.py schedule monthly last_fri 15:00  # Add monthly schedule
@@ -116,11 +119,11 @@ Examples:
     # -------------------------------------------------------------------------
     wait_parser = subparsers.add_parser(
         "wait",
-        help="Schedule one-time essay (一回限りのエッセイ配信)"
+        help="Schedule one-time essay or list waiters (一回限りのエッセイ配信 / 待機一覧)"
     )
     wait_parser.add_argument(
         "time",
-        help="Target time (HH:MM or YYYY-MM-DD HH:MM)"
+        help="Target time (HH:MM or YYYY-MM-DD HH:MM) or 'list' to show active waiters"
     )
     add_common_options(wait_parser)
 
