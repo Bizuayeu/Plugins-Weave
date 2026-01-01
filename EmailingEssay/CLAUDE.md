@@ -7,9 +7,11 @@ Plugin enabling AI to proactively deliver essays born from genuine reflection.
 - [What is EmailingEssay?](#what-is-emailingessay)
 - [Benefits](#benefits)
 - [File Structure](#file-structure)
-- [Architecture](#architecture)
+- [Clean Architecture Details](#clean-architecture-details)
+- [Execution Flow](#execution-flow)
 - [Component Roles](#component-roles)
 - [Execution Modes](#execution-modes)
+- [Extension Points](#extension-points)
 
 ---
 
@@ -61,7 +63,62 @@ The `scripts/` directory follows Clean Architecture (Domain → Use Cases → Ad
 
 ---
 
-## Architecture
+## Clean Architecture Details
+
+The implementation strictly follows Clean Architecture principles with four concentric layers:
+
+```mermaid
+graph TB
+    subgraph Frameworks["Frameworks (External)"]
+        Templates["templates/"]
+        Logging["logging config"]
+    end
+
+    subgraph Adapters["Adapters (Interface)"]
+        CLI["cli/ - argparse"]
+        Mail["mail/ - yagmail"]
+        Scheduler["scheduler/ - cron/Task Scheduler"]
+        Storage["storage/ - JSON files"]
+    end
+
+    subgraph UseCases["Use Cases (Application)"]
+        WaitEssay["wait_essay.py"]
+        ScheduleEssay["schedule_essay.py"]
+        Ports["ports.py - interfaces"]
+        Factories["factories.py"]
+    end
+
+    subgraph Domain["Domain (Core)"]
+        Models["models.py - entities"]
+        Exceptions["exceptions.py"]
+        Constants["constants.py"]
+    end
+
+    Frameworks --> Adapters
+    Adapters --> UseCases
+    UseCases --> Domain
+```
+
+### Layer Responsibilities
+
+| Layer | Directory | Responsibility |
+|-------|-----------|----------------|
+| **Domain** | `domain/` | Core entities, business rules, no external dependencies |
+| **Use Cases** | `usecases/` | Application-specific business logic, orchestrates domain |
+| **Adapters** | `adapters/` | Converts external data to/from use case format |
+| **Frameworks** | `frameworks/` | External libraries, templates, configuration |
+
+### Dependency Rule
+
+Dependencies point inward only:
+- Domain knows nothing about outer layers
+- Use Cases know only Domain
+- Adapters know Use Cases and Domain
+- Frameworks can know all layers
+
+---
+
+## Execution Flow
 
 ```
 User → /essay command → essay_writer.md agent
@@ -99,6 +156,29 @@ See `skills/reflect/SKILL.md` → **Reflection Process** section.
 | Wait | `/essay wait` | Email (one-time) |
 | Schedule | `/essay schedule` | Email (recurring) |
 | Test | `/essay test` | Test email |
+
+---
+
+## Extension Points
+
+The Clean Architecture enables easy extension:
+
+### Adding a New Mail Adapter
+
+1. Create new adapter in `adapters/mail/`
+2. Implement the `MailSender` port interface from `usecases/ports.py`
+3. Register in `usecases/factories.py`
+
+### Adding a New Scheduler
+
+1. Create new adapter in `adapters/scheduler/`
+2. Implement the `Scheduler` port interface
+3. Handle platform-specific scheduling (Windows Task Scheduler, cron, etc.)
+
+### Custom Templates
+
+1. Add templates to `frameworks/templates/`
+2. Update the template loading logic in use cases
 
 ---
 
