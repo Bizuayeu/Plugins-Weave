@@ -61,6 +61,8 @@ Key terms used throughout this plugin:
 | `/essay` | Immediate reflection (output to chat) |
 | `/essay wait <time>` | One-time scheduled delivery |
 | `/essay schedule <frequency>` | Recurring scheduled delivery |
+| `/essay schedule list` | List all registered schedules |
+| `/essay schedule remove <name>` | Remove a registered schedule |
 | `/essay test` | Test email configuration |
 
 ### Common Options
