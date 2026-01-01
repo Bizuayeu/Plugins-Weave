@@ -125,12 +125,24 @@ See `skills/reflect/SKILL.md` for reflection process details.
 
 ## Configuration
 
-Environment variables required for email delivery:
+### Prerequisites
+
+1. **AI専用Gmailアカウントを作成**
+   - 個人アカウントとは別に、AI専用のGmailアドレスを取得
+
+2. **二段階認証を有効化**
+   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → 2段階認証プロセス
+
+3. **16桁のアプリパスワードを取得**
+   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → アプリパスワード
+   - 「メール」を選択 → 生成された16桁のパスワードを保存
+
+### Environment Variables
 
 ```
-ESSAY_APP_PASSWORD      # Gmail app password
-ESSAY_SENDER_EMAIL      # Sender email address
-ESSAY_RECIPIENT_EMAIL   # Recipient email address
+ESSAY_APP_PASSWORD      # 上記で取得した16桁のアプリパスワード
+ESSAY_SENDER_EMAIL      # AI専用Gmailアドレス
+ESSAY_RECIPIENT_EMAIL   # 受信者のメールアドレス
 ```
 
 See `skills/send_email/SKILL.md` for setup details.
