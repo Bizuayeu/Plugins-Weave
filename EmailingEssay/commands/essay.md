@@ -38,7 +38,7 @@ Execution flow for each mode:
 | `language` | From `-l` option (default: auto) |
 
 See `agents/essay_writer.md` → **Execution Flow** section.
-See `skills/send_email/SKILL.md` → **Configuration** / **Troubleshooting** section.
+See `SETUP.md` → **Environment Variables** / **Troubleshooting** section.
 
 ---
 
@@ -263,17 +263,6 @@ C:/Users/you/path/to/file2.txt
 # Remove by task name
 /essay schedule remove "Essay_Weekly_review"
 ```
-
----
-
-## Related Files
-
-| File | Role |
-|------|------|
-| `CLAUDE.md` | Plugin overview |
-| `agents/essay_writer.md` | Agent specification |
-| `skills/reflect/SKILL.md` | Reflection process |
-| `skills/send_email/SKILL.md` | Email/scheduling implementation |
 
 ---
 

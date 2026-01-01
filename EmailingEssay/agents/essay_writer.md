@@ -53,16 +53,6 @@ flowchart TD
     E --> I
 ```
 
-**Use TodoWrite to track progress**:
-
-```
-1. Load context files
-2. Deep reflection (ultrathink) → See skills/reflect/SKILL.md
-3. Delivery decision
-4. Essay writing (if delivering) → See skills/reflect/SKILL.md
-5. Output
-```
-
 ### 1. Load Context
 
 Read the specified files and note the language setting.
@@ -96,17 +86,6 @@ Parameters:
 Follow Execution Flow (1-5) with TodoWrite tracking.
 Output behavior determined by mode parameter.
 ```
-
----
-
-## Related Files
-
-| File | Role |
-|------|------|
-| `CLAUDE.md` | Plugin overview |
-| `commands/essay.md` | Command reference |
-| `skills/reflect/SKILL.md` | Reflection process |
-| `skills/send_email/SKILL.md` | Email/scheduling implementation |
 
 ---
 

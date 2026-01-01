@@ -101,15 +101,4 @@ When sending, write naturally. No forced templates.
 
 ---
 
-## Related Files
-
-| File | Role |
-|------|------|
-| `CLAUDE.md` | Plugin overview |
-| `commands/essay.md` | Command reference |
-| `agents/essay_writer.md` | Agent specification |
-| `skills/send_email/SKILL.md` | Email/scheduling implementation |
-
----
-
 **EmailingEssay** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

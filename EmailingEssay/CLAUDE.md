@@ -1,6 +1,6 @@
 # EmailingEssay Plugin
 
-AI が主体的な思索を行った結果を、メールで届けられるようになるプラグイン。
+Plugin enabling AI to proactively deliver essays born from genuine reflection.
 
 ## Table of Contents
 
@@ -10,23 +10,21 @@ AI が主体的な思索を行った結果を、メールで届けられるよ�
 - [Architecture](#architecture)
 - [Component Roles](#component-roles)
 - [Execution Modes](#execution-modes)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
 
 ---
 
 ## What is EmailingEssay?
 
-AIが定期的に「振り返り」を行い、洞察があればメールで届ける仕組み。
-単なるメール送信ではなく、**深い思考から生まれたエッセイ**を配信する。
+AI performs periodic reflection and delivers insights via email.
+Not just sending mail — delivering **essays born from deep contemplation**.
 
 ---
 
 ## Benefits
 
-- **Proactive communication**: AI が自発的に考え、伝える
-- **Scheduled reflection**: 定期的なリフレクションをスケジュール可能
-- **Thoughtful output**: 送らない判断も尊重（沈黙は有効な選択）
+- **Proactive communication**: AI thinks and communicates proactively
+- **Scheduled reflection**: Schedule periodic reflections
+- **Thoughtful output**: Respects "not sending" as valid choice (silence is meaningful)
 
 ---
 
@@ -34,6 +32,8 @@ AIが定期的に「振り返り」を行い、洞察があればメールで届
 
 ```
 EmailingEssay/
+├── README.md                 # Quick start guide
+├── SETUP.md                  # Environment setup & troubleshooting
 ├── CLAUDE.md                 # This file (plugin overview)
 ├── commands/
 │   └── essay.md              # /essay command definition
@@ -99,48 +99,6 @@ See `skills/reflect/SKILL.md` → **Reflection Process** section.
 | Wait | `/essay wait` | Email (one-time) |
 | Schedule | `/essay schedule` | Email (recurring) |
 | Test | `/essay test` | Test email |
-
----
-
-## Quick Start
-
-```bash
-# Immediate reflection
-/essay
-
-# One-time scheduled
-/essay wait 22:00 -t "Daily thoughts"
-
-# Recurring schedule
-/essay schedule daily 22:00 -t "Daily reflection"
-```
-
-See `commands/essay.md` → **Command Structure** section.
-
----
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `ESSAY_APP_PASSWORD` | Gmail app password (16 digits) |
-| `ESSAY_SENDER_EMAIL` | Sender email address |
-| `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
-
-See `skills/send_email/SKILL.md` → **Configuration** / **Troubleshooting** section.
-
----
-
-## Related Files
-
-| File | Role |
-|------|------|
-| `commands/essay.md` | Command reference |
-| `agents/essay_writer.md` | Agent specification |
-| `skills/reflect/SKILL.md` | Reflection process |
-| `skills/send_email/SKILL.md` | Email/scheduling implementation |
 
 ---
 

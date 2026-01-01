@@ -10,46 +10,25 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 ## Table of Contents
 
 - [Invocation](#invocation)
-- [Options](#options-for-waitschedule)
-- [Configuration](#configuration)
-- [Usage](#usage)
+- [Implementation](#implementation)
 - [File Locations](#file-locations)
 - [Security Considerations](#security-considerations)
-- [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Invocation
 
-| Source | Operation | Input |
-|--------|-----------|-------|
-| `/send_email` | send | Subject, Body |
-| `essay_writer.md` | send | Subject, Body |
-| `/essay test` | test | (none) |
-| `/essay wait` | wait | theme, context, lang |
-| `/essay schedule` | schedule | theme, context, lang |
+| Source | Operation |
+|--------|-----------|
+| `/send_email` | send |
+| `essay_writer.md` | send |
+| `/essay test` | test |
+| `/essay wait` | wait |
+| `/essay schedule` | schedule |
 
 ---
 
-## Options (for wait/schedule)
-
-See `commands/essay.md` → **Command Structure** section.
-
----
-
-## Configuration
-
-### Prerequisites
-
-1. **AI専用Gmailアカウントを作成**
-   - 個人アカウントとは別に、AI専用のGmailアドレスを取得
-
-2. **二段階認証を有効化**
-   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → 2段階認証プロセス
-
-3. **16桁のアプリパスワードを取得**
-   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → アプリパスワード
-   - 「メール」を選択 → 生成された16桁のパスワードを保存
+## Implementation
 
 ### Script Path
 
@@ -63,85 +42,50 @@ skills/send_email/scripts/main.py
 yagmail
 ```
 
-### Environment Variables (all mandatory)
+### CLI Usage
 
-| Variable | Description |
-|----------|-------------|
-| `ESSAY_APP_PASSWORD` | Gmail app password |
-| `ESSAY_SENDER_EMAIL` | Sender email address |
-| `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
+| Operation | CLI | Description |
+|-----------|-----|-------------|
+| test | `python main.py test` | Send test email to verify configuration |
+| send | `python main.py send "Subject" "Body"` | Send email with custom subject and body |
+| wait | `python main.py wait TIME [OPTIONS]` | Schedule one-time essay (detached process) |
+| schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Register recurring schedule (OS scheduler) |
+| list | `python main.py schedule list` | View all registered schedules |
+| remove | `python main.py schedule remove "name"` | Remove a registered schedule |
 
-### Security
+**Options** (for wait/schedule):
+- `-t, --theme TEXT` - Essay theme
+- `-c, --context FILE` - Single context file
+- `-f, --file-list FILE` - Multiple files (one path per line)
+- `-l, --lang LANG` - Language: `ja`, `en`, `auto` (default: auto)
+- `--name NAME` - Custom task name (schedule only)
 
-- APP_PASSWORD retrieved from environment variable (no hardcoding)
-- Use app password in Gmail 2FA environments
-
----
-
-## Usage
-
-### Send
-
-Send email immediately with specified subject and body.
-
-```bash
-python main.py send "Subject" "Body"
-```
-
-### Test
-
-Verify email configuration by sending a test email.
+**Examples**:
 
 ```bash
+# Test
 python main.py test
-```
 
-### Wait (One-time Scheduling)
+# Send
+python main.py send "Subject" "Body"
 
-Schedule essay for a specific time. Runs in detached process.
-
-```bash
+# Wait (one-time)
 python main.py wait "22:00" -t "theme"
-python main.py wait "22:00" -t "theme" -c "context.txt"
-python main.py wait "22:00" -t "theme" -f "context_list.txt" -l ja
-python main.py wait "2026-01-05 22:00" -t "theme"
-```
+python main.py wait "22:00" -t "theme" -c context.txt -l ja
+python main.py wait "2025-01-05 22:00" -t "theme"
 
-**Mechanism**:
-- Spawns detached process (survives terminal close)
-- Polls every 60 seconds (sleep-resilient)
-- At target time, launches Claude Code with `/essay`
-
-### Schedule (Recurring via OS Scheduler)
-
-Register with Windows Task Scheduler or cron.
-
-```bash
-# Examples (see commands/essay.md for full format reference)
-python main.py schedule daily 22:00 -t "Daily reflection"
-python main.py schedule weekly monday 09:00 -t "Weekly review"
-python main.py schedule monthly 15 09:00 -t "Monthly review"
+# Schedule (recurring)
+python main.py schedule daily 22:00 -t "theme"
+python main.py schedule weekly monday 09:00 -t "theme"
+python main.py schedule monthly 15 09:00 -t "theme"
+python main.py schedule monthly 2nd_mon 09:00
+python main.py schedule monthly last_fri 17:00
+python main.py schedule monthly last_day 22:00
 
 # Management
 python main.py schedule list
-python main.py schedule remove "Essay_Daily_reflection"
+python main.py schedule remove "name"
 ```
-
-**How It Works**:
-1. Parse schedule command and options
-2. Register with OS scheduler:
-   - **Windows**: `schtasks /create /tn "Essay_..." /sc daily|weekly|monthly ...`
-   - **Linux/Mac**: crontab entry with `# Essay_...` comment
-3. Save backup to `schedules.json`
-4. At scheduled time, OS launches `claude -p "/essay ..."`
-
-**Monthly schedule notes**:
-- On Windows, most monthly patterns use native Task Scheduler features
-- For `last` (last day of month), a runner script is used that checks daily
-- On Linux/Mac, all monthly schedules use a runner script approach
-- If the specified day doesn't exist (e.g., 31st in February), that month is skipped
-
-**Important**: Use absolute paths for `-c` and `-f` options (scheduled tasks run without working directory context).
 
 ---
 
@@ -180,49 +124,6 @@ The `wait` and `schedule` features use `--dangerously-skip-permissions` when lau
 - Keep `ESSAY_RECIPIENT_EMAIL` set to your own email address
 - Review logs periodically with `cat ~/.claude/plugins/.emailingessay/essay_wait.log`
 - Audit registered tasks with `python main.py schedule list`
-
----
-
-## Troubleshooting
-
-### Missing Environment Variables
-
-```
-Missing environment variables: ESSAY_APP_PASSWORD, ESSAY_SENDER_EMAIL, ESSAY_RECIPIENT_EMAIL
-```
-
-**Solution**:
-```powershell
-# Windows
-[Environment]::SetEnvironmentVariable("ESSAY_APP_PASSWORD", "your-password", "User")
-[Environment]::SetEnvironmentVariable("ESSAY_SENDER_EMAIL", "ai@gmail.com", "User")
-[Environment]::SetEnvironmentVariable("ESSAY_RECIPIENT_EMAIL", "you@example.com", "User")
-# Restart PowerShell to apply
-```
-
-```bash
-# Linux/macOS (.bashrc or .zshrc)
-export ESSAY_APP_PASSWORD="your-app-password"
-export ESSAY_SENDER_EMAIL="ai@gmail.com"
-export ESSAY_RECIPIENT_EMAIL="you@example.com"
-# Run: source ~/.bashrc (or restart terminal)
-```
-
-### Authentication Error
-
-If "Less secure app access" is disabled in Gmail settings,
-enable 2FA and generate an app password.
-
----
-
-## Related Files
-
-| File | Role |
-|------|------|
-| `CLAUDE.md` | Plugin overview |
-| `commands/essay.md` | Command reference |
-| `agents/essay_writer.md` | Agent specification |
-| `skills/reflect/SKILL.md` | Reflection process |
 
 ---
 
