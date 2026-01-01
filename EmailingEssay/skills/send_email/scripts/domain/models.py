@@ -5,24 +5,26 @@
 Entities層: ビジネスルールとドメインモデルを定義する。
 外部依存なし（最内側）。
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field, fields
-from typing import Any
-from enum import Enum
-from datetime import datetime, timedelta
 import re
+from dataclasses import asdict, dataclass, fields
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any
 
-from .constants import VALID_WEEKDAYS, ABBR_TO_WEEKDAY_NUM
+from .constants import ABBR_TO_WEEKDAY_NUM, VALID_WEEKDAYS
 from .exceptions import DomainError, ValidationError
 
 
 class MonthlyType(Enum):
     """月次スケジュールのタイプ"""
-    DATE = "date"               # 毎月N日
-    NTH_WEEKDAY = "nth"         # 第N週の曜日
+
+    DATE = "date"  # 毎月N日
+    NTH_WEEKDAY = "nth"  # 第N週の曜日
     LAST_WEEKDAY = "last_weekday"  # 最終週の曜日
-    LAST_DAY = "last_day"       # 月末
+    LAST_DAY = "last_day"  # 月末
 
 
 # 月次条件判定コードのテンプレート（安全な固定パターン）
@@ -30,12 +32,10 @@ _CONDITION_TEMPLATES: dict[MonthlyType, str] = {
     MonthlyType.DATE: "today.day == {day_num}",
     MonthlyType.LAST_DAY: "(today + timedelta(days=1)).month != today.month",
     MonthlyType.LAST_WEEKDAY: (
-        "today.weekday() == {weekday_num} and "
-        "(today + timedelta(days=7)).month != today.month"
+        "today.weekday() == {weekday_num} and (today + timedelta(days=7)).month != today.month"
     ),
     MonthlyType.NTH_WEEKDAY: (
-        "today.weekday() == {weekday_num} and "
-        "((today.day - 1) // 7 + 1) == {ordinal}"
+        "today.weekday() == {weekday_num} and ((today.day - 1) // 7 + 1) == {ordinal}"
     ),
 }
 
@@ -48,10 +48,11 @@ class MonthlyPattern:
     day_spec文字列（"15", "2nd_mon", "last_fri", "last_day"）を
     構造化されたデータとして保持する。
     """
+
     type: MonthlyType
-    day_num: int | None = None      # DATE用（1-31）
-    weekday: str | None = None      # 曜日指定用（mon, tue, wed, ...）
-    ordinal: int | None = None      # NTH_WEEKDAY用（1-5）
+    day_num: int | None = None  # DATE用（1-31）
+    weekday: str | None = None  # 曜日指定用（mon, tue, wed, ...）
+    ordinal: int | None = None  # NTH_WEEKDAY用（1-5）
 
     # 後方互換性のため残す（constants.VALID_WEEKDAYSを使用推奨）
     # VALID_WEEKDAYS = VALID_WEEKDAYS  # constants からインポート済み
@@ -114,7 +115,7 @@ class MonthlyPattern:
         return template.format(
             day_num=int(self.day_num) if self.day_num else 0,
             weekday_num=self._weekday_to_num(self.weekday) if self.weekday else 0,
-            ordinal=int(self.ordinal) if self.ordinal else 0
+            ordinal=int(self.ordinal) if self.ordinal else 0,
         )
 
     @staticmethod
@@ -130,9 +131,10 @@ class EssaySchedule:
 
     schedules.json に保存されるスケジュール情報を表す。
     """
-    name: str               # スケジュール名（一意）
-    frequency: str          # "daily" | "weekly" | "monthly"
-    time: str               # HH:MM 形式
+
+    name: str  # スケジュール名（一意）
+    frequency: str  # "daily" | "weekly" | "monthly"
+    time: str  # HH:MM 形式
 
     # 共通オプション
     theme: str = ""
@@ -141,14 +143,14 @@ class EssaySchedule:
     lang: str = "auto"
 
     # weekly用
-    weekday: str = ""       # "monday", "tuesday", etc.
+    weekday: str = ""  # "monday", "tuesday", etc.
 
     # monthly用
-    day_spec: str = ""      # "15", "2nd_mon", "last_fri", "last_day"
+    day_spec: str = ""  # "15", "2nd_mon", "last_fri", "last_day"
     monthly_type: str = ""  # MonthlyType の値（後方互換用）
 
     # メタデータ
-    created: str = ""       # ISO形式の作成日時
+    created: str = ""  # ISO形式の作成日時
 
     def to_dict(self) -> dict[str, Any]:
         """
@@ -189,8 +191,12 @@ class EssaySchedule:
 
 # DomainError, ValidationError はファイル先頭でインポート済み
 __all__ = [
-    "MonthlyType", "MonthlyPattern", "EssaySchedule", "TargetTime",
-    "DomainError", "ValidationError",  # 後方互換性のため再エクスポート
+    "MonthlyType",
+    "MonthlyPattern",
+    "EssaySchedule",
+    "TargetTime",
+    "DomainError",
+    "ValidationError",  # 後方互換性のため再エクスポート
 ]
 
 
@@ -202,6 +208,7 @@ class TargetTime:
     時刻解析ロジックを一元化し、実行時パース用のコード生成も提供する。
     wait_essay.pyとランナースクリプトで共通利用される。
     """
+
     datetime: datetime
     original_format: str  # "HH:MM" or "YYYY-MM-DD HH:MM"
 
@@ -234,9 +241,7 @@ class TargetTime:
         # HH:MM 形式（今日または明日）
         try:
             target = datetime.strptime(time_str, "%H:%M").replace(
-                year=datetime.now().year,
-                month=datetime.now().month,
-                day=datetime.now().day
+                year=datetime.now().year, month=datetime.now().month, day=datetime.now().day
             )
             # 今日の指定時刻が過ぎていれば明日にスケジュール
             if target < datetime.now():
@@ -252,8 +257,11 @@ class TargetTime:
         Returns:
             実行可能なPythonコード文字列
         """
-        time_str = self.datetime.strftime("%H:%M") if self.original_format == "HH:MM" \
+        time_str = (
+            self.datetime.strftime("%H:%M")
+            if self.original_format == "HH:MM"
             else self.datetime.strftime("%Y-%m-%d %H:%M")
+        )
 
         return f'''time_str = "{time_str}"
 if " " in time_str and len(time_str) > 10:

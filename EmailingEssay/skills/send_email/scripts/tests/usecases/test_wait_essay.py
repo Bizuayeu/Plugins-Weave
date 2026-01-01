@@ -4,16 +4,18 @@
 
 parse_target_time と spawn_waiter のテスト。
 """
-import pytest
-import sys
+
 import os
+import sys
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from usecases.wait_essay import parse_target_time, WaitEssayUseCase, WaiterError, get_persistent_dir
+from usecases.wait_essay import WaiterError, WaitEssayUseCase, get_persistent_dir, parse_target_time
 
 
 class TestParseTargetTime:
@@ -88,10 +90,7 @@ class TestWaitEssayUseCase:
     @pytest.fixture
     def usecase(self, mock_storage, mock_spawner):
         """DI済みユースケースを作成"""
-        return WaitEssayUseCase(
-            storage_port=mock_storage,
-            spawner_port=mock_spawner
-        )
+        return WaitEssayUseCase(storage_port=mock_storage, spawner_port=mock_spawner)
 
     def test_spawn_creates_script_file(self, usecase, tmp_path):
         """spawn() がスクリプトファイルを作成"""
@@ -99,11 +98,7 @@ class TestWaitEssayUseCase:
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(
-            target_time=future_time,
-            theme="test_theme",
-            context="",
-            file_list="",
-            lang="ja"
+            target_time=future_time, theme="test_theme", context="", file_list="", lang="ja"
         )
 
         # スクリプトファイルが作成されたことを確認
@@ -114,13 +109,7 @@ class TestWaitEssayUseCase:
         """spawn() がデタッチドプロセスを起動"""
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
-        usecase.spawn(
-            target_time=future_time,
-            theme="",
-            context="",
-            file_list="",
-            lang=""
-        )
+        usecase.spawn(target_time=future_time, theme="", context="", file_list="", lang="")
 
         mock_spawner.spawn_detached.assert_called_once()
 
@@ -129,11 +118,7 @@ class TestWaitEssayUseCase:
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(
-            target_time=future_time,
-            theme="朝の振り返り",
-            context="",
-            file_list="",
-            lang=""
+            target_time=future_time, theme="朝の振り返り", context="", file_list="", lang=""
         )
 
         script_file = tmp_path / "essay_waiter_temp.py"
@@ -150,10 +135,7 @@ class TestWaitEssayUseCase:
 
     def test_spawn_uses_injected_storage(self, mock_storage, mock_spawner):
         """spawn() がDIされたストレージを使用する"""
-        usecase = WaitEssayUseCase(
-            storage_port=mock_storage,
-            spawner_port=mock_spawner
-        )
+        usecase = WaitEssayUseCase(storage_port=mock_storage, spawner_port=mock_spawner)
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(target_time=future_time)
@@ -176,10 +158,7 @@ class TestWaitEssayUseCaseDI:
 
     def test_usecase_works_with_both_ports(self):
         """両方指定で正常動作"""
-        usecase = WaitEssayUseCase(
-            storage_port=Mock(),
-            spawner_port=Mock()
-        )
+        usecase = WaitEssayUseCase(storage_port=Mock(), spawner_port=Mock())
         assert usecase is not None
 
 

@@ -4,6 +4,7 @@ CLI パーサー定義
 
 argparse ベースのコマンドラインインターフェース。
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,33 +19,25 @@ def add_common_options(parser: argparse.ArgumentParser) -> None:
     Args:
         parser: オプションを追加する ArgumentParser
     """
+    parser.add_argument("-t", "--theme", default="", help="Essay theme (エッセイのテーマ)")
     parser.add_argument(
-        "-t", "--theme",
-        default="",
-        help="Essay theme (エッセイのテーマ)"
+        "-c", "--context", default="", help="Context file path (コンテキストファイルのパス)"
     )
     parser.add_argument(
-        "-c", "--context",
-        default="",
-        help="Context file path (コンテキストファイルのパス)"
-    )
-    parser.add_argument(
-        "-f", "--file-list",
+        "-f",
+        "--file-list",
         dest="file_list",
         default="",
-        help="File list path (ファイルリストのパス)"
+        help="File list path (ファイルリストのパス)",
     )
     parser.add_argument(
-        "-l", "--lang",
+        "-l",
+        "--lang",
         default="auto",
         choices=["ja", "en", "auto"],
-        help="Language (言語: ja, en, auto)"
+        help="Language (言語: ja, en, auto)",
     )
-    parser.add_argument(
-        "--name",
-        default="",
-        help="Custom task name (カスタムタスク名)"
-    )
+    parser.add_argument("--name", default="", help="Custom task name (カスタムタスク名)")
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -82,48 +75,31 @@ Examples:
   python main.py schedule monthly last_fri 15:00  # Add monthly schedule
   python main.py schedule list                 # List all schedules
   python main.py schedule remove task_name     # Remove a schedule
-"""
+""",
     )
 
-    subparsers = parser.add_subparsers(
-        dest="command",
-        help="Available commands"
-    )
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # -------------------------------------------------------------------------
     # test コマンド
     # -------------------------------------------------------------------------
-    subparsers.add_parser(
-        "test",
-        help="Send test email (テストメール送信)"
-    )
+    subparsers.add_parser("test", help="Send test email (テストメール送信)")
 
     # -------------------------------------------------------------------------
     # send コマンド
     # -------------------------------------------------------------------------
-    send_parser = subparsers.add_parser(
-        "send",
-        help="Send custom email (カスタムメール送信)"
-    )
-    send_parser.add_argument(
-        "subject",
-        help="Email subject (メールの件名)"
-    )
-    send_parser.add_argument(
-        "body",
-        help="Email body (メールの本文)"
-    )
+    send_parser = subparsers.add_parser("send", help="Send custom email (カスタムメール送信)")
+    send_parser.add_argument("subject", help="Email subject (メールの件名)")
+    send_parser.add_argument("body", help="Email body (メールの本文)")
 
     # -------------------------------------------------------------------------
     # wait コマンド
     # -------------------------------------------------------------------------
     wait_parser = subparsers.add_parser(
-        "wait",
-        help="Schedule one-time essay or list waiters (一回限りのエッセイ配信 / 待機一覧)"
+        "wait", help="Schedule one-time essay or list waiters (一回限りのエッセイ配信 / 待機一覧)"
     )
     wait_parser.add_argument(
-        "time",
-        help="Target time (HH:MM or YYYY-MM-DD HH:MM) or 'list' to show active waiters"
+        "time", help="Target time (HH:MM or YYYY-MM-DD HH:MM) or 'list' to show active waiters"
     )
     add_common_options(wait_parser)
 
@@ -131,69 +107,42 @@ Examples:
     # schedule コマンド（ネストされたサブパーサー）
     # -------------------------------------------------------------------------
     schedule_parser = subparsers.add_parser(
-        "schedule",
-        help="Manage recurring schedules (定期配信管理)"
+        "schedule", help="Manage recurring schedules (定期配信管理)"
     )
     schedule_subs = schedule_parser.add_subparsers(
-        dest="schedule_cmd",
-        help="Schedule sub-commands"
+        dest="schedule_cmd", help="Schedule sub-commands"
     )
 
     # schedule list
-    schedule_subs.add_parser(
-        "list",
-        help="List all schedules (スケジュール一覧)"
-    )
+    schedule_subs.add_parser("list", help="List all schedules (スケジュール一覧)")
 
     # schedule remove
-    remove_parser = schedule_subs.add_parser(
-        "remove",
-        help="Remove a schedule (スケジュール削除)"
-    )
-    remove_parser.add_argument(
-        "name",
-        help="Schedule name to remove (削除するスケジュール名)"
-    )
+    remove_parser = schedule_subs.add_parser("remove", help="Remove a schedule (スケジュール削除)")
+    remove_parser.add_argument("name", help="Schedule name to remove (削除するスケジュール名)")
 
     # schedule daily
     daily_parser = schedule_subs.add_parser(
-        "daily",
-        help="Add daily schedule (日次スケジュール追加)"
+        "daily", help="Add daily schedule (日次スケジュール追加)"
     )
-    daily_parser.add_argument(
-        "time",
-        help="Time (HH:MM)"
-    )
+    daily_parser.add_argument("time", help="Time (HH:MM)")
     add_common_options(daily_parser)
 
     # schedule weekly
     weekly_parser = schedule_subs.add_parser(
-        "weekly",
-        help="Add weekly schedule (週次スケジュール追加)"
+        "weekly", help="Add weekly schedule (週次スケジュール追加)"
     )
-    weekly_parser.add_argument(
-        "weekday",
-        help="Day of week (monday, tuesday, ...)"
-    )
-    weekly_parser.add_argument(
-        "time",
-        help="Time (HH:MM)"
-    )
+    weekly_parser.add_argument("weekday", help="Day of week (monday, tuesday, ...)")
+    weekly_parser.add_argument("time", help="Time (HH:MM)")
     add_common_options(weekly_parser)
 
     # schedule monthly
     monthly_parser = schedule_subs.add_parser(
-        "monthly",
-        help="Add monthly schedule (月次スケジュール追加)"
+        "monthly", help="Add monthly schedule (月次スケジュール追加)"
     )
     monthly_parser.add_argument(
-        "day_spec",
-        help="Day specification (15, 2nd_mon, last_fri, last_day)"
+        "day_spec", help="Day specification (15, 2nd_mon, last_fri, last_day)"
     )
-    monthly_parser.add_argument(
-        "time",
-        help="Time (HH:MM)"
-    )
+    monthly_parser.add_argument("time", help="Time (HH:MM)")
     add_common_options(monthly_parser)
 
     return parser

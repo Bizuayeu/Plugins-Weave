@@ -27,6 +27,7 @@ Environment variables:
   ESSAY_SENDER_EMAIL    - Sender email address (required)
   ESSAY_RECIPIENT_EMAIL - Recipient email address (required)
 """
+
 from __future__ import annotations
 
 import sys

@@ -6,10 +6,10 @@ yagmailライブラリを使用してメール送信を行う。
 HTMLテンプレートシステムにより一貫したスタイリングを実現。
 指数バックオフによるリトライ機能を提供。
 """
+
 from __future__ import annotations
 
 import logging
-import os
 import smtplib
 import time
 
@@ -34,24 +34,21 @@ class YagmailAdapter:
         """
         アダプターを初期化する。
 
-        環境変数から設定を読み込む：
-        - ESSAY_SENDER_EMAIL: 送信者メールアドレス
-        - ESSAY_APP_PASSWORD: Gmail アプリパスワード
-        - ESSAY_RECIPIENT_EMAIL: 受信者メールアドレス
+        Configから設定を読み込む（環境変数または.envファイル経由）。
 
         Raises:
-            MailError: 必要な環境変数が設定されていない場合
+            MailError: 必要な設定が不足している場合
         """
-        self._sender = os.environ.get("ESSAY_SENDER_EMAIL")
-        self._password = os.environ.get("ESSAY_APP_PASSWORD")
-        self._recipient = os.environ.get("ESSAY_RECIPIENT_EMAIL")
+        from domain.config import Config
 
-        if not self._sender:
-            raise MailError("ESSAY_SENDER_EMAIL environment variable not set")
-        if not self._password:
-            raise MailError("ESSAY_APP_PASSWORD environment variable not set")
-        if not self._recipient:
-            raise MailError("ESSAY_RECIPIENT_EMAIL environment variable not set")
+        config = Config.load()
+        errors = config.validate()
+        if errors:
+            raise MailError("; ".join(errors))
+
+        self._sender = config.email.sender
+        self._password = config.email.password
+        self._recipient = config.email.recipient
 
     def _render_html(self, content: str, title: str = "") -> str:
         """
@@ -83,13 +80,7 @@ class YagmailAdapter:
                 # 最終手段: 最小限のHTML
                 return f"<div>{content}</div>"
 
-    def send(
-        self,
-        to: str,
-        subject: str,
-        body: str,
-        max_retries: int = 3
-    ) -> None:
+    def send(self, to: str, subject: str, body: str, max_retries: int = 3) -> None:
         """
         メールを送信する（指数バックオフ付きリトライ）。
 
@@ -115,7 +106,7 @@ class YagmailAdapter:
                 # 一時的なネットワーク障害はリトライ
                 last_error = e
                 if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt  # 1s, 2s, 4s
+                    wait_time = 2**attempt  # 1s, 2s, 4s
                     logger.warning(
                         f"SMTP transient error, retry {attempt + 1}/{max_retries} in {wait_time}s: {e}"
                     )

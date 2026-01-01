@@ -4,10 +4,12 @@ factories.py のテスト
 
 ファクトリ関数とwait_list便利関数のテスト。
 """
-import pytest
-import sys
+
 import os
+import sys
 from unittest.mock import Mock, patch
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -24,6 +26,7 @@ class TestWaitListFactory:
             mock_create.return_value = mock_usecase
 
             from usecases.factories import wait_list
+
             wait_list()
 
             mock_create.assert_called_once()
@@ -37,6 +40,7 @@ class TestWaitListFactory:
             mock_create.return_value = mock_usecase
 
             from usecases.factories import wait_list
+
             wait_list()
 
             captured = capsys.readouterr()
@@ -53,6 +57,7 @@ class TestWaitListFactory:
             mock_create.return_value = mock_usecase
 
             from usecases.factories import wait_list
+
             wait_list()
 
             captured = capsys.readouterr()
@@ -74,15 +79,18 @@ class TestCreateWaitUsecase:
 
     def test_create_wait_usecase_injects_dependencies(self):
         """依存性が注入される"""
-        with patch('usecases.factories.get_storage') as mock_get_storage, \
-             patch('usecases.factories.get_spawner') as mock_get_spawner:
+        with (
+            patch('usecases.factories.get_storage') as mock_get_storage,
+            patch('usecases.factories.get_spawner') as mock_get_spawner,
+        ):
             mock_storage = Mock()
             mock_spawner = Mock()
             mock_get_storage.return_value = mock_storage
             mock_get_spawner.return_value = mock_spawner
 
             from usecases.factories import create_wait_usecase
-            usecase = create_wait_usecase()
+
+            _usecase = create_wait_usecase()  # noqa: F841
 
             mock_get_storage.assert_called_once()
             mock_get_spawner.assert_called_once()

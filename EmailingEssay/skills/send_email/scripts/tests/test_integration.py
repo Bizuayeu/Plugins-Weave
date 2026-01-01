@@ -4,10 +4,12 @@
 
 各コンポーネントの連携をテストする。
 """
-import pytest
+
+import os
 import subprocess
 import sys
-import os
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,12 +21,14 @@ class TestCLIIntegration:
     def test_parser_imports_successfully(self):
         """パーサーがインポートできる"""
         from adapters.cli.parser import create_parser
+
         parser = create_parser()
         assert parser is not None
 
     def test_help_command_shows_help(self):
         """--help オプションが動作する"""
         from adapters.cli.parser import create_parser
+
         parser = create_parser()
         with pytest.raises(SystemExit) as exc:
             parser.parse_args(["--help"])
@@ -37,6 +41,7 @@ class TestSchedulerIntegration:
     def test_get_scheduler_returns_adapter(self):
         """get_scheduler() がアダプターを返す"""
         from adapters.scheduler import get_scheduler
+
         scheduler = get_scheduler()
         assert hasattr(scheduler, "add")
         assert hasattr(scheduler, "remove")
@@ -55,7 +60,7 @@ class TestModelsIntegration:
             frequency="weekly",
             time="10:00",
             weekday="monday",
-            theme="週次振り返り"
+            theme="週次振り返り",
         )
 
         # to_dict -> from_dict
@@ -93,10 +98,7 @@ class TestTemplatesIntegration:
 
         template = load_template("essay_waiter.py.template")
         rendered = render_template(
-            template,
-            log_file="/tmp/test.log",
-            target_time="12:00",
-            claude_args="-t 'テスト'"
+            template, log_file="/tmp/test.log", target_time="12:00", claude_args="-t 'テスト'"
         )
 
         assert "/tmp/test.log" in rendered
@@ -109,8 +111,9 @@ class TestWaitUseCaseIntegration:
 
     def test_parse_target_time_formats(self):
         """各種時刻形式がパースできる"""
-        from usecases.wait_essay import parse_target_time
         from datetime import datetime, timedelta
+
+        from usecases.wait_essay import parse_target_time
 
         # HH:MM形式（未来）
         future = datetime.now() + timedelta(hours=1)
@@ -139,7 +142,7 @@ class TestCleanArchitectureLayers:
 
     def test_adapters_implement_ports(self):
         """アダプター層はポートを実装"""
-        from adapters.scheduler import WindowsSchedulerAdapter, UnixSchedulerAdapter
+        from adapters.scheduler import UnixSchedulerAdapter, WindowsSchedulerAdapter
         from adapters.scheduler.base import BaseSchedulerAdapter
 
         # アダプターが基底クラスを継承していることを確認
@@ -153,6 +156,7 @@ class TestMainEntryPoint:
     def test_main_imports_successfully(self):
         """main.py がインポートできる"""
         import main
+
         assert hasattr(main, 'main')
 
     def test_main_help_returns_zero(self):
@@ -162,7 +166,7 @@ class TestMainEntryPoint:
             capture_output=True,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             encoding='utf-8',
-            errors='replace'
+            errors='replace',
         )
         assert result.returncode == 0
         assert "Essay" in result.stdout or "Mail" in result.stdout
@@ -174,7 +178,7 @@ class TestMainEntryPoint:
             capture_output=True,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             encoding='utf-8',
-            errors='replace'
+            errors='replace',
         )
         # エラーなく実行できることを確認
         assert result.returncode == 0
@@ -186,7 +190,7 @@ class TestMainEntryPoint:
             capture_output=True,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             encoding='utf-8',
-            errors='replace'
+            errors='replace',
         )
         assert result.returncode == 0
         assert "daily" in result.stdout
@@ -200,8 +204,9 @@ class TestE2EScenarios:
     def test_schedule_add_list_remove_cycle_with_mock(self, tmp_path):
         """スケジュール追加→一覧→削除のサイクル（Mock使用）"""
         from unittest.mock import Mock
-        from usecases.schedule_essay import ScheduleEssayUseCase
+
         from adapters.storage.json_adapter import JsonStorageAdapter
+        from usecases.schedule_essay import ScheduleEssayUseCase
 
         # 実際のストレージを使用、スケジューラはMock
         storage = JsonStorageAdapter(base_dir=str(tmp_path))
@@ -254,9 +259,10 @@ class TestE2EScenarios:
 
     def test_target_time_integration_with_usecase(self, tmp_path, monkeypatch):
         """TargetTimeとUseCaseの統合テスト"""
+        from datetime import datetime, timedelta
+
         from domain.models import TargetTime
         from usecases.wait_essay import parse_target_time
-        from datetime import datetime, timedelta
 
         # TargetTimeクラス経由でパース
         future = datetime.now() + timedelta(hours=2)
@@ -276,8 +282,9 @@ class TestE2EScenarios:
     def test_rollback_e2e_scenario(self, tmp_path):
         """ロールバックのE2Eシナリオ"""
         from unittest.mock import Mock
-        from usecases.schedule_essay import ScheduleEssayUseCase
+
         from adapters.storage.json_adapter import JsonStorageAdapter
+        from usecases.schedule_essay import ScheduleEssayUseCase
 
         storage = JsonStorageAdapter(base_dir=str(tmp_path))
         scheduler = Mock()
@@ -301,8 +308,9 @@ class TestE2EScenarios:
     def test_multi_schedule_coordination(self, tmp_path):
         """複数スケジュールの連携テスト（Item 7追加）"""
         from unittest.mock import Mock
-        from usecases.schedule_essay import ScheduleEssayUseCase
+
         from adapters.storage.json_adapter import JsonStorageAdapter
+        from usecases.schedule_essay import ScheduleEssayUseCase
 
         storage = JsonStorageAdapter(base_dir=str(tmp_path))
         scheduler = Mock()
@@ -336,8 +344,9 @@ class TestE2EScenarios:
     def test_schedule_update_overwrites_existing(self, tmp_path):
         """スケジュール更新（上書き）テスト（Item 7追加）"""
         from unittest.mock import Mock
-        from usecases.schedule_essay import ScheduleEssayUseCase
+
         from adapters.storage.json_adapter import JsonStorageAdapter
+        from usecases.schedule_essay import ScheduleEssayUseCase
 
         storage = JsonStorageAdapter(base_dir=str(tmp_path))
         scheduler = Mock()
@@ -347,10 +356,7 @@ class TestE2EScenarios:
 
         # Step 1: スケジュールを追加
         usecase.add(
-            frequency="daily",
-            time_spec="09:00",
-            theme="original_theme",
-            name="test_schedule"
+            frequency="daily", time_spec="09:00", theme="original_theme", name="test_schedule"
         )
         schedules = storage.load_schedules()
         assert len(schedules) == 1
@@ -359,10 +365,7 @@ class TestE2EScenarios:
 
         # Step 2: 同名で再登録（時刻とテーマを変更）
         usecase.add(
-            frequency="daily",
-            time_spec="15:00",
-            theme="updated_theme",
-            name="test_schedule"
+            frequency="daily", time_spec="15:00", theme="updated_theme", name="test_schedule"
         )
 
         # Step 3: 上書きされたことを確認（重複なし）

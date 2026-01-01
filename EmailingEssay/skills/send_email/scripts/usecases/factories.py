@@ -4,94 +4,121 @@
 
 依存性注入を行い、ユースケースを生成する。
 main.py や便利関数から使用される。
-環境変数の事前検証機能も提供。
+AdapterRegistryによるシングルトンパターンを提供。
 """
+
 from __future__ import annotations
 
-import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, TypeVar
 
 if TYPE_CHECKING:
-    from .ports import SchedulerPort, StoragePort, ProcessSpawnerPort, MailPort
+    from .ports import MailPort, ProcessSpawnerPort, SchedulerPort, StoragePort
+    from .schedule_essay import ScheduleEssayUseCase
+    from .wait_essay import WaitEssayUseCase
+
+T = TypeVar("T")
 
 
-# 必須環境変数のリスト
-REQUIRED_ENV_VARS = [
-    "ESSAY_SENDER_EMAIL",
-    "ESSAY_APP_PASSWORD",
-    "ESSAY_RECIPIENT_EMAIL",
-]
+# =============================================================================
+# AdapterRegistry: シングルトンレジストリ
+# =============================================================================
 
 
-def validate_environment() -> list[str]:
+class AdapterRegistry:
     """
-    必須環境変数を検証する。
+    アダプターのシングルトンレジストリ。
 
-    Returns:
-        エラーメッセージのリスト（空なら成功）
+    遅延初期化とキャッシュにより、同じアダプターは1回だけ生成される。
+    テスト時はclear()でリセット可能。
     """
-    errors = []
-    for var in REQUIRED_ENV_VARS:
-        if not os.environ.get(var):
-            errors.append(f"Missing environment variable: {var}")
-    return errors
+
+    _instances: dict[str, object] = {}
+
+    @classmethod
+    def get_or_create(cls, key: str, factory: Callable[[], T]) -> T:
+        """
+        キーに対応するインスタンスを取得する。
+
+        存在しない場合はfactoryを呼び出して生成・キャッシュする。
+
+        Args:
+            key: インスタンスを識別するキー
+            factory: インスタンスを生成するファクトリ関数
+
+        Returns:
+            キーに対応するインスタンス
+        """
+        if key not in cls._instances:
+            cls._instances[key] = factory()
+        return cls._instances[key]  # type: ignore
+
+    @classmethod
+    def clear(cls) -> None:
+        """
+        全インスタンスをクリアする。
+
+        テスト用。本番コードでは使用しない。
+        """
+        cls._instances.clear()
 
 
-def require_valid_environment() -> None:
-    """
-    環境変数を検証し、不足があれば例外を発生させる。
-
-    Raises:
-        EnvironmentError: 必須環境変数が不足している場合
-    """
-    errors = validate_environment()
-    if errors:
-        raise EnvironmentError("\n".join(errors))
+# =============================================================================
+# アダプター取得関数（シングルトン）
+# =============================================================================
 
 
 def get_mail_adapter() -> "MailPort":
-    """メールアダプターを取得する"""
+    """メールアダプターを取得する（シングルトン）"""
     from adapters.mail import YagmailAdapter
-    return YagmailAdapter()
+
+    return AdapterRegistry.get_or_create("mail", YagmailAdapter)
 
 
 def get_scheduler() -> "SchedulerPort":
-    """プラットフォームに応じたスケジューラを取得する"""
+    """プラットフォームに応じたスケジューラを取得する（シングルトン）"""
     from adapters.scheduler import get_scheduler as _get_scheduler
-    return _get_scheduler()
+
+    return AdapterRegistry.get_or_create("scheduler", _get_scheduler)
 
 
 def get_storage() -> "StoragePort":
-    """ストレージアダプターを取得する"""
+    """ストレージアダプターを取得する（シングルトン）"""
     from adapters.storage import JsonStorageAdapter
-    return JsonStorageAdapter()
+
+    return AdapterRegistry.get_or_create("storage", JsonStorageAdapter)
 
 
 def get_spawner() -> "ProcessSpawnerPort":
-    """プロセススポーナーを取得する"""
+    """プロセススポーナーを取得する（シングルトン）"""
     from adapters.process import ProcessSpawner
-    return ProcessSpawner()
+
+    return AdapterRegistry.get_or_create("spawner", ProcessSpawner)
+
+
+# =============================================================================
+# ユースケース生成関数
+# =============================================================================
 
 
 def create_schedule_usecase() -> "ScheduleEssayUseCase":
     """ScheduleEssayUseCaseを生成する"""
     from .schedule_essay import ScheduleEssayUseCase
-    return ScheduleEssayUseCase(
-        scheduler_port=get_scheduler(),
-        storage_port=get_storage()
-    )
+
+    return ScheduleEssayUseCase(scheduler_port=get_scheduler(), storage_port=get_storage())
 
 
 def create_wait_usecase() -> "WaitEssayUseCase":
     """WaitEssayUseCaseを生成する"""
     from .wait_essay import WaitEssayUseCase
-    return WaitEssayUseCase(
-        storage_port=get_storage(),
-        spawner_port=get_spawner()
-    )
+
+    return WaitEssayUseCase(storage_port=get_storage(), spawner_port=get_spawner())
 
 
-# 後方互換性のため、schedule_essay.py の便利関数をここでも提供
+# =============================================================================
+# 便利関数（後方互換性）
+# =============================================================================
+
+
 def schedule_add(
     frequency: str,
     time_spec: str,
@@ -101,7 +128,7 @@ def schedule_add(
     file_list: str = "",
     lang: str = "",
     name: str = "",
-    day_spec: str = ""
+    day_spec: str = "",
 ) -> None:
     """スケジュールを追加する（便利関数）"""
     usecase = create_schedule_usecase()
@@ -114,7 +141,7 @@ def schedule_add(
         file_list=file_list,
         lang=lang,
         name=name,
-        day_spec=day_spec
+        day_spec=day_spec,
     )
 
 
@@ -153,14 +180,8 @@ def wait_list() -> None:
         print()
 
 
-# 型ヒント用の遅延インポート
-from .schedule_essay import ScheduleEssayUseCase  # noqa: E402
-from .wait_essay import WaitEssayUseCase  # noqa: E402
-
 __all__ = [
-    "REQUIRED_ENV_VARS",
-    "validate_environment",
-    "require_valid_environment",
+    "AdapterRegistry",
     "get_mail_adapter",
     "get_scheduler",
     "get_storage",

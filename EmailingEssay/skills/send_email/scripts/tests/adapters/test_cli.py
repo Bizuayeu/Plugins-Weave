@@ -4,14 +4,16 @@ CLI パーサーのテスト
 
 argparse ベースの CLI インターフェースをテストする。
 """
-import pytest
-import sys
+
 import os
+import sys
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from adapters.cli.parser import create_parser, add_common_options
+from adapters.cli.parser import add_common_options, create_parser
 
 
 class TestCreateParser:
@@ -41,12 +43,9 @@ class TestCreateParser:
 
     def test_wait_command_with_options(self, parser):
         """wait コマンドのオプション付きパース"""
-        args = parser.parse_args([
-            "wait", "09:30",
-            "-t", "test_theme",
-            "-c", "/path/to/context.md",
-            "-l", "ja"
-        ])
+        args = parser.parse_args(
+            ["wait", "09:30", "-t", "test_theme", "-c", "/path/to/context.md", "-l", "ja"]
+        )
         assert args.command == "wait"
         assert args.time == "09:30"
         assert args.theme == "test_theme"
@@ -121,6 +120,7 @@ class TestAddCommonOptions:
     def test_adds_theme_option(self):
         """-t/--theme オプションが追加される"""
         import argparse
+
         parser = argparse.ArgumentParser()
         add_common_options(parser)
         args = parser.parse_args(["-t", "my_theme"])
@@ -129,6 +129,7 @@ class TestAddCommonOptions:
     def test_adds_context_option(self):
         """-c/--context オプションが追加される"""
         import argparse
+
         parser = argparse.ArgumentParser()
         add_common_options(parser)
         args = parser.parse_args(["-c", "/path/to/file"])
@@ -137,6 +138,7 @@ class TestAddCommonOptions:
     def test_adds_lang_option(self):
         """-l/--lang オプションが追加される"""
         import argparse
+
         parser = argparse.ArgumentParser()
         add_common_options(parser)
         args = parser.parse_args(["-l", "en"])
@@ -145,6 +147,7 @@ class TestAddCommonOptions:
     def test_lang_option_choices(self):
         """-l/--lang オプションの選択肢が正しい"""
         import argparse
+
         parser = argparse.ArgumentParser()
         add_common_options(parser)
 
@@ -169,14 +172,7 @@ class TestGenericScheduleHandler:
         with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
             from adapters.cli.handlers import _handle_schedule_add
 
-            args = Namespace(
-                time="09:00",
-                theme="test",
-                context="",
-                file_list="",
-                lang="",
-                name=""
-            )
+            args = Namespace(time="09:00", theme="test", context="", file_list="", lang="", name="")
             result = _handle_schedule_add(args, "daily")
 
             assert result == 0
@@ -189,7 +185,7 @@ class TestGenericScheduleHandler:
                 file_list="",
                 lang="",
                 name="",
-                day_spec=""
+                day_spec="",
             )
 
     def test_handle_schedule_add_weekly(self):
@@ -207,7 +203,7 @@ class TestGenericScheduleHandler:
                 file_list="",
                 lang="ja",
                 name="",
-                weekday="monday"
+                weekday="monday",
             )
             result = _handle_schedule_add(args, "weekly")
 
@@ -221,7 +217,7 @@ class TestGenericScheduleHandler:
                 file_list="",
                 lang="ja",
                 name="",
-                day_spec=""
+                day_spec="",
             )
 
     def test_handle_schedule_add_monthly(self):
@@ -239,7 +235,7 @@ class TestGenericScheduleHandler:
                 file_list="files.txt",
                 lang="en",
                 name="custom_name",
-                day_spec="15"
+                day_spec="15",
             )
             result = _handle_schedule_add(args, "monthly")
 
@@ -253,7 +249,7 @@ class TestGenericScheduleHandler:
                 file_list="files.txt",
                 lang="en",
                 name="custom_name",
-                day_spec="15"
+                day_spec="15",
             )
 
     def test_handle_schedule_add_missing_weekday_uses_empty(self):
@@ -270,7 +266,7 @@ class TestGenericScheduleHandler:
                 context="",
                 file_list="",
                 lang="",
-                name=""
+                name="",
                 # weekday属性なし
             )
             result = _handle_schedule_add(args, "daily")

@@ -4,6 +4,7 @@ Unix (Linux/macOS) Cron アダプター
 
 crontabコマンドを使用してcronジョブを操作する。
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -11,20 +12,14 @@ from typing import Any
 
 from domain.constants import weekday_to_cron
 from domain.exceptions import SchedulerError
+
 from .base import BaseSchedulerAdapter
 
 
 class UnixSchedulerAdapter(BaseSchedulerAdapter):
     """Unix Cron のアダプター"""
 
-    def add(
-        self,
-        task_name: str,
-        command: str,
-        frequency: str,
-        time: str,
-        **kwargs: Any
-    ) -> None:
+    def add(self, task_name: str, command: str, frequency: str, time: str, **kwargs: Any) -> None:
         """
         Cronエントリを追加する。
 
@@ -42,9 +37,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         day_spec = kwargs.get("day_spec", "")
 
         hour, minute = time.split(":")
-        cron_line = self._build_cron_line(
-            frequency, hour, minute, command, weekday, day_spec
-        )
+        cron_line = self._build_cron_line(frequency, hour, minute, command, weekday, day_spec)
 
         # 既存のcrontabを取得
         current = self._get_current_crontab()
@@ -113,7 +106,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         minute: str,
         command: str,
         weekday: str = "",
-        day_spec: str = ""
+        day_spec: str = "",
     ) -> str:
         """Cronエントリの行を構築する。"""
         if frequency == "daily":
@@ -137,10 +130,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
 
     def _get_current_crontab(self) -> str:
         """現在のcrontabを取得する。"""
-        result = subprocess.run(
-            ["crontab", "-l"],
-            capture_output=True, text=True
-        )
+        result = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
         if result.returncode != 0:
             # crontabが存在しない場合は空を返す
             return ""
@@ -148,11 +138,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
 
     def _set_crontab(self, content: str) -> None:
         """crontabを設定する。"""
-        proc = subprocess.Popen(
-            ["crontab", "-"],
-            stdin=subprocess.PIPE,
-            text=True
-        )
+        proc = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
         proc.communicate(input=content)
         if proc.returncode != 0:
             raise SchedulerError("Failed to update crontab")

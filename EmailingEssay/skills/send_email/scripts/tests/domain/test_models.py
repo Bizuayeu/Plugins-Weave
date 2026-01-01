@@ -4,14 +4,16 @@
 
 EssaySchedule と MonthlyPattern のテスト。
 """
-import pytest
-import sys
+
 import os
+import sys
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from domain.models import EssaySchedule, MonthlyType, MonthlyPattern
+from domain.models import EssaySchedule, MonthlyPattern, MonthlyType
 
 
 class TestEssaySchedule:
@@ -20,10 +22,7 @@ class TestEssaySchedule:
     def test_create_daily_schedule(self):
         """日次スケジュールの作成"""
         schedule = EssaySchedule(
-            name="morning_essay",
-            frequency="daily",
-            time="09:00",
-            theme="朝の振り返り"
+            name="morning_essay", frequency="daily", time="09:00", theme="朝の振り返り"
         )
         assert schedule.name == "morning_essay"
         assert schedule.frequency == "daily"
@@ -33,10 +32,7 @@ class TestEssaySchedule:
     def test_create_weekly_schedule(self):
         """週次スケジュールの作成"""
         schedule = EssaySchedule(
-            name="weekly_review",
-            frequency="weekly",
-            time="10:00",
-            weekday="monday"
+            name="weekly_review", frequency="weekly", time="10:00", weekday="monday"
         )
         assert schedule.frequency == "weekly"
         assert schedule.weekday == "monday"
@@ -44,21 +40,14 @@ class TestEssaySchedule:
     def test_create_monthly_schedule(self):
         """月次スケジュールの作成"""
         schedule = EssaySchedule(
-            name="monthly_summary",
-            frequency="monthly",
-            time="15:00",
-            day_spec="last_fri"
+            name="monthly_summary", frequency="monthly", time="15:00", day_spec="last_fri"
         )
         assert schedule.frequency == "monthly"
         assert schedule.day_spec == "last_fri"
 
     def test_default_values(self):
         """デフォルト値の確認"""
-        schedule = EssaySchedule(
-            name="test",
-            frequency="daily",
-            time="12:00"
-        )
+        schedule = EssaySchedule(name="test", frequency="daily", time="12:00")
         assert schedule.theme == ""
         assert schedule.context == ""
         assert schedule.file_list == ""
@@ -68,12 +57,7 @@ class TestEssaySchedule:
 
     def test_to_dict(self):
         """to_dict() メソッドのテスト"""
-        schedule = EssaySchedule(
-            name="test",
-            frequency="daily",
-            time="09:00",
-            theme="test_theme"
-        )
+        schedule = EssaySchedule(name="test", frequency="daily", time="09:00", theme="test_theme")
         d = schedule.to_dict()
         assert d["name"] == "test"
         assert d["frequency"] == "daily"
@@ -88,7 +72,7 @@ class TestEssaySchedule:
             "frequency": "weekly",
             "time": "10:00",
             "weekday": "monday",
-            "theme": "週次"
+            "theme": "週次",
         }
         schedule = EssaySchedule.from_dict(d)
         assert schedule.name == "test"
@@ -103,7 +87,7 @@ class TestEssaySchedule:
             "frequency": "daily",
             "time": "09:00",
             "unknown_key": "value",
-            "another_unknown": 123
+            "another_unknown": 123,
         }
         schedule = EssaySchedule.from_dict(d)
         assert schedule.name == "test"
@@ -111,11 +95,7 @@ class TestEssaySchedule:
 
     def test_from_dict_with_missing_optional_keys(self):
         """from_dict() がオプショナルキーがなくても動作する"""
-        d = {
-            "name": "test",
-            "frequency": "daily",
-            "time": "09:00"
-        }
+        d = {"name": "test", "frequency": "daily", "time": "09:00"}
         schedule = EssaySchedule.from_dict(d)
         assert schedule.theme == ""
         assert schedule.lang == "auto"
@@ -136,53 +116,53 @@ class TestMonthlyPattern:
     """MonthlyPattern のテスト"""
 
     def test_parse_date(self):
-        """"15" -> 毎月15日"""
+        """ "15" -> 毎月15日"""
         result = MonthlyPattern.parse("15")
         assert result.type == MonthlyType.DATE
         assert result.day_num == 15
 
     def test_parse_date_single_digit(self):
-        """"5" -> 毎月5日"""
+        """ "5" -> 毎月5日"""
         result = MonthlyPattern.parse("5")
         assert result.type == MonthlyType.DATE
         assert result.day_num == 5
 
     def test_parse_nth_weekday_1st(self):
-        """"1st_mon" -> 第1月曜"""
+        """ "1st_mon" -> 第1月曜"""
         result = MonthlyPattern.parse("1st_mon")
         assert result.type == MonthlyType.NTH_WEEKDAY
         assert result.ordinal == 1
         assert result.weekday == "mon"
 
     def test_parse_nth_weekday_2nd(self):
-        """"2nd_tue" -> 第2火曜"""
+        """ "2nd_tue" -> 第2火曜"""
         result = MonthlyPattern.parse("2nd_tue")
         assert result.type == MonthlyType.NTH_WEEKDAY
         assert result.ordinal == 2
         assert result.weekday == "tue"
 
     def test_parse_nth_weekday_3rd(self):
-        """"3rd_wed" -> 第3水曜"""
+        """ "3rd_wed" -> 第3水曜"""
         result = MonthlyPattern.parse("3rd_wed")
         assert result.type == MonthlyType.NTH_WEEKDAY
         assert result.ordinal == 3
         assert result.weekday == "wed"
 
     def test_parse_nth_weekday_4th(self):
-        """"4th_thu" -> 第4木曜"""
+        """ "4th_thu" -> 第4木曜"""
         result = MonthlyPattern.parse("4th_thu")
         assert result.type == MonthlyType.NTH_WEEKDAY
         assert result.ordinal == 4
         assert result.weekday == "thu"
 
     def test_parse_last_weekday(self):
-        """"last_fri" -> 最終金曜"""
+        """ "last_fri" -> 最終金曜"""
         result = MonthlyPattern.parse("last_fri")
         assert result.type == MonthlyType.LAST_WEEKDAY
         assert result.weekday == "fri"
 
     def test_parse_last_day(self):
-        """"last_day" -> 月末"""
+        """ "last_day" -> 月末"""
         result = MonthlyPattern.parse("last_day")
         assert result.type == MonthlyType.LAST_DAY
 
@@ -215,8 +195,9 @@ class TestTargetTime:
 
     def test_parse_hhmm_format(self):
         """HH:MM形式のパース"""
-        from domain.models import TargetTime
         from datetime import datetime
+
+        from domain.models import TargetTime
 
         # 未来の時刻を作成
         now = datetime.now()
@@ -230,8 +211,9 @@ class TestTargetTime:
 
     def test_parse_hhmm_past_rolls_to_tomorrow(self):
         """過去のHH:MM形式は翌日になる"""
-        from domain.models import TargetTime
         from datetime import datetime
+
+        from domain.models import TargetTime
 
         # 過去の時刻を作成（今日の時刻より前）
         now = datetime.now()
@@ -244,8 +226,9 @@ class TestTargetTime:
 
     def test_parse_datetime_format(self):
         """YYYY-MM-DD HH:MM形式のパース"""
-        from domain.models import TargetTime
         from datetime import datetime, timedelta
+
+        from domain.models import TargetTime
 
         future = datetime.now() + timedelta(days=1)
         time_str = future.strftime("%Y-%m-%d %H:%M")
@@ -256,8 +239,9 @@ class TestTargetTime:
 
     def test_parse_past_datetime_raises_error(self):
         """過去の日時指定でValidationError"""
-        from domain.models import TargetTime, ValidationError
         from datetime import datetime, timedelta
+
+        from domain.models import TargetTime, ValidationError
 
         past = datetime.now() - timedelta(days=1)
         time_str = past.strftime("%Y-%m-%d %H:%M")
@@ -283,8 +267,9 @@ class TestTargetTime:
 
     def test_generate_parsing_code_is_valid_python(self):
         """生成コードが有効なPython"""
-        from domain.models import TargetTime
         from datetime import datetime, timedelta
+
+        from domain.models import TargetTime
 
         target = TargetTime.parse("23:59")
         code = target.generate_parsing_code()

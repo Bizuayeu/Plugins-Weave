@@ -4,17 +4,19 @@ Windows Task Scheduler アダプター
 
 schtasksコマンドを使用してWindowsタスクスケジューラを操作する。
 """
+
 from __future__ import annotations
 
 import subprocess
 from typing import Any
 
 from domain.constants import (
-    weekday_to_schtasks,
-    ordinal_to_schtasks,
     ABBR_TO_SCHTASKS,
+    ordinal_to_schtasks,
+    weekday_to_schtasks,
 )
 from domain.exceptions import SchedulerError
+
 from .base import BaseSchedulerAdapter
 
 
@@ -24,14 +26,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     # 後方互換性のため残す（constants からインポート推奨）
     DAY_ABBR_MAP = ABBR_TO_SCHTASKS
 
-    def add(
-        self,
-        task_name: str,
-        command: str,
-        frequency: str,
-        time: str,
-        **kwargs: Any
-    ) -> None:
+    def add(self, task_name: str, command: str, frequency: str, time: str, **kwargs: Any) -> None:
         """
         Windows タスクスケジューラにタスクを追加する。
 
@@ -82,8 +77,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
             タスク情報のリスト
         """
         result = subprocess.run(
-            ["schtasks", "/query", "/fo", "CSV"],
-            capture_output=True, text=True
+            ["schtasks", "/query", "/fo", "CSV"], capture_output=True, text=True
         )
 
         tasks = []
@@ -98,11 +92,17 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     def _build_daily_command(self, task_name: str, command: str, time: str) -> list[str]:
         """日次タスクのschtasksコマンドを構築する。"""
         return [
-            "schtasks", "/create", "/tn", task_name,
-            "/tr", command,
-            "/sc", "daily",
-            "/st", time,
-            "/f"
+            "schtasks",
+            "/create",
+            "/tn",
+            task_name,
+            "/tr",
+            command,
+            "/sc",
+            "daily",
+            "/st",
+            time,
+            "/f",
         ]
 
     def _build_weekly_command(
@@ -114,12 +114,19 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
         except ValueError:
             day = "MON"  # フォールバック
         return [
-            "schtasks", "/create", "/tn", task_name,
-            "/tr", command,
-            "/sc", "weekly",
-            "/d", day,
-            "/st", time,
-            "/f"
+            "schtasks",
+            "/create",
+            "/tn",
+            task_name,
+            "/tr",
+            command,
+            "/sc",
+            "weekly",
+            "/d",
+            day,
+            "/st",
+            time,
+            "/f",
         ]
 
     def _build_monthly_command(
@@ -132,12 +139,19 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
 
         if pattern.type == MonthlyType.DATE:
             return [
-                "schtasks", "/create", "/tn", task_name,
-                "/tr", command,
-                "/sc", "monthly",
-                "/d", str(pattern.day_num),
-                "/st", time,
-                "/f"
+                "schtasks",
+                "/create",
+                "/tn",
+                task_name,
+                "/tr",
+                command,
+                "/sc",
+                "monthly",
+                "/d",
+                str(pattern.day_num),
+                "/st",
+                time,
+                "/f",
             ]
         elif pattern.type == MonthlyType.NTH_WEEKDAY:
             weekday_abbr = ABBR_TO_SCHTASKS.get(pattern.weekday, "MON")
@@ -146,24 +160,40 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
             except ValueError:
                 week_ordinal = "FIRST"
             return [
-                "schtasks", "/create", "/tn", task_name,
-                "/tr", command,
-                "/sc", "monthly",
-                "/mo", week_ordinal,
-                "/d", weekday_abbr,
-                "/st", time,
-                "/f"
+                "schtasks",
+                "/create",
+                "/tn",
+                task_name,
+                "/tr",
+                command,
+                "/sc",
+                "monthly",
+                "/mo",
+                week_ordinal,
+                "/d",
+                weekday_abbr,
+                "/st",
+                time,
+                "/f",
             ]
         elif pattern.type == MonthlyType.LAST_WEEKDAY:
             weekday_abbr = ABBR_TO_SCHTASKS.get(pattern.weekday, "MON")
             return [
-                "schtasks", "/create", "/tn", task_name,
-                "/tr", command,
-                "/sc", "monthly",
-                "/mo", "LAST",
-                "/d", weekday_abbr,
-                "/st", time,
-                "/f"
+                "schtasks",
+                "/create",
+                "/tn",
+                task_name,
+                "/tr",
+                command,
+                "/sc",
+                "monthly",
+                "/mo",
+                "LAST",
+                "/d",
+                weekday_abbr,
+                "/st",
+                time,
+                "/f",
             ]
         elif pattern.type == MonthlyType.LAST_DAY:
             # 月末は日次タスク + ランナースクリプトで対応（上位層で処理）

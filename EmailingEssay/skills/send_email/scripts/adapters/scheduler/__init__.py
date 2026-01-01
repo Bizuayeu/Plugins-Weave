@@ -4,12 +4,13 @@
 
 OS別のスケジューラ実装を提供する。
 """
+
 import sys
 from typing import Union
 
-from .base import SchedulerError, BaseSchedulerAdapter
-from .windows import WindowsSchedulerAdapter
+from .base import BaseSchedulerAdapter, SchedulerError
 from .unix import UnixSchedulerAdapter
+from .windows import WindowsSchedulerAdapter
 
 
 def get_scheduler() -> Union[WindowsSchedulerAdapter, UnixSchedulerAdapter]:

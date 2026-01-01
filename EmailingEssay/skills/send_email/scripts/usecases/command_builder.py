@@ -5,12 +5,12 @@ Claudeコマンド構築ユーティリティ
 wait_essay と schedule_essay で使用されていた類似のコマンド構築ロジックを統合。
 プラットフォーム依存のクォート処理を一元化し、保守性を向上。
 """
+
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 from typing import Literal
-
 
 QuoteStyle = Literal["single", "escaped", "auto"]
 
@@ -77,7 +77,7 @@ class ClaudeCommandBuilder:
         context: str = "",
         file_list: str = "",
         lang: str = "",
-        quote_style: QuoteStyle = "auto"
+        quote_style: QuoteStyle = "auto",
     ) -> str:
         """
         Claudeコマンドの引数部分を構築する。
@@ -114,11 +114,7 @@ class ClaudeCommandBuilder:
 
     @classmethod
     def build_full_command(
-        cls,
-        theme: str = "",
-        context: str = "",
-        file_list: str = "",
-        lang: str = ""
+        cls, theme: str = "", context: str = "", file_list: str = "", lang: str = ""
     ) -> str:
         """
         完全なClaudeコマンドを構築する（OSスケジューラ用）。
@@ -138,7 +134,7 @@ class ClaudeCommandBuilder:
             context=context,
             file_list=file_list,
             lang=lang,
-            quote_style="escaped" if sys.platform == "win32" else "single"
+            quote_style="escaped" if sys.platform == "win32" else "single",
         )
 
         if sys.platform == "win32":
@@ -153,7 +149,7 @@ def build_claude_args(
     context: str = "",
     file_list: str = "",
     lang: str = "",
-    quote_style: QuoteStyle = "single"
+    quote_style: QuoteStyle = "single",
 ) -> str:
     """
     Claudeコマンド引数を構築する（後方互換性用）。
@@ -161,19 +157,12 @@ def build_claude_args(
     wait_essay用のデフォルト: シングルクォート
     """
     return ClaudeCommandBuilder.build_args(
-        theme=theme,
-        context=context,
-        file_list=file_list,
-        lang=lang,
-        quote_style=quote_style
+        theme=theme, context=context, file_list=file_list, lang=lang, quote_style=quote_style
     )
 
 
 def build_claude_command(
-    theme: str = "",
-    context: str = "",
-    file_list: str = "",
-    lang: str = ""
+    theme: str = "", context: str = "", file_list: str = "", lang: str = ""
 ) -> str:
     """
     完全なClaudeコマンドを構築する（後方互換性用）。
@@ -181,8 +170,5 @@ def build_claude_command(
     schedule_essay用
     """
     return ClaudeCommandBuilder.build_full_command(
-        theme=theme,
-        context=context,
-        file_list=file_list,
-        lang=lang
+        theme=theme, context=context, file_list=file_list, lang=lang
     )

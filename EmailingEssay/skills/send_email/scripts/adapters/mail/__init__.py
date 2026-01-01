@@ -4,6 +4,7 @@
 
 メール送信の実装を提供する。
 """
-from .yagmail_adapter import YagmailAdapter, MailError
+
+from .yagmail_adapter import MailError, YagmailAdapter
 
 __all__ = ["YagmailAdapter", "MailError"]

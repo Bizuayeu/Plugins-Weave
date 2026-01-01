@@ -3,43 +3,59 @@
 EmailingEssay テスト用共通 fixtures
 
 Clean Architecture に基づき、各層のモックを提供する。
+本番のportsをインポートし、create_autospecで型安全なモックを生成。
 """
+
+from unittest.mock import create_autospec
+
 import pytest
-from unittest.mock import Mock
-from typing import Protocol
 
-
-# =============================================================================
-# Port Protocols (Use Cases層の抽象インターフェース)
-# =============================================================================
-
-class MailPort(Protocol):
-    """メール送信の抽象インターフェース"""
-    def send(self, to: str, subject: str, body: str) -> None: ...
-    def test(self) -> None: ...
-
-
-class SchedulerPort(Protocol):
-    """スケジューラの抽象インターフェース"""
-    def add(self, task_name: str, command: str, frequency: str, **kwargs) -> None: ...
-    def remove(self, name: str) -> None: ...
-    def list(self) -> list: ...
-
+# 本番のPortsをインポート（重複定義を排除）
+from usecases.ports import (
+    MailPort,
+    ProcessSpawnerPort,
+    SchedulerPort,
+    ScheduleStoragePort,
+    WaiterStoragePort,
+)
 
 # =============================================================================
 # Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def mock_mail_port():
-    """MailPortのモック"""
-    return Mock(spec=MailPort)
+    """MailPortのモック（create_autospecで型安全）"""
+    return create_autospec(MailPort, instance=True)
 
 
 @pytest.fixture
 def mock_scheduler_port():
     """SchedulerPortのモック"""
-    return Mock(spec=SchedulerPort)
+    return create_autospec(SchedulerPort, instance=True)
+
+
+@pytest.fixture
+def mock_schedule_storage():
+    """ScheduleStoragePortのモック"""
+    mock = create_autospec(ScheduleStoragePort, instance=True)
+    mock.load_schedules.return_value = []
+    return mock
+
+
+@pytest.fixture
+def mock_waiter_storage():
+    """WaiterStoragePortのモック"""
+    mock = create_autospec(WaiterStoragePort, instance=True)
+    mock.get_active_waiters.return_value = []
+    return mock
+
+
+@pytest.fixture
+def mock_process_spawner():
+    """ProcessSpawnerPortのモック"""
+    return create_autospec(ProcessSpawnerPort, instance=True)
 
 
 @pytest.fixture
@@ -53,5 +69,5 @@ def sample_schedule_dict():
         "context": "",
         "file_list": "",
         "lang": "ja",
-        "created": "2025-01-01T00:00:00"
+        "created": "2025-01-01T00:00:00",
     }

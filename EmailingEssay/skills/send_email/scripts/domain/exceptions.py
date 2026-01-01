@@ -5,6 +5,7 @@
 EmailingEssayプラグイン全体で使用される例外クラスを一元管理する。
 Clean Architecture の原則に従い、domain層に配置。
 """
+
 from __future__ import annotations
 
 
@@ -24,12 +25,14 @@ class EmailingEssayError(Exception):
 # ドメイン層例外
 # =============================================================================
 
+
 class DomainError(EmailingEssayError):
     """
     ドメイン層の基底例外。
 
     ビジネスルール違反やドメインモデルの不整合を表す。
     """
+
     pass
 
 
@@ -39,6 +42,7 @@ class ValidationError(DomainError):
 
     入力値の形式や範囲の検証失敗を表す。
     """
+
     pass
 
 
@@ -46,12 +50,14 @@ class ValidationError(DomainError):
 # アダプター層例外
 # =============================================================================
 
+
 class AdapterError(EmailingEssayError):
     """
     アダプター層の基底例外。
 
     外部システムとの連携における失敗を表す。
     """
+
     pass
 
 
@@ -61,6 +67,7 @@ class MailError(AdapterError):
 
     SMTP接続失敗、認証エラー、送信失敗などを表す。
     """
+
     pass
 
 
@@ -70,6 +77,7 @@ class SchedulerError(AdapterError):
 
     タスクスケジューラやcronの操作失敗を表す。
     """
+
     pass
 
 
@@ -79,6 +87,7 @@ class StorageError(AdapterError):
 
     ファイル読み書きやJSON操作の失敗を表す。
     """
+
     pass
 
 
@@ -89,6 +98,7 @@ class StorageCorruptionError(StorageError):
     JSONファイルの破損を検出した場合に発生。
     バックアップからの復旧を試行した結果も含む。
     """
+
     pass
 
 
@@ -98,6 +108,7 @@ class TemplateError(AdapterError):
 
     テンプレートファイルの読み込みやレンダリングの失敗を表す。
     """
+
     pass
 
 
@@ -105,12 +116,14 @@ class TemplateError(AdapterError):
 # ユースケース層例外
 # =============================================================================
 
+
 class WaiterError(EmailingEssayError):
     """
     待機処理エラー。
 
     待機プロセスの起動や実行における失敗を表す。
     """
+
     pass
 
 

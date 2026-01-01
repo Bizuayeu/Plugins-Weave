@@ -5,6 +5,7 @@
 アプリケーション全体のログ設定を管理する。
 JSON形式の構造化ロギングをオプションでサポート。
 """
+
 from __future__ import annotations
 
 import json
@@ -12,7 +13,6 @@ import logging
 import os
 import sys
 from datetime import datetime
-
 
 # デフォルトのフォーマット
 DEFAULT_FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
@@ -39,7 +39,7 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
             "module": record.module,
             "function": record.funcName,
-            "line": record.lineno
+            "line": record.lineno,
         }
         if record.exc_info:
             log_obj["exception"] = self.formatException(record.exc_info)
@@ -50,7 +50,7 @@ def configure_logging(
     level: int = logging.INFO,
     format_str: str = DEFAULT_FORMAT,
     date_format: str = DEFAULT_DATE_FORMAT,
-    json_format: bool | None = None
+    json_format: bool | None = None,
 ) -> None:
     """
     アプリケーション全体のログ設定を行う。

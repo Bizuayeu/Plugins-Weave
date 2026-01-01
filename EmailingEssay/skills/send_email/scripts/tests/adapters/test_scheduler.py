@@ -4,17 +4,19 @@
 
 Windows Task Scheduler と Unix Cron のテスト。
 """
-import pytest
-import sys
+
 import os
-from unittest.mock import Mock, patch, MagicMock
+import sys
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from adapters.scheduler import get_scheduler, SchedulerError
-from adapters.scheduler.windows import WindowsSchedulerAdapter
+from adapters.scheduler import SchedulerError, get_scheduler
 from adapters.scheduler.unix import UnixSchedulerAdapter
+from adapters.scheduler.windows import WindowsSchedulerAdapter
 
 
 class TestGetScheduler:
@@ -55,7 +57,7 @@ class TestWindowsSchedulerAdapter:
             task_name="Essay_test",
             command='python "C:\\test\\script.py"',
             frequency="daily",
-            time="09:00"
+            time="09:00",
         )
 
         mock_run.assert_called_once()
@@ -74,7 +76,7 @@ class TestWindowsSchedulerAdapter:
             command='python "C:\\test\\script.py"',
             frequency="weekly",
             time="10:00",
-            weekday="monday"
+            weekday="monday",
         )
 
         mock_run.assert_called_once()
@@ -92,7 +94,7 @@ class TestWindowsSchedulerAdapter:
             command='python "C:\\test\\script.py"',
             frequency="monthly",
             time="15:00",
-            day_spec="15"
+            day_spec="15",
         )
 
         mock_run.assert_called_once()
@@ -107,10 +109,7 @@ class TestWindowsSchedulerAdapter:
 
         with pytest.raises(SchedulerError):
             scheduler.add(
-                task_name="Essay_fail",
-                command='python script.py',
-                frequency="daily",
-                time="09:00"
+                task_name="Essay_fail", command='python script.py', frequency="daily", time="09:00"
             )
 
     @patch('subprocess.run')
@@ -131,7 +130,7 @@ class TestWindowsSchedulerAdapter:
         mock_run.return_value = Mock(
             returncode=0,
             stdout='"TaskName","Next Run Time","Status"\n"Essay_morning","09:00:00","Ready"\n"Essay_weekly","10:00:00","Ready"\n',
-            stderr=""
+            stderr="",
         )
 
         result = scheduler.list()
@@ -160,7 +159,7 @@ class TestUnixSchedulerAdapter:
             task_name="Essay_test",
             command='python /test/script.py',
             frequency="daily",
-            time="09:00"
+            time="09:00",
         )
 
         # crontab が呼ばれることを確認
@@ -181,7 +180,7 @@ class TestUnixSchedulerAdapter:
             command='python /test/script.py',
             frequency="weekly",
             time="10:00",
-            weekday="monday"
+            weekday="monday",
         )
 
         mock_popen.assert_called()
@@ -190,9 +189,7 @@ class TestUnixSchedulerAdapter:
     def test_list_schedules(self, mock_run, scheduler):
         """スケジュール一覧の取得"""
         mock_run.return_value = Mock(
-            returncode=0,
-            stdout="# Essay_morning\n0 9 * * * python /test/script.py\n",
-            stderr=""
+            returncode=0, stdout="# Essay_morning\n0 9 * * * python /test/script.py\n", stderr=""
         )
 
         result = scheduler.list()

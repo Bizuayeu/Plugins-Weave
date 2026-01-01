@@ -2,6 +2,7 @@
 """
 プロセス管理アダプター
 """
+
 from .spawner import ProcessSpawner
 
 __all__ = ["ProcessSpawner"]

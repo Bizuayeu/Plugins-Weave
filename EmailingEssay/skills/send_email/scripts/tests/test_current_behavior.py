@@ -5,9 +5,11 @@
 現在の main.py の動作を記録し、
 リファクタリング後も同じ動作を保証する。
 """
-import pytest
-import sys
+
 import os
+import sys
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -42,19 +44,19 @@ class TestMonthlyDaySpecParsing:
     """月間スケジュールのパターン記録"""
 
     def test_date_format(self):
-        """"15" -> 毎月15日"""
+        """ "15" -> 毎月15日"""
         pass
 
     def test_nth_weekday_format(self):
-        """"2nd_mon" -> 第2月曜"""
+        """ "2nd_mon" -> 第2月曜"""
         pass
 
     def test_last_weekday_format(self):
-        """"last_fri" -> 最終金曜"""
+        """ "last_fri" -> 最終金曜"""
         pass
 
     def test_last_day_format(self):
-        """"last_day" -> 月末"""
+        """ "last_day" -> 月末"""
         pass
 
 

@@ -4,6 +4,7 @@
 
 定期的なエッセイ配信のスケジュール管理を行う。
 """
+
 from __future__ import annotations
 
 import sys
@@ -11,9 +12,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from domain.models import MonthlyPattern, MonthlyType
-from domain.constants import WEEKDAYS_FULL, VALID_WEEKDAYS
+from domain.constants import WEEKDAYS_FULL
+from domain.models import MonthlyPattern
 from frameworks.logging_config import get_logger
+
 from .command_builder import build_claude_command
 
 if TYPE_CHECKING:
@@ -44,7 +46,7 @@ class ScheduleEssayUseCase:
         file_list: str = "",
         lang: str = "",
         name: str = "",
-        day_spec: str = ""
+        day_spec: str = "",
     ) -> None:
         """
         スケジュールを追加する。
@@ -78,24 +80,44 @@ class ScheduleEssayUseCase:
         try:
             # Step 1: OSスケジューラに登録
             self._create_os_schedule(
-                task_name, command, frequency, time_spec,
-                weekday=weekday, day_spec=day_spec, monthly_type=monthly_type
+                task_name,
+                command,
+                frequency,
+                time_spec,
+                weekday=weekday,
+                day_spec=day_spec,
+                monthly_type=monthly_type,
             )
             scheduler_registered = True
 
             # Step 2: JSONバックアップに保存
             self._save_schedule_entry(
-                task_name, frequency, time_spec, weekday, theme,
-                context_file, file_list, lang, day_spec, monthly_type
+                task_name,
+                frequency,
+                time_spec,
+                weekday,
+                theme,
+                context_file,
+                file_list,
+                lang,
+                day_spec,
+                monthly_type,
             )
 
             # Step 3: 確認メッセージ
             self._print_confirmation(
-                task_name, frequency, time_spec, weekday, theme,
-                context_file, file_list, lang, day_spec
+                task_name,
+                frequency,
+                time_spec,
+                weekday,
+                theme,
+                context_file,
+                file_list,
+                lang,
+                day_spec,
             )
 
-        except Exception as e:
+        except Exception:
             # ロールバック：スケジューラ登録を取り消す
             if scheduler_registered:
                 try:
@@ -179,7 +201,9 @@ class ScheduleEssayUseCase:
     def _validate_frequency(self, frequency: str) -> None:
         """頻度のバリデーション"""
         if frequency not in ["daily", "weekly", "monthly"]:
-            raise ValueError(f"frequency must be 'daily', 'weekly', or 'monthly', got '{frequency}'")
+            raise ValueError(
+                f"frequency must be 'daily', 'weekly', or 'monthly', got '{frequency}'"
+            )
 
     def _validate_weekday(self, frequency: str, weekday: str) -> None:
         """曜日のバリデーション（weekly用）"""
@@ -191,7 +215,9 @@ class ScheduleEssayUseCase:
         if frequency != "monthly":
             return ""
         if not day_spec:
-            raise ValueError("monthly schedules require day_spec (e.g., 15, 3rd_wed, last_fri, last_day)")
+            raise ValueError(
+                "monthly schedules require day_spec (e.g., 15, 3rd_wed, last_fri, last_day)"
+            )
 
         pattern = MonthlyPattern.parse(day_spec)
         return pattern.type.value
@@ -242,18 +268,19 @@ class ScheduleEssayUseCase:
         time_spec: str,
         weekday: str = "",
         day_spec: str = "",
-        monthly_type: str = ""
+        monthly_type: str = "",
     ) -> None:
         """OSスケジューラにタスクを登録"""
         if frequency == "monthly" and monthly_type == "last_day":
             # 月末は日次タスク + ランナースクリプトで対応
             runner_path = self._create_runner_script(task_name, day_spec, monthly_type, command)
-            runner_command = f'python "{runner_path}"' if sys.platform == "win32" else f'python3 "{runner_path}"'
+            runner_command = (
+                f'python "{runner_path}"' if sys.platform == "win32" else f'python3 "{runner_path}"'
+            )
             self._scheduler.add(task_name, runner_command, "daily", time_spec)
         else:
             self._scheduler.add(
-                task_name, command, frequency, time_spec,
-                weekday=weekday, day_spec=day_spec
+                task_name, command, frequency, time_spec, weekday=weekday, day_spec=day_spec
             )
 
     def _create_runner_script(
@@ -274,7 +301,7 @@ class ScheduleEssayUseCase:
             template,
             task_name=task_name,
             condition_code=condition_code,
-            command=command.replace("\\", "\\\\").replace('"', '\\"')
+            command=command.replace("\\", "\\\\").replace('"', '\\"'),
         )
 
         with open(runner_path, "w", encoding="utf-8") as f:
@@ -300,7 +327,7 @@ class ScheduleEssayUseCase:
         file_list: str,
         lang: str,
         day_spec: str,
-        monthly_type: str
+        monthly_type: str,
     ) -> None:
         """スケジュールエントリをJSONに保存"""
         schedules = self._storage.load_schedules()
@@ -317,7 +344,7 @@ class ScheduleEssayUseCase:
             "context": context_file,
             "file_list": file_list,
             "lang": lang,
-            "created": datetime.now().isoformat()
+            "created": datetime.now().isoformat(),
         }
 
         if frequency == "monthly":
@@ -337,7 +364,7 @@ class ScheduleEssayUseCase:
         context_file: str,
         file_list: str,
         lang: str,
-        day_spec: str
+        day_spec: str,
     ) -> None:
         """確認メッセージを表示"""
         print(f"Schedule created: {task_name}")
@@ -358,5 +385,3 @@ class ScheduleEssayUseCase:
             print(f"  Language: {lang}")
         print()
         print("The essay will run automatically. Survives PC restart.")
-
-

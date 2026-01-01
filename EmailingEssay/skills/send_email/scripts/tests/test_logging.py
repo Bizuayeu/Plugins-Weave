@@ -2,10 +2,12 @@
 """
 loggingモジュール統合テスト（Item 5）
 """
-import pytest
+
 import logging
-import sys
 import os
+import sys
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -44,6 +46,7 @@ class TestModuleLoggers:
     def test_json_adapter_has_logger(self):
         """JsonStorageAdapterモジュールがloggerを持つ"""
         from adapters.storage import json_adapter
+
         assert hasattr(json_adapter, 'logger')
 
     def test_json_adapter_logs_on_corruption(self, tmp_path, caplog):

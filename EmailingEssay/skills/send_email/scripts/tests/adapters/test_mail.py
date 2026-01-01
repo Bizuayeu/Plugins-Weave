@@ -4,15 +4,18 @@
 
 YagmailAdapterのテスト。
 """
-import pytest
-import sys
+
 import os
-from unittest.mock import Mock, patch, MagicMock
+import sys
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from adapters.mail.yagmail_adapter import YagmailAdapter, MailError
+from adapters.mail.yagmail_adapter import MailError, YagmailAdapter
+from domain.config import Config
 
 
 class TestYagmailAdapter:
@@ -24,17 +27,21 @@ class TestYagmailAdapter:
         return {
             "sender": "sender@example.com",
             "password": "password123",
-            "recipient": "recipient@example.com"
+            "recipient": "recipient@example.com",
         }
 
     @pytest.fixture
     def adapter(self, mock_config):
         """アダプターのインスタンス"""
-        with patch.dict(os.environ, {
-            "ESSAY_SENDER_EMAIL": mock_config["sender"],
-            "ESSAY_APP_PASSWORD": mock_config["password"],
-            "ESSAY_RECIPIENT_EMAIL": mock_config["recipient"]
-        }):
+        Config.reset()  # シングルトンリセット
+        with patch.dict(
+            os.environ,
+            {
+                "ESSAY_SENDER_EMAIL": mock_config["sender"],
+                "ESSAY_APP_PASSWORD": mock_config["password"],
+                "ESSAY_RECIPIENT_EMAIL": mock_config["recipient"],
+            },
+        ):
             return YagmailAdapter()
 
     @patch('adapters.mail.yagmail_adapter.yagmail')
@@ -43,11 +50,7 @@ class TestYagmailAdapter:
         mock_smtp = MagicMock()
         mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
 
-        adapter.send(
-            to="test@example.com",
-            subject="Test Subject",
-            body="Test Body"
-        )
+        adapter.send(to="test@example.com", subject="Test Subject", body="Test Body")
 
         mock_yagmail.SMTP.assert_called_once()
         mock_smtp.send.assert_called_once()
@@ -61,7 +64,7 @@ class TestYagmailAdapter:
         adapter.send(
             to="",  # 空の場合はデフォルト
             subject="Test Subject",
-            body="Test Body"
+            body="Test Body",
         )
 
         mock_smtp.send.assert_called_once()
@@ -82,24 +85,26 @@ class TestYagmailAdapter:
 
     def test_missing_sender_raises_error(self):
         """送信者未設定でエラー"""
+        Config.reset()  # シングルトンリセット
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(MailError):
                 YagmailAdapter()
 
     def test_missing_password_raises_error(self):
         """パスワード未設定でエラー"""
-        with patch.dict(os.environ, {
-            "ESSAY_SENDER_EMAIL": "sender@example.com"
-        }, clear=True):
+        Config.reset()  # シングルトンリセット
+        with patch.dict(os.environ, {"ESSAY_SENDER_EMAIL": "sender@example.com"}, clear=True):
             with pytest.raises(MailError):
                 YagmailAdapter()
 
     def test_missing_recipient_raises_error(self):
         """受信者未設定でエラー"""
-        with patch.dict(os.environ, {
-            "ESSAY_SENDER_EMAIL": "sender@example.com",
-            "ESSAY_APP_PASSWORD": "password"
-        }, clear=True):
+        Config.reset()  # シングルトンリセット
+        with patch.dict(
+            os.environ,
+            {"ESSAY_SENDER_EMAIL": "sender@example.com", "ESSAY_APP_PASSWORD": "password"},
+            clear=True,
+        ):
             with pytest.raises(MailError):
                 YagmailAdapter()
 
@@ -110,12 +115,49 @@ class TestYagmailAdapter:
         mock_yagmail.SMTP.return_value.__enter__ = MagicMock(return_value=mock_smtp_instance)
         mock_yagmail.SMTP.return_value.__exit__ = MagicMock(return_value=False)
 
-        adapter.send(
-            to="test@example.com",
-            subject="Test Subject",
-            body="Test Body"
-        )
+        adapter.send(to="test@example.com", subject="Test Subject", body="Test Body")
 
         # コンテキストマネージャが使用されたことを確認
         mock_yagmail.SMTP.return_value.__enter__.assert_called_once()
         mock_yagmail.SMTP.return_value.__exit__.assert_called_once()
+
+
+class TestYagmailAdapterWithConfig:
+    """Config統合テスト（Phase 5）"""
+
+    def test_yagmail_adapter_uses_config(self, monkeypatch):
+        """YagmailAdapterがConfigを使用"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "config_test@example.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "config_testpass")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "config_recv@example.com")
+
+        from domain.config import Config
+
+        Config.reset()
+
+        from adapters.mail import YagmailAdapter
+
+        adapter = YagmailAdapter()
+
+        assert adapter._sender == "config_test@example.com"
+        assert adapter._password == "config_testpass"
+        assert adapter._recipient == "config_recv@example.com"
+
+    def test_yagmail_adapter_config_validation_error(self, monkeypatch):
+        """Config検証エラー時にMailError"""
+        monkeypatch.delenv("ESSAY_SENDER_EMAIL", raising=False)
+        monkeypatch.delenv("ESSAY_APP_PASSWORD", raising=False)
+        monkeypatch.delenv("ESSAY_RECIPIENT_EMAIL", raising=False)
+
+        from domain.config import Config
+
+        Config.reset()
+
+        from adapters.mail import YagmailAdapter
+        from adapters.mail.yagmail_adapter import MailError
+
+        with pytest.raises(MailError) as exc_info:
+            YagmailAdapter()
+
+        # 複数のエラーが含まれることを確認
+        assert "ESSAY_SENDER_EMAIL" in str(exc_info.value)

@@ -5,6 +5,7 @@
 指定時刻まで待機してエッセイを実行する。
 WaiterError は domain.exceptions に移動済み。
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -12,10 +13,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.exceptions import WaiterError
+
 from .command_builder import build_claude_args
 
 if TYPE_CHECKING:
-    from .ports import StoragePort, ProcessSpawnerPort
+    from .ports import ProcessSpawnerPort, StoragePort
 
 # 後方互換性のため再エクスポート
 __all__ = [
@@ -76,11 +78,7 @@ def parse_target_time(time_str: str) -> datetime:
 class WaitEssayUseCase:
     """エッセイ待機処理のユースケース"""
 
-    def __init__(
-        self,
-        storage_port: "StoragePort",
-        spawner_port: "ProcessSpawnerPort"
-    ) -> None:
+    def __init__(self, storage_port: "StoragePort", spawner_port: "ProcessSpawnerPort") -> None:
         """
         WaitEssayUseCaseを初期化する。
 
@@ -97,7 +95,7 @@ class WaitEssayUseCase:
         theme: str = "",
         context: str = "",
         file_list: str = "",
-        lang: str = ""
+        lang: str = "",
     ) -> int:
         """
         デタッチドプロセスを起動して待機・実行する。
@@ -152,21 +150,13 @@ class WaitEssayUseCase:
 
         return pid
 
-    def _generate_waiter_script(
-        self,
-        target_time: str,
-        claude_args_str: str,
-        log_file: str
-    ) -> str:
+    def _generate_waiter_script(self, target_time: str, claude_args_str: str, log_file: str) -> str:
         """待機スクリプトを生成（テンプレートシステム使用）"""
         from frameworks.templates import load_template, render_template
 
         template = load_template("essay_waiter.py.template")
         return render_template(
-            template,
-            log_file=log_file,
-            target_time=target_time,
-            claude_args=claude_args_str
+            template, log_file=log_file, target_time=target_time, claude_args=claude_args_str
         )
 
     def list_waiters(self) -> list[dict]:

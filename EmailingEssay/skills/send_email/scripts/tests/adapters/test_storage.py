@@ -4,11 +4,13 @@ JsonStorageAdapter のユニットテスト
 
 Phase 9.1: TDD補完 - Phase 9で漏れたテストを追加
 """
-import pytest
-import tempfile
-import os
+
 import json
+import os
 import sys
+import tempfile
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -52,7 +54,7 @@ class TestJsonStorageAdapter:
         """保存したスケジュールを読み込める"""
         schedules = [
             {"name": "test1", "frequency": "daily", "time": "09:00"},
-            {"name": "test2", "frequency": "weekly", "time": "10:00", "weekday": "monday"}
+            {"name": "test2", "frequency": "weekly", "time": "10:00", "weekday": "monday"},
         ]
         adapter.save_schedules(schedules)
         result = adapter.load_schedules()
@@ -198,11 +200,19 @@ class TestJsonStorageAdapterWaiterTracking:
         fake_pid = 999999999
         file_path = os.path.join(temp_dir, "active_waiters.json")
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump({
-                "waiters": [
-                    {"pid": fake_pid, "target_time": "09:00", "theme": "test", "registered_at": "2025-01-01T00:00:00"}
-                ]
-            }, f)
+            json.dump(
+                {
+                    "waiters": [
+                        {
+                            "pid": fake_pid,
+                            "target_time": "09:00",
+                            "theme": "test",
+                            "registered_at": "2025-01-01T00:00:00",
+                        }
+                    ]
+                },
+                f,
+            )
 
         # get_active_waitersは死亡プロセスを除外する
         result = adapter.get_active_waiters()
@@ -217,6 +227,135 @@ class TestJsonStorageAdapterWaiterTracking:
     def test_is_process_alive_returns_true_for_current_process(self, adapter):
         """現在のプロセスに対してTrueを返す"""
         import os
+
         current_pid = os.getpid()
         result = adapter._is_process_alive(current_pid)
         assert result is True
+
+
+class TestTypeSafety:
+    """型安全性テスト（Phase 3）"""
+
+    @pytest.fixture
+    def temp_dir(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            yield tmpdir
+
+    @pytest.fixture
+    def adapter(self, temp_dir):
+        return JsonStorageAdapter(base_dir=temp_dir)
+
+    def test_load_schedules_returns_schedule_entry_list(self, adapter, temp_dir):
+        """戻り値がScheduleEntryのリストであること"""
+        from usecases.ports import ScheduleEntry
+
+        # サンプルデータ作成
+        sample = {"schedules": [{"name": "test", "frequency": "daily", "time": "09:00"}]}
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(sample, f)
+
+        result = adapter.load_schedules()
+
+        assert isinstance(result, list)
+        assert len(result) == 1
+        # TypedDictのキーが存在することを確認
+        assert "name" in result[0]
+        assert "frequency" in result[0]
+        assert "time" in result[0]
+
+    def test_get_active_waiters_returns_waiter_entry_list(self, adapter, temp_dir):
+        """戻り値がWaiterEntryのリストであること"""
+        import os as os_module
+
+        from usecases.ports import WaiterEntry
+
+        # 現在のプロセスPIDを使用（確実に存在する）
+        current_pid = os_module.getpid()
+
+        # サンプルデータ作成
+        sample = {
+            "waiters": [
+                {
+                    "pid": current_pid,
+                    "target_time": "09:00",
+                    "theme": "test",
+                    "registered_at": "2025-01-01T00:00:00",
+                }
+            ]
+        }
+        file_path = os.path.join(temp_dir, "active_waiters.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(sample, f)
+
+        result = adapter.get_active_waiters()
+
+        assert isinstance(result, list)
+        assert len(result) == 1
+        # TypedDictのキーが存在することを確認
+        assert "pid" in result[0]
+        assert "target_time" in result[0]
+        assert "theme" in result[0]
+        assert "registered_at" in result[0]
+
+
+class TestProcessCache:
+    """プロセスキャッシュテスト（Phase 4）"""
+
+    @pytest.fixture
+    def temp_dir(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            yield tmpdir
+
+    @pytest.fixture
+    def adapter(self, temp_dir):
+        return JsonStorageAdapter(base_dir=temp_dir)
+
+    def test_dead_process_removed_from_cache(self, adapter):
+        """死亡プロセスがキャッシュから削除される"""
+        import time
+
+        # 存在しないPIDを登録
+        fake_pid = 99999999
+        adapter._process_cache[fake_pid] = (True, time.time() - 100)
+
+        # キャッシュクリーンアップを発動
+        adapter._cleanup_dead_processes()
+
+        assert fake_pid not in adapter._process_cache
+
+    def test_alive_process_remains_in_cache(self, adapter):
+        """生存プロセスはキャッシュに残る"""
+        import os as os_module
+        import time
+
+        current_pid = os_module.getpid()
+
+        adapter._process_cache[current_pid] = (True, time.time())
+        adapter._cleanup_dead_processes()
+
+        assert current_pid in adapter._process_cache
+
+    def test_cache_ttl_returns_cached_value(self, adapter):
+        """TTL内はキャッシュから値を返す"""
+        import time
+
+        fake_pid = 99999999
+        # 最近のタイムスタンプでキャッシュに登録（alive=Trueだが実際は存在しない）
+        adapter._process_cache[fake_pid] = (True, time.time())
+
+        # TTL内なのでキャッシュからTrueが返る（実際の生存チェックは行われない）
+        result = adapter._is_process_alive_cached(fake_pid)
+        assert result is True
+
+    def test_cache_expired_rechecks_process(self, adapter):
+        """TTL超過時は再チェック"""
+        import time
+
+        fake_pid = 99999999
+        # 古いタイムスタンプでキャッシュに登録
+        adapter._process_cache[fake_pid] = (True, time.time() - 100)
+
+        # TTL超過なので実際に生存チェックが行われ、Falseが返る
+        result = adapter._is_process_alive_cached(fake_pid)
+        assert result is False

@@ -5,6 +5,7 @@
 SchedulerError は domain.exceptions に移動済み。
 後方互換性のため再エクスポート。
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -20,14 +21,7 @@ class BaseSchedulerAdapter(ABC):
     """スケジューラアダプターの基底クラス"""
 
     @abstractmethod
-    def add(
-        self,
-        task_name: str,
-        command: str,
-        frequency: str,
-        time: str,
-        **kwargs: Any
-    ) -> None:
+    def add(self, task_name: str, command: str, frequency: str, time: str, **kwargs: Any) -> None:
         """スケジュールを追加する"""
         pass
 

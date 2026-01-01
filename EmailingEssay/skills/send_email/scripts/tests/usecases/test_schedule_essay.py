@@ -4,10 +4,12 @@ ScheduleEssayUseCase のユニットテスト
 
 Phase 9.1: TDD補完 - Phase 9で漏れたテストを追加
 """
-import pytest
-from unittest.mock import Mock, MagicMock
-import sys
+
 import os
+import sys
+from unittest.mock import MagicMock, Mock
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -35,32 +37,18 @@ class TestScheduleEssayUseCaseAdd:
 
     def test_add_daily_schedule(self, usecase, mock_scheduler, mock_storage):
         """日次スケジュールを追加できる"""
-        usecase.add(
-            frequency="daily",
-            time_spec="09:00",
-            theme="daily test"
-        )
+        usecase.add(frequency="daily", time_spec="09:00", theme="daily test")
         mock_scheduler.add.assert_called_once()
         mock_storage.save_schedules.assert_called_once()
 
     def test_add_weekly_schedule(self, usecase, mock_scheduler, mock_storage):
         """週次スケジュールを追加できる"""
-        usecase.add(
-            frequency="weekly",
-            time_spec="10:00",
-            weekday="monday",
-            theme="weekly test"
-        )
+        usecase.add(frequency="weekly", time_spec="10:00", weekday="monday", theme="weekly test")
         mock_scheduler.add.assert_called_once()
 
     def test_add_monthly_schedule(self, usecase, mock_scheduler, mock_storage):
         """月次スケジュールを追加できる"""
-        usecase.add(
-            frequency="monthly",
-            time_spec="15:00",
-            day_spec="15",
-            theme="monthly test"
-        )
+        usecase.add(frequency="monthly", time_spec="15:00", day_spec="15", theme="monthly test")
         mock_scheduler.add.assert_called_once()
 
     def test_add_invalid_frequency_raises_error(self, usecase):
@@ -180,11 +168,7 @@ class TestScheduleEssayUseCaseRollback:
         usecase = ScheduleEssayUseCase(mock_scheduler, mock_storage)
 
         with pytest.raises(PermissionError):
-            usecase.add(
-                frequency="daily",
-                time_spec="09:00",
-                theme="test"
-            )
+            usecase.add(frequency="daily", time_spec="09:00", theme="test")
 
         # スケジューラに追加された後、ロールバックで削除される
         mock_scheduler.add.assert_called_once()
@@ -197,11 +181,7 @@ class TestScheduleEssayUseCaseRollback:
         usecase = ScheduleEssayUseCase(mock_scheduler, mock_storage)
 
         with pytest.raises(IOError):
-            usecase.add(
-                frequency="daily",
-                time_spec="10:00",
-                theme="orphan_test"
-            )
+            usecase.add(frequency="daily", time_spec="10:00", theme="orphan_test")
 
         # スケジューラのremoveが呼ばれたことを確認
         assert mock_scheduler.remove.called
@@ -213,11 +193,7 @@ class TestScheduleEssayUseCaseRollback:
         usecase = ScheduleEssayUseCase(mock_scheduler, mock_storage)
 
         with pytest.raises(RuntimeError):
-            usecase.add(
-                frequency="daily",
-                time_spec="11:00",
-                theme="scheduler_fail"
-            )
+            usecase.add(frequency="daily", time_spec="11:00", theme="scheduler_fail")
 
         # ストレージ保存は呼ばれない
         mock_storage.save_schedules.assert_not_called()
@@ -231,8 +207,4 @@ class TestScheduleEssayUseCaseRollback:
 
         # 元の例外（PermissionError）が発生する
         with pytest.raises(PermissionError):
-            usecase.add(
-                frequency="daily",
-                time_spec="12:00",
-                theme="double_fail"
-            )
+            usecase.add(frequency="daily", time_spec="12:00", theme="double_fail")

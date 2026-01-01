@@ -4,7 +4,8 @@ CLIアダプター
 
 コマンドラインインターフェースのパースとディスパッチを提供。
 """
-from .handlers import dispatch, HANDLERS
+
+from .handlers import HANDLERS, dispatch
 from .parser import create_parser
 
 __all__ = ["dispatch", "HANDLERS", "create_parser"]

@@ -7,17 +7,19 @@ Adapters層がこれらを実装する。
 
 型定義を厳格化し、Any型の使用を最小限に抑える。
 """
+
 from __future__ import annotations
 
 from typing import Protocol, TypedDict, runtime_checkable
-
 
 # =============================================================================
 # 型定義
 # =============================================================================
 
+
 class ScheduleEntry(TypedDict, total=False):
     """スケジュールエントリの型定義"""
+
     name: str
     frequency: str
     weekday: str
@@ -33,11 +35,13 @@ class ScheduleEntry(TypedDict, total=False):
 
 class TaskInfo(TypedDict):
     """タスク情報の型定義"""
+
     name: str
 
 
 class WaiterEntry(TypedDict):
     """待機プロセスエントリの型定義"""
+
     pid: int
     target_time: str
     theme: str
@@ -47,6 +51,7 @@ class WaiterEntry(TypedDict):
 # =============================================================================
 # ポートインターフェース
 # =============================================================================
+
 
 @runtime_checkable
 class MailPort(Protocol):
@@ -77,7 +82,7 @@ class SchedulerPort(Protocol):
         time: str,
         *,
         weekday: str = "",
-        day_spec: str = ""
+        day_spec: str = "",
     ) -> None:
         """スケジュールを追加する"""
         ...
@@ -186,7 +191,7 @@ class WaiterPort(Protocol):
         theme: str = "",
         context: str = "",
         file_list: str = "",
-        lang: str = ""
+        lang: str = "",
     ) -> int:
         """
         待機プロセスを起動する。

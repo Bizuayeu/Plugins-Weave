@@ -5,19 +5,20 @@
 main.pyの条件分岐ロジックをハンドラ関数に分離。
 保守性と拡張性を向上させる。
 """
+
 from __future__ import annotations
 
 from argparse import Namespace
 from typing import Callable
 
+from domain.config import Config
 from usecases.factories import (
+    create_wait_usecase,
     get_mail_adapter,
-    validate_environment,
     schedule_add,
     schedule_list,
     schedule_remove,
     wait_list,
-    create_wait_usecase,
 )
 
 # ハンドラ型: argsを受け取り、終了コードを返す
@@ -28,11 +29,13 @@ Handler = Callable[[Namespace], int]
 # メール系ハンドラ
 # =============================================================================
 
+
 def handle_test(args: Namespace) -> int:
     """テストメール送信"""
-    env_errors = validate_environment()
-    if env_errors:
-        for err in env_errors:
+    config = Config.load()
+    errors = config.validate()
+    if errors:
+        for err in errors:
             print(f"Error: {err}")
         return 1
 
@@ -43,9 +46,10 @@ def handle_test(args: Namespace) -> int:
 
 def handle_send(args: Namespace) -> int:
     """カスタムメール送信"""
-    env_errors = validate_environment()
-    if env_errors:
-        for err in env_errors:
+    config = Config.load()
+    errors = config.validate()
+    if errors:
+        for err in errors:
             print(f"Error: {err}")
         return 1
 
@@ -57,6 +61,7 @@ def handle_send(args: Namespace) -> int:
 # =============================================================================
 # 待機ハンドラ
 # =============================================================================
+
 
 def handle_wait(args: Namespace) -> int:
     """待機コマンド（list または spawn）"""
@@ -70,7 +75,7 @@ def handle_wait(args: Namespace) -> int:
         theme=args.theme,
         context=args.context,
         file_list=args.file_list,
-        lang=args.lang
+        lang=args.lang,
     )
     return 0
 
@@ -78,6 +83,7 @@ def handle_wait(args: Namespace) -> int:
 # =============================================================================
 # スケジュールサブハンドラ
 # =============================================================================
+
 
 def _handle_schedule_list(args: Namespace) -> int:
     """スケジュール一覧"""
@@ -102,7 +108,7 @@ def _handle_schedule_add(args: Namespace, frequency: str) -> int:
         file_list=args.file_list,
         lang=args.lang,
         name=args.name,
-        day_spec=getattr(args, 'day_spec', '')
+        day_spec=getattr(args, 'day_spec', ''),
     )
     return 0
 

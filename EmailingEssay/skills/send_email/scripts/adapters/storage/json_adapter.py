@@ -6,6 +6,7 @@ JSON ストレージアダプター
 バックアップ/復旧機能により、破損時のデータ回復を支援。
 待機プロセスのPIDトラッキング機能も提供。
 """
+
 from __future__ import annotations
 
 import json
@@ -14,8 +15,9 @@ import shutil
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
+from usecases.ports import ScheduleEntry, WaiterEntry
 
 PERSISTENT_DIR_NAME = ".emailingessay"
 
@@ -148,12 +150,15 @@ class JsonStorageAdapter:
             logger.warning(f"Backup also corrupted or inaccessible: {e}")
         return False
 
-    def load_schedules(self) -> list[dict[str, Any]]:
+    def load_schedules(self) -> list[ScheduleEntry]:
         """
         スケジュール一覧を読み込む。
 
         破損したJSONファイルの場合はバックアップからの復旧を試行。
         復旧に失敗した場合は空リストを返し、サービス継続性を確保する。
+
+        Returns:
+            スケジュールエントリのリスト（型安全）
         """
         schedules_file = Path(self.get_schedules_file())
         if not schedules_file.exists():
@@ -169,7 +174,7 @@ class JsonStorageAdapter:
                 # dictでない場合（配列など）
                 if not isinstance(data, dict):
                     return []
-                return data.get("schedules", [])
+                return cast(list[ScheduleEntry], data.get("schedules", []))
         except (json.JSONDecodeError, KeyError, TypeError) as e:
             # 破損したJSONの場合はバックアップからの復旧を試行
             logger.warning(f"Corrupted schedules.json: {e}")
@@ -179,7 +184,7 @@ class JsonStorageAdapter:
             logger.error("No valid backup available, returning empty list")
             return []
 
-    def save_schedules(self, schedules: list[dict[str, Any]], force_backup: bool = False) -> None:
+    def save_schedules(self, schedules: list[ScheduleEntry], force_backup: bool = False) -> None:
         """
         スケジュール一覧を保存する。
 
@@ -222,6 +227,7 @@ class JsonStorageAdapter:
             if sys.platform == "win32":
                 # Windows: os.kill(pid, 0) は動作しないため、ctypesを使用
                 import ctypes
+
                 kernel32 = ctypes.windll.kernel32
                 SYNCHRONIZE = 0x00100000
                 handle = kernel32.OpenProcess(SYNCHRONIZE, False, pid)
@@ -236,11 +242,24 @@ class JsonStorageAdapter:
         except (OSError, PermissionError):
             return False
 
+    def _cleanup_dead_processes(self) -> None:
+        """
+        死亡プロセスをキャッシュから削除する。
+
+        メモリリーク防止のため、定期的に呼び出す。
+        """
+        self._process_cache = {
+            pid: (alive, ts)
+            for pid, (alive, ts) in self._process_cache.items()
+            if self._is_process_alive(pid)
+        }
+
     def _is_process_alive_cached(self, pid: int) -> bool:
         """
         プロセス生存チェック（キャッシュ付き）。
 
         TTL（5秒）以内の結果はキャッシュから返す。
+        60秒ごとに死亡プロセスをクリーンアップする。
 
         Args:
             pid: プロセスID
@@ -250,20 +269,22 @@ class JsonStorageAdapter:
         """
         now = time.time()
 
-        # キャッシュ確認
+        # キャッシュ確認（クリーンアップ前に行う）
         if pid in self._process_cache:
             is_alive, timestamp = self._process_cache[pid]
             if now - timestamp < PROCESS_CACHE_TTL:
                 return is_alive
 
+        # 60秒ごとにクリーンアップ（初回は現在時刻で初期化）
+        if not hasattr(self, '_last_cleanup'):
+            self._last_cleanup = now
+        elif now - self._last_cleanup > 60.0:
+            self._cleanup_dead_processes()
+            self._last_cleanup = now
+
         # キャッシュミス: 実際にチェック
         is_alive = self._is_process_alive(pid)
         self._process_cache[pid] = (is_alive, now)
-
-        # 死亡プロセスはキャッシュから削除（メモリリーク防止）
-        if not is_alive:
-            # 削除は次回の呼び出しで行う（今回は結果を返す）
-            pass
 
         return is_alive
 
@@ -296,7 +317,7 @@ class JsonStorageAdapter:
             "pid": pid,
             "target_time": target_time,
             "theme": theme,
-            "registered_at": datetime.now().isoformat()
+            "registered_at": datetime.now().isoformat(),
         }
         waiters.append(entry)
 
@@ -306,14 +327,14 @@ class JsonStorageAdapter:
 
         logger.debug(f"Registered waiter: PID={pid}, target={target_time}")
 
-    def get_active_waiters(self) -> list[dict[str, Any]]:
+    def get_active_waiters(self) -> list[WaiterEntry]:
         """
         アクティブな待機プロセス一覧を取得する。
 
         死亡したプロセスは自動的に除外され、ファイルも更新される。
 
         Returns:
-            アクティブな待機プロセスのリスト
+            アクティブな待機プロセスのリスト（型安全）
         """
         waiters_file = Path(self.get_active_waiters_file())
 
@@ -335,10 +356,7 @@ class JsonStorageAdapter:
             return []
 
         # 生存プロセスのみフィルタ（キャッシュ付き）
-        active_waiters = [
-            w for w in waiters
-            if self._is_process_alive_cached(w.get("pid", 0))
-        ]
+        active_waiters = [w for w in waiters if self._is_process_alive_cached(w.get("pid", 0))]
 
         # 死亡プロセスがあった場合はファイルを更新
         if len(active_waiters) != len(waiters):
@@ -347,4 +365,4 @@ class JsonStorageAdapter:
             with open(waiters_file, "w", encoding="utf-8") as f:
                 json.dump({"waiters": active_waiters}, f, indent=2, ensure_ascii=False)
 
-        return active_waiters
+        return cast(list[WaiterEntry], active_waiters)

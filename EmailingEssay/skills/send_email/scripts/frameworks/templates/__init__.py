@@ -5,6 +5,7 @@
 簡易テンプレートエンジンを提供する。
 インメモリキャッシュにより、ディスクI/Oを削減。
 """
+
 from __future__ import annotations
 
 import re
@@ -73,6 +74,7 @@ def render_template(template: str, **kwargs: Any) -> str:
     Returns:
         レンダリングされた文字列
     """
+
     # 正規表現で全プレースホルダーを特定し、一度に置換
     def replacer(match: re.Match) -> str:
         key = match.group(1)

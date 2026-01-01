@@ -4,16 +4,18 @@ main.py のテスト
 
 例外処理とエントリーポイントのテスト。
 """
-import pytest
-import sys
+
 import os
-from unittest.mock import patch, Mock
+import sys
+from unittest.mock import Mock, patch
+
+import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from domain.exceptions import EmailingEssayError, MailError, SchedulerError, ValidationError
 from main import main
-from domain.exceptions import MailError, SchedulerError, ValidationError, EmailingEssayError
 
 
 class TestMainExceptionHandling:

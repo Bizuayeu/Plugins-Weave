@@ -5,6 +5,7 @@
 デタッチドプロセスの起動を担当する。
 ProcessSpawnerPort を実装。
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -44,7 +45,7 @@ class ProcessSpawner:
             creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
             close_fds=True,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL,
         )
         return proc.pid
 
@@ -55,6 +56,6 @@ class ProcessSpawner:
             start_new_session=True,
             close_fds=True,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL,
         )
         return proc.pid
