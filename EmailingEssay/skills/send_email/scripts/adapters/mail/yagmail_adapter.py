@@ -20,7 +20,7 @@ from domain.exceptions import MailError
 logger = logging.getLogger('emailingessay.mail')
 
 # 後方互換性のため再エクスポート
-__all__ = ["YagmailAdapter", "MailError"]
+__all__ = ["MailError", "YagmailAdapter"]
 
 # HTMLテンプレート名
 EMAIL_TEMPLATE_NAME = "email_base.html.template"

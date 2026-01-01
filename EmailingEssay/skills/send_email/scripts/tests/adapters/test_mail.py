@@ -86,16 +86,17 @@ class TestYagmailAdapter:
     def test_missing_sender_raises_error(self):
         """送信者未設定でエラー"""
         Config.reset()  # シングルトンリセット
-        with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(MailError):
-                YagmailAdapter()
+        with patch.dict(os.environ, {}, clear=True), pytest.raises(MailError):
+            YagmailAdapter()
 
     def test_missing_password_raises_error(self):
         """パスワード未設定でエラー"""
         Config.reset()  # シングルトンリセット
-        with patch.dict(os.environ, {"ESSAY_SENDER_EMAIL": "sender@example.com"}, clear=True):
-            with pytest.raises(MailError):
-                YagmailAdapter()
+        with (
+            patch.dict(os.environ, {"ESSAY_SENDER_EMAIL": "sender@example.com"}, clear=True),
+            pytest.raises(MailError),
+        ):
+            YagmailAdapter()
 
     def test_missing_recipient_raises_error(self):
         """受信者未設定でエラー"""
@@ -104,9 +105,8 @@ class TestYagmailAdapter:
             os.environ,
             {"ESSAY_SENDER_EMAIL": "sender@example.com", "ESSAY_APP_PASSWORD": "password"},
             clear=True,
-        ):
-            with pytest.raises(MailError):
-                YagmailAdapter()
+        ), pytest.raises(MailError):
+            YagmailAdapter()
 
     @patch('adapters.mail.yagmail_adapter.yagmail')
     def test_smtp_connection_uses_context_manager(self, mock_yagmail, adapter):

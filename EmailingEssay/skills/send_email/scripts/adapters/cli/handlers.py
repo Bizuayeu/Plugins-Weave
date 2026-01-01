@@ -9,16 +9,13 @@ main.pyの条件分岐ロジックをハンドラ関数に分離。
 from __future__ import annotations
 
 from argparse import Namespace
-from typing import Callable
+from collections.abc import Callable
 
 from domain.config import Config
 from usecases.factories import (
+    create_schedule_usecase,
     create_wait_usecase,
     get_mail_adapter,
-    schedule_add,
-    schedule_list,
-    schedule_remove,
-    wait_list,
 )
 
 # ハンドラ型: argsを受け取り、終了コードを返す
@@ -65,11 +62,27 @@ def handle_send(args: Namespace) -> int:
 
 def handle_wait(args: Namespace) -> int:
     """待機コマンド（list または spawn）"""
+    waiter = create_wait_usecase()
+
     if args.time == "list":
-        wait_list()
+        waiters = waiter.list_waiters()
+        if not waiters:
+            print("No active waiting processes.")
+            return 0
+        print(f"Active waiting processes: {len(waiters)}")
+        print("-" * 60)
+        for w in waiters:
+            pid = w.get("pid", "?")
+            target = w.get("target_time", "?")
+            theme = w.get("theme", "") or "(no theme)"
+            registered = w.get("registered_at", "?")
+            print(f"  PID: {pid}")
+            print(f"    Target: {target}")
+            print(f"    Theme:  {theme}")
+            print(f"    Registered: {registered}")
+            print()
         return 0
 
-    waiter = create_wait_usecase()
     waiter.spawn(
         target_time=args.time,
         theme=args.theme,
@@ -87,19 +100,22 @@ def handle_wait(args: Namespace) -> int:
 
 def _handle_schedule_list(args: Namespace) -> int:
     """スケジュール一覧"""
-    schedule_list()
+    usecase = create_schedule_usecase()
+    usecase.list()
     return 0
 
 
 def _handle_schedule_remove(args: Namespace) -> int:
     """スケジュール削除"""
-    schedule_remove(args.name)
+    usecase = create_schedule_usecase()
+    usecase.remove(args.name)
     return 0
 
 
 def _handle_schedule_add(args: Namespace, frequency: str) -> int:
     """ジェネリックスケジュール追加ハンドラ"""
-    schedule_add(
+    usecase = create_schedule_usecase()
+    usecase.add(
         frequency=frequency,
         time_spec=args.time,
         weekday=getattr(args, 'weekday', ''),
@@ -165,4 +181,4 @@ def dispatch(args: Namespace) -> int:
     return handler(args)
 
 
-__all__ = ["dispatch", "HANDLERS"]
+__all__ = ["HANDLERS", "dispatch"]

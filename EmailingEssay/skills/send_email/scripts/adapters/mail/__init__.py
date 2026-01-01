@@ -7,4 +7,4 @@
 
 from .yagmail_adapter import MailError, YagmailAdapter
 
-__all__ = ["YagmailAdapter", "MailError"]
+__all__ = ["MailError", "YagmailAdapter"]

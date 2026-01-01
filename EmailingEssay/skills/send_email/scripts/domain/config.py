@@ -37,10 +37,10 @@ class Config:
     log_level: str = "INFO"
 
     # シングルトンインスタンス
-    _instance: ClassVar["Config | None"] = None
+    _instance: ClassVar[Config | None] = None
 
     @classmethod
-    def load(cls, env_file: Path | None = None) -> "Config":
+    def load(cls, env_file: Path | None = None) -> Config:
         """
         設定を読み込む。
 

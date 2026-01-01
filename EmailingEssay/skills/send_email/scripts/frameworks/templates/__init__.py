@@ -45,7 +45,7 @@ def load_template(name: str, use_cache: bool = True) -> str:
     if not template_path.exists():
         raise TemplateError(f"Template not found: {name}")
 
-    with open(template_path, "r", encoding="utf-8") as f:
+    with open(template_path, encoding="utf-8") as f:
         content = f.read()
 
     # キャッシュに保存
@@ -76,13 +76,14 @@ def render_template(template: str, **kwargs: Any) -> str:
     """
 
     # 正規表現で全プレースホルダーを特定し、一度に置換
-    def replacer(match: re.Match) -> str:
+    def replacer(match: re.Match[str]) -> str:
         key = match.group(1)
         if key in kwargs:
             return str(kwargs[key])
-        return match.group(0)  # マッチしない場合は元のプレースホルダーを保持
+        # group(0) は常にマッチした全体を返すので None にならない
+        return str(match.group(0))
 
     return re.sub(r'\{\{(\w+)\}\}', replacer, template)
 
 
-__all__ = ["load_template", "render_template", "clear_template_cache", "TemplateError"]
+__all__ = ["TemplateError", "clear_template_cache", "load_template", "render_template"]

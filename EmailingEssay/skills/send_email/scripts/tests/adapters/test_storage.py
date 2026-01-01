@@ -68,7 +68,7 @@ class TestJsonStorageAdapter:
         adapter.save_schedules(schedules)
 
         file_path = os.path.join(temp_dir, "schedules.json")
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
         assert "schedules" in data
         assert data["schedules"][0]["theme"] == "日本語テーマ"
@@ -172,7 +172,7 @@ class TestJsonStorageAdapterWaiterTracking:
         file_path = os.path.join(temp_dir, "active_waiters.json")
         assert os.path.exists(file_path)
 
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
         assert "waiters" in data
         assert len(data["waiters"]) == 1
@@ -186,7 +186,7 @@ class TestJsonStorageAdapterWaiterTracking:
         adapter.register_waiter(pid=200, target_time="10:00", theme="theme2")
 
         file_path = os.path.join(temp_dir, "active_waiters.json")
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
 
         assert len(data["waiters"]) == 2

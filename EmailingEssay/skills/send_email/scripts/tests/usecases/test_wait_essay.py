@@ -74,11 +74,19 @@ class TestWaitEssayUseCase:
     """WaitEssayUseCase のテスト"""
 
     @pytest.fixture
-    def mock_storage(self, tmp_path):
-        """モックストレージを作成"""
+    def mock_waiter_storage(self):
+        """WaiterStoragePort用モック"""
         storage = Mock()
-        storage.get_persistent_dir.return_value = str(tmp_path)
+        storage.register_waiter.return_value = None
+        storage.get_active_waiters.return_value = []
         return storage
+
+    @pytest.fixture
+    def mock_path_resolver(self, tmp_path):
+        """PathResolverPort用モック"""
+        resolver = Mock()
+        resolver.get_persistent_dir.return_value = str(tmp_path)
+        return resolver
 
     @pytest.fixture
     def mock_spawner(self):
@@ -88,9 +96,13 @@ class TestWaitEssayUseCase:
         return spawner
 
     @pytest.fixture
-    def usecase(self, mock_storage, mock_spawner):
+    def usecase(self, mock_waiter_storage, mock_path_resolver, mock_spawner):
         """DI済みユースケースを作成"""
-        return WaitEssayUseCase(storage_port=mock_storage, spawner_port=mock_spawner)
+        return WaitEssayUseCase(
+            waiter_storage=mock_waiter_storage,
+            path_resolver=mock_path_resolver,
+            spawner_port=mock_spawner,
+        )
 
     def test_spawn_creates_script_file(self, usecase, tmp_path):
         """spawn() がスクリプトファイルを作成"""
@@ -133,33 +145,122 @@ class TestWaitEssayUseCase:
 
         assert pid == 12345
 
-    def test_spawn_uses_injected_storage(self, mock_storage, mock_spawner):
-        """spawn() がDIされたストレージを使用する"""
-        usecase = WaitEssayUseCase(storage_port=mock_storage, spawner_port=mock_spawner)
+    def test_spawn_uses_injected_path_resolver(self, mock_waiter_storage, mock_path_resolver, mock_spawner):
+        """spawn() がDIされたPathResolverを使用する"""
+        usecase = WaitEssayUseCase(
+            waiter_storage=mock_waiter_storage,
+            path_resolver=mock_path_resolver,
+            spawner_port=mock_spawner,
+        )
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(target_time=future_time)
 
-        mock_storage.get_persistent_dir.assert_called()
+        mock_path_resolver.get_persistent_dir.assert_called()
 
 
 class TestWaitEssayUseCaseDI:
     """DI必須化のテスト"""
 
-    def test_usecase_requires_storage_port(self):
-        """storage_portは必須"""
+    def test_usecase_requires_waiter_storage(self):
+        """waiter_storageは必須"""
         with pytest.raises(TypeError):
-            WaitEssayUseCase(spawner_port=Mock())
+            WaitEssayUseCase(path_resolver=Mock(), spawner_port=Mock())
+
+    def test_usecase_requires_path_resolver(self):
+        """path_resolverは必須"""
+        with pytest.raises(TypeError):
+            WaitEssayUseCase(waiter_storage=Mock(), spawner_port=Mock())
 
     def test_usecase_requires_spawner_port(self):
         """spawner_portは必須"""
         with pytest.raises(TypeError):
-            WaitEssayUseCase(storage_port=Mock())
+            WaitEssayUseCase(waiter_storage=Mock(), path_resolver=Mock())
 
-    def test_usecase_works_with_both_ports(self):
-        """両方指定で正常動作"""
-        usecase = WaitEssayUseCase(storage_port=Mock(), spawner_port=Mock())
+    def test_usecase_works_with_all_ports(self):
+        """全て指定で正常動作"""
+        usecase = WaitEssayUseCase(
+            waiter_storage=Mock(),
+            path_resolver=Mock(),
+            spawner_port=Mock(),
+        )
         assert usecase is not None
+
+
+class TestWaitEssayUseCaseSeparatedPorts:
+    """分離Port使用のテスト（Phase C: StoragePort除去）"""
+
+    @pytest.fixture
+    def mock_waiter_storage(self):
+        """WaiterStoragePort用モック"""
+        storage = Mock()
+        storage.register_waiter.return_value = None
+        storage.get_active_waiters.return_value = []
+        return storage
+
+    @pytest.fixture
+    def mock_path_resolver(self, tmp_path):
+        """PathResolverPort用モック"""
+        resolver = Mock()
+        resolver.get_persistent_dir.return_value = str(tmp_path)
+        resolver.get_runners_dir.return_value = str(tmp_path / "runners")
+        return resolver
+
+    @pytest.fixture
+    def mock_spawner(self):
+        """ProcessSpawnerPort用モック"""
+        spawner = Mock()
+        spawner.spawn_detached.return_value = 12345
+        return spawner
+
+    def test_constructor_accepts_separated_ports(
+        self, mock_waiter_storage, mock_path_resolver, mock_spawner
+    ):
+        """コンストラクタが分離されたポートを受け取る"""
+        usecase = WaitEssayUseCase(
+            waiter_storage=mock_waiter_storage,
+            path_resolver=mock_path_resolver,
+            spawner_port=mock_spawner,
+        )
+        assert usecase is not None
+
+    def test_spawn_uses_path_resolver(
+        self, mock_waiter_storage, mock_path_resolver, mock_spawner
+    ):
+        """spawn()がPathResolverPortを使用する"""
+        usecase = WaitEssayUseCase(
+            waiter_storage=mock_waiter_storage,
+            path_resolver=mock_path_resolver,
+            spawner_port=mock_spawner,
+        )
+        future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
+        usecase.spawn(target_time=future_time)
+        mock_path_resolver.get_persistent_dir.assert_called()
+
+    def test_spawn_uses_waiter_storage(
+        self, mock_waiter_storage, mock_path_resolver, mock_spawner
+    ):
+        """spawn()がWaiterStoragePortを使用する"""
+        usecase = WaitEssayUseCase(
+            waiter_storage=mock_waiter_storage,
+            path_resolver=mock_path_resolver,
+            spawner_port=mock_spawner,
+        )
+        future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
+        usecase.spawn(target_time=future_time, theme="test")
+        mock_waiter_storage.register_waiter.assert_called_once()
+
+    def test_list_waiters_uses_waiter_storage(
+        self, mock_waiter_storage, mock_path_resolver, mock_spawner
+    ):
+        """list_waiters()がWaiterStoragePortを使用する"""
+        usecase = WaitEssayUseCase(
+            waiter_storage=mock_waiter_storage,
+            path_resolver=mock_path_resolver,
+            spawner_port=mock_spawner,
+        )
+        usecase.list_waiters()
+        mock_waiter_storage.get_active_waiters.assert_called_once()
 
 
 class TestGetPersistentDir:

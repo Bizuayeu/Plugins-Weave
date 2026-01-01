@@ -17,7 +17,7 @@ from domain.exceptions import WaiterError
 from .command_builder import build_claude_args
 
 if TYPE_CHECKING:
-    from .ports import ProcessSpawnerPort, StoragePort
+    from .ports import PathResolverPort, ProcessSpawnerPort, WaiterEntry, WaiterStoragePort
 
 # 後方互換性のため再エクスポート
 __all__ = [
@@ -72,21 +72,28 @@ def parse_target_time(time_str: str) -> datetime:
     try:
         return TargetTime.parse(time_str).datetime
     except ValidationError as e:
-        raise ValueError(str(e))
+        raise ValueError(str(e)) from e
 
 
 class WaitEssayUseCase:
     """エッセイ待機処理のユースケース"""
 
-    def __init__(self, storage_port: "StoragePort", spawner_port: "ProcessSpawnerPort") -> None:
+    def __init__(
+        self,
+        waiter_storage: WaiterStoragePort,
+        path_resolver: PathResolverPort,
+        spawner_port: ProcessSpawnerPort,
+    ) -> None:
         """
         WaitEssayUseCaseを初期化する。
 
         Args:
-            storage_port: ストレージポート（必須）
+            waiter_storage: 待機プロセスストレージポート（必須）
+            path_resolver: パス解決ポート（必須）
             spawner_port: プロセススポーナーポート（必須）
         """
-        self._storage = storage_port
+        self._waiter_storage = waiter_storage
+        self._path_resolver = path_resolver
         self._spawner = spawner_port
 
     def spawn(
@@ -116,8 +123,8 @@ class WaitEssayUseCase:
         # Claudeコマンドの引数を構築（統一ユーティリティ使用）
         claude_args = build_claude_args(theme, context, file_list, lang)
 
-        # 永続ディレクトリを取得（DIされたストレージを使用）
-        persistent_dir = Path(self._storage.get_persistent_dir())
+        # 永続ディレクトリを取得（DIされたPathResolverを使用）
+        persistent_dir = Path(self._path_resolver.get_persistent_dir())
         log_file = str(persistent_dir / "essay_wait.log").replace("\\", "/")
 
         # 待機スクリプトを生成
@@ -132,7 +139,7 @@ class WaitEssayUseCase:
         pid = self._spawner.spawn_detached(script_file)
 
         # 待機プロセスを登録（PIDトラッキング）
-        self._storage.register_waiter(pid, target_time, theme)
+        self._waiter_storage.register_waiter(pid, target_time, theme)
 
         # 情報を表示
         target = parse_target_time(target_time)
@@ -159,11 +166,11 @@ class WaitEssayUseCase:
             template, log_file=log_file, target_time=target_time, claude_args=claude_args_str
         )
 
-    def list_waiters(self) -> list[dict]:
+    def list_waiters(self) -> list[WaiterEntry]:
         """
         アクティブな待機プロセス一覧を取得する。
 
         Returns:
             待機プロセスのリスト
         """
-        return self._storage.get_active_waiters()
+        return self._waiter_storage.get_active_waiters()

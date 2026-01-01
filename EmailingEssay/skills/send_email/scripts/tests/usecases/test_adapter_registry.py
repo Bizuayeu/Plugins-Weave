@@ -69,15 +69,35 @@ class TestAdapterRegistry:
 
         assert adapter1 is adapter2
 
-    def test_get_storage_uses_registry(self):
-        """get_storageがレジストリを使用"""
-        from usecases.factories import AdapterRegistry, get_storage
+    def test_get_schedule_storage_uses_registry(self):
+        """get_schedule_storageがレジストリを使用"""
+        from usecases.factories import AdapterRegistry, get_schedule_storage
 
         AdapterRegistry.clear()
-        storage1 = get_storage()
-        storage2 = get_storage()
+        storage1 = get_schedule_storage()
+        storage2 = get_schedule_storage()
 
         assert storage1 is storage2
+
+    def test_get_waiter_storage_uses_registry(self):
+        """get_waiter_storageがレジストリを使用"""
+        from usecases.factories import AdapterRegistry, get_waiter_storage
+
+        AdapterRegistry.clear()
+        storage1 = get_waiter_storage()
+        storage2 = get_waiter_storage()
+
+        assert storage1 is storage2
+
+    def test_get_path_resolver_uses_registry(self):
+        """get_path_resolverがレジストリを使用"""
+        from usecases.factories import AdapterRegistry, get_path_resolver
+
+        AdapterRegistry.clear()
+        resolver1 = get_path_resolver()
+        resolver2 = get_path_resolver()
+
+        assert resolver1 is resolver2
 
     def test_get_scheduler_uses_registry(self):
         """get_schedulerがレジストリを使用"""

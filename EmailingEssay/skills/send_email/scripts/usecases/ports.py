@@ -136,35 +136,6 @@ class PathResolverPort(Protocol):
 
 
 @runtime_checkable
-class StoragePort(Protocol):
-    """スケジュールストレージの抽象インターフェース（後方互換性のため維持）"""
-
-    def load_schedules(self) -> list[ScheduleEntry]:
-        """スケジュール一覧を読み込む"""
-        ...
-
-    def save_schedules(self, schedules: list[ScheduleEntry]) -> None:
-        """スケジュール一覧を保存する"""
-        ...
-
-    def get_persistent_dir(self) -> str:
-        """永続化ディレクトリのパスを取得する"""
-        ...
-
-    def get_runners_dir(self) -> str:
-        """ランナースクリプト用ディレクトリのパスを取得する"""
-        ...
-
-    def register_waiter(self, pid: int, target_time: str, theme: str) -> None:
-        """待機プロセスを登録する"""
-        ...
-
-    def get_active_waiters(self) -> list[WaiterEntry]:
-        """アクティブな待機プロセス一覧を取得する（死亡プロセスは除外）"""
-        ...
-
-
-@runtime_checkable
 class ProcessSpawnerPort(Protocol):
     """プロセス起動の抽象インターフェース（WaitEssayUseCase用）"""
 
@@ -209,17 +180,16 @@ class WaiterPort(Protocol):
         ...
 
 
-# 後方互換性のため全てエクスポート
+# 全てエクスポート
 __all__ = [
+    "MailPort",
+    "PathResolverPort",
+    "ProcessSpawnerPort",
     "ScheduleEntry",
+    "ScheduleStoragePort",
+    "SchedulerPort",
     "TaskInfo",
     "WaiterEntry",
-    "MailPort",
-    "SchedulerPort",
-    "ScheduleStoragePort",
-    "WaiterStoragePort",
-    "PathResolverPort",
-    "StoragePort",
-    "ProcessSpawnerPort",
     "WaiterPort",
+    "WaiterStoragePort",
 ]

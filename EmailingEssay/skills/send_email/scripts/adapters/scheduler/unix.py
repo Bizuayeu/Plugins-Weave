@@ -92,7 +92,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         tasks = []
         lines = current.split("\n")
 
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             if "Essay_" in line and line.strip().startswith("#"):
                 task_name = line.strip().lstrip("# ")
                 tasks.append({"name": task_name})

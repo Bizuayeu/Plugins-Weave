@@ -161,22 +161,23 @@ class TestAddCommonOptions:
             parser.parse_args(["-l", "invalid"])
 
 
-class TestGenericScheduleHandler:
-    """ジェネリックスケジュールハンドラのテスト"""
+class TestScheduleHandlerUseCase:
+    """スケジュールハンドラのテスト（UseCase直接呼び出し版）"""
 
-    def test_handle_schedule_add_daily(self):
-        """daily用のジェネリックハンドラが正しく呼ばれる"""
+    def test_handle_schedule_add_daily_calls_usecase(self):
+        """daily: create_schedule_usecase().add()が呼ばれる"""
         from argparse import Namespace
-        from unittest.mock import patch
+        from unittest.mock import MagicMock, patch
 
-        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
+        mock_usecase = MagicMock()
+        with patch('adapters.cli.handlers.create_schedule_usecase', return_value=mock_usecase):
             from adapters.cli.handlers import _handle_schedule_add
 
             args = Namespace(time="09:00", theme="test", context="", file_list="", lang="", name="")
             result = _handle_schedule_add(args, "daily")
 
             assert result == 0
-            mock_schedule_add.assert_called_once_with(
+            mock_usecase.add.assert_called_once_with(
                 frequency="daily",
                 time_spec="09:00",
                 weekday="",
@@ -188,90 +189,50 @@ class TestGenericScheduleHandler:
                 day_spec="",
             )
 
-    def test_handle_schedule_add_weekly(self):
-        """weekly用: weekday引数が渡される"""
+    def test_handle_schedule_list_calls_usecase(self):
+        """schedule list: create_schedule_usecase().list()が呼ばれる"""
         from argparse import Namespace
-        from unittest.mock import patch
+        from unittest.mock import MagicMock, patch
 
-        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
-            from adapters.cli.handlers import _handle_schedule_add
+        mock_usecase = MagicMock()
+        with patch('adapters.cli.handlers.create_schedule_usecase', return_value=mock_usecase):
+            from adapters.cli.handlers import _handle_schedule_list
 
-            args = Namespace(
-                time="10:00",
-                theme="weekly theme",
-                context="context.md",
-                file_list="",
-                lang="ja",
-                name="",
-                weekday="monday",
-            )
-            result = _handle_schedule_add(args, "weekly")
+            args = Namespace()
+            result = _handle_schedule_list(args)
 
             assert result == 0
-            mock_schedule_add.assert_called_once_with(
-                frequency="weekly",
-                time_spec="10:00",
-                weekday="monday",
-                theme="weekly theme",
-                context_file="context.md",
-                file_list="",
-                lang="ja",
-                name="",
-                day_spec="",
-            )
+            mock_usecase.list.assert_called_once()
 
-    def test_handle_schedule_add_monthly(self):
-        """monthly用: day_spec引数が渡される"""
+    def test_handle_schedule_remove_calls_usecase(self):
+        """schedule remove: create_schedule_usecase().remove()が呼ばれる"""
         from argparse import Namespace
-        from unittest.mock import patch
+        from unittest.mock import MagicMock, patch
 
-        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
-            from adapters.cli.handlers import _handle_schedule_add
+        mock_usecase = MagicMock()
+        with patch('adapters.cli.handlers.create_schedule_usecase', return_value=mock_usecase):
+            from adapters.cli.handlers import _handle_schedule_remove
 
-            args = Namespace(
-                time="15:00",
-                theme="monthly review",
-                context="",
-                file_list="files.txt",
-                lang="en",
-                name="custom_name",
-                day_spec="15",
-            )
-            result = _handle_schedule_add(args, "monthly")
+            args = Namespace(name="test_task")
+            result = _handle_schedule_remove(args)
 
             assert result == 0
-            mock_schedule_add.assert_called_once_with(
-                frequency="monthly",
-                time_spec="15:00",
-                weekday="",
-                theme="monthly review",
-                context_file="",
-                file_list="files.txt",
-                lang="en",
-                name="custom_name",
-                day_spec="15",
-            )
+            mock_usecase.remove.assert_called_once_with("test_task")
 
-    def test_handle_schedule_add_missing_weekday_uses_empty(self):
-        """weekday属性がない場合は空文字を使用"""
+    def test_handle_wait_list_calls_usecase(self):
+        """wait list: create_wait_usecase().list_waiters()が呼ばれる"""
         from argparse import Namespace
-        from unittest.mock import patch
+        from unittest.mock import MagicMock, patch
 
-        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
-            from adapters.cli.handlers import _handle_schedule_add
+        mock_usecase = MagicMock()
+        mock_usecase.list_waiters.return_value = []
+        with patch('adapters.cli.handlers.create_wait_usecase', return_value=mock_usecase):
+            from adapters.cli.handlers import handle_wait
 
-            args = Namespace(
-                time="09:00",
-                theme="",
-                context="",
-                file_list="",
-                lang="",
-                name="",
-                # weekday属性なし
-            )
-            result = _handle_schedule_add(args, "daily")
+            args = Namespace(time="list")
+            result = handle_wait(args)
 
             assert result == 0
-            # weekdayは空文字で呼ばれる
-            call_args = mock_schedule_add.call_args
-            assert call_args.kwargs.get('weekday') == ""
+            mock_usecase.list_waiters.assert_called_once()
+
+

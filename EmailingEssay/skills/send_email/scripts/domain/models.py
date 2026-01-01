@@ -58,7 +58,7 @@ class MonthlyPattern:
     # VALID_WEEKDAYS = VALID_WEEKDAYS  # constants からインポート済み
 
     @classmethod
-    def parse(cls, day_spec: str) -> "MonthlyPattern":
+    def parse(cls, day_spec: str) -> MonthlyPattern:
         """
         day_spec文字列をパースしてMonthlyPatternを返す。
 
@@ -162,7 +162,7 @@ class EssaySchedule:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "EssaySchedule":
+    def from_dict(cls, d: dict[str, Any]) -> EssaySchedule:
         """
         辞書からインスタンスを作成する。
 
@@ -191,11 +191,11 @@ class EssaySchedule:
 
 # DomainError, ValidationError はファイル先頭でインポート済み
 __all__ = [
-    "MonthlyType",
-    "MonthlyPattern",
-    "EssaySchedule",
-    "TargetTime",
     "DomainError",
+    "EssaySchedule",
+    "MonthlyPattern",
+    "MonthlyType",
+    "TargetTime",
     "ValidationError",  # 後方互換性のため再エクスポート
 ]
 
@@ -213,7 +213,7 @@ class TargetTime:
     original_format: str  # "HH:MM" or "YYYY-MM-DD HH:MM"
 
     @classmethod
-    def parse(cls, time_str: str) -> "TargetTime":
+    def parse(cls, time_str: str) -> TargetTime:
         """
         時刻文字列をパースしてTargetTimeを返す。
 
@@ -247,8 +247,8 @@ class TargetTime:
             if target < datetime.now():
                 target += timedelta(days=1)
             return cls(datetime=target, original_format="HH:MM")
-        except ValueError:
-            raise ValidationError(f"Invalid time format: {time_str}")
+        except ValueError as e:
+            raise ValidationError(f"Invalid time format: {time_str}") from e
 
     def generate_parsing_code(self) -> str:
         """

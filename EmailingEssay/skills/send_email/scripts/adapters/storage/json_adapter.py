@@ -137,7 +137,7 @@ class JsonStorageAdapter:
             return False
 
         try:
-            with open(backup, 'r', encoding='utf-8') as f:
+            with open(backup, encoding='utf-8') as f:
                 content = f.read()
                 if not content.strip():
                     return False
@@ -165,7 +165,7 @@ class JsonStorageAdapter:
             return []
 
         try:
-            with open(schedules_file, "r", encoding="utf-8") as f:
+            with open(schedules_file, encoding="utf-8") as f:
                 content = f.read()
                 # 空または空白のみのファイル
                 if not content.strip():
@@ -303,7 +303,7 @@ class JsonStorageAdapter:
         waiters: list[dict[str, Any]] = []
         if waiters_file.exists():
             try:
-                with open(waiters_file, "r", encoding="utf-8") as f:
+                with open(waiters_file, encoding="utf-8") as f:
                     content = f.read()
                     if content.strip():
                         data = json.loads(content)
@@ -343,7 +343,7 @@ class JsonStorageAdapter:
 
         # 既存データを読み込み
         try:
-            with open(waiters_file, "r", encoding="utf-8") as f:
+            with open(waiters_file, encoding="utf-8") as f:
                 content = f.read()
                 if not content.strip():
                     return []

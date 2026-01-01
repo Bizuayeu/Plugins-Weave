@@ -65,6 +65,7 @@ def configure_logging(
     if json_format is None:
         json_format = os.environ.get("ESSAY_LOG_JSON", "").lower() == "true"
 
+    formatter: logging.Formatter
     if json_format:
         formatter = JsonFormatter()
     else:

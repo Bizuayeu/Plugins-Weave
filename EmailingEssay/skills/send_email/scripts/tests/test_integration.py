@@ -213,7 +213,8 @@ class TestE2EScenarios:
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        usecase = ScheduleEssayUseCase(scheduler, storage)
+        # 分離Port対応: storageはScheduleStoragePortとPathResolverPort両方を実装
+        usecase = ScheduleEssayUseCase(scheduler, storage, storage)
 
         # Step 1: Add
         usecase.add(frequency="daily", time_spec="09:00", theme="e2e_test")
@@ -283,19 +284,19 @@ class TestE2EScenarios:
         """ロールバックのE2Eシナリオ"""
         from unittest.mock import Mock
 
-        from adapters.storage.json_adapter import JsonStorageAdapter
         from usecases.schedule_essay import ScheduleEssayUseCase
 
-        storage = JsonStorageAdapter(base_dir=str(tmp_path))
         scheduler = Mock()
 
         # ストレージ保存で失敗するように設定
-        storage_with_error = Mock(wraps=storage)
-        storage_with_error.save_schedules.side_effect = PermissionError("Disk full")
-        storage_with_error.load_schedules.return_value = []
-        storage_with_error.get_runners_dir.return_value = str(tmp_path / "runners")
+        schedule_storage_with_error = Mock()
+        schedule_storage_with_error.save_schedules.side_effect = PermissionError("Disk full")
+        schedule_storage_with_error.load_schedules.return_value = []
 
-        usecase = ScheduleEssayUseCase(scheduler, storage_with_error)
+        path_resolver = Mock()
+        path_resolver.get_runners_dir.return_value = str(tmp_path / "runners")
+
+        usecase = ScheduleEssayUseCase(scheduler, schedule_storage_with_error, path_resolver)
 
         # 例外が発生し、スケジューラがロールバックされる
         with pytest.raises(PermissionError):
@@ -316,7 +317,8 @@ class TestE2EScenarios:
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        usecase = ScheduleEssayUseCase(scheduler, storage)
+        # 分離Port対応: storageはScheduleStoragePortとPathResolverPort両方を実装
+        usecase = ScheduleEssayUseCase(scheduler, storage, storage)
 
         # Step 1: 3つのスケジュールを追加
         usecase.add(frequency="daily", time_spec="09:00", theme="schedule_1")
@@ -352,7 +354,8 @@ class TestE2EScenarios:
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        usecase = ScheduleEssayUseCase(scheduler, storage)
+        # 分離Port対応: storageはScheduleStoragePortとPathResolverPort両方を実装
+        usecase = ScheduleEssayUseCase(scheduler, storage, storage)
 
         # Step 1: スケジュールを追加
         usecase.add(

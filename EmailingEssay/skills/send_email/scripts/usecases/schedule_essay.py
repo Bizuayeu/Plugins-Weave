@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -19,7 +20,7 @@ from frameworks.logging_config import get_logger
 from .command_builder import build_claude_command
 
 if TYPE_CHECKING:
-    from .ports import SchedulerPort, StoragePort
+    from .ports import PathResolverPort, ScheduleEntry, SchedulerPort, ScheduleStoragePort
 
 logger = get_logger("schedule")
 
@@ -27,14 +28,21 @@ logger = get_logger("schedule")
 class ScheduleEssayUseCase:
     """スケジュール管理ユースケース"""
 
-    def __init__(self, scheduler_port: "SchedulerPort", storage_port: "StoragePort") -> None:
+    def __init__(
+        self,
+        scheduler_port: SchedulerPort,
+        schedule_storage: ScheduleStoragePort,
+        path_resolver: PathResolverPort,
+    ) -> None:
         """
         Args:
             scheduler_port: SchedulerPort実装
-            storage_port: StoragePort実装
+            schedule_storage: ScheduleStoragePort実装
+            path_resolver: PathResolverPort実装
         """
         self._scheduler = scheduler_port
-        self._storage = storage_port
+        self._schedule_storage = schedule_storage
+        self._path_resolver = path_resolver
 
     def add(
         self,
@@ -118,12 +126,10 @@ class ScheduleEssayUseCase:
             )
 
         except Exception:
-            # ロールバック：スケジューラ登録を取り消す
+            # ロールバック：スケジューラ登録を取り消す（失敗は無視、元の例外を優先）
             if scheduler_registered:
-                try:
+                with contextlib.suppress(Exception):
                     self._scheduler.remove(task_name)
-                except Exception:
-                    pass  # ロールバック失敗は無視（元の例外を優先）
             raise
 
     def list(self) -> None:
@@ -133,7 +139,7 @@ class ScheduleEssayUseCase:
         os_task_names = {t["name"] for t in os_tasks}
 
         # JSONバックアップから取得
-        schedules = self._storage.load_schedules()
+        schedules = self._schedule_storage.load_schedules()
 
         if not schedules and not os_tasks:
             print("No schedules found.")
@@ -186,12 +192,12 @@ class ScheduleEssayUseCase:
         self._remove_runner_script(name)
 
         # JSONから削除
-        schedules = self._storage.load_schedules()
+        schedules = self._schedule_storage.load_schedules()
         original_count = len(schedules)
         schedules = [s for s in schedules if s.get("name") != name]
 
         if len(schedules) < original_count:
-            self._storage.save_schedules(schedules)
+            self._schedule_storage.save_schedules(schedules)
             print(f"Removed schedule: {name}")
         else:
             print(f"Schedule not found in backup: {name}")
@@ -226,8 +232,8 @@ class ScheduleEssayUseCase:
         """時刻形式のバリデーション"""
         try:
             datetime.strptime(time_spec, "%H:%M")
-        except ValueError:
-            raise ValueError(f"time must be in HH:MM format, got '{time_spec}'")
+        except ValueError as e:
+            raise ValueError(f"time must be in HH:MM format, got '{time_spec}'") from e
 
     def _generate_task_name(
         self, frequency: str, time_spec: str, theme: str, name: str, day_spec: str
@@ -251,7 +257,7 @@ class ScheduleEssayUseCase:
         base_name = f"Essay_{safe_name}"
 
         # 既存タスク名との衝突チェック（自動生成名のみ）
-        existing_names = {s["name"] for s in self._storage.load_schedules()}
+        existing_names = {s["name"] for s in self._schedule_storage.load_schedules()}
         if base_name in existing_names:
             # タイムスタンプ接尾辞を付与してユニーク化
             suffix = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -289,7 +295,7 @@ class ScheduleEssayUseCase:
         """月末用ランナースクリプトを作成"""
         from frameworks.templates import load_template, render_template
 
-        runners_dir = Path(self._storage.get_runners_dir())
+        runners_dir = Path(self._path_resolver.get_runners_dir())
         runner_path = runners_dir / f"{task_name}.py"
 
         # 月末判定コード
@@ -311,7 +317,7 @@ class ScheduleEssayUseCase:
 
     def _remove_runner_script(self, name: str) -> None:
         """ランナースクリプトを削除"""
-        runners_dir = Path(self._storage.get_runners_dir())
+        runners_dir = Path(self._path_resolver.get_runners_dir())
         runner_path = runners_dir / f"{name}.py"
         if runner_path.exists():
             runner_path.unlink()
@@ -330,12 +336,12 @@ class ScheduleEssayUseCase:
         monthly_type: str,
     ) -> None:
         """スケジュールエントリをJSONに保存"""
-        schedules = self._storage.load_schedules()
+        schedules = self._schedule_storage.load_schedules()
 
         # 同名のエントリを削除
         schedules = [s for s in schedules if s.get("name") != task_name]
 
-        entry = {
+        entry: ScheduleEntry = {
             "name": task_name,
             "frequency": frequency,
             "weekday": weekday if frequency == "weekly" else "",
@@ -352,7 +358,7 @@ class ScheduleEssayUseCase:
             entry["monthly_type"] = monthly_type
 
         schedules.append(entry)
-        self._storage.save_schedules(schedules)
+        self._schedule_storage.save_schedules(schedules)
 
     def _print_confirmation(
         self,
