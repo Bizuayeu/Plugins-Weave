@@ -129,8 +129,17 @@ def main():
     except MailError as e:
         print(f"Mail error: {e}")
         return 1
+    except ValueError as e:
+        print(f"Invalid argument: {e}")
+        return 1
+    except FileNotFoundError as e:
+        print(f"File not found: {e}")
+        return 1
+    except PermissionError as e:
+        print(f"Permission denied: {e}")
+        return 1
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Unexpected error ({type(e).__name__}): {e}")
         return 1
 
 

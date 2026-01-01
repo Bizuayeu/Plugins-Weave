@@ -23,16 +23,13 @@ def get_persistent_dir() -> str:
     永続ディレクトリを取得する。
 
     スクリプトやログファイルを保存するディレクトリ。
+    Claude Code plugin convention: ~/.claude/plugins/.emailingessay
 
     Returns:
         永続ディレクトリのパス
     """
-    if sys.platform == "win32":
-        base = os.environ.get("LOCALAPPDATA", os.path.expanduser("~"))
-        path = os.path.join(base, "EmailingEssay")
-    else:
-        path = os.path.expanduser("~/.emailingessay")
-
+    home = os.path.expanduser("~")
+    path = os.path.join(home, ".claude", "plugins", ".emailingessay")
     os.makedirs(path, exist_ok=True)
     return path
 

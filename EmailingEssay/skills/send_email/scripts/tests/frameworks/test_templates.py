@@ -47,3 +47,11 @@ class TestRenderTemplate:
         template = "Theme: {{theme}}"
         result = render_template(template, theme="朝の振り返り")
         assert result == "Theme: 朝の振り返り"
+
+    def test_render_preserves_template_like_patterns_in_values(self):
+        """値に含まれる{{}}パターンは二重置換されない"""
+        template = "Theme: {{theme}}, Other: {{other}}"
+        # themeに{{other}}のようなパターンが含まれていても二重置換されない
+        result = render_template(template, theme="{{other}}", other="REPLACED")
+        # {{other}}が"REPLACED"に置換されていなければ安全
+        assert result == "Theme: {{other}}, Other: REPLACED"

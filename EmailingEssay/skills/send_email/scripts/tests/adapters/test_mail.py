@@ -32,7 +32,7 @@ class TestYagmailAdapter:
         """アダプターのインスタンス"""
         with patch.dict(os.environ, {
             "ESSAY_SENDER_EMAIL": mock_config["sender"],
-            "ESSAY_EMAIL_PASSWORD": mock_config["password"],
+            "ESSAY_APP_PASSWORD": mock_config["password"],
             "ESSAY_RECIPIENT_EMAIL": mock_config["recipient"]
         }):
             return YagmailAdapter()
@@ -41,7 +41,7 @@ class TestYagmailAdapter:
     def test_send_email_success(self, mock_yagmail, adapter):
         """メール送信成功"""
         mock_smtp = MagicMock()
-        mock_yagmail.SMTP.return_value = mock_smtp
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
 
         adapter.send(
             to="test@example.com",
@@ -56,7 +56,7 @@ class TestYagmailAdapter:
     def test_send_email_uses_default_recipient(self, mock_yagmail, adapter):
         """デフォルト送信先を使用"""
         mock_smtp = MagicMock()
-        mock_yagmail.SMTP.return_value = mock_smtp
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
 
         adapter.send(
             to="",  # 空の場合はデフォルト
@@ -72,7 +72,7 @@ class TestYagmailAdapter:
     def test_test_email_sends_correctly(self, mock_yagmail, adapter):
         """テストメール送信"""
         mock_smtp = MagicMock()
-        mock_yagmail.SMTP.return_value = mock_smtp
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
 
         adapter.test()
 
@@ -98,7 +98,24 @@ class TestYagmailAdapter:
         """受信者未設定でエラー"""
         with patch.dict(os.environ, {
             "ESSAY_SENDER_EMAIL": "sender@example.com",
-            "ESSAY_EMAIL_PASSWORD": "password"
+            "ESSAY_APP_PASSWORD": "password"
         }, clear=True):
             with pytest.raises(MailError):
                 YagmailAdapter()
+
+    @patch('adapters.mail.yagmail_adapter.yagmail')
+    def test_smtp_connection_uses_context_manager(self, mock_yagmail, adapter):
+        """SMTPはコンテキストマネージャで管理される"""
+        mock_smtp_instance = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__ = MagicMock(return_value=mock_smtp_instance)
+        mock_yagmail.SMTP.return_value.__exit__ = MagicMock(return_value=False)
+
+        adapter.send(
+            to="test@example.com",
+            subject="Test Subject",
+            body="Test Body"
+        )
+
+        # コンテキストマネージャが使用されたことを確認
+        mock_yagmail.SMTP.return_value.__enter__.assert_called_once()
+        mock_yagmail.SMTP.return_value.__exit__.assert_called_once()

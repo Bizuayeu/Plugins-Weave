@@ -13,7 +13,7 @@ from unittest.mock import Mock, patch, MagicMock
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from usecases.wait_essay import parse_target_time, WaitEssayUseCase, WaiterError
+from usecases.wait_essay import parse_target_time, WaitEssayUseCase, WaiterError, get_persistent_dir
 
 
 class TestParseTargetTime:
@@ -142,3 +142,13 @@ class TestWaitEssayUseCase:
         script_file = tmp_path / "essay_waiter_temp.py"
         content = script_file.read_text(encoding="utf-8")
         assert "朝の振り返り" in content
+
+
+class TestGetPersistentDir:
+    """get_persistent_dir() のテスト"""
+
+    def test_persistent_dir_uses_claude_convention(self):
+        """永続ディレクトリは ~/.claude/plugins/.emailingessay を使用する"""
+        result = get_persistent_dir()
+        # Claude Code plugin convention: ~/.claude/plugins/.emailingessay
+        assert ".claude" in result and "plugins" in result and ".emailingessay" in result

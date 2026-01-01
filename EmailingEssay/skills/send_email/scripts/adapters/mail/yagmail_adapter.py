@@ -63,8 +63,8 @@ class YagmailAdapter:
         recipient = to if to else self._recipient
 
         try:
-            yag = yagmail.SMTP(self._sender, self._password)
-            yag.send(to=recipient, subject=subject, contents=body)
+            with yagmail.SMTP(self._sender, self._password) as yag:
+                yag.send(to=recipient, subject=subject, contents=body)
             print(f"Sent to: {recipient}")
         except Exception as e:
             raise MailError(f"Failed to send email: {e}") from e

@@ -47,6 +47,7 @@ def render_template(template: str, **kwargs: Any) -> str:
     テンプレートをレンダリングする。
 
     {{key}} 形式のプレースホルダーを置換する。
+    二重置換を防ぐため、一度に全てのプレースホルダーを特定してから置換する。
 
     Args:
         template: テンプレート文字列
@@ -55,11 +56,14 @@ def render_template(template: str, **kwargs: Any) -> str:
     Returns:
         レンダリングされた文字列
     """
-    result = template
-    for key, value in kwargs.items():
-        placeholder = "{{" + key + "}}"
-        result = result.replace(placeholder, str(value))
-    return result
+    # 正規表現で全プレースホルダーを特定し、一度に置換
+    def replacer(match: re.Match) -> str:
+        key = match.group(1)
+        if key in kwargs:
+            return str(kwargs[key])
+        return match.group(0)  # マッチしない場合は元のプレースホルダーを保持
+
+    return re.sub(r'\{\{(\w+)\}\}', replacer, template)
 
 
 __all__ = ["load_template", "render_template", "TemplateError"]
