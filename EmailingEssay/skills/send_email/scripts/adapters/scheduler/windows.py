@@ -19,6 +19,9 @@ from domain.exceptions import SchedulerError
 
 from .base import BaseSchedulerAdapter
 
+# listメソッドによる組み込みlist型のシャドーイング回避
+_List = list
+
 
 class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     """Windows Task Scheduler のアダプター"""
@@ -26,7 +29,16 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     # 後方互換性のため残す（constants からインポート推奨）
     DAY_ABBR_MAP = ABBR_TO_SCHTASKS
 
-    def add(self, task_name: str, command: str, frequency: str, time: str, **kwargs: Any) -> None:
+    def add(
+        self,
+        task_name: str,
+        command: str,
+        frequency: str,
+        time: str,
+        *,
+        weekday: str = "",
+        day_spec: str = "",
+    ) -> None:
         """
         Windows タスクスケジューラにタスクを追加する。
 
@@ -35,13 +47,12 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
             command: 実行コマンド
             frequency: daily, weekly, monthly
             time: HH:MM形式の時刻
-            **kwargs: weekday, day_spec など
+            weekday: 曜日（weekly用）
+            day_spec: 日指定（monthly用）
 
         Raises:
             SchedulerError: タスク作成に失敗した場合
         """
-        weekday = kwargs.get("weekday", "")
-        day_spec = kwargs.get("day_spec", "")
 
         if frequency == "daily":
             schtasks_cmd = self._build_daily_command(task_name, command, time)
@@ -69,7 +80,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
         if result.returncode != 0:
             raise SchedulerError(f"Failed to delete task: {result.stderr}")
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> _List[dict[str, Any]]:
         """
         Essay_で始まるタスク一覧を取得する。
 
@@ -89,7 +100,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
                     tasks.append({"name": task_name})
         return tasks
 
-    def _build_daily_command(self, task_name: str, command: str, time: str) -> list[str]:
+    def _build_daily_command(self, task_name: str, command: str, time: str) -> _List[str]:
         """日次タスクのschtasksコマンドを構築する。"""
         return [
             "schtasks",
@@ -107,7 +118,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
 
     def _build_weekly_command(
         self, task_name: str, command: str, time: str, weekday: str
-    ) -> list[str]:
+    ) -> _List[str]:
         """週次タスクのschtasksコマンドを構築する。"""
         try:
             day = weekday_to_schtasks(weekday)
@@ -131,7 +142,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
 
     def _build_monthly_command(
         self, task_name: str, command: str, time: str, day_spec: str
-    ) -> list[str]:
+    ) -> _List[str]:
         """月次タスクのschtasksコマンドを構築する。"""
         from domain.models import MonthlyPattern, MonthlyType
 
@@ -154,9 +165,11 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
                 "/f",
             ]
         elif pattern.type == MonthlyType.NTH_WEEKDAY:
-            weekday_abbr = ABBR_TO_SCHTASKS.get(pattern.weekday, "MON")
+            weekday_str = pattern.weekday if pattern.weekday is not None else ""
+            weekday_abbr = ABBR_TO_SCHTASKS.get(weekday_str, "MON")
             try:
-                week_ordinal = ordinal_to_schtasks(pattern.ordinal)
+                ordinal_val = pattern.ordinal if pattern.ordinal is not None else 1
+                week_ordinal = ordinal_to_schtasks(ordinal_val)
             except ValueError:
                 week_ordinal = "FIRST"
             return [
@@ -177,7 +190,8 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
                 "/f",
             ]
         elif pattern.type == MonthlyType.LAST_WEEKDAY:
-            weekday_abbr = ABBR_TO_SCHTASKS.get(pattern.weekday, "MON")
+            weekday_str = pattern.weekday if pattern.weekday is not None else ""
+            weekday_abbr = ABBR_TO_SCHTASKS.get(weekday_str, "MON")
             return [
                 "schtasks",
                 "/create",
@@ -201,7 +215,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
         else:
             raise SchedulerError(f"Unknown monthly type: {pattern.type}")
 
-    def _execute_schtasks(self, cmd: list[str]) -> None:
+    def _execute_schtasks(self, cmd: _List[str]) -> None:
         """schtasksコマンドを実行する。"""
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:

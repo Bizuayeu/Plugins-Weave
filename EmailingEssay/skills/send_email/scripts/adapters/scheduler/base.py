@@ -21,7 +21,16 @@ class BaseSchedulerAdapter(ABC):
     """スケジューラアダプターの基底クラス"""
 
     @abstractmethod
-    def add(self, task_name: str, command: str, frequency: str, time: str, **kwargs: Any) -> None:
+    def add(
+        self,
+        task_name: str,
+        command: str,
+        frequency: str,
+        time: str,
+        *,
+        weekday: str = "",
+        day_spec: str = "",
+    ) -> None:
         """スケジュールを追加する"""
         pass
 

@@ -19,7 +19,16 @@ from .base import BaseSchedulerAdapter
 class UnixSchedulerAdapter(BaseSchedulerAdapter):
     """Unix Cron のアダプター"""
 
-    def add(self, task_name: str, command: str, frequency: str, time: str, **kwargs: Any) -> None:
+    def add(
+        self,
+        task_name: str,
+        command: str,
+        frequency: str,
+        time: str,
+        *,
+        weekday: str = "",
+        day_spec: str = "",
+    ) -> None:
         """
         Cronエントリを追加する。
 
@@ -28,13 +37,12 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
             command: 実行コマンド
             frequency: daily, weekly, monthly
             time: HH:MM形式の時刻
-            **kwargs: weekday, day_spec など
+            weekday: 曜日（weekly用）
+            day_spec: 日指定（monthly用、未使用だが互換性のため保持）
 
         Raises:
             SchedulerError: crontab更新に失敗した場合
         """
-        weekday = kwargs.get("weekday", "")
-        day_spec = kwargs.get("day_spec", "")
 
         hour, minute = time.split(":")
         cron_line = self._build_cron_line(frequency, hour, minute, command, weekday, day_spec)
