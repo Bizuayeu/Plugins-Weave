@@ -54,7 +54,7 @@ EmailingEssay/
             └── tests/     # Test suite
 ```
 
-See [CLAUDE.md](CLAUDE.md) for detailed architecture.
+For detailed architecture, see `CLAUDE.md` → **Clean Architecture Details** section.
 
 ---
 

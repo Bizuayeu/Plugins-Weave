@@ -36,8 +36,8 @@ Execution flow for each mode:
 | `context_files` | From `-c` or `-f` option |
 | `language` | From `-l` option (default: auto) |
 
-See `agents/essay_writer.md` → **Execution Flow** section.
-See `SETUP.md` → **Environment Variables** / **Troubleshooting** section.
+For agent execution details, see `agents/essay_writer.md` → **Execution Flow** section.
+For environment setup, see `SETUP.md` → **Environment Variables** / **Troubleshooting** section.
 
 ---
 
@@ -133,7 +133,7 @@ See `SETUP.md` → **Environment Variables** / **Troubleshooting** section.
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
-See `skills/send_email/SKILL.md` → **CLI Usage** section.
+For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** section.
 
 ### Time Formats
 
@@ -166,7 +166,7 @@ See `skills/send_email/SKILL.md` → **CLI Usage** section.
 
 Register recurring essay schedules using OS scheduler (Windows Task Scheduler / cron).
 
-See `skills/send_email/SKILL.md` → **CLI Usage** section.
+For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** section.
 
 ### Frequency
 

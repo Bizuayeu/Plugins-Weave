@@ -46,48 +46,19 @@ yagmail
 
 | Operation | CLI | Description |
 |-----------|-----|-------------|
-| test | `python main.py test` | Send test email to verify configuration |
-| send | `python main.py send "Subject" "Body"` | Send email with custom subject and body |
-| wait | `python main.py wait TIME [OPTIONS]` | Schedule one-time essay (detached process) |
-| wait list | `python main.py wait list` | View all active waiting processes |
-| schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Register recurring schedule (OS scheduler) |
-| list | `python main.py schedule list` | View all registered schedules |
-| remove | `python main.py schedule remove "name"` | Remove a registered schedule |
+| test | `python main.py test` | Send test email |
+| send | `python main.py send "Subject" "Body"` | Send custom email |
+| wait | `python main.py wait TIME [OPTIONS]` | One-time schedule |
+| schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Recurring schedule |
 
-**Options** (for wait/schedule):
-- `-t, --theme TEXT` - Essay theme
-- `-c, --context FILE` - Single context file
-- `-f, --file-list FILE` - Multiple files (one path per line)
-- `-l, --lang LANG` - Language: `ja`, `en`, `auto` (default: auto)
-- `--name NAME` - Custom task name (schedule only)
-
-**Examples**:
+**Quick test**:
 
 ```bash
-# Test
 python main.py test
-
-# Send
-python main.py send "Subject" "Body"
-
-# Wait (one-time)
-python main.py wait "22:00" -t "theme"
-python main.py wait "22:00" -t "theme" -c context.txt -l ja
-python main.py wait "2025-01-05 22:00" -t "theme"
-python main.py wait list                     # List active waiting processes
-
-# Schedule (recurring)
-python main.py schedule daily 22:00 -t "theme"
-python main.py schedule weekly monday 09:00 -t "theme"
-python main.py schedule monthly 15 09:00 -t "theme"
-python main.py schedule monthly 2nd_mon 09:00
-python main.py schedule monthly last_fri 17:00
-python main.py schedule monthly last_day 22:00
-
-# Management
-python main.py schedule list
-python main.py schedule remove "name"
+python main.py send "Test Subject" "Test Body"
 ```
+
+For full options and examples, see `commands/essay.md` → **Command Structure** section.
 
 ---
 

@@ -23,7 +23,7 @@ Design principle: "Reflection first, sending second."
 This is an **agent-driven skill** with no standalone implementation code.
 The reflection process is executed by `agents/essay_writer.md`.
 
-For execution flow diagram, see `agents/essay_writer.md`.
+For execution flow diagram, see `agents/essay_writer.md` → **Execution Flow** section.
 
 ---
 
@@ -35,7 +35,7 @@ For execution flow diagram, see `agents/essay_writer.md`.
 | `/essay wait` | essay_writer.md | Scheduled (one-time) |
 | `/essay schedule` | essay_writer.md | Scheduled (recurring) |
 
-For CLI options, see `commands/essay.md`.
+For CLI options, see `commands/essay.md` → **Command Structure** section.
 
 ---
 

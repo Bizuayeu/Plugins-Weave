@@ -136,7 +136,7 @@ User → /essay command → essay_writer.md agent
     (Chat output)                      (send_email skill)
 ```
 
-See `skills/reflect/SKILL.md` → **Reflection Process** section.
+For reflection details, see `skills/reflect/SKILL.md` → **Reflection Process** section.
 
 ---
 

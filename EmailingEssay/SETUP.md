@@ -85,7 +85,7 @@ pip install yagmail
 pip install pytest  # For running tests
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full development setup.
+For full development setup, see `CONTRIBUTING.md` → **Development Setup** section.
 
 ---
 

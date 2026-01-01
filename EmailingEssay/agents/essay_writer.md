@@ -64,11 +64,11 @@ Read the specified files and note the language setting.
 
 ### 2-4. Reflection, Decision, and Writing
 
-See `skills/reflect/SKILL.md` → **Reflection Process** / **Output** / **Essay Elements** section.
+For reflection, decision, and writing details, see `skills/reflect/SKILL.md` → **Reflection Process** / **Output** / **Essay Elements** section.
 
 ### 5. Output
 
-See `skills/reflect/SKILL.md` → **Output** section for mode-specific behavior.
+For mode-specific output behavior, see `skills/reflect/SKILL.md` → **Output** section.
 
 **IMPORTANT**: In non-interactive mode, send automatically without asking for confirmation.
 
