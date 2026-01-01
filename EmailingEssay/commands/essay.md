@@ -37,8 +37,8 @@ Execution flow for each mode:
 | `context_files` | From `-c` or `-f` option |
 | `language` | From `-l` option (default: auto) |
 
-See `agents/essay_writer.md` for the reflection and writing process.
-See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
+See `agents/essay_writer.md` → **Execution Flow** section.
+See `skills/send_email/SKILL.md` → **Configuration** / **Troubleshooting** section.
 
 ---
 

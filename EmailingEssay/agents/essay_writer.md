@@ -74,10 +74,7 @@ Read the specified files and note the language setting.
 
 ### 2-4. Reflection, Decision, and Writing
 
-See `skills/reflect/SKILL.md` for:
-- Deep reflection process (ultrathink)
-- Delivery decision criteria
-- Essay writing guidelines
+See `skills/reflect/SKILL.md` → **Reflection Process** / **Output** / **Essay Elements** section.
 
 ### 5. Output
 

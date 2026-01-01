@@ -76,7 +76,7 @@ User → /essay command → essay_writer.md agent
     (Chat output)                      (send_email skill)
 ```
 
-See `skills/reflect/SKILL.md` for reflection process details.
+See `skills/reflect/SKILL.md` → **Reflection Process** section.
 
 ---
 
@@ -115,7 +115,7 @@ See `skills/reflect/SKILL.md` for reflection process details.
 /essay schedule daily 22:00 -t "Daily reflection"
 ```
 
-See `commands/essay.md` for full command reference.
+See `commands/essay.md` → **Command Structure** section.
 
 ---
 
@@ -129,7 +129,7 @@ See `commands/essay.md` for full command reference.
 | `ESSAY_SENDER_EMAIL` | Sender email address |
 | `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
 
-See `skills/send_email/SKILL.md` for setup details and troubleshooting.
+See `skills/send_email/SKILL.md` → **Configuration** / **Troubleshooting** section.
 
 ---
 
