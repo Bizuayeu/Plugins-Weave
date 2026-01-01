@@ -9,20 +9,22 @@ from __future__ import annotations
 import os
 import sys
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING
 
 from domain.models import MonthlyPattern, MonthlyType
+from domain.constants import WEEKDAYS_FULL, VALID_WEEKDAYS
+from frameworks.logging_config import get_logger
 
+if TYPE_CHECKING:
+    from .ports import SchedulerPort, StoragePort
 
-# 曜日定数
-WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-WEEKDAY_ABBRS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+logger = get_logger("schedule")
 
 
 class ScheduleEssayUseCase:
     """スケジュール管理ユースケース"""
 
-    def __init__(self, scheduler_port: Any, storage_port: Any) -> None:
+    def __init__(self, scheduler_port: "SchedulerPort", storage_port: "StoragePort") -> None:
         """
         Args:
             scheduler_port: SchedulerPort実装
@@ -155,7 +157,7 @@ class ScheduleEssayUseCase:
         try:
             self._scheduler.remove(name)
         except Exception as e:
-            print(f"Warning: Could not remove from OS scheduler: {e}")
+            logger.warning(f"Could not remove from OS scheduler: {e}")
 
         # ランナースクリプトがあれば削除
         self._remove_runner_script(name)
@@ -180,8 +182,8 @@ class ScheduleEssayUseCase:
 
     def _validate_weekday(self, frequency: str, weekday: str) -> None:
         """曜日のバリデーション（weekly用）"""
-        if frequency == "weekly" and weekday.lower() not in WEEKDAYS:
-            raise ValueError(f"weekday must be one of {WEEKDAYS}")
+        if frequency == "weekly" and weekday.lower() not in WEEKDAYS_FULL:
+            raise ValueError(f"weekday must be one of {WEEKDAYS_FULL}")
 
     def _validate_day_spec(self, frequency: str, day_spec: str) -> str:
         """day_specのバリデーション（monthly用）"""

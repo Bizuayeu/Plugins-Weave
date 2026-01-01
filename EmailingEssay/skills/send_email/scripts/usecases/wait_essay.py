@@ -3,18 +3,21 @@
 エッセイ待機処理のユースケース
 
 指定時刻まで待機してエッセイを実行する。
+WaiterError は domain.exceptions に移動済み。
 """
 from __future__ import annotations
 
 import os
-import sys
-import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import TYPE_CHECKING
 
+from domain.exceptions import WaiterError
 
-class WaiterError(Exception):
-    """待機処理エラー"""
-    pass
+if TYPE_CHECKING:
+    from .ports import StoragePort, ProcessSpawnerPort
+
+# 後方互換性のため再エクスポート
+__all__ = ["WaitEssayUseCase", "WaiterError", "get_persistent_dir", "parse_target_time"]
 
 
 def get_persistent_dir() -> str:
@@ -26,6 +29,10 @@ def get_persistent_dir() -> str:
 
     Returns:
         永続ディレクトリのパス
+
+    Note:
+        この関数は後方互換性のために残されています。
+        新しいコードでは StoragePort.get_persistent_dir() を使用してください。
     """
     home = os.path.expanduser("~")
     path = os.path.join(home, ".claude", "plugins", ".emailingessay")
@@ -64,6 +71,29 @@ def parse_target_time(time_str: str) -> datetime:
 class WaitEssayUseCase:
     """エッセイ待機処理のユースケース"""
 
+    def __init__(
+        self,
+        storage_port: "StoragePort | None" = None,
+        spawner_port: "ProcessSpawnerPort | None" = None
+    ) -> None:
+        """
+        WaitEssayUseCaseを初期化する。
+
+        Args:
+            storage_port: ストレージポート（省略時は自動生成）
+            spawner_port: プロセススポーナーポート（省略時は自動生成）
+        """
+        # 後方互換性: 引数が省略された場合は自動生成
+        if storage_port is None:
+            from adapters.storage import JsonStorageAdapter
+            storage_port = JsonStorageAdapter()
+        if spawner_port is None:
+            from adapters.process import ProcessSpawner
+            spawner_port = ProcessSpawner()
+
+        self._storage = storage_port
+        self._spawner = spawner_port
+
     def spawn(
         self,
         target_time: str,
@@ -89,6 +119,47 @@ class WaitEssayUseCase:
             WaiterError: 起動に失敗した場合
         """
         # Claudeコマンドの引数を構築
+        claude_args = self._build_claude_args(theme, context, file_list, lang)
+
+        # 永続ディレクトリを取得（DIされたストレージを使用）
+        persistent_dir = self._storage.get_persistent_dir()
+        log_file = os.path.join(persistent_dir, "essay_wait.log").replace("\\", "/")
+
+        # 待機スクリプトを生成
+        script = self._generate_waiter_script(target_time, claude_args, log_file)
+
+        # スクリプトファイルに書き込み
+        script_file = os.path.join(persistent_dir, "essay_waiter_temp.py")
+        with open(script_file, "w", encoding="utf-8") as f:
+            f.write(script)
+
+        # デタッチドプロセスを起動（DIされたスポーナーを使用）
+        pid = self._spawner.spawn_detached(script_file)
+
+        # 情報を表示
+        target = parse_target_time(target_time)
+        print(f"Scheduled essay for {target.strftime('%Y-%m-%d %H:%M')}")
+        print(f"Process ID: {pid}")
+        print("You can close this terminal. Essay will execute at the scheduled time.")
+        if theme:
+            print(f"Theme: {theme}")
+        if context:
+            print(f"Context: {context}")
+        if file_list:
+            print(f"File list: {file_list}")
+        if lang:
+            print(f"Language: {lang}")
+
+        return pid
+
+    def _build_claude_args(
+        self,
+        theme: str,
+        context: str,
+        file_list: str,
+        lang: str
+    ) -> str:
+        """Claudeコマンドの引数を構築する"""
         claude_args = []
         if theme:
             theme_escaped = theme.replace("'", "\\'")
@@ -101,38 +172,7 @@ class WaitEssayUseCase:
             claude_args.append(f"-f '{file_list_safe}'")
         if lang:
             claude_args.append(f"-l {lang}")
-        claude_args_str = " ".join(claude_args) if claude_args else ""
-
-        # ログファイル
-        persistent_dir = get_persistent_dir()
-        log_file = os.path.join(persistent_dir, "essay_wait.log").replace("\\", "/")
-
-        # 待機スクリプトを生成
-        script = self._generate_waiter_script(target_time, claude_args_str, log_file)
-
-        # スクリプトファイルに書き込み
-        script_file = os.path.join(persistent_dir, "essay_waiter_temp.py")
-        with open(script_file, "w", encoding="utf-8") as f:
-            f.write(script)
-
-        # デタッチドプロセスを起動
-        proc = self._spawn_detached(script_file)
-
-        # 情報を表示
-        target = parse_target_time(target_time)
-        print(f"Scheduled essay for {target.strftime('%Y-%m-%d %H:%M')}")
-        print(f"Process ID: {proc.pid}")
-        print("You can close this terminal. Essay will execute at the scheduled time.")
-        if theme:
-            print(f"Theme: {theme}")
-        if context:
-            print(f"Context: {context}")
-        if file_list:
-            print(f"File list: {file_list}")
-        if lang:
-            print(f"Language: {lang}")
-
-        return proc.pid
+        return " ".join(claude_args) if claude_args else ""
 
     def _generate_waiter_script(
         self,
@@ -140,81 +180,13 @@ class WaitEssayUseCase:
         claude_args_str: str,
         log_file: str
     ) -> str:
-        """待機スクリプトを生成"""
-        return f'''# -*- coding: utf-8 -*-
-import time
-from datetime import datetime, timedelta
-import subprocess
-import sys
-import os
+        """待機スクリプトを生成（テンプレートシステム使用）"""
+        from frameworks.templates import load_template, render_template
 
-LOG_FILE = r"{log_file}"
-TARGET_TIME = "{target_time}"
-CLAUDE_ARGS = """{claude_args_str}"""
-
-def log(msg):
-    with open(LOG_FILE, "a", encoding="utf-8") as f:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        f.write("[" + timestamp + "] " + str(msg) + "\\n")
-
-try:
-    log("Started. Target: " + TARGET_TIME)
-
-    # Parse time - support both HH:MM and YYYY-MM-DD HH:MM
-    time_str = TARGET_TIME
-    if " " in time_str and len(time_str) > 10:
-        target = datetime.strptime(time_str, "%Y-%m-%d %H:%M")
-    else:
-        target = datetime.strptime(time_str, "%H:%M").replace(
-            year=datetime.now().year,
-            month=datetime.now().month,
-            day=datetime.now().day
+        template = load_template("essay_waiter.py.template")
+        return render_template(
+            template,
+            log_file=log_file,
+            target_time=target_time,
+            claude_args=claude_args_str
         )
-        if target < datetime.now():
-            target += timedelta(days=1)
-
-    log("Waiting until " + target.strftime("%Y-%m-%d %H:%M") + "...")
-
-    # Poll every minute (sleep-resilient)
-    while datetime.now() < target:
-        time.sleep(60)
-
-    log("Target time reached: " + datetime.now().strftime("%H:%M"))
-    log("Launching Claude Code for essay...")
-
-    # Execute Claude Code (--dangerously-skip-permissions for non-interactive)
-    cmd = 'claude --dangerously-skip-permissions -p "/essay ' + CLAUDE_ARGS + '"'
-    log("Command: " + cmd)
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    log("Return code: " + str(result.returncode))
-    if result.stdout:
-        log("Stdout: " + result.stdout[:500])
-    if result.stderr:
-        log("Stderr: " + result.stderr[:500])
-    log("Done.")
-
-except Exception as e:
-    log("ERROR: " + str(e))
-'''
-
-    def _spawn_detached(self, script_file: str) -> subprocess.Popen:
-        """デタッチドプロセスを起動"""
-        if sys.platform == "win32":
-            CREATE_NEW_PROCESS_GROUP = 0x00000200
-            DETACHED_PROCESS = 0x00000008
-            proc = subprocess.Popen(
-                [sys.executable, script_file],
-                creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
-                close_fds=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-        else:
-            proc = subprocess.Popen(
-                [sys.executable, script_file],
-                start_new_session=True,
-                close_fds=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-        return proc

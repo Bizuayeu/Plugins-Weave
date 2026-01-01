@@ -9,12 +9,9 @@ from __future__ import annotations
 import subprocess
 from typing import Any
 
-from .base import BaseSchedulerAdapter, SchedulerError
-
-
-# 曜日のリスト（cron用: 0=日曜, 1=月曜, ...）
-WEEKDAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
-WEEKDAYS_FULL = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+from domain.constants import weekday_to_cron
+from domain.exceptions import SchedulerError
+from .base import BaseSchedulerAdapter
 
 
 class UnixSchedulerAdapter(BaseSchedulerAdapter):
@@ -133,12 +130,10 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
 
     def _weekday_to_cron_num(self, weekday: str) -> int:
         """曜日をcron番号に変換する（0=日曜）。"""
-        weekday_lower = weekday.lower()
-        if weekday_lower in WEEKDAYS:
-            return WEEKDAYS.index(weekday_lower)
-        if weekday_lower in WEEKDAYS_FULL:
-            return WEEKDAYS_FULL.index(weekday_lower)
-        return 1  # デフォルト: 月曜
+        try:
+            return weekday_to_cron(weekday)
+        except ValueError:
+            return 1  # デフォルト: 月曜
 
     def _get_current_crontab(self) -> str:
         """現在のcrontabを取得する。"""

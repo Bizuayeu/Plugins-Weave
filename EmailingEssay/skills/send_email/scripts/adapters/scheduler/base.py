@@ -1,16 +1,19 @@
 # adapters/scheduler/base.py
 """
-スケジューラ基底クラスとエラー定義
+スケジューラ基底クラス
+
+SchedulerError は domain.exceptions に移動済み。
+後方互換性のため再エクスポート。
 """
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any
 
+from domain.exceptions import SchedulerError
 
-class SchedulerError(Exception):
-    """スケジューラ操作エラー"""
-    pass
+# 後方互換性のため再エクスポート
+__all__ = ["BaseSchedulerAdapter", "SchedulerError"]
 
 
 class BaseSchedulerAdapter(ABC):

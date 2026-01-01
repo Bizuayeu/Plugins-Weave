@@ -36,13 +36,20 @@ if sys.platform == "win32":
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 from adapters.cli.parser import create_parser
-from adapters.mail import YagmailAdapter, MailError
+from adapters.mail import YagmailAdapter
+from domain.exceptions import EmailingEssayError
 from usecases.wait_essay import WaitEssayUseCase
 from usecases.schedule_essay import schedule_add, schedule_list, schedule_remove
+from frameworks.logging_config import configure_logging, get_logger
+
+# ロギング初期化
+configure_logging()
+logger = get_logger("main")
 
 
 def main() -> int:
     """メインエントリーポイント"""
+    logger.debug("Starting main()")
     parser = create_parser()
     args = parser.parse_args()
 
@@ -126,8 +133,10 @@ def main() -> int:
 
         return 0
 
-    except MailError as e:
-        print(f"Mail error: {e}")
+    except EmailingEssayError as e:
+        # カスタム例外（MailError, SchedulerError, ValidationError等）を統一処理
+        logger.error(f"{e.__class__.__name__}: {e}")
+        print(f"Error: {e}")
         return 1
     except ValueError as e:
         print(f"Invalid argument: {e}")
@@ -139,6 +148,7 @@ def main() -> int:
         print(f"Permission denied: {e}")
         return 1
     except Exception as e:
+        logger.exception(f"Unexpected error: {e}")
         print(f"Unexpected error ({type(e).__name__}): {e}")
         return 1
 

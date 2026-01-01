@@ -9,22 +9,20 @@ from __future__ import annotations
 import subprocess
 from typing import Any
 
-from .base import BaseSchedulerAdapter, SchedulerError
+from domain.constants import (
+    weekday_to_schtasks,
+    ordinal_to_schtasks,
+    ABBR_TO_SCHTASKS,
+)
+from domain.exceptions import SchedulerError
+from .base import BaseSchedulerAdapter
 
 
 class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     """Windows Task Scheduler のアダプター"""
 
-    # 曜日の略称マップ
-    DAY_ABBR_MAP = {
-        "mon": "MON", "tue": "TUE", "wed": "WED",
-        "thu": "THU", "fri": "FRI", "sat": "SAT", "sun": "SUN"
-    }
-    DAY_FULL_MAP = {
-        "monday": "MON", "tuesday": "TUE", "wednesday": "WED",
-        "thursday": "THU", "friday": "FRI", "saturday": "SAT", "sunday": "SUN"
-    }
-    WEEK_ORD_MAP = {1: "FIRST", 2: "SECOND", 3: "THIRD", 4: "FOURTH"}
+    # 後方互換性のため残す（constants からインポート推奨）
+    DAY_ABBR_MAP = ABBR_TO_SCHTASKS
 
     def add(
         self,
@@ -111,10 +109,10 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
         self, task_name: str, command: str, time: str, weekday: str
     ) -> list[str]:
         """週次タスクのschtasksコマンドを構築する。"""
-        day = self.DAY_FULL_MAP.get(
-            weekday.lower(),
-            self.DAY_ABBR_MAP.get(weekday.lower(), "MON")
-        )
+        try:
+            day = weekday_to_schtasks(weekday)
+        except ValueError:
+            day = "MON"  # フォールバック
         return [
             "schtasks", "/create", "/tn", task_name,
             "/tr", command,
@@ -142,8 +140,11 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
                 "/f"
             ]
         elif pattern.type == MonthlyType.NTH_WEEKDAY:
-            weekday_abbr = self.DAY_ABBR_MAP.get(pattern.weekday, "MON")
-            week_ordinal = self.WEEK_ORD_MAP.get(pattern.ordinal, "FIRST")
+            weekday_abbr = ABBR_TO_SCHTASKS.get(pattern.weekday, "MON")
+            try:
+                week_ordinal = ordinal_to_schtasks(pattern.ordinal)
+            except ValueError:
+                week_ordinal = "FIRST"
             return [
                 "schtasks", "/create", "/tn", task_name,
                 "/tr", command,
@@ -154,7 +155,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
                 "/f"
             ]
         elif pattern.type == MonthlyType.LAST_WEEKDAY:
-            weekday_abbr = self.DAY_ABBR_MAP.get(pattern.weekday, "MON")
+            weekday_abbr = ABBR_TO_SCHTASKS.get(pattern.weekday, "MON")
             return [
                 "schtasks", "/create", "/tn", task_name,
                 "/tr", command,

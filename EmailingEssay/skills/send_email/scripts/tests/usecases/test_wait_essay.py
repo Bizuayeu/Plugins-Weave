@@ -72,18 +72,29 @@ class TestWaitEssayUseCase:
     """WaitEssayUseCase のテスト"""
 
     @pytest.fixture
-    def usecase(self):
-        return WaitEssayUseCase()
+    def mock_storage(self, tmp_path):
+        """モックストレージを作成"""
+        storage = Mock()
+        storage.get_persistent_dir.return_value = str(tmp_path)
+        return storage
 
-    @patch('subprocess.Popen')
-    @patch('usecases.wait_essay.get_persistent_dir')
-    def test_spawn_creates_script_file(self, mock_dir, mock_popen, usecase, tmp_path):
+    @pytest.fixture
+    def mock_spawner(self):
+        """モックスポーナーを作成"""
+        spawner = Mock()
+        spawner.spawn_detached.return_value = 12345
+        return spawner
+
+    @pytest.fixture
+    def usecase(self, mock_storage, mock_spawner):
+        """DI済みユースケースを作成"""
+        return WaitEssayUseCase(
+            storage_port=mock_storage,
+            spawner_port=mock_spawner
+        )
+
+    def test_spawn_creates_script_file(self, usecase, tmp_path):
         """spawn() がスクリプトファイルを作成"""
-        mock_dir.return_value = str(tmp_path)
-        mock_process = MagicMock()
-        mock_process.pid = 12345
-        mock_popen.return_value = mock_process
-
         # 1時間後の時刻
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
@@ -99,15 +110,8 @@ class TestWaitEssayUseCase:
         script_file = tmp_path / "essay_waiter_temp.py"
         assert script_file.exists()
 
-    @patch('subprocess.Popen')
-    @patch('usecases.wait_essay.get_persistent_dir')
-    def test_spawn_starts_detached_process(self, mock_dir, mock_popen, usecase, tmp_path):
+    def test_spawn_starts_detached_process(self, usecase, mock_spawner):
         """spawn() がデタッチドプロセスを起動"""
-        mock_dir.return_value = str(tmp_path)
-        mock_process = MagicMock()
-        mock_process.pid = 12345
-        mock_popen.return_value = mock_process
-
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(
@@ -118,17 +122,10 @@ class TestWaitEssayUseCase:
             lang=""
         )
 
-        mock_popen.assert_called_once()
+        mock_spawner.spawn_detached.assert_called_once()
 
-    @patch('subprocess.Popen')
-    @patch('usecases.wait_essay.get_persistent_dir')
-    def test_spawn_includes_theme_in_script(self, mock_dir, mock_popen, usecase, tmp_path):
+    def test_spawn_includes_theme_in_script(self, usecase, tmp_path):
         """spawn() がテーマをスクリプトに含める"""
-        mock_dir.return_value = str(tmp_path)
-        mock_process = MagicMock()
-        mock_process.pid = 12345
-        mock_popen.return_value = mock_process
-
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(
@@ -142,6 +139,36 @@ class TestWaitEssayUseCase:
         script_file = tmp_path / "essay_waiter_temp.py"
         content = script_file.read_text(encoding="utf-8")
         assert "朝の振り返り" in content
+
+    def test_spawn_returns_pid(self, usecase, mock_spawner):
+        """spawn() がプロセスIDを返す"""
+        future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
+
+        pid = usecase.spawn(target_time=future_time)
+
+        assert pid == 12345
+
+    def test_spawn_uses_injected_storage(self, mock_storage, mock_spawner):
+        """spawn() がDIされたストレージを使用する"""
+        usecase = WaitEssayUseCase(
+            storage_port=mock_storage,
+            spawner_port=mock_spawner
+        )
+        future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
+
+        usecase.spawn(target_time=future_time)
+
+        mock_storage.get_persistent_dir.assert_called()
+
+
+class TestWaitEssayUseCaseBackwardCompatibility:
+    """後方互換性のテスト"""
+
+    def test_usecase_works_without_di(self):
+        """DI引数なしでもインスタンス化できる"""
+        usecase = WaitEssayUseCase()
+        assert usecase._storage is not None
+        assert usecase._spawner is not None
 
 
 class TestGetPersistentDir:

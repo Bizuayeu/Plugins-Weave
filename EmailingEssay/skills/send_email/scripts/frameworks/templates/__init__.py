@@ -3,6 +3,7 @@
 テンプレートシステム
 
 簡易テンプレートエンジンを提供する。
+TemplateError は domain.exceptions に移動済み。
 """
 from __future__ import annotations
 
@@ -10,10 +11,7 @@ import os
 import re
 from typing import Any
 
-
-class TemplateError(Exception):
-    """テンプレート処理エラー"""
-    pass
+from domain.exceptions import TemplateError
 
 
 def get_templates_dir() -> str:

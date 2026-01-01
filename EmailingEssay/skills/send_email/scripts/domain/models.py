@@ -13,6 +13,9 @@ from enum import Enum
 from datetime import datetime, timedelta
 import re
 
+from .constants import VALID_WEEKDAYS, ABBR_TO_WEEKDAY_NUM
+from .exceptions import DomainError, ValidationError
+
 
 class MonthlyType(Enum):
     """月次スケジュールのタイプ"""
@@ -35,8 +38,8 @@ class MonthlyPattern:
     weekday: str | None = None      # 曜日指定用（mon, tue, wed, ...）
     ordinal: int | None = None      # NTH_WEEKDAY用（1-5）
 
-    # 有効な曜日のセット
-    VALID_WEEKDAYS = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
+    # 後方互換性のため残す（constants.VALID_WEEKDAYSを使用推奨）
+    # VALID_WEEKDAYS = VALID_WEEKDAYS  # constants からインポート済み
 
     @classmethod
     def parse(cls, day_spec: str) -> "MonthlyPattern":
@@ -59,7 +62,7 @@ class MonthlyPattern:
         # last_weekday: "last_mon", "last_tue", etc.
         if day_spec.startswith("last_") and day_spec != "last_day":
             weekday = day_spec[5:].lower()
-            if weekday not in cls.VALID_WEEKDAYS:
+            if weekday not in VALID_WEEKDAYS:
                 raise ValueError(f"Invalid weekday: {weekday}")
             return cls(type=MonthlyType.LAST_WEEKDAY, weekday=weekday)
 
@@ -72,7 +75,7 @@ class MonthlyPattern:
         if match:
             ordinal = int(match.group(1))
             weekday = match.group(3).lower()
-            if weekday not in cls.VALID_WEEKDAYS:
+            if weekday not in VALID_WEEKDAYS:
                 raise ValueError(f"Invalid weekday: {weekday}")
             return cls(type=MonthlyType.NTH_WEEKDAY, ordinal=ordinal, weekday=weekday)
 
@@ -110,11 +113,7 @@ class MonthlyPattern:
     @staticmethod
     def _weekday_to_num(weekday: str) -> int:
         """曜日文字列を数値（0=月曜, 6=日曜）に変換"""
-        mapping = {
-            "mon": 0, "tue": 1, "wed": 2, "thu": 3,
-            "fri": 4, "sat": 5, "sun": 6
-        }
-        return mapping.get(weekday.lower(), 0)
+        return ABBR_TO_WEEKDAY_NUM.get(weekday.lower(), 0)
 
 
 @dataclass
@@ -177,17 +176,15 @@ class EssaySchedule:
 
 
 # =============================================================================
-# ドメインエラー
+# 後方互換性のための再エクスポート（exceptions.py から移動済み）
+# 新規コードでは from domain.exceptions import ... を使用推奨
 # =============================================================================
 
-class DomainError(Exception):
-    """ドメイン層の基底例外"""
-    pass
-
-
-class ValidationError(DomainError):
-    """バリデーションエラー"""
-    pass
+# DomainError, ValidationError はファイル先頭でインポート済み
+__all__ = [
+    "MonthlyType", "MonthlyPattern", "EssaySchedule", "TargetTime",
+    "DomainError", "ValidationError",  # 後方互換性のため再エクスポート
+]
 
 
 @dataclass

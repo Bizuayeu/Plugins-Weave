@@ -3,6 +3,7 @@
 Yagmail メールアダプター
 
 yagmailライブラリを使用してメール送信を行う。
+MailError は domain.exceptions に移動済み。
 """
 from __future__ import annotations
 
@@ -10,10 +11,10 @@ import os
 
 import yagmail
 
+from domain.exceptions import MailError
 
-class MailError(Exception):
-    """メール操作エラー"""
-    pass
+# 後方互換性のため再エクスポート
+__all__ = ["YagmailAdapter", "MailError"]
 
 
 class YagmailAdapter:
