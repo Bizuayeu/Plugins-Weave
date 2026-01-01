@@ -1,5 +1,6 @@
 # tests/domain/test_validators.py
 """domain/validators.py のテスト"""
+
 import pytest
 
 from domain.validators import (

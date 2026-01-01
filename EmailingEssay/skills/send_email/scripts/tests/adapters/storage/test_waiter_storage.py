@@ -15,7 +15,9 @@ from unittest.mock import patch
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+)
 
 from adapters.storage.path_resolver import PathResolverAdapter
 from usecases.ports import WaiterStoragePort

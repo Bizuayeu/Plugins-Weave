@@ -168,7 +168,8 @@ class WaiterStorageAdapter:
         # 生存プロセスのみフィルタ（キャッシュ付き）
         # dictでないエントリは除外
         active_waiters = [
-            w for w in waiters
+            w
+            for w in waiters
             if isinstance(w, dict) and self._is_process_alive_cached(w.get("pid", 0))
         ]
 

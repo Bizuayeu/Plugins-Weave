@@ -5,6 +5,7 @@
 JSONデータの型安全な検証を提供する。
 cast()の代わりにTypeGuardを使用し、破損データの早期検出を実現。
 """
+
 from __future__ import annotations
 
 from typing import Any, TypeGuard
