@@ -49,6 +49,8 @@ class YagmailAdapter:
         self._sender = config.email.sender
         self._password = config.email.password
         self._recipient = config.email.recipient
+        # Stage 8: リトライポリシー設定化
+        self._max_retries = config.mail_retry_count
 
     def _render_html(self, content: str, title: str = "") -> str:
         """
@@ -80,7 +82,7 @@ class YagmailAdapter:
                 # 最終手段: 最小限のHTML
                 return f"<div>{content}</div>"
 
-    def send(self, to: str, subject: str, body: str, max_retries: int = 3) -> None:
+    def send(self, to: str, subject: str, body: str, max_retries: int | None = None) -> None:
         """
         メールを送信する（指数バックオフ付きリトライ）。
 
@@ -88,15 +90,20 @@ class YagmailAdapter:
             to: 送信先（空の場合はデフォルト受信者）
             subject: 件名
             body: 本文（HTML可）
-            max_retries: 最大リトライ回数（デフォルト3回）
+            max_retries: 最大リトライ回数（None時はConfig設定値を使用）
 
         Raises:
             MailError: 送信に失敗した場合
+
+        Stage 8: リトライポリシー設定化
+        デフォルトリトライ回数をConfigから読み込むよう変更
         """
         recipient = to if to else self._recipient
         last_error: Exception | None = None
+        # Stage 8: Configからのデフォルト値使用
+        retries = max_retries if max_retries is not None else self._max_retries
 
-        for attempt in range(max_retries):
+        for attempt in range(retries):
             try:
                 with yagmail.SMTP(self._sender, self._password) as yag:
                     yag.send(to=recipient, subject=subject, contents=body)
@@ -105,10 +112,10 @@ class YagmailAdapter:
             except (smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError, OSError) as e:
                 # 一時的なネットワーク障害はリトライ
                 last_error = e
-                if attempt < max_retries - 1:
+                if attempt < retries - 1:
                     wait_time = 2**attempt  # 1s, 2s, 4s
                     logger.warning(
-                        f"SMTP transient error, retry {attempt + 1}/{max_retries} in {wait_time}s: {e}"
+                        f"SMTP transient error, retry {attempt + 1}/{retries} in {wait_time}s: {e}"
                     )
                     time.sleep(wait_time)
             except smtplib.SMTPAuthenticationError as e:
@@ -119,7 +126,7 @@ class YagmailAdapter:
                 raise MailError(f"Failed to send email: {e}") from e
 
         # リトライ上限到達
-        raise MailError(f"Failed after {max_retries} retries: {last_error}")
+        raise MailError(f"Failed after {retries} retries: {last_error}")
 
     def test(self) -> None:
         """

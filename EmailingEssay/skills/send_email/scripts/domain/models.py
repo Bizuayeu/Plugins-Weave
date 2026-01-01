@@ -18,6 +18,30 @@ from .constants import ABBR_TO_WEEKDAY_NUM, VALID_WEEKDAYS
 from .exceptions import DomainError, ValidationError
 
 
+@dataclass
+class ScheduleConfig:
+    """
+    スケジュール設定を表すValue Object
+
+    ScheduleEssayUseCase.add() の9パラメータを1つのオブジェクトに集約し、
+    パラメータ蓄積問題を解消する。
+
+    Stage 1: パラメータ蓄積問題の解消
+    """
+
+    frequency: str  # "daily" | "weekly" | "monthly"
+    time_spec: str  # HH:MM 形式
+
+    # オプショナルパラメータ（デフォルト値あり）
+    weekday: str = ""  # 曜日（weekly用）
+    theme: str = ""  # エッセイテーマ
+    context_file: str = ""  # コンテキストファイルパス
+    file_list: str = ""  # ファイルリストパス
+    lang: str = ""  # 言語（ja, en, auto）
+    name: str = ""  # カスタムタスク名
+    day_spec: str = ""  # 月間パターン指定（monthly用）
+
+
 class MonthlyType(Enum):
     """月次スケジュールのタイプ"""
 
@@ -84,13 +108,20 @@ class MonthlyPattern:
 
         # date: "15", "5", "31" etc.
         if re.match(r"^\d+$", day_spec):
-            return cls(type=MonthlyType.DATE, day_num=int(day_spec))
+            day_num = int(day_spec)
+            # Stage 7: 入力バリデーション強化 - 日付範囲チェック
+            if day_num < 1 or day_num > 31:
+                raise ValueError(f"Invalid day of month: {day_num} (must be 1-31)")
+            return cls(type=MonthlyType.DATE, day_num=day_num)
 
         # nth_weekday: "1st_mon", "2nd_tue", "3rd_wed", "4th_thu", "5th_fri"
         match = re.match(r"^(\d+)(st|nd|rd|th)_(\w+)$", day_spec)
         if match:
             ordinal = int(match.group(1))
             weekday = match.group(3).lower()
+            # Stage 7: 入力バリデーション強化 - 序数範囲チェック
+            if ordinal < 1 or ordinal > 5:
+                raise ValueError(f"Invalid ordinal: {ordinal} (must be 1-5)")
             if weekday not in VALID_WEEKDAYS:
                 raise ValueError(f"Invalid weekday: {weekday}")
             return cls(type=MonthlyType.NTH_WEEKDAY, ordinal=ordinal, weekday=weekday)
@@ -195,6 +226,7 @@ __all__ = [
     "EssaySchedule",
     "MonthlyPattern",
     "MonthlyType",
+    "ScheduleConfig",  # Stage 1: パラメータ蓄積問題の解消
     "TargetTime",
     "ValidationError",  # 後方互換性のため再エクスポート
 ]

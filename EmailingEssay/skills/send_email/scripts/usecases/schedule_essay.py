@@ -13,8 +13,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from domain.code_generator import SafeCodeGenerator
 from domain.constants import WEEKDAYS_FULL
-from domain.models import MonthlyPattern
+from domain.models import MonthlyPattern, ScheduleConfig
 from frameworks.logging_config import get_logger
 
 from .command_builder import build_claude_command
@@ -57,9 +58,9 @@ class ScheduleEssayUseCase:
         day_spec: str = "",
     ) -> None:
         """
-        スケジュールを追加する。
+        スケジュールを追加する（後方互換性維持のためのラッパー）。
 
-        トランザクション的に動作し、途中で失敗した場合はロールバックする。
+        内部でScheduleConfigを作成してadd_from_config()に委譲する。
 
         Args:
             frequency: daily, weekly, monthly
@@ -72,15 +73,43 @@ class ScheduleEssayUseCase:
             name: カスタムタスク名
             day_spec: 月間パターン指定（monthly用）
         """
+        config = ScheduleConfig(
+            frequency=frequency,
+            time_spec=time_spec,
+            weekday=weekday,
+            theme=theme,
+            context_file=context_file,
+            file_list=file_list,
+            lang=lang,
+            name=name,
+            day_spec=day_spec,
+        )
+        self.add_from_config(config)
+
+    def add_from_config(self, config: ScheduleConfig) -> None:
+        """
+        ScheduleConfigを使用してスケジュールを追加する。
+
+        トランザクション的に動作し、途中で失敗した場合はロールバックする。
+
+        Args:
+            config: スケジュール設定を含むScheduleConfig
+
+        Stage 1: パラメータ蓄積問題の解消
+        """
         # バリデーション
-        self._validate_frequency(frequency)
-        self._validate_weekday(frequency, weekday)
-        monthly_type = self._validate_day_spec(frequency, day_spec)
-        self._validate_time(time_spec)
+        self._validate_frequency(config.frequency)
+        self._validate_weekday(config.frequency, config.weekday)
+        monthly_type = self._validate_day_spec(config.frequency, config.day_spec)
+        self._validate_time(config.time_spec)
 
         # タスク名生成
-        task_name = self._generate_task_name(frequency, time_spec, theme, name, day_spec)
-        command = build_claude_command(theme, context_file, file_list, lang)
+        task_name = self._generate_task_name(
+            config.frequency, config.time_spec, config.theme, config.name, config.day_spec
+        )
+        command = build_claude_command(
+            config.theme, config.context_file, config.file_list, config.lang
+        )
 
         # トランザクション的に実行
         scheduler_registered = False
@@ -90,10 +119,10 @@ class ScheduleEssayUseCase:
             self._create_os_schedule(
                 task_name,
                 command,
-                frequency,
-                time_spec,
-                weekday=weekday,
-                day_spec=day_spec,
+                config.frequency,
+                config.time_spec,
+                weekday=config.weekday,
+                day_spec=config.day_spec,
                 monthly_type=monthly_type,
             )
             scheduler_registered = True
@@ -101,28 +130,28 @@ class ScheduleEssayUseCase:
             # Step 2: JSONバックアップに保存
             self._save_schedule_entry(
                 task_name,
-                frequency,
-                time_spec,
-                weekday,
-                theme,
-                context_file,
-                file_list,
-                lang,
-                day_spec,
+                config.frequency,
+                config.time_spec,
+                config.weekday,
+                config.theme,
+                config.context_file,
+                config.file_list,
+                config.lang,
+                config.day_spec,
                 monthly_type,
             )
 
             # Step 3: 確認メッセージ
             self._print_confirmation(
                 task_name,
-                frequency,
-                time_spec,
-                weekday,
-                theme,
-                context_file,
-                file_list,
-                lang,
-                day_spec,
+                config.frequency,
+                config.time_spec,
+                config.weekday,
+                config.theme,
+                config.context_file,
+                config.file_list,
+                config.lang,
+                config.day_spec,
             )
 
         except Exception:
@@ -307,7 +336,7 @@ class ScheduleEssayUseCase:
             template,
             task_name=task_name,
             condition_code=condition_code,
-            command=command.replace("\\", "\\\\").replace('"', '\\"'),
+            command=SafeCodeGenerator.escape_for_python_string(command),
         )
 
         with open(runner_path, "w", encoding="utf-8") as f:

@@ -19,6 +19,8 @@ from typing import Any, cast
 
 from usecases.ports import ScheduleEntry, WaiterEntry
 
+from .process_cache import ProcessAlivenessCache
+
 PERSISTENT_DIR_NAME = ".emailingessay"
 
 # バックアップ作成の閾値
@@ -27,6 +29,7 @@ BACKUP_TIME_THRESHOLD = 3600  # 1時間以上経過でバックアップ
 
 # プロセス生存チェックのキャッシュTTL
 PROCESS_CACHE_TTL = 5.0  # 5秒
+PROCESS_CLEANUP_INTERVAL = 60.0  # 60秒
 
 # モジュールロガー
 logger = logging.getLogger('emailingessay.storage')
@@ -41,8 +44,11 @@ class JsonStorageAdapter:
             base_dir: 基底ディレクトリ（テスト用）。Noneの場合はデフォルトを使用
         """
         self._base_dir = Path(base_dir) if base_dir else None
-        # プロセス生存チェックのキャッシュ: {pid: (is_alive, timestamp)}
-        self._process_cache: dict[int, tuple[bool, float]] = {}
+        # プロセス生存チェックのキャッシュ（Stage 3: ProcessAlivenessCache抽出）
+        self._process_cache = ProcessAlivenessCache(
+            ttl=PROCESS_CACHE_TTL,
+            cleanup_interval=PROCESS_CLEANUP_INTERVAL,
+        )
 
     def get_persistent_dir(self) -> str:
         """永続化ディレクトリのパスを取得（なければ作成）"""
@@ -242,51 +248,21 @@ class JsonStorageAdapter:
         except (OSError, PermissionError):
             return False
 
-    def _cleanup_dead_processes(self) -> None:
-        """
-        死亡プロセスをキャッシュから削除する。
-
-        メモリリーク防止のため、定期的に呼び出す。
-        """
-        self._process_cache = {
-            pid: (alive, ts)
-            for pid, (alive, ts) in self._process_cache.items()
-            if self._is_process_alive(pid)
-        }
-
     def _is_process_alive_cached(self, pid: int) -> bool:
         """
         プロセス生存チェック（キャッシュ付き）。
 
-        TTL（5秒）以内の結果はキャッシュから返す。
-        60秒ごとに死亡プロセスをクリーンアップする。
+        ProcessAlivnessCacheに委譲する。
 
         Args:
             pid: プロセスID
 
         Returns:
             プロセスが存在する場合はTrue
+
+        Stage 3: ProcessAlivenessCache抽出
         """
-        now = time.time()
-
-        # キャッシュ確認（クリーンアップ前に行う）
-        if pid in self._process_cache:
-            is_alive, timestamp = self._process_cache[pid]
-            if now - timestamp < PROCESS_CACHE_TTL:
-                return is_alive
-
-        # 60秒ごとにクリーンアップ（初回は現在時刻で初期化）
-        if not hasattr(self, '_last_cleanup'):
-            self._last_cleanup = now
-        elif now - self._last_cleanup > 60.0:
-            self._cleanup_dead_processes()
-            self._last_cleanup = now
-
-        # キャッシュミス: 実際にチェック
-        is_alive = self._is_process_alive(pid)
-        self._process_cache[pid] = (is_alive, now)
-
-        return is_alive
+        return self._process_cache.is_alive(pid, self._is_process_alive)
 
     def register_waiter(self, pid: int, target_time: str, theme: str) -> None:
         """

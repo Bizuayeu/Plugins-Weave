@@ -176,6 +176,46 @@ class TestMonthlyPattern:
         with pytest.raises(ValueError):
             MonthlyPattern.parse("5th_xyz")  # xyzは有効な曜日ではない
 
+    # =========================================================================
+    # Stage 7: 入力バリデーション強化テスト
+    # =========================================================================
+
+    def test_parse_day_num_out_of_range_zero(self):
+        """日付0でValueError（Stage 7: 入力バリデーション強化）"""
+        with pytest.raises(ValueError, match="day"):
+            MonthlyPattern.parse("0")
+
+    def test_parse_day_num_out_of_range_32(self):
+        """日付32でValueError（Stage 7: 入力バリデーション強化）"""
+        with pytest.raises(ValueError, match="day"):
+            MonthlyPattern.parse("32")
+
+    def test_parse_day_num_valid_range_1(self):
+        """日付1は有効（Stage 7: 入力バリデーション強化）"""
+        result = MonthlyPattern.parse("1")
+        assert result.day_num == 1
+
+    def test_parse_day_num_valid_range_31(self):
+        """日付31は有効（Stage 7: 入力バリデーション強化）"""
+        result = MonthlyPattern.parse("31")
+        assert result.day_num == 31
+
+    def test_parse_ordinal_out_of_range_zero(self):
+        """序数0でValueError（Stage 7: 入力バリデーション強化）"""
+        with pytest.raises(ValueError, match="ordinal"):
+            MonthlyPattern.parse("0th_mon")
+
+    def test_parse_ordinal_out_of_range_6(self):
+        """序数6でValueError（Stage 7: 入力バリデーション強化）"""
+        with pytest.raises(ValueError, match="ordinal"):
+            MonthlyPattern.parse("6th_mon")
+
+    def test_parse_ordinal_valid_range_5(self):
+        """序数5は有効（Stage 7: 入力バリデーション強化）"""
+        result = MonthlyPattern.parse("5th_fri")
+        assert result.ordinal == 5
+        assert result.weekday == "fri"
+
     def test_generate_condition_code_date(self):
         """generate_condition_code() for DATE"""
         pattern = MonthlyPattern(type=MonthlyType.DATE, day_num=15)
@@ -275,3 +315,90 @@ class TestTargetTime:
         code = target.generate_parsing_code()
         # 構文エラーがなく実行可能
         exec(f"from datetime import datetime, timedelta\n{code}")
+
+
+class TestScheduleConfig:
+    """ScheduleConfig Value Object のテスト（Stage 1: パラメータ蓄積問題の解消）"""
+
+    def test_create_daily_config(self):
+        """日次スケジュール設定の作成"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(
+            frequency="daily",
+            time_spec="09:00",
+            theme="朝の振り返り",
+        )
+        assert config.frequency == "daily"
+        assert config.time_spec == "09:00"
+        assert config.theme == "朝の振り返り"
+
+    def test_create_weekly_config(self):
+        """週次スケジュール設定の作成"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(
+            frequency="weekly",
+            time_spec="10:00",
+            weekday="monday",
+        )
+        assert config.frequency == "weekly"
+        assert config.weekday == "monday"
+
+    def test_create_monthly_config(self):
+        """月次スケジュール設定の作成"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(
+            frequency="monthly",
+            time_spec="15:00",
+            day_spec="last_fri",
+        )
+        assert config.frequency == "monthly"
+        assert config.day_spec == "last_fri"
+
+    def test_default_values(self):
+        """デフォルト値の確認"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="daily", time_spec="12:00")
+        assert config.theme == ""
+        assert config.context_file == ""
+        assert config.file_list == ""
+        assert config.lang == ""
+        assert config.weekday == ""
+        assert config.day_spec == ""
+        assert config.name == ""
+
+    def test_all_parameters(self):
+        """全パラメータを指定"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(
+            frequency="monthly",
+            time_spec="22:00",
+            weekday="",
+            theme="月次振り返り",
+            context_file="/path/to/context.md",
+            file_list="/path/to/files.txt",
+            lang="ja",
+            name="custom_name",
+            day_spec="15",
+        )
+        assert config.frequency == "monthly"
+        assert config.time_spec == "22:00"
+        assert config.theme == "月次振り返り"
+        assert config.context_file == "/path/to/context.md"
+        assert config.file_list == "/path/to/files.txt"
+        assert config.lang == "ja"
+        assert config.name == "custom_name"
+        assert config.day_spec == "15"
+
+    def test_immutable_like_behavior(self):
+        """dataclassとしての動作確認（frozen=Falseでも実質的に値オブジェクト）"""
+        from domain.models import ScheduleConfig
+
+        config1 = ScheduleConfig(frequency="daily", time_spec="09:00")
+        config2 = ScheduleConfig(frequency="daily", time_spec="09:00")
+        # dataclassは同じ値なら等価
+        assert config1 == config2

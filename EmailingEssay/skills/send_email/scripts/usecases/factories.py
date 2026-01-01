@@ -5,6 +5,10 @@
 依存性注入を行い、ユースケースを生成する。
 main.py や便利関数から使用される。
 AdapterRegistryによるシングルトンパターンを提供。
+
+Stage 5: 型安全なファクトリー改善
+- Protocol準拠検証テストを追加
+- cast()の使用を最小限に
 """
 
 from __future__ import annotations
@@ -83,7 +87,13 @@ def get_mail_adapter() -> MailPort:
 
 
 def get_scheduler() -> SchedulerPort:
-    """プラットフォームに応じたスケジューラを取得する（シングルトン）"""
+    """
+    プラットフォームに応じたスケジューラを取得する（シングルトン）。
+
+    Note:
+        Stage 5: cast()はBaseSchedulerAdapter→SchedulerPortの変換に必要。
+        Protocol準拠はTestProtocolConformance.test_scheduler_conforms_to_protocol()で検証済み。
+    """
     from adapters.scheduler import get_scheduler as _get_scheduler
 
     return cast("SchedulerPort", AdapterRegistry.get_or_create("scheduler", _get_scheduler))

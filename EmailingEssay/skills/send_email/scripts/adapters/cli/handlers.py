@@ -11,12 +11,13 @@ from __future__ import annotations
 from argparse import Namespace
 from collections.abc import Callable
 
-from domain.config import Config
 from usecases.factories import (
     create_schedule_usecase,
     create_wait_usecase,
     get_mail_adapter,
 )
+
+from .decorators import validate_config
 
 # ハンドラ型: argsを受け取り、終了コードを返す
 Handler = Callable[[Namespace], int]
@@ -27,29 +28,17 @@ Handler = Callable[[Namespace], int]
 # =============================================================================
 
 
+@validate_config
 def handle_test(args: Namespace) -> int:
     """テストメール送信"""
-    config = Config.load()
-    errors = config.validate()
-    if errors:
-        for err in errors:
-            print(f"Error: {err}")
-        return 1
-
     mail = get_mail_adapter()
     mail.test()
     return 0
 
 
+@validate_config
 def handle_send(args: Namespace) -> int:
     """カスタムメール送信"""
-    config = Config.load()
-    errors = config.validate()
-    if errors:
-        for err in errors:
-            print(f"Error: {err}")
-        return 1
-
     mail = get_mail_adapter()
     mail.send_custom(args.subject, args.body)
     return 0

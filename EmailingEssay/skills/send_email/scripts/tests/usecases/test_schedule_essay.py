@@ -338,3 +338,99 @@ class TestScheduleEssayUseCaseRollback:
         # 元の例外（PermissionError）が発生する
         with pytest.raises(PermissionError):
             usecase.add(frequency="daily", time_spec="12:00", theme="double_fail")
+
+
+class TestScheduleEssayUseCaseWithConfig:
+    """ScheduleConfigを使用したadd()メソッドのテスト（Stage 1: パラメータ蓄積問題の解消）"""
+
+    @pytest.fixture
+    def mock_scheduler(self):
+        return Mock()
+
+    @pytest.fixture
+    def mock_schedule_storage(self):
+        storage = Mock()
+        storage.load_schedules.return_value = []
+        return storage
+
+    @pytest.fixture
+    def mock_path_resolver(self, tmp_path):
+        resolver = Mock()
+        runners_dir = tmp_path / "runners"
+        runners_dir.mkdir(exist_ok=True)
+        resolver.get_runners_dir.return_value = str(runners_dir)
+        return resolver
+
+    @pytest.fixture
+    def usecase(self, mock_scheduler, mock_schedule_storage, mock_path_resolver):
+        return ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
+
+    def test_add_from_config_daily(self, usecase, mock_scheduler, mock_schedule_storage):
+        """ScheduleConfigで日次スケジュールを追加"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="daily", time_spec="09:00", theme="daily config test")
+        usecase.add_from_config(config)
+        mock_scheduler.add.assert_called_once()
+        mock_schedule_storage.save_schedules.assert_called_once()
+
+    def test_add_from_config_weekly(self, usecase, mock_scheduler):
+        """ScheduleConfigで週次スケジュールを追加"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(
+            frequency="weekly", time_spec="10:00", weekday="monday", theme="weekly config test"
+        )
+        usecase.add_from_config(config)
+        mock_scheduler.add.assert_called_once()
+
+    def test_add_from_config_monthly(self, usecase, mock_scheduler):
+        """ScheduleConfigで月次スケジュールを追加"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(
+            frequency="monthly", time_spec="15:00", day_spec="15", theme="monthly config test"
+        )
+        usecase.add_from_config(config)
+        mock_scheduler.add.assert_called_once()
+
+    def test_add_from_config_with_all_options(self, usecase, mock_scheduler, mock_schedule_storage):
+        """ScheduleConfigで全オプション指定"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(
+            frequency="daily",
+            time_spec="22:00",
+            theme="全オプションテスト",
+            context_file="/path/to/context.md",
+            file_list="/path/to/files.txt",
+            lang="ja",
+            name="custom_task_name",
+        )
+        usecase.add_from_config(config)
+        mock_scheduler.add.assert_called_once()
+        mock_schedule_storage.save_schedules.assert_called_once()
+
+    def test_add_from_config_invalid_frequency(self, usecase):
+        """ScheduleConfigで無効な頻度はエラー"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="hourly", time_spec="09:00")
+        with pytest.raises(ValueError, match="frequency must be"):
+            usecase.add_from_config(config)
+
+    def test_add_from_config_weekly_without_weekday(self, usecase):
+        """ScheduleConfigで週次・曜日なしはエラー"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="weekly", time_spec="10:00")
+        with pytest.raises(ValueError, match="weekday"):
+            usecase.add_from_config(config)
+
+    def test_add_from_config_monthly_without_day_spec(self, usecase):
+        """ScheduleConfigで月次・day_specなしはエラー"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="monthly", time_spec="10:00")
+        with pytest.raises(ValueError, match="day_spec"):
+            usecase.add_from_config(config)

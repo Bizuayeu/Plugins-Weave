@@ -35,6 +35,8 @@ class Config:
     email: EmailConfig
     log_json: bool = False
     log_level: str = "INFO"
+    # Stage 8: リトライポリシー設定化
+    mail_retry_count: int = 3  # デフォルト3回
 
     # シングルトンインスタンス
     _instance: ClassVar[Config | None] = None
@@ -63,6 +65,12 @@ class Config:
             cls._load_env_file(env_file)
 
         # 環境変数から設定を構築
+        retry_count_str = os.environ.get("ESSAY_MAIL_RETRY_COUNT", "3")
+        try:
+            retry_count = int(retry_count_str)
+        except ValueError:
+            retry_count = 3
+
         cls._instance = cls(
             email=EmailConfig(
                 sender=os.environ.get("ESSAY_SENDER_EMAIL", ""),
@@ -71,6 +79,8 @@ class Config:
             ),
             log_json=os.environ.get("ESSAY_LOG_JSON", "").lower() == "true",
             log_level=os.environ.get("ESSAY_LOG_LEVEL", "INFO"),
+            # Stage 8: リトライポリシー設定化
+            mail_retry_count=retry_count,
         )
         return cls._instance
 

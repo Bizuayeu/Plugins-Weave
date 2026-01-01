@@ -3,6 +3,7 @@
 factories.py のテスト
 
 ファクトリ関数のテスト。
+Stage 5: Protocol準拠検証テストを追加。
 """
 
 import os
@@ -11,6 +12,74 @@ from unittest.mock import Mock, patch
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from usecases.ports import (
+    MailPort,
+    PathResolverPort,
+    ProcessSpawnerPort,
+    SchedulerPort,
+    ScheduleStoragePort,
+    WaiterStoragePort,
+)
+
+
+# =============================================================================
+# Stage 5: Protocol準拠テスト
+# =============================================================================
+
+
+class TestProtocolConformance:
+    """アダプターがProtocolに準拠していることを検証するテスト"""
+
+    def test_scheduler_conforms_to_protocol(self):
+        """スケジューラアダプターがSchedulerPortに準拠する"""
+        from adapters.scheduler import get_scheduler
+
+        scheduler = get_scheduler()
+        assert isinstance(scheduler, SchedulerPort)
+
+    def test_storage_conforms_to_schedule_storage_protocol(self):
+        """JsonStorageAdapterがScheduleStoragePortに準拠する"""
+        from adapters.storage import JsonStorageAdapter
+
+        storage = JsonStorageAdapter()
+        assert isinstance(storage, ScheduleStoragePort)
+
+    def test_storage_conforms_to_waiter_storage_protocol(self):
+        """JsonStorageAdapterがWaiterStoragePortに準拠する"""
+        from adapters.storage import JsonStorageAdapter
+
+        storage = JsonStorageAdapter()
+        assert isinstance(storage, WaiterStoragePort)
+
+    def test_storage_conforms_to_path_resolver_protocol(self):
+        """JsonStorageAdapterがPathResolverPortに準拠する"""
+        from adapters.storage import JsonStorageAdapter
+
+        storage = JsonStorageAdapter()
+        assert isinstance(storage, PathResolverPort)
+
+    def test_spawner_conforms_to_protocol(self):
+        """ProcessSpawnerがProcessSpawnerPortに準拠する"""
+        from adapters.process import ProcessSpawner
+
+        spawner = ProcessSpawner()
+        assert isinstance(spawner, ProcessSpawnerPort)
+
+    def test_mail_adapter_conforms_to_protocol(self):
+        """YagmailAdapterがMailPortに準拠する（設定不要でインスタンス化テスト）"""
+        # YagmailAdapterは設定が必要なので、クラス定義レベルでチェック
+        from adapters.mail import YagmailAdapter
+
+        # メソッド存在確認（インスタンス化せずにProtocol準拠を確認）
+        assert hasattr(YagmailAdapter, 'send')
+        assert hasattr(YagmailAdapter, 'test')
+        assert hasattr(YagmailAdapter, 'send_custom')
+
+
+# =============================================================================
+# 既存テスト
+# =============================================================================
 
 
 class TestCreateWaitUsecase:

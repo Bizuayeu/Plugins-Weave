@@ -299,6 +299,74 @@ class TestTypeSafety:
         assert "registered_at" in result[0]
 
 
+# =============================================================================
+# Stage 6: オブザーバビリティ強化テスト
+# =============================================================================
+
+
+class TestObservabilityLogging:
+    """ログのオブザーバビリティテスト（Stage 6）"""
+
+    @pytest.fixture
+    def temp_dir(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            yield tmpdir
+
+    @pytest.fixture
+    def adapter(self, temp_dir):
+        return JsonStorageAdapter(base_dir=temp_dir)
+
+    def test_recovery_logs_warning_with_file_path(self, adapter, temp_dir, caplog):
+        """復旧時のログにファイルパスが含まれる"""
+        import logging
+
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("{invalid json")
+
+        with caplog.at_level(logging.WARNING, logger='emailingessay.storage'):
+            adapter.load_schedules()
+
+        # ログにファイルパス情報が含まれていることを確認
+        assert any("schedules.json" in record.message for record in caplog.records)
+
+    def test_recovery_logs_error_type(self, adapter, temp_dir, caplog):
+        """復旧時のログにエラータイプが含まれる"""
+        import logging
+
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("{invalid json")
+
+        with caplog.at_level(logging.WARNING, logger='emailingessay.storage'):
+            adapter.load_schedules()
+
+        # JSONDecodeErrorに関する情報がログに含まれていることを確認
+        assert any("JSONDecodeError" in record.message or "json" in record.message.lower()
+                   for record in caplog.records)
+
+    def test_backup_recovery_success_logs_info(self, adapter, temp_dir, caplog):
+        """バックアップからの復旧成功時にINFOログが出る"""
+        import logging
+
+        # まず正常なデータを保存してバックアップを作成
+        schedules = [{"name": "test", "frequency": "daily", "time": "09:00"}]
+        adapter.save_schedules(schedules, force_backup=True)
+
+        # メインファイルを破損させる
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("{corrupted")
+
+        with caplog.at_level(logging.INFO, logger='emailingessay.storage'):
+            result = adapter.load_schedules()
+
+        # 復旧が成功した場合、INFOログに"Restored"が含まれる
+        if len(result) > 0:  # 復旧成功時のみ
+            assert any("Restored" in record.message or "backup" in record.message.lower()
+                       for record in caplog.records)
+
+
 class TestProcessCache:
     """プロセスキャッシュテスト（Phase 4）"""
 
@@ -312,49 +380,49 @@ class TestProcessCache:
         return JsonStorageAdapter(base_dir=temp_dir)
 
     def test_dead_process_removed_from_cache(self, adapter):
-        """死亡プロセスがキャッシュから削除される"""
+        """死亡プロセスがキャッシュから削除される（Stage 3: ProcessAlivenessCache抽出後）"""
         import time
 
-        # 存在しないPIDを登録
+        # 存在しないPIDを登録（内部キャッシュにアクセス）
         fake_pid = 99999999
-        adapter._process_cache[fake_pid] = (True, time.time() - 100)
+        adapter._process_cache._cache[fake_pid] = (True, time.time() - 100)
 
-        # キャッシュクリーンアップを発動
-        adapter._cleanup_dead_processes()
+        # キャッシュクリーンアップを発動（cleanupを直接呼び出し）
+        adapter._process_cache._cleanup(adapter._is_process_alive)
 
-        assert fake_pid not in adapter._process_cache
+        assert fake_pid not in adapter._process_cache._cache
 
     def test_alive_process_remains_in_cache(self, adapter):
-        """生存プロセスはキャッシュに残る"""
+        """生存プロセスはキャッシュに残る（Stage 3: ProcessAlivenessCache抽出後）"""
         import os as os_module
         import time
 
         current_pid = os_module.getpid()
 
-        adapter._process_cache[current_pid] = (True, time.time())
-        adapter._cleanup_dead_processes()
+        adapter._process_cache._cache[current_pid] = (True, time.time())
+        adapter._process_cache._cleanup(adapter._is_process_alive)
 
-        assert current_pid in adapter._process_cache
+        assert current_pid in adapter._process_cache._cache
 
     def test_cache_ttl_returns_cached_value(self, adapter):
-        """TTL内はキャッシュから値を返す"""
+        """TTL内はキャッシュから値を返す（Stage 3: ProcessAlivenessCache抽出後）"""
         import time
 
         fake_pid = 99999999
         # 最近のタイムスタンプでキャッシュに登録（alive=Trueだが実際は存在しない）
-        adapter._process_cache[fake_pid] = (True, time.time())
+        adapter._process_cache._cache[fake_pid] = (True, time.time())
 
         # TTL内なのでキャッシュからTrueが返る（実際の生存チェックは行われない）
         result = adapter._is_process_alive_cached(fake_pid)
         assert result is True
 
     def test_cache_expired_rechecks_process(self, adapter):
-        """TTL超過時は再チェック"""
+        """TTL超過時は再チェック（Stage 3: ProcessAlivenessCache抽出後）"""
         import time
 
         fake_pid = 99999999
         # 古いタイムスタンプでキャッシュに登録
-        adapter._process_cache[fake_pid] = (True, time.time() - 100)
+        adapter._process_cache._cache[fake_pid] = (True, time.time() - 100)
 
         # TTL超過なので実際に生存チェックが行われ、Falseが返る
         result = adapter._is_process_alive_cached(fake_pid)

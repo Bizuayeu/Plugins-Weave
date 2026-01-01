@@ -125,6 +125,57 @@ class TestYagmailAdapter:
         mock_yagmail.SMTP.return_value.__exit__.assert_called_once()
 
 
+# =============================================================================
+# Stage 8: リトライポリシー設定化テスト
+# =============================================================================
+
+
+class TestRetryPolicyConfiguration:
+    """リトライポリシー設定のテスト（Stage 8）"""
+
+    def test_config_has_mail_retry_count(self, monkeypatch):
+        """Configにmail_retry_countが存在する"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@example.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "password")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@example.com")
+
+        Config.reset()
+        config = Config.load()
+
+        # デフォルト値は3
+        assert hasattr(config, 'mail_retry_count')
+        assert config.mail_retry_count == 3
+
+    def test_config_reads_retry_count_from_env(self, monkeypatch):
+        """環境変数からリトライ回数を読み込む"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@example.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "password")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@example.com")
+        monkeypatch.setenv("ESSAY_MAIL_RETRY_COUNT", "5")
+
+        Config.reset()
+        config = Config.load()
+
+        assert config.mail_retry_count == 5
+
+    def test_adapter_uses_configured_retry_count(self, monkeypatch):
+        """アダプターがConfigからリトライ回数を読み込む"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@example.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "password")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@example.com")
+        monkeypatch.setenv("ESSAY_MAIL_RETRY_COUNT", "5")
+
+        Config.reset()
+        adapter = YagmailAdapter()
+
+        assert adapter._max_retries == 5
+
+
+# =============================================================================
+# 既存テスト
+# =============================================================================
+
+
 class TestYagmailAdapterWithConfig:
     """Config統合テスト（Phase 5）"""
 
