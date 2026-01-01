@@ -9,6 +9,7 @@ Plugin enabling AI to proactively deliver essays born from genuine reflection.
 - [File Structure](#file-structure)
 - [Clean Architecture Details](#clean-architecture-details)
 - [Execution Flow](#execution-flow)
+- [Why Subagent Architecture?](#why-subagent-architecture)
 - [Component Roles](#component-roles)
 - [Execution Modes](#execution-modes)
 - [Extension Points](#extension-points)
@@ -137,6 +138,18 @@ User → /essay command → essay_writer.md agent
 ```
 
 For reflection details, see `skills/reflect/SKILL.md` → **Reflection Process** section.
+
+---
+
+## Why Subagent Architecture?
+
+The `/essay` command delegates to `essay_writer.md` agent via Task tool for:
+
+1. **Context Isolation**: Agent runs in its own context, preserving parent conversation's token budget
+2. **Async Execution**: Can run in background with `run_in_background: true`
+3. **Modularity**: Same agent can be invoked from multiple triggers (command, schedule, external)
+
+This wrapper pattern (`command → agent`) is intentional — the command handles user interface concerns while the agent focuses purely on the reflection-writing workflow.
 
 ---
 

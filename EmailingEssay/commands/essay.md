@@ -19,6 +19,8 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 
 ## Architecture
 
+This command is a wrapper for `agents/essay_writer.md`. The actual reflection and writing logic is delegated to the subagent via Task tool. For design rationale, see `CLAUDE.md` → **Why Subagent Architecture?** section.
+
 Execution flow for each mode:
 
 | Mode | Execution Flow |
