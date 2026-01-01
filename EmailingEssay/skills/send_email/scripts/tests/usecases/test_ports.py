@@ -62,29 +62,31 @@ class TestPathResolverPort:
         assert hasattr(PathResolverPort, 'get_runners_dir')
 
 
-class TestJsonStorageAdapterImplementsAllPorts:
-    """JsonStorageAdapterが全Protocolを実装しているかテスト"""
+class TestStorageAdaptersImplementPorts:
+    """各ストレージアダプターがProtocolを実装しているかテスト"""
 
-    def test_implements_schedule_storage(self, tmp_path):
-        """ScheduleStoragePortを実装"""
-        from adapters.storage import JsonStorageAdapter
+    def test_schedule_storage_implements_protocol(self, tmp_path):
+        """ScheduleStorageAdapterがScheduleStoragePortを実装"""
+        from adapters.storage import PathResolverAdapter, ScheduleStorageAdapter
         from usecases.ports import ScheduleStoragePort
 
-        adapter = JsonStorageAdapter(base_dir=str(tmp_path))
+        path_resolver = PathResolverAdapter(base_dir=str(tmp_path))
+        adapter = ScheduleStorageAdapter(path_resolver)
         assert isinstance(adapter, ScheduleStoragePort)
 
-    def test_implements_waiter_storage(self, tmp_path):
-        """WaiterStoragePortを実装"""
-        from adapters.storage import JsonStorageAdapter
+    def test_waiter_storage_implements_protocol(self, tmp_path):
+        """WaiterStorageAdapterがWaiterStoragePortを実装"""
+        from adapters.storage import PathResolverAdapter, WaiterStorageAdapter
         from usecases.ports import WaiterStoragePort
 
-        adapter = JsonStorageAdapter(base_dir=str(tmp_path))
+        path_resolver = PathResolverAdapter(base_dir=str(tmp_path))
+        adapter = WaiterStorageAdapter(path_resolver)
         assert isinstance(adapter, WaiterStoragePort)
 
-    def test_implements_path_resolver(self, tmp_path):
-        """PathResolverPortを実装"""
-        from adapters.storage import JsonStorageAdapter
+    def test_path_resolver_implements_protocol(self, tmp_path):
+        """PathResolverAdapterがPathResolverPortを実装"""
+        from adapters.storage import PathResolverAdapter
         from usecases.ports import PathResolverPort
 
-        adapter = JsonStorageAdapter(base_dir=str(tmp_path))
+        adapter = PathResolverAdapter(base_dir=str(tmp_path))
         assert isinstance(adapter, PathResolverPort)

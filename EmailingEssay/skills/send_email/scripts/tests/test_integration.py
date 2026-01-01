@@ -205,16 +205,17 @@ class TestE2EScenarios:
         """スケジュール追加→一覧→削除のサイクル（Mock使用）"""
         from unittest.mock import Mock
 
-        from adapters.storage.json_adapter import JsonStorageAdapter
+        from adapters.storage import PathResolverAdapter, ScheduleStorageAdapter
         from usecases.schedule_essay import ScheduleEssayUseCase
 
         # 実際のストレージを使用、スケジューラはMock
-        storage = JsonStorageAdapter(base_dir=str(tmp_path))
+        path_resolver = PathResolverAdapter(base_dir=str(tmp_path))
+        storage = ScheduleStorageAdapter(path_resolver)
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        # 分離Port対応: storageはScheduleStoragePortとPathResolverPort両方を実装
-        usecase = ScheduleEssayUseCase(scheduler, storage, storage)
+        # Stage 5: 責務分離後のPort注入
+        usecase = ScheduleEssayUseCase(scheduler, storage, path_resolver)
 
         # Step 1: Add
         usecase.add(frequency="daily", time_spec="09:00", theme="e2e_test")
@@ -224,7 +225,7 @@ class TestE2EScenarios:
         scheduler.add.assert_called_once()
 
         # Step 2: List (verify persistence)
-        storage2 = JsonStorageAdapter(base_dir=str(tmp_path))
+        storage2 = ScheduleStorageAdapter(path_resolver)
         schedules2 = storage2.load_schedules()
         assert len(schedules2) == 1
 
@@ -237,12 +238,13 @@ class TestE2EScenarios:
 
     def test_json_corruption_recovery_e2e(self, tmp_path):
         """JSON破損からの復旧シナリオ"""
-        from adapters.storage.json_adapter import JsonStorageAdapter
+        from adapters.storage import PathResolverAdapter, ScheduleStorageAdapter
 
-        storage = JsonStorageAdapter(base_dir=str(tmp_path))
+        path_resolver = PathResolverAdapter(base_dir=str(tmp_path))
+        storage = ScheduleStorageAdapter(path_resolver)
 
-        # Step 1: 正常なデータを保存
-        storage.save_schedules([{"name": "test1", "frequency": "daily"}])
+        # Step 1: 正常なデータを保存（必須フィールド: name, frequency, time）
+        storage.save_schedules([{"name": "test1", "frequency": "daily", "time": "22:00"}])
         assert len(storage.load_schedules()) == 1
 
         # Step 2: JSONを破損させる
@@ -254,7 +256,7 @@ class TestE2EScenarios:
         assert schedules == []
 
         # Step 4: 新しいデータを保存（正常動作に戻る）
-        storage.save_schedules([{"name": "test2", "frequency": "weekly"}])
+        storage.save_schedules([{"name": "test2", "frequency": "weekly", "time": "23:00"}])
         assert len(storage.load_schedules()) == 1
         assert storage.load_schedules()[0]["name"] == "test2"
 
@@ -310,15 +312,16 @@ class TestE2EScenarios:
         """複数スケジュールの連携テスト（Item 7追加）"""
         from unittest.mock import Mock
 
-        from adapters.storage.json_adapter import JsonStorageAdapter
+        from adapters.storage import PathResolverAdapter, ScheduleStorageAdapter
         from usecases.schedule_essay import ScheduleEssayUseCase
 
-        storage = JsonStorageAdapter(base_dir=str(tmp_path))
+        path_resolver = PathResolverAdapter(base_dir=str(tmp_path))
+        storage = ScheduleStorageAdapter(path_resolver)
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        # 分離Port対応: storageはScheduleStoragePortとPathResolverPort両方を実装
-        usecase = ScheduleEssayUseCase(scheduler, storage, storage)
+        # Stage 5: 責務分離後のPort注入
+        usecase = ScheduleEssayUseCase(scheduler, storage, path_resolver)
 
         # Step 1: 3つのスケジュールを追加
         usecase.add(frequency="daily", time_spec="09:00", theme="schedule_1")
@@ -347,15 +350,16 @@ class TestE2EScenarios:
         """スケジュール更新（上書き）テスト（Item 7追加）"""
         from unittest.mock import Mock
 
-        from adapters.storage.json_adapter import JsonStorageAdapter
+        from adapters.storage import PathResolverAdapter, ScheduleStorageAdapter
         from usecases.schedule_essay import ScheduleEssayUseCase
 
-        storage = JsonStorageAdapter(base_dir=str(tmp_path))
+        path_resolver = PathResolverAdapter(base_dir=str(tmp_path))
+        storage = ScheduleStorageAdapter(path_resolver)
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        # 分離Port対応: storageはScheduleStoragePortとPathResolverPort両方を実装
-        usecase = ScheduleEssayUseCase(scheduler, storage, storage)
+        # Stage 5: 責務分離後のPort注入
+        usecase = ScheduleEssayUseCase(scheduler, storage, path_resolver)
 
         # Step 1: スケジュールを追加
         usecase.add(

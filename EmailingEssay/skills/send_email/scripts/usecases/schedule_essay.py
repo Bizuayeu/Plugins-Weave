@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.code_generator import SafeCodeGenerator
-from domain.constants import WEEKDAYS_FULL
 from domain.models import MonthlyPattern, ScheduleConfig
 from frameworks.logging_config import get_logger
 
@@ -97,11 +96,9 @@ class ScheduleEssayUseCase:
 
         Stage 1: パラメータ蓄積問題の解消
         """
-        # バリデーション
-        self._validate_frequency(config.frequency)
-        self._validate_weekday(config.frequency, config.weekday)
-        monthly_type = self._validate_day_spec(config.frequency, config.day_spec)
-        self._validate_time(config.time_spec)
+        # バリデーション（Stage 3: ドメイン層に移行）
+        config.validate()
+        monthly_type = config.monthly_type
 
         # タスク名生成
         task_name = self._generate_task_name(
@@ -127,19 +124,22 @@ class ScheduleEssayUseCase:
             )
             scheduler_registered = True
 
-            # Step 2: JSONバックアップに保存
-            self._save_schedule_entry(
-                task_name,
-                config.frequency,
-                config.time_spec,
-                config.weekday,
-                config.theme,
-                config.context_file,
-                config.file_list,
-                config.lang,
-                config.day_spec,
-                monthly_type,
+            # Step 2: JSONバックアップに保存（Stage 4: EssayScheduleを使用）
+            from domain.models import EssaySchedule
+
+            essay_schedule = EssaySchedule(
+                name=task_name,
+                frequency=config.frequency,
+                time=config.time_spec,
+                weekday=config.weekday if config.frequency == "weekly" else "",
+                theme=config.theme,
+                context=config.context_file,
+                file_list=config.file_list,
+                lang=config.lang,
+                day_spec=config.day_spec if config.frequency == "monthly" else "",
+                monthly_type=monthly_type if config.frequency == "monthly" else "",
             )
+            self._save_schedule_entry(essay_schedule)
 
             # Step 3: 確認メッセージ
             self._print_confirmation(
@@ -171,11 +171,11 @@ class ScheduleEssayUseCase:
         schedules = self._schedule_storage.load_schedules()
 
         if not schedules and not os_tasks:
-            print("No schedules found.")
+            logger.info("No schedules found.")
             return
 
-        print("Registered schedules:")
-        print("-" * 60)
+        logger.info("Registered schedules:")
+        logger.info("-" * 60)
 
         for sched in schedules:
             status = "active" if sched["name"] in os_task_names else "orphaned"
@@ -185,24 +185,24 @@ class ScheduleEssayUseCase:
             elif sched.get("weekday"):
                 freq_str += f" ({sched['weekday']})"
 
-            print(f"  {sched['name']}")
-            print(f"    Frequency: {freq_str} at {sched['time']}")
+            logger.info(f"  {sched['name']}")
+            logger.info(f"    Frequency: {freq_str} at {sched['time']}")
             if sched.get("theme"):
-                print(f"    Theme: {sched['theme']}")
+                logger.info(f"    Theme: {sched['theme']}")
             if sched.get("context"):
-                print(f"    Context: {sched['context']}")
+                logger.info(f"    Context: {sched['context']}")
             if sched.get("lang"):
-                print(f"    Language: {sched['lang']}")
-            print(f"    Status: {status}")
-            print()
+                logger.info(f"    Language: {sched['lang']}")
+            logger.info(f"    Status: {status}")
+            logger.info("")
 
         # OS側のみにあるタスク
         json_names = {s["name"] for s in schedules}
         os_only = [t["name"] for t in os_tasks if t["name"] not in json_names]
         if os_only:
-            print("OS-only tasks (not in backup):")
+            logger.info("OS-only tasks (not in backup):")
             for t in os_only:
-                print(f"  {t}")
+                logger.info(f"  {t}")
 
     def remove(self, name: str) -> None:
         """
@@ -227,42 +227,12 @@ class ScheduleEssayUseCase:
 
         if len(schedules) < original_count:
             self._schedule_storage.save_schedules(schedules)
-            print(f"Removed schedule: {name}")
+            logger.info(f"Removed schedule: {name}")
         else:
-            print(f"Schedule not found in backup: {name}")
+            logger.info(f"Schedule not found in backup: {name}")
 
     # Private methods
-
-    def _validate_frequency(self, frequency: str) -> None:
-        """頻度のバリデーション"""
-        if frequency not in ["daily", "weekly", "monthly"]:
-            raise ValueError(
-                f"frequency must be 'daily', 'weekly', or 'monthly', got '{frequency}'"
-            )
-
-    def _validate_weekday(self, frequency: str, weekday: str) -> None:
-        """曜日のバリデーション（weekly用）"""
-        if frequency == "weekly" and weekday.lower() not in WEEKDAYS_FULL:
-            raise ValueError(f"weekday must be one of {WEEKDAYS_FULL}")
-
-    def _validate_day_spec(self, frequency: str, day_spec: str) -> str:
-        """day_specのバリデーション（monthly用）"""
-        if frequency != "monthly":
-            return ""
-        if not day_spec:
-            raise ValueError(
-                "monthly schedules require day_spec (e.g., 15, 3rd_wed, last_fri, last_day)"
-            )
-
-        pattern = MonthlyPattern.parse(day_spec)
-        return pattern.type.value
-
-    def _validate_time(self, time_spec: str) -> None:
-        """時刻形式のバリデーション"""
-        try:
-            datetime.strptime(time_spec, "%H:%M")
-        except ValueError as e:
-            raise ValueError(f"time must be in HH:MM format, got '{time_spec}'") from e
+    # Note: Validation methods moved to ScheduleConfig.validate() (Stage 3)
 
     def _generate_task_name(
         self, frequency: str, time_spec: str, theme: str, name: str, day_spec: str
@@ -351,40 +321,28 @@ class ScheduleEssayUseCase:
         if runner_path.exists():
             runner_path.unlink()
 
-    def _save_schedule_entry(
-        self,
-        task_name: str,
-        frequency: str,
-        time_spec: str,
-        weekday: str,
-        theme: str,
-        context_file: str,
-        file_list: str,
-        lang: str,
-        day_spec: str,
-        monthly_type: str,
-    ) -> None:
-        """スケジュールエントリをJSONに保存"""
+    def _save_schedule_entry(self, schedule: "EssaySchedule") -> None:
+        """
+        EssayScheduleをストレージに保存する。
+
+        Stage 4: パラメータ集約によるメソッド簡略化
+
+        Args:
+            schedule: 保存するEssayScheduleオブジェクト
+        """
+        from domain.models import EssaySchedule
+
         schedules = self._schedule_storage.load_schedules()
 
         # 同名のエントリを削除
-        schedules = [s for s in schedules if s.get("name") != task_name]
+        schedules = [s for s in schedules if s.get("name") != schedule.name]
 
-        entry: ScheduleEntry = {
-            "name": task_name,
-            "frequency": frequency,
-            "weekday": weekday if frequency == "weekly" else "",
-            "time": time_spec,
-            "theme": theme,
-            "context": context_file,
-            "file_list": file_list,
-            "lang": lang,
-            "created": datetime.now().isoformat(),
-        }
+        # EssaySchedule.to_dict()を使用してエントリを作成
+        entry = schedule.to_dict()
 
-        if frequency == "monthly":
-            entry["day_spec"] = day_spec
-            entry["monthly_type"] = monthly_type
+        # createdが空の場合は現在時刻をセット
+        if not entry.get("created"):
+            entry["created"] = datetime.now().isoformat()
 
         schedules.append(entry)
         self._schedule_storage.save_schedules(schedules)
@@ -401,22 +359,22 @@ class ScheduleEssayUseCase:
         lang: str,
         day_spec: str,
     ) -> None:
-        """確認メッセージを表示"""
-        print(f"Schedule created: {task_name}")
+        """確認メッセージをログ出力"""
+        logger.info(f"Schedule created: {task_name}")
         if frequency == "monthly":
-            print(f"  Frequency: {frequency} ({day_spec})")
+            logger.info(f"  Frequency: {frequency} ({day_spec})")
         elif frequency == "weekly":
-            print(f"  Frequency: {frequency} ({weekday})")
+            logger.info(f"  Frequency: {frequency} ({weekday})")
         else:
-            print(f"  Frequency: {frequency}")
-        print(f"  Time: {time_spec}")
+            logger.info(f"  Frequency: {frequency}")
+        logger.info(f"  Time: {time_spec}")
         if theme:
-            print(f"  Theme: {theme}")
+            logger.info(f"  Theme: {theme}")
         if context_file:
-            print(f"  Context: {context_file}")
+            logger.info(f"  Context: {context_file}")
         if file_list:
-            print(f"  File list: {file_list}")
+            logger.info(f"  File list: {file_list}")
         if lang:
-            print(f"  Language: {lang}")
-        print()
-        print("The essay will run automatically. Survives PC restart.")
+            logger.info(f"  Language: {lang}")
+        logger.info("")
+        logger.info("The essay will run automatically. Survives PC restart.")

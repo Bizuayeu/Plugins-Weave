@@ -103,16 +103,20 @@ class TestScheduleEssayUseCaseList:
         return resolver
 
     def test_list_shows_schedules(
-        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, capsys
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, caplog
     ):
         """スケジュール一覧を表示"""
-        usecase = ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
-        usecase.list()
-        captured = capsys.readouterr()
-        assert "Essay_test" in captured.out
+        import logging
 
-    def test_list_shows_empty_message(self, capsys):
+        usecase = ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
+        with caplog.at_level(logging.INFO):
+            usecase.list()
+        assert any("Essay_test" in record.message for record in caplog.records)
+
+    def test_list_shows_empty_message(self, caplog):
         """スケジュールなしでメッセージ表示"""
+        import logging
+
         scheduler = Mock()
         scheduler.list.return_value = []
         schedule_storage = Mock()
@@ -121,9 +125,9 @@ class TestScheduleEssayUseCaseList:
         path_resolver.get_runners_dir.return_value = "/tmp/runners"
 
         usecase = ScheduleEssayUseCase(scheduler, schedule_storage, path_resolver)
-        usecase.list()
-        captured = capsys.readouterr()
-        assert "No schedules" in captured.out or "スケジュール" in captured.out
+        with caplog.at_level(logging.INFO):
+            usecase.list()
+        assert any("No schedules" in record.message for record in caplog.records)
 
 
 class TestScheduleEssayUseCaseRemove:
@@ -148,25 +152,29 @@ class TestScheduleEssayUseCaseRemove:
         return resolver
 
     def test_remove_existing_schedule(
-        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, capsys
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, caplog
     ):
         """既存スケジュールを削除"""
+        import logging
+
         usecase = ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
-        usecase.remove("Essay_test")
+        with caplog.at_level(logging.INFO):
+            usecase.remove("Essay_test")
         mock_scheduler.remove.assert_called_once_with("Essay_test")
         mock_schedule_storage.save_schedules.assert_called_once()
-        captured = capsys.readouterr()
-        assert "Removed" in captured.out or "削除" in captured.out
+        assert any("Removed" in record.message for record in caplog.records)
 
-    def test_remove_nonexistent_schedule(self, mock_scheduler, mock_path_resolver, capsys):
+    def test_remove_nonexistent_schedule(self, mock_scheduler, mock_path_resolver, caplog):
         """存在しないスケジュールでメッセージ"""
+        import logging
+
         schedule_storage = Mock()
         schedule_storage.load_schedules.return_value = []
 
         usecase = ScheduleEssayUseCase(mock_scheduler, schedule_storage, mock_path_resolver)
-        usecase.remove("nonexistent")
-        captured = capsys.readouterr()
-        assert "not found" in captured.out or "見つかりません" in captured.out
+        with caplog.at_level(logging.INFO):
+            usecase.remove("nonexistent")
+        assert any("not found" in record.message for record in caplog.records)
 
 
 class TestScheduleEssayUseCaseSeparatedPorts:
@@ -434,3 +442,194 @@ class TestScheduleEssayUseCaseWithConfig:
         config = ScheduleConfig(frequency="monthly", time_spec="10:00")
         with pytest.raises(ValueError, match="day_spec"):
             usecase.add_from_config(config)
+
+
+class TestScheduleEssayUseCaseLogging:
+    """出力ログのテスト（Stage 2: print→logger）"""
+
+    import logging
+
+    @pytest.fixture
+    def mock_scheduler(self):
+        scheduler = Mock()
+        scheduler.list.return_value = [{"name": "Essay_test"}]
+        return scheduler
+
+    @pytest.fixture
+    def mock_schedule_storage(self):
+        storage = Mock()
+        storage.load_schedules.return_value = [
+            {"name": "Essay_test", "frequency": "daily", "time": "09:00"}
+        ]
+        return storage
+
+    @pytest.fixture
+    def mock_path_resolver(self, tmp_path):
+        resolver = Mock()
+        runners_dir = tmp_path / "runners"
+        runners_dir.mkdir(exist_ok=True)
+        resolver.get_runners_dir.return_value = str(runners_dir)
+        return resolver
+
+    @pytest.fixture
+    def usecase(self, mock_scheduler, mock_schedule_storage, mock_path_resolver):
+        return ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
+
+    def test_list_logs_schedules(self, usecase, caplog):
+        """list()がスケジュールをログ出力する"""
+        import logging
+
+        with caplog.at_level(logging.INFO):
+            usecase.list()
+        assert any("Essay_test" in record.message for record in caplog.records)
+
+    def test_list_empty_logs_no_schedules(self, mock_scheduler, mock_path_resolver, caplog):
+        """スケジュールなしでメッセージをログ出力"""
+        import logging
+
+        scheduler = Mock()
+        scheduler.list.return_value = []
+        schedule_storage = Mock()
+        schedule_storage.load_schedules.return_value = []
+
+        usecase = ScheduleEssayUseCase(scheduler, schedule_storage, mock_path_resolver)
+        with caplog.at_level(logging.INFO):
+            usecase.list()
+        assert any("No schedules" in record.message for record in caplog.records)
+
+    def test_remove_logs_success(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, caplog
+    ):
+        """remove()が成功をログ出力"""
+        import logging
+
+        usecase = ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
+        with caplog.at_level(logging.INFO):
+            usecase.remove("Essay_test")
+        assert any("Removed" in record.message for record in caplog.records)
+
+    def test_remove_nonexistent_logs_not_found(self, mock_scheduler, mock_path_resolver, caplog):
+        """存在しないスケジュール削除でログ出力"""
+        import logging
+
+        schedule_storage = Mock()
+        schedule_storage.load_schedules.return_value = []
+
+        usecase = ScheduleEssayUseCase(mock_scheduler, schedule_storage, mock_path_resolver)
+        with caplog.at_level(logging.INFO):
+            usecase.remove("nonexistent")
+        assert any("not found" in record.message for record in caplog.records)
+
+    def test_add_logs_confirmation(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, caplog
+    ):
+        """add()が確認メッセージをログ出力"""
+        import logging
+
+        usecase = ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
+        with caplog.at_level(logging.INFO):
+            usecase.add(frequency="daily", time_spec="09:00", theme="test")
+        assert any("Schedule created" in record.message for record in caplog.records)
+
+
+class TestSaveScheduleEntry:
+    """_save_schedule_entry のテスト（Stage 4: パラメータ集約）"""
+
+    @pytest.fixture
+    def mock_scheduler(self):
+        return Mock()
+
+    @pytest.fixture
+    def mock_schedule_storage(self):
+        storage = Mock()
+        storage.load_schedules.return_value = []
+        return storage
+
+    @pytest.fixture
+    def mock_path_resolver(self, tmp_path):
+        resolver = Mock()
+        runners_dir = tmp_path / "runners"
+        runners_dir.mkdir(exist_ok=True)
+        resolver.get_runners_dir.return_value = str(runners_dir)
+        return resolver
+
+    @pytest.fixture
+    def usecase(self, mock_scheduler, mock_schedule_storage, mock_path_resolver):
+        return ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
+
+    def test_saves_essay_schedule_to_storage(self, usecase, mock_schedule_storage):
+        """EssaySchedule が正しく保存される"""
+        from domain.models import EssaySchedule
+
+        schedule = EssaySchedule(
+            name="test_schedule",
+            frequency="daily",
+            time="22:00",
+            theme="test theme",
+        )
+        usecase._save_schedule_entry(schedule)
+
+        # save_schedules が呼ばれたことを確認
+        mock_schedule_storage.save_schedules.assert_called_once()
+        saved_data = mock_schedule_storage.save_schedules.call_args[0][0]
+        assert len(saved_data) == 1
+        assert saved_data[0]["name"] == "test_schedule"
+        assert saved_data[0]["frequency"] == "daily"
+        assert saved_data[0]["time"] == "22:00"
+        assert saved_data[0]["theme"] == "test theme"
+
+    def test_saves_weekly_essay_schedule(self, usecase, mock_schedule_storage):
+        """週次EssayScheduleが正しく保存される"""
+        from domain.models import EssaySchedule
+
+        schedule = EssaySchedule(
+            name="weekly_test",
+            frequency="weekly",
+            time="10:00",
+            weekday="monday",
+            theme="weekly theme",
+        )
+        usecase._save_schedule_entry(schedule)
+
+        saved_data = mock_schedule_storage.save_schedules.call_args[0][0]
+        assert saved_data[0]["weekday"] == "monday"
+
+    def test_saves_monthly_essay_schedule(self, usecase, mock_schedule_storage):
+        """月次EssayScheduleが正しく保存される"""
+        from domain.models import EssaySchedule
+
+        schedule = EssaySchedule(
+            name="monthly_test",
+            frequency="monthly",
+            time="15:00",
+            day_spec="15",
+            monthly_type="date",
+            theme="monthly theme",
+        )
+        usecase._save_schedule_entry(schedule)
+
+        saved_data = mock_schedule_storage.save_schedules.call_args[0][0]
+        assert saved_data[0]["day_spec"] == "15"
+        assert saved_data[0]["monthly_type"] == "date"
+
+    def test_overwrites_existing_schedule_with_same_name(self, usecase, mock_schedule_storage):
+        """同名スケジュールを上書き"""
+        from domain.models import EssaySchedule
+
+        # 既存データをセット
+        mock_schedule_storage.load_schedules.return_value = [
+            {"name": "existing", "frequency": "daily", "time": "08:00"}
+        ]
+
+        schedule = EssaySchedule(
+            name="existing",
+            frequency="daily",
+            time="22:00",
+            theme="updated",
+        )
+        usecase._save_schedule_entry(schedule)
+
+        saved_data = mock_schedule_storage.save_schedules.call_args[0][0]
+        assert len(saved_data) == 1
+        assert saved_data[0]["time"] == "22:00"
+        assert saved_data[0]["theme"] == "updated"

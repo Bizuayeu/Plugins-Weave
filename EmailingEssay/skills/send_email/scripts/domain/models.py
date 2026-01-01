@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from .constants import ABBR_TO_WEEKDAY_NUM, VALID_WEEKDAYS
+from .constants import ABBR_TO_WEEKDAY_NUM, VALID_WEEKDAYS, WEEKDAYS_FULL
 from .exceptions import DomainError, ValidationError
 
 
@@ -27,6 +27,7 @@ class ScheduleConfig:
     パラメータ蓄積問題を解消する。
 
     Stage 1: パラメータ蓄積問題の解消
+    Stage 3: バリデーションのドメイン層移行
     """
 
     frequency: str  # "daily" | "weekly" | "monthly"
@@ -40,6 +41,64 @@ class ScheduleConfig:
     lang: str = ""  # 言語（ja, en, auto）
     name: str = ""  # カスタムタスク名
     day_spec: str = ""  # 月間パターン指定（monthly用）
+
+    def validate(self) -> None:
+        """
+        設定を検証する。無効な場合は ValueError を発生させる。
+
+        Stage 3: バリデーションのドメイン層移行
+        """
+        self._validate_frequency()
+        self._validate_time()
+        if self.frequency == "weekly":
+            self._validate_weekday()
+        if self.frequency == "monthly":
+            self._validate_day_spec()
+
+    def _validate_frequency(self) -> None:
+        """頻度のバリデーション"""
+        if self.frequency not in ["daily", "weekly", "monthly"]:
+            raise ValueError(
+                f"frequency must be 'daily', 'weekly', or 'monthly', got '{self.frequency}'"
+            )
+
+    def _validate_time(self) -> None:
+        """時刻形式のバリデーション"""
+        try:
+            datetime.strptime(self.time_spec, "%H:%M")
+        except ValueError as e:
+            raise ValueError(f"time must be in HH:MM format, got '{self.time_spec}'") from e
+
+    def _validate_weekday(self) -> None:
+        """曜日のバリデーション（weekly用）"""
+        weekday_lower = self.weekday.lower() if self.weekday else ""
+        # 省略形または完全形のどちらでもOK
+        if weekday_lower not in VALID_WEEKDAYS and weekday_lower not in WEEKDAYS_FULL:
+            raise ValueError(f"weekday must be one of {WEEKDAYS_FULL}")
+
+    def _validate_day_spec(self) -> None:
+        """day_specのバリデーション（monthly用）"""
+        if not self.day_spec:
+            raise ValueError(
+                "monthly schedules require day_spec (e.g., 15, 3rd_wed, last_fri, last_day)"
+            )
+        # MonthlyPattern.parseで検証（無効な場合は ValueError）
+        MonthlyPattern.parse(self.day_spec)
+
+    @property
+    def monthly_type(self) -> str:
+        """
+        月次スケジュールタイプを返す。
+
+        Returns:
+            MonthlyType の値（文字列）。monthly以外は空文字を返す。
+
+        Stage 3: バリデーションのドメイン層移行
+        """
+        if self.frequency != "monthly" or not self.day_spec:
+            return ""
+        pattern = MonthlyPattern.parse(self.day_spec)
+        return pattern.type.value
 
 
 class MonthlyType(Enum):

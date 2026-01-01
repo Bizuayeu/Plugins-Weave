@@ -43,17 +43,18 @@ class TestLoggingConfiguration:
 class TestModuleLoggers:
     """各モジュールのlogger統合テスト"""
 
-    def test_json_adapter_has_logger(self):
-        """JsonStorageAdapterモジュールがloggerを持つ"""
-        from adapters.storage import json_adapter
+    def test_schedule_storage_has_logger(self):
+        """ScheduleStorageAdapterモジュールがloggerを持つ"""
+        from adapters.storage import schedule_storage
 
-        assert hasattr(json_adapter, 'logger')
+        assert hasattr(schedule_storage, 'logger')
 
-    def test_json_adapter_logs_on_corruption(self, tmp_path, caplog):
+    def test_schedule_storage_logs_on_corruption(self, tmp_path, caplog):
         """JSON破損時に警告ログを出力"""
-        from adapters.storage.json_adapter import JsonStorageAdapter
+        from adapters.storage import PathResolverAdapter, ScheduleStorageAdapter
 
-        adapter = JsonStorageAdapter(base_dir=str(tmp_path))
+        path_resolver = PathResolverAdapter(base_dir=str(tmp_path))
+        adapter = ScheduleStorageAdapter(path_resolver)
         file_path = tmp_path / "schedules.json"
         file_path.write_text("{corrupted")
 

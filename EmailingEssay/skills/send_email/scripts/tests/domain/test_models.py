@@ -402,3 +402,82 @@ class TestScheduleConfig:
         config2 = ScheduleConfig(frequency="daily", time_spec="09:00")
         # dataclassは同じ値なら等価
         assert config1 == config2
+
+
+class TestScheduleConfigValidation:
+    """ScheduleConfig.validate() のテスト（Stage 3: バリデーションのドメイン層移行）"""
+
+    def test_valid_daily_config(self):
+        """有効なdaily設定は例外なし"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="daily", time_spec="22:00")
+        config.validate()  # 例外なし
+
+    def test_valid_weekly_config(self):
+        """有効なweekly設定は例外なし"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="weekly", time_spec="22:00", weekday="monday")
+        config.validate()  # 例外なし
+
+    def test_valid_monthly_config(self):
+        """有効なmonthly設定は例外なし"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="monthly", time_spec="22:00", day_spec="15")
+        config.validate()  # 例外なし
+
+    def test_invalid_frequency_raises(self):
+        """無効なfrequencyはValueError"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="hourly", time_spec="22:00")
+        with pytest.raises(ValueError, match="frequency must be"):
+            config.validate()
+
+    def test_weekly_without_weekday_raises(self):
+        """weeklyでweekday未指定はValueError"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="weekly", time_spec="22:00", weekday="")
+        with pytest.raises(ValueError, match="weekday"):
+            config.validate()
+
+    def test_weekly_with_invalid_weekday_raises(self):
+        """weeklyで無効なweekdayはValueError"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="weekly", time_spec="22:00", weekday="xyz")
+        with pytest.raises(ValueError, match="weekday"):
+            config.validate()
+
+    def test_monthly_without_day_spec_raises(self):
+        """monthlyでday_spec未指定はValueError"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="monthly", time_spec="22:00", day_spec="")
+        with pytest.raises(ValueError, match="day_spec"):
+            config.validate()
+
+    def test_invalid_time_format_raises(self):
+        """無効な時刻形式はValueError"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="daily", time_spec="25:00")
+        with pytest.raises(ValueError, match="HH:MM"):
+            config.validate()
+
+    def test_monthly_type_property(self):
+        """monthly_type プロパティのテスト"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="monthly", time_spec="22:00", day_spec="last_fri")
+        assert config.monthly_type == "last_weekday"
+
+    def test_monthly_type_for_non_monthly(self):
+        """非monthly設定ではmonthly_typeは空文字"""
+        from domain.models import ScheduleConfig
+
+        config = ScheduleConfig(frequency="daily", time_spec="22:00")
+        assert config.monthly_type == ""
