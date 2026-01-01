@@ -10,7 +10,6 @@ import os
 import sys
 import subprocess
 from datetime import datetime, timedelta
-from typing import Optional
 
 
 class WaiterError(Exception):
@@ -38,6 +37,9 @@ def parse_target_time(time_str: str) -> datetime:
     """
     時刻文字列をパースしてdatetimeを返す。
 
+    後方互換性のためのラッパー関数。
+    内部ではdomain.models.TargetTimeを使用する。
+
     サポートする形式:
         HH:MM           - 今日（過ぎていれば明日）
         YYYY-MM-DD HH:MM - 特定の日時
@@ -51,31 +53,12 @@ def parse_target_time(time_str: str) -> datetime:
     Raises:
         ValueError: 無効な形式または過去の日時
     """
-    # YYYY-MM-DD HH:MM 形式を試行
-    if " " in time_str and len(time_str) > 10:
-        try:
-            target = datetime.strptime(time_str, "%Y-%m-%d %H:%M")
-            if target < datetime.now():
-                raise ValueError(f"Target time {time_str} is in the past")
-            return target
-        except ValueError as e:
-            if "is in the past" in str(e):
-                raise
-            pass  # HH:MM形式を試行
+    from domain.models import TargetTime, ValidationError
 
-    # HH:MM 形式（今日または明日）
     try:
-        target = datetime.strptime(time_str, "%H:%M").replace(
-            year=datetime.now().year,
-            month=datetime.now().month,
-            day=datetime.now().day
-        )
-        # 今日の指定時刻が過ぎていれば明日にスケジュール
-        if target < datetime.now():
-            target += timedelta(days=1)
-        return target
-    except ValueError:
-        raise ValueError(f"Invalid time format: {time_str}")
+        return TargetTime.parse(time_str).datetime
+    except ValidationError as e:
+        raise ValueError(str(e))
 
 
 class WaitEssayUseCase:

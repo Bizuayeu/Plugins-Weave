@@ -102,4 +102,15 @@ Output behavior determined by mode parameter.
 
 ---
 
+## Related Files
+
+| File | Role |
+|------|------|
+| `CLAUDE.md` | Plugin overview |
+| `commands/essay.md` | Command reference |
+| `skills/reflect/SKILL.md` | Reflection process |
+| `skills/send_email/SKILL.md` | Email/scheduling implementation |
+
+---
+
 **EmailingEssay** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

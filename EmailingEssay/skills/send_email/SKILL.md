@@ -39,6 +39,18 @@ See `commands/essay.md` → **Command Structure** section.
 
 ## Configuration
 
+### Prerequisites
+
+1. **AI専用Gmailアカウントを作成**
+   - 個人アカウントとは別に、AI専用のGmailアドレスを取得
+
+2. **二段階認証を有効化**
+   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → 2段階認証プロセス
+
+3. **16桁のアプリパスワードを取得**
+   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → アプリパスワード
+   - 「メール」を選択 → 生成された16桁のパスワードを保存
+
 ### Script Path
 
 ```
@@ -105,11 +117,10 @@ python main.py wait "2026-01-05 22:00" -t "theme"
 Register with Windows Task Scheduler or cron.
 
 ```bash
-# Daily/Weekly/Monthly
+# Examples (see commands/essay.md for full format reference)
 python main.py schedule daily 22:00 -t "Daily reflection"
 python main.py schedule weekly monday 09:00 -t "Weekly review"
 python main.py schedule monthly 15 09:00 -t "Monthly review"
-python main.py schedule monthly last_fri 17:00 -t "Month-end"
 
 # Management
 python main.py schedule list
@@ -201,6 +212,17 @@ export ESSAY_RECIPIENT_EMAIL="you@example.com"
 
 If "Less secure app access" is disabled in Gmail settings,
 enable 2FA and generate an app password.
+
+---
+
+## Related Files
+
+| File | Role |
+|------|------|
+| `CLAUDE.md` | Plugin overview |
+| `commands/essay.md` | Command reference |
+| `agents/essay_writer.md` | Agent specification |
+| `skills/reflect/SKILL.md` | Reflection process |
 
 ---
 

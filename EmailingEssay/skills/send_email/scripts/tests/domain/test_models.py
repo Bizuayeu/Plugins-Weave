@@ -208,3 +208,85 @@ class TestMonthlyPattern:
         code = pattern.generate_condition_code()
         # 月末判定のコードが含まれる
         assert code != ""
+
+
+class TestTargetTime:
+    """TargetTime クラスのテスト（Item 3）"""
+
+    def test_parse_hhmm_format(self):
+        """HH:MM形式のパース"""
+        from domain.models import TargetTime
+        from datetime import datetime
+
+        # 未来の時刻を作成
+        now = datetime.now()
+        future_hour = (now.hour + 2) % 24
+        time_str = f"{future_hour:02d}:30"
+
+        target = TargetTime.parse(time_str)
+        assert target.datetime.hour == future_hour
+        assert target.datetime.minute == 30
+        assert target.original_format == "HH:MM"
+
+    def test_parse_hhmm_past_rolls_to_tomorrow(self):
+        """過去のHH:MM形式は翌日になる"""
+        from domain.models import TargetTime
+        from datetime import datetime
+
+        # 過去の時刻を作成（今日の時刻より前）
+        now = datetime.now()
+        past_hour = (now.hour - 2) % 24
+        time_str = f"{past_hour:02d}:00"
+
+        target = TargetTime.parse(time_str)
+        # 翌日になっているはず
+        assert target.datetime > now
+
+    def test_parse_datetime_format(self):
+        """YYYY-MM-DD HH:MM形式のパース"""
+        from domain.models import TargetTime
+        from datetime import datetime, timedelta
+
+        future = datetime.now() + timedelta(days=1)
+        time_str = future.strftime("%Y-%m-%d %H:%M")
+
+        target = TargetTime.parse(time_str)
+        assert target.datetime.day == future.day
+        assert target.original_format == "YYYY-MM-DD HH:MM"
+
+    def test_parse_past_datetime_raises_error(self):
+        """過去の日時指定でValidationError"""
+        from domain.models import TargetTime, ValidationError
+        from datetime import datetime, timedelta
+
+        past = datetime.now() - timedelta(days=1)
+        time_str = past.strftime("%Y-%m-%d %H:%M")
+
+        with pytest.raises(ValidationError, match="past"):
+            TargetTime.parse(time_str)
+
+    def test_parse_invalid_format_raises_error(self):
+        """無効な形式でValidationError"""
+        from domain.models import TargetTime, ValidationError
+
+        with pytest.raises(ValidationError, match="Invalid"):
+            TargetTime.parse("not a time")
+
+    def test_generate_parsing_code_contains_datetime(self):
+        """生成コードにdatetimeが含まれる"""
+        from domain.models import TargetTime
+
+        target = TargetTime.parse("12:00")
+        code = target.generate_parsing_code()
+        assert "datetime" in code
+        assert "12:00" in code
+
+    def test_generate_parsing_code_is_valid_python(self):
+        """生成コードが有効なPython"""
+        from domain.models import TargetTime
+        from datetime import datetime, timedelta
+
+        target = TargetTime.parse("23:59")
+        code = target.generate_parsing_code()
+        # 構文エラーがなく実行可能
+        exec(f"from datetime import datetime, timedelta\n{code}")

@@ -22,7 +22,7 @@ WEEKDAY_ABBRS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 class ScheduleEssayUseCase:
     """スケジュール管理ユースケース"""
 
-    def __init__(self, scheduler_port, storage_port):
+    def __init__(self, scheduler_port: Any, storage_port: Any) -> None:
         """
         Args:
             scheduler_port: SchedulerPort実装
@@ -46,6 +46,8 @@ class ScheduleEssayUseCase:
         """
         スケジュールを追加する。
 
+        トランザクション的に動作し、途中で失敗した場合はロールバックする。
+
         Args:
             frequency: daily, weekly, monthly
             time_spec: HH:MM形式の時刻
@@ -67,23 +69,37 @@ class ScheduleEssayUseCase:
         task_name = self._generate_task_name(frequency, time_spec, theme, name, day_spec)
         command = self._build_claude_command(theme, context_file, file_list, lang)
 
-        # OSスケジューラに登録
-        self._create_os_schedule(
-            task_name, command, frequency, time_spec,
-            weekday=weekday, day_spec=day_spec, monthly_type=monthly_type
-        )
+        # トランザクション的に実行
+        scheduler_registered = False
 
-        # JSONバックアップに保存
-        self._save_schedule_entry(
-            task_name, frequency, time_spec, weekday, theme,
-            context_file, file_list, lang, day_spec, monthly_type
-        )
+        try:
+            # Step 1: OSスケジューラに登録
+            self._create_os_schedule(
+                task_name, command, frequency, time_spec,
+                weekday=weekday, day_spec=day_spec, monthly_type=monthly_type
+            )
+            scheduler_registered = True
 
-        # 確認メッセージ
-        self._print_confirmation(
-            task_name, frequency, time_spec, weekday, theme,
-            context_file, file_list, lang, day_spec
-        )
+            # Step 2: JSONバックアップに保存
+            self._save_schedule_entry(
+                task_name, frequency, time_spec, weekday, theme,
+                context_file, file_list, lang, day_spec, monthly_type
+            )
+
+            # Step 3: 確認メッセージ
+            self._print_confirmation(
+                task_name, frequency, time_spec, weekday, theme,
+                context_file, file_list, lang, day_spec
+            )
+
+        except Exception as e:
+            # ロールバック：スケジューラ登録を取り消す
+            if scheduler_registered:
+                try:
+                    self._scheduler.remove(task_name)
+                except Exception:
+                    pass  # ロールバック失敗は無視（元の例外を優先）
+            raise
 
     def list(self) -> None:
         """登録済みスケジュールを一覧表示する。"""

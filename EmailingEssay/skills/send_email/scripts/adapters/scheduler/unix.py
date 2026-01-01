@@ -118,7 +118,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         weekday: str = "",
         day_spec: str = ""
     ) -> str:
-        """Cronエントリの行を構築"""
+        """Cronエントリの行を構築する。"""
         if frequency == "daily":
             return f"{minute} {hour} * * * {command}"
         elif frequency == "weekly":
@@ -132,7 +132,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
             raise SchedulerError(f"Unknown frequency: {frequency}")
 
     def _weekday_to_cron_num(self, weekday: str) -> int:
-        """曜日をcron番号に変換（0=日曜）"""
+        """曜日をcron番号に変換する（0=日曜）。"""
         weekday_lower = weekday.lower()
         if weekday_lower in WEEKDAYS:
             return WEEKDAYS.index(weekday_lower)
@@ -141,7 +141,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         return 1  # デフォルト: 月曜
 
     def _get_current_crontab(self) -> str:
-        """現在のcrontabを取得"""
+        """現在のcrontabを取得する。"""
         result = subprocess.run(
             ["crontab", "-l"],
             capture_output=True, text=True
@@ -152,7 +152,7 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         return result.stdout.strip()
 
     def _set_crontab(self, content: str) -> None:
-        """crontabを設定"""
+        """crontabを設定する。"""
         proc = subprocess.Popen(
             ["crontab", "-"],
             stdin=subprocess.PIPE,

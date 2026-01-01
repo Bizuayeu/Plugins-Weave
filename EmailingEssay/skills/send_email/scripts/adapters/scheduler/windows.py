@@ -98,7 +98,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
         return tasks
 
     def _build_daily_command(self, task_name: str, command: str, time: str) -> list[str]:
-        """日次タスクのschtasksコマンドを構築"""
+        """日次タスクのschtasksコマンドを構築する。"""
         return [
             "schtasks", "/create", "/tn", task_name,
             "/tr", command,
@@ -110,7 +110,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     def _build_weekly_command(
         self, task_name: str, command: str, time: str, weekday: str
     ) -> list[str]:
-        """週次タスクのschtasksコマンドを構築"""
+        """週次タスクのschtasksコマンドを構築する。"""
         day = self.DAY_FULL_MAP.get(
             weekday.lower(),
             self.DAY_ABBR_MAP.get(weekday.lower(), "MON")
@@ -127,7 +127,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     def _build_monthly_command(
         self, task_name: str, command: str, time: str, day_spec: str
     ) -> list[str]:
-        """月次タスクのschtasksコマンドを構築"""
+        """月次タスクのschtasksコマンドを構築する。"""
         from domain.models import MonthlyPattern, MonthlyType
 
         pattern = MonthlyPattern.parse(day_spec)
@@ -171,7 +171,7 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
             raise SchedulerError(f"Unknown monthly type: {pattern.type}")
 
     def _execute_schtasks(self, cmd: list[str]) -> None:
-        """schtasksコマンドを実行"""
+        """schtasksコマンドを実行する。"""
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             raise SchedulerError(f"Failed to create task: {result.stderr}")

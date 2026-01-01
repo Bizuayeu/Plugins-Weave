@@ -4,6 +4,8 @@ CLI パーサー定義
 
 argparse ベースのコマンドラインインターフェース。
 """
+from __future__ import annotations
+
 import argparse
 
 

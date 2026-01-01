@@ -5,9 +5,12 @@
 Entities層: ビジネスルールとドメインモデルを定義する。
 外部依存なし（最内側）。
 """
+from __future__ import annotations
+
 from dataclasses import dataclass, asdict, field, fields
-from typing import Optional, Any
+from typing import Any
 from enum import Enum
+from datetime import datetime, timedelta
 import re
 
 
@@ -28,9 +31,9 @@ class MonthlyPattern:
     構造化されたデータとして保持する。
     """
     type: MonthlyType
-    day_num: Optional[int] = None      # DATE用（1-31）
-    weekday: Optional[str] = None      # 曜日指定用（mon, tue, wed, ...）
-    ordinal: Optional[int] = None      # NTH_WEEKDAY用（1-5）
+    day_num: int | None = None      # DATE用（1-31）
+    weekday: str | None = None      # 曜日指定用（mon, tue, wed, ...）
+    ordinal: int | None = None      # NTH_WEEKDAY用（1-5）
 
     # 有効な曜日のセット
     VALID_WEEKDAYS = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
@@ -185,3 +188,77 @@ class DomainError(Exception):
 class ValidationError(DomainError):
     """バリデーションエラー"""
     pass
+
+
+@dataclass
+class TargetTime:
+    """
+    ターゲット時刻のドメインモデル
+
+    時刻解析ロジックを一元化し、実行時パース用のコード生成も提供する。
+    wait_essay.pyとランナースクリプトで共通利用される。
+    """
+    datetime: datetime
+    original_format: str  # "HH:MM" or "YYYY-MM-DD HH:MM"
+
+    @classmethod
+    def parse(cls, time_str: str) -> "TargetTime":
+        """
+        時刻文字列をパースしてTargetTimeを返す。
+
+        Args:
+            time_str: HH:MM または YYYY-MM-DD HH:MM
+
+        Returns:
+            TargetTime インスタンス
+
+        Raises:
+            ValidationError: 無効な形式または過去の日時
+        """
+        # YYYY-MM-DD HH:MM 形式を試行
+        if " " in time_str and len(time_str) > 10:
+            try:
+                target = datetime.strptime(time_str, "%Y-%m-%d %H:%M")
+                if target < datetime.now():
+                    raise ValidationError(f"Target time {time_str} is in the past")
+                return cls(datetime=target, original_format="YYYY-MM-DD HH:MM")
+            except ValueError as e:
+                if "past" in str(e):
+                    raise
+                pass  # HH:MM形式を試行
+
+        # HH:MM 形式（今日または明日）
+        try:
+            target = datetime.strptime(time_str, "%H:%M").replace(
+                year=datetime.now().year,
+                month=datetime.now().month,
+                day=datetime.now().day
+            )
+            # 今日の指定時刻が過ぎていれば明日にスケジュール
+            if target < datetime.now():
+                target += timedelta(days=1)
+            return cls(datetime=target, original_format="HH:MM")
+        except ValueError:
+            raise ValidationError(f"Invalid time format: {time_str}")
+
+    def generate_parsing_code(self) -> str:
+        """
+        Runnerスクリプト用のPython時刻パースコードを生成する。
+
+        Returns:
+            実行可能なPythonコード文字列
+        """
+        time_str = self.datetime.strftime("%H:%M") if self.original_format == "HH:MM" \
+            else self.datetime.strftime("%Y-%m-%d %H:%M")
+
+        return f'''time_str = "{time_str}"
+if " " in time_str and len(time_str) > 10:
+    target = datetime.strptime(time_str, "%Y-%m-%d %H:%M")
+else:
+    target = datetime.strptime(time_str, "%H:%M").replace(
+        year=datetime.now().year,
+        month=datetime.now().month,
+        day=datetime.now().day
+    )
+    if target < datetime.now():
+        target += timedelta(days=1)'''

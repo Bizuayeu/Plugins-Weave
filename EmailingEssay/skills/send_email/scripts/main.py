@@ -41,7 +41,7 @@ from usecases.wait_essay import WaitEssayUseCase
 from usecases.schedule_essay import schedule_add, schedule_list, schedule_remove
 
 
-def main():
+def main() -> int:
     """メインエントリーポイント"""
     parser = create_parser()
     args = parser.parse_args()

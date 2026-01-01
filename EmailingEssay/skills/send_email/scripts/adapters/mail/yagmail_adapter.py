@@ -7,7 +7,6 @@ yagmailライブラリを使用してメール送信を行う。
 from __future__ import annotations
 
 import os
-from typing import Optional
 
 import yagmail
 
@@ -20,7 +19,7 @@ class MailError(Exception):
 class YagmailAdapter:
     """Yagmail を使用したメールアダプター"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         アダプターを初期化する。
 

@@ -105,47 +105,42 @@ See `skills/reflect/SKILL.md` for reflection process details.
 ## Quick Start
 
 ```bash
-# Immediate reflection (interactive)
+# Immediate reflection
 /essay
-
-# Themed reflection
-/essay "Weekly review"
 
 # One-time scheduled
 /essay wait 22:00 -t "Daily thoughts"
 
 # Recurring schedule
 /essay schedule daily 22:00 -t "Daily reflection"
-
-# Test email configuration
-/essay test
 ```
+
+See `commands/essay.md` for full command reference.
 
 ---
 
 ## Configuration
 
-### Prerequisites
-
-1. **AI専用Gmailアカウントを作成**
-   - 個人アカウントとは別に、AI専用のGmailアドレスを取得
-
-2. **二段階認証を有効化**
-   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → 2段階認証プロセス
-
-3. **16桁のアプリパスワードを取得**
-   - [Googleアカウント管理](https://myaccount.google.com/) → セキュリティ → アプリパスワード
-   - 「メール」を選択 → 生成された16桁のパスワードを保存
-
 ### Environment Variables
 
-```
-ESSAY_APP_PASSWORD      # 上記で取得した16桁のアプリパスワード
-ESSAY_SENDER_EMAIL      # AI専用Gmailアドレス
-ESSAY_RECIPIENT_EMAIL   # 受信者のメールアドレス
-```
+| Variable | Description |
+|----------|-------------|
+| `ESSAY_APP_PASSWORD` | Gmail app password (16 digits) |
+| `ESSAY_SENDER_EMAIL` | Sender email address |
+| `ESSAY_RECIPIENT_EMAIL` | Recipient email address |
 
-See `skills/send_email/SKILL.md` for setup details.
+See `skills/send_email/SKILL.md` for setup details and troubleshooting.
+
+---
+
+## Related Files
+
+| File | Role |
+|------|------|
+| `commands/essay.md` | Command reference |
+| `agents/essay_writer.md` | Agent specification |
+| `skills/reflect/SKILL.md` | Reflection process |
+| `skills/send_email/SKILL.md` | Email/scheduling implementation |
 
 ---
 

@@ -156,3 +156,83 @@ class TestScheduleEssayUseCaseRemove:
         usecase.remove("nonexistent")
         captured = capsys.readouterr()
         assert "not found" in captured.out or "見つかりません" in captured.out
+
+
+class TestScheduleEssayUseCaseRollback:
+    """add()メソッドのロールバック処理テスト（Item 2）"""
+
+    @pytest.fixture
+    def mock_scheduler(self):
+        return Mock()
+
+    @pytest.fixture
+    def mock_storage(self):
+        storage = Mock()
+        storage.load_schedules.return_value = []
+        storage.get_runners_dir.return_value = "/tmp/runners"
+        return storage
+
+    def test_rollback_scheduler_when_storage_fails(self, mock_scheduler, mock_storage):
+        """ストレージ保存失敗時にスケジューラ登録をロールバック"""
+        # ストレージ保存を失敗させる
+        mock_storage.save_schedules.side_effect = PermissionError("Cannot write")
+
+        usecase = ScheduleEssayUseCase(mock_scheduler, mock_storage)
+
+        with pytest.raises(PermissionError):
+            usecase.add(
+                frequency="daily",
+                time_spec="09:00",
+                theme="test"
+            )
+
+        # スケジューラに追加された後、ロールバックで削除される
+        mock_scheduler.add.assert_called_once()
+        mock_scheduler.remove.assert_called_once()
+
+    def test_no_orphan_scheduler_entry_on_storage_failure(self, mock_scheduler, mock_storage):
+        """ストレージ失敗時にスケジューラに孤児エントリが残らない"""
+        mock_storage.save_schedules.side_effect = IOError("Disk full")
+
+        usecase = ScheduleEssayUseCase(mock_scheduler, mock_storage)
+
+        with pytest.raises(IOError):
+            usecase.add(
+                frequency="daily",
+                time_spec="10:00",
+                theme="orphan_test"
+            )
+
+        # スケジューラのremoveが呼ばれたことを確認
+        assert mock_scheduler.remove.called
+
+    def test_scheduler_failure_does_not_save_to_storage(self, mock_scheduler, mock_storage):
+        """スケジューラ登録失敗時はストレージに保存しない"""
+        mock_scheduler.add.side_effect = RuntimeError("Scheduler unavailable")
+
+        usecase = ScheduleEssayUseCase(mock_scheduler, mock_storage)
+
+        with pytest.raises(RuntimeError):
+            usecase.add(
+                frequency="daily",
+                time_spec="11:00",
+                theme="scheduler_fail"
+            )
+
+        # ストレージ保存は呼ばれない
+        mock_storage.save_schedules.assert_not_called()
+
+    def test_rollback_continues_even_if_remove_fails(self, mock_scheduler, mock_storage):
+        """ロールバック中のremove失敗でも例外は元のまま"""
+        mock_storage.save_schedules.side_effect = PermissionError("Cannot write")
+        mock_scheduler.remove.side_effect = RuntimeError("Remove also failed")
+
+        usecase = ScheduleEssayUseCase(mock_scheduler, mock_storage)
+
+        # 元の例外（PermissionError）が発生する
+        with pytest.raises(PermissionError):
+            usecase.add(
+                frequency="daily",
+                time_spec="12:00",
+                theme="double_fail"
+            )

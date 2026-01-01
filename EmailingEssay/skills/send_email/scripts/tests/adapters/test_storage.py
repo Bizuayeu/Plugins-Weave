@@ -76,3 +76,63 @@ class TestJsonStorageAdapter:
         adapter = JsonStorageAdapter()
         result = adapter.get_persistent_dir()
         assert ".claude" in result or ".emailingessay" in result
+
+
+class TestJsonStorageAdapterErrorRecovery:
+    """JSON破損時の復旧処理テスト（Item 1）"""
+
+    @pytest.fixture
+    def temp_dir(self):
+        """一時ディレクトリを作成"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            yield tmpdir
+
+    @pytest.fixture
+    def adapter(self, temp_dir):
+        """テスト用アダプターを作成"""
+        return JsonStorageAdapter(base_dir=temp_dir)
+
+    def test_load_schedules_with_corrupted_json_returns_empty_list(self, adapter, temp_dir):
+        """破損したJSONファイルで空リストを返す"""
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("{invalid json content")
+
+        result = adapter.load_schedules()
+        assert result == []
+
+    def test_load_schedules_with_empty_file_returns_empty_list(self, adapter, temp_dir):
+        """空ファイルで空リストを返す"""
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("")
+
+        result = adapter.load_schedules()
+        assert result == []
+
+    def test_load_schedules_with_missing_schedules_key_returns_empty(self, adapter, temp_dir):
+        """schedulesキーがないJSONで空リストを返す"""
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump({"other_key": "value"}, f)
+
+        result = adapter.load_schedules()
+        assert result == []
+
+    def test_load_schedules_with_whitespace_only_returns_empty_list(self, adapter, temp_dir):
+        """空白のみのファイルで空リストを返す"""
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("   \n\t  ")
+
+        result = adapter.load_schedules()
+        assert result == []
+
+    def test_load_schedules_with_non_dict_json_returns_empty(self, adapter, temp_dir):
+        """JSONがdict以外（配列など）の場合に空リストを返す"""
+        file_path = os.path.join(temp_dir, "schedules.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(["item1", "item2"], f)
+
+        result = adapter.load_schedules()
+        assert result == []

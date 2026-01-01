@@ -178,7 +178,7 @@ See `skills/send_email/SKILL.md` → **Usage** section.
 | Monthly (date) | `monthly DAY HH:MM` | `monthly 15 09:00` |
 | Monthly (Nth weekday) | `monthly Nth_DAY HH:MM` | `monthly 3rd_wed 09:00` |
 | Monthly (last weekday) | `monthly last_DAY HH:MM` | `monthly last_fri 17:00` |
-| Monthly (last day) | `monthly last HH:MM` | `monthly last 22:00` |
+| Monthly (last day) | `monthly last_day HH:MM` | `monthly last_day 22:00` |
 
 **Weekdays**: monday, tuesday, wednesday, thursday, friday, saturday, sunday
 
@@ -186,7 +186,7 @@ See `skills/send_email/SKILL.md` → **Usage** section.
 - `1-31` - Specific day of month (e.g., `15`)
 - `Nth_weekday` - Nth occurrence of weekday (e.g., `3rd_wed`, `1st_mon`)
 - `last_weekday` - Last occurrence of weekday (e.g., `last_fri`)
-- `last` - Last day of month
+- `last_day` - Last day of month
 
 **Week ordinals**: 1st, 2nd, 3rd, 4th, last
 **Weekday abbreviations**: mon, tue, wed, thu, fri, sat, sun
@@ -213,7 +213,7 @@ See `skills/send_email/SKILL.md` → **Usage** section.
 /essay schedule monthly last_fri 17:00 -t "Month-end wrap"
 
 # Month-end review on the last day at 10pm
-/essay schedule monthly last 22:00 -t "Month-end review"
+/essay schedule monthly last_day 22:00 -t "Month-end review"
 
 # List all schedules
 /essay schedule list
@@ -270,10 +270,10 @@ C:/Users/you/path/to/file2.txt
 
 | File | Role |
 |------|------|
-| `agents/essay_writer.md` | Reflection and writing agent |
-| `skills/reflect/SKILL.md` | Reflection skill definition |
-| `skills/send_email/SKILL.md` | Emailing skill + CLI reference |
-| `skills/send_email/scripts/main.py` | SMTP operations (Clean Architecture) |
+| `CLAUDE.md` | Plugin overview |
+| `agents/essay_writer.md` | Agent specification |
+| `skills/reflect/SKILL.md` | Reflection process |
+| `skills/send_email/SKILL.md` | Email/scheduling implementation |
 
 ---
 
