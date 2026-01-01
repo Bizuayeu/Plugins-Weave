@@ -32,7 +32,7 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 ## Options (for wait/schedule)
 
-See `commands/essay.md` for full option details.
+See `commands/essay.md` → **Command Structure** section.
 
 ---
 

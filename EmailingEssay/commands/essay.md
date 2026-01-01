@@ -14,7 +14,6 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 - [Command Structure](#command-structure)
 - [Wait Subcommand (One-time)](#wait-subcommand-one-time)
 - [Schedule Subcommand (Recurring)](#schedule-subcommand-recurring)
-- [CLI Reference (Python Script)](#cli-reference-python-script)
 - [Related Files](#related-files)
 
 ---
@@ -135,7 +134,7 @@ See `skills/send_email/SKILL.md` for email configuration and troubleshooting.
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
-See `skills/send_email` for implementation details.
+See `skills/send_email/SKILL.md` → **Usage** section.
 
 ### Time Formats
 
@@ -168,7 +167,7 @@ See `skills/send_email` for implementation details.
 
 Register recurring essay schedules using OS scheduler (Windows Task Scheduler / cron).
 
-See `skills/send_email` for OS scheduler integration details.
+See `skills/send_email/SKILL.md` → **Usage** section.
 
 ### Frequency
 
@@ -267,48 +266,13 @@ C:/Users/you/path/to/file2.txt
 
 ---
 
-## CLI Reference (Python Script)
-
-Direct invocation of `skills/send_email/scripts/main.py`:
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `test` | Send test email |
-| `send <subject> <body>` | Send custom email |
-| `wait <time> [options]` | One-time scheduled essay |
-| `schedule <subcommand>` | Recurring schedule management |
-
-### Schedule Subcommands
-
-| Subcommand | Arguments | Description |
-|------------|-----------|-------------|
-| `list` | - | Show all schedules |
-| `remove <name>` | - | Delete schedule |
-| `daily <time>` | `-t`, `-c`, `-f`, `-l`, `--name` | Daily schedule |
-| `weekly <day> <time>` | `-t`, `-c`, `-f`, `-l`, `--name` | Weekly schedule |
-| `monthly <day_spec> <time>` | `-t`, `-c`, `-f`, `-l`, `--name` | Monthly schedule |
-
-### Common Options
-
-| Option | Description |
-|--------|-------------|
-| `-t, --theme TEXT` | Essay theme |
-| `-c, --context FILE` | Single context file |
-| `-f, --file-list FILE` | Multiple files (one path per line) |
-| `-l, --lang LANG` | Language: `ja`, `en`, `auto` |
-| `--name NAME` | Custom task name |
-
----
-
 ## Related Files
 
 | File | Role |
 |------|------|
 | `agents/essay_writer.md` | Reflection and writing agent |
 | `skills/reflect/SKILL.md` | Reflection skill definition |
-| `skills/send_email/SKILL.md` | Emailing skill definition |
+| `skills/send_email/SKILL.md` | Emailing skill + CLI reference |
 | `skills/send_email/scripts/main.py` | SMTP operations (Clean Architecture) |
 
 ---
