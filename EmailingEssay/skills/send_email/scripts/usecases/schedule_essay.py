@@ -20,7 +20,9 @@ from frameworks.logging_config import get_logger
 from .command_builder import build_claude_command
 
 if TYPE_CHECKING:
-    from .ports import PathResolverPort, ScheduleEntry, SchedulerPort, ScheduleStoragePort
+    from domain.models import EssaySchedule
+
+    from .ports import PathResolverPort, SchedulerPort, ScheduleStoragePort
 
 logger = get_logger("schedule")
 
@@ -321,7 +323,7 @@ class ScheduleEssayUseCase:
         if runner_path.exists():
             runner_path.unlink()
 
-    def _save_schedule_entry(self, schedule: "EssaySchedule") -> None:
+    def _save_schedule_entry(self, schedule: EssaySchedule) -> None:
         """
         EssayScheduleをストレージに保存する。
 
@@ -330,8 +332,6 @@ class ScheduleEssayUseCase:
         Args:
             schedule: 保存するEssayScheduleオブジェクト
         """
-        from domain.models import EssaySchedule
-
         schedules = self._schedule_storage.load_schedules()
 
         # 同名のエントリを削除
