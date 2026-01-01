@@ -65,6 +65,8 @@ User → /essay command → essay_writer.md agent
     (Chat output)                      (send_email skill)
 ```
 
+See `skills/reflect/SKILL.md` for reflection process details.
+
 ---
 
 ## Component Roles
@@ -73,7 +75,7 @@ User → /essay command → essay_writer.md agent
 |-----------|------|
 | `commands/essay.md` | User-facing command interface |
 | `agents/essay_writer.md` | Orchestrates reflection → delivery flow |
-| `skills/reflect/SKILL.md` | Deep thinking process definition |
+| `skills/reflect/SKILL.md` | Deep reflection process definition |
 | `skills/send_email/SKILL.md` | Email delivery and scheduling |
 
 ---

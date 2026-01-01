@@ -13,6 +13,7 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 - [Options](#options-for-waitschedule)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [File Locations](#file-locations)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -31,13 +32,7 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 ## Options (for wait/schedule)
 
-| Option | Description |
-|--------|-------------|
-| `-t, --theme` | Essay theme |
-| `-c, --context` | Single context file |
-| `-f, --file-list` | Multiple files (one path per line) |
-| `-l, --lang` | Language: `ja`, `en`, or `auto` (default: auto) |
-| `--name` | Custom task name (schedule only, auto-generated if omitted) |
+See `commands/essay.md` for full option details.
 
 ---
 
@@ -135,6 +130,18 @@ python main.py schedule remove "Essay_Daily_reflection"
 - If the specified day doesn't exist (e.g., 31st in February), that month is skipped
 
 **Important**: Use absolute paths for `-c` and `-f` options (scheduled tasks run without working directory context).
+
+---
+
+## File Locations
+
+| File | Location | Description |
+|------|----------|-------------|
+| `essay_wait.log` | `~/.claude/plugins/.emailingessay/` | Logs for wait/schedule operations |
+| `schedules.json` | `~/.claude/plugins/.emailingessay/` | Backup of registered schedules |
+| `runners/` | `~/.claude/plugins/.emailingessay/runners/` | Monthly schedule runner scripts |
+
+Note: Persistent data directory is created automatically if not exists.
 
 ---
 

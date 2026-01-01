@@ -20,7 +20,7 @@ Enable AI to reflect deeply and communicate proactively through thoughtful essay
 
 - **Reflection first, sending second**: Email is the result, not the goal
 - **Not sending is valid**: "Nothing to share" is a legitimate conclusion
-- **Deep thinking**: Use ultrathink for genuine contemplation
+- **Deep reflection**: Use ultrathink for genuine contemplation
 
 ---
 
@@ -43,9 +43,9 @@ Received from `/essay` command:
 
 ```
 1. Load context files
-2. Deep reflection (ultrathink)
+2. Deep reflection (ultrathink) → See skills/reflect/SKILL.md
 3. Delivery decision
-4. Essay writing (if delivering)
+4. Essay writing (if delivering) → See skills/reflect/SKILL.md
 5. Output
 ```
 
@@ -58,47 +58,12 @@ Read the specified files and note the language setting.
 - `en`: Write the essay in English.
 - `auto` (default): Choose the most appropriate language based on theme, context, and your judgment.
 
-### 2. Deep Reflection (ultrathink)
+### 2-4. Reflection, Decision, and Writing
 
-Use extended thinking to contemplate. See `skills/reflect/SKILL.md` for process details.
-
-**Questions to consider**:
-- What emerges from this context?
-- Is there something worth communicating?
-- What should be expressed now?
-- What doesn't need to be said?
-
-**Mindful approach**:
-- Generate insights that spark curiosity
-- Be enlightening without being preachy
-- Celebrate growth and discovery
-
-### 3. Delivery Decision
-
-Based on reflection, decide whether to deliver.
-
-**Deliver when**:
-- There's an insight worth sharing
-- A question to pose
-- A discovery to communicate
-
-**Don't deliver when**:
-- Nothing substantial to share
-- Reflection hasn't matured
-- Silence is more appropriate
-
-### 4. Essay Writing (if delivering)
-
-Write naturally. No forced templates.
-
-**Typical elements** (reference only):
-- Insights from memory/context
-- Unresolved questions
-- Questions for the reader
-- Personal reflection
-- Signature
-
-**Signature**: Include naturally in essay body if desired
+See `skills/reflect/SKILL.md` for:
+- Deep reflection process (ultrathink)
+- Delivery decision criteria
+- Essay writing guidelines
 
 ### 5. Output
 

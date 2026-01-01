@@ -29,12 +29,7 @@ Design principle: "Reflection first, sending second."
 ---
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `"theme"` | Reflection theme (quoted) |
-| `-c file` | Single context file |
-| `-f list` | Multiple files (one path per line) |
-| `-l lang` | Language: `ja`, `en`, or `auto` (default: auto) |
+See `commands/essay.md` for full option details.
 
 ---
 
@@ -44,8 +39,8 @@ Design principle: "Reflection first, sending second."
 
 ```
 1. Load context files
-2. Deep thinking (ultrathink)
-3. Make send decision
+2. Deep reflection (ultrathink)
+3. Delivery decision
 4. Write essay (if sending)
 5. Deliver via send_email (if sending)
 ```
@@ -64,7 +59,7 @@ Read specified files as material for reflection.
 - Recent conversation logs
 - Identity/persona files
 
-### 2. Deep Thinking (ultrathink)
+### 2. Deep Reflection (ultrathink)
 
 Use extended thinking to contemplate:
 
@@ -73,10 +68,10 @@ Use extended thinking to contemplate:
 - What to communicate to the user
 - What doesn't need to be said
 
-### 3. Send Decision
+### 3. Delivery Decision
 
-**Send**: There's something worth sharing
-**Don't send**: Nothing particular to share (this is valid)
+**Deliver**: There's something worth sharing
+**Don't deliver**: Nothing particular to share (this is valid)
 
 ---
 
@@ -86,15 +81,15 @@ Use extended thinking to contemplate:
 
 Output: **Chat display only** (no email)
 
-- **Sending**: Write essay in chat
-- **Not Sending**: Display "After reflection, I have nothing particular to share."
+- **Delivering**: Write essay in chat
+- **Not Delivering**: Display "After reflection, I have nothing particular to share."
 
 ### Non-interactive Mode (`wait`/`schedule`)
 
 Output: **Email** (user is not present)
 
-- **Sending**: Use `skills/send_email` to deliver
-- **Not Sending**: Exit silently (logged to `essay_wait.log`)
+- **Delivering**: Use `skills/send_email` to deliver
+- **Not Delivering**: Exit silently (logged to `essay_wait.log`)
 
 ---
 
