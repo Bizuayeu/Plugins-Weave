@@ -26,20 +26,20 @@ class YagmailAdapter:
 
         環境変数から設定を読み込む：
         - ESSAY_SENDER_EMAIL: 送信者メールアドレス
-        - ESSAY_EMAIL_PASSWORD: メールパスワード
+        - ESSAY_APP_PASSWORD: Gmail アプリパスワード
         - ESSAY_RECIPIENT_EMAIL: 受信者メールアドレス
 
         Raises:
             MailError: 必要な環境変数が設定されていない場合
         """
         self._sender = os.environ.get("ESSAY_SENDER_EMAIL")
-        self._password = os.environ.get("ESSAY_EMAIL_PASSWORD")
+        self._password = os.environ.get("ESSAY_APP_PASSWORD")
         self._recipient = os.environ.get("ESSAY_RECIPIENT_EMAIL")
 
         if not self._sender:
             raise MailError("ESSAY_SENDER_EMAIL environment variable not set")
         if not self._password:
-            raise MailError("ESSAY_EMAIL_PASSWORD environment variable not set")
+            raise MailError("ESSAY_APP_PASSWORD environment variable not set")
         if not self._recipient:
             raise MailError("ESSAY_RECIPIENT_EMAIL environment variable not set")
 

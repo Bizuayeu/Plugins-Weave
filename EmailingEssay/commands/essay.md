@@ -176,16 +176,16 @@ See `skills/send_email` for OS scheduler integration details.
 | Daily | `daily HH:MM` | `daily 22:00` |
 | Weekly | `weekly DAY HH:MM` | `weekly monday 09:00` |
 | Monthly (date) | `monthly DAY HH:MM` | `monthly 15 09:00` |
-| Monthly (Nth weekday) | `monthly Nth-DAY HH:MM` | `monthly 3rd-wed 09:00` |
-| Monthly (last weekday) | `monthly last-DAY HH:MM` | `monthly last-fri 17:00` |
+| Monthly (Nth weekday) | `monthly Nth_DAY HH:MM` | `monthly 3rd_wed 09:00` |
+| Monthly (last weekday) | `monthly last_DAY HH:MM` | `monthly last_fri 17:00` |
 | Monthly (last day) | `monthly last HH:MM` | `monthly last 22:00` |
 
 **Weekdays**: monday, tuesday, wednesday, thursday, friday, saturday, sunday
 
 **Monthly DAY_SPEC formats**:
 - `1-31` - Specific day of month (e.g., `15`)
-- `Nth-weekday` - Nth occurrence of weekday (e.g., `3rd-wed`, `1st-mon`)
-- `last-weekday` - Last occurrence of weekday (e.g., `last-fri`)
+- `Nth_weekday` - Nth occurrence of weekday (e.g., `3rd_wed`, `1st_mon`)
+- `last_weekday` - Last occurrence of weekday (e.g., `last_fri`)
 - `last` - Last day of month
 
 **Week ordinals**: 1st, 2nd, 3rd, 4th, last
@@ -207,10 +207,10 @@ See `skills/send_email` for OS scheduler integration details.
 /essay schedule monthly 15 09:00 -t "Monthly review"
 
 # Monthly meeting on the 3rd Wednesday at 9am
-/essay schedule monthly 3rd-wed 09:00 -t "Monthly meeting"
+/essay schedule monthly 3rd_wed 09:00 -t "Monthly meeting"
 
 # Month-end wrap on the last Friday at 5pm
-/essay schedule monthly last-fri 17:00 -t "Month-end wrap"
+/essay schedule monthly last_fri 17:00 -t "Month-end wrap"
 
 # Month-end review on the last day at 10pm
 /essay schedule monthly last 22:00 -t "Month-end review"

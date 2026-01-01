@@ -39,6 +39,20 @@ Received from `/essay` command:
 
 ## Execution Flow
 
+```mermaid
+flowchart TD
+    A[1. Load Context Files] --> B[2. Deep Reflection<br/>ultrathink]
+    B --> C{3. Deliver?}
+    C -->|Yes| D[4. Write Essay]
+    C -->|No| E[Exit]
+    D --> F{Mode?}
+    F -->|Interactive| G[Display in Chat]
+    F -->|Non-interactive| H[5. Send via email]
+    G --> I[End]
+    H --> I
+    E --> I
+```
+
 **Use TodoWrite to track progress**:
 
 ```
