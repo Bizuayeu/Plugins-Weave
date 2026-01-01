@@ -12,7 +12,7 @@ Enable AI to reflect deeply and communicate proactively through thoughtful essay
 - [Design Principles](#design-principles)
 - [Parameters](#parameters)
 - [Execution Flow](#execution-flow)
-- [Invocation Example](#invocation-example)
+- [Task Tool Invocation](#task-tool-invocation)
 
 ---
 
@@ -74,18 +74,31 @@ For mode-specific output behavior, see `skills/reflect/SKILL.md` → **Output** 
 
 ---
 
-## Invocation Example
+## Task Tool Invocation
+
+This agent is invoked via **Task tool** from the `/essay` command.
+
+### Example Invocation
 
 ```
+Task: Execute essay_writer.md agent
 Parameters:
   theme: "Weekly review"
   context_files: ["digest.txt", "notes.txt"]
   language: auto
   mode: non-interactive
 
-Follow Execution Flow (1-5) with TodoWrite tracking.
-Output behavior determined by mode parameter.
+Instructions: Follow Execution Flow (1-5) with TodoWrite tracking.
 ```
+
+### Parameter Mapping
+
+| /essay option | Agent parameter | Notes |
+|---------------|-----------------|-------|
+| `"theme"` or `-t` | `theme` | Reflection topic |
+| `-c` or `-f` | `context_files` | Files to read |
+| `-l` | `language` | ja/en/auto |
+| (inferred) | `mode` | interactive (direct /essay) or non-interactive (wait/schedule) |
 
 ---
 

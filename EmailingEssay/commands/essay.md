@@ -21,6 +21,16 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 
 This command is a wrapper for `agents/essay_writer.md`. The actual reflection and writing logic is delegated to the subagent via Task tool. For design rationale, see `CLAUDE.md` → **Why Subagent Architecture?** section.
 
+### Execution Directive
+
+**CRITICAL**: When `/essay` is invoked (any mode except `test`), you MUST:
+
+1. Use the **Task tool** to invoke `agents/essay_writer.md`
+2. Pass parameters as specified in the table below
+3. Do NOT process reflection logic directly in this command context
+
+The command layer handles user interface concerns only. All reflection and writing logic MUST be delegated to the agent.
+
 Execution flow for each mode:
 
 | Mode | Execution Flow |

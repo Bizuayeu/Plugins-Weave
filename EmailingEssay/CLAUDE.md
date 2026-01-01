@@ -10,6 +10,7 @@ Plugin enabling AI to proactively deliver essays born from genuine reflection.
 - [Clean Architecture Details](#clean-architecture-details)
 - [Execution Flow](#execution-flow)
 - [Why Subagent Architecture?](#why-subagent-architecture)
+- [Plugin Architecture vs Clean Architecture](#plugin-architecture-vs-clean-architecture)
 - [Component Roles](#component-roles)
 - [Execution Modes](#execution-modes)
 - [Extension Points](#extension-points)
@@ -150,6 +151,35 @@ The `/essay` command delegates to `essay_writer.md` agent via Task tool for:
 3. **Modularity**: Same agent can be invoked from multiple triggers (command, schedule, external)
 
 This wrapper pattern (`command → agent`) is intentional — the command handles user interface concerns while the agent focuses purely on the reflection-writing workflow.
+
+---
+
+## Plugin Architecture vs Clean Architecture
+
+The plugin follows **two architectural patterns** at different levels:
+
+### Plugin-Level Architecture (Macro)
+
+| Plugin Layer | Directory | Clean Architecture Analog | Role |
+|-------------|-----------|---------------------------|------|
+| Command | `commands/` | Interface Adapter (Driving) | User interface, delegates to Agent |
+| Agent | `agents/` | Use Case | Workflow orchestration |
+| Skill | `skills/` | Domain Service | Discrete capabilities |
+| Script | `scripts/` | Full CA Stack | Implementation |
+
+### Dependency Flow
+
+```
+Command → Agent → Skill → Script
+   ↓        ↓        ↓        ↓
+   UI    UseCase  Service  Infra
+```
+
+This **fractal pattern** (CA within CA) enables:
+- Plugin-level modularity (swap agents, add skills)
+- Script-level testability (mock adapters, test use cases in isolation)
+
+For script-level Clean Architecture details, see [Clean Architecture Details](#clean-architecture-details) above.
 
 ---
 
