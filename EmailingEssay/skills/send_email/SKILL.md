@@ -14,6 +14,7 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [File Locations](#file-locations)
+- [Security Considerations](#security-considerations)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -142,6 +143,32 @@ python main.py schedule remove "Essay_Daily_reflection"
 | `runners/` | `~/.claude/plugins/.emailingessay/runners/` | Monthly schedule runner scripts |
 
 Note: Persistent data directory is created automatically if not exists.
+
+---
+
+## Security Considerations
+
+### Non-interactive Execution Flag
+
+The `wait` and `schedule` features use `--dangerously-skip-permissions` when launching Claude Code.
+
+**Why it's needed**:
+- Scheduled/background tasks run without a terminal
+- Claude cannot prompt for permission confirmations in headless mode
+
+**What it does**:
+- Bypasses interactive permission prompts for automated execution
+- Only used for invoking `/essay` command (read + email operation)
+
+**Safeguards**:
+- No file modifications or system changes are made by the essay command
+- Essay content is sent only to the configured `ESSAY_RECIPIENT_EMAIL`
+- All operations are logged to `~/.claude/plugins/.emailingessay/essay_wait.log`
+
+**Best practices**:
+- Keep `ESSAY_RECIPIENT_EMAIL` set to your own email address
+- Review logs periodically with `cat ~/.claude/plugins/.emailingessay/essay_wait.log`
+- Audit registered tasks with `python main.py schedule list`
 
 ---
 
