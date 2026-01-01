@@ -9,7 +9,6 @@ AI-driven essay delivery — proactive communication born from genuine reflectio
 - [Glossary](#glossary)
 - [Quick Reference](#quick-reference)
 - [See Also](#see-also)
-- [Links](#links)
 
 ---
 
@@ -29,7 +28,8 @@ AI-driven essay delivery — proactive communication born from genuine reflectio
 | [README.md](README.md) | Everyone | Quick start & glossary (this file) |
 | [SETUP.md](SETUP.md) | First-time users | Environment setup |
 | [CONCEPT.md](CONCEPT.md) | Curious minds | Philosophy & design rationale |
-| [CLAUDE.md](CLAUDE.md) | Developers | Architecture overview |
+| [CLAUDE.md](CLAUDE.md) | AI/Architects | Architecture overview |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Development workflow |
 | [commands/essay.md](commands/essay.md) | Users | Command reference |
 | [agents/essay_writer.md](agents/essay_writer.md) | AI | Agent specification |
 | [skills/reflect/SKILL.md](skills/reflect/SKILL.md) | AI | Reflection skill |
@@ -81,13 +81,8 @@ Key terms used throughout this plugin:
 - [CONCEPT.md](CONCEPT.md) — Why EmailingEssay? Design philosophy explained
 - [commands/essay.md](commands/essay.md) — Full command reference with examples
 - [SETUP.md](SETUP.md) — Installation and troubleshooting
-
----
-
-## Links
-
-- [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
-- [Full Command Reference](commands/essay.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md) — Development setup and guidelines
+- [GitHub](https://github.com/Bizuayeu/Plugins-Weave) — Source repository
 
 ---
 

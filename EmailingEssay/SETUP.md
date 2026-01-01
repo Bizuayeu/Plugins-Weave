@@ -79,6 +79,14 @@ source ~/.bashrc  # or source ~/.zshrc
 pip install yagmail
 ```
 
+### Development
+
+```bash
+pip install pytest  # For running tests
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full development setup.
+
 ---
 
 ## Verification

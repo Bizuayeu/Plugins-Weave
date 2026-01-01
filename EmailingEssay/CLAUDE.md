@@ -36,7 +36,10 @@ Not just sending mail — delivering **essays born from deep contemplation**.
 EmailingEssay/
 ├── README.md                 # Quick start guide
 ├── SETUP.md                  # Environment setup & troubleshooting
+├── CONCEPT.md                # Philosophy & design rationale
 ├── CLAUDE.md                 # This file (plugin overview)
+├── CONTRIBUTING.md           # Development workflow & guidelines
+├── CHANGELOG.md              # Version history
 ├── commands/
 │   └── essay.md              # /essay command definition
 ├── agents/
