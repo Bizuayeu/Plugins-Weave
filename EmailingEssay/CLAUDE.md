@@ -45,7 +45,7 @@ EmailingEssay/
     └── send_email/
         ├── SKILL.md          # Email sending skill
         └── scripts/
-            └── weave_mail.py # SMTP operations
+            └── main.py       # SMTP operations (Clean Architecture)
 ```
 
 ---

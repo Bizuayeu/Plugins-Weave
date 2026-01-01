@@ -46,7 +46,7 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 ### Script Path
 
 ```
-skills/send_email/scripts/weave_mail.py
+skills/send_email/scripts/main.py
 ```
 
 ### Dependencies
@@ -77,7 +77,7 @@ yagmail
 Send email immediately with specified subject and body.
 
 ```bash
-python weave_mail.py send "Subject" "Body"
+python main.py send "Subject" "Body"
 ```
 
 ### Test
@@ -85,7 +85,7 @@ python weave_mail.py send "Subject" "Body"
 Verify email configuration by sending a test email.
 
 ```bash
-python weave_mail.py test
+python main.py test
 ```
 
 ### Wait (One-time Scheduling)
@@ -93,10 +93,10 @@ python weave_mail.py test
 Schedule essay for a specific time. Runs in detached process.
 
 ```bash
-python weave_mail.py wait "22:00" -t "theme"
-python weave_mail.py wait "22:00" -t "theme" -c "context.txt"
-python weave_mail.py wait "22:00" -t "theme" -f "context_list.txt" -l ja
-python weave_mail.py wait "2026-01-05 22:00" -t "theme"
+python main.py wait "22:00" -t "theme"
+python main.py wait "22:00" -t "theme" -c "context.txt"
+python main.py wait "22:00" -t "theme" -f "context_list.txt" -l ja
+python main.py wait "2026-01-05 22:00" -t "theme"
 ```
 
 **Mechanism**:
@@ -110,14 +110,14 @@ Register with Windows Task Scheduler or cron.
 
 ```bash
 # Daily/Weekly/Monthly
-python weave_mail.py schedule daily 22:00 -t "Daily reflection"
-python weave_mail.py schedule weekly monday 09:00 -t "Weekly review"
-python weave_mail.py schedule monthly 15 09:00 -t "Monthly review"
-python weave_mail.py schedule monthly last-fri 17:00 -t "Month-end"
+python main.py schedule daily 22:00 -t "Daily reflection"
+python main.py schedule weekly monday 09:00 -t "Weekly review"
+python main.py schedule monthly 15 09:00 -t "Monthly review"
+python main.py schedule monthly last_fri 17:00 -t "Month-end"
 
 # Management
-python weave_mail.py schedule list
-python weave_mail.py schedule remove "Essay_Daily_reflection"
+python main.py schedule list
+python main.py schedule remove "Essay_Daily_reflection"
 ```
 
 **How It Works**:

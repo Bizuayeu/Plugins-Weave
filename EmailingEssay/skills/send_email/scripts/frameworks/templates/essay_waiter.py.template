@@ -1,0 +1,60 @@
+# -*- coding: utf-8 -*-
+"""
+Essay Waiter Script
+
+自動生成されたスクリプト。
+指定時刻まで待機し、Claudeでエッセイを実行する。
+"""
+import time
+from datetime import datetime, timedelta
+import subprocess
+import sys
+import os
+
+LOG_FILE = r"{{log_file}}"
+TARGET_TIME = "{{target_time}}"
+CLAUDE_ARGS = """{{claude_args}}"""
+
+def log(msg):
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        f.write("[" + timestamp + "] " + str(msg) + "\n")
+
+try:
+    log("Started. Target: " + TARGET_TIME)
+
+    # Parse time - support both HH:MM and YYYY-MM-DD HH:MM
+    time_str = TARGET_TIME
+    if " " in time_str and len(time_str) > 10:
+        target = datetime.strptime(time_str, "%Y-%m-%d %H:%M")
+    else:
+        target = datetime.strptime(time_str, "%H:%M").replace(
+            year=datetime.now().year,
+            month=datetime.now().month,
+            day=datetime.now().day
+        )
+        if target < datetime.now():
+            target += timedelta(days=1)
+
+    log("Waiting until " + target.strftime("%Y-%m-%d %H:%M") + "...")
+
+    # Poll every minute (sleep-resilient)
+    while datetime.now() < target:
+        time.sleep(60)
+
+    log("Target time reached: " + datetime.now().strftime("%H:%M"))
+    log("Launching Claude Code for essay...")
+
+    # Execute Claude Code (--dangerously-skip-permissions for non-interactive)
+    cmd = 'claude --dangerously-skip-permissions -p "/essay ' + CLAUDE_ARGS + '"'
+    log("Command: " + cmd)
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    log("Return code: " + str(result.returncode))
+    if result.stdout:
+        log("Stdout: " + result.stdout[:500])
+    if result.stderr:
+        log("Stderr: " + result.stderr[:500])
+    log("Done.")
+
+except Exception as e:
+    log("ERROR: " + str(e))

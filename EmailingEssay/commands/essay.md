@@ -273,7 +273,7 @@ C:/Users/you/path/to/file2.txt
 | `agents/essay_writer.md` | Reflection and writing agent |
 | `skills/reflect/SKILL.md` | Reflection skill definition |
 | `skills/send_email/SKILL.md` | Emailing skill definition |
-| `skills/send_email/scripts/weave_mail.py` | SMTP operations |
+| `skills/send_email/scripts/main.py` | SMTP operations (Clean Architecture) |
 
 ---
 

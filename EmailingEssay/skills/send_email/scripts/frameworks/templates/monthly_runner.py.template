@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Monthly runner script for: {{task_name}}
+
+This script is executed daily and runs the essay command
+only when the schedule condition is met.
+"""
+from datetime import datetime, timedelta
+import subprocess
+import sys
+
+
+def should_run_today():
+    """Check if today matches the schedule condition"""
+    today = datetime.now()
+    return {{condition_code}}
+
+
+if __name__ == "__main__":
+    if should_run_today():
+        print(f"[{datetime.now()}] Running scheduled essay: {{task_name}}")
+        cmd = "{{command}}"
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Error: {result.stderr}")
+        else:
+            print(f"Success: {result.stdout[:200]}")
+    else:
+        # Silent exit when condition not met
+        pass
