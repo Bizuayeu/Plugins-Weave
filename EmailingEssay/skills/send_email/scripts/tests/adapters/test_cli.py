@@ -234,5 +234,3 @@ class TestScheduleHandlerUseCase:
 
             assert result == 0
             mock_usecase.list_waiters.assert_called_once()
-
-

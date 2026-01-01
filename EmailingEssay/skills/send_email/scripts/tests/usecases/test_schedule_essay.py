@@ -102,7 +102,9 @@ class TestScheduleEssayUseCaseList:
         resolver.get_runners_dir.return_value = str(tmp_path / "runners")
         return resolver
 
-    def test_list_shows_schedules(self, mock_scheduler, mock_schedule_storage, mock_path_resolver, capsys):
+    def test_list_shows_schedules(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, capsys
+    ):
         """スケジュール一覧を表示"""
         usecase = ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
         usecase.list()
@@ -145,7 +147,9 @@ class TestScheduleEssayUseCaseRemove:
         resolver.get_runners_dir.return_value = str(tmp_path / "runners")
         return resolver
 
-    def test_remove_existing_schedule(self, mock_scheduler, mock_schedule_storage, mock_path_resolver, capsys):
+    def test_remove_existing_schedule(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver, capsys
+    ):
         """既存スケジュールを削除"""
         usecase = ScheduleEssayUseCase(mock_scheduler, mock_schedule_storage, mock_path_resolver)
         usecase.remove("Essay_test")
@@ -278,7 +282,9 @@ class TestScheduleEssayUseCaseRollback:
         resolver.get_runners_dir.return_value = str(runners_dir)
         return resolver
 
-    def test_rollback_scheduler_when_storage_fails(self, mock_scheduler, mock_schedule_storage, mock_path_resolver):
+    def test_rollback_scheduler_when_storage_fails(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver
+    ):
         """ストレージ保存失敗時にスケジューラ登録をロールバック"""
         # ストレージ保存を失敗させる
         mock_schedule_storage.save_schedules.side_effect = PermissionError("Cannot write")
@@ -292,7 +298,9 @@ class TestScheduleEssayUseCaseRollback:
         mock_scheduler.add.assert_called_once()
         mock_scheduler.remove.assert_called_once()
 
-    def test_no_orphan_scheduler_entry_on_storage_failure(self, mock_scheduler, mock_schedule_storage, mock_path_resolver):
+    def test_no_orphan_scheduler_entry_on_storage_failure(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver
+    ):
         """ストレージ失敗時にスケジューラに孤児エントリが残らない"""
         mock_schedule_storage.save_schedules.side_effect = OSError("Disk full")
 
@@ -304,7 +312,9 @@ class TestScheduleEssayUseCaseRollback:
         # スケジューラのremoveが呼ばれたことを確認
         assert mock_scheduler.remove.called
 
-    def test_scheduler_failure_does_not_save_to_storage(self, mock_scheduler, mock_schedule_storage, mock_path_resolver):
+    def test_scheduler_failure_does_not_save_to_storage(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver
+    ):
         """スケジューラ登録失敗時はストレージに保存しない"""
         mock_scheduler.add.side_effect = RuntimeError("Scheduler unavailable")
 
@@ -316,7 +326,9 @@ class TestScheduleEssayUseCaseRollback:
         # ストレージ保存は呼ばれない
         mock_schedule_storage.save_schedules.assert_not_called()
 
-    def test_rollback_continues_even_if_remove_fails(self, mock_scheduler, mock_schedule_storage, mock_path_resolver):
+    def test_rollback_continues_even_if_remove_fails(
+        self, mock_scheduler, mock_schedule_storage, mock_path_resolver
+    ):
         """ロールバック中のremove失敗でも例外は元のまま"""
         mock_schedule_storage.save_schedules.side_effect = PermissionError("Cannot write")
         mock_scheduler.remove.side_effect = RuntimeError("Remove also failed")

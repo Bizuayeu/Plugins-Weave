@@ -95,12 +95,16 @@ class TestBuildArgs:
 
     def test_context_only(self):
         """コンテキストのみ"""
-        result = ClaudeCommandBuilder.build_args(context="/path/to/context.md", quote_style="single")
+        result = ClaudeCommandBuilder.build_args(
+            context="/path/to/context.md", quote_style="single"
+        )
         assert result == "-c '/path/to/context.md'"
 
     def test_file_list_only(self):
         """ファイルリストのみ"""
-        result = ClaudeCommandBuilder.build_args(file_list="/path/to/files.txt", quote_style="single")
+        result = ClaudeCommandBuilder.build_args(
+            file_list="/path/to/files.txt", quote_style="single"
+        )
         assert result == "-f '/path/to/files.txt'"
 
     def test_lang_only(self):

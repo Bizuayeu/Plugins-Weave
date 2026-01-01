@@ -101,11 +101,14 @@ class TestYagmailAdapter:
     def test_missing_recipient_raises_error(self):
         """受信者未設定でエラー"""
         Config.reset()  # シングルトンリセット
-        with patch.dict(
-            os.environ,
-            {"ESSAY_SENDER_EMAIL": "sender@example.com", "ESSAY_APP_PASSWORD": "password"},
-            clear=True,
-        ), pytest.raises(MailError):
+        with (
+            patch.dict(
+                os.environ,
+                {"ESSAY_SENDER_EMAIL": "sender@example.com", "ESSAY_APP_PASSWORD": "password"},
+                clear=True,
+            ),
+            pytest.raises(MailError),
+        ):
             YagmailAdapter()
 
     @patch('adapters.mail.yagmail_adapter.yagmail')
