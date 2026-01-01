@@ -70,11 +70,7 @@ class ProcessAlivenessCache:
         Args:
             checker: プロセス生存をチェックする関数
         """
-        self._cache = {
-            pid: (alive, ts)
-            for pid, (alive, ts) in self._cache.items()
-            if checker(pid)
-        }
+        self._cache = {pid: (alive, ts) for pid, (alive, ts) in self._cache.items() if checker(pid)}
 
     def clear(self) -> None:
         """キャッシュを全てクリアする。"""

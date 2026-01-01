@@ -342,8 +342,10 @@ class TestObservabilityLogging:
             adapter.load_schedules()
 
         # JSONDecodeErrorに関する情報がログに含まれていることを確認
-        assert any("JSONDecodeError" in record.message or "json" in record.message.lower()
-                   for record in caplog.records)
+        assert any(
+            "JSONDecodeError" in record.message or "json" in record.message.lower()
+            for record in caplog.records
+        )
 
     def test_backup_recovery_success_logs_info(self, adapter, temp_dir, caplog):
         """バックアップからの復旧成功時にINFOログが出る"""
@@ -363,8 +365,10 @@ class TestObservabilityLogging:
 
         # 復旧が成功した場合、INFOログに"Restored"が含まれる
         if len(result) > 0:  # 復旧成功時のみ
-            assert any("Restored" in record.message or "backup" in record.message.lower()
-                       for record in caplog.records)
+            assert any(
+                "Restored" in record.message or "backup" in record.message.lower()
+                for record in caplog.records
+            )
 
 
 class TestProcessCache:
