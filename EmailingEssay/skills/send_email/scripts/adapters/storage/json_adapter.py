@@ -11,12 +11,20 @@ from __future__ import annotations
 import json
 import logging
 import shutil
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 
 PERSISTENT_DIR_NAME = ".emailingessay"
+
+# バックアップ作成の閾値
+BACKUP_SIZE_THRESHOLD = 1024  # 1KB以上でバックアップ
+BACKUP_TIME_THRESHOLD = 3600  # 1時間以上経過でバックアップ
+
+# プロセス生存チェックのキャッシュTTL
+PROCESS_CACHE_TTL = 5.0  # 5秒
 
 # モジュールロガー
 logger = logging.getLogger('emailingessay.storage')
@@ -31,6 +39,8 @@ class JsonStorageAdapter:
             base_dir: 基底ディレクトリ（テスト用）。Noneの場合はデフォルトを使用
         """
         self._base_dir = Path(base_dir) if base_dir else None
+        # プロセス生存チェックのキャッシュ: {pid: (is_alive, timestamp)}
+        self._process_cache: dict[int, tuple[bool, float]] = {}
 
     def get_persistent_dir(self) -> str:
         """永続化ディレクトリのパスを取得（なければ作成）"""
@@ -51,6 +61,44 @@ class JsonStorageAdapter:
         runners_dir = Path(self.get_persistent_dir()) / "runners"
         runners_dir.mkdir(parents=True, exist_ok=True)
         return str(runners_dir)
+
+    def _should_create_backup(self, filepath: Path) -> bool:
+        """
+        バックアップを作成すべきか判定する。
+
+        条件:
+        - ファイルサイズが1KB以上
+        - または、前回バックアップから1時間以上経過
+
+        Args:
+            filepath: 対象ファイルパス
+
+        Returns:
+            バックアップすべき場合はTrue
+        """
+        if not filepath.exists():
+            return False
+
+        # サイズチェック
+        try:
+            if filepath.stat().st_size >= BACKUP_SIZE_THRESHOLD:
+                return True
+        except OSError:
+            return False
+
+        # 時間チェック（バックアップファイルの更新時刻）
+        backup = filepath.with_suffix('.json.bak')
+        if not backup.exists():
+            return True  # バックアップが無ければ作成
+
+        try:
+            backup_mtime = backup.stat().st_mtime
+            if time.time() - backup_mtime >= BACKUP_TIME_THRESHOLD:
+                return True
+        except OSError:
+            return True
+
+        return False
 
     def _backup_file(self, filepath: Path) -> Path | None:
         """
@@ -131,15 +179,20 @@ class JsonStorageAdapter:
             logger.error("No valid backup available, returning empty list")
             return []
 
-    def save_schedules(self, schedules: list[dict[str, Any]]) -> None:
+    def save_schedules(self, schedules: list[dict[str, Any]], force_backup: bool = False) -> None:
         """
         スケジュール一覧を保存する。
 
-        書き込み前に既存ファイルのバックアップを作成する。
+        条件付きでバックアップを作成する（効率化）。
+
+        Args:
+            schedules: 保存するスケジュールリスト
+            force_backup: 強制的にバックアップを作成する場合はTrue
         """
         schedules_file = Path(self.get_schedules_file())
-        # 既存ファイルをバックアップ
-        self._backup_file(schedules_file)
+        # 条件を満たす場合のみバックアップ
+        if force_backup or self._should_create_backup(schedules_file):
+            self._backup_file(schedules_file)
         # 新しいデータを書き込み
         with open(schedules_file, "w", encoding="utf-8") as f:
             json.dump({"schedules": schedules}, f, indent=2, ensure_ascii=False)
@@ -182,6 +235,37 @@ class JsonStorageAdapter:
                 return True
         except (OSError, PermissionError):
             return False
+
+    def _is_process_alive_cached(self, pid: int) -> bool:
+        """
+        プロセス生存チェック（キャッシュ付き）。
+
+        TTL（5秒）以内の結果はキャッシュから返す。
+
+        Args:
+            pid: プロセスID
+
+        Returns:
+            プロセスが存在する場合はTrue
+        """
+        now = time.time()
+
+        # キャッシュ確認
+        if pid in self._process_cache:
+            is_alive, timestamp = self._process_cache[pid]
+            if now - timestamp < PROCESS_CACHE_TTL:
+                return is_alive
+
+        # キャッシュミス: 実際にチェック
+        is_alive = self._is_process_alive(pid)
+        self._process_cache[pid] = (is_alive, now)
+
+        # 死亡プロセスはキャッシュから削除（メモリリーク防止）
+        if not is_alive:
+            # 削除は次回の呼び出しで行う（今回は結果を返す）
+            pass
+
+        return is_alive
 
     def register_waiter(self, pid: int, target_time: str, theme: str) -> None:
         """
@@ -250,10 +334,10 @@ class JsonStorageAdapter:
             logger.warning(f"Failed to read waiters file: {e}")
             return []
 
-        # 生存プロセスのみフィルタ
+        # 生存プロセスのみフィルタ（キャッシュ付き）
         active_waiters = [
             w for w in waiters
-            if self._is_process_alive(w.get("pid", 0))
+            if self._is_process_alive_cached(w.get("pid", 0))
         ]
 
         # 死亡プロセスがあった場合はファイルを更新

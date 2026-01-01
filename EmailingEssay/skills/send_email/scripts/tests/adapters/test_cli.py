@@ -156,3 +156,126 @@ class TestAddCommonOptions:
         # 無効な値
         with pytest.raises(SystemExit):
             parser.parse_args(["-l", "invalid"])
+
+
+class TestGenericScheduleHandler:
+    """ジェネリックスケジュールハンドラのテスト"""
+
+    def test_handle_schedule_add_daily(self):
+        """daily用のジェネリックハンドラが正しく呼ばれる"""
+        from argparse import Namespace
+        from unittest.mock import patch
+
+        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
+            from adapters.cli.handlers import _handle_schedule_add
+
+            args = Namespace(
+                time="09:00",
+                theme="test",
+                context="",
+                file_list="",
+                lang="",
+                name=""
+            )
+            result = _handle_schedule_add(args, "daily")
+
+            assert result == 0
+            mock_schedule_add.assert_called_once_with(
+                frequency="daily",
+                time_spec="09:00",
+                weekday="",
+                theme="test",
+                context_file="",
+                file_list="",
+                lang="",
+                name="",
+                day_spec=""
+            )
+
+    def test_handle_schedule_add_weekly(self):
+        """weekly用: weekday引数が渡される"""
+        from argparse import Namespace
+        from unittest.mock import patch
+
+        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
+            from adapters.cli.handlers import _handle_schedule_add
+
+            args = Namespace(
+                time="10:00",
+                theme="weekly theme",
+                context="context.md",
+                file_list="",
+                lang="ja",
+                name="",
+                weekday="monday"
+            )
+            result = _handle_schedule_add(args, "weekly")
+
+            assert result == 0
+            mock_schedule_add.assert_called_once_with(
+                frequency="weekly",
+                time_spec="10:00",
+                weekday="monday",
+                theme="weekly theme",
+                context_file="context.md",
+                file_list="",
+                lang="ja",
+                name="",
+                day_spec=""
+            )
+
+    def test_handle_schedule_add_monthly(self):
+        """monthly用: day_spec引数が渡される"""
+        from argparse import Namespace
+        from unittest.mock import patch
+
+        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
+            from adapters.cli.handlers import _handle_schedule_add
+
+            args = Namespace(
+                time="15:00",
+                theme="monthly review",
+                context="",
+                file_list="files.txt",
+                lang="en",
+                name="custom_name",
+                day_spec="15"
+            )
+            result = _handle_schedule_add(args, "monthly")
+
+            assert result == 0
+            mock_schedule_add.assert_called_once_with(
+                frequency="monthly",
+                time_spec="15:00",
+                weekday="",
+                theme="monthly review",
+                context_file="",
+                file_list="files.txt",
+                lang="en",
+                name="custom_name",
+                day_spec="15"
+            )
+
+    def test_handle_schedule_add_missing_weekday_uses_empty(self):
+        """weekday属性がない場合は空文字を使用"""
+        from argparse import Namespace
+        from unittest.mock import patch
+
+        with patch('adapters.cli.handlers.schedule_add') as mock_schedule_add:
+            from adapters.cli.handlers import _handle_schedule_add
+
+            args = Namespace(
+                time="09:00",
+                theme="",
+                context="",
+                file_list="",
+                lang="",
+                name=""
+                # weekday属性なし
+            )
+            result = _handle_schedule_add(args, "daily")
+
+            assert result == 0
+            # weekdayは空文字で呼ばれる
+            call_args = mock_schedule_add.call_args
+            assert call_args.kwargs.get('weekday') == ""

@@ -4,13 +4,49 @@
 
 依存性注入を行い、ユースケースを生成する。
 main.py や便利関数から使用される。
+環境変数の事前検証機能も提供。
 """
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .ports import SchedulerPort, StoragePort, ProcessSpawnerPort, MailPort
+
+
+# 必須環境変数のリスト
+REQUIRED_ENV_VARS = [
+    "ESSAY_SENDER_EMAIL",
+    "ESSAY_APP_PASSWORD",
+    "ESSAY_RECIPIENT_EMAIL",
+]
+
+
+def validate_environment() -> list[str]:
+    """
+    必須環境変数を検証する。
+
+    Returns:
+        エラーメッセージのリスト（空なら成功）
+    """
+    errors = []
+    for var in REQUIRED_ENV_VARS:
+        if not os.environ.get(var):
+            errors.append(f"Missing environment variable: {var}")
+    return errors
+
+
+def require_valid_environment() -> None:
+    """
+    環境変数を検証し、不足があれば例外を発生させる。
+
+    Raises:
+        EnvironmentError: 必須環境変数が不足している場合
+    """
+    errors = validate_environment()
+    if errors:
+        raise EnvironmentError("\n".join(errors))
 
 
 def get_mail_adapter() -> "MailPort":
@@ -94,11 +130,37 @@ def schedule_remove(name: str) -> None:
     usecase.remove(name)
 
 
+def wait_list() -> None:
+    """待機プロセス一覧を表示する（便利関数）"""
+    usecase = create_wait_usecase()
+    waiters = usecase.list_waiters()
+
+    if not waiters:
+        print("No active waiting processes.")
+        return
+
+    print(f"Active waiting processes: {len(waiters)}")
+    print("-" * 60)
+    for w in waiters:
+        pid = w.get("pid", "?")
+        target = w.get("target_time", "?")
+        theme = w.get("theme", "") or "(no theme)"
+        registered = w.get("registered_at", "?")
+        print(f"  PID: {pid}")
+        print(f"    Target: {target}")
+        print(f"    Theme:  {theme}")
+        print(f"    Registered: {registered}")
+        print()
+
+
 # 型ヒント用の遅延インポート
 from .schedule_essay import ScheduleEssayUseCase  # noqa: E402
 from .wait_essay import WaitEssayUseCase  # noqa: E402
 
 __all__ = [
+    "REQUIRED_ENV_VARS",
+    "validate_environment",
+    "require_valid_environment",
     "get_mail_adapter",
     "get_scheduler",
     "get_storage",
@@ -108,4 +170,5 @@ __all__ = [
     "schedule_add",
     "schedule_list",
     "schedule_remove",
+    "wait_list",
 ]

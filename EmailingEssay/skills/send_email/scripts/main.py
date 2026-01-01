@@ -36,11 +36,8 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-from adapters.cli.parser import create_parser
+from adapters.cli import create_parser, dispatch
 from domain.exceptions import EmailingEssayError
-from usecases.wait_essay import WaitEssayUseCase, wait_list
-from usecases.schedule_essay import schedule_add, schedule_list, schedule_remove
-from usecases.factories import get_mail_adapter
 from frameworks.logging_config import configure_logging, get_logger
 
 # ロギング初期化
@@ -54,89 +51,13 @@ def main() -> int:
     parser = create_parser()
     args = parser.parse_args()
 
-    if not args.command:
-        parser.print_help()
-        return 0
-
     try:
-        if args.command == "test":
-            # ファクトリー経由でアダプターを取得
-            mail = get_mail_adapter()
-            mail.test()
-
-        elif args.command == "send":
-            # ファクトリー経由でアダプターを取得
-            mail = get_mail_adapter()
-            mail.send_custom(args.subject, args.body)
-
-        elif args.command == "wait":
-            if args.time == "list":
-                # 待機プロセス一覧を表示
-                wait_list()
-            else:
-                # 新しいモジュールを使用
-                waiter = WaitEssayUseCase()
-                waiter.spawn(
-                    target_time=args.time,
-                    theme=args.theme,
-                    context=args.context,
-                    file_list=args.file_list,
-                    lang=args.lang
-                )
-
-        elif args.command == "schedule":
-            if args.schedule_cmd == "list":
-                schedule_list()
-
-            elif args.schedule_cmd == "remove":
-                schedule_remove(args.name)
-
-            elif args.schedule_cmd == "daily":
-                schedule_add(
-                    frequency="daily",
-                    time_spec=args.time,
-                    weekday="",
-                    theme=args.theme,
-                    context_file=args.context,
-                    file_list=args.file_list,
-                    lang=args.lang,
-                    name=args.name
-                )
-
-            elif args.schedule_cmd == "weekly":
-                schedule_add(
-                    frequency="weekly",
-                    time_spec=args.time,
-                    weekday=args.weekday,
-                    theme=args.theme,
-                    context_file=args.context,
-                    file_list=args.file_list,
-                    lang=args.lang,
-                    name=args.name
-                )
-
-            elif args.schedule_cmd == "monthly":
-                schedule_add(
-                    frequency="monthly",
-                    time_spec=args.time,
-                    weekday="",
-                    theme=args.theme,
-                    context_file=args.context,
-                    file_list=args.file_list,
-                    lang=args.lang,
-                    name=args.name,
-                    day_spec=args.day_spec
-                )
-
-            else:
-                print(f"Unknown schedule subcommand: {args.schedule_cmd}")
-                return 1
-
-        else:
-            print(f"Unknown command: {args.command}")
-            return 1
-
-        return 0
+        result = dispatch(args)
+        if result == -1:
+            # コマンド未指定
+            parser.print_help()
+            return 0
+        return result
 
     except EmailingEssayError as e:
         # カスタム例外（MailError, SchedulerError, ValidationError等）を統一処理

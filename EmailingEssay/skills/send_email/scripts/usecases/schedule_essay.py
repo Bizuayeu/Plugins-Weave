@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from domain.models import MonthlyPattern, MonthlyType
 from domain.constants import WEEKDAYS_FULL, VALID_WEEKDAYS
 from frameworks.logging_config import get_logger
+from .command_builder import build_claude_command
 
 if TYPE_CHECKING:
     from .ports import SchedulerPort, StoragePort
@@ -69,7 +70,7 @@ class ScheduleEssayUseCase:
 
         # タスク名生成
         task_name = self._generate_task_name(frequency, time_spec, theme, name, day_spec)
-        command = self._build_claude_command(theme, context_file, file_list, lang)
+        command = build_claude_command(theme, context_file, file_list, lang)
 
         # トランザクション的に実行
         scheduler_registered = False
@@ -233,32 +234,6 @@ class ScheduleEssayUseCase:
 
         return base_name
 
-    def _build_claude_command(
-        self, theme: str = "", context_file: str = "", file_list: str = "", lang: str = ""
-    ) -> str:
-        """Claudeコマンドを構築"""
-        args = []
-
-        if sys.platform == "win32":
-            q = '\\"'
-        else:
-            q = "'"
-
-        if theme:
-            args.append(f'{q}{theme}{q}')
-        if context_file:
-            args.append(f'-c {q}{context_file}{q}')
-        if file_list:
-            args.append(f'-f {q}{file_list}{q}')
-        if lang:
-            args.append(f'-l {lang}')
-        args_str = " ".join(args)
-
-        if sys.platform == "win32":
-            claude_path = str(Path.home() / ".local" / "bin" / "claude.exe")
-            return f'"{claude_path}" --dangerously-skip-permissions -p "/essay {args_str}"'
-        return f'claude --dangerously-skip-permissions -p "/essay {args_str}"'
-
     def _create_os_schedule(
         self,
         task_name: str,
@@ -385,49 +360,3 @@ class ScheduleEssayUseCase:
         print("The essay will run automatically. Survives PC restart.")
 
 
-# 便利関数（後方互換性用、main.pyから直接呼び出せるように）
-def schedule_add(
-    frequency: str,
-    time_spec: str,
-    weekday: str = "",
-    theme: str = "",
-    context_file: str = "",
-    file_list: str = "",
-    lang: str = "",
-    name: str = "",
-    day_spec: str = ""
-) -> None:
-    """スケジュールを追加する（便利関数）"""
-    from adapters.scheduler import get_scheduler
-    from adapters.storage import JsonStorageAdapter
-
-    usecase = ScheduleEssayUseCase(get_scheduler(), JsonStorageAdapter())
-    usecase.add(
-        frequency=frequency,
-        time_spec=time_spec,
-        weekday=weekday,
-        theme=theme,
-        context_file=context_file,
-        file_list=file_list,
-        lang=lang,
-        name=name,
-        day_spec=day_spec
-    )
-
-
-def schedule_list() -> None:
-    """スケジュール一覧を表示する（便利関数）"""
-    from adapters.scheduler import get_scheduler
-    from adapters.storage import JsonStorageAdapter
-
-    usecase = ScheduleEssayUseCase(get_scheduler(), JsonStorageAdapter())
-    usecase.list()
-
-
-def schedule_remove(name: str) -> None:
-    """スケジュールを削除する（便利関数）"""
-    from adapters.scheduler import get_scheduler
-    from adapters.storage import JsonStorageAdapter
-
-    usecase = ScheduleEssayUseCase(get_scheduler(), JsonStorageAdapter())
-    usecase.remove(name)

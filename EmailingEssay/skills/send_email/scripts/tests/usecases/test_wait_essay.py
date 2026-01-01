@@ -161,14 +161,26 @@ class TestWaitEssayUseCase:
         mock_storage.get_persistent_dir.assert_called()
 
 
-class TestWaitEssayUseCaseBackwardCompatibility:
-    """後方互換性のテスト"""
+class TestWaitEssayUseCaseDI:
+    """DI必須化のテスト"""
 
-    def test_usecase_works_without_di(self):
-        """DI引数なしでもインスタンス化できる"""
-        usecase = WaitEssayUseCase()
-        assert usecase._storage is not None
-        assert usecase._spawner is not None
+    def test_usecase_requires_storage_port(self):
+        """storage_portは必須"""
+        with pytest.raises(TypeError):
+            WaitEssayUseCase(spawner_port=Mock())
+
+    def test_usecase_requires_spawner_port(self):
+        """spawner_portは必須"""
+        with pytest.raises(TypeError):
+            WaitEssayUseCase(storage_port=Mock())
+
+    def test_usecase_works_with_both_ports(self):
+        """両方指定で正常動作"""
+        usecase = WaitEssayUseCase(
+            storage_port=Mock(),
+            spawner_port=Mock()
+        )
+        assert usecase is not None
 
 
 class TestGetPersistentDir:

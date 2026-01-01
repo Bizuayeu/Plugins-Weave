@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.exceptions import WaiterError
+from .command_builder import build_claude_args
 
 if TYPE_CHECKING:
     from .ports import StoragePort, ProcessSpawnerPort
@@ -22,7 +23,6 @@ __all__ = [
     "WaiterError",
     "get_persistent_dir",
     "parse_target_time",
-    "wait_list",
 ]
 
 
@@ -78,24 +78,16 @@ class WaitEssayUseCase:
 
     def __init__(
         self,
-        storage_port: "StoragePort | None" = None,
-        spawner_port: "ProcessSpawnerPort | None" = None
+        storage_port: "StoragePort",
+        spawner_port: "ProcessSpawnerPort"
     ) -> None:
         """
         WaitEssayUseCaseを初期化する。
 
         Args:
-            storage_port: ストレージポート（省略時は自動生成）
-            spawner_port: プロセススポーナーポート（省略時は自動生成）
+            storage_port: ストレージポート（必須）
+            spawner_port: プロセススポーナーポート（必須）
         """
-        # 後方互換性: 引数が省略された場合は自動生成
-        if storage_port is None:
-            from adapters.storage import JsonStorageAdapter
-            storage_port = JsonStorageAdapter()
-        if spawner_port is None:
-            from adapters.process import ProcessSpawner
-            spawner_port = ProcessSpawner()
-
         self._storage = storage_port
         self._spawner = spawner_port
 
@@ -123,8 +115,8 @@ class WaitEssayUseCase:
         Raises:
             WaiterError: 起動に失敗した場合
         """
-        # Claudeコマンドの引数を構築
-        claude_args = self._build_claude_args(theme, context, file_list, lang)
+        # Claudeコマンドの引数を構築（統一ユーティリティ使用）
+        claude_args = build_claude_args(theme, context, file_list, lang)
 
         # 永続ディレクトリを取得（DIされたストレージを使用）
         persistent_dir = Path(self._storage.get_persistent_dir())
@@ -160,28 +152,6 @@ class WaitEssayUseCase:
 
         return pid
 
-    def _build_claude_args(
-        self,
-        theme: str,
-        context: str,
-        file_list: str,
-        lang: str
-    ) -> str:
-        """Claudeコマンドの引数を構築する"""
-        claude_args = []
-        if theme:
-            theme_escaped = theme.replace("'", "\\'")
-            claude_args.append(f"'{theme_escaped}'")
-        if context:
-            context_safe = context.replace("\\", "/")
-            claude_args.append(f"-c '{context_safe}'")
-        if file_list:
-            file_list_safe = file_list.replace("\\", "/")
-            claude_args.append(f"-f '{file_list_safe}'")
-        if lang:
-            claude_args.append(f"-l {lang}")
-        return " ".join(claude_args) if claude_args else ""
-
     def _generate_waiter_script(
         self,
         target_time: str,
@@ -207,28 +177,3 @@ class WaitEssayUseCase:
             待機プロセスのリスト
         """
         return self._storage.get_active_waiters()
-
-
-def wait_list() -> None:
-    """待機プロセス一覧を表示する（便利関数）"""
-    from adapters.storage import JsonStorageAdapter
-
-    storage = JsonStorageAdapter()
-    waiters = storage.get_active_waiters()
-
-    if not waiters:
-        print("No active waiting processes.")
-        return
-
-    print(f"Active waiting processes: {len(waiters)}")
-    print("-" * 60)
-    for w in waiters:
-        pid = w.get("pid", "?")
-        target = w.get("target_time", "?")
-        theme = w.get("theme", "") or "(no theme)"
-        registered = w.get("registered_at", "?")
-        print(f"  PID: {pid}")
-        print(f"    Target: {target}")
-        print(f"    Theme:  {theme}")
-        print(f"    Registered: {registered}")
-        print()

@@ -1,0 +1,6 @@
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    {{title_block}}
+    <div style="line-height: 1.8; color: #333;">
+        {{content}}
+    </div>
+</div>

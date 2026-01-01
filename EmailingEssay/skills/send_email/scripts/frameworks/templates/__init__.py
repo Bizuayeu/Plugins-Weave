@@ -3,7 +3,7 @@
 テンプレートシステム
 
 簡易テンプレートエンジンを提供する。
-TemplateError は domain.exceptions に移動済み。
+インメモリキャッシュにより、ディスクI/Oを削減。
 """
 from __future__ import annotations
 
@@ -13,18 +13,22 @@ from typing import Any
 
 from domain.exceptions import TemplateError
 
+# テンプレートキャッシュ（モジュールレベル）
+_template_cache: dict[str, str] = {}
+
 
 def get_templates_dir() -> str:
     """テンプレートディレクトリのパスを取得"""
     return str(Path(__file__).parent)
 
 
-def load_template(name: str) -> str:
+def load_template(name: str, use_cache: bool = True) -> str:
     """
-    テンプレートファイルをロードする。
+    テンプレートファイルをロードする（キャッシュ付き）。
 
     Args:
         name: テンプレートファイル名
+        use_cache: キャッシュを使用するか（デフォルトTrue）
 
     Returns:
         テンプレートの内容
@@ -32,12 +36,27 @@ def load_template(name: str) -> str:
     Raises:
         TemplateError: ファイルが存在しない場合
     """
+    # キャッシュ確認
+    if use_cache and name in _template_cache:
+        return _template_cache[name]
+
     template_path = Path(get_templates_dir()) / name
     if not template_path.exists():
         raise TemplateError(f"Template not found: {name}")
 
     with open(template_path, "r", encoding="utf-8") as f:
-        return f.read()
+        content = f.read()
+
+    # キャッシュに保存
+    if use_cache:
+        _template_cache[name] = content
+
+    return content
+
+
+def clear_template_cache() -> None:
+    """テンプレートキャッシュをクリアする（テスト用）"""
+    _template_cache.clear()
 
 
 def render_template(template: str, **kwargs: Any) -> str:
@@ -64,4 +83,4 @@ def render_template(template: str, **kwargs: Any) -> str:
     return re.sub(r'\{\{(\w+)\}\}', replacer, template)
 
 
-__all__ = ["load_template", "render_template", "TemplateError"]
+__all__ = ["load_template", "render_template", "clear_template_cache", "TemplateError"]
