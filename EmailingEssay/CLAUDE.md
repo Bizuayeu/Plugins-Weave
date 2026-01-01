@@ -7,6 +7,7 @@ AI が主体的な思索を行った結果を、メールで届けられるよ�
 - [What is EmailingEssay?](#what-is-emailingessay)
 - [Benefits](#benefits)
 - [File Structure](#file-structure)
+- [Clean Architecture Overview](#clean-architecture-overview)
 - [Architecture](#architecture)
 - [Component Roles](#component-roles)
 - [Execution Modes](#execution-modes)
@@ -56,6 +57,45 @@ EmailingEssay/
             ├── frameworks/   # External frameworks (templates)
             └── tests/        # Comprehensive test suite
 ```
+
+---
+
+## Clean Architecture Overview
+
+The `scripts/` directory follows Clean Architecture principles.
+
+### Layer Responsibilities
+
+| Layer | Location | Responsibility |
+|-------|----------|----------------|
+| Domain | `domain/` | Core entities (`MonthlyPattern`, `EssaySchedule`) |
+| Use Cases | `usecases/` | Business logic (`WaitEssayUseCase`, `ScheduleEssayUseCase`) |
+| Adapters | `adapters/` | Interface implementations (CLI, Mail, Storage, Scheduler) |
+| Frameworks | `frameworks/` | External tools (templates) |
+
+### Port/Protocol Pattern
+
+Use Cases define abstract interfaces (Ports) that Adapters implement:
+
+```python
+# usecases/ports.py
+class MailPort(Protocol):
+    def send(self, to: str, subject: str, body: str) -> None: ...
+    def test(self) -> None: ...
+
+class SchedulerPort(Protocol):
+    def add(self, task_name: str, command: str, ...) -> None: ...
+    def remove(self, name: str) -> None: ...
+    def list(self) -> list[dict[str, Any]]: ...
+```
+
+### Adapter Implementations
+
+| Port | Adapter | Location |
+|------|---------|----------|
+| MailPort | YagmailAdapter | `adapters/mail/yagmail_adapter.py` |
+| SchedulerPort | WindowsScheduler, UnixScheduler | `adapters/scheduler/` |
+| StoragePort | JsonStorageAdapter | `adapters/storage/json_adapter.py` |
 
 ---
 

@@ -81,21 +81,7 @@ See `skills/reflect/SKILL.md` for:
 
 ### 5. Output
 
-Behavior depends on mode:
-
-#### Interactive Mode (`/essay`)
-
-| Decision | Action |
-|----------|--------|
-| Delivery | Write essay in chat |
-| Not Delivery | Display "After reflection, I have nothing particular to share." |
-
-#### Non-interactive Mode (`wait`/`schedule`)
-
-| Decision | Action |
-|----------|--------|
-| Delivery | Use `skills/send_email` to deliver (no confirmation) |
-| Not Delivery | Exit silently (logged to `essay_wait.log`) |
+See `skills/reflect/SKILL.md` → **Output** section for mode-specific behavior.
 
 **IMPORTANT**: In non-interactive mode, send automatically without asking for confirmation.
 

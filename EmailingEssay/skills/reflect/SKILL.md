@@ -10,40 +10,36 @@ Design principle: "Reflection first, sending second."
 
 ## Table of Contents
 
+- [Nature of This Skill](#nature-of-this-skill)
 - [Invocation](#invocation)
-- [Options](#options)
 - [Reflection Process](#reflection-process)
 - [Output](#output)
 - [Essay Elements](#essay-elements)
 
 ---
 
-## Invocation
+## Nature of This Skill
 
-| Source | Description |
-|--------|-------------|
-| `/reflect` | Direct skill call |
-| `/essay` | Via command (→ reflect → send_email) |
-| `essay_writer.md` | Via agent |
+This is an **agent-driven skill** with no standalone implementation code.
+The reflection process is executed by `agents/essay_writer.md`.
+
+For execution flow diagram, see `agents/essay_writer.md`.
 
 ---
-## Options
 
-See `commands/essay.md` for full option details.
+## Invocation
+
+| Source | Agent | Description |
+|--------|-------|-------------|
+| `/essay` | essay_writer.md | Primary invocation |
+| `/essay wait` | essay_writer.md | Scheduled (one-time) |
+| `/essay schedule` | essay_writer.md | Scheduled (recurring) |
+
+For CLI options, see `commands/essay.md`.
 
 ---
 
 ## Reflection Process
-
-**Use TodoWrite to track progress**:
-
-```
-1. Load context files
-2. Deep reflection (ultrathink)
-3. Delivery decision
-4. Write essay (if sending)
-5. Deliver via send_email (if sending)
-```
 
 ### 1. Load Context
 

@@ -14,6 +14,7 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 - [Command Structure](#command-structure)
 - [Wait Subcommand (One-time)](#wait-subcommand-one-time)
 - [Schedule Subcommand (Recurring)](#schedule-subcommand-recurring)
+- [CLI Reference (Python Script)](#cli-reference-python-script)
 - [Related Files](#related-files)
 
 ---
@@ -263,6 +264,41 @@ C:/Users/you/path/to/file2.txt
 # Remove by task name
 /essay schedule remove "Essay_Weekly_review"
 ```
+
+---
+
+## CLI Reference (Python Script)
+
+Direct invocation of `skills/send_email/scripts/main.py`:
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `test` | Send test email |
+| `send <subject> <body>` | Send custom email |
+| `wait <time> [options]` | One-time scheduled essay |
+| `schedule <subcommand>` | Recurring schedule management |
+
+### Schedule Subcommands
+
+| Subcommand | Arguments | Description |
+|------------|-----------|-------------|
+| `list` | - | Show all schedules |
+| `remove <name>` | - | Delete schedule |
+| `daily <time>` | `-t`, `-c`, `-f`, `-l`, `--name` | Daily schedule |
+| `weekly <day> <time>` | `-t`, `-c`, `-f`, `-l`, `--name` | Weekly schedule |
+| `monthly <day_spec> <time>` | `-t`, `-c`, `-f`, `-l`, `--name` | Monthly schedule |
+
+### Common Options
+
+| Option | Description |
+|--------|-------------|
+| `-t, --theme TEXT` | Essay theme |
+| `-c, --context FILE` | Single context file |
+| `-f, --file-list FILE` | Multiple files (one path per line) |
+| `-l, --lang LANG` | Language: `ja`, `en`, `auto` |
+| `--name NAME` | Custom task name |
 
 ---
 
