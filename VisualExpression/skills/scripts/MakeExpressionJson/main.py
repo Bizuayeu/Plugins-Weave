@@ -14,7 +14,7 @@ Input:
 Output:
     - ExpressionImages.json (Base64 encoded images)
     - VisualExpressionUI.html (Self-contained HTML)
-    - VisualExpression_skills.zip (For claude.ai upload)
+    - VisualExpressionSkills.zip (For claude.ai upload)
 """
 
 import argparse

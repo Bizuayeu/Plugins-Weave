@@ -171,7 +171,7 @@ python main.py your_grid_image.png --output ./output/
 これにより以下が生成されます：
 - `ExpressionImages.json` - Base64エンコード済み画像データ
 - `VisualExpressionUI.html` - 自己完結型HTML
-- `VisualExpression_skills.zip` - claude.aiアップロード用
+- `VisualExpressionSkills.zip` - claude.aiアップロード用
 
 ---
 

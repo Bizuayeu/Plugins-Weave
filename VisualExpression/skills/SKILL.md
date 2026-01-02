@@ -75,7 +75,7 @@ python main.py your_grid.png --special wink,pout,smug,starry
 **出力:**
 - `ExpressionImages.json` - Base64エンコード済み画像
 - `VisualExpressionUI.html` - 自己完結型HTML
-- `VisualExpression_skills.zip` - claude.aiアップロード用
+- `VisualExpressionSkills.zip` - claude.aiアップロード用
 
 **依存:**
 - Python 3.8+
@@ -93,7 +93,7 @@ python main.py your_grid.png --special wink,pout,smug,starry
 **Mac/Linux:**
 ```bash
 cd VisualExpression
-zip -r VisualExpression_skills.zip skills/ -x "*/tests/*"
+zip -r VisualExpressionSkills.zip skills/ -x "*/tests/*"
 ```
 
 **Windows (PowerShell):**
@@ -101,7 +101,7 @@ zip -r VisualExpression_skills.zip skills/ -x "*/tests/*"
 cd VisualExpression
 Copy-Item -Recurse skills temp_skills
 Remove-Item -Recurse temp_skills/scripts/MakeExpressionJson/tests
-Compress-Archive -Path temp_skills -DestinationPath VisualExpression_skills.zip -Force
+Compress-Archive -Path temp_skills -DestinationPath VisualExpressionSkills.zip -Force
 Remove-Item -Recurse temp_skills
 ```
 
@@ -109,7 +109,7 @@ Remove-Item -Recurse temp_skills
 
 ### Step 2: スキル登録
 
-1. 作成した `VisualExpression_skills.zip` を用意
+1. 作成した `VisualExpressionSkills.zip` を用意
 2. claude.aiのプロジェクト設定 → 「カスタムスキル」→ zipをアップロード
 3. スキルが有効化される
 

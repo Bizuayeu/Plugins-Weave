@@ -23,7 +23,7 @@ class ZipPackager:
         html_path: Path,
         template_path: Path,
         json_path: Path,
-        output_name: str = "VisualExpression_skills.zip",
+        output_name: str = "VisualExpressionSkills.zip",
         additional_files: Optional[List[Path]] = None,
     ) -> Path:
         """
