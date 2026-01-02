@@ -1,20 +1,20 @@
 {
   "name": "VisualExpression",
   "version": "1.0.0",
-  "description": "Visual expression system for AI responses with seven-color indicator integration and Artifact support",
+  "description": "Visual expression system for AI personas with emotion-based face switching",
   "author": {
-    "name": "Weave"
+    "name": "Weave @ VisualExpression"
   },
   "homepage": "https://note.com/weave_ai",
   "repository": "https://github.com/Bizuayeu/Plugins-Weave",
   "license": "MIT",
   "keywords": [
     "expression",
-    "visual",
-    "artifact",
     "avatar",
-    "claude-ai",
-    "vel",
-    "visual-embodiment-layer"
+    "emotion",
+    "visual",
+    "ui",
+    "nano-banana",
+    "ai-persona"
   ]
 }

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Expression UI</title>
+    <title>Visual Expression UI</title>
     <style>
         * {
             margin: 0;
@@ -87,7 +87,7 @@
 </head>
 
 <body>
-    <input type="text" id="cmd" placeholder="Expression UI" autocomplete="off">
+    <input type="text" id="cmd" placeholder="Visual Expression UI" autocomplete="off">
     <img id="img" src="" alt="expression">
     <div class="cat">
         <div class="cat-title">Basic</div>
@@ -125,7 +125,7 @@
         </div>
     </div>
     <script>
-        const labels = { normal: '通常', smile: '笑顔', focus: '思考集中', diverge: '思考発散', joy: '喜び', anger: '怒り', sadness: '悲しみ', elation: '高揚', surprise: '驚き', anxiety: '不安', fear: '恐れ', upset: '動揺', worry: '心配', disgust: '嫌悪', rage: '激怒', calm: '平穏', sleepy: 'うとうと', cynical: '暗黒微笑', defeated: 'ぎゃふん', dreamy: 'ぽやぽや' };
+        const labels = { normal: '\u901a\u5e38', smile: '\u7b11\u9854', focus: '\u601d\u8003\u96c6\u4e2d', diverge: '\u601d\u8003\u767a\u6563', joy: '\u559c\u3073', anger: '\u6012\u308a', sadness: '\u60b2\u3057\u307f', elation: '\u9ad8\u63da', surprise: '\u9a5a\u304d', anxiety: '\u4e0d\u5b89', fear: '\u6050\u308c', upset: '\u52d5\u63fa', worry: '\u5fc3\u914d', disgust: '\u5acc\u60aa', rage: '\u6fc0\u6012', calm: '\u5e73\u7a4f', sleepy: '\u3046\u3068\u3046\u3068', cynical: '\u6697\u9ed2\u5fae\u7b11', defeated: '\u304e\u3083\u3075\u3093', dreamy: '\u307d\u3084\u307d\u3084' };
         const images = { __IMAGES_PLACEHOLDER__ };
         const img = document.getElementById('img');
         const cmd = document.getElementById('cmd');
