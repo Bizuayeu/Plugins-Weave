@@ -119,7 +119,7 @@ Remove-Item -Recurse temp_skills
 
 ### 表情UIの配置
 
-初期状態ではWeaveの表情が含まれています。そのまま使用する場合：
+初期状態ではデフォルトの表情が含まれています。そのまま使用する場合：
 
 1. `VisualExpressionUI.html` の内容をArtifactとして表示
 2. サイドバーに表情UIが表示される
@@ -127,13 +127,14 @@ Remove-Item -Recurse temp_skills
 ### 独自キャラクターの表情を作成する場合
 
 1. `scripts/MetaGenerateExpression.md` を参照してNano Banana Proでグリッド画像を生成
-2. Computer Use環境で以下を実行:
+2. 生成された画像をダウンロードし、claude.aiのチャットにアップロード
+3. Computer Use環境で画像を `/mnt/user-data/uploads/` から取得し、スクリプトを実行:
 ```bash
 cd /home/claude/VisualExpression/skills/scripts/MakeExpressionJson
-python main.py /path/to/your_grid.png --output /mnt/user-data/outputs/
+python main.py /mnt/user-data/uploads/your_grid.png --output /mnt/user-data/outputs/
 ```
-3. 生成された `VisualExpressionUI.html` をskills/に配置
-4. **Install on claude.ai に戻ってzipを再生成** → スキル登録をやり直し
+4. 生成された `VisualExpressionUI.html` をskills/に配置
+5. **Install on claude.ai に戻ってzipを再生成** → スキル登録をやり直し
 
 ### sed一発方式での表情切り替え
 
