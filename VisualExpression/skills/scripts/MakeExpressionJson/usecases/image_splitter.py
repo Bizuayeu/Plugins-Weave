@@ -80,14 +80,15 @@ class ImageSplitter:
         results: list[tuple[str, Image.Image]] = []
 
         for i, code in enumerate(self.expression_codes):
-            left, top, right, bottom = get_cell_position_dynamic(i, self.cols, cell_width, cell_height)
+            left, top, right, bottom = get_cell_position_dynamic(
+                i, self.cols, cell_width, cell_height
+            )
             cropped = image.crop((left, top, right, bottom))
 
             # Resize to output size if different
             if cropped.width != self.output_size or cropped.height != self.output_size:
                 cropped = cropped.resize(
-                    (self.output_size, self.output_size),
-                    Image.Resampling.LANCZOS
+                    (self.output_size, self.output_size), Image.Resampling.LANCZOS
                 )
 
             results.append((code, cropped))

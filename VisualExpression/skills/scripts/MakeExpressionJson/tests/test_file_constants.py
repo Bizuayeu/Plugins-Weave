@@ -9,32 +9,38 @@ class TestFileConstantsExist:
     def test_file_constants_module_exists(self):
         """file_constantsモジュールが存在することを確認"""
         from adapters import file_constants
+
         assert file_constants is not None
 
     def test_default_json_filename(self):
         """DEFAULT_JSON_FILENAMEが正しく定義されていること"""
         from adapters.file_constants import DEFAULT_JSON_FILENAME
+
         assert DEFAULT_JSON_FILENAME == "ExpressionImages.json"
 
     def test_default_html_filename(self):
         """DEFAULT_HTML_FILENAMEが正しく定義されていること"""
         from adapters.file_constants import DEFAULT_HTML_FILENAME
+
         assert DEFAULT_HTML_FILENAME == "VisualExpressionUI.html"
 
     def test_default_template_filename(self):
         """DEFAULT_TEMPLATE_FILENAMEが正しく定義されていること"""
         from adapters.file_constants import DEFAULT_TEMPLATE_FILENAME
+
         assert DEFAULT_TEMPLATE_FILENAME == "VisualExpressionUI.template.html"
 
     def test_skills_dir_markers(self):
         """SKILLS_DIR_MARKERSが正しく定義されていること"""
         from adapters.file_constants import SKILLS_DIR_MARKERS
+
         assert "SKILL.md" in SKILLS_DIR_MARKERS
         assert "VisualExpressionUI.template.html" in SKILLS_DIR_MARKERS
 
     def test_skills_dir_env_var(self):
         """SKILLS_DIR_ENV_VARが正しく定義されていること"""
         from adapters.file_constants import SKILLS_DIR_ENV_VAR
+
         assert SKILLS_DIR_ENV_VAR == "VISUAL_EXPRESSION_SKILLS_DIR"
 
 

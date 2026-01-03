@@ -63,21 +63,24 @@ Grid specification:
     )
 
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         type=str,
         default="./output",
         help="Output directory (default: ./output)",
     )
 
     parser.add_argument(
-        "--template", "-t",
+        "--template",
+        "-t",
         type=str,
         default=None,
         help="Path to HTML template (default: auto-detect)",
     )
 
     parser.add_argument(
-        "--quality", "-q",
+        "--quality",
+        "-q",
         type=int,
         default=85,
         help="JPEG quality for encoding (default: 85)",
@@ -90,7 +93,8 @@ Grid specification:
     )
 
     parser.add_argument(
-        "--special", "-s",
+        "--special",
+        "-s",
         type=str,
         default=None,
         help="Custom Special codes (comma-separated, 4 items). Example: --special wink,pout,smug,starry",
@@ -131,7 +135,9 @@ Grid specification:
     builder = HtmlBuilder(str(template_path))
 
     logger.info(f"Processing: {input_path}")
-    logger.info(f"Expected grid: {GRID_CONFIG['cols']}x{GRID_CONFIG['rows']} @ {GRID_CONFIG['cell_size']}px")
+    logger.info(
+        f"Expected grid: {GRID_CONFIG['cols']}x{GRID_CONFIG['rows']} @ {GRID_CONFIG['cell_size']}px"
+    )
 
     # Step 1: Split grid image
     logger.info("Step 1/4: Splitting grid image...")

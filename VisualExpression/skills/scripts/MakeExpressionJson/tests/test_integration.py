@@ -15,14 +15,10 @@ class TestFullPipeline:
     def test_full_pipeline_from_image_to_html(self, create_test_grid_image, tmp_path):
         """画像→分割→エンコード→HTML生成の全パイプライン"""
         # Arrange: グリッド画像とテンプレートを準備
-        grid_img = create_test_grid_image(
-            GRID_COLS * CELL_SIZE,
-            GRID_ROWS * CELL_SIZE
-        )
+        grid_img = create_test_grid_image(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
         template = tmp_path / "template.html"
         template.write_text(
-            "<html><script>const IMAGES={__IMAGES_PLACEHOLDER__}</script></html>",
-            encoding="utf-8"
+            "<html><script>const IMAGES={__IMAGES_PLACEHOLDER__}</script></html>", encoding="utf-8"
         )
 
         # Act: パイプライン実行
@@ -49,8 +45,7 @@ class TestFullPipeline:
         grid_img = create_test_grid_image()
         template = tmp_path / "template.html"
         template.write_text(
-            "<script>const IMAGES={__IMAGES_PLACEHOLDER__}</script>",
-            encoding="utf-8"
+            "<script>const IMAGES={__IMAGES_PLACEHOLDER__}</script>", encoding="utf-8"
         )
 
         splitter = ImageSplitter()
@@ -130,6 +125,7 @@ class TestEdgeCases:
         """エンコーダー品質が出力サイズに影響"""
         # ノイズのある画像を生成（圧縮効果が出やすい）
         import random
+
         img = Image.new("RGB", (CELL_SIZE, CELL_SIZE))
         pixels = img.load()
         for x in range(CELL_SIZE):
@@ -137,7 +133,7 @@ class TestEdgeCases:
                 pixels[x, y] = (
                     random.randint(0, 255),
                     random.randint(0, 255),
-                    random.randint(0, 255)
+                    random.randint(0, 255),
                 )
 
         low_quality = Base64Encoder(quality=10)

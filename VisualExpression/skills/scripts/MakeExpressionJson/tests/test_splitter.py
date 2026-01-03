@@ -88,6 +88,7 @@ class TestCellSizeRemoved:
     def test_no_cell_size_parameter(self):
         """cell_size パラメータが存在しないことを確認"""
         import inspect
+
         sig = inspect.signature(ImageSplitter.__init__)
         assert "cell_size" not in sig.parameters
 

@@ -61,21 +61,32 @@ def build_expression_codes(special_codes: list[str] | None = None) -> list[str]:
 
     if len(special_codes) != SPECIAL_CODES_COUNT:
         raise ValueError(
-            f"Special codes must have exactly {SPECIAL_CODES_COUNT} items, "
-            f"got {len(special_codes)}"
+            f"Special codes must have exactly {SPECIAL_CODES_COUNT} items, got {len(special_codes)}"
         )
 
     # Base codes (16) + Special (4) = 20
     # Grid order: left-to-right, top-to-bottom with Col = Category
     base_codes = [
         # Row1: Basic -> Emotion -> Negative -> Anxiety
-        "normal", "joy", "anger", "anxiety",
+        "normal",
+        "joy",
+        "anger",
+        "anxiety",
         # Row2
-        "smile", "elation", "sadness", "fear",
+        "smile",
+        "elation",
+        "sadness",
+        "fear",
         # Row3
-        "focus", "surprise", "rage", "upset",
+        "focus",
+        "surprise",
+        "rage",
+        "upset",
         # Row4
-        "diverge", "calm", "disgust", "worry",
+        "diverge",
+        "calm",
+        "disgust",
+        "worry",
     ]
     # Insert Special codes at positions 4, 9, 14, 19 (Col5 for each row)
     result = []

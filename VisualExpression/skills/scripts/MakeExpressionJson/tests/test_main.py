@@ -48,6 +48,7 @@ class TestMainFileValidation:
     def test_nonexistent_file_exits_with_error(self, caplog):
         """存在しないファイルでエラー終了する"""
         import logging
+
         with caplog.at_level(logging.ERROR):
             with pytest.raises(SystemExit) as exc_info:
                 main()
@@ -63,11 +64,13 @@ class TestMainSpecialCodes:
         """--specialは4つのコードが必要"""
         # Create a temporary valid image file
         from PIL import Image
+
         test_image = tmp_path / "test.png"
         img = Image.new("RGB", (1400, 1120), color="white")
         img.save(test_image)
 
         import logging
+
         with (
             patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c']),
             caplog.at_level(logging.ERROR),
@@ -81,11 +84,13 @@ class TestMainSpecialCodes:
         """--specialは5つ以上を拒否"""
         # Create a temporary valid image file
         from PIL import Image
+
         test_image = tmp_path / "test.png"
         img = Image.new("RGB", (1400, 1120), color="white")
         img.save(test_image)
 
         import logging
+
         with (
             patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c,d,e']),
             caplog.at_level(logging.ERROR),
@@ -102,10 +107,9 @@ class TestMainPipeline:
     def mock_components(self, tmp_path):
         """コンポーネントのモック"""
         # テスト用の画像を作成
-        test_image = Image.new('RGB', (
-            GRID_CONFIG['total_width'],
-            GRID_CONFIG['total_height']
-        ), color='white')
+        test_image = Image.new(
+            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+        )
         input_file = tmp_path / "test_grid.png"
         test_image.save(str(input_file))
 
@@ -121,13 +125,18 @@ class TestMainPipeline:
 
     def test_full_pipeline_creates_outputs(self, mock_components, tmp_path):
         """フルパイプラインが出力ファイルを作成する"""
-        with patch('sys.argv', [
-            'main.py',
-            str(mock_components['input_file']),
-            '--output', str(mock_components['output_dir']),
-            '--template', str(mock_components['template_file']),
-            '--no-zip',
-        ]):
+        with patch(
+            'sys.argv',
+            [
+                'main.py',
+                str(mock_components['input_file']),
+                '--output',
+                str(mock_components['output_dir']),
+                '--template',
+                str(mock_components['template_file']),
+                '--no-zip',
+            ],
+        ):
             # main()を実行
             main()
 
@@ -138,14 +147,20 @@ class TestMainPipeline:
 
     def test_pipeline_with_quality_option(self, mock_components):
         """--qualityオプションが機能する"""
-        with patch('sys.argv', [
-            'main.py',
-            str(mock_components['input_file']),
-            '--output', str(mock_components['output_dir']),
-            '--template', str(mock_components['template_file']),
-            '--quality', '50',
-            '--no-zip',
-        ]):
+        with patch(
+            'sys.argv',
+            [
+                'main.py',
+                str(mock_components['input_file']),
+                '--output',
+                str(mock_components['output_dir']),
+                '--template',
+                str(mock_components['template_file']),
+                '--quality',
+                '50',
+                '--no-zip',
+            ],
+        ):
             main()
 
         # 出力ファイルが作成されたことを確認
@@ -154,14 +169,20 @@ class TestMainPipeline:
 
     def test_pipeline_with_custom_special_codes(self, mock_components):
         """カスタムSpecialコードが機能する"""
-        with patch('sys.argv', [
-            'main.py',
-            str(mock_components['input_file']),
-            '--output', str(mock_components['output_dir']),
-            '--template', str(mock_components['template_file']),
-            '--special', 'wink,pout,smug,starry',
-            '--no-zip',
-        ]):
+        with patch(
+            'sys.argv',
+            [
+                'main.py',
+                str(mock_components['input_file']),
+                '--output',
+                str(mock_components['output_dir']),
+                '--template',
+                str(mock_components['template_file']),
+                '--special',
+                'wink,pout,smug,starry',
+                '--no-zip',
+            ],
+        ):
             main()
 
         # 出力ファイルが作成されたことを確認
@@ -176,10 +197,9 @@ class TestMainZipCreation:
     def setup_files(self, tmp_path):
         """テスト用ファイルのセットアップ"""
         # テスト用の画像を作成
-        test_image = Image.new('RGB', (
-            GRID_CONFIG['total_width'],
-            GRID_CONFIG['total_height']
-        ), color='white')
+        test_image = Image.new(
+            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+        )
         input_file = tmp_path / "test_grid.png"
         test_image.save(str(input_file))
 
@@ -197,12 +217,17 @@ class TestMainZipCreation:
 
     def test_creates_zip_by_default(self, setup_files):
         """デフォルトでZIPファイルを作成する"""
-        with patch('sys.argv', [
-            'main.py',
-            str(setup_files['input_file']),
-            '--output', str(setup_files['output_dir']),
-            '--template', str(setup_files['template_file']),
-        ]):
+        with patch(
+            'sys.argv',
+            [
+                'main.py',
+                str(setup_files['input_file']),
+                '--output',
+                str(setup_files['output_dir']),
+                '--template',
+                str(setup_files['template_file']),
+            ],
+        ):
             main()
 
         # ZIPファイルが作成されたことを確認
@@ -211,13 +236,18 @@ class TestMainZipCreation:
 
     def test_no_zip_option_skips_zip(self, setup_files):
         """--no-zipオプションでZIP作成をスキップ"""
-        with patch('sys.argv', [
-            'main.py',
-            str(setup_files['input_file']),
-            '--output', str(setup_files['output_dir']),
-            '--template', str(setup_files['template_file']),
-            '--no-zip',
-        ]):
+        with patch(
+            'sys.argv',
+            [
+                'main.py',
+                str(setup_files['input_file']),
+                '--output',
+                str(setup_files['output_dir']),
+                '--template',
+                str(setup_files['template_file']),
+                '--no-zip',
+            ],
+        ):
             main()
 
         # ZIPファイルが作成されないことを確認
@@ -231,10 +261,9 @@ class TestMainErrorHandling:
     @pytest.fixture
     def missing_template(self, tmp_path):
         """存在しないテンプレート"""
-        test_image = Image.new('RGB', (
-            GRID_CONFIG['total_width'],
-            GRID_CONFIG['total_height']
-        ), color='white')
+        test_image = Image.new(
+            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+        )
         input_file = tmp_path / "test_grid.png"
         test_image.save(str(input_file))
 
@@ -247,20 +276,33 @@ class TestMainErrorHandling:
     def test_missing_template_exits_with_error(self, missing_template, capsys, caplog):
         """存在しないテンプレートでエラー終了"""
         import logging
-        with caplog.at_level(logging.ERROR), patch('sys.argv', [
-            'main.py',
-            str(missing_template['input_file']),
-            '--output', str(missing_template['output_dir']),
-            '--template', str(missing_template['template_file']),
-        ]):
+
+        with (
+            caplog.at_level(logging.ERROR),
+            patch(
+                'sys.argv',
+                [
+                    'main.py',
+                    str(missing_template['input_file']),
+                    '--output',
+                    str(missing_template['output_dir']),
+                    '--template',
+                    str(missing_template['template_file']),
+                ],
+            ),
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 1
 
         # loggingまたはprint出力をチェック
         captured = capsys.readouterr()
-        assert "not found" in captured.out.lower() or "Template" in captured.out or \
-               "not found" in caplog.text.lower() or "Template" in caplog.text
+        assert (
+            "not found" in captured.out.lower()
+            or "Template" in captured.out
+            or "not found" in caplog.text.lower()
+            or "Template" in caplog.text
+        )
 
 
 class TestMainLogging:
@@ -269,10 +311,9 @@ class TestMainLogging:
     @pytest.fixture
     def valid_setup(self, tmp_path):
         """有効なセットアップ"""
-        test_image = Image.new('RGB', (
-            GRID_CONFIG['total_width'],
-            GRID_CONFIG['total_height']
-        ), color='white')
+        test_image = Image.new(
+            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+        )
         input_file = tmp_path / "test_grid.png"
         test_image.save(str(input_file))
 
@@ -288,13 +329,22 @@ class TestMainLogging:
     def test_main_uses_logging_for_info(self, valid_setup, caplog):
         """main関数がlogging.infoを使用することを確認"""
         import logging
-        with caplog.at_level(logging.INFO), patch('sys.argv', [
-            'main.py',
-            str(valid_setup['input_file']),
-            '--output', str(valid_setup['output_dir']),
-            '--template', str(valid_setup['template_file']),
-            '--no-zip',
-        ]):
+
+        with (
+            caplog.at_level(logging.INFO),
+            patch(
+                'sys.argv',
+                [
+                    'main.py',
+                    str(valid_setup['input_file']),
+                    '--output',
+                    str(valid_setup['output_dir']),
+                    '--template',
+                    str(valid_setup['template_file']),
+                    '--no-zip',
+                ],
+            ),
+        ):
             main()
 
         # "Processing:" がログに含まれることを確認
@@ -303,13 +353,22 @@ class TestMainLogging:
     def test_main_uses_logging_for_steps(self, valid_setup, caplog):
         """各ステップがlogging.infoで出力されることを確認"""
         import logging
-        with caplog.at_level(logging.INFO), patch('sys.argv', [
-            'main.py',
-            str(valid_setup['input_file']),
-            '--output', str(valid_setup['output_dir']),
-            '--template', str(valid_setup['template_file']),
-            '--no-zip',
-        ]):
+
+        with (
+            caplog.at_level(logging.INFO),
+            patch(
+                'sys.argv',
+                [
+                    'main.py',
+                    str(valid_setup['input_file']),
+                    '--output',
+                    str(valid_setup['output_dir']),
+                    '--template',
+                    str(valid_setup['template_file']),
+                    '--no-zip',
+                ],
+            ),
+        ):
             main()
 
         # 各ステップがログに含まれることを確認
@@ -321,6 +380,7 @@ class TestMainLogging:
     def test_error_uses_logger_error(self, caplog):
         """エラー時にlogger.errorが使用されることを確認"""
         import logging
+
         with (
             caplog.at_level(logging.ERROR),
             patch('sys.argv', ['main.py', '/nonexistent/file.png']),

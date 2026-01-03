@@ -43,9 +43,7 @@ class Base64Encoder:
         buffer.seek(0)
         return base64.b64encode(buffer.read()).decode("utf-8")
 
-    def encode_expressions(
-        self, images: list[tuple[str, Image.Image]]
-    ) -> ExpressionSet:
+    def encode_expressions(self, images: list[tuple[str, Image.Image]]) -> ExpressionSet:
         """
         Encode a list of expression images to an ExpressionSet.
 
@@ -80,6 +78,5 @@ class Base64Encoder:
         """
         mime_type = "image/jpeg" if self.format == "JPEG" else f"image/{self.format.lower()}"
         return {
-            code: expr.to_data_uri(mime_type)
-            for code, expr in expression_set.expressions.items()
+            code: expr.to_data_uri(mime_type) for code, expr in expression_set.expressions.items()
         }

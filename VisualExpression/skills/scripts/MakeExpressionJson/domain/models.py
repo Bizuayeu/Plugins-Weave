@@ -43,9 +43,7 @@ class ExpressionSet:
             Dictionary mapping expression codes to data URIs
         """
         return {
-            code: expr.to_data_uri()
-            for code, expr in self.expressions.items()
-            if expr.base64_data
+            code: expr.to_data_uri() for code, expr in self.expressions.items() if expr.base64_data
         }
 
     def get(self, code: str) -> ExpressionImage | None:

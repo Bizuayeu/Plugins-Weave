@@ -74,9 +74,7 @@ class TestGridLayoutCellPosition:
 
     def test_custom_cell_size(self):
         """カスタムセルサイズでの位置計算"""
-        layout = GridLayout(
-            rows=4, cols=5, cell_size=100, expression_codes=tuple(range(20))
-        )
+        layout = GridLayout(rows=4, cols=5, cell_size=100, expression_codes=tuple(range(20)))
         pos = layout.get_cell_position(0)
         assert pos == (0, 0, 100, 100)
 

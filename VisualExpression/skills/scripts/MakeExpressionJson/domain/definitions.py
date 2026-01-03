@@ -26,13 +26,29 @@ SPECIAL_CODES_COUNT = 4
 #   Col1(Basic)  Col2(Emotion)  Col3(Negative)  Col4(Anxiety)  Col5(Special)
 EXPRESSION_CODES: list[str] = [
     # Row1: Basic -> Emotion -> Negative -> Anxiety -> Special
-    "normal", "joy", "anger", "anxiety", "sleepy",
+    "normal",
+    "joy",
+    "anger",
+    "anxiety",
+    "sleepy",
     # Row2
-    "smile", "elation", "sadness", "fear", "cynical",
+    "smile",
+    "elation",
+    "sadness",
+    "fear",
+    "cynical",
     # Row3
-    "focus", "surprise", "rage", "upset", "defeated",
+    "focus",
+    "surprise",
+    "rage",
+    "upset",
+    "defeated",
     # Row4
-    "diverge", "calm", "disgust", "worry", "dreamy",
+    "diverge",
+    "calm",
+    "disgust",
+    "worry",
+    "dreamy",
 ]
 
 # Japanese labels for each expression

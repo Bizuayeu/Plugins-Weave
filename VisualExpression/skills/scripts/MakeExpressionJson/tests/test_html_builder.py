@@ -118,6 +118,7 @@ class TestCustomPlaceholder:
     def test_placeholder_parameter_in_init(self):
         """placeholderパラメータがコンストラクタに存在することを確認"""
         import inspect
+
         sig = inspect.signature(HtmlBuilder.__init__)
         assert "placeholder" in sig.parameters
 

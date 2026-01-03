@@ -52,6 +52,7 @@ class TestZipPackagerStrictDefault:
     def test_strict_default_is_true(self):
         """strict パラメータのデフォルトが True であることを確認"""
         import inspect
+
         sig = inspect.signature(ZipPackager.create_skill_zip)
         assert sig.parameters["strict"].default is True
 
@@ -71,8 +72,9 @@ class TestZipPackagerLogging:
             )
 
         # ログにファイルが見つからない旨が記録されていること
-        assert "not found" in caplog.text.lower() or "missing" in caplog.text.lower(), \
+        assert "not found" in caplog.text.lower() or "missing" in caplog.text.lower(), (
             "存在しないファイルに対するwarningログが出力されるべき"
+        )
 
     def test_strict_mode_raises_for_missing_required(self, packager):
         """strict=True（デフォルト）でFileNotFoundErrorが発生すること"""

@@ -89,9 +89,7 @@ class Base64EncoderProtocol(Protocol):
         """
         ...
 
-    def encode_expressions(
-        self, images: list[tuple[str, Image.Image]]
-    ) -> ExpressionSet:
+    def encode_expressions(self, images: list[tuple[str, Image.Image]]) -> ExpressionSet:
         """Encode a list of expression images to an ExpressionSet.
 
         Args:

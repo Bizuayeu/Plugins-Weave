@@ -69,7 +69,12 @@ class TestGetCellPosition:
         result = get_cell_position(19)
         expected_left = (19 % GRID_COLS) * CELL_SIZE
         expected_top = (19 // GRID_COLS) * CELL_SIZE
-        assert result == (expected_left, expected_top, expected_left + CELL_SIZE, expected_top + CELL_SIZE)
+        assert result == (
+            expected_left,
+            expected_top,
+            expected_left + CELL_SIZE,
+            expected_top + CELL_SIZE,
+        )
 
     def test_consistency_with_dynamic(self):
         """静的関数と動的関数の一貫性"""
@@ -115,12 +120,79 @@ class TestExpressionCategoryEnum:
             assert len(CATEGORY_CODES[category]) == 4
 
 
+class TestBuildExpressionLabels:
+    """build_expression_labels関数のテスト"""
+
+    def test_default_labels_returns_dict(self):
+        """デフォルトでdictを返すことを確認"""
+        from domain import build_expression_labels
+
+        result = build_expression_labels()
+        assert isinstance(result, dict)
+
+    def test_default_labels_has_20_entries(self):
+        """デフォルトで20エントリを持つことを確認"""
+        from domain import build_expression_labels
+
+        result = build_expression_labels()
+        assert len(result) == 20
+
+    def test_default_labels_has_base_codes(self):
+        """ベースコードのラベルが含まれることを確認"""
+        from domain import build_expression_labels
+
+        result = build_expression_labels()
+        assert result["normal"] == "通常"
+        assert result["joy"] == "喜び"
+        assert result["anger"] == "怒り"
+
+    def test_custom_special_codes(self):
+        """カスタムSpecialコードでラベルが生成されることを確認"""
+        from domain import build_expression_labels
+
+        custom_codes = ["custom1", "custom2", "custom3", "custom4"]
+        result = build_expression_labels(special_codes=custom_codes)
+
+        # カスタムコードがラベルとして使われる（翻訳なし）
+        assert result["custom1"] == "custom1"
+        assert result["custom2"] == "custom2"
+
+    def test_custom_special_codes_with_labels(self):
+        """カスタムSpecialコードとラベルの両方を渡すケース"""
+        from domain import build_expression_labels
+
+        custom_codes = ["test1", "test2", "test3", "test4"]
+        custom_labels = {"test1": "テスト1", "test2": "テスト2"}
+        result = build_expression_labels(
+            special_codes=custom_codes, special_labels=custom_labels
+        )
+
+        # ラベルが定義されているものはそれを使う
+        assert result["test1"] == "テスト1"
+        assert result["test2"] == "テスト2"
+        # ラベルが定義されていないものはコード自体を使う
+        assert result["test3"] == "test3"
+        assert result["test4"] == "test4"
+
+    def test_base_labels_unchanged_with_custom_special(self):
+        """カスタムSpecialコードでもベースラベルは変わらないことを確認"""
+        from domain import build_expression_labels
+
+        custom_codes = ["x1", "x2", "x3", "x4"]
+        result = build_expression_labels(special_codes=custom_codes)
+
+        # ベースラベルは影響を受けない
+        assert result["smile"] == "笑顔"
+        assert result["focus"] == "思考集中"
+
+
 class TestSpecialCodesConstant:
     """SPECIAL_CODES_COUNT定数のテスト（Stage 5: TDD）"""
 
     def test_special_codes_count_constant_exists(self):
         """SPECIAL_CODES_COUNT定数が存在することを確認"""
         from domain import SPECIAL_CODES_COUNT
+
         assert SPECIAL_CODES_COUNT == 4
 
     def test_build_expression_codes_uses_constant_in_error(self):

@@ -6,11 +6,13 @@ on:
     paths:
       - 'EpisodicRAG/**'
       - 'EmailingEssay/**'
+      - 'VisualExpression/**'
   pull_request:
     branches: [main]
     paths:
       - 'EpisodicRAG/**'
       - 'EmailingEssay/**'
+      - 'VisualExpression/**'
 
 jobs:
   lint:
@@ -278,3 +280,100 @@ jobs:
           path: |
             EmailingEssay/pytest_output.txt
             EmailingEssay/coverage.xml
+
+  # =============================================================================
+  # VisualExpression Jobs
+  # =============================================================================
+
+  lint-visualexpression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff linter
+        working-directory: VisualExpression
+        run: ruff check skills/scripts/MakeExpressionJson/
+
+      - name: Run ruff formatter check
+        working-directory: VisualExpression
+        run: ruff format --check skills/scripts/MakeExpressionJson/
+
+  security-visualexpression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install bandit
+        run: pip install bandit
+
+      - name: Run Bandit security scan
+        working-directory: VisualExpression
+        run: bandit -r skills/scripts/MakeExpressionJson/ --exclude skills/scripts/MakeExpressionJson/tests --severity-level medium
+
+  type-check-visualexpression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy pillow
+
+      - name: Run mypy
+        working-directory: VisualExpression/skills/scripts/MakeExpressionJson
+        run: mypy --explicit-package-bases --exclude tests .
+
+  test-visualexpression:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e VisualExpression[dev]
+
+      - name: Run tests with coverage
+        working-directory: VisualExpression
+        run: |
+          python -m pytest --cov-report=xml --cov-fail-under=70 -v 2>&1 | tee pytest_output.txt
+          TEST_COUNT=$(grep -oP '\d+(?= passed)' pytest_output.txt | head -1 || echo "0")
+          echo "TEST_COUNT=$TEST_COUNT" >> $GITHUB_ENV
+          echo "Detected $TEST_COUNT tests"
+
+      - name: Upload test results artifact
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: visualexpression-test-results
+          path: |
+            VisualExpression/pytest_output.txt
+            VisualExpression/coverage.xml
