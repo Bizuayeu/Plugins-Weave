@@ -39,15 +39,15 @@ class TestModuleStructure:
     def test_domain_reexports_all(self):
         """domain/__init__.py が全てを再エクスポートすることを確認"""
         from domain import (
+            CATEGORY_CODES,
             # From definitions
             CELL_SIZE,
-            CATEGORY_CODES,
             EXPRESSION_CODES,
             EXPRESSION_LABELS,
-            ExpressionCategory,
             GRID_COLS,
             GRID_CONFIG,
             GRID_ROWS,
+            ExpressionCategory,
             # From builders
             build_expression_codes,
             build_expression_labels,

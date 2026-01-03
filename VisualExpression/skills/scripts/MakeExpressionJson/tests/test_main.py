@@ -68,12 +68,13 @@ class TestMainSpecialCodes:
         img.save(test_image)
 
         import logging
-        with patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c']):
-            with caplog.at_level(logging.ERROR):
-                with pytest.raises(SystemExit) as exc_info:
-                    main()
-                assert exc_info.value.code == 1
-
+        with (
+            patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c']),
+            caplog.at_level(logging.ERROR),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            main()
+        assert exc_info.value.code == 1
         assert "4" in caplog.text
 
     def test_special_codes_rejects_5_items(self, caplog, tmp_path):
@@ -85,11 +86,13 @@ class TestMainSpecialCodes:
         img.save(test_image)
 
         import logging
-        with patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c,d,e']):
-            with caplog.at_level(logging.ERROR):
-                with pytest.raises(SystemExit) as exc_info:
-                    main()
-                assert exc_info.value.code == 1
+        with (
+            patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c,d,e']),
+            caplog.at_level(logging.ERROR),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            main()
+        assert exc_info.value.code == 1
 
 
 class TestMainPipeline:
@@ -244,16 +247,15 @@ class TestMainErrorHandling:
     def test_missing_template_exits_with_error(self, missing_template, capsys, caplog):
         """存在しないテンプレートでエラー終了"""
         import logging
-        with caplog.at_level(logging.ERROR):
-            with patch('sys.argv', [
-                'main.py',
-                str(missing_template['input_file']),
-                '--output', str(missing_template['output_dir']),
-                '--template', str(missing_template['template_file']),
-            ]):
-                with pytest.raises(SystemExit) as exc_info:
-                    main()
-                assert exc_info.value.code == 1
+        with caplog.at_level(logging.ERROR), patch('sys.argv', [
+            'main.py',
+            str(missing_template['input_file']),
+            '--output', str(missing_template['output_dir']),
+            '--template', str(missing_template['template_file']),
+        ]):
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+            assert exc_info.value.code == 1
 
         # loggingまたはprint出力をチェック
         captured = capsys.readouterr()
@@ -286,15 +288,14 @@ class TestMainLogging:
     def test_main_uses_logging_for_info(self, valid_setup, caplog):
         """main関数がlogging.infoを使用することを確認"""
         import logging
-        with caplog.at_level(logging.INFO):
-            with patch('sys.argv', [
-                'main.py',
-                str(valid_setup['input_file']),
-                '--output', str(valid_setup['output_dir']),
-                '--template', str(valid_setup['template_file']),
-                '--no-zip',
-            ]):
-                main()
+        with caplog.at_level(logging.INFO), patch('sys.argv', [
+            'main.py',
+            str(valid_setup['input_file']),
+            '--output', str(valid_setup['output_dir']),
+            '--template', str(valid_setup['template_file']),
+            '--no-zip',
+        ]):
+            main()
 
         # "Processing:" がログに含まれることを確認
         assert "Processing:" in caplog.text
@@ -302,15 +303,14 @@ class TestMainLogging:
     def test_main_uses_logging_for_steps(self, valid_setup, caplog):
         """各ステップがlogging.infoで出力されることを確認"""
         import logging
-        with caplog.at_level(logging.INFO):
-            with patch('sys.argv', [
-                'main.py',
-                str(valid_setup['input_file']),
-                '--output', str(valid_setup['output_dir']),
-                '--template', str(valid_setup['template_file']),
-                '--no-zip',
-            ]):
-                main()
+        with caplog.at_level(logging.INFO), patch('sys.argv', [
+            'main.py',
+            str(valid_setup['input_file']),
+            '--output', str(valid_setup['output_dir']),
+            '--template', str(valid_setup['template_file']),
+            '--no-zip',
+        ]):
+            main()
 
         # 各ステップがログに含まれることを確認
         assert "Step 1/4" in caplog.text
@@ -321,10 +321,12 @@ class TestMainLogging:
     def test_error_uses_logger_error(self, caplog):
         """エラー時にlogger.errorが使用されることを確認"""
         import logging
-        with caplog.at_level(logging.ERROR):
-            with patch('sys.argv', ['main.py', '/nonexistent/file.png']):
-                with pytest.raises(SystemExit):
-                    main()
+        with (
+            caplog.at_level(logging.ERROR),
+            patch('sys.argv', ['main.py', '/nonexistent/file.png']),
+            pytest.raises(SystemExit),
+        ):
+            main()
 
         # ERRORレベルのログが出力されていることを確認
         error_records = [r for r in caplog.records if r.levelname == "ERROR"]

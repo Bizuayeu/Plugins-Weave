@@ -85,6 +85,7 @@ class TestExpressionCategoryEnum:
     def test_expression_category_is_enum(self):
         """ExpressionCategoryがEnumであることを確認"""
         from enum import Enum
+
         from domain import ExpressionCategory
 
         assert issubclass(ExpressionCategory, Enum)
@@ -124,7 +125,7 @@ class TestSpecialCodesConstant:
 
     def test_build_expression_codes_uses_constant_in_error(self):
         """build_expression_codesのエラーメッセージにSPECIAL_CODES_COUNTが使用されることを確認"""
-        from domain import build_expression_codes, SPECIAL_CODES_COUNT
+        from domain import SPECIAL_CODES_COUNT, build_expression_codes
 
         with pytest.raises(ValueError) as exc:
             build_expression_codes(["a", "b", "c"])  # 3個

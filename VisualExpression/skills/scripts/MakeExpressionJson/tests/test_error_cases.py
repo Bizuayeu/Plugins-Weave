@@ -3,9 +3,9 @@
 import pytest
 from PIL import Image
 
-from domain import build_expression_codes, SPECIAL_CODES_COUNT
-from usecases.image_splitter import ImageSplitter
+from domain import SPECIAL_CODES_COUNT, build_expression_codes
 from usecases.html_builder import HtmlBuilder
+from usecases.image_splitter import ImageSplitter
 
 
 class TestSpecialCodesValidation:

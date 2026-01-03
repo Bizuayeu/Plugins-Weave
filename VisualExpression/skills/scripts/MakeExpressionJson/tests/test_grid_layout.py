@@ -132,7 +132,7 @@ class TestGridLayoutValidation:
     def test_smaller_valid_dimensions(self):
         """小さくても割り切れるサイズは有効 (700x560)"""
         layout = GridLayout.default()
-        is_valid, msg = layout.validate_dimensions(700, 560)
+        is_valid, _msg = layout.validate_dimensions(700, 560)
         assert is_valid is True
 
 

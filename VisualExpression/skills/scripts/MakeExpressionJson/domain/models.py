@@ -2,29 +2,8 @@
 
 from dataclasses import dataclass
 
-
-@dataclass
-class GridConfig:
-    """Configuration for the expression grid."""
-
-    rows: int
-    cols: int
-    cell_size: int
-
-    @property
-    def total_width(self) -> int:
-        """Total width of the grid in pixels."""
-        return self.cols * self.cell_size
-
-    @property
-    def total_height(self) -> int:
-        """Total height of the grid in pixels."""
-        return self.rows * self.cell_size
-
-    @property
-    def total_cells(self) -> int:
-        """Total number of cells in the grid."""
-        return self.rows * self.cols
+# Note: GridConfig has been removed and merged into GridLayout.
+# See domain/grid_layout.py for the unified implementation.
 
 
 @dataclass

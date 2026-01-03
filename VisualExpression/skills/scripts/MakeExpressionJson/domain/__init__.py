@@ -26,7 +26,8 @@ from .definitions import (
 from .grid_layout import GridLayout
 
 # Re-export from models
-from .models import ExpressionImage, GridConfig
+# Note: GridConfig has been removed and merged into GridLayout
+from .models import ExpressionImage
 
 __all__ = [
     "CATEGORY_CODES",
@@ -41,7 +42,7 @@ __all__ = [
     "SPECIAL_CODES_COUNT",
     "ExpressionCategory",
     "ExpressionImage",
-    "GridConfig",
+    # GridConfig removed - use GridLayout instead
     "GridLayout",
     "build_expression_codes",
     "build_expression_labels",
