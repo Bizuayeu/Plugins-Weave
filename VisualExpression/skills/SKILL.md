@@ -89,19 +89,25 @@ python main.py your_grid.png --special wink,pout,smug,starry
 ### Step 1: Create Skills ZIP
 
 Zip the `skills/` directory and upload to claude.ai.
-(Exclude `tests/` as it's not needed for distribution)
+(Exclude development files: tests, caches, etc.)
 
 **Mac/Linux:**
 ```bash
 cd VisualExpression
-zip -r VisualExpressionSkills.zip skills/ -x "*/tests/*"
+zip -r VisualExpressionSkills.zip skills/ \
+  -x "*/tests/*" \
+  -x "*/__pycache__/*" \
+  -x "*/.pytest_cache/*" \
+  -x "*/.mypy_cache/*" \
+  -x "*/.coverage"
 ```
 
 **Windows (PowerShell):**
 ```powershell
 cd VisualExpression
 Copy-Item -Recurse skills temp_skills
-Remove-Item -Recurse temp_skills/scripts/MakeExpressionJson/tests
+Get-ChildItem -Path temp_skills -Recurse -Directory -Include tests,__pycache__,.pytest_cache,.mypy_cache | Remove-Item -Recurse -Force
+Get-ChildItem -Path temp_skills -Recurse -File -Filter ".coverage" | Remove-Item -Force
 Compress-Archive -Path temp_skills -DestinationPath VisualExpressionSkills.zip -Force
 Remove-Item -Recurse temp_skills
 ```
