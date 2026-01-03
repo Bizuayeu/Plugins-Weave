@@ -106,12 +106,14 @@ class ImageSplitter:
                     margin_x += offset.get("x", 0)
                     margin_y += offset.get("y", 0)
 
-                cropped = cropped.crop((
-                    margin_x,
-                    margin_y,
-                    margin_x + self.output_size,
-                    margin_y + self.output_size,
-                ))
+                cropped = cropped.crop(
+                    (
+                        margin_x,
+                        margin_y,
+                        margin_x + self.output_size,
+                        margin_y + self.output_size,
+                    )
+                )
             elif cropped.width != self.output_size or cropped.height != self.output_size:
                 # Fallback: resize for smaller cells
                 cropped = cropped.resize(
