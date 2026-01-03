@@ -140,14 +140,12 @@ Default expressions are included out of the box. To use as-is:
 cd /home/claude/VisualExpression/skills/scripts/MakeExpressionJson
 python main.py /mnt/user-data/uploads/your_grid.png --output /mnt/user-data/outputs/
 ```
-4. Replace the expression files in the installed skill:
-```bash
-cp /mnt/user-data/outputs/ExpressionImages.json /mnt/skills/user/visual-expression/
-cp /mnt/user-data/outputs/VisualExpressionUI.html /mnt/skills/user/visual-expression/
-```
-5. (Optional) To persist changes as a new skill ZIP:
+4. **Current session only**: Display `/mnt/user-data/outputs/VisualExpressionUI.html` as an Artifact
+5. **To persist across sessions** (required):
    - Download `VisualExpressionSkills.zip` from `/mnt/user-data/outputs/`
-   - Re-upload to claude.ai as a new skill
+   - Re-register as a new skill on claude.ai
+
+Note: `/mnt/skills/` is read-only. Custom expressions only persist via skill ZIP re-registration.
 
 ### One-liner sed Expression Switching
 
