@@ -31,15 +31,22 @@ VisualExpression/
         └── MakeExpressionJson/  # Python pipeline
             ├── main.py          # CLI entry point
             ├── domain/          # Business logic
-            │   ├── definitions.py # Expression codes & config
-            │   └── models.py    # Data models
+            │   ├── definitions.py  # Expression codes & config
+            │   ├── models.py       # Data models
+            │   ├── validators.py   # Input validation
+            │   ├── builders.py     # Builder patterns
+            │   └── grid_layout.py  # Grid layout logic
             ├── usecases/        # Application logic
             │   ├── image_splitter.py
             │   ├── base64_encoder.py
-            │   └── html_builder.py
+            │   ├── html_builder.py
+            │   └── protocols.py    # Protocol definitions
             ├── adapters/        # I/O interfaces
-            │   ├── file_handler.py
-            │   └── zip_packager.py
+            │   ├── file_writer.py     # File output
+            │   ├── zip_packager.py    # ZIP creation
+            │   ├── skills_locator.py  # Skills directory finder
+            │   ├── file_constants.py  # File path constants
+            │   └── protocols.py       # Adapter protocols
             └── tests/           # Unit tests
 ```
 
@@ -56,8 +63,9 @@ MakeExpressionJson follows **Clean Architecture** principles:
 ```mermaid
 flowchart TB
     subgraph Adapters["adapters/ (I/O)"]
-        FH[file_handler.py]
+        FW[file_writer.py]
         ZP[zip_packager.py]
+        SL[skills_locator.py]
     end
 
     subgraph Usecases["usecases/ (Application)"]
@@ -70,17 +78,20 @@ flowchart TB
         DEF[definitions.py]
         MOD[models.py]
         VAL[validators.py]
+        GL[grid_layout.py]
     end
 
     main.py --> IS
     IS --> BE
     BE --> HB
-    HB --> FH
-    FH --> ZP
+    HB --> FW
+    FW --> ZP
+    SL --> FW
 
-    IS -.-> DEF
+    IS -.-> GL
     BE -.-> MOD
     HB -.-> VAL
+    GL -.-> DEF
 ```
 
 ## Development Setup

@@ -17,8 +17,9 @@ class TestSkillsLocatorProtocol:
 
     def test_protocol_defines_get_skills_dir(self):
         """Protocolがget_skills_dir()を定義"""
-        from adapters.protocols import SkillsLocatorProtocol
         import inspect
+
+        from adapters.protocols import SkillsLocatorProtocol
 
         sig = inspect.signature(SkillsLocatorProtocol.get_skills_dir)
         params = list(sig.parameters.keys())
@@ -26,8 +27,9 @@ class TestSkillsLocatorProtocol:
 
     def test_protocol_defines_get_default_template_path(self):
         """Protocolがget_default_template_path()を定義"""
-        from adapters.protocols import SkillsLocatorProtocol
         import inspect
+
+        from adapters.protocols import SkillsLocatorProtocol
 
         sig = inspect.signature(SkillsLocatorProtocol.get_default_template_path)
         params = list(sig.parameters.keys())
@@ -76,8 +78,8 @@ class TestSkillsLocatorEnvVar:
 
     def test_env_var_takes_priority_over_auto_detection(self, tmp_path, monkeypatch):
         """環境変数が自動検出より優先"""
-        from adapters.skills_locator import SkillsLocator
         from adapters.file_constants import SKILLS_DIR_ENV_VAR
+        from adapters.skills_locator import SkillsLocator
 
         custom_dir = tmp_path / "env_skills"
         custom_dir.mkdir()
@@ -88,8 +90,8 @@ class TestSkillsLocatorEnvVar:
 
     def test_explicit_path_overrides_env_var(self, tmp_path, monkeypatch):
         """明示的パス > 環境変数 > 自動検出"""
-        from adapters.skills_locator import SkillsLocator
         from adapters.file_constants import SKILLS_DIR_ENV_VAR
+        from adapters.skills_locator import SkillsLocator
 
         explicit_dir = tmp_path / "explicit"
         explicit_dir.mkdir()
@@ -103,8 +105,8 @@ class TestSkillsLocatorEnvVar:
 
     def test_env_var_nonexistent_path_falls_through(self, tmp_path, monkeypatch):
         """存在しない環境変数パスはスキップ"""
-        from adapters.skills_locator import SkillsLocator
         from adapters.file_constants import SKILLS_DIR_ENV_VAR
+        from adapters.skills_locator import SkillsLocator
 
         monkeypatch.setenv(SKILLS_DIR_ENV_VAR, str(tmp_path / "nonexistent"))
 
@@ -119,8 +121,8 @@ class TestSkillsLocatorTemplatePath:
 
     def test_get_default_template_path_returns_template_file(self):
         """VisualExpressionUI.template.htmlへのパスを返す"""
-        from adapters.skills_locator import SkillsLocator
         from adapters.file_constants import DEFAULT_TEMPLATE_FILENAME
+        from adapters.skills_locator import SkillsLocator
 
         locator = SkillsLocator()
         result = locator.get_default_template_path()
@@ -129,8 +131,8 @@ class TestSkillsLocatorTemplatePath:
 
     def test_template_path_relative_to_skills_dir(self, tmp_path):
         """テンプレートパスはskills_dir基準"""
-        from adapters.skills_locator import SkillsLocator
         from adapters.file_constants import DEFAULT_TEMPLATE_FILENAME
+        from adapters.skills_locator import SkillsLocator
 
         locator = SkillsLocator(skills_dir=str(tmp_path))
         result = locator.get_default_template_path()
@@ -165,8 +167,8 @@ class TestSkillsLocatorSatisfiesProtocol:
 
     def test_skills_locator_satisfies_protocol(self):
         """SkillsLocatorはSkillsLocatorProtocolを満たす"""
-        from adapters.skills_locator import SkillsLocator
         from adapters.protocols import SkillsLocatorProtocol
+        from adapters.skills_locator import SkillsLocator
 
         locator = SkillsLocator()
         # runtime_checkable protocolなのでisinstanceが使える
@@ -178,8 +180,9 @@ class TestFileWriterProtocol:
 
     def test_protocol_defines_write_json(self):
         """Protocolがwrite_json()を定義"""
-        from adapters.protocols import FileWriterProtocol
         import inspect
+
+        from adapters.protocols import FileWriterProtocol
 
         sig = inspect.signature(FileWriterProtocol.write_json)
         params = list(sig.parameters.keys())
@@ -188,8 +191,9 @@ class TestFileWriterProtocol:
 
     def test_protocol_defines_write_html(self):
         """Protocolがwrite_html()を定義"""
-        from adapters.protocols import FileWriterProtocol
         import inspect
+
+        from adapters.protocols import FileWriterProtocol
 
         sig = inspect.signature(FileWriterProtocol.write_html)
         params = list(sig.parameters.keys())
@@ -198,8 +202,9 @@ class TestFileWriterProtocol:
 
     def test_protocol_defines_read_template(self):
         """Protocolがread_template()を定義"""
-        from adapters.protocols import FileWriterProtocol
         import inspect
+
+        from adapters.protocols import FileWriterProtocol
 
         sig = inspect.signature(FileWriterProtocol.read_template)
         params = list(sig.parameters.keys())
@@ -208,8 +213,9 @@ class TestFileWriterProtocol:
 
     def test_protocol_defines_ensure_output_dir(self):
         """Protocolがensure_output_dir()を定義"""
-        from adapters.protocols import FileWriterProtocol
         import inspect
+
+        from adapters.protocols import FileWriterProtocol
 
         sig = inspect.signature(FileWriterProtocol.ensure_output_dir)
         params = list(sig.parameters.keys())

@@ -138,7 +138,7 @@ class TestValidateImageDimensions:
         from domain.validators import validate_image_dimensions
 
         img = Image.new("RGBA", (1400, 1120))
-        is_valid, msg = validate_image_dimensions(image=img, cols=5, rows=4)
+        is_valid, _msg = validate_image_dimensions(image=img, cols=5, rows=4)
         assert is_valid is True
 
 
@@ -149,8 +149,8 @@ class TestValidatorsIntegration:
         """GRID_CONFIGのデフォルト値で正しく動作"""
         from domain.validators import validate_grid_dimensions
 
-        # デフォルト設定: 5列 × 4行 × 280px = 1400×1120
-        is_valid, msg = validate_grid_dimensions(
+        # デフォルト設定: 5列 x 4行 x 280px = 1400x1120
+        is_valid, _msg = validate_grid_dimensions(
             width=1400, height=1120, cols=5, rows=4, cell_size=280
         )
         assert is_valid is True

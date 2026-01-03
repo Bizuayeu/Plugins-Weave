@@ -47,8 +47,6 @@ class TestMainSpecialCodes:
     def test_special_codes_requires_4_items(self, caplog, tmp_path):
         """--specialは4つのコードが必要"""
         # Create a temporary valid image file
-        from PIL import Image
-
         test_image = tmp_path / "test.png"
         img = Image.new("RGB", (1400, 1120), color="white")
         img.save(test_image)
@@ -67,8 +65,6 @@ class TestMainSpecialCodes:
     def test_special_codes_rejects_5_items(self, caplog, tmp_path):
         """--specialは5つ以上を拒否"""
         # Create a temporary valid image file
-        from PIL import Image
-
         test_image = tmp_path / "test.png"
         img = Image.new("RGB", (1400, 1120), color="white")
         img.save(test_image)

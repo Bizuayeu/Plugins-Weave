@@ -38,7 +38,7 @@ def validate_grid_dimensions(
             return (
                 False,
                 f"Image width {width}px is not divisible by {cols} columns. "
-                f"Recommended: {expected}px (= {cols} × {cell_size}px/cell)",
+                f"Recommended: {expected}px (= {cols} x {cell_size}px/cell)",
             )
         return (
             False,
@@ -51,7 +51,7 @@ def validate_grid_dimensions(
             return (
                 False,
                 f"Image height {height}px is not divisible by {rows} rows. "
-                f"Recommended: {expected}px (= {rows} × {cell_size}px/cell)",
+                f"Recommended: {expected}px (= {rows} x {cell_size}px/cell)",
             )
         return (
             False,
