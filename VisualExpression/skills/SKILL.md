@@ -230,7 +230,9 @@ Add the following to your claude.ai project instructions to enable the expressio
 ```markdown
 ## Expression System
 
-応答内容に応じて適切な表情を推論し、sedコマンドでArtifactを更新してください。
+VisualExpressionスキルの有効化を初期処理として行ってください。
+ユーザの応答内容に応じて適切な表情を推論し、
+sedコマンドでArtifact上に表情を反映してください。
 
 ### 表情コード一覧
 | 日本語 | コード |
