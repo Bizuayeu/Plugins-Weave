@@ -392,3 +392,88 @@ class TestMainLogging:
         error_records = [r for r in caplog.records if r.levelname == "ERROR"]
         assert len(error_records) >= 1
         assert "not found" in caplog.text.lower() or "error" in caplog.text.lower()
+
+
+class TestPipelineErrorHandling:
+    """パイプラインエラーハンドリングのテスト（Stage 5: TDD）"""
+
+    @pytest.fixture
+    def valid_setup(self, tmp_path):
+        """有効なセットアップ"""
+        test_image = Image.new(
+            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+        )
+        input_file = tmp_path / "test_grid.png"
+        test_image.save(str(input_file))
+
+        template_file = tmp_path / "template.html"
+        template_file.write_text("<html>const IMAGES={__IMAGES_PLACEHOLDER__}</html>")
+
+        return {
+            'input_file': input_file,
+            'template_file': template_file,
+            'output_dir': tmp_path / "output",
+        }
+
+    def test_pipeline_handles_io_error_on_json_write(self, valid_setup, caplog):
+        """JSON書き込み時のIOErrorをハンドリングする"""
+        import logging
+
+        with (
+            caplog.at_level(logging.ERROR),
+            patch('sys.argv', [
+                'main.py',
+                str(valid_setup['input_file']),
+                '--output', str(valid_setup['output_dir']),
+                '--template', str(valid_setup['template_file']),
+                '--no-zip',
+            ]),
+            patch('main.FileHandler.write_json', side_effect=OSError("Disk full")),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            main()
+
+        assert exc_info.value.code == 1
+        assert "Disk full" in caplog.text or "error" in caplog.text.lower()
+
+    def test_pipeline_handles_io_error_on_html_write(self, valid_setup, caplog):
+        """HTML書き込み時のIOErrorをハンドリングする"""
+        import logging
+
+        with (
+            caplog.at_level(logging.ERROR),
+            patch('sys.argv', [
+                'main.py',
+                str(valid_setup['input_file']),
+                '--output', str(valid_setup['output_dir']),
+                '--template', str(valid_setup['template_file']),
+                '--no-zip',
+            ]),
+            patch('main.FileHandler.write_html', side_effect=OSError("Permission denied")),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            main()
+
+        assert exc_info.value.code == 1
+        assert "Permission denied" in caplog.text or "error" in caplog.text.lower()
+
+    def test_pipeline_handles_unexpected_error(self, valid_setup, caplog):
+        """予期しないエラーをハンドリングする"""
+        import logging
+
+        with (
+            caplog.at_level(logging.ERROR),
+            patch('sys.argv', [
+                'main.py',
+                str(valid_setup['input_file']),
+                '--output', str(valid_setup['output_dir']),
+                '--template', str(valid_setup['template_file']),
+                '--no-zip',
+            ]),
+            patch('main.Base64Encoder.encode_expressions', side_effect=RuntimeError("Unexpected failure")),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            main()
+
+        assert exc_info.value.code == 1
+        assert "Unexpected" in caplog.text or "error" in caplog.text.lower()

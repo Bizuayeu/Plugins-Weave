@@ -204,6 +204,33 @@ class TestSkillsDirEnvironmentVariable:
         assert handler_with_explicit.get_skills_dir() == explicit_dir
 
 
+class TestGetSkillsDirDocstring:
+    """get_skills_dir のdocstring存在テスト（Stage 4: TDD）"""
+
+    def test_get_skills_dir_has_docstring(self):
+        """get_skills_dir に docstring が存在すること"""
+        assert FileHandler.get_skills_dir.__doc__ is not None
+
+    def test_get_skills_dir_docstring_contains_priority(self):
+        """docstring に Priority 順序が記載されていること"""
+        docstring = FileHandler.get_skills_dir.__doc__
+        assert "Priority" in docstring
+
+    def test_get_skills_dir_docstring_describes_env_var(self):
+        """docstring に環境変数の説明が含まれること"""
+        docstring = FileHandler.get_skills_dir.__doc__
+        assert "VISUAL_EXPRESSION_SKILLS_DIR" in docstring
+
+    def test_get_skills_dir_docstring_describes_all_fallbacks(self):
+        """docstring に全フォールバック手段が記載されていること"""
+        docstring = FileHandler.get_skills_dir.__doc__
+        # 4つの優先順位が記載されている
+        assert "1." in docstring
+        assert "2." in docstring
+        assert "3." in docstring
+        assert "4." in docstring
+
+
 class TestEnsureDirFunction:
     """ensure_dir ユーティリティ関数のテスト（TDD）"""
 

@@ -148,22 +148,29 @@ Grid specification:
         logger.error(str(e))
         sys.exit(1)
 
-    # Step 2: Encode to Base64
-    logger.info("Step 2/4: Encoding to Base64...")
-    expression_set = encoder.encode_expressions(split_images)
-    images_dict = encoder.to_json_dict(expression_set)
-    logger.info(f"  -> Encoded {len(images_dict)} images")
+    try:
+        # Step 2: Encode to Base64
+        logger.info("Step 2/4: Encoding to Base64...")
+        expression_set = encoder.encode_expressions(split_images)
+        images_dict = encoder.to_json_dict(expression_set)
+        logger.info(f"  -> Encoded {len(images_dict)} images")
 
-    # Step 3: Write JSON
-    logger.info("Step 3/4: Writing JSON...")
-    json_path = file_handler.write_json(images_dict)
-    logger.info(f"  -> {json_path}")
+        # Step 3: Write JSON
+        logger.info("Step 3/4: Writing JSON...")
+        json_path = file_handler.write_json(images_dict)
+        logger.info(f"  -> {json_path}")
 
-    # Step 4: Build HTML
-    logger.info("Step 4/4: Building HTML...")
-    html_content = builder.build(images_dict)
-    html_path = file_handler.write_html(html_content)
-    logger.info(f"  -> {html_path}")
+        # Step 4: Build HTML
+        logger.info("Step 4/4: Building HTML...")
+        html_content = builder.build(images_dict)
+        html_path = file_handler.write_html(html_content)
+        logger.info(f"  -> {html_path}")
+    except OSError as e:
+        logger.error(f"File I/O error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
 
     # Optional: Create ZIP
     if not args.no_zip:

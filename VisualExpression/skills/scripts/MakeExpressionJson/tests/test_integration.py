@@ -3,7 +3,7 @@
 import pytest
 from PIL import Image
 
-from domain import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
+from domain import EXPRESSION_CODES, GRID_CONFIG
 from usecases.base64_encoder import Base64Encoder
 from usecases.html_builder import HtmlBuilder
 from usecases.image_splitter import ImageSplitter
@@ -15,7 +15,7 @@ class TestFullPipeline:
     def test_full_pipeline_from_image_to_html(self, create_test_grid_image, tmp_path):
         """画像→分割→エンコード→HTML生成の全パイプライン"""
         # Arrange: グリッド画像とテンプレートを準備
-        grid_img = create_test_grid_image(GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE)
+        grid_img = create_test_grid_image(GRID_CONFIG["total_width"], GRID_CONFIG["total_height"])
         template = tmp_path / "template.html"
         template.write_text(
             "<html><script>const IMAGES={__IMAGES_PLACEHOLDER__}</script></html>", encoding="utf-8"
@@ -99,6 +99,7 @@ class TestEdgeCases:
 
     def test_different_image_sizes(self, create_test_grid_image):
         """異なる画像サイズへの対応（grid分割可能なサイズ）"""
+        cell_size = GRID_CONFIG["cell_size"]
         # 標準の半分のサイズ
         small_img = create_test_grid_image(700, 560)
 
@@ -108,8 +109,8 @@ class TestEdgeCases:
         assert len(expressions) == 20
         # リサイズされて出力サイズになっている
         for _, img in expressions:
-            assert img.width == CELL_SIZE
-            assert img.height == CELL_SIZE
+            assert img.width == cell_size
+            assert img.height == cell_size
 
     def test_invalid_image_size_raises(self, create_test_grid_image):
         """grid分割不可能なサイズはエラー"""
@@ -126,10 +127,11 @@ class TestEdgeCases:
         # ノイズのある画像を生成（圧縮効果が出やすい）
         import random
 
-        img = Image.new("RGB", (CELL_SIZE, CELL_SIZE))
+        cell_size = GRID_CONFIG["cell_size"]
+        img = Image.new("RGB", (cell_size, cell_size))
         pixels = img.load()
-        for x in range(CELL_SIZE):
-            for y in range(CELL_SIZE):
+        for x in range(cell_size):
+            for y in range(cell_size):
                 pixels[x, y] = (
                     random.randint(0, 255),
                     random.randint(0, 255),

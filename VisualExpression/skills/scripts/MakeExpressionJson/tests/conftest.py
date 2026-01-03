@@ -10,7 +10,7 @@ from PIL import Image
 # Add MakeExpressionJson to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from domain import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
+from domain import EXPRESSION_CODES, GRID_CONFIG
 
 
 @pytest.fixture
@@ -23,7 +23,8 @@ def create_test_grid_image() -> Callable[[int, int], Image.Image]:
     """
 
     def _create_image(
-        width: int = GRID_COLS * CELL_SIZE, height: int = GRID_ROWS * CELL_SIZE
+        width: int = GRID_CONFIG["total_width"],
+        height: int = GRID_CONFIG["total_height"],
     ) -> Image.Image:
         return Image.new("RGB", (width, height), color="white")
 
@@ -53,9 +54,10 @@ def sample_expression_images(create_test_grid_image) -> list[tuple[str, Image.Im
     Returns:
         List of (code, image) tuples for all 20 expressions.
     """
+    cell_size = GRID_CONFIG["cell_size"]
     images = []
     for code in EXPRESSION_CODES:
-        img = Image.new("RGB", (CELL_SIZE, CELL_SIZE), color="gray")
+        img = Image.new("RGB", (cell_size, cell_size), color="gray")
         images.append((code, img))
     return images
 

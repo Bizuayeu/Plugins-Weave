@@ -3,7 +3,7 @@
 import pytest
 from PIL import Image
 
-from domain import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
+from domain import EXPRESSION_CODES, GRID_CONFIG
 from usecases.image_splitter import ImageSplitter
 
 
@@ -20,8 +20,8 @@ class TestImageSplitter:
 
     def test_validate_correct_size(self):
         """Test validation passes for correct image size."""
-        expected_width = GRID_COLS * CELL_SIZE  # 1400
-        expected_height = GRID_ROWS * CELL_SIZE  # 1120
+        expected_width = GRID_CONFIG["total_width"]  # 1400
+        expected_height = GRID_CONFIG["total_height"]  # 1120
 
         img = self.create_test_grid(expected_width, expected_height)
         is_valid, error_msg = self.splitter.validate_image(img)
@@ -40,8 +40,8 @@ class TestImageSplitter:
 
     def test_split_returns_20_images(self):
         """Test that split returns exactly 20 expression images."""
-        expected_width = GRID_COLS * CELL_SIZE
-        expected_height = GRID_ROWS * CELL_SIZE
+        expected_width = GRID_CONFIG["total_width"]
+        expected_height = GRID_CONFIG["total_height"]
 
         img = self.create_test_grid(expected_width, expected_height)
         results = self.splitter.split(img)
@@ -50,8 +50,8 @@ class TestImageSplitter:
 
     def test_split_returns_correct_codes(self):
         """Test that split returns all expected expression codes."""
-        expected_width = GRID_COLS * CELL_SIZE
-        expected_height = GRID_ROWS * CELL_SIZE
+        expected_width = GRID_CONFIG["total_width"]
+        expected_height = GRID_CONFIG["total_height"]
 
         img = self.create_test_grid(expected_width, expected_height)
         results = self.splitter.split(img)
@@ -61,15 +61,16 @@ class TestImageSplitter:
 
     def test_split_image_dimensions(self):
         """Test that each split image has correct dimensions."""
-        expected_width = GRID_COLS * CELL_SIZE
-        expected_height = GRID_ROWS * CELL_SIZE
+        expected_width = GRID_CONFIG["total_width"]
+        expected_height = GRID_CONFIG["total_height"]
+        cell_size = GRID_CONFIG["cell_size"]
 
         img = self.create_test_grid(expected_width, expected_height)
         results = self.splitter.split(img)
 
         for _code, cropped_img in results:
-            assert cropped_img.width == CELL_SIZE
-            assert cropped_img.height == CELL_SIZE
+            assert cropped_img.width == cell_size
+            assert cropped_img.height == cell_size
 
     def test_split_raises_for_wrong_size(self):
         """Test that split raises ValueError for non-divisible size."""
@@ -91,8 +92,8 @@ class TestSplitFromFile:
 
     def test_split_from_file_rgba_image(self, tmp_path):
         """RGBA画像がRGBに変換されて処理されることを確認"""
-        expected_width = GRID_COLS * CELL_SIZE
-        expected_height = GRID_ROWS * CELL_SIZE
+        expected_width = GRID_CONFIG["total_width"]
+        expected_height = GRID_CONFIG["total_height"]
 
         # RGBA画像を作成
         img = Image.new("RGBA", (expected_width, expected_height), color=(255, 255, 255, 128))
@@ -109,8 +110,8 @@ class TestSplitFromFile:
 
     def test_split_from_file_palette_image(self, tmp_path):
         """パレット（P）画像がRGBに変換されて処理されることを確認"""
-        expected_width = GRID_COLS * CELL_SIZE
-        expected_height = GRID_ROWS * CELL_SIZE
+        expected_width = GRID_CONFIG["total_width"]
+        expected_height = GRID_CONFIG["total_height"]
 
         # RGB画像を作成し、パレットモードに変換
         img = Image.new("RGB", (expected_width, expected_height), color="white")

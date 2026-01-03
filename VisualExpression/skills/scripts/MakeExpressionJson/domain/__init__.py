@@ -9,15 +9,14 @@ from .builders import (
     get_cell_position_dynamic,
 )
 from .definitions import (
+    BASE_EXPRESSION_CODES,
+    BASE_EXPRESSION_LABELS,
     CATEGORY_CODES,
-    CELL_SIZE,
     DEFAULT_SPECIAL_CODES,
     DEFAULT_SPECIAL_LABELS,
     EXPRESSION_CODES,
     EXPRESSION_LABELS,
-    GRID_COLS,
     GRID_CONFIG,
-    GRID_ROWS,
     SPECIAL_CODES_COUNT,
     ExpressionCategory,
 )
@@ -30,19 +29,17 @@ from .grid_layout import GridLayout
 from .models import ExpressionImage
 
 __all__ = [
+    "BASE_EXPRESSION_CODES",
+    "BASE_EXPRESSION_LABELS",
     "CATEGORY_CODES",
-    "CELL_SIZE",
     "DEFAULT_SPECIAL_CODES",
     "DEFAULT_SPECIAL_LABELS",
     "EXPRESSION_CODES",
     "EXPRESSION_LABELS",
-    "GRID_COLS",
     "GRID_CONFIG",
-    "GRID_ROWS",
     "SPECIAL_CODES_COUNT",
     "ExpressionCategory",
     "ExpressionImage",
-    # GridConfig removed - use GridLayout instead
     "GridLayout",
     "build_expression_codes",
     "build_expression_labels",

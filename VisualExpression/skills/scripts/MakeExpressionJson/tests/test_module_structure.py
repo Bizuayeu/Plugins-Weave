@@ -14,13 +14,10 @@ class TestModuleStructure:
         assert hasattr(definitions, "ExpressionCategory")
         # Constants
         assert hasattr(definitions, "EXPRESSION_CODES")
-        assert hasattr(definitions, "GRID_ROWS")
-        assert hasattr(definitions, "GRID_COLS")
-        assert hasattr(definitions, "CELL_SIZE")
+        assert hasattr(definitions, "GRID_CONFIG")
         # Dicts
         assert hasattr(definitions, "EXPRESSION_LABELS")
         assert hasattr(definitions, "CATEGORY_CODES")
-        assert hasattr(definitions, "GRID_CONFIG")
 
     def test_builders_module_exists(self):
         """builders.py モジュールが存在し、ビルダー関数を含むことを確認"""
@@ -41,12 +38,9 @@ class TestModuleStructure:
         from domain import (
             CATEGORY_CODES,
             # From definitions
-            CELL_SIZE,
             EXPRESSION_CODES,
             EXPRESSION_LABELS,
-            GRID_COLS,
             GRID_CONFIG,
-            GRID_ROWS,
             ExpressionCategory,
             # From builders
             build_expression_codes,
@@ -56,8 +50,8 @@ class TestModuleStructure:
         )
 
         # Just check they're callable/accessible
-        assert GRID_ROWS == 4
-        assert GRID_COLS == 5
+        assert GRID_CONFIG["rows"] == 4
+        assert GRID_CONFIG["cols"] == 5
         assert callable(build_expression_codes)
         assert callable(get_cell_position)
 
@@ -72,13 +66,15 @@ class TestDefinitionsContent:
         assert isinstance(EXPRESSION_CODES, list)
         assert len(EXPRESSION_CODES) == 20
 
-    def test_grid_constants(self):
-        """グリッド定数が正しい値であることを確認"""
-        from domain.definitions import CELL_SIZE, GRID_COLS, GRID_ROWS
+    def test_grid_config(self):
+        """GRID_CONFIGが正しい値を持つことを確認"""
+        from domain.definitions import GRID_CONFIG
 
-        assert GRID_ROWS == 4
-        assert GRID_COLS == 5
-        assert CELL_SIZE == 280
+        assert GRID_CONFIG["rows"] == 4
+        assert GRID_CONFIG["cols"] == 5
+        assert GRID_CONFIG["cell_size"] == 280
+        assert GRID_CONFIG["total_width"] == 1400
+        assert GRID_CONFIG["total_height"] == 1120
 
     def test_expression_category_enum(self):
         """ExpressionCategory Enum が正しいカテゴリを持つことを確認"""

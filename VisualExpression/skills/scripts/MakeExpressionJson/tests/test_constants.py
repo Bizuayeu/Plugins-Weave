@@ -3,9 +3,7 @@
 import pytest
 
 from domain import (
-    CELL_SIZE,
-    GRID_COLS,
-    GRID_ROWS,
+    GRID_CONFIG,
     get_cell_position,
     get_cell_position_dynamic,
 )
@@ -61,26 +59,31 @@ class TestGetCellPosition:
 
     def test_first_cell(self):
         """静的セル位置計算: 最初のセル"""
+        cell_size = GRID_CONFIG["cell_size"]
         result = get_cell_position(0)
-        assert result == (0, 0, CELL_SIZE, CELL_SIZE)
+        assert result == (0, 0, cell_size, cell_size)
 
     def test_last_cell(self):
         """静的セル位置計算: 最後のセル"""
+        cols = GRID_CONFIG["cols"]
+        cell_size = GRID_CONFIG["cell_size"]
         result = get_cell_position(19)
-        expected_left = (19 % GRID_COLS) * CELL_SIZE
-        expected_top = (19 // GRID_COLS) * CELL_SIZE
+        expected_left = (19 % cols) * cell_size
+        expected_top = (19 // cols) * cell_size
         assert result == (
             expected_left,
             expected_top,
-            expected_left + CELL_SIZE,
-            expected_top + CELL_SIZE,
+            expected_left + cell_size,
+            expected_top + cell_size,
         )
 
     def test_consistency_with_dynamic(self):
         """静的関数と動的関数の一貫性"""
+        cols = GRID_CONFIG["cols"]
+        cell_size = GRID_CONFIG["cell_size"]
         for i in range(20):
             static_result = get_cell_position(i)
-            dynamic_result = get_cell_position_dynamic(i, GRID_COLS, CELL_SIZE, CELL_SIZE)
+            dynamic_result = get_cell_position_dynamic(i, cols, cell_size, cell_size)
             assert static_result == dynamic_result, f"Mismatch at index {i}"
 
 
@@ -211,6 +214,66 @@ class TestSpecialCodesConstant:
             build_expression_codes(["a", "b", "c", "d", "e"])  # 5個
 
         assert "5" in str(exc.value)
+
+
+class TestBaseExpressionLabels:
+    """BASE_EXPRESSION_LABELS定数のテスト（Stage 2: TDD）"""
+
+    def test_base_expression_labels_exists(self):
+        """BASE_EXPRESSION_LABELSが存在し、16個のラベルを持つことを確認"""
+        from domain.definitions import BASE_EXPRESSION_LABELS
+
+        assert len(BASE_EXPRESSION_LABELS) == 16
+
+    def test_base_expression_labels_keys_match_codes(self):
+        """BASE_EXPRESSION_LABELSのキーがBASE_EXPRESSION_CODESと一致することを確認"""
+        from domain.definitions import BASE_EXPRESSION_CODES, BASE_EXPRESSION_LABELS
+
+        assert set(BASE_EXPRESSION_CODES) == set(BASE_EXPRESSION_LABELS.keys())
+
+    def test_base_expression_labels_no_special(self):
+        """BASE_EXPRESSION_LABELSにSpecialコードが含まれないことを確認"""
+        from domain.definitions import BASE_EXPRESSION_LABELS, DEFAULT_SPECIAL_CODES
+
+        for code in DEFAULT_SPECIAL_CODES:
+            assert code not in BASE_EXPRESSION_LABELS
+
+    def test_base_expression_labels_sample_values(self):
+        """BASE_EXPRESSION_LABELSのサンプル値を確認"""
+        from domain.definitions import BASE_EXPRESSION_LABELS
+
+        assert BASE_EXPRESSION_LABELS["normal"] == "通常"
+        assert BASE_EXPRESSION_LABELS["joy"] == "喜び"
+        assert BASE_EXPRESSION_LABELS["anger"] == "怒り"
+
+
+class TestBaseExpressionCodes:
+    """BASE_EXPRESSION_CODES定数のテスト（Stage 1: TDD）"""
+
+    def test_base_expression_codes_exists(self):
+        """BASE_EXPRESSION_CODESが存在し、16個のコードを持つことを確認"""
+        from domain.definitions import BASE_EXPRESSION_CODES
+
+        assert len(BASE_EXPRESSION_CODES) == 16
+
+    def test_base_expression_codes_no_special(self):
+        """BASE_EXPRESSION_CODESにSpecialコードが含まれないことを確認"""
+        from domain.definitions import BASE_EXPRESSION_CODES, DEFAULT_SPECIAL_CODES
+
+        for code in DEFAULT_SPECIAL_CODES:
+            assert code not in BASE_EXPRESSION_CODES
+
+    def test_base_expression_codes_contains_expected(self):
+        """BASE_EXPRESSION_CODESに期待されるベースコードが含まれることを確認"""
+        from domain.definitions import BASE_EXPRESSION_CODES
+
+        expected_codes = [
+            "normal", "joy", "anger", "anxiety",
+            "smile", "elation", "sadness", "fear",
+            "focus", "surprise", "rage", "upset",
+            "diverge", "calm", "disgust", "worry",
+        ]
+        assert expected_codes == BASE_EXPRESSION_CODES
 
 
 if __name__ == "__main__":

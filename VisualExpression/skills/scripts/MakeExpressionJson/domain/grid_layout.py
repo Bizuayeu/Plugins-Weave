@@ -4,10 +4,8 @@ from dataclasses import dataclass
 
 from domain.builders import build_expression_codes
 from domain.definitions import (
-    CELL_SIZE,
     EXPRESSION_CODES,
-    GRID_COLS,
-    GRID_ROWS,
+    GRID_CONFIG,
 )
 
 
@@ -40,9 +38,9 @@ class GridLayout:
             GridLayout with 4 rows, 5 cols, 280px cells, and default expressions
         """
         return cls(
-            rows=GRID_ROWS,
-            cols=GRID_COLS,
-            cell_size=CELL_SIZE,
+            rows=GRID_CONFIG["rows"],
+            cols=GRID_CONFIG["cols"],
+            cell_size=GRID_CONFIG["cell_size"],
             expression_codes=tuple(EXPRESSION_CODES),
         )
 
@@ -59,9 +57,9 @@ class GridLayout:
         """
         codes = build_expression_codes(special_codes)
         return cls(
-            rows=GRID_ROWS,
-            cols=GRID_COLS,
-            cell_size=CELL_SIZE,
+            rows=GRID_CONFIG["rows"],
+            cols=GRID_CONFIG["cols"],
+            cell_size=GRID_CONFIG["cell_size"],
             expression_codes=tuple(codes),
         )
 

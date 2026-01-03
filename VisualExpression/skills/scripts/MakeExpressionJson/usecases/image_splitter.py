@@ -3,9 +3,7 @@
 from PIL import Image
 
 from domain import (
-    CELL_SIZE,
-    GRID_COLS,
-    GRID_ROWS,
+    GRID_CONFIG,
     build_expression_codes,
     get_cell_position_dynamic,
 )
@@ -16,23 +14,30 @@ class ImageSplitter:
 
     def __init__(
         self,
-        rows: int = GRID_ROWS,
-        cols: int = GRID_COLS,
-        output_size: int = CELL_SIZE,
+        rows: int | None = None,
+        cols: int | None = None,
+        output_size: int | None = None,
         special_codes: list[str] | None = None,
     ):
         """
         Initialize the image splitter.
 
         Args:
-            rows: Number of rows in the grid (default: 4)
-            cols: Number of columns in the grid (default: 5)
-            output_size: Output size for each cropped image (default: 280)
+            rows: Number of rows in the grid (default: from GRID_CONFIG)
+            cols: Number of columns in the grid (default: from GRID_CONFIG)
+            output_size: Output size for each cropped image (default: from GRID_CONFIG)
             special_codes: Custom Special category codes (4 items). None = use defaults.
 
         Note:
             Cell size is automatically calculated from image dimensions.
         """
+        # Use GRID_CONFIG as defaults if not provided
+        if rows is None:
+            rows = GRID_CONFIG["rows"]
+        if cols is None:
+            cols = GRID_CONFIG["cols"]
+        if output_size is None:
+            output_size = GRID_CONFIG["cell_size"]
         self.rows = rows
         self.cols = cols
         self.output_size = output_size
