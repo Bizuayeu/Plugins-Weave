@@ -6,6 +6,7 @@ Visual expression system for AI personas with emotion-based face switching.
 
 ## Table of Contents
 
+- [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [Documentation Map](#documentation-map)
 - [Features](#features)
