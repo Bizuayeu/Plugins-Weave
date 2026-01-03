@@ -5,7 +5,7 @@ from io import BytesIO
 
 from PIL import Image
 
-from domain.constants import EXPRESSION_LABELS
+from domain import EXPRESSION_LABELS
 from domain.models import ExpressionImage, ExpressionSet
 
 

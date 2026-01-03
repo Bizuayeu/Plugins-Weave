@@ -5,8 +5,13 @@ import os
 from pathlib import Path
 from typing import Any
 
-# Environment variable for skills directory override
-SKILLS_DIR_ENV_VAR = "VISUAL_EXPRESSION_SKILLS_DIR"
+from .file_constants import (
+    DEFAULT_HTML_FILENAME,
+    DEFAULT_JSON_FILENAME,
+    DEFAULT_TEMPLATE_FILENAME,
+    SKILLS_DIR_ENV_VAR,
+    SKILLS_DIR_MARKERS,
+)
 
 
 class FileHandler:
@@ -36,7 +41,7 @@ class FileHandler:
     def write_json(
         self,
         data: dict[str, Any],
-        filename: str = "ExpressionImages.json",
+        filename: str = DEFAULT_JSON_FILENAME,
     ) -> Path:
         """
         Write expression data to a JSON file.
@@ -59,7 +64,7 @@ class FileHandler:
     def write_html(
         self,
         content: str,
-        filename: str = "VisualExpressionUI.html",
+        filename: str = DEFAULT_HTML_FILENAME,
     ) -> Path:
         """
         Write HTML content to a file.
@@ -118,7 +123,7 @@ class FileHandler:
 
         # 3. Search upward for marker files
         current = Path(__file__).parent
-        markers = ["SKILL.md", "VisualExpressionUI.template.html"]
+        markers = SKILLS_DIR_MARKERS
 
         for _ in range(10):  # Limit search depth
             for marker in markers:
@@ -140,4 +145,4 @@ class FileHandler:
         Returns:
             Path to VisualExpressionUI.template.html
         """
-        return self.get_skills_dir() / "VisualExpressionUI.template.html"
+        return self.get_skills_dir() / DEFAULT_TEMPLATE_FILENAME

@@ -108,6 +108,41 @@ class TestJsonSerialization:
         assert "data\\\\with\\\\backslash" in result, "バックスラッシュはエスケープされるべき"
 
 
+class TestCustomPlaceholder:
+    """カスタムプレースホルダーのテスト（Stage 5: TDD）"""
+
+    def test_default_placeholder_constant(self):
+        """DEFAULT_PLACEHOLDERが定義されていることを確認"""
+        assert HtmlBuilder.DEFAULT_PLACEHOLDER == "__IMAGES_PLACEHOLDER__"
+
+    def test_placeholder_parameter_in_init(self):
+        """placeholderパラメータがコンストラクタに存在することを確認"""
+        import inspect
+        sig = inspect.signature(HtmlBuilder.__init__)
+        assert "placeholder" in sig.parameters
+
+    def test_custom_placeholder_accepted(self, tmp_path):
+        """カスタムプレースホルダーが使用できることを確認"""
+        template = tmp_path / "custom.html"
+        template.write_text("<html>{{CUSTOM_MARKER}}</html>", encoding="utf-8")
+
+        builder = HtmlBuilder(str(template), placeholder="{{CUSTOM_MARKER}}")
+        builder.load_template()
+        result = builder.build({"test": "value"})
+
+        assert "{{CUSTOM_MARKER}}" not in result
+        assert '"test": "value"' in result
+
+    def test_custom_placeholder_validation(self, tmp_path):
+        """カスタムプレースホルダーがない場合はValueErrorを発生"""
+        template = tmp_path / "wrong.html"
+        template.write_text("<html>no custom placeholder</html>", encoding="utf-8")
+
+        builder = HtmlBuilder(str(template), placeholder="{{MISSING}}")
+        with pytest.raises(ValueError, match="missing placeholder"):
+            builder.load_template()
+
+
 class TestExplicitSerialization:
     """明示的シリアライゼーションのテスト（Stage 3: TDD）"""
 

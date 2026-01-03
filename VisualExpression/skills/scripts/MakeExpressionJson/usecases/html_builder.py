@@ -7,14 +7,15 @@ from pathlib import Path
 class HtmlBuilder:
     """Builds the final HTML from template and expression data."""
 
-    PLACEHOLDER = "__IMAGES_PLACEHOLDER__"
+    DEFAULT_PLACEHOLDER = "__IMAGES_PLACEHOLDER__"
 
-    def __init__(self, template_path: str):
+    def __init__(self, template_path: str, placeholder: str | None = None):
         """
         Initialize the HTML builder.
 
         Args:
             template_path: Path to the HTML template file
+            placeholder: Custom placeholder string (defaults to DEFAULT_PLACEHOLDER)
 
         Raises:
             FileNotFoundError: If template file does not exist
@@ -22,6 +23,7 @@ class HtmlBuilder:
         if not Path(template_path).exists():
             raise FileNotFoundError(f"Template file not found: {template_path}")
         self.template_path = template_path
+        self.placeholder = placeholder if placeholder is not None else self.DEFAULT_PLACEHOLDER
         self._template: str = ""
 
     def load_template(self) -> str:
@@ -37,8 +39,8 @@ class HtmlBuilder:
         with open(self.template_path, encoding="utf-8") as f:
             self._template = f.read()
 
-        if self.PLACEHOLDER not in self._template:
-            raise ValueError(f"Template is missing placeholder: {self.PLACEHOLDER}")
+        if self.placeholder not in self._template:
+            raise ValueError(f"Template is missing placeholder: {self.placeholder}")
 
         return self._template
 
@@ -67,7 +69,7 @@ class HtmlBuilder:
         images_content = ", ".join(pairs)
 
         # Replace placeholder
-        html = self._template.replace(self.PLACEHOLDER, images_content)
+        html = self._template.replace(self.placeholder, images_content)
 
         return html
 

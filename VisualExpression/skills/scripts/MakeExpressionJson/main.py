@@ -33,7 +33,7 @@ if str(_pkg_dir) not in sys.path:
 
 from adapters.file_handler import FileHandler
 from adapters.zip_packager import ZipPackager
-from domain.constants import GRID_CONFIG
+from domain import GRID_CONFIG
 from usecases.base64_encoder import Base64Encoder
 from usecases.html_builder import HtmlBuilder
 from usecases.image_splitter import ImageSplitter

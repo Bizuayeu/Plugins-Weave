@@ -27,7 +27,7 @@ class ZipPackager:
         json_path: Path,
         output_name: str = "VisualExpressionSkills.zip",
         additional_files: list[Path] | None = None,
-        strict: bool = False,
+        strict: bool = True,
     ) -> Path:
         """
         Create a ZIP package containing the skill files.

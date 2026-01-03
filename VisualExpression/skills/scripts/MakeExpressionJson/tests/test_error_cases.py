@@ -3,7 +3,7 @@
 import pytest
 from PIL import Image
 
-from domain.constants import build_expression_codes, SPECIAL_CODES_COUNT
+from domain import build_expression_codes, SPECIAL_CODES_COUNT
 from usecases.image_splitter import ImageSplitter
 from usecases.html_builder import HtmlBuilder
 

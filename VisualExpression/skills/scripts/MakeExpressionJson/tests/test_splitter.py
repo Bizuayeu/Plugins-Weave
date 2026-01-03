@@ -3,7 +3,7 @@
 import pytest
 from PIL import Image
 
-from domain.constants import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
+from domain import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
 from usecases.image_splitter import ImageSplitter
 
 
@@ -82,55 +82,19 @@ class TestImageSplitter:
         assert "not divisible" in str(exc_info.value)
 
 
-class TestCellSizeDeprecation:
-    """cell_sizeパラメータの非推奨化テスト（Stage 4: TDD）"""
+class TestCellSizeRemoved:
+    """cell_sizeパラメータ削除テスト（v2.0 TDD）"""
 
-    def test_cell_size_parameter_deprecated_warning(self):
-        """cell_sizeパラメータ使用時に非推奨警告が出ることを確認"""
-        import warnings
+    def test_no_cell_size_parameter(self):
+        """cell_size パラメータが存在しないことを確認"""
+        import inspect
+        sig = inspect.signature(ImageSplitter.__init__)
+        assert "cell_size" not in sig.parameters
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            _splitter = ImageSplitter(cell_size=300)
-
-            assert len(w) == 1
-            assert issubclass(w[0].category, DeprecationWarning)
-            assert "deprecated" in str(w[0].message).lower()
-            assert "cell_size" in str(w[0].message)
-
-    def test_cell_size_none_no_warning(self):
-        """cell_size=Noneの場合は警告が出ないことを確認"""
-        import warnings
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            _splitter = ImageSplitter(cell_size=None)
-
-            # DeprecationWarningがないことを確認
-            deprecation_warnings = [
-                x for x in w if issubclass(x.category, DeprecationWarning)
-            ]
-            assert len(deprecation_warnings) == 0
-
-    def test_cell_size_parameter_ignored(self):
-        """cell_sizeパラメータが無視されることを確認"""
-        expected_width = GRID_COLS * CELL_SIZE
-        expected_height = GRID_ROWS * CELL_SIZE
-
-        img = Image.new("RGB", (expected_width, expected_height), color="white")
-
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            # 異なるcell_sizeを指定しても結果は同じ
-            splitter1 = ImageSplitter(cell_size=100)
-            splitter2 = ImageSplitter(cell_size=500)
-
-        result1 = splitter1.split(img)
-        result2 = splitter2.split(img)
-
-        # 両方とも同じ数の画像を生成
-        assert len(result1) == len(result2) == 20
+    def test_no_cell_size_attribute(self):
+        """cell_size 属性が存在しないことを確認"""
+        splitter = ImageSplitter()
+        assert not hasattr(splitter, "cell_size")
 
 
 if __name__ == "__main__":

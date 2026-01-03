@@ -10,7 +10,7 @@ from PIL import Image
 # Add MakeExpressionJson to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from domain.constants import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
+from domain import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
 
 
 @pytest.fixture

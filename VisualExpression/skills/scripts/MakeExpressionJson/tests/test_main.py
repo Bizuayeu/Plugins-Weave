@@ -15,7 +15,7 @@ from PIL import Image
 # main.pyのインポートパスを設定
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from domain.constants import GRID_CONFIG
+from domain import GRID_CONFIG
 from main import main
 
 

@@ -3,7 +3,7 @@
 import pytest
 from PIL import Image
 
-from domain.constants import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
+from domain import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
 from usecases.base64_encoder import Base64Encoder
 from usecases.html_builder import HtmlBuilder
 from usecases.image_splitter import ImageSplitter
