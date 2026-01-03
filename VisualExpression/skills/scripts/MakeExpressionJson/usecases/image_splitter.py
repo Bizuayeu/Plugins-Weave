@@ -108,5 +108,6 @@ class ImageSplitter:
         with Image.open(file_path) as img:
             # Convert to RGB if necessary (e.g., for PNG with alpha)
             if img.mode in ("RGBA", "P"):
-                img = img.convert("RGB")
+                rgb_img = img.convert("RGB")
+                return self.split(rgb_img)
             return self.split(img)

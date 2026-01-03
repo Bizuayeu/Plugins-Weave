@@ -163,9 +163,7 @@ class TestBuildExpressionLabels:
 
         custom_codes = ["test1", "test2", "test3", "test4"]
         custom_labels = {"test1": "テスト1", "test2": "テスト2"}
-        result = build_expression_labels(
-            special_codes=custom_codes, special_labels=custom_labels
-        )
+        result = build_expression_labels(special_codes=custom_codes, special_labels=custom_labels)
 
         # ラベルが定義されているものはそれを使う
         assert result["test1"] == "テスト1"
