@@ -130,6 +130,7 @@ class TestStdinEncoding:
             capture_output=True,
             text=True,
             encoding='utf-8',
+            errors='replace',  # Windows CP932対応
             cwd=scripts_dir,
             env=env,
         )
@@ -186,6 +187,7 @@ class TestStdinEncoding:
             capture_output=True,
             text=True,
             encoding='utf-8',
+            errors='replace',  # Windows CP932対応
             cwd=scripts_dir,
             env=env,
         )

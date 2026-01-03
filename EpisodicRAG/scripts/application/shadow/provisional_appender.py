@@ -79,6 +79,10 @@ class ProvisionalAppender:
         """
         次レベルのProvisionalファイルパスを取得（存在しなければ作成準備）
 
+        常にRegularDigestディレクトリから正しい次番号を取得し、
+        その番号と一致するProvisionalファイルが存在すれば再利用する。
+        番号が異なる古いProvisionalファイルがあれば警告ログを出力。
+
         Args:
             next_level: 次レベル名
 
@@ -88,24 +92,33 @@ class ProvisionalAppender:
         provisional_dir = self.config.get_provisional_dir(next_level)
         provisional_dir.mkdir(parents=True, exist_ok=True)
 
-        # 既存のProvisionalファイルを探す
         level_cfg = self.level_config[next_level]
         prefix = level_cfg["prefix"]
-        pattern = f"{prefix}*_Individual.txt"
-        existing_files = list(provisional_dir.glob(pattern))
+        digits = level_cfg["digits"]
 
-        if existing_files:
-            # 既存ファイルがあれば最新のものを使用
-            return max(existing_files, key=lambda p: p.stat().st_mtime)
-
-        # 新規作成：既存RegularDigestから次番号を決定
+        # 常にRegularDigestから正しい次番号を取得
         # NOTE: 循環インポート回避のためローカルインポート
         from interfaces.interface_helpers import get_next_digest_number
 
-        digits = level_cfg["digits"]
         next_number = get_next_digest_number(self.config.digests_path, next_level)
         formatted_number = str(next_number).zfill(digits)
-        return provisional_dir / f"{prefix}{formatted_number}_Individual.txt"
+        expected_filename = f"{prefix}{formatted_number}_Individual.txt"
+        expected_path = provisional_dir / expected_filename
+
+        # 既存ファイルが正しい番号であれば再利用
+        if expected_path.exists():
+            return expected_path
+
+        # 番号が異なる古いProvisionalファイルがあれば警告ログ
+        pattern = f"{prefix}*_Individual.txt"
+        existing_files = list(provisional_dir.glob(pattern))
+        if existing_files:
+            _logger.info(
+                f"[WARN] 古いProvisionalファイルが存在: {[f.name for f in existing_files]}. "
+                f"正しい番号は {expected_filename}"
+            )
+
+        return expected_path
 
     def _load_or_create_provisional(
         self, provisional_path: Path, next_level: str

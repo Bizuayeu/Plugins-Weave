@@ -157,8 +157,15 @@ class TestAppendToExistingProvisional:
         sample_finalized_digest: "Dict[str, Any]",
     ) -> None:
         """既存Provisionalに新しいindividual_digestが追加される"""
+        # RegularDigestディレクトリにM0001-M0010を作成
+        # これにより get_next_digest_number が 11 を返す
+        monthly_regular_dir = temp_plugin_env.digests_path / "2_Monthly"
+        monthly_regular_dir.mkdir(parents=True, exist_ok=True)
+        for i in range(1, 11):
+            (monthly_regular_dir / f"M{i:04d}_test.txt").touch()
+
         # 既存のProvisionalファイルを作成
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = monthly_regular_dir / "Provisional"
         monthly_provisional_dir.mkdir(parents=True, exist_ok=True)
         existing_provisional = monthly_provisional_dir / "M0011_Individual.txt"
 
@@ -207,8 +214,15 @@ class TestDuplicateSourceFileSkipped:
         sample_finalized_digest: "Dict[str, Any]",
     ) -> None:
         """同じsource_fileが既に存在する場合、スキップされる"""
+        # RegularDigestディレクトリにM0001-M0010を作成
+        # これにより get_next_digest_number が 11 を返す
+        monthly_regular_dir = temp_plugin_env.digests_path / "2_Monthly"
+        monthly_regular_dir.mkdir(parents=True, exist_ok=True)
+        for i in range(1, 11):
+            (monthly_regular_dir / f"M{i:04d}_test.txt").touch()
+
         # W0053を含む既存Provisionalファイルを作成
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = monthly_regular_dir / "Provisional"
         monthly_provisional_dir.mkdir(parents=True, exist_ok=True)
         existing_provisional = monthly_provisional_dir / "M0011_Individual.txt"
 
@@ -300,8 +314,15 @@ class TestProvisionalAppenderEdgeCases:
         sample_finalized_digest: "Dict[str, Any]",
     ) -> None:
         """Provisionalのmetadata.last_updatedが更新される"""
+        # RegularDigestディレクトリにM0001-M0010を作成
+        # これにより get_next_digest_number が 11 を返す
+        monthly_regular_dir = temp_plugin_env.digests_path / "2_Monthly"
+        monthly_regular_dir.mkdir(parents=True, exist_ok=True)
+        for i in range(1, 11):
+            (monthly_regular_dir / f"M{i:04d}_test.txt").touch()
+
         # 既存Provisionalを作成（古いlast_updated）
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = monthly_regular_dir / "Provisional"
         monthly_provisional_dir.mkdir(parents=True, exist_ok=True)
         existing_provisional = monthly_provisional_dir / "M0011_Individual.txt"
 
@@ -501,3 +522,89 @@ class TestProvisionalNumberingFromExistingRegular:
         assert "M0001" in provisional_files[0].name, (
             f"Expected M0001 but got {provisional_files[0].name}"
         )
+
+    @pytest.mark.integration
+    def test_ignores_wrong_numbered_existing_provisional(
+        self,
+        provisional_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        sample_finalized_digest: "Dict[str, Any]",
+    ) -> None:
+        """
+        既存Provisionalファイルの番号が誤っている場合、
+        RegularDigestから正しい番号を取得して新しいパスを使用すること
+
+        BUG FIX: 既存Provisionalファイル（M0001_Individual.txt）が存在しても、
+        RegularDigest（M0011）がある場合はM0012_Individual.txtを使用すべき。
+        """
+        # Arrange: M0011のRegularDigestを作成
+        monthly_dir = temp_plugin_env.digests_path / "2_Monthly"
+        monthly_dir.mkdir(parents=True, exist_ok=True)
+        (monthly_dir / "M0011_テスト.txt").write_text("{}", encoding="utf-8")
+
+        # 誤った番号のProvisionalファイルを作成
+        provisional_dir = monthly_dir / "Provisional"
+        provisional_dir.mkdir(parents=True, exist_ok=True)
+        wrong_provisional = provisional_dir / "M0001_Individual.txt"
+        wrong_provisional.write_text(
+            '{"metadata": {"digest_level": "monthly", "digest_number": "0001"}, '
+            '"individual_digests": []}',
+            encoding="utf-8",
+        )
+
+        # Act
+        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+
+        # Assert: M0012_Individual.txtが使用される（M0001ではなく）
+        provisional_files = list(provisional_dir.glob("M*_Individual.txt"))
+        # 正しい番号のファイルが存在することを確認
+        correct_file = provisional_dir / "M0012_Individual.txt"
+        assert correct_file.exists(), (
+            f"Expected M0012_Individual.txt but found: {[f.name for f in provisional_files]}"
+        )
+
+        # 正しいファイルに書き込まれていることを確認
+        with open(correct_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        assert len(data["individual_digests"]) == 1
+        assert data["individual_digests"][0]["source_file"] == "W0053_テストタイトル.txt"
+
+    @pytest.mark.integration
+    def test_reuses_correct_numbered_existing_provisional(
+        self,
+        provisional_appender,
+        temp_plugin_env: "TempPluginEnvironment",
+        sample_finalized_digest: "Dict[str, Any]",
+    ) -> None:
+        """
+        既存Provisionalファイルの番号が正しい場合は再利用すること
+        """
+        # Arrange: M0011のRegularDigestを作成
+        monthly_dir = temp_plugin_env.digests_path / "2_Monthly"
+        monthly_dir.mkdir(parents=True, exist_ok=True)
+        (monthly_dir / "M0011_テスト.txt").write_text("{}", encoding="utf-8")
+
+        # 正しい番号のProvisionalファイルを作成（M0012）
+        provisional_dir = monthly_dir / "Provisional"
+        provisional_dir.mkdir(parents=True, exist_ok=True)
+        correct_provisional = provisional_dir / "M0012_Individual.txt"
+        correct_provisional.write_text(
+            '{"metadata": {"digest_level": "monthly", "digest_number": "0012", '
+            '"last_updated": "2025-01-01T00:00:00"}, '
+            '"individual_digests": [{"source_file": "W0052_既存.txt", '
+            '"digest_type": "既存", "keywords": [], "abstract": "", "impression": ""}]}',
+            encoding="utf-8",
+        )
+
+        # Act
+        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+
+        # Assert: 既存のM0012_Individual.txtが再利用されている
+        provisional_files = list(provisional_dir.glob("M*_Individual.txt"))
+        assert len(provisional_files) == 1
+        assert provisional_files[0].name == "M0012_Individual.txt"
+
+        # 追加されていることを確認（既存1件 + 新規1件 = 2件）
+        with open(correct_provisional, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        assert len(data["individual_digests"]) == 2

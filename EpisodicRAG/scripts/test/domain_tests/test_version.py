@@ -183,14 +183,14 @@ class TestVersionConsistency:
         assert marketplace_json.exists(), f"marketplace.json not found: {marketplace_json}"
         marketplace_data = json.loads(marketplace_json.read_text(encoding="utf-8"))
 
-        # plugins 配列から EpisodicRAG-Plugin を検索
+        # plugins 配列から EpisodicRAG を検索
         episodic_rag_plugin = None
         for plugin in marketplace_data.get("plugins", []):
-            if plugin.get("name") == "EpisodicRAG-Plugin":
+            if plugin.get("name") == "EpisodicRAG":
                 episodic_rag_plugin = plugin
                 break
 
-        assert episodic_rag_plugin, "EpisodicRAG-Plugin not found in marketplace.json"
+        assert episodic_rag_plugin, "EpisodicRAG not found in marketplace.json"
         marketplace_version = episodic_rag_plugin.get("version")
 
         assert plugin_version == marketplace_version, (
