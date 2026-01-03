@@ -2,11 +2,25 @@
 
 Thank you for your interest in contributing to VisualExpression!
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Architecture](#architecture)
+- [Development Setup](#development-setup)
+- [Build Pipeline](#build-pipeline)
+- [How to Contribute](#how-to-contribute)
+- [License](#license)
+
+---
+
 ## Prerequisites
 
 - Python 3.10+
 - Pillow 10.0+ (`pip install Pillow>=10.0`)
   - Requires `Image.Resampling.LANCZOS` (introduced in Pillow 10)
+
+---
 
 ## Project Structure
 
@@ -49,6 +63,8 @@ VisualExpression/
             │   └── protocols.py       # Adapter protocols
             └── tests/           # Unit tests
 ```
+
+---
 
 ## Architecture
 
@@ -94,6 +110,8 @@ flowchart TB
     GL -.-> DEF
 ```
 
+---
+
 ## Development Setup
 
 1. Clone the repository:
@@ -112,6 +130,8 @@ flowchart TB
    cd skills/scripts/MakeExpressionJson
    python -m pytest tests/
    ```
+
+---
 
 ## Build Pipeline
 
@@ -135,6 +155,8 @@ your_grid.png
 ```
 
 For image specifications (grid size, cell dimensions), CLI options, and detailed usage, see [SKILL.md Technical Details](skills/SKILL.md#technical-details).
+
+---
 
 ## How to Contribute
 
@@ -178,6 +200,8 @@ python -m pytest tests/ -v
 - Add tests for new functionality
 - Ensure existing tests pass before submitting PR
 - Tests are located in `skills/scripts/MakeExpressionJson/tests/`
+
+---
 
 ## License
 
