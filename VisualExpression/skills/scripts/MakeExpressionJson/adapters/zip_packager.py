@@ -4,6 +4,8 @@ import logging
 import zipfile
 from pathlib import Path
 
+from .file_handler import ensure_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +49,7 @@ class ZipPackager:
         Raises:
             FileNotFoundError: If strict=True and required files are missing
         """
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        ensure_dir(self.output_dir)
         zip_path = self.output_dir / output_name
 
         def _check_file(file_path: Path, arcname: str, required: bool = False) -> bool:
@@ -100,7 +102,7 @@ class ZipPackager:
         Returns:
             Path to the created ZIP file
         """
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        ensure_dir(self.output_dir)
         zip_path = self.output_dir / output_name
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:

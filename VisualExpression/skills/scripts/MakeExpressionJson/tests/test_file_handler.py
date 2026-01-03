@@ -204,5 +204,50 @@ class TestSkillsDirEnvironmentVariable:
         assert handler_with_explicit.get_skills_dir() == explicit_dir
 
 
+class TestEnsureDirFunction:
+    """ensure_dir ユーティリティ関数のテスト（TDD）"""
+
+    def test_ensure_dir_creates_new_directory(self, tmp_path):
+        """新しいディレクトリを作成できること"""
+        from adapters.file_handler import ensure_dir
+
+        new_dir = tmp_path / "new_directory"
+        result = ensure_dir(new_dir)
+
+        assert result.exists()
+        assert result.is_dir()
+        assert result == new_dir
+
+    def test_ensure_dir_handles_existing_directory(self, tmp_path):
+        """既存ディレクトリでエラーにならないこと"""
+        from adapters.file_handler import ensure_dir
+
+        existing = tmp_path / "existing"
+        existing.mkdir()
+
+        result = ensure_dir(existing)
+
+        assert result.exists()
+        assert result == existing
+
+    def test_ensure_dir_creates_parent_directories(self, tmp_path):
+        """親ディレクトリも再帰的に作成されること"""
+        from adapters.file_handler import ensure_dir
+
+        deep_path = tmp_path / "a" / "b" / "c"
+        result = ensure_dir(deep_path)
+
+        assert result.exists()
+        assert (tmp_path / "a" / "b").exists()
+
+    def test_ensure_dir_returns_path(self, tmp_path):
+        """Pathオブジェクトを返すこと"""
+        from adapters.file_handler import ensure_dir
+
+        result = ensure_dir(tmp_path / "test")
+
+        assert isinstance(result, Path)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

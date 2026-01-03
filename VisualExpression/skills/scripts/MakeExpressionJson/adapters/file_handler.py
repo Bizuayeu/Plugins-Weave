@@ -14,6 +14,20 @@ from .file_constants import (
 )
 
 
+def ensure_dir(path: Path) -> Path:
+    """
+    Ensure a directory exists, creating it if necessary.
+
+    Args:
+        path: Directory path to ensure
+
+    Returns:
+        The same path (for chaining)
+    """
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 class FileHandler:
     """Handles file operations for the expression system."""
 
@@ -35,8 +49,7 @@ class FileHandler:
         Returns:
             Path to the output directory
         """
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        return self.output_dir
+        return ensure_dir(self.output_dir)
 
     def write_json(
         self,

@@ -1,4 +1,5 @@
 """ZipPackagerのテスト(TDD)"""
+
 import contextlib
 import logging
 from pathlib import Path
@@ -6,6 +7,35 @@ from pathlib import Path
 import pytest
 
 from adapters.zip_packager import ZipPackager
+
+
+class TestZipPackagerDirectoryCreation:
+    """ZipPackager のディレクトリ作成テスト（TDD）"""
+
+    def test_create_skill_zip_creates_output_dir(self, tmp_path):
+        """create_skill_zip が出力ディレクトリを自動作成すること"""
+        output_dir = tmp_path / "nonexistent" / "nested"
+        packager = ZipPackager(str(output_dir))
+
+        # strict=False で missing file エラーを回避
+        packager.create_skill_zip(
+            skill_md_path=Path("/dummy"),
+            html_path=Path("/dummy"),
+            template_path=Path("/dummy"),
+            json_path=Path("/dummy"),
+            strict=False,
+        )
+
+        assert output_dir.exists()
+
+    def test_create_minimal_zip_creates_output_dir(self, tmp_path):
+        """create_minimal_zip が出力ディレクトリを自動作成すること"""
+        output_dir = tmp_path / "another" / "nested"
+        packager = ZipPackager(str(output_dir))
+
+        packager.create_minimal_zip(html_path=Path("/dummy"))
+
+        assert output_dir.exists()
 
 
 @pytest.fixture

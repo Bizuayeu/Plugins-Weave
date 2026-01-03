@@ -15,7 +15,7 @@ Visual expression system for AI personas with emotion-based face switching.
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - Pillow 10.0+ (`pip install Pillow>=10.0`)
 
 ---

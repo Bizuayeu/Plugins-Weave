@@ -15,7 +15,7 @@
 
 ## 前提条件
 
-- Python 3.8+
+- Python 3.10+
 - Pillow 10.0+ (`pip install Pillow>=10.0`)
 
 ---
