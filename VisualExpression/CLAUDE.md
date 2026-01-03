@@ -1,5 +1,16 @@
 # VisualExpression Development Guidelines
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Design Philosophy](#design-philosophy)
+- [Coding Standards](#coding-standards)
+- [Specification References](#specification-references)
+- [Quick Reference](#quick-reference)
+- [Important Notes](#important-notes)
+
+---
+
 ## Overview
 
 VisualExpression is a visual expression system for AI personas with emotion-based face switching.
