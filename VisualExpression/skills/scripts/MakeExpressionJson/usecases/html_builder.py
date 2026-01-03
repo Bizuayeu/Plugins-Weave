@@ -55,12 +55,16 @@ class HtmlBuilder:
         if not self._template:
             self.load_template()
 
-        # Use json.dumps for proper serialization with escaping
-        # This handles special characters correctly (quotes, backslashes, etc.)
-        images_json = json.dumps(images_dict, ensure_ascii=False)
-        # Template has: const IMAGES={__IMAGES_PLACEHOLDER__}
-        # json.dumps returns {"key":"value"}, extract inner part (without braces)
-        images_content = images_json[1:-1]  # Strip outer { }
+        # Explicit serialization: each key-value pair is individually serialized
+        # This avoids the fragile [1:-1] approach of stripping braces from json.dumps
+        pairs = []
+        for key, value in images_dict.items():
+            # json.dumps properly escapes special characters (quotes, backslashes, etc.)
+            k = json.dumps(key, ensure_ascii=False)
+            v = json.dumps(value, ensure_ascii=False)
+            pairs.append(f"{k}: {v}")
+
+        images_content = ", ".join(pairs)
 
         # Replace placeholder
         html = self._template.replace(self.PLACEHOLDER, images_content)

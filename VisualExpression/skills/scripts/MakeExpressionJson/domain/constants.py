@@ -1,23 +1,38 @@
 """Expression code definitions and constants."""
 
+from enum import Enum, auto
+
+
+class ExpressionCategory(Enum):
+    """Expression category definitions."""
+
+    BASIC = auto()
+    EMOTION = auto()
+    NEGATIVE = auto()
+    ANXIETY = auto()
+    SPECIAL = auto()
+
 
 # Grid configuration: 4 rows x 5 columns
 GRID_ROWS = 4
 GRID_COLS = 5
 CELL_SIZE = 280  # pixels
 
+# Number of Special category codes
+SPECIAL_CODES_COUNT = 4
+
 # Expression codes in grid order (left-to-right, top-to-bottom)
+# Grid layout: 4 rows × 5 columns, each column = 1 category
+#   Col1(Basic)  Col2(Emotion)  Col3(Negative)  Col4(Anxiety)  Col5(Special)
 EXPRESSION_CODES: list[str] = [
-    # Category: Basic (4 items)
-    "normal", "smile", "focus", "diverge",
-    # Category: Emotion (4 items)
-    "joy", "elation", "surprise", "calm",
-    # Category: Negative (4 items)
-    "anger", "sadness", "rage", "disgust",
-    # Category: Anxiety (4 items)
-    "anxiety", "fear", "upset", "worry",
-    # Category: Special (4 items)
-    "sleepy", "cynical", "defeated", "dreamy",
+    # Row1: Basic → Emotion → Negative → Anxiety → Special
+    "normal", "joy", "anger", "anxiety", "sleepy",
+    # Row2
+    "smile", "elation", "sadness", "fear", "cynical",
+    # Row3
+    "focus", "surprise", "rage", "upset", "defeated",
+    # Row4
+    "diverge", "calm", "disgust", "worry", "dreamy",
 ]
 
 # Japanese labels for each expression
@@ -44,13 +59,13 @@ EXPRESSION_LABELS: dict[str, str] = {
     "dreamy": "ぽやぽや",
 }
 
-# Category definitions
-CATEGORIES: dict[str, list[str]] = {
-    "Basic": ["normal", "smile", "focus", "diverge"],
-    "Emotion": ["joy", "elation", "surprise", "calm"],
-    "Negative": ["anger", "sadness", "rage", "disgust"],
-    "Anxiety": ["anxiety", "fear", "upset", "worry"],
-    "Special": ["sleepy", "cynical", "defeated", "dreamy"],
+# Category codes using Enum keys
+CATEGORY_CODES: dict[ExpressionCategory, list[str]] = {
+    ExpressionCategory.BASIC: ["normal", "smile", "focus", "diverge"],
+    ExpressionCategory.EMOTION: ["joy", "elation", "surprise", "calm"],
+    ExpressionCategory.NEGATIVE: ["anger", "sadness", "rage", "disgust"],
+    ExpressionCategory.ANXIETY: ["anxiety", "fear", "upset", "worry"],
+    ExpressionCategory.SPECIAL: ["sleepy", "cynical", "defeated", "dreamy"],
 }
 
 # Grid configuration as a named tuple-like structure
@@ -123,17 +138,31 @@ def build_expression_codes(special_codes: list[str] | None = None) -> list[str]:
     if special_codes is None:
         special_codes = DEFAULT_SPECIAL_CODES
 
-    if len(special_codes) != 4:
-        raise ValueError(f"Special codes must have exactly 4 items, got {len(special_codes)}")
+    if len(special_codes) != SPECIAL_CODES_COUNT:
+        raise ValueError(
+            f"Special codes must have exactly {SPECIAL_CODES_COUNT} items, "
+            f"got {len(special_codes)}"
+        )
 
     # Base codes (16) + Special (4) = 20
+    # Grid order: left-to-right, top-to-bottom with Col = Category
     base_codes = [
-        "normal", "smile", "focus", "diverge",
-        "joy", "elation", "surprise", "calm",
-        "anger", "sadness", "rage", "disgust",
-        "anxiety", "fear", "upset", "worry",
+        # Row1: Basic → Emotion → Negative → Anxiety
+        "normal", "joy", "anger", "anxiety",
+        # Row2
+        "smile", "elation", "sadness", "fear",
+        # Row3
+        "focus", "surprise", "rage", "upset",
+        # Row4
+        "diverge", "calm", "disgust", "worry",
     ]
-    return base_codes + list(special_codes)
+    # Insert Special codes at positions 4, 9, 14, 19 (Col5 for each row)
+    result = []
+    for i, code in enumerate(base_codes):
+        result.append(code)
+        if (i + 1) % 4 == 0:  # After each row's 4 base codes
+            result.append(special_codes[(i + 1) // 4 - 1])
+    return result
 
 
 def build_expression_labels(special_codes: list[str] | None = None, special_labels: dict[str, str] | None = None) -> dict[str, str]:

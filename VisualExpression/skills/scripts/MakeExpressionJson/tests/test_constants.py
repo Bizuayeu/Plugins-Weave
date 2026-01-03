@@ -79,5 +79,68 @@ class TestGetCellPosition:
             assert static_result == dynamic_result, f"Mismatch at index {i}"
 
 
+class TestExpressionCategoryEnum:
+    """ExpressionCategory Enumのテスト（Stage 7: TDD）"""
+
+    def test_expression_category_is_enum(self):
+        """ExpressionCategoryがEnumであることを確認"""
+        from enum import Enum
+        from domain.constants import ExpressionCategory
+
+        assert issubclass(ExpressionCategory, Enum)
+
+    def test_expression_category_has_all_categories(self):
+        """全カテゴリがEnumに定義されていることを確認"""
+        from domain.constants import ExpressionCategory
+
+        expected = {"BASIC", "EMOTION", "NEGATIVE", "ANXIETY", "SPECIAL"}
+        actual = {e.name for e in ExpressionCategory}
+
+        assert actual == expected
+
+    def test_category_codes_uses_enum(self):
+        """CATEGORY_CODESがEnumをキーとして使用することを確認"""
+        from domain.constants import CATEGORY_CODES, ExpressionCategory
+
+        assert ExpressionCategory.BASIC in CATEGORY_CODES
+        assert CATEGORY_CODES[ExpressionCategory.BASIC] == ["normal", "smile", "focus", "diverge"]
+
+    def test_category_codes_has_all_categories(self):
+        """CATEGORY_CODESに全カテゴリが含まれることを確認"""
+        from domain.constants import CATEGORY_CODES, ExpressionCategory
+
+        for category in ExpressionCategory:
+            assert category in CATEGORY_CODES
+            assert len(CATEGORY_CODES[category]) == 4
+
+
+class TestSpecialCodesConstant:
+    """SPECIAL_CODES_COUNT定数のテスト（Stage 5: TDD）"""
+
+    def test_special_codes_count_constant_exists(self):
+        """SPECIAL_CODES_COUNT定数が存在することを確認"""
+        from domain.constants import SPECIAL_CODES_COUNT
+        assert SPECIAL_CODES_COUNT == 4
+
+    def test_build_expression_codes_uses_constant_in_error(self):
+        """build_expression_codesのエラーメッセージにSPECIAL_CODES_COUNTが使用されることを確認"""
+        from domain.constants import build_expression_codes, SPECIAL_CODES_COUNT
+
+        with pytest.raises(ValueError) as exc:
+            build_expression_codes(["a", "b", "c"])  # 3個
+
+        # エラーメッセージに定数値が含まれる
+        assert str(SPECIAL_CODES_COUNT) in str(exc.value)
+
+    def test_build_expression_codes_wrong_count_5(self):
+        """5個のSpecialコードでエラーになることを確認"""
+        from domain.constants import build_expression_codes
+
+        with pytest.raises(ValueError) as exc:
+            build_expression_codes(["a", "b", "c", "d", "e"])  # 5個
+
+        assert "5" in str(exc.value)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -1,8 +1,12 @@
 """File I/O operations for MakeExpressionJson."""
 
 import json
+import os
 from pathlib import Path
 from typing import Any
+
+# Environment variable for skills directory override
+SKILLS_DIR_ENV_VAR = "VISUAL_EXPRESSION_SKILLS_DIR"
 
 
 class FileHandler:
@@ -92,18 +96,27 @@ class FileHandler:
         """
         Get the skills directory.
 
-        Uses explicit skills_dir if provided, otherwise searches upward for
-        marker files (SKILL.md or VisualExpressionUI.template.html).
-        Falls back to relative path calculation if no markers found.
+        Priority order:
+        1. Explicit skills_dir parameter (constructor)
+        2. VISUAL_EXPRESSION_SKILLS_DIR environment variable
+        3. Upward search for marker files (SKILL.md or template)
+        4. Relative path calculation (fallback)
 
         Returns:
             Path to the skills directory
         """
-        # Use explicit path if provided
+        # 1. Use explicit path if provided (highest priority)
         if self._skills_dir:
             return self._skills_dir
 
-        # Search upward for marker files
+        # 2. Check environment variable
+        env_dir = os.environ.get(SKILLS_DIR_ENV_VAR)
+        if env_dir:
+            path = Path(env_dir)
+            if path.exists():
+                return path
+
+        # 3. Search upward for marker files
         current = Path(__file__).parent
         markers = ["SKILL.md", "VisualExpressionUI.template.html"]
 
@@ -115,7 +128,7 @@ class FileHandler:
                 break
             current = current.parent
 
-        # Fallback: use relative path calculation (original behavior)
+        # 4. Fallback: use relative path calculation (original behavior)
         # This file is in: skills/scripts/MakeExpressionJson/adapters/
         # Skills dir is: skills/
         return Path(__file__).parent.parent.parent.parent

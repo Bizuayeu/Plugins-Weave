@@ -15,7 +15,7 @@
 
 ## クイックスタート
 
-1. Nano Banana Proで表情グリッド画像を生成（`skills/scripts/MetaGenerateExpression.md` 参照）
+1. Nano Banana Proで表情グリッド画像を生成（`skills/scripts/MetaGenerateExpression.jp.md` 参照）
 2. `python main.py your_grid.png` を実行してHTMLをビルド
 3. 生成されたzipをclaude.aiにアップロード、またはClaude Codeプラグインとしてインストール
 
@@ -30,7 +30,7 @@
 | [CHANGELOG.md](CHANGELOG.md) | 全員 | バージョン履歴 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 開発者 | セットアップ＆貢献ガイド |
 | [skills/SKILL.md](skills/SKILL.md) | ユーザー | 完全ドキュメント |
-| [skills/scripts/MetaGenerateExpression.md](skills/scripts/MetaGenerateExpression.md) | ユーザー | Nano Banana Proプロンプト生成ガイド |
+| [skills/scripts/MetaGenerateExpression.jp.md](skills/scripts/MetaGenerateExpression.jp.md) | ユーザー | Nano Banana Proプロンプト生成ガイド |
 
 ---
 

@@ -1,5 +1,6 @@
 """Image splitting logic for expression grids."""
 
+import warnings
 
 from PIL import Image
 
@@ -29,10 +30,22 @@ class ImageSplitter:
         Args:
             rows: Number of rows in the grid (default: 4)
             cols: Number of columns in the grid (default: 5)
-            cell_size: Size of each cell in pixels (None = auto-detect from image)
+            cell_size: [DEPRECATED] Not used. Cell size is auto-detected from image.
+                       Kept for backward compatibility.
             output_size: Output size for each cropped image (default: 280)
             special_codes: Custom Special category codes (4 items). None = use defaults.
+
+        Note:
+            Cell size is automatically calculated from image dimensions.
+            The cell_size parameter is ignored and will be removed in future versions.
         """
+        if cell_size is not None:
+            warnings.warn(
+                "cell_size parameter is deprecated and will be removed in a future version. "
+                "Cell size is auto-detected from image dimensions.",
+                DeprecationWarning,
+                stacklevel=2
+            )
         self.rows = rows
         self.cols = cols
         self.cell_size = cell_size

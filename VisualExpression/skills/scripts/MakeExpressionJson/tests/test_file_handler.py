@@ -146,5 +146,63 @@ class TestSkillsDirDiscovery:
         assert result.exists()
 
 
+class TestSkillsDirEnvironmentVariable:
+    """環境変数 VISUAL_EXPRESSION_SKILLS_DIR のテスト（Stage 2: TDD）"""
+
+    def test_get_skills_dir_uses_env_var(self, tmp_path, monkeypatch):
+        """環境変数 VISUAL_EXPRESSION_SKILLS_DIR が優先されることを確認"""
+        # Arrange
+        skills_dir = tmp_path / "custom_skills"
+        skills_dir.mkdir()
+        monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", str(skills_dir))
+
+        handler = FileHandler()
+
+        # Act
+        result = handler.get_skills_dir()
+
+        # Assert
+        assert result == skills_dir
+
+    def test_get_skills_dir_ignores_nonexistent_env_var(self, monkeypatch):
+        """存在しないパスの環境変数は無視されることを確認"""
+        monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", "/nonexistent/path")
+        handler = FileHandler()
+
+        # Should fall back to marker search
+        result = handler.get_skills_dir()
+        assert result != Path("/nonexistent/path")
+        assert result.exists()
+
+    def test_get_skills_dir_explicit_overrides_env(self, tmp_path, monkeypatch):
+        """明示的引数が環境変数より優先されることを確認"""
+        explicit_dir = tmp_path / "explicit"
+        explicit_dir.mkdir()
+        env_dir = tmp_path / "env"
+        env_dir.mkdir()
+
+        monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", str(env_dir))
+        handler = FileHandler(skills_dir=str(explicit_dir))
+
+        result = handler.get_skills_dir()
+        assert result == explicit_dir
+
+    def test_env_var_priority_order(self, tmp_path, monkeypatch):
+        """優先順位: 明示的引数 > 環境変数 > 自動検出"""
+        # 環境変数のみ設定
+        env_dir = tmp_path / "from_env"
+        env_dir.mkdir()
+        monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", str(env_dir))
+
+        handler_with_env = FileHandler()
+        assert handler_with_env.get_skills_dir() == env_dir
+
+        # 明示的引数を設定（環境変数より優先）
+        explicit_dir = tmp_path / "explicit"
+        explicit_dir.mkdir()
+        handler_with_explicit = FileHandler(skills_dir=str(explicit_dir))
+        assert handler_with_explicit.get_skills_dir() == explicit_dir
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

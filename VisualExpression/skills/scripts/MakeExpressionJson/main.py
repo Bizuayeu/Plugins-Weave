@@ -18,8 +18,13 @@ Output:
 """
 
 import argparse
+import logging
 import sys
 from pathlib import Path
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger(__name__)
 
 # Add package directory to path for imports when run as script
 _pkg_dir = Path(__file__).parent
@@ -97,19 +102,20 @@ Grid specification:
     special_codes = None
     if args.special:
         special_codes = [code.strip() for code in args.special.split(",")]
-        if len(special_codes) != 4:
-            print(f"Error: --special requires exactly 4 comma-separated codes, got {len(special_codes)}")
-            sys.exit(1)
 
     # Validate input file
     input_path = Path(args.input)
     if not input_path.exists():
-        print(f"Error: Input file not found: {input_path}")
+        logger.error(f"Input file not found: {input_path}")
         sys.exit(1)
 
     # Initialize components
     file_handler = FileHandler(args.output)
-    splitter = ImageSplitter(special_codes=special_codes)
+    try:
+        splitter = ImageSplitter(special_codes=special_codes)
+    except ValueError as e:
+        logger.error(str(e))
+        sys.exit(1)
     encoder = Base64Encoder(quality=args.quality)
 
     # Determine template path
@@ -119,43 +125,43 @@ Grid specification:
         template_path = file_handler.get_default_template_path()
 
     if not template_path.exists():
-        print(f"Error: Template file not found: {template_path}")
+        logger.error(f"Template file not found: {template_path}")
         sys.exit(1)
 
     builder = HtmlBuilder(str(template_path))
 
-    print(f"Processing: {input_path}")
-    print(f"Expected grid: {GRID_CONFIG['cols']}x{GRID_CONFIG['rows']} @ {GRID_CONFIG['cell_size']}px")
+    logger.info(f"Processing: {input_path}")
+    logger.info(f"Expected grid: {GRID_CONFIG['cols']}x{GRID_CONFIG['rows']} @ {GRID_CONFIG['cell_size']}px")
 
     # Step 1: Split grid image
-    print("Step 1/4: Splitting grid image...")
+    logger.info("Step 1/4: Splitting grid image...")
     try:
         split_images = splitter.split_from_file(str(input_path))
-        print(f"  -> Split into {len(split_images)} expressions")
+        logger.info(f"  -> Split into {len(split_images)} expressions")
     except ValueError as e:
-        print(f"Error: {e}")
+        logger.error(str(e))
         sys.exit(1)
 
     # Step 2: Encode to Base64
-    print("Step 2/4: Encoding to Base64...")
+    logger.info("Step 2/4: Encoding to Base64...")
     expression_set = encoder.encode_expressions(split_images)
     images_dict = encoder.to_json_dict(expression_set)
-    print(f"  -> Encoded {len(images_dict)} images")
+    logger.info(f"  -> Encoded {len(images_dict)} images")
 
     # Step 3: Write JSON
-    print("Step 3/4: Writing JSON...")
+    logger.info("Step 3/4: Writing JSON...")
     json_path = file_handler.write_json(images_dict)
-    print(f"  -> {json_path}")
+    logger.info(f"  -> {json_path}")
 
     # Step 4: Build HTML
-    print("Step 4/4: Building HTML...")
+    logger.info("Step 4/4: Building HTML...")
     html_content = builder.build(images_dict)
     html_path = file_handler.write_html(html_content)
-    print(f"  -> {html_path}")
+    logger.info(f"  -> {html_path}")
 
     # Optional: Create ZIP
     if not args.no_zip:
-        print("Creating ZIP package...")
+        logger.info("Creating ZIP package...")
         packager = ZipPackager(args.output)
 
         # Find SKILL.md if it exists
@@ -167,10 +173,10 @@ Grid specification:
             template_path=template_path,
             json_path=json_path,
         )
-        print(f"  -> {zip_path}")
+        logger.info(f"  -> {zip_path}")
 
-    print("\nDone!")
-    print(f"Output directory: {file_handler.output_dir}")
+    logger.info("\nDone!")
+    logger.info(f"Output directory: {file_handler.output_dir}")
 
 
 if __name__ == "__main__":

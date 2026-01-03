@@ -23,7 +23,8 @@ VisualExpression/
     ├── VisualExpressionUI.html  # Self-contained UI (generated)
     ├── VisualExpressionUI.template.html
     └── scripts/
-        ├── MetaGenerateExpression.md
+        ├── MetaGenerateExpression.md      # Prompt generator (English)
+        ├── MetaGenerateExpression.jp.md   # Prompt generator (Japanese)
         └── MakeExpressionJson/  # Python pipeline
             ├── main.py          # CLI entry point
             ├── domain/          # Business logic

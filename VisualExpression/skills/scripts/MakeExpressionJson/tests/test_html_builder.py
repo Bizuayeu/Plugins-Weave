@@ -108,5 +108,50 @@ class TestJsonSerialization:
         assert "data\\\\with\\\\backslash" in result, "バックスラッシュはエスケープされるべき"
 
 
+class TestExplicitSerialization:
+    """明示的シリアライゼーションのテスト（Stage 3: TDD）"""
+
+    def test_build_explicit_serialization(self, sample_template_file):
+        """JSONが明示的にシリアライズされることを確認"""
+        builder = HtmlBuilder(str(sample_template_file))
+        images = {"key1": "value1", "key2": "value2"}
+
+        result = builder.build(images)
+
+        # 各ペアが正しくシリアライズされている
+        assert '"key1"' in result
+        assert '"key2"' in result
+        assert '"value1"' in result
+        assert '"value2"' in result
+
+    def test_build_handles_special_chars_in_keys(self, sample_template_file):
+        """キーに特殊文字を含む場合のエスケープを確認"""
+        builder = HtmlBuilder(str(sample_template_file))
+        images = {'key"with"quotes': "value"}
+
+        result = builder.build(images)
+
+        # キー内のダブルクォートが正しくエスケープされている
+        assert r'key\"with\"quotes' in result
+
+    def test_build_empty_dict(self, sample_template_file):
+        """空の辞書でも正しく動作することを確認"""
+        builder = HtmlBuilder(str(sample_template_file))
+
+        result = builder.build({})
+
+        assert "__IMAGES_PLACEHOLDER__" not in result
+
+    def test_build_preserves_unicode(self, sample_template_file):
+        """Unicode文字が保持されることを確認"""
+        builder = HtmlBuilder(str(sample_template_file))
+        images = {"smile": "日本語テスト"}
+
+        result = builder.build(images)
+
+        # Unicode文字がそのまま保持される（エスケープされない）
+        assert "日本語テスト" in result
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
