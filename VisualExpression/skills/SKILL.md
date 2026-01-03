@@ -140,13 +140,8 @@ Default expressions are included out of the box. To use as-is:
 cd /mnt/skills/user/visual-expression/scripts/MakeExpressionJson
 python main.py /mnt/user-data/uploads/your_grid.png --output /mnt/user-data/outputs/
 ```
-   This generates: `ExpressionImages.json`, `VisualExpressionUI.html`, and `VisualExpressionSkills.zip`
-4. **Current session only**: Display `/mnt/user-data/outputs/VisualExpressionUI.html` as an Artifact
-5. **To persist across sessions**:
-   - Download `/mnt/user-data/outputs/VisualExpressionSkills.zip`
-   - Re-register as a new skill on claude.ai
-
-Note: `/mnt/skills/` is read-only. Custom expressions only persist via skill ZIP re-registration.
+4. Present `/mnt/user-data/outputs/VisualExpressionSkills.zip` to user and prompt skill registration
+5. Re-register as a new skill on claude.ai
 
 ### One-liner sed Expression Switching
 
