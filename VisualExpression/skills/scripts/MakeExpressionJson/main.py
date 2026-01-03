@@ -6,10 +6,12 @@ Converts a 4x5 grid image of expressions into a self-contained HTML UI.
 
 Usage:
     python main.py input_grid.png [--output ./output/]
+    python main.py input_grid.png --offsets offsets.json
     python main.py --help
 
 Input:
-    - 4 rows x 5 columns grid image (1400x1120px at 280px per cell)
+    - 4 rows x 5 columns grid image (1500x1200px at 300px per cell, or 1400x1120px at 280px)
+    - Optional: Offset JSON for expression-center cropping
 
 Output:
     - ExpressionImages.json (Base64 encoded images)
@@ -18,6 +20,7 @@ Output:
 """
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
@@ -48,12 +51,14 @@ def main() -> None:
 Examples:
     python main.py character_grid.png
     python main.py character_grid.png --output ./build/
+    python main.py character_grid.png --offsets offsets.json
     python main.py character_grid.png --no-zip
 
 Grid specification:
     - 4 rows x 5 columns
-    - 280px x 280px per cell
-    - Total: 1400px width x 1120px height
+    - 300px x 300px per cell (1500x1200px) - recommended for center cropping
+    - 280px x 280px per cell (1400x1120px) - minimum size
+    - Output: 280px x 280px per expression
         """,
     )
 
@@ -101,12 +106,34 @@ Grid specification:
         help="Custom Special codes (comma-separated, 4 items). Example: --special wink,pout,smug,starry",
     )
 
+    parser.add_argument(
+        "--offsets",
+        type=str,
+        default=None,
+        help="Path to offset JSON for expression-center cropping. See AnalyzeExpressionOffset.md",
+    )
+
     args = parser.parse_args()
 
     # Parse special codes if provided
     special_codes = None
     if args.special:
         special_codes = [code.strip() for code in args.special.split(",")]
+
+    # Load offsets if provided
+    offsets = None
+    if args.offsets:
+        offsets_path = Path(args.offsets)
+        if not offsets_path.exists():
+            logger.error(f"Offsets file not found: {offsets_path}")
+            sys.exit(1)
+        try:
+            with open(offsets_path, encoding="utf-8") as f:
+                offsets_data = json.load(f)
+                offsets = offsets_data.get("offsets", offsets_data)
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in offsets file: {e}")
+            sys.exit(1)
 
     # Validate input file
     input_path = Path(args.input)
@@ -118,7 +145,7 @@ Grid specification:
     file_writer = FileWriter(args.output)
     skills_locator = SkillsLocator()
     try:
-        splitter = ImageSplitter(special_codes=special_codes)
+        splitter = ImageSplitter(special_codes=special_codes, offsets=offsets)
     except ValueError as e:
         logger.error(str(e))
         sys.exit(1)
@@ -140,6 +167,8 @@ Grid specification:
     logger.info(
         f"Expected grid: {GRID_CONFIG['cols']}x{GRID_CONFIG['rows']} @ {GRID_CONFIG['cell_size']}px"
     )
+    if offsets:
+        logger.info(f"Using offsets for {len(offsets)} expressions")
 
     # Step 1: Split grid image
     logger.info("Step 1/4: Splitting grid image...")

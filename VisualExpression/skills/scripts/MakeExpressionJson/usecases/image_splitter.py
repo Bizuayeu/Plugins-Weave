@@ -19,6 +19,7 @@ class ImageSplitter:
         cols: int | None = None,
         output_size: int | None = None,
         special_codes: list[str] | None = None,
+        offsets: dict[str, dict[str, int]] | None = None,
     ):
         """
         Initialize the image splitter.
@@ -28,6 +29,8 @@ class ImageSplitter:
             cols: Number of columns in the grid (default: from GRID_CONFIG)
             output_size: Output size for each cropped image (default: from GRID_CONFIG)
             special_codes: Custom Special category codes (4 items). None = use defaults.
+            offsets: Per-expression crop offsets. Format: {"code": {"x": int, "y": int}}.
+                     Positive x = right, Positive y = down.
 
         Note:
             Cell size is automatically calculated from image dimensions.
@@ -43,6 +46,7 @@ class ImageSplitter:
         self.cols = cols
         self.output_size = output_size
         self.expression_codes = build_expression_codes(special_codes)
+        self.offsets = offsets or {}
 
     def validate_image(self, image: Image.Image) -> tuple[bool, str]:
         """
@@ -90,8 +94,26 @@ class ImageSplitter:
             )
             cropped = image.crop((left, top, right, bottom))
 
-            # Resize to output size if different
-            if cropped.width != self.output_size or cropped.height != self.output_size:
+            # Center crop or resize to output size
+            if cropped.width > self.output_size and cropped.height > self.output_size:
+                # Center crop: extract center portion (absorbs positioning errors)
+                margin_x = (cropped.width - self.output_size) // 2
+                margin_y = (cropped.height - self.output_size) // 2
+
+                # Apply per-expression offset if specified
+                if code in self.offsets:
+                    offset = self.offsets[code]
+                    margin_x += offset.get("x", 0)
+                    margin_y += offset.get("y", 0)
+
+                cropped = cropped.crop((
+                    margin_x,
+                    margin_y,
+                    margin_x + self.output_size,
+                    margin_y + self.output_size,
+                ))
+            elif cropped.width != self.output_size or cropped.height != self.output_size:
+                # Fallback: resize for smaller cells
                 cropped = cropped.resize(
                     (self.output_size, self.output_size), Image.Resampling.LANCZOS
                 )

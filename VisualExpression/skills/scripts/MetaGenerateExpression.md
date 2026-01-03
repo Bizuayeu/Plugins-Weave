@@ -27,14 +27,15 @@ Nano Banana Pro (Google Gemini).
 |------|-------------|---------|
 | Character Name | Display name | Weave, Alice, Protagonist |
 | Art Style | Visual style | Anime, Realistic, Icon-like |
+| Skin Tone | Skin color/texture | Fair, Tan, Brown |
 | Hair Color | Main hair color | Orange, Blonde, Black |
 | Hairstyle | Length & style | Long, Short, Ponytail |
-| Eye Color | Iris color | Amber, Blue, Green |
 
 ### Optional Items
 
 | Item | Description | Default |
 |------|-------------|---------|
+| Eye Color | Iris color | Auto (based on character) |
 | Outfit | Basic clothing | Kimono, Uniform, Casual |
 | Accessories | Hair accessories, etc. | None |
 | Background | Background style | Simple gradient |
@@ -70,12 +71,14 @@ Create a character expression sheet for [Character Name].
 Art style: [Art Style]
 
 Character details:
+- Skin: [Skin Tone]
 - Hair: [Hair Color], [Hairstyle]
-- Eyes: [Eye Color]
+- Eyes: [Eye Color] (optional)
 - Outfit: [Outfit] (optional)
 - Accessories: [Accessories] (optional)
 
 Layout: 4 rows x 5 columns grid (20 expressions total)
+Each cell: 300x300 pixels (total image size: 1500x1200 pixels)
 Each column = 1 category (4 expressions per category, arranged vertically)
 Each cell: Same character, same pose (bust shot), different facial expression
 
@@ -83,11 +86,11 @@ Col 1 (Basic): neutral, smile, focused thinking, creative thinking
 Col 2 (Emotion): joy, elation/excitement, surprise, calm/peaceful
 Col 3 (Negative): mild anger, sadness, rage, disgust
 Col 4 (Anxiety): anxiety, fear, upset/confused, worried
-Col 5 (Special): [Special1], [Special2], [Special3], [Special4]
+Col 5 (Special): [Special1], [Special2], [Special3] (CHIBI/deformed style), [Special4] (CHIBI/deformed style)
 
 Background: [Background]
 Important: Keep character appearance consistent across all expressions.
-Output as a single image with all 20 expressions arranged in a 4x5 grid (4 rows, 5 columns).
+Output as a single image with all 20 expressions arranged in a 4x5 grid (4 rows, 5 columns), total size 1500x1200 pixels is MANDATORY!!!
 ```
 
 ---
@@ -105,23 +108,27 @@ User: Weave
 2. What art style? (Anime, Realistic, Icon-like, etc.)
 User: Anime style
 
-3. Tell me the hair color and hairstyle.
+3. What is the skin tone? (Fair, Tan, Brown, etc.)
+User: Fair
+
+4. Tell me the hair color and hairstyle.
 User: Orange long hair
 
-4. What is the eye color?
+5. What is the eye color? (Optional, can skip)
 User: Amber
 
-5. What outfit? (Optional, can skip)
+6. What outfit? (Optional, can skip)
 User: Kimono (Japanese traditional clothing)
 
-6. Any accessories? (Optional)
+7. Any accessories? (Optional)
 User: None
 
-7. What background style? (Default: simple gradient)
+8. What background style? (Default: simple gradient)
 User: Golden gradient
 
-8. Would you like to customize Special expressions (Row 5)?
+9. Would you like to customize Special expressions (Col 5)?
    Default: sleepy, cynical, defeated, dreamy
+   Note: Row 3,4 will be generated in CHIBI style
 User: Default is OK
 
 Claude: Prompt generated. Copy & paste the following to Nano Banana Pro:
@@ -133,10 +140,13 @@ Claude: Prompt generated. Copy & paste the following to Nano Banana Pro:
 
 ## Notes
 
-1. **Image Size**: Ideal generated image is 1400×1120px (280px × 4 rows × 5 cols)
+1. **Image Size**: Generated image must be **1500×1200px** (300px × 4 rows × 5 cols)
+   - Center 280px is cropped from each 300px cell to absorb positioning errors
 2. **Consistency**: Emphasize to Nano Banana "keep character appearance consistent across all expressions"
 3. **Regeneration**: If not perfect on first try, request corrections through dialogue
 4. **Watermark**: Nano Banana Pro output may include watermarks
+5. **Expression Center Offset (Optional)**: If the visual center of expressions differs from cell center,
+   use [AnalyzeExpressionOffset.md](AnalyzeExpressionOffset.md) to have Claude determine optimal offsets
 
 ---
 
@@ -144,12 +154,27 @@ Claude: Prompt generated. Copy & paste the following to Nano Banana Pro:
 
 After obtaining the generated image:
 
+### Basic Usage
+
 ```bash
 cd skills/scripts/MakeExpressionJson
 python main.py your_grid_image.png --output ./output/
 ```
 
-This generates:
+### Using Offset Analysis (Optional)
+
+If expressions are misaligned, first have Claude analyze the image:
+
+1. Pass `AnalyzeExpressionOffset.md` and the image to Claude
+2. Save Claude's output JSON as `offsets.json`
+3. Run with offsets:
+
+```bash
+python main.py your_grid_image.png --offsets offsets.json --output ./output/
+```
+
+### Output Files
+
 - `ExpressionImages.json` - Base64 encoded image data
 - `VisualExpressionUI.html` - Self-contained HTML
 - `VisualExpressionSkills.zip` - For claude.ai upload
