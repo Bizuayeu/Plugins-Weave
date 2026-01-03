@@ -7,6 +7,7 @@ from domain import (
     build_expression_codes,
     get_cell_position_dynamic,
 )
+from domain.validators import validate_image_dimensions
 
 
 class ImageSplitter:
@@ -53,23 +54,12 @@ class ImageSplitter:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        # Check if dimensions are divisible by grid size
-        if image.width % self.cols != 0:
-            expected_width = self.cols * self.output_size
-            return (
-                False,
-                f"Image width {image.width}px is not divisible by {self.cols} columns. "
-                f"Recommended: {expected_width}px (= {self.cols} × {self.output_size}px/cell)",
-            )
-        if image.height % self.rows != 0:
-            expected_height = self.rows * self.output_size
-            return (
-                False,
-                f"Image height {image.height}px is not divisible by {self.rows} rows. "
-                f"Recommended: {expected_height}px (= {self.rows} × {self.output_size}px/cell)",
-            )
-
-        return (True, "")
+        return validate_image_dimensions(
+            image=image,
+            cols=self.cols,
+            rows=self.rows,
+            cell_size=self.output_size,
+        )
 
     def split(self, image: Image.Image) -> list[tuple[str, Image.Image]]:
         """

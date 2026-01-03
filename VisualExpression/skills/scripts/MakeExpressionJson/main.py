@@ -31,7 +31,8 @@ _pkg_dir = Path(__file__).parent
 if str(_pkg_dir) not in sys.path:
     sys.path.insert(0, str(_pkg_dir))
 
-from adapters.file_handler import FileHandler
+from adapters.file_writer import FileWriter
+from adapters.skills_locator import SkillsLocator
 from adapters.zip_packager import ZipPackager
 from domain import GRID_CONFIG
 from usecases.base64_encoder import Base64Encoder
@@ -114,7 +115,8 @@ Grid specification:
         sys.exit(1)
 
     # Initialize components
-    file_handler = FileHandler(args.output)
+    file_writer = FileWriter(args.output)
+    skills_locator = SkillsLocator()
     try:
         splitter = ImageSplitter(special_codes=special_codes)
     except ValueError as e:
@@ -126,7 +128,7 @@ Grid specification:
     if args.template:
         template_path = Path(args.template)
     else:
-        template_path = file_handler.get_default_template_path()
+        template_path = skills_locator.get_default_template_path()
 
     if not template_path.exists():
         logger.error(f"Template file not found: {template_path}")
@@ -157,13 +159,13 @@ Grid specification:
 
         # Step 3: Write JSON
         logger.info("Step 3/4: Writing JSON...")
-        json_path = file_handler.write_json(images_dict)
+        json_path = file_writer.write_json(images_dict)
         logger.info(f"  -> {json_path}")
 
         # Step 4: Build HTML
         logger.info("Step 4/4: Building HTML...")
         html_content = builder.build(images_dict)
-        html_path = file_handler.write_html(html_content)
+        html_path = file_writer.write_html(html_content)
         logger.info(f"  -> {html_path}")
     except OSError as e:
         logger.error(f"File I/O error: {e}")
@@ -178,7 +180,7 @@ Grid specification:
         packager = ZipPackager(args.output)
 
         # Find SKILL.md if it exists
-        skill_md_path = file_handler.get_skills_dir() / "SKILL.md"
+        skill_md_path = skills_locator.get_skills_dir() / "SKILL.md"
 
         zip_path = packager.create_skill_zip(
             skill_md_path=skill_md_path,
@@ -189,7 +191,7 @@ Grid specification:
         logger.info(f"  -> {zip_path}")
 
     logger.info("\nDone!")
-    logger.info(f"Output directory: {file_handler.output_dir}")
+    logger.info(f"Output directory: {file_writer.output_dir}")
 
 
 if __name__ == "__main__":

@@ -49,6 +49,38 @@ MakeExpressionJson follows **Clean Architecture** principles:
 - **usecases/**: Application-specific business rules
 - **adapters/**: Interface adapters for external systems (file I/O, ZIP)
 
+### Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Adapters["adapters/ (I/O)"]
+        FH[file_handler.py]
+        ZP[zip_packager.py]
+    end
+
+    subgraph Usecases["usecases/ (Application)"]
+        IS[image_splitter.py]
+        BE[base64_encoder.py]
+        HB[html_builder.py]
+    end
+
+    subgraph Domain["domain/ (Business Rules)"]
+        DEF[definitions.py]
+        MOD[models.py]
+        VAL[validators.py]
+    end
+
+    main.py --> IS
+    IS --> BE
+    BE --> HB
+    HB --> FH
+    FH --> ZP
+
+    IS -.-> DEF
+    BE -.-> MOD
+    HB -.-> VAL
+```
+
 ## Development Setup
 
 1. Clone the repository:

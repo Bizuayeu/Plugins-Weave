@@ -7,6 +7,7 @@ from domain.definitions import (
     EXPRESSION_CODES,
     GRID_CONFIG,
 )
+from domain.validators import validate_grid_dimensions
 
 
 @dataclass(frozen=True)
@@ -106,20 +107,13 @@ class GridLayout:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        if width % self.cols != 0:
-            return (
-                False,
-                f"Image width {width}px is not divisible by {self.cols} columns. "
-                f"Recommended: {self.expected_width}px",
-            )
-        if height % self.rows != 0:
-            return (
-                False,
-                f"Image height {height}px is not divisible by {self.rows} rows. "
-                f"Recommended: {self.expected_height}px",
-            )
-
-        return (True, "")
+        return validate_grid_dimensions(
+            width=width,
+            height=height,
+            cols=self.cols,
+            rows=self.rows,
+            cell_size=self.cell_size,
+        )
 
     @property
     def total_cells(self) -> int:

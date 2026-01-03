@@ -80,7 +80,7 @@ python main.py your_grid.png --special wink,pout,smug,starry
 
 **Dependencies:**
 - Python 3.10+
-- Pillow (`pip install Pillow`)
+- Pillow (`pip install Pillow>=10.0`)
 
 ---
 

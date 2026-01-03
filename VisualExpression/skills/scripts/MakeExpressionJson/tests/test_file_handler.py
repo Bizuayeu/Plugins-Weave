@@ -1,4 +1,8 @@
-"""Tests for adapters.file_handler module."""
+"""Tests for adapters.file_handler and adapters.file_writer modules.
+
+Note: Skills directory location tests have been moved to test_skills_locator.py.
+This file focuses on FileWriter (file I/O) functionality.
+"""
 
 import json
 from pathlib import Path
@@ -6,6 +10,8 @@ from pathlib import Path
 import pytest
 
 from adapters.file_handler import FileHandler
+from adapters.file_writer import FileWriter
+from adapters.skills_locator import SkillsLocator
 
 
 class TestFileHandlerDirectoryOperations:
@@ -86,32 +92,33 @@ class TestFileHandlerWriteOperations:
 
 
 class TestFileHandlerPathOperations:
-    """Tests for FileHandler path operations."""
+    """Tests for FileHandler path operations using SkillsLocator."""
 
     def test_get_skills_dir_returns_skills_folder(self):
-        """get_skills_dirは'skills'フォルダを返す"""
-        handler = FileHandler()
+        """SkillsLocator.get_skills_dirは'skills'フォルダを返す"""
+        locator = SkillsLocator()
 
-        result = handler.get_skills_dir()
+        result = locator.get_skills_dir()
 
         assert result.name == "skills"
         assert result.exists()
 
     def test_get_default_template_path_exists(self):
-        """get_default_template_pathは存在するテンプレートパスを返す"""
-        handler = FileHandler()
+        """SkillsLocator.get_default_template_pathは存在するテンプレートパスを返す"""
+        locator = SkillsLocator()
 
-        result = handler.get_default_template_path()
+        result = locator.get_default_template_path()
 
         assert result.name == "VisualExpressionUI.template.html"
         assert result.exists()
 
     def test_read_template_returns_content(self):
-        """read_templateはテンプレート内容を返す"""
-        handler = FileHandler()
-        template_path = handler.get_default_template_path()
+        """FileWriter.read_templateはテンプレート内容を返す"""
+        writer = FileWriter()
+        locator = SkillsLocator()
+        template_path = locator.get_default_template_path()
 
-        content = handler.read_template(str(template_path))
+        content = writer.read_template(str(template_path))
 
         assert isinstance(content, str)
         assert len(content) > 0
@@ -119,58 +126,55 @@ class TestFileHandlerPathOperations:
 
 
 class TestSkillsDirDiscovery:
-    """skills_dirパラメータと探索ロジックのテスト（TDD）"""
+    """skills_dirパラメータと探索ロジックのテスト（SkillsLocator使用）"""
 
     def test_explicit_skills_dir_parameter(self, tmp_path):
         """skills_dirパラメータで明示指定できること"""
-        handler = FileHandler(skills_dir=str(tmp_path))
-        assert handler.get_skills_dir() == tmp_path
+        locator = SkillsLocator(skills_dir=str(tmp_path))
+        assert locator.get_skills_dir() == tmp_path
 
     def test_skills_dir_overrides_auto_detection(self, tmp_path):
         """skills_dirが指定されると自動検出より優先されること"""
         custom_dir = tmp_path / "custom_skills"
         custom_dir.mkdir()
-        handler = FileHandler(skills_dir=str(custom_dir))
+        locator = SkillsLocator(skills_dir=str(custom_dir))
 
-        result = handler.get_skills_dir()
+        result = locator.get_skills_dir()
 
         assert result == custom_dir
         assert result.name == "custom_skills"
 
     def test_fallback_returns_path(self):
         """マーカー未発見時もPathを返すこと（フォールバック動作）"""
-        handler = FileHandler()
-        result = handler.get_skills_dir()
+        locator = SkillsLocator()
+        result = locator.get_skills_dir()
 
         assert isinstance(result, Path)
         assert result.exists()
 
 
 class TestSkillsDirEnvironmentVariable:
-    """環境変数 VISUAL_EXPRESSION_SKILLS_DIR のテスト（Stage 2: TDD）"""
+    """環境変数 VISUAL_EXPRESSION_SKILLS_DIR のテスト（SkillsLocator使用）"""
 
     def test_get_skills_dir_uses_env_var(self, tmp_path, monkeypatch):
         """環境変数 VISUAL_EXPRESSION_SKILLS_DIR が優先されることを確認"""
-        # Arrange
         skills_dir = tmp_path / "custom_skills"
         skills_dir.mkdir()
         monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", str(skills_dir))
 
-        handler = FileHandler()
+        locator = SkillsLocator()
 
-        # Act
-        result = handler.get_skills_dir()
+        result = locator.get_skills_dir()
 
-        # Assert
         assert result == skills_dir
 
     def test_get_skills_dir_ignores_nonexistent_env_var(self, monkeypatch):
         """存在しないパスの環境変数は無視されることを確認"""
         monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", "/nonexistent/path")
-        handler = FileHandler()
+        locator = SkillsLocator()
 
         # Should fall back to marker search
-        result = handler.get_skills_dir()
+        result = locator.get_skills_dir()
         assert result != Path("/nonexistent/path")
         assert result.exists()
 
@@ -182,9 +186,9 @@ class TestSkillsDirEnvironmentVariable:
         env_dir.mkdir()
 
         monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", str(env_dir))
-        handler = FileHandler(skills_dir=str(explicit_dir))
+        locator = SkillsLocator(skills_dir=str(explicit_dir))
 
-        result = handler.get_skills_dir()
+        result = locator.get_skills_dir()
         assert result == explicit_dir
 
     def test_env_var_priority_order(self, tmp_path, monkeypatch):
@@ -194,36 +198,36 @@ class TestSkillsDirEnvironmentVariable:
         env_dir.mkdir()
         monkeypatch.setenv("VISUAL_EXPRESSION_SKILLS_DIR", str(env_dir))
 
-        handler_with_env = FileHandler()
-        assert handler_with_env.get_skills_dir() == env_dir
+        locator_with_env = SkillsLocator()
+        assert locator_with_env.get_skills_dir() == env_dir
 
         # 明示的引数を設定（環境変数より優先）
         explicit_dir = tmp_path / "explicit"
         explicit_dir.mkdir()
-        handler_with_explicit = FileHandler(skills_dir=str(explicit_dir))
-        assert handler_with_explicit.get_skills_dir() == explicit_dir
+        locator_with_explicit = SkillsLocator(skills_dir=str(explicit_dir))
+        assert locator_with_explicit.get_skills_dir() == explicit_dir
 
 
 class TestGetSkillsDirDocstring:
-    """get_skills_dir のdocstring存在テスト（Stage 4: TDD）"""
+    """SkillsLocator.get_skills_dir のdocstring存在テスト"""
 
     def test_get_skills_dir_has_docstring(self):
         """get_skills_dir に docstring が存在すること"""
-        assert FileHandler.get_skills_dir.__doc__ is not None
+        assert SkillsLocator.get_skills_dir.__doc__ is not None
 
     def test_get_skills_dir_docstring_contains_priority(self):
         """docstring に Priority 順序が記載されていること"""
-        docstring = FileHandler.get_skills_dir.__doc__
+        docstring = SkillsLocator.get_skills_dir.__doc__
         assert "Priority" in docstring
 
     def test_get_skills_dir_docstring_describes_env_var(self):
         """docstring に環境変数の説明が含まれること"""
-        docstring = FileHandler.get_skills_dir.__doc__
+        docstring = SkillsLocator.get_skills_dir.__doc__
         assert "VISUAL_EXPRESSION_SKILLS_DIR" in docstring
 
     def test_get_skills_dir_docstring_describes_all_fallbacks(self):
         """docstring に全フォールバック手段が記載されていること"""
-        docstring = FileHandler.get_skills_dir.__doc__
+        docstring = SkillsLocator.get_skills_dir.__doc__
         # 4つの優先順位が記載されている
         assert "1." in docstring
         assert "2." in docstring
@@ -232,7 +236,7 @@ class TestGetSkillsDirDocstring:
 
 
 class TestEnsureDirFunction:
-    """ensure_dir ユーティリティ関数のテスト（TDD）"""
+    """ensure_dir ユーティリティ関数のテスト"""
 
     def test_ensure_dir_creates_new_directory(self, tmp_path):
         """新しいディレクトリを作成できること"""
@@ -274,6 +278,20 @@ class TestEnsureDirFunction:
         result = ensure_dir(tmp_path / "test")
 
         assert isinstance(result, Path)
+
+
+class TestBackwardCompatibility:
+    """FileHandler後方互換性のテスト"""
+
+    def test_file_handler_is_alias_for_file_writer(self):
+        """FileHandlerはFileWriterのエイリアス"""
+        assert FileHandler is FileWriter
+
+    def test_file_handler_from_file_handler_module(self):
+        """file_handlerモジュールからFileHandlerをインポートできる"""
+        from adapters.file_handler import FileHandler as FH
+
+        assert FH is FileWriter
 
 
 if __name__ == "__main__":
