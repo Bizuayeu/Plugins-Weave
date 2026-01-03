@@ -42,7 +42,6 @@ This document provides development guidelines specific to this project.
 
 - **Framework**: pytest
 - **Coverage**: Maintain 90%+ code coverage
-- **Test Cases**: 209 test cases across 19 test files
 - **Pre-commit**: Run `python -m pytest tests/` before committing
 
 ```bash
@@ -87,7 +86,7 @@ python -m pytest tests/ -v
 
 - **Do not duplicate specifications**: Always reference SKILL.md
 - **Update both language versions**: When editing README.md or MetaGenerateExpression.md
-- **Run tests before PR**: All 209 test cases must pass
+- **Run tests before PR**: All tests must pass
 
 ---
 
