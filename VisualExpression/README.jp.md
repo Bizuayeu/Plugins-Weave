@@ -45,6 +45,7 @@
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 開発者 | セットアップ＆貢献ガイド |
 | [skills/SKILL.md](skills/SKILL.md) | ユーザー | 完全ドキュメント |
 | [skills/scripts/MetaGenerateExpression.jp.md](skills/scripts/MetaGenerateExpression.jp.md) | ユーザー | Nano Banana Proプロンプト生成ガイド |
+| [skills/scripts/AnalyzeExpressionOffset.jp.md](skills/scripts/AnalyzeExpressionOffset.jp.md) | ユーザー | 表情オフセット微調整ガイド |
 | [.claude-plugin/plugin.json](.claude-plugin/plugin.json) | 開発者 | プラグインメタデータ |
 
 ---

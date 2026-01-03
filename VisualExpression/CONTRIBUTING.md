@@ -42,6 +42,8 @@ VisualExpression/
     └── scripts/
         ├── MetaGenerateExpression.md      # Prompt generator (English)
         ├── MetaGenerateExpression.jp.md   # Prompt generator (Japanese)
+        ├── AnalyzeExpressionOffset.md     # Offset analyzer (English)
+        ├── AnalyzeExpressionOffset.jp.md  # Offset analyzer (Japanese)
         └── MakeExpressionJson/  # Python pipeline
             ├── main.py          # CLI entry point
             ├── domain/          # Business logic

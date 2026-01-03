@@ -45,6 +45,7 @@ Visual expression system for AI personas with emotion-based face switching.
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Setup & contribution guide |
 | [skills/SKILL.md](skills/SKILL.md) | Users | Full documentation |
 | [skills/scripts/MetaGenerateExpression.md](skills/scripts/MetaGenerateExpression.md) | Users | Nano Banana Pro prompt generator |
+| [skills/scripts/AnalyzeExpressionOffset.md](skills/scripts/AnalyzeExpressionOffset.md) | Users | Expression offset fine-tuning guide |
 | [.claude-plugin/plugin.json](.claude-plugin/plugin.json) | Developers | Plugin metadata |
 
 ---
