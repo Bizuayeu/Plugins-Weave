@@ -157,7 +157,7 @@ python -m pytest tests/ -v
 ```
 
 **Test Structure:**
-- 168 test cases across 13 test files
+- 232 test cases across 20 test files
 - 90%+ code coverage
 - Tests for: image splitting, Base64 encoding, HTML building, file handling, ZIP packaging
 
