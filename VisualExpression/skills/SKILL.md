@@ -1,5 +1,5 @@
 ---
-name: VisualExpression
+name: visual-expression
 description: Visual expression system for AI personas with emotion-based face switching
 ---
 
