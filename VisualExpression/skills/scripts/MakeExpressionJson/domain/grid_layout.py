@@ -107,9 +107,17 @@ class GridLayout:
             Tuple of (is_valid, error_message)
         """
         if width % self.cols != 0:
-            return (False, f"Image width {width} is not divisible by {self.cols} columns")
+            return (
+                False,
+                f"Image width {width}px is not divisible by {self.cols} columns. "
+                f"Recommended: {self.expected_width}px",
+            )
         if height % self.rows != 0:
-            return (False, f"Image height {height} is not divisible by {self.rows} rows")
+            return (
+                False,
+                f"Image height {height}px is not divisible by {self.rows} rows. "
+                f"Recommended: {self.expected_height}px",
+            )
 
         return (True, "")
 

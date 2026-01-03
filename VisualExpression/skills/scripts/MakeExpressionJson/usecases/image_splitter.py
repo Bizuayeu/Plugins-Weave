@@ -55,9 +55,19 @@ class ImageSplitter:
         """
         # Check if dimensions are divisible by grid size
         if image.width % self.cols != 0:
-            return (False, f"Image width {image.width} is not divisible by {self.cols} columns")
+            expected_width = self.cols * self.output_size
+            return (
+                False,
+                f"Image width {image.width}px is not divisible by {self.cols} columns. "
+                f"Recommended: {expected_width}px (= {self.cols} × {self.output_size}px/cell)",
+            )
         if image.height % self.rows != 0:
-            return (False, f"Image height {image.height} is not divisible by {self.rows} rows")
+            expected_height = self.rows * self.output_size
+            return (
+                False,
+                f"Image height {image.height}px is not divisible by {self.rows} rows. "
+                f"Recommended: {expected_height}px (= {self.rows} × {self.output_size}px/cell)",
+            )
 
         return (True, "")
 
