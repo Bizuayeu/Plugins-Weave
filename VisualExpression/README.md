@@ -13,10 +13,21 @@ Visual expression system for AI personas with emotion-based face switching.
 
 ---
 
+## Prerequisites
+
+- Python 3.8+
+- Pillow (`pip install Pillow`)
+
+---
+
 ## Quick Start
 
 1. Generate expression grid image using Nano Banana Pro (see `skills/scripts/MetaGenerateExpression.md`)
-2. Run `python main.py your_grid.png` to build HTML
+2. Build HTML from grid image:
+   ```bash
+   cd skills/scripts/MakeExpressionJson
+   python main.py your_grid.png
+   ```
 3. Upload generated zip to claude.ai or install as Claude Code plugin
 
 ---

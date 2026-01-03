@@ -13,10 +13,21 @@
 
 ---
 
+## 前提条件
+
+- Python 3.8+
+- Pillow (`pip install Pillow`)
+
+---
+
 ## クイックスタート
 
 1. Nano Banana Proで表情グリッド画像を生成（`skills/scripts/MetaGenerateExpression.jp.md` 参照）
-2. `python main.py your_grid.png` を実行してHTMLをビルド
+2. グリッド画像からHTMLをビルド:
+   ```bash
+   cd skills/scripts/MakeExpressionJson
+   python main.py your_grid.png
+   ```
 3. 生成されたzipをclaude.aiにアップロード、またはClaude Codeプラグインとしてインストール
 
 ---
