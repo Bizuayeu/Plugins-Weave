@@ -294,5 +294,45 @@ class TestBackwardCompatibility:
         assert FH is FileWriter
 
 
+class TestFileHandlerDeprecation:
+    """file_handlerモジュールの非推奨警告テスト"""
+
+    def test_import_file_handler_shows_deprecation_warning(self):
+        """file_handlerからのimportで非推奨警告が出ること"""
+        import importlib
+        import warnings
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            # 警告をトリガーするためにモジュールをリロード
+            import adapters.file_handler as fh
+
+            importlib.reload(fh)
+
+            # DeprecationWarningが発生することを確認
+            deprecation_warnings = [
+                x for x in w if issubclass(x.category, DeprecationWarning)
+            ]
+            assert len(deprecation_warnings) >= 1
+
+    def test_deprecation_message_mentions_alternatives(self):
+        """警告メッセージに代替モジュールが記載されていること"""
+        import importlib
+        import warnings
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            import adapters.file_handler as fh
+
+            importlib.reload(fh)
+
+            messages = [str(x.message) for x in w]
+            combined = " ".join(messages)
+
+            assert "file_writer" in combined or "skills_locator" in combined
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

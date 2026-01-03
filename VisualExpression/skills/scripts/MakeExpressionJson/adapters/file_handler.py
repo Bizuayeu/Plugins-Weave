@@ -10,6 +10,15 @@ This module re-exports FileHandler as an alias to FileWriter for
 backward compatibility. Existing code will continue to work.
 """
 
+import warnings
+
+warnings.warn(
+    "The file_handler module is deprecated. "
+    "Import from file_writer or skills_locator directly instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 # Re-export for backward compatibility
 from .file_writer import FileHandler, FileWriter, ensure_dir
 from .skills_locator import SkillsLocator

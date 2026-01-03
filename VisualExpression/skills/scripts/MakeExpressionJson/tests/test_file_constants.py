@@ -68,5 +68,28 @@ class TestFileHandlerUsesConstants:
         assert path.name == DEFAULT_HTML_FILENAME
 
 
+class TestMaxSearchDepth:
+    """MAX_SEARCH_DEPTH定数のテスト"""
+
+    def test_max_search_depth_exists(self):
+        """MAX_SEARCH_DEPTHが定義されていること"""
+        from adapters.file_constants import MAX_SEARCH_DEPTH
+
+        assert MAX_SEARCH_DEPTH is not None
+
+    def test_max_search_depth_is_positive_integer(self):
+        """MAX_SEARCH_DEPTHが正の整数であること"""
+        from adapters.file_constants import MAX_SEARCH_DEPTH
+
+        assert isinstance(MAX_SEARCH_DEPTH, int)
+        assert MAX_SEARCH_DEPTH > 0
+
+    def test_max_search_depth_is_reasonable(self):
+        """MAX_SEARCH_DEPTHが妥当な範囲（5-20）であること"""
+        from adapters.file_constants import MAX_SEARCH_DEPTH
+
+        assert 5 <= MAX_SEARCH_DEPTH <= 20
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

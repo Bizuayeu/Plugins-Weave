@@ -214,3 +214,17 @@ class TestFileWriterProtocol:
         sig = inspect.signature(FileWriterProtocol.ensure_output_dir)
         params = list(sig.parameters.keys())
         assert params == ["self"]
+
+
+class TestSkillsLocatorUsesConstant:
+    """SkillsLocatorが定数を使用していることのテスト"""
+
+    def test_uses_max_search_depth_constant(self):
+        """skills_locatorがMAX_SEARCH_DEPTHをインポートしていること"""
+        import inspect
+
+        import adapters.skills_locator as module
+
+        # モジュール内で定数を使用していることを確認
+        source = inspect.getsource(module)
+        assert "MAX_SEARCH_DEPTH" in source

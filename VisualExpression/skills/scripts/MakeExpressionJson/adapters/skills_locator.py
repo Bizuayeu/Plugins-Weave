@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .file_constants import (
     DEFAULT_TEMPLATE_FILENAME,
+    MAX_SEARCH_DEPTH,
     SKILLS_DIR_ENV_VAR,
     SKILLS_DIR_MARKERS,
 )
@@ -65,7 +66,7 @@ class SkillsLocator:
         current = Path(__file__).parent
         markers = SKILLS_DIR_MARKERS
 
-        for _ in range(10):  # Limit search depth
+        for _ in range(MAX_SEARCH_DEPTH):
             for marker in markers:
                 if (current / marker).exists():
                     return current
@@ -74,8 +75,8 @@ class SkillsLocator:
             current = current.parent
 
         # 4. Fallback: use relative path calculation (original behavior)
-        # This file is in: skills/scripts/MakeExpressionJson/adapters/
-        # Skills dir is: skills/
+        # This file is at: skills/scripts/MakeExpressionJson/adapters/skills_locator.py
+        # Skills dir is at: skills/ (4 levels up: adapters -> MakeExpressionJson -> scripts -> skills)
         return Path(__file__).parent.parent.parent.parent
 
     def get_default_template_path(self) -> Path:
