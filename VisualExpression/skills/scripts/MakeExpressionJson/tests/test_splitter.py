@@ -82,6 +82,48 @@ class TestImageSplitter:
         assert "not divisible" in str(exc_info.value)
 
 
+class TestSplitFromFile:
+    """split_from_file()メソッドのテスト"""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.splitter = ImageSplitter()
+
+    def test_split_from_file_rgba_image(self, tmp_path):
+        """RGBA画像がRGBに変換されて処理されることを確認"""
+        expected_width = GRID_COLS * CELL_SIZE
+        expected_height = GRID_ROWS * CELL_SIZE
+
+        # RGBA画像を作成
+        img = Image.new("RGBA", (expected_width, expected_height), color=(255, 255, 255, 128))
+        file_path = tmp_path / "test_rgba.png"
+        img.save(file_path)
+
+        # split_from_fileで処理
+        results = self.splitter.split_from_file(str(file_path))
+
+        assert len(results) == 20
+        # 結果の画像がRGBモードであることを確認
+        for _code, cropped_img in results:
+            assert cropped_img.mode == "RGB"
+
+    def test_split_from_file_palette_image(self, tmp_path):
+        """パレット（P）画像がRGBに変換されて処理されることを確認"""
+        expected_width = GRID_COLS * CELL_SIZE
+        expected_height = GRID_ROWS * CELL_SIZE
+
+        # RGB画像を作成し、パレットモードに変換
+        img = Image.new("RGB", (expected_width, expected_height), color="white")
+        img = img.convert("P")
+        file_path = tmp_path / "test_palette.png"
+        img.save(file_path)
+
+        # split_from_fileで処理
+        results = self.splitter.split_from_file(str(file_path))
+
+        assert len(results) == 20
+
+
 class TestCellSizeRemoved:
     """cell_sizeパラメータ削除テスト（v2.0 TDD）"""
 
