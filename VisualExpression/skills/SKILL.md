@@ -230,28 +230,14 @@ Add the following to your claude.ai project instructions to enable the expressio
 ```markdown
 ## Expression System
 
-VisualExpressionスキルの有効化を初期処理として行ってください。
-ユーザの応答内容に応じて適切な表情を推論し、
-sedコマンドでArtifact上に表情を反映してください。
+Enable at session start:
+1. Deploy: `cp /mnt/skills/user/visual-expression/VisualExpressionUI.html /mnt/user-data/outputs/`
+2. Present: Display `/mnt/user-data/outputs/VisualExpressionUI.html` as Artifact
 
-### 表情コード一覧
-| 日本語 | コード |
-|--------|--------|
-| 通常, 笑顔, 思考集中, 思考発散 | normal, smile, focus, diverge |
-| 喜び, 高揚, 驚き, 平穏 | joy, elation, surprise, calm |
-| 怒り, 悲しみ, 激怒, 嫌悪 | anger, sadness, rage, disgust |
-| 不安, 恐れ, 動揺, 心配 | anxiety, fear, upset, worry |
-| うとうと, 暗黒微笑, ぎゃふん, ぽやぽや | sleepy, cynical, defeated, dreamy |
+To change expression during conversation:
+`sed 's/btns\[0\]\.click();/setExpr("KEY");/' /mnt/skills/user/visual-expression/VisualExpressionUI.html > /mnt/user-data/outputs/VisualExpressionUI.html`
 
-### 表情切り替え方法
-応答後、以下のsedコマンドでHTMLを更新してArtifactに反映:
-
-<details>
-<summary>sedコマンド</summary>
-sed 's/btns\[0\]\.click();/setExpr("CODE");/' VisualExpressionUI.html > /mnt/user-data/outputs/VisualExpressionUI.html
-</details>
-
-CODEには英語の表情コード（joy, elation等）を指定。
+**Important**: Context cost for expression switching is minimal. Be expressive and switch expressions frequently to match your emotional state during conversation!
 ```
 
 ---
