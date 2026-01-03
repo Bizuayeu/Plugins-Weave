@@ -1,11 +1,14 @@
 """Image splitting logic for expression grids."""
 
-from typing import List, Tuple, Optional
+
 from PIL import Image
 
 from domain.constants import (
-    EXPRESSION_CODES, GRID_COLS, GRID_ROWS, CELL_SIZE,
-    build_expression_codes, get_cell_position_dynamic
+    CELL_SIZE,
+    GRID_COLS,
+    GRID_ROWS,
+    build_expression_codes,
+    get_cell_position_dynamic,
 )
 
 
@@ -16,9 +19,9 @@ class ImageSplitter:
         self,
         rows: int = GRID_ROWS,
         cols: int = GRID_COLS,
-        cell_size: Optional[int] = None,
+        cell_size: int | None = None,
         output_size: int = CELL_SIZE,
-        special_codes: Optional[List[str]] = None,
+        special_codes: list[str] | None = None,
     ):
         """
         Initialize the image splitter.
@@ -36,7 +39,7 @@ class ImageSplitter:
         self.output_size = output_size
         self.expression_codes = build_expression_codes(special_codes)
 
-    def validate_image(self, image: Image.Image) -> Tuple[bool, str]:
+    def validate_image(self, image: Image.Image) -> tuple[bool, str]:
         """
         Validate that the image can be split into the expected grid.
 
@@ -54,7 +57,7 @@ class ImageSplitter:
 
         return (True, "")
 
-    def split(self, image: Image.Image) -> List[Tuple[str, Image.Image]]:
+    def split(self, image: Image.Image) -> list[tuple[str, Image.Image]]:
         """
         Split a grid image into individual expression images.
 
@@ -75,7 +78,7 @@ class ImageSplitter:
         cell_width = image.width // self.cols
         cell_height = image.height // self.rows
 
-        results: List[Tuple[str, Image.Image]] = []
+        results: list[tuple[str, Image.Image]] = []
 
         for i, code in enumerate(self.expression_codes):
             left, top, right, bottom = get_cell_position_dynamic(i, self.cols, cell_width, cell_height)
@@ -92,7 +95,7 @@ class ImageSplitter:
 
         return results
 
-    def split_from_file(self, file_path: str) -> List[Tuple[str, Image.Image]]:
+    def split_from_file(self, file_path: str) -> list[tuple[str, Image.Image]]:
         """
         Split a grid image file into individual expression images.
 

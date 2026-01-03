@@ -68,7 +68,7 @@ class TestBase64EncoderFunctionality:
         """全表情にbase64_dataが設定される"""
         encoder = Base64Encoder()
         result = encoder.encode_expressions(sample_expression_images)
-        for code, expr in result.expressions.items():
+        for _code, expr in result.expressions.items():
             assert expr.base64_data is not None
             assert len(expr.base64_data) > 0
 

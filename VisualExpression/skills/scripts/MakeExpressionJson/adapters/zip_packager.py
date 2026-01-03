@@ -3,7 +3,6 @@
 import logging
 import zipfile
 from pathlib import Path
-from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 class ZipPackager:
     """Creates ZIP packages for skill distribution."""
 
-    def __init__(self, output_dir: Optional[str] = None):
+    def __init__(self, output_dir: str | None = None):
         """
         Initialize the zip packager.
 
@@ -27,7 +26,7 @@ class ZipPackager:
         template_path: Path,
         json_path: Path,
         output_name: str = "VisualExpressionSkills.zip",
-        additional_files: Optional[List[Path]] = None,
+        additional_files: list[Path] | None = None,
         strict: bool = False,
     ) -> Path:
         """

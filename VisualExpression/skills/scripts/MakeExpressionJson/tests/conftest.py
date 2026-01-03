@@ -1,8 +1,8 @@
 """Shared pytest fixtures for MakeExpressionJson tests."""
 
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, List, Tuple
 
 import pytest
 from PIL import Image
@@ -10,7 +10,7 @@ from PIL import Image
 # Add MakeExpressionJson to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from domain.constants import GRID_ROWS, GRID_COLS, CELL_SIZE, EXPRESSION_CODES
+from domain.constants import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def sample_template_file(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def sample_expression_images(create_test_grid_image) -> List[Tuple[str, Image.Image]]:
+def sample_expression_images(create_test_grid_image) -> list[tuple[str, Image.Image]]:
     """
     Create sample expression images for testing.
 

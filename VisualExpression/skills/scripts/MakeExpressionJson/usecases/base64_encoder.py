@@ -2,7 +2,6 @@
 
 import base64
 from io import BytesIO
-from typing import Dict, List, Tuple
 
 from PIL import Image
 
@@ -45,7 +44,7 @@ class Base64Encoder:
         return base64.b64encode(buffer.read()).decode("utf-8")
 
     def encode_expressions(
-        self, images: List[Tuple[str, Image.Image]]
+        self, images: list[tuple[str, Image.Image]]
     ) -> ExpressionSet:
         """
         Encode a list of expression images to an ExpressionSet.
@@ -56,7 +55,7 @@ class Base64Encoder:
         Returns:
             ExpressionSet with Base64-encoded images
         """
-        expressions: Dict[str, ExpressionImage] = {}
+        expressions: dict[str, ExpressionImage] = {}
 
         for code, image in images:
             label = EXPRESSION_LABELS.get(code, code)
@@ -69,7 +68,7 @@ class Base64Encoder:
 
         return ExpressionSet(expressions=expressions)
 
-    def to_json_dict(self, expression_set: ExpressionSet) -> Dict[str, str]:
+    def to_json_dict(self, expression_set: ExpressionSet) -> dict[str, str]:
         """
         Convert an ExpressionSet to a JSON-serializable dictionary.
 

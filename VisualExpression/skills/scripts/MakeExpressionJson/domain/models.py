@@ -1,7 +1,6 @@
 """Data models for MakeExpressionJson."""
 
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 
 @dataclass
@@ -34,7 +33,7 @@ class ExpressionImage:
 
     code: str
     label: str
-    base64_data: Optional[str] = None
+    base64_data: str | None = None
 
     def to_data_uri(self, mime_type: str = "image/jpeg") -> str:
         """
@@ -55,9 +54,9 @@ class ExpressionImage:
 class ExpressionSet:
     """A complete set of 20 expressions."""
 
-    expressions: Dict[str, ExpressionImage]
+    expressions: dict[str, ExpressionImage]
 
-    def to_json_dict(self) -> Dict[str, str]:
+    def to_json_dict(self) -> dict[str, str]:
         """
         Convert to a dictionary suitable for JSON serialization.
 
@@ -70,7 +69,7 @@ class ExpressionSet:
             if expr.base64_data
         }
 
-    def get(self, code: str) -> Optional[ExpressionImage]:
+    def get(self, code: str) -> ExpressionImage | None:
         """Get an expression by code."""
         return self.expressions.get(code)
 

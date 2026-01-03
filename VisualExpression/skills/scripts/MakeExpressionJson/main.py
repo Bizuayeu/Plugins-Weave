@@ -26,15 +26,15 @@ _pkg_dir = Path(__file__).parent
 if str(_pkg_dir) not in sys.path:
     sys.path.insert(0, str(_pkg_dir))
 
-from domain.constants import GRID_CONFIG
-from usecases.image_splitter import ImageSplitter
-from usecases.base64_encoder import Base64Encoder
-from usecases.html_builder import HtmlBuilder
 from adapters.file_handler import FileHandler
 from adapters.zip_packager import ZipPackager
+from domain.constants import GRID_CONFIG
+from usecases.base64_encoder import Base64Encoder
+from usecases.html_builder import HtmlBuilder
+from usecases.image_splitter import ImageSplitter
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Convert expression grid image to HTML UI",
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -1,6 +1,5 @@
 """Expression code definitions and constants."""
 
-from typing import Dict, List, Tuple
 
 # Grid configuration: 4 rows x 5 columns
 GRID_ROWS = 4
@@ -8,7 +7,7 @@ GRID_COLS = 5
 CELL_SIZE = 280  # pixels
 
 # Expression codes in grid order (left-to-right, top-to-bottom)
-EXPRESSION_CODES: List[str] = [
+EXPRESSION_CODES: list[str] = [
     # Category: Basic (4 items)
     "normal", "smile", "focus", "diverge",
     # Category: Emotion (4 items)
@@ -22,7 +21,7 @@ EXPRESSION_CODES: List[str] = [
 ]
 
 # Japanese labels for each expression
-EXPRESSION_LABELS: Dict[str, str] = {
+EXPRESSION_LABELS: dict[str, str] = {
     "normal": "通常",
     "smile": "笑顔",
     "focus": "思考集中",
@@ -46,7 +45,7 @@ EXPRESSION_LABELS: Dict[str, str] = {
 }
 
 # Category definitions
-CATEGORIES: Dict[str, List[str]] = {
+CATEGORIES: dict[str, list[str]] = {
     "Basic": ["normal", "smile", "focus", "diverge"],
     "Emotion": ["joy", "elation", "surprise", "calm"],
     "Negative": ["anger", "sadness", "rage", "disgust"],
@@ -55,7 +54,7 @@ CATEGORIES: Dict[str, List[str]] = {
 }
 
 # Grid configuration as a named tuple-like structure
-GRID_CONFIG: Dict[str, int] = {
+GRID_CONFIG: dict[str, int] = {
     "rows": GRID_ROWS,
     "cols": GRID_COLS,
     "cell_size": CELL_SIZE,
@@ -66,7 +65,7 @@ GRID_CONFIG: Dict[str, int] = {
 
 def get_cell_position_dynamic(
     index: int, cols: int, cell_width: int, cell_height: int
-) -> Tuple[int, int, int, int]:
+) -> tuple[int, int, int, int]:
     """
     Get the pixel coordinates for a cell at the given index with dynamic parameters.
 
@@ -88,7 +87,7 @@ def get_cell_position_dynamic(
     return (left, top, left + cell_width, top + cell_height)
 
 
-def get_cell_position(index: int) -> Tuple[int, int, int, int]:
+def get_cell_position(index: int) -> tuple[int, int, int, int]:
     """
     Get the pixel coordinates for a cell at the given index.
 
@@ -111,7 +110,7 @@ DEFAULT_SPECIAL_LABELS = {
 }
 
 
-def build_expression_codes(special_codes: List[str] = None) -> List[str]:
+def build_expression_codes(special_codes: list[str] | None = None) -> list[str]:
     """
     Build expression codes list with optional custom Special codes.
 
@@ -137,7 +136,7 @@ def build_expression_codes(special_codes: List[str] = None) -> List[str]:
     return base_codes + list(special_codes)
 
 
-def build_expression_labels(special_codes: List[str] = None, special_labels: Dict[str, str] = None) -> Dict[str, str]:
+def build_expression_labels(special_codes: list[str] | None = None, special_labels: dict[str, str] | None = None) -> dict[str, str]:
     """
     Build expression labels dict with optional custom Special labels.
 

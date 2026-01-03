@@ -3,7 +3,7 @@
 import pytest
 from PIL import Image
 
-from domain.constants import GRID_ROWS, GRID_COLS, CELL_SIZE, EXPRESSION_CODES
+from domain.constants import CELL_SIZE, EXPRESSION_CODES, GRID_COLS, GRID_ROWS
 from usecases.image_splitter import ImageSplitter
 
 
@@ -67,7 +67,7 @@ class TestImageSplitter:
         img = self.create_test_grid(expected_width, expected_height)
         results = self.splitter.split(img)
 
-        for code, cropped_img in results:
+        for _code, cropped_img in results:
             assert cropped_img.width == CELL_SIZE
             assert cropped_img.height == CELL_SIZE
 
@@ -80,17 +80,6 @@ class TestImageSplitter:
             self.splitter.split(img)
 
         assert "not divisible" in str(exc_info.value)
-
-
-class TestImageSplitterRefactoring:
-    """Tests for refactored ImageSplitter (TDD)."""
-
-    def test_init_without_auto_detect_param(self):
-        """auto_detectパラメータなしでインスタンス化できること（未使用パラメータ削除確認）"""
-        splitter = ImageSplitter(rows=4, cols=5)
-        # auto_detect属性が存在しないことを確認
-        assert not hasattr(splitter, 'auto_detect'), \
-            "auto_detect属性は削除されるべき（未使用のため）"
 
 
 if __name__ == "__main__":

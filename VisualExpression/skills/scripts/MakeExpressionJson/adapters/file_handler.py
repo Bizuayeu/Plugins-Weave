@@ -1,15 +1,14 @@
 """File I/O operations for MakeExpressionJson."""
 
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class FileHandler:
     """Handles file operations for the expression system."""
 
-    def __init__(self, output_dir: Optional[str] = None, skills_dir: Optional[str] = None):
+    def __init__(self, output_dir: str | None = None, skills_dir: str | None = None):
         """
         Initialize the file handler.
 
@@ -32,7 +31,7 @@ class FileHandler:
 
     def write_json(
         self,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         filename: str = "ExpressionImages.json",
     ) -> Path:
         """
@@ -86,7 +85,7 @@ class FileHandler:
         Returns:
             Template content as string
         """
-        with open(template_path, "r", encoding="utf-8") as f:
+        with open(template_path, encoding="utf-8") as f:
             return f.read()
 
     def get_skills_dir(self) -> Path:

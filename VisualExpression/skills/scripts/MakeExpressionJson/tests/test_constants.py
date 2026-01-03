@@ -3,11 +3,11 @@
 import pytest
 
 from domain.constants import (
-    get_cell_position,
-    get_cell_position_dynamic,
+    CELL_SIZE,
     GRID_COLS,
     GRID_ROWS,
-    CELL_SIZE,
+    get_cell_position,
+    get_cell_position_dynamic,
 )
 
 

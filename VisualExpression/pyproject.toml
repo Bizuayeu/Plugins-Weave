@@ -1,0 +1,137 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "visualexpression"
+version = "1.0.0"
+description = "VisualExpression - Expression grid to HTML builder for AI avatars"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Weave"}
+]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+# Runtime dependencies
+dependencies = [
+    "Pillow>=10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Bizuayeu/Plugins-Weave"
+Repository = "https://github.com/Bizuayeu/Plugins-Weave"
+
+[tool.setuptools.packages.find]
+where = ["skills/scripts"]
+include = ["MakeExpressionJson*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest~=8.0",
+    "pytest-cov~=6.0",
+    "ruff~=0.11",
+    "mypy~=1.13",
+    "bandit~=1.9",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["skills/scripts/MakeExpressionJson/tests"]
+pythonpath = ["skills/scripts/MakeExpressionJson"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--cov=skills/scripts/MakeExpressionJson",
+    "--cov-report=term-missing",
+]
+
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["skills/scripts/MakeExpressionJson"]
+branch = true
+omit = [
+    "skills/scripts/MakeExpressionJson/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+precision = 1
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+# =============================================================================
+# Ruff Configuration
+# =============================================================================
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["skills/scripts/MakeExpressionJson"]
+include = ["skills/scripts/MakeExpressionJson/**/*.py"]
+exclude = [".pytest_cache", "__pycache__", ".venv", "*.egg-info"]
+
+[tool.ruff.format]
+quote-style = "preserve"
+indent-style = "space"
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I",     # 基本ルール
+    "B",                     # bugbear（バグの可能性）
+    "C4",                    # comprehension（内包表記）
+    "UP",                    # pyupgrade（Python 3.10+最適化）
+    "SIM",                   # simplify（コード簡素化）
+    "RUF",                   # Ruff固有ルール
+]
+ignore = [
+    "E501",      # line-too-long
+    "RUF002",    # ambiguous-unicode-character-docstring（日本語docstring許可）
+    "RUF003",    # ambiguous-unicode-character-comment（日本語コメント許可）
+]
+
+[tool.ruff.lint.per-file-ignores]
+"skills/scripts/MakeExpressionJson/main.py" = ["E402"]  # sys.path操作のため必要
+"skills/scripts/MakeExpressionJson/tests/*" = ["F401"]  # フィクスチャのインポートで未使用に見えるケースのみ許容
+
+# =============================================================================
+# Mypy Configuration - Strict Mode (Phase 3)
+# =============================================================================
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_return_any = true
+check_untyped_defs = true
+disallow_untyped_defs = true  # Phase 3: 有効化
+explicit_package_bases = true  # モジュール名解決の曖昧さを解消
+
+[[tool.mypy.overrides]]
+module = [
+    "skills.scripts.MakeExpressionJson.tests.*",  # テストファイルは型チェック対象外
+]
+ignore_errors = true

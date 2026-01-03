@@ -49,6 +49,27 @@
         "knowledge-management",
         "ai-ontology"
       ]
+    },
+    {
+      "name": "VisualExpression",
+      "source": "./VisualExpression",
+      "description": "Visual expression system for AI personas with emotion-based face switching",
+      "version": "1.0.0",
+      "author": {
+        "name": "Weave @ VisualExpression"
+      },
+      "homepage": "https://note.com/weave_ai",
+      "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+      "license": "MIT",
+      "keywords": [
+        "expression",
+        "avatar",
+        "emotion",
+        "visual",
+        "ui",
+        "nano-banana",
+        "ai-persona"
+      ]
     }
   ]
 }

@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Dict
 
 
 class HtmlBuilder:
@@ -35,7 +34,7 @@ class HtmlBuilder:
         Raises:
             ValueError: If template does not contain the placeholder
         """
-        with open(self.template_path, "r", encoding="utf-8") as f:
+        with open(self.template_path, encoding="utf-8") as f:
             self._template = f.read()
 
         if self.PLACEHOLDER not in self._template:
@@ -43,7 +42,7 @@ class HtmlBuilder:
 
         return self._template
 
-    def build(self, images_dict: Dict[str, str]) -> str:
+    def build(self, images_dict: dict[str, str]) -> str:
         """
         Build the final HTML by replacing the placeholder with image data.
 
@@ -78,6 +77,6 @@ class HtmlBuilder:
         Returns:
             The complete HTML content
         """
-        with open(json_path, "r", encoding="utf-8") as f:
+        with open(json_path, encoding="utf-8") as f:
             images_dict = json.load(f)
         return self.build(images_dict)

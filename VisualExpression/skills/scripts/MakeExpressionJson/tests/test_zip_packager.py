@@ -1,4 +1,5 @@
-"""ZipPackagerのテスト（TDD）"""
+"""ZipPackagerのテスト(TDD)"""
+import contextlib
 import logging
 from pathlib import Path
 
@@ -20,16 +21,13 @@ class TestZipPackagerLogging:
 
     def test_logs_warning_for_missing_file(self, packager, caplog):
         """存在しないファイルでwarningログが出ること"""
-        with caplog.at_level(logging.WARNING):
-            try:
-                packager.create_skill_zip(
-                    skill_md_path=Path("/nonexistent/SKILL.md"),
-                    html_path=Path("/nonexistent/UI.html"),
-                    template_path=Path("/nonexistent/template.html"),
-                    json_path=Path("/nonexistent/images.json"),
-                )
-            except Exception:
-                pass
+        with caplog.at_level(logging.WARNING), contextlib.suppress(Exception):
+            packager.create_skill_zip(
+                skill_md_path=Path("/nonexistent/SKILL.md"),
+                html_path=Path("/nonexistent/UI.html"),
+                template_path=Path("/nonexistent/template.html"),
+                json_path=Path("/nonexistent/images.json"),
+            )
 
         # ログにファイルが見つからない旨が記録されていること
         assert "not found" in caplog.text.lower() or "missing" in caplog.text.lower(), \
