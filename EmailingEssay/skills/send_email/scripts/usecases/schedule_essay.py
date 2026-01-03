@@ -11,13 +11,14 @@ import contextlib
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from domain.code_generator import SafeCodeGenerator
 from domain.models import MonthlyPattern, ScheduleConfig
 from frameworks.logging_config import get_logger
 
 from .command_builder import build_claude_command
+from .ports import ScheduleEntry
 
 if TYPE_CHECKING:
     from domain.models import EssaySchedule
@@ -344,7 +345,7 @@ class ScheduleEssayUseCase:
         if not entry.get("created"):
             entry["created"] = datetime.now().isoformat()
 
-        schedules.append(entry)
+        schedules.append(cast(ScheduleEntry, entry))
         self._schedule_storage.save_schedules(schedules)
 
     def _print_confirmation(

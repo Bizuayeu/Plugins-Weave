@@ -14,7 +14,7 @@ Stage 5: ストレージアダプター責務分離
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 if TYPE_CHECKING:
     from .ports import (
@@ -82,8 +82,8 @@ def get_mail_adapter() -> MailPort:
     from adapters.mail import YagmailAdapter
 
     adapter = AdapterRegistry.get_or_create("mail", YagmailAdapter)
-    # Note: MailPort は設定依存のため、インスタンスレベルでの isinstance チェックは省略
-    return adapter
+    # Note: MailPort は Protocol のため isinstance チェック不可、cast を使用
+    return cast("MailPort", adapter)
 
 
 def get_scheduler() -> SchedulerPort:
