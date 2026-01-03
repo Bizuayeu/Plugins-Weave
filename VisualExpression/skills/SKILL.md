@@ -15,6 +15,8 @@ Visual expression UI system for AI personas. Provides an interface with 20 switc
 - [Usage on claude.ai](#usage-on-claudeai)
 - [Expression Codes](#expression-codes)
 - [Project Instructions Snippet](#project-instructions-snippet)
+- [Troubleshooting](#troubleshooting)
+- [Technical Details](#technical-details)
 
 ---
 
@@ -71,6 +73,7 @@ python main.py your_grid.png --special wink,pout,smug,starry
 | `--quality, -q` | JPEG quality 1-100 (default: 85) |
 | `--template, -t` | Custom HTML template path (default: built-in) |
 | `--special, -s` | Custom Special category codes (comma-separated, replaces default 4) |
+| `--offsets` | Path to offset JSON for expression-center cropping (see AnalyzeExpressionOffset.md) |
 | `--no-zip` | Skip ZIP generation |
 
 **Output:**
