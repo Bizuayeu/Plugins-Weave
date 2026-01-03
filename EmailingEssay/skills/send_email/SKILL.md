@@ -32,13 +32,13 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 ### Script Path
 
-```
+```text
 skills/send_email/scripts/main.py
 ```
 
 ### Dependencies
 
-```
+```text
 yagmail
 ```
 

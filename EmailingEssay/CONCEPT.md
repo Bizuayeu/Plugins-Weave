@@ -78,7 +78,7 @@ The asynchronous nature allows:
 
 EmailingEssay and EpisodicRAG are complementary:
 
-```
+```text
 EpisodicRAG (Memory)
        ↓
    Provides context for reflection

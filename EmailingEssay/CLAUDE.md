@@ -169,7 +169,7 @@ The plugin follows **two architectural patterns** at different levels:
 
 ### Dependency Flow
 
-```
+```text
 Command → Agent → Skill → Script
    ↓        ↓        ↓        ↓
    UI    UseCase  Service  Infra

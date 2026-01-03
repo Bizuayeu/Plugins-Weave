@@ -106,7 +106,7 @@ This sends a test email to `ESSAY_RECIPIENT_EMAIL`.
 ### Missing Environment Variables
 
 **Error**:
-```
+```text
 Missing environment variables: ESSAY_APP_PASSWORD, ESSAY_SENDER_EMAIL, ESSAY_RECIPIENT_EMAIL
 ```
 
@@ -118,7 +118,7 @@ Missing environment variables: ESSAY_APP_PASSWORD, ESSAY_SENDER_EMAIL, ESSAY_REC
 ### Authentication Error
 
 **Error**:
-```
+```text
 SMTPAuthenticationError: Username and Password not accepted
 ```
 

@@ -37,7 +37,7 @@ Welcome! This guide helps you contribute to EmailingEssay.
 
 ## Project Structure
 
-```
+```text
 EmailingEssay/
 ├── commands/essay.md      # Command definition
 ├── agents/essay_writer.md # Agent specification

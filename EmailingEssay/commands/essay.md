@@ -55,7 +55,7 @@ For environment setup, see `SETUP.md` → **Environment Variables** / **Troubles
 
 ## Command Structure
 
-```
+```ClaudeCLI
 /essay [SUBCOMMAND] [OPTIONS]
 ```
 
@@ -154,7 +154,7 @@ For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** s
 | `HH:MM` | Today (or tomorrow if time has passed) |
 | `YYYY-MM-DD HH:MM` | Specific date and time |
 
-### Examples
+### Wait Examples
 
 ```bash
 # Time only (today or tomorrow)
@@ -202,7 +202,7 @@ For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** s
 **Week ordinals**: 1st, 2nd, 3rd, 4th, last
 **Weekday abbreviations**: mon, tue, wed, thu, fri, sat, sun
 
-### Examples
+### Schedule Examples
 
 ```bash
 # Daily reflection at 10pm
@@ -248,7 +248,7 @@ For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** s
 ```
 
 File list contents must also use absolute paths:
-```
+```text
 # context_list.txt - use absolute paths
 C:/Users/you/path/to/file1.txt
 C:/Users/you/path/to/file2.txt
