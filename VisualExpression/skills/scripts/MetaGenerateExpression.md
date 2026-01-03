@@ -42,45 +42,19 @@ Nano Banana Pro（Google Gemini）で4行×5列の表情グリッド画像を生
 
 ## 表情コード一覧（20種）
 
-### Basic（基本）- Row 1
-| コード | 日本語 | 使用場面 |
-|--------|--------|----------|
-| normal | 通常 | デフォルト、ニュートラル |
-| smile | 笑顔 | 友好的、挨拶 |
-| focus | 思考集中 | 分析、深い思考 |
-| diverge | 思考発散 | アイデア展開、連想 |
+表情コードの詳細は [SKILL.md の Expression Codes](../SKILL.md#expression-codes) を参照。
 
-### Emotion（感情）- Row 2
-| コード | 日本語 | 使用場面 |
-|--------|--------|----------|
-| joy | 喜び | 達成感、成功 |
-| elation | 高揚 | 興奮、ワクワク |
-| surprise | 驚き | 意外な発見 |
-| calm | 平穏 | 穏やか、安定 |
+### 概要（全5カテゴリ×4表情＝20種）
 
-### Negative（ネガティブ）- Row 3
-| コード | 日本語 | 使用場面 |
-|--------|--------|----------|
-| anger | 怒り | 軽い不満 |
-| sadness | 悲しみ | 残念、失望 |
-| rage | 激怒 | 強い憤り |
-| disgust | 嫌悪 | 拒否感 |
+| カテゴリ | 表情コード |
+|----------|-----------|
+| Basic | normal, smile, focus, diverge |
+| Emotion | joy, elation, surprise, calm |
+| Negative | anger, sadness, rage, disgust |
+| Anxiety | anxiety, fear, upset, worry |
+| Special | sleepy, cynical, defeated, dreamy |
 
-### Anxiety（不安）- Row 4
-| コード | 日本語 | 使用場面 |
-|--------|--------|----------|
-| anxiety | 不安 | 先行き不透明 |
-| fear | 恐れ | 危険認識 |
-| upset | 動揺 | 困惑 |
-| worry | 心配 | 気遣い |
-
-### Special（特殊）- Row 5 ※カスタマイズ可
-| コード | 日本語 | 使用場面 |
-|--------|--------|----------|
-| sleepy | うとうと | 疲労、眠気 |
-| cynical | 暗黒微笑 | 皮肉、斜め |
-| defeated | ぎゃふん | やられた、照れ |
-| dreamy | ぽやぽや | ほのぼの |
+※ Special カテゴリは `--special` オプションでカスタマイズ可
 
 ---
 

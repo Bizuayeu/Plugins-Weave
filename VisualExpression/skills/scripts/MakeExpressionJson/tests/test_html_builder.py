@@ -1,0 +1,112 @@
+"""Tests for usecases.html_builder module."""
+
+import json
+from pathlib import Path
+
+import pytest
+
+from usecases.html_builder import HtmlBuilder
+
+
+class TestHtmlBuilderValidation:
+    """Tests for HtmlBuilder input validation."""
+
+    def test_rejects_missing_template(self):
+        """存在しないテンプレートファイルはFileNotFoundErrorを発生"""
+        with pytest.raises(FileNotFoundError):
+            HtmlBuilder("/nonexistent/path/template.html")
+
+    def test_rejects_template_without_placeholder(self, tmp_path):
+        """プレースホルダーがないテンプレートはValueErrorを発生"""
+        bad_template = tmp_path / "bad.html"
+        bad_template.write_text("<html>no placeholder here</html>", encoding="utf-8")
+
+        builder = HtmlBuilder(str(bad_template))
+        with pytest.raises(ValueError, match="missing placeholder"):
+            builder.load_template()
+
+    def test_accepts_valid_template(self, sample_template_file):
+        """有効なテンプレートファイルは受け入れる"""
+        builder = HtmlBuilder(str(sample_template_file))
+        content = builder.load_template()
+        assert "__IMAGES_PLACEHOLDER__" in content
+
+
+class TestHtmlBuilderFunctionality:
+    """Tests for HtmlBuilder core functionality."""
+
+    def test_load_template_returns_content(self, sample_template_file):
+        """load_templateはファイル内容を返す"""
+        builder = HtmlBuilder(str(sample_template_file))
+        content = builder.load_template()
+        assert isinstance(content, str)
+        assert len(content) > 0
+
+    def test_build_replaces_placeholder(self, sample_template_file):
+        """buildはプレースホルダーを置換する"""
+        builder = HtmlBuilder(str(sample_template_file))
+        result = builder.build({"normal": "data:image/jpeg;base64,abc123"})
+
+        # JSON形式（ダブルクォート、コロン後にスペースあり）
+        assert '"normal": "data:image/jpeg;base64,abc123"' in result
+        assert "__IMAGES_PLACEHOLDER__" not in result
+
+    def test_build_multiple_images(self, sample_template_file):
+        """複数画像のビルド"""
+        builder = HtmlBuilder(str(sample_template_file))
+        images = {
+            "normal": "data:image/jpeg;base64,normal123",
+            "smile": "data:image/jpeg;base64,smile456",
+        }
+        result = builder.build(images)
+
+        # JSON形式（ダブルクォート）
+        assert '"normal":' in result
+        assert '"smile":' in result
+
+    def test_build_auto_loads_template(self, sample_template_file):
+        """load_template()を呼ばずにbuild()しても動作する"""
+        builder = HtmlBuilder(str(sample_template_file))
+        # load_template()を呼ばずに直接build()
+        result = builder.build({"normal": "test"})
+        # JSON形式（ダブルクォート、コロン後にスペースあり）
+        assert '"normal": "test"' in result
+
+    def test_build_from_json(self, sample_template_file, tmp_path):
+        """JSONファイルからのビルド"""
+        # JSONファイルを作成
+        json_file = tmp_path / "images.json"
+        json_data = {"normal": "data:image/jpeg;base64,fromjson"}
+        json_file.write_text(json.dumps(json_data), encoding="utf-8")
+
+        builder = HtmlBuilder(str(sample_template_file))
+        result = builder.build_from_json(str(json_file))
+
+        # JSON形式（ダブルクォート、コロン後にスペースあり）
+        assert '"normal": "data:image/jpeg;base64,fromjson"' in result
+
+
+class TestJsonSerialization:
+    """JSON直列化のテスト（TDD）"""
+
+    def test_output_uses_double_quotes(self, sample_template_file):
+        """出力がJSON形式（ダブルクォート）であること"""
+        builder = HtmlBuilder(str(sample_template_file))
+        result = builder.build({"normal": "data:image/jpeg;base64,abc"})
+
+        # JSON形式のダブルクォートを使用
+        assert '"normal"' in result, "キーはダブルクォートで囲まれるべき"
+        assert "'normal'" not in result, "シングルクォートは使わない"
+
+    def test_special_characters_escaped(self, sample_template_file):
+        """特殊文字が適切にエスケープされること"""
+        builder = HtmlBuilder(str(sample_template_file))
+        # バックスラッシュを含むデータ
+        result = builder.build({"test": "data\\with\\backslash"})
+
+        # JSONエスケープが適用されている（\\は\\\\になる）
+        assert "data\\\\with\\\\backslash" in result, "バックスラッシュはエスケープされるべき"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

@@ -1,3 +1,5 @@
+English | [日本語](README.jp.md)
+
 # VisualExpression
 
 Visual expression system for AI personas with emotion-based face switching.
@@ -24,9 +26,11 @@ Visual expression system for AI personas with emotion-based face switching.
 | File | For | Content |
 |------|-----|---------|
 | [README.md](README.md) | Everyone | Quick start (this file) |
+| [README.jp.md](README.jp.md) | Everyone | Japanese documentation |
+| [CHANGELOG.md](CHANGELOG.md) | Everyone | Version history |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Setup & contribution guide |
 | [skills/SKILL.md](skills/SKILL.md) | Users | Full documentation |
 | [skills/scripts/MetaGenerateExpression.md](skills/scripts/MetaGenerateExpression.md) | Users | Nano Banana Pro prompt generator |
-| [skills/scripts/MakeExpressionJson/](skills/scripts/MakeExpressionJson/) | Developers | Image processing pipeline |
 
 ---
 

@@ -1,6 +1,7 @@
 """HTML builder for expression UI."""
 
 import json
+from pathlib import Path
 from typing import Dict
 
 
@@ -15,7 +16,12 @@ class HtmlBuilder:
 
         Args:
             template_path: Path to the HTML template file
+
+        Raises:
+            FileNotFoundError: If template file does not exist
         """
+        if not Path(template_path).exists():
+            raise FileNotFoundError(f"Template file not found: {template_path}")
         self.template_path = template_path
         self._template: str = ""
 
@@ -25,9 +31,16 @@ class HtmlBuilder:
 
         Returns:
             The template content as a string
+
+        Raises:
+            ValueError: If template does not contain the placeholder
         """
         with open(self.template_path, "r", encoding="utf-8") as f:
             self._template = f.read()
+
+        if self.PLACEHOLDER not in self._template:
+            raise ValueError(f"Template is missing placeholder: {self.PLACEHOLDER}")
+
         return self._template
 
     def build(self, images_dict: Dict[str, str]) -> str:
@@ -43,12 +56,15 @@ class HtmlBuilder:
         if not self._template:
             self.load_template()
 
-        # Build the JavaScript object string
-        # Format: key:'value',key:'value',...
-        images_str = ",".join([f"{k}:'{v}'" for k, v in images_dict.items()])
+        # Use json.dumps for proper serialization with escaping
+        # This handles special characters correctly (quotes, backslashes, etc.)
+        images_json = json.dumps(images_dict, ensure_ascii=False)
+        # Template has: const IMAGES={__IMAGES_PLACEHOLDER__}
+        # json.dumps returns {"key":"value"}, extract inner part (without braces)
+        images_content = images_json[1:-1]  # Strip outer { }
 
         # Replace placeholder
-        html = self._template.replace(self.PLACEHOLDER, images_str)
+        html = self._template.replace(self.PLACEHOLDER, images_content)
 
         return html
 

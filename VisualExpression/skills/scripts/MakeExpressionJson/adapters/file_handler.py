@@ -9,14 +9,16 @@ from typing import Any, Dict, Optional
 class FileHandler:
     """Handles file operations for the expression system."""
 
-    def __init__(self, output_dir: Optional[str] = None):
+    def __init__(self, output_dir: Optional[str] = None, skills_dir: Optional[str] = None):
         """
         Initialize the file handler.
 
         Args:
             output_dir: Default output directory (creates if not exists)
+            skills_dir: Explicit skills directory path (overrides auto-detection)
         """
         self.output_dir = Path(output_dir) if output_dir else Path.cwd()
+        self._skills_dir = Path(skills_dir) if skills_dir else None
 
     def ensure_output_dir(self) -> Path:
         """
@@ -89,11 +91,32 @@ class FileHandler:
 
     def get_skills_dir(self) -> Path:
         """
-        Get the skills directory (parent of scripts).
+        Get the skills directory.
+
+        Uses explicit skills_dir if provided, otherwise searches upward for
+        marker files (SKILL.md or VisualExpressionUI.template.html).
+        Falls back to relative path calculation if no markers found.
 
         Returns:
             Path to the skills directory
         """
+        # Use explicit path if provided
+        if self._skills_dir:
+            return self._skills_dir
+
+        # Search upward for marker files
+        current = Path(__file__).parent
+        markers = ["SKILL.md", "VisualExpressionUI.template.html"]
+
+        for _ in range(10):  # Limit search depth
+            for marker in markers:
+                if (current / marker).exists():
+                    return current
+            if current.parent == current:
+                break
+            current = current.parent
+
+        # Fallback: use relative path calculation (original behavior)
         # This file is in: skills/scripts/MakeExpressionJson/adapters/
         # Skills dir is: skills/
         return Path(__file__).parent.parent.parent.parent

@@ -9,15 +9,15 @@ CELL_SIZE = 280  # pixels
 
 # Expression codes in grid order (left-to-right, top-to-bottom)
 EXPRESSION_CODES: List[str] = [
-    # Row 1: Basic
+    # Category: Basic (4 items)
     "normal", "smile", "focus", "diverge",
-    # Row 2: Emotion
+    # Category: Emotion (4 items)
     "joy", "elation", "surprise", "calm",
-    # Row 3: Negative
+    # Category: Negative (4 items)
     "anger", "sadness", "rage", "disgust",
-    # Row 4: Anxiety
+    # Category: Anxiety (4 items)
     "anxiety", "fear", "upset", "worry",
-    # Row 5: Special
+    # Category: Special (4 items)
     "sleepy", "cynical", "defeated", "dreamy",
 ]
 
@@ -64,6 +64,30 @@ GRID_CONFIG: Dict[str, int] = {
 }
 
 
+def get_cell_position_dynamic(
+    index: int, cols: int, cell_width: int, cell_height: int
+) -> Tuple[int, int, int, int]:
+    """
+    Get the pixel coordinates for a cell at the given index with dynamic parameters.
+
+    Args:
+        index: Cell index (0-based, left-to-right, top-to-bottom)
+        cols: Number of columns in the grid
+        cell_width: Width of each cell in pixels
+        cell_height: Height of each cell in pixels
+
+    Returns:
+        Tuple of (left, top, right, bottom) pixel coordinates
+    """
+    row = index // cols
+    col = index % cols
+
+    left = col * cell_width
+    top = row * cell_height
+
+    return (left, top, left + cell_width, top + cell_height)
+
+
 def get_cell_position(index: int) -> Tuple[int, int, int, int]:
     """
     Get the pixel coordinates for a cell at the given index.
@@ -74,15 +98,7 @@ def get_cell_position(index: int) -> Tuple[int, int, int, int]:
     Returns:
         Tuple of (left, top, right, bottom) pixel coordinates
     """
-    row = index // GRID_COLS
-    col = index % GRID_COLS
-
-    left = col * CELL_SIZE
-    top = row * CELL_SIZE
-    right = left + CELL_SIZE
-    bottom = top + CELL_SIZE
-
-    return (left, top, right, bottom)
+    return get_cell_position_dynamic(index, GRID_COLS, CELL_SIZE, CELL_SIZE)
 
 
 # Default Special codes

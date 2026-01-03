@@ -6,12 +6,8 @@ from typing import Dict, List, Tuple
 
 from PIL import Image
 
-try:
-    from ..domain.constants import EXPRESSION_LABELS
-    from ..domain.models import ExpressionImage, ExpressionSet
-except ImportError:
-    from domain.constants import EXPRESSION_LABELS
-    from domain.models import ExpressionImage, ExpressionSet
+from domain.constants import EXPRESSION_LABELS
+from domain.models import ExpressionImage, ExpressionSet
 
 
 class Base64Encoder:
@@ -24,7 +20,12 @@ class Base64Encoder:
         Args:
             quality: JPEG quality (1-100, default: 85)
             format: Output format (default: JPEG)
+
+        Raises:
+            ValueError: If quality is not in range 1-100
         """
+        if not 1 <= quality <= 100:
+            raise ValueError(f"Quality must be 1-100, got {quality}")
         self.quality = quality
         self.format = format
 

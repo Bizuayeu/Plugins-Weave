@@ -1,8 +1,11 @@
 """ZIP packaging for skill distribution."""
 
+import logging
 import zipfile
 from pathlib import Path
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class ZipPackager:
@@ -25,6 +28,7 @@ class ZipPackager:
         json_path: Path,
         output_name: str = "VisualExpressionSkills.zip",
         additional_files: Optional[List[Path]] = None,
+        strict: bool = False,
     ) -> Path:
         """
         Create a ZIP package containing the skill files.
@@ -36,34 +40,47 @@ class ZipPackager:
             json_path: Path to expression JSON
             output_name: Name of the output ZIP file
             additional_files: Additional files to include
+            strict: If True, raise FileNotFoundError for missing required files
 
         Returns:
             Path to the created ZIP file
+
+        Raises:
+            FileNotFoundError: If strict=True and required files are missing
         """
         self.output_dir.mkdir(parents=True, exist_ok=True)
         zip_path = self.output_dir / output_name
 
+        def _check_file(file_path: Path, arcname: str, required: bool = False) -> bool:
+            """Check if file exists and log/raise if not."""
+            if file_path.exists():
+                return True
+            msg = f"File not found: {file_path}"
+            logger.warning(msg)
+            if strict and required:
+                raise FileNotFoundError(msg)
+            return False
+
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             # Add main skill file
-            if skill_md_path.exists():
+            if _check_file(skill_md_path, "skills/SKILL.md"):
                 zf.write(skill_md_path, "skills/SKILL.md")
 
-            # Add HTML files
-            if html_path.exists():
+            # Add HTML files (required)
+            if _check_file(html_path, "skills/VisualExpressionUI.html", required=True):
                 zf.write(html_path, "skills/VisualExpressionUI.html")
 
-            if template_path.exists():
+            if _check_file(template_path, "skills/VisualExpressionUI.template.html"):
                 zf.write(template_path, "skills/VisualExpressionUI.template.html")
 
-            # Add JSON
-            if json_path.exists():
+            # Add JSON (required)
+            if _check_file(json_path, "skills/ExpressionImages.json", required=True):
                 zf.write(json_path, "skills/ExpressionImages.json")
 
             # Add additional files
             if additional_files:
                 for file_path in additional_files:
-                    if file_path.exists():
-                        # Preserve relative structure under skills/
+                    if _check_file(file_path, f"skills/{file_path.name}"):
                         arcname = f"skills/{file_path.name}"
                         zf.write(file_path, arcname)
 

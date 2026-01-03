@@ -3,10 +3,10 @@
 from typing import List, Tuple, Optional
 from PIL import Image
 
-try:
-    from ..domain.constants import EXPRESSION_CODES, GRID_COLS, GRID_ROWS, CELL_SIZE, build_expression_codes
-except ImportError:
-    from domain.constants import EXPRESSION_CODES, GRID_COLS, GRID_ROWS, CELL_SIZE, build_expression_codes
+from domain.constants import (
+    EXPRESSION_CODES, GRID_COLS, GRID_ROWS, CELL_SIZE,
+    build_expression_codes, get_cell_position_dynamic
+)
 
 
 class ImageSplitter:
@@ -18,7 +18,6 @@ class ImageSplitter:
         cols: int = GRID_COLS,
         cell_size: Optional[int] = None,
         output_size: int = CELL_SIZE,
-        auto_detect: bool = True,
         special_codes: Optional[List[str]] = None,
     ):
         """
@@ -29,23 +28,13 @@ class ImageSplitter:
             cols: Number of columns in the grid (default: 5)
             cell_size: Size of each cell in pixels (None = auto-detect from image)
             output_size: Output size for each cropped image (default: 280)
-            auto_detect: If True, auto-detect cell size from image dimensions
             special_codes: Custom Special category codes (4 items). None = use defaults.
         """
         self.rows = rows
         self.cols = cols
         self.cell_size = cell_size
         self.output_size = output_size
-        self.auto_detect = auto_detect
         self.expression_codes = build_expression_codes(special_codes)
-
-    def _get_cell_position(self, index: int, cell_width: int, cell_height: int) -> Tuple[int, int, int, int]:
-        """Get pixel coordinates for a cell at the given index."""
-        row = index // self.cols
-        col = index % self.cols
-        left = col * cell_width
-        top = row * cell_height
-        return (left, top, left + cell_width, top + cell_height)
 
     def validate_image(self, image: Image.Image) -> Tuple[bool, str]:
         """
@@ -89,7 +78,7 @@ class ImageSplitter:
         results: List[Tuple[str, Image.Image]] = []
 
         for i, code in enumerate(self.expression_codes):
-            left, top, right, bottom = self._get_cell_position(i, cell_width, cell_height)
+            left, top, right, bottom = get_cell_position_dynamic(i, self.cols, cell_width, cell_height)
             cropped = image.crop((left, top, right, bottom))
 
             # Resize to output size if different

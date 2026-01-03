@@ -3,53 +3,8 @@
 import pytest
 from PIL import Image
 
-# Direct imports without relative paths for test isolation
-GRID_ROWS = 4
-GRID_COLS = 5
-CELL_SIZE = 280
-
-EXPRESSION_CODES = [
-    "normal", "smile", "focus", "diverge",
-    "joy", "elation", "surprise", "calm",
-    "anger", "sadness", "rage", "disgust",
-    "anxiety", "fear", "upset", "worry",
-    "sleepy", "cynical", "defeated", "dreamy",
-]
-
-
-def get_cell_position(index: int):
-    row = index // GRID_COLS
-    col = index % GRID_COLS
-    left = col * CELL_SIZE
-    top = row * CELL_SIZE
-    return (left, top, left + CELL_SIZE, top + CELL_SIZE)
-
-
-class ImageSplitter:
-    """Test-local ImageSplitter implementation."""
-
-    def __init__(self, rows=GRID_ROWS, cols=GRID_COLS, cell_size=CELL_SIZE):
-        self.rows = rows
-        self.cols = cols
-        self.cell_size = cell_size
-
-    def validate_image(self, image):
-        expected_width = self.cols * self.cell_size
-        expected_height = self.rows * self.cell_size
-        if image.width != expected_width or image.height != expected_height:
-            return (False, f"Invalid image size: {image.width}x{image.height}. Expected: {expected_width}x{expected_height}")
-        return (True, "")
-
-    def split(self, image):
-        is_valid, error_msg = self.validate_image(image)
-        if not is_valid:
-            raise ValueError(error_msg)
-        results = []
-        for i, code in enumerate(EXPRESSION_CODES):
-            left, top, right, bottom = get_cell_position(i)
-            cropped = image.crop((left, top, right, bottom))
-            results.append((code, cropped))
-        return results
+from domain.constants import GRID_ROWS, GRID_COLS, CELL_SIZE, EXPRESSION_CODES
+from usecases.image_splitter import ImageSplitter
 
 
 class TestImageSplitter:
@@ -75,12 +30,13 @@ class TestImageSplitter:
         assert error_msg == ""
 
     def test_validate_wrong_size(self):
-        """Test validation fails for incorrect image size."""
-        img = self.create_test_grid(100, 100)
+        """Test validation fails for non-divisible image size."""
+        # 101は5で割り切れないのでエラー
+        img = self.create_test_grid(101, 100)
         is_valid, error_msg = self.splitter.validate_image(img)
 
         assert is_valid is False
-        assert "Invalid image size" in error_msg
+        assert "not divisible" in error_msg
 
     def test_split_returns_20_images(self):
         """Test that split returns exactly 20 expression images."""
@@ -116,13 +72,25 @@ class TestImageSplitter:
             assert cropped_img.height == CELL_SIZE
 
     def test_split_raises_for_wrong_size(self):
-        """Test that split raises ValueError for incorrect size."""
-        img = self.create_test_grid(100, 100)
+        """Test that split raises ValueError for non-divisible size."""
+        # 101は5で割り切れないのでエラー
+        img = self.create_test_grid(101, 100)
 
         with pytest.raises(ValueError) as exc_info:
             self.splitter.split(img)
 
-        assert "Invalid image size" in str(exc_info.value)
+        assert "not divisible" in str(exc_info.value)
+
+
+class TestImageSplitterRefactoring:
+    """Tests for refactored ImageSplitter (TDD)."""
+
+    def test_init_without_auto_detect_param(self):
+        """auto_detectパラメータなしでインスタンス化できること（未使用パラメータ削除確認）"""
+        splitter = ImageSplitter(rows=4, cols=5)
+        # auto_detect属性が存在しないことを確認
+        assert not hasattr(splitter, 'auto_detect'), \
+            "auto_detect属性は削除されるべき（未使用のため）"
 
 
 if __name__ == "__main__":
