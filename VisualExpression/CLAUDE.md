@@ -77,8 +77,8 @@ python -m pytest tests/ -v
 
 ### Image Specifications
 
-- Grid: 1400x1120px (4 rows x 5 columns)
-- Cell: 280x280px per expression
+- Grid: 1500x1200px recommended (300px/cell), 1400x1120px minimum (280px/cell)
+- Output: 280x280px per expression (center-cropped from 300px cells)
 - Format: JPEG (Base64 encoded)
 
 ### Expression Categories
