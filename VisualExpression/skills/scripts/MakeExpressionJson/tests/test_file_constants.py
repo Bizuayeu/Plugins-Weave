@@ -44,26 +44,26 @@ class TestFileConstantsExist:
         assert SKILLS_DIR_ENV_VAR == "VISUAL_EXPRESSION_SKILLS_DIR"
 
 
-class TestFileHandlerUsesConstants:
-    """FileHandlerが定数を使用していることを確認"""
+class TestFileWriterUsesConstants:
+    """FileWriterが定数を使用していることを確認"""
 
-    def test_file_handler_uses_constant_for_json(self, tmp_path):
+    def test_file_writer_uses_constant_for_json(self, tmp_path):
         """write_jsonのデフォルトがDEFAULT_JSON_FILENAMEと一致"""
         from adapters.file_constants import DEFAULT_JSON_FILENAME
-        from adapters.file_handler import FileHandler
+        from adapters.file_writer import FileWriter
 
-        handler = FileHandler(output_dir=str(tmp_path))
-        path = handler.write_json({"test": "data"})
+        writer = FileWriter(output_dir=str(tmp_path))
+        path = writer.write_json({"test": "data"})
 
         assert path.name == DEFAULT_JSON_FILENAME
 
-    def test_file_handler_uses_constant_for_html(self, tmp_path):
+    def test_file_writer_uses_constant_for_html(self, tmp_path):
         """write_htmlのデフォルトがDEFAULT_HTML_FILENAMEと一致"""
         from adapters.file_constants import DEFAULT_HTML_FILENAME
-        from adapters.file_handler import FileHandler
+        from adapters.file_writer import FileWriter
 
-        handler = FileHandler(output_dir=str(tmp_path))
-        path = handler.write_html("<html></html>")
+        writer = FileWriter(output_dir=str(tmp_path))
+        path = writer.write_html("<html></html>")
 
         assert path.name == DEFAULT_HTML_FILENAME
 

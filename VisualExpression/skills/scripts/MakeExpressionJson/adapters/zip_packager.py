@@ -4,7 +4,7 @@ import logging
 import zipfile
 from pathlib import Path
 
-from .file_handler import ensure_dir
+from .file_writer import ensure_dir
 
 logger = logging.getLogger(__name__)
 
