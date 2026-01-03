@@ -263,14 +263,15 @@ CODEには英語の表情コード（joy, elation等）を指定。
 | Error | Cause | Solution |
 |-------|-------|----------|
 | `AttributeError: module 'PIL.Image' has no attribute 'Resampling'` | Pillow version < 10.0 | `pip install --upgrade Pillow>=10.0` |
-| `ValueError: Grid image must be 1400x1120 pixels` | Wrong image dimensions | Use Nano Banana Pro to generate 4×5 grid (1400×1120px) |
+| `ValueError: Grid image must be 1500x1200 pixels` | Wrong image dimensions | Use Nano Banana Pro to generate 4×5 grid (1500×1200px) |
+| Image larger than 1500×1200px | Nano Banana Pro generated oversized image | Resize to 1500×1200px (maintain aspect ratio: scale X to 1500 if wider, or Y to 1200 if taller) |
 | `FileNotFoundError: template not found` | Custom template path invalid | Check `--template` path or use built-in template |
 | `Image mode not supported` | Input is not RGB/RGBA | Convert to PNG/JPEG before processing |
 
 ### Validation Tips
 
-- Grid image must be exactly 1400×1120 pixels (4 rows × 5 columns × 280px)
-- Each cell should be 280×280 pixels
+- Grid image must be 1500×1200 pixels (4 rows × 5 columns × 300px)
+- Each cell should be trimmed to 280×280 pixels
 - Use PNG or JPEG format for input
 - Output JPEG quality adjustable via `--quality` (default: 85)
 
@@ -285,7 +286,6 @@ CODEには英語の表情コード（joy, elation等）を指定。
 ### Image Specifications
 - Format: JPEG (Base64)
 - Resolution: 280×280px per expression
-- Grid: 4 rows × 5 columns = 1400×1120px
 
 ### Template Variables
 
