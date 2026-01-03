@@ -4,7 +4,7 @@ Thank you for your interest in contributing to VisualExpression!
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - Pillow 10.0+ (`pip install Pillow>=10.0`)
   - Requires `Image.Resampling.LANCZOS` (introduced in Pillow 10)
 
@@ -88,6 +88,8 @@ your_grid.png
     ↓
 [package] → VisualExpressionSkills.zip (optional)
 ```
+
+For CLI options and detailed usage, see [SKILL.md](skills/SKILL.md#makexpressionjson).
 
 ## How to Contribute
 

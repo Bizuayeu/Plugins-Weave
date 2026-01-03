@@ -79,7 +79,7 @@ python main.py your_grid.png --special wink,pout,smug,starry
 - `VisualExpressionSkills.zip` - For claude.ai upload
 
 **Dependencies:**
-- Python 3.8+
+- Python 3.10+
 - Pillow (`pip install Pillow`)
 
 ---
