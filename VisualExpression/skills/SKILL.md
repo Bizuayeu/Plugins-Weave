@@ -137,12 +137,13 @@ Default expressions are included out of the box. To use as-is:
 2. Download the generated image and upload to claude.ai chat
 3. In Computer Use environment, retrieve the image from `/mnt/user-data/uploads/` and run:
 ```bash
-cd /home/claude/VisualExpression/skills/scripts/MakeExpressionJson
+cd /mnt/skills/user/visual-expression/scripts/MakeExpressionJson
 python main.py /mnt/user-data/uploads/your_grid.png --output /mnt/user-data/outputs/
 ```
+   This generates: `ExpressionImages.json`, `VisualExpressionUI.html`, and `VisualExpressionSkills.zip`
 4. **Current session only**: Display `/mnt/user-data/outputs/VisualExpressionUI.html` as an Artifact
-5. **To persist across sessions** (required):
-   - Download `VisualExpressionSkills.zip` from `/mnt/user-data/outputs/`
+5. **To persist across sessions**:
+   - Download `/mnt/user-data/outputs/VisualExpressionSkills.zip`
    - Re-register as a new skill on claude.ai
 
 Note: `/mnt/skills/` is read-only. Custom expressions only persist via skill ZIP re-registration.
