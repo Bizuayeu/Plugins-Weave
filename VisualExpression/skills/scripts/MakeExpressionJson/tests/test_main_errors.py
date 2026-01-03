@@ -202,13 +202,18 @@ class TestPipelineErrorHandling:
 
         with (
             caplog.at_level(logging.ERROR),
-            patch('sys.argv', [
-                'main.py',
-                str(valid_setup['input_file']),
-                '--output', str(valid_setup['output_dir']),
-                '--template', str(valid_setup['template_file']),
-                '--no-zip',
-            ]),
+            patch(
+                'sys.argv',
+                [
+                    'main.py',
+                    str(valid_setup['input_file']),
+                    '--output',
+                    str(valid_setup['output_dir']),
+                    '--template',
+                    str(valid_setup['template_file']),
+                    '--no-zip',
+                ],
+            ),
             patch('main.FileWriter.write_json', side_effect=OSError("Disk full")),
             pytest.raises(SystemExit) as exc_info,
         ):
@@ -223,13 +228,18 @@ class TestPipelineErrorHandling:
 
         with (
             caplog.at_level(logging.ERROR),
-            patch('sys.argv', [
-                'main.py',
-                str(valid_setup['input_file']),
-                '--output', str(valid_setup['output_dir']),
-                '--template', str(valid_setup['template_file']),
-                '--no-zip',
-            ]),
+            patch(
+                'sys.argv',
+                [
+                    'main.py',
+                    str(valid_setup['input_file']),
+                    '--output',
+                    str(valid_setup['output_dir']),
+                    '--template',
+                    str(valid_setup['template_file']),
+                    '--no-zip',
+                ],
+            ),
             patch('main.FileWriter.write_html', side_effect=OSError("Permission denied")),
             pytest.raises(SystemExit) as exc_info,
         ):
@@ -244,14 +254,22 @@ class TestPipelineErrorHandling:
 
         with (
             caplog.at_level(logging.ERROR),
-            patch('sys.argv', [
-                'main.py',
-                str(valid_setup['input_file']),
-                '--output', str(valid_setup['output_dir']),
-                '--template', str(valid_setup['template_file']),
-                '--no-zip',
-            ]),
-            patch('main.Base64Encoder.encode_expressions', side_effect=RuntimeError("Unexpected failure")),
+            patch(
+                'sys.argv',
+                [
+                    'main.py',
+                    str(valid_setup['input_file']),
+                    '--output',
+                    str(valid_setup['output_dir']),
+                    '--template',
+                    str(valid_setup['template_file']),
+                    '--no-zip',
+                ],
+            ),
+            patch(
+                'main.Base64Encoder.encode_expressions',
+                side_effect=RuntimeError("Unexpected failure"),
+            ),
             pytest.raises(SystemExit) as exc_info,
         ):
             main()

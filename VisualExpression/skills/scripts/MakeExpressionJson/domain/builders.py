@@ -92,9 +92,7 @@ def build_expression_codes(special_codes: list[str] | None = None) -> list[str]:
     base_set = set(BASE_EXPRESSION_CODES)
     overlaps = [code for code in special_codes if code in base_set]
     if overlaps:
-        raise ValueError(
-            f"Special codes cannot overlap with Base codes: {', '.join(overlaps)}"
-        )
+        raise ValueError(f"Special codes cannot overlap with Base codes: {', '.join(overlaps)}")
 
     # Insert Special codes at positions 4, 9, 14, 19 (Col5 for each row)
     result = []

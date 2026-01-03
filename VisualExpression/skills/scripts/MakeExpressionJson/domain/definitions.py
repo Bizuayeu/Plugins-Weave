@@ -18,7 +18,7 @@ GRID_CONFIG: dict[str, int] = {
     "rows": 4,
     "cols": 5,
     "cell_size": 280,
-    "total_width": 1400,   # 5 * 280
+    "total_width": 1400,  # 5 * 280
     "total_height": 1120,  # 4 * 280
 }
 
@@ -29,21 +29,45 @@ SPECIAL_CODES_COUNT = 4
 # Grid order: left-to-right, top-to-bottom, skipping Col5 (Special)
 BASE_EXPRESSION_CODES: list[str] = [
     # Row1: Basic -> Emotion -> Negative -> Anxiety
-    "normal", "joy", "anger", "anxiety",
+    "normal",
+    "joy",
+    "anger",
+    "anxiety",
     # Row2
-    "smile", "elation", "sadness", "fear",
+    "smile",
+    "elation",
+    "sadness",
+    "fear",
     # Row3
-    "focus", "surprise", "rage", "upset",
+    "focus",
+    "surprise",
+    "rage",
+    "upset",
     # Row4
-    "diverge", "calm", "disgust", "worry",
+    "diverge",
+    "calm",
+    "disgust",
+    "worry",
 ]
 
 # Base expression labels (16 labels, excluding Special category)
 BASE_EXPRESSION_LABELS: dict[str, str] = {
-    "normal": "通常", "smile": "笑顔", "focus": "思考集中", "diverge": "思考発散",
-    "joy": "喜び", "elation": "高揚", "surprise": "驚き", "calm": "平穏",
-    "anger": "怒り", "sadness": "悲しみ", "rage": "激怒", "disgust": "嫌悪",
-    "anxiety": "不安", "fear": "恐れ", "upset": "動揺", "worry": "心配",
+    "normal": "通常",
+    "smile": "笑顔",
+    "focus": "思考集中",
+    "diverge": "思考発散",
+    "joy": "喜び",
+    "elation": "高揚",
+    "surprise": "驚き",
+    "calm": "平穏",
+    "anger": "怒り",
+    "sadness": "悲しみ",
+    "rage": "激怒",
+    "disgust": "嫌悪",
+    "anxiety": "不安",
+    "fear": "恐れ",
+    "upset": "動揺",
+    "worry": "心配",
 }
 
 # Expression codes in grid order (left-to-right, top-to-bottom)

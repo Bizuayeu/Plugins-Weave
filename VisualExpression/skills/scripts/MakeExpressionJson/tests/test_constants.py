@@ -268,10 +268,22 @@ class TestBaseExpressionCodes:
         from domain.definitions import BASE_EXPRESSION_CODES
 
         expected_codes = [
-            "normal", "joy", "anger", "anxiety",
-            "smile", "elation", "sadness", "fear",
-            "focus", "surprise", "rage", "upset",
-            "diverge", "calm", "disgust", "worry",
+            "normal",
+            "joy",
+            "anger",
+            "anxiety",
+            "smile",
+            "elation",
+            "sadness",
+            "fear",
+            "focus",
+            "surprise",
+            "rage",
+            "upset",
+            "diverge",
+            "calm",
+            "disgust",
+            "worry",
         ]
         assert expected_codes == BASE_EXPRESSION_CODES
 

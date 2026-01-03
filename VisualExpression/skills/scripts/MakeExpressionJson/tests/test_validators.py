@@ -20,9 +20,7 @@ class TestValidateGridDimensions:
         """正しい次元は (True, '') を返す"""
         from domain.validators import validate_grid_dimensions
 
-        is_valid, msg = validate_grid_dimensions(
-            width=1400, height=1120, cols=5, rows=4
-        )
+        is_valid, msg = validate_grid_dimensions(width=1400, height=1120, cols=5, rows=4)
         assert is_valid is True
         assert msg == ""
 
@@ -30,9 +28,7 @@ class TestValidateGridDimensions:
         """幅が列数で割り切れない場合 (False, message) を返す"""
         from domain.validators import validate_grid_dimensions
 
-        is_valid, msg = validate_grid_dimensions(
-            width=1401, height=1120, cols=5, rows=4
-        )
+        is_valid, msg = validate_grid_dimensions(width=1401, height=1120, cols=5, rows=4)
         assert is_valid is False
         assert "width" in msg.lower()
         assert "1401" in msg
@@ -42,9 +38,7 @@ class TestValidateGridDimensions:
         """高さが行数で割り切れない場合 (False, message) を返す"""
         from domain.validators import validate_grid_dimensions
 
-        is_valid, msg = validate_grid_dimensions(
-            width=1400, height=1121, cols=5, rows=4
-        )
+        is_valid, msg = validate_grid_dimensions(width=1400, height=1121, cols=5, rows=4)
         assert is_valid is False
         assert "height" in msg.lower()
         assert "1121" in msg
@@ -74,9 +68,7 @@ class TestValidateGridDimensions:
         """小さいが有効な次元もパス"""
         from domain.validators import validate_grid_dimensions
 
-        is_valid, msg = validate_grid_dimensions(
-            width=700, height=560, cols=5, rows=4
-        )
+        is_valid, msg = validate_grid_dimensions(width=700, height=560, cols=5, rows=4)
         assert is_valid is True
         assert msg == ""
 
@@ -84,9 +76,7 @@ class TestValidateGridDimensions:
         """cell_sizeなしでもバリデーション可能"""
         from domain.validators import validate_grid_dimensions
 
-        is_valid, msg = validate_grid_dimensions(
-            width=1401, height=1120, cols=5, rows=4
-        )
+        is_valid, msg = validate_grid_dimensions(width=1401, height=1120, cols=5, rows=4)
         assert is_valid is False
         assert "width" in msg.lower()
 
@@ -94,9 +84,7 @@ class TestValidateGridDimensions:
         """幅・高さ両方無効な場合、幅エラーを先に返す"""
         from domain.validators import validate_grid_dimensions
 
-        is_valid, msg = validate_grid_dimensions(
-            width=1401, height=1121, cols=5, rows=4
-        )
+        is_valid, msg = validate_grid_dimensions(width=1401, height=1121, cols=5, rows=4)
         assert is_valid is False
         assert "width" in msg.lower()
 
@@ -127,9 +115,7 @@ class TestValidateImageDimensions:
         from domain.validators import validate_image_dimensions
 
         img = Image.new("RGB", (1401, 1120))
-        is_valid, msg = validate_image_dimensions(
-            image=img, cols=5, rows=4, cell_size=280
-        )
+        is_valid, msg = validate_image_dimensions(image=img, cols=5, rows=4, cell_size=280)
         assert is_valid is False
         assert "1400" in msg  # 推奨サイズ
 
@@ -160,9 +146,7 @@ class TestValidatorsIntegration:
         from domain.validators import validate_grid_dimensions
 
         # 関数が存在し、呼び出し可能
-        result = validate_grid_dimensions(
-            width=1400, height=1120, cols=5, rows=4
-        )
+        result = validate_grid_dimensions(width=1400, height=1120, cols=5, rows=4)
         assert isinstance(result, tuple)
         assert len(result) == 2
         assert isinstance(result[0], bool)
