@@ -1,12 +1,26 @@
 # AnalyzeExpressionOffset
 
-[English] | [日本語](AnalyzeExpressionOffset.jp.md)
+English | [日本語](AnalyzeExpressionOffset.jp.md)
 
 Meta-script for Claude to analyze expression grid images and determine optimal crop offsets.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Usage](#usage)
+- [Analysis Instructions](#analysis-instructions)
+- [Output Format](#output-format)
+- [Example Analysis](#example-analysis)
+- [Integration with MakeExpressionJson](#integration-with-makeexpressionjson)
+- [Notes](#notes)
+
+---
 
 ## Overview
 
 This script enables Claude (Weave) to visually analyze expression grid images and output offset configurations for center-cropping each expression at its visual center rather than the geometric cell center.
+
+---
 
 ## Usage
 

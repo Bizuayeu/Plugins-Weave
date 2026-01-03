@@ -1,14 +1,29 @@
 # MetaGenerateExpression
 
-[English] | [日本語](MetaGenerateExpression.jp.md)
+English | [日本語](MetaGenerateExpression.jp.md)
 
 Meta-script for interactively generating expression grid prompts for Nano Banana Pro.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Usage](#usage)
+- [Data Collection Items](#data-collection-items)
+- [Expression Codes (20 types)](#expression-codes-20-types)
+- [Prompt Generation Template](#prompt-generation-template)
+- [Example](#example)
+- [Notes](#notes)
+- [Next Steps](#next-steps)
+
+---
 
 ## Overview
 
 This script collects character information through dialogue and outputs
 prompts for generating 4-row × 5-column expression grid images with
 Nano Banana Pro (Google Gemini).
+
+---
 
 ## Usage
 
