@@ -5,7 +5,8 @@ Thank you for your interest in contributing to VisualExpression!
 ## Prerequisites
 
 - Python 3.8+
-- Pillow library (`pip install Pillow`)
+- Pillow 10.0+ (`pip install Pillow>=10.0`)
+  - Requires `Image.Resampling.LANCZOS` (introduced in Pillow 10)
 
 ## Project Structure
 
@@ -28,7 +29,7 @@ VisualExpression/
         └── MakeExpressionJson/  # Python pipeline
             ├── main.py          # CLI entry point
             ├── domain/          # Business logic
-            │   ├── constants.py # Expression codes & config
+            │   ├── definitions.py # Expression codes & config
             │   └── models.py    # Data models
             ├── usecases/        # Application logic
             │   ├── image_splitter.py
@@ -58,7 +59,7 @@ MakeExpressionJson follows **Clean Architecture** principles:
 
 2. Install dependencies:
    ```bash
-   pip install Pillow
+   pip install Pillow>=10.0
    ```
 
 3. Run tests:
@@ -114,6 +115,19 @@ your_grid.png
 
 ### Testing
 
+The project uses pytest for testing:
+
+```bash
+cd skills/scripts/MakeExpressionJson
+python -m pytest tests/ -v
+```
+
+**Test Structure:**
+- 168 test cases across 13 test files
+- 90%+ code coverage
+- Tests for: image splitting, Base64 encoding, HTML building, file handling, ZIP packaging
+
+**Guidelines:**
 - Add tests for new functionality
 - Ensure existing tests pass before submitting PR
 - Tests are located in `skills/scripts/MakeExpressionJson/tests/`

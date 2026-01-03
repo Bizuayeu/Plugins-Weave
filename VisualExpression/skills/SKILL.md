@@ -248,6 +248,26 @@ CODEには英語の表情コード（joy, elation等）を指定。
 
 ---
 
+## Troubleshooting
+
+### Common Issues
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `AttributeError: module 'PIL.Image' has no attribute 'Resampling'` | Pillow version < 10.0 | `pip install --upgrade Pillow>=10.0` |
+| `ValueError: Grid image must be 1400x1120 pixels` | Wrong image dimensions | Use Nano Banana Pro to generate 4×5 grid (1400×1120px) |
+| `FileNotFoundError: template not found` | Custom template path invalid | Check `--template` path or use built-in template |
+| `Image mode not supported` | Input is not RGB/RGBA | Convert to PNG/JPEG before processing |
+
+### Validation Tips
+
+- Grid image must be exactly 1400×1120 pixels (4 rows × 5 columns × 280px)
+- Each cell should be 280×280 pixels
+- Use PNG or JPEG format for input
+- Output JPEG quality adjustable via `--quality` (default: 85)
+
+---
+
 ## Technical Details
 
 ### File Size Estimates
@@ -258,6 +278,22 @@ CODEには英語の表情コード（joy, elation等）を指定。
 - Format: JPEG (Base64)
 - Resolution: 280×280px per expression
 - Grid: 4 rows × 5 columns = 1400×1120px
+
+### Template Variables
+
+When using custom templates (`--template` option), the following placeholder is replaced:
+
+| Placeholder | Replaced With |
+|-------------|---------------|
+| `__IMAGES_PLACEHOLDER__` | JSON object containing Base64 images for all 20 expressions |
+
+Example template usage:
+```html
+<script>
+const images = __IMAGES_PLACEHOLDER__;
+// images = { "normal": "data:image/jpeg;base64,...", "smile": "...", ... }
+</script>
+```
 
 ---
 
