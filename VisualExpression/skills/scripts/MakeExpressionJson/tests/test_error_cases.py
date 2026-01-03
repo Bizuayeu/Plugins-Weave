@@ -40,6 +40,27 @@ class TestSpecialCodesValidation:
 
         assert "2" in str(exc.value)
 
+    def test_empty_string_in_special_codes(self):
+        """空文字列を含む場合のエラー"""
+        with pytest.raises(ValueError) as exc:
+            build_expression_codes(["wink", "", "smug", "starry"])
+
+        assert "empty" in str(exc.value).lower()
+
+    def test_duplicate_special_codes(self):
+        """重複コードを含む場合のエラー"""
+        with pytest.raises(ValueError) as exc:
+            build_expression_codes(["wink", "wink", "smug", "starry"])
+
+        assert "unique" in str(exc.value).lower() or "duplicate" in str(exc.value).lower()
+
+    def test_special_codes_overlap_with_base(self):
+        """Baseコードと衝突する場合のエラー"""
+        with pytest.raises(ValueError) as exc:
+            build_expression_codes(["normal", "smile", "focus", "diverge"])
+
+        assert "overlap" in str(exc.value).lower() or "normal" in str(exc.value)
+
 
 class TestHtmlBuilderErrors:
     """HtmlBuilder関連のエラーケーステスト"""

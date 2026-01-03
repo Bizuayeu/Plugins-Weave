@@ -58,13 +58,42 @@ def build_expression_codes(special_codes: list[str] | None = None) -> list[str]:
 
     Returns:
         List of 20 expression codes
+
+    Raises:
+        ValueError: If special_codes count is not 4, contains empty strings,
+                    has duplicates, or overlaps with Base codes.
     """
     if special_codes is None:
         special_codes = DEFAULT_SPECIAL_CODES
 
+    # Count validation (existing)
     if len(special_codes) != SPECIAL_CODES_COUNT:
         raise ValueError(
             f"Special codes must have exactly {SPECIAL_CODES_COUNT} items, got {len(special_codes)}"
+        )
+
+    # Empty string validation (new)
+    if any(not code.strip() for code in special_codes):
+        raise ValueError("Special codes cannot contain empty strings")
+
+    # Duplicate validation (new)
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for code in special_codes:
+        if code in seen:
+            duplicates.append(code)
+        seen.add(code)
+    if duplicates:
+        raise ValueError(
+            f"Special codes must be unique, found duplicates: {', '.join(set(duplicates))}"
+        )
+
+    # Base code overlap validation (new)
+    base_set = set(BASE_EXPRESSION_CODES)
+    overlaps = [code for code in special_codes if code in base_set]
+    if overlaps:
+        raise ValueError(
+            f"Special codes cannot overlap with Base codes: {', '.join(overlaps)}"
         )
 
     # Insert Special codes at positions 4, 9, 14, 19 (Col5 for each row)
