@@ -34,7 +34,7 @@ Not just sending mail — delivering **essays born from deep contemplation**.
 
 ## File Structure
 
-```
+```text
 EmailingEssay/
 ├── README.md                 # Quick start guide
 ├── SETUP.md                  # Environment setup & troubleshooting
@@ -125,7 +125,7 @@ Dependencies point inward only:
 
 ## Execution Flow
 
-```
+```text
 User → /essay command → essay_writer.md agent
                               ↓
                     reflect skill (ultrathink)

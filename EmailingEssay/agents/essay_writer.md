@@ -80,7 +80,7 @@ This agent is invoked via **Task tool** from the `/essay` command.
 
 ### Example Invocation
 
-```
+```text
 Task: Execute essay_writer.md agent
 Parameters:
   theme: "Weekly review"
