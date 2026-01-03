@@ -39,9 +39,12 @@
 | [README.md](README.md) | 全員 | クイックスタート（英語版） |
 | [README.jp.md](README.jp.md) | 全員 | クイックスタート（このファイル） |
 | [CHANGELOG.md](CHANGELOG.md) | 全員 | バージョン履歴 |
+| [LICENSE](LICENSE) | 全員 | MITライセンス |
+| [CLAUDE.md](CLAUDE.md) | 開発者 | 開発ガイドライン |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 開発者 | セットアップ＆貢献ガイド |
 | [skills/SKILL.md](skills/SKILL.md) | ユーザー | 完全ドキュメント |
 | [skills/scripts/MetaGenerateExpression.jp.md](skills/scripts/MetaGenerateExpression.jp.md) | ユーザー | Nano Banana Proプロンプト生成ガイド |
+| [.claude-plugin/plugin.json](.claude-plugin/plugin.json) | 開発者 | プラグインメタデータ |
 
 ---
 

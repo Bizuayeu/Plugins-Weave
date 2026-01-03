@@ -39,9 +39,12 @@ Visual expression system for AI personas with emotion-based face switching.
 | [README.md](README.md) | Everyone | Quick start (this file) |
 | [README.jp.md](README.jp.md) | Everyone | Japanese documentation |
 | [CHANGELOG.md](CHANGELOG.md) | Everyone | Version history |
+| [LICENSE](LICENSE) | Everyone | MIT License |
+| [CLAUDE.md](CLAUDE.md) | Developers | Development guidelines |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Setup & contribution guide |
 | [skills/SKILL.md](skills/SKILL.md) | Users | Full documentation |
 | [skills/scripts/MetaGenerateExpression.md](skills/scripts/MetaGenerateExpression.md) | Users | Nano Banana Pro prompt generator |
+| [.claude-plugin/plugin.json](.claude-plugin/plugin.json) | Developers | Plugin metadata |
 
 ---
 

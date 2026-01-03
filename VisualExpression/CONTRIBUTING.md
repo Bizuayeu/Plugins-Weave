@@ -15,7 +15,9 @@ VisualExpression/
 ├── README.md                    # Quick start guide (English)
 ├── README.jp.md                 # Quick start guide (Japanese)
 ├── CHANGELOG.md                 # Version history
+├── CLAUDE.md                    # Development guidelines
 ├── CONTRIBUTING.md              # This file
+├── LICENSE                      # MIT License
 ├── .claude-plugin/
 │   └── plugin.json              # Claude Code plugin metadata
 └── skills/
@@ -104,7 +106,7 @@ flowchart TB
 
 The MakeExpressionJson pipeline processes images in this order:
 
-1. **Split**: Grid image (1400×1120px) → 20 individual expressions (280×280px)
+1. **Split**: Grid image → 20 individual expressions
 2. **Encode**: Convert each image to Base64 JPEG
 3. **Build**: Inject Base64 data into HTML template
 4. **Package**: Create ZIP for distribution (optional)
@@ -112,7 +114,7 @@ The MakeExpressionJson pipeline processes images in this order:
 ```
 your_grid.png
     ↓
-[split] → 20 individual images (280×280px)
+[split] → 20 individual images
     ↓
 [encode] → ExpressionImages.json (Base64)
     ↓
@@ -121,7 +123,7 @@ your_grid.png
 [package] → VisualExpressionSkills.zip (optional)
 ```
 
-For CLI options and detailed usage, see [SKILL.md](skills/SKILL.md#makexpressionjson).
+For image specifications (grid size, cell dimensions), CLI options, and detailed usage, see [SKILL.md Technical Details](skills/SKILL.md#technical-details).
 
 ## How to Contribute
 
@@ -157,7 +159,7 @@ python -m pytest tests/ -v
 ```
 
 **Test Structure:**
-- 232 test cases across 20 test files
+- 238 test cases across 20 test files
 - 90%+ code coverage
 - Tests for: image splitting, Base64 encoding, HTML building, file handling, ZIP packaging
 
