@@ -31,13 +31,13 @@ Claude Code Plugin Marketplace
 
 ```ClaudeCLI
 # EpisodicRAG (Long-term Memory Management)
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 
 # EmailingEssay (Essay Delivery)
-/plugin install EmailingEssay-Plugin@Plugins-Weave
+/plugin install EmailingEssay@Plugins-Weave
 
 # VisualExpression (Visual Expression)
-/plugin install VisualExpression-Plugin@Plugins-Weave
+/plugin install VisualExpression@Plugins-Weave
 ```
 
 ---

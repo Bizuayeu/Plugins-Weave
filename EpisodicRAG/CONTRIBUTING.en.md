@@ -92,12 +92,12 @@ Execute the following in Claude Code:
 #### 3. Install the Plugin
 
 ```ClaudeCLI
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 ```
 
 **Success output**:
 ```text
-✅ Plugin 'EpisodicRAG-Plugin' installed successfully
+✅ Plugin 'EpisodicRAG' installed successfully
 ```
 
 #### 4. Initial Setup
@@ -128,10 +128,10 @@ After modifying plugin code, retest with:
 
 ```ClaudeCLI
 # 1. Uninstall
-/plugin uninstall EpisodicRAG-Plugin@Plugins-Weave
+/plugin uninstall EpisodicRAG@Plugins-Weave
 
 # 2. Reinstall
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 
 # 3. Setup (if needed)
 @digest-setup
@@ -342,7 +342,7 @@ git status
 1. **Always check git status after installation**
 2. **Don't commit configuration files to the development folder**
 3. **Edit configuration on the installed plugin side**
-   - Installation location: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/`
+   - Installation location: `~/.claude/plugins/EpisodicRAG/`
 
 For details, see [TROUBLESHOOTING.md](docs/user/TROUBLESHOOTING.md#開発環境とインストール環境の混在).
 
@@ -539,7 +539,7 @@ Version information's single source of truth is the `version` field in `.claude-
 ```json
 // .claude-plugin/plugin.json
 {
-  "name": "EpisodicRAG-Plugin",
+  "name": "EpisodicRAG",
   "version": "x.y.z",  // ← This is SSoT - see plugin.json for actual value
   ...
 }

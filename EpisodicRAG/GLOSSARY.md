@@ -52,7 +52,7 @@ EpisodicRAGは環境によって異なるパスを使用します：
 |------|---------|-----|
 | **開発環境** | ソースコード直接 | `plugins-weave/EpisodicRAG/` |
 | **マーケットプレース** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
-| **プラグイン直接インストール** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/` |
+| **プラグイン直接インストール** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG/` |
 
 **重要**: 設定ファイル（config.json）は永続化ディレクトリ（`~/.claude/plugins/.episodicrag/`）に自動配置されます。データはインストール先に配置します。開発環境のソースコードディレクトリには配置しないでください。
 

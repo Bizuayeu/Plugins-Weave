@@ -31,7 +31,7 @@
 └── last_digest_times.json               # Digest処理時刻
 
 # プラグイン本体
-~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/
+~/.claude/plugins/EpisodicRAG/
 ├── .claude-plugin/
 │   ├── CLAUDE.md                        # AIエージェント向け指示
 │   ├── config.template.json             # 設定テンプレート
@@ -498,7 +498,7 @@ class DigestConfig:
 
 **解決:**
 ```text
-plugin_root = ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
+plugin_root = ~/.claude/plugins/EpisodicRAG
 base_dir = ~/.claude/plugins/.episodicrag （永続化ディレクトリ）
 loops_path = base_dir / data/Loops
            = ~/.claude/plugins/.episodicrag/data/Loops
@@ -520,7 +520,7 @@ loops_path = base_dir / data/Loops
 
 **解決:**
 ```text
-plugin_root = ~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave
+plugin_root = ~/.claude/plugins/EpisodicRAG
 base_dir = ~/DEV/production/EpisodicRAG （trusted_external_paths内なので許可）
 loops_path = base_dir / data/Loops
            = ~/DEV/production/EpisodicRAG/data/Loops

@@ -30,13 +30,13 @@ Claude Code プラグインマーケットプレイス
 
 ```ClaudeCLI
 # EpisodicRAG（長期記憶管理）
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 
 # EmailingEssay（エッセイ配信）
-/plugin install EmailingEssay-Plugin@Plugins-Weave
+/plugin install EmailingEssay@Plugins-Weave
 
 # VisualExpression（表情表現）
-/plugin install VisualExpression-Plugin@Plugins-Weave
+/plugin install VisualExpression@Plugins-Weave
 ```
 
 ---

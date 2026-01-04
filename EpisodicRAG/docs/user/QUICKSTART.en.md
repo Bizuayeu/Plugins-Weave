@@ -56,7 +56,7 @@ flowchart LR
 ### 1-2. Install Plugin
 
 ```ClaudeCLI
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 ```
 
 ---

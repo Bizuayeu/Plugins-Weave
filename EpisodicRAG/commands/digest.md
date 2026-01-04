@@ -178,7 +178,7 @@ python -m interfaces.digest_entry --output json
 
 #### Step 4: DigestAnalyzer起動
 
-**使用ツール**: `Task(subagent_type="EpisodicRAG-Plugin:DigestAnalyzer")`
+**使用ツール**: `Task(subagent_type="EpisodicRAG:DigestAnalyzer")`
 
 **起動方法**: Step 3で追加した各Loopファイルに対して**並列**でTaskを起動
 
@@ -487,7 +487,7 @@ python -m interfaces.digest_readiness <level>
 
 **前提条件**: Step 3で`can_finalize: false`の場合のみ実行
 
-**使用ツール**: `Task(subagent_type="EpisodicRAG-Plugin:DigestAnalyzer")`
+**使用ツール**: `Task(subagent_type="EpisodicRAG:DigestAnalyzer")`
 
 **起動方法**: shadow_state.source_filesの各ファイルに対して**並列**でTaskを起動
 
@@ -498,7 +498,7 @@ python -m interfaces.digest_readiness <level>
 **プロンプト例**:
 ```python
 Task(
-    subagent_type="EpisodicRAG-Plugin:DigestAnalyzer",
+    subagent_type="EpisodicRAG:DigestAnalyzer",
     description=f"Analyze {source_file} for Weekly digest",
     prompt=f"""
 分析対象ファイル: {file_path}
@@ -666,7 +666,7 @@ python -m interfaces.finalize_from_shadow monthly "理論的深化・実装加�
 
    ```python
    Task(
-       subagent_type="EpisodicRAG-Plugin:DigestAnalyzer",
+       subagent_type="EpisodicRAG:DigestAnalyzer",
        description=f"Analyze {source_file} for next level digest",
        prompt=f"""
    分析対象ファイル: {file_path}

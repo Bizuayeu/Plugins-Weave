@@ -56,7 +56,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 /marketplace add https://github.com/Bizuayeu/Plugins-Weave
 
 # 2. プラグインインストール
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 
 # 3. 初期セットアップ（対話形式）
 @digest-setup

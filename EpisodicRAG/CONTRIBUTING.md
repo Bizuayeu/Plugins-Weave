@@ -91,12 +91,12 @@ Claude Codeで以下を実行：
 #### 3. プラグインのインストール
 
 ```ClaudeCLI
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 ```
 
 **成功時の出力**:
 ```text
-✅ Plugin 'EpisodicRAG-Plugin' installed successfully
+✅ Plugin 'EpisodicRAG' installed successfully
 ```
 
 #### 4. 初期セットアップ
@@ -127,10 +127,10 @@ Claude Codeで以下を実行：
 
 ```ClaudeCLI
 # 1. アンインストール
-/plugin uninstall EpisodicRAG-Plugin@Plugins-Weave
+/plugin uninstall EpisodicRAG@Plugins-Weave
 
 # 2. 再インストール
-/plugin install EpisodicRAG-Plugin@Plugins-Weave
+/plugin install EpisodicRAG@Plugins-Weave
 
 # 3. セットアップ（必要に応じて）
 @digest-setup
@@ -478,7 +478,7 @@ git status
 1. **インストール後は必ずgit statusで確認**
 2. **設定ファイルは開発フォルダにコミットしない**
 3. **設定の編集はインストール済プラグイン側で行う**
-   - インストール先: `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/`
+   - インストール先: `~/.claude/plugins/EpisodicRAG/`
 
 詳細は[TROUBLESHOOTING.md](docs/user/TROUBLESHOOTING.md#開発環境とインストール環境の混在)を参照してください。
 
@@ -538,7 +538,7 @@ python -m pytest test/ -v
 ```json
 // .claude-plugin/plugin.json
 {
-  "name": "EpisodicRAG-Plugin",
+  "name": "EpisodicRAG",
   "version": "x.y.z",  // ← ここがSSoT - 実際の値は plugin.json を参照
   ...
 }

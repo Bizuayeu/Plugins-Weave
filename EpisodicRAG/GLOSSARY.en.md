@@ -53,7 +53,7 @@ EpisodicRAG uses different paths depending on the environment:
 |-------------|-------------|---------|
 | **Development** | Source code directly | `plugins-weave/EpisodicRAG/` |
 | **Marketplace** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
-| **Direct Plugin Install** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG-Plugin@Plugins-Weave/` |
+| **Direct Plugin Install** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG/` |
 
 **Important**: Configuration files (config.json) are automatically stored in the persistent directory (`~/.claude/plugins/.episodicrag/`). Data is placed in the installation directory. Do not place them in the development source code directory.
 
