@@ -26,12 +26,31 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 
 ## Navigation
 
+### EpisodicRAG
+
 | Your Goal | Reference |
 |-----------|-----------|
-| 🚀 **Getting started** | [EpisodicRAG QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) |
+| 🚀 **Getting started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) |
 | 📚 **Look up terms** | [Glossary](EpisodicRAG/GLOSSARY.en.md) |
 | ❓ **Solve problems** | [FAQ](EpisodicRAG/docs/user/FAQ.md) / [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
 | 🛠️ **Contribute** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.en.md) |
+
+### EmailingEssay
+
+| Your Goal | Reference |
+|-----------|-----------|
+| 🚀 **Getting started** | [SETUP](EmailingEssay/SETUP.md) |
+| 💡 **Understand concept** | [CONCEPT](EmailingEssay/CONCEPT.md) |
+| 📖 **Command reference** | [essay.md](EmailingEssay/commands/essay.md) |
+| 🛠️ **Contribute** | [CONTRIBUTING](EmailingEssay/CONTRIBUTING.md) |
+
+### VisualExpression
+
+| Your Goal | Reference |
+|-----------|-----------|
+| 🚀 **Getting started** | [README](VisualExpression/README.md) |
+| 📖 **Skill specification** | [SKILL](VisualExpression/skills/SKILL.md) |
+| 🛠️ **Contribute** | [CONTRIBUTING](VisualExpression/CONTRIBUTING.md) |
 
 ---
 

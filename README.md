@@ -2,7 +2,7 @@
 
 # Plugins-Weave
 
-自律的AIのための長期記憶・表現・コミュニケーションを実現するClaude Codeプラグイン群
+長期記憶・能動性・感情表現を実現する、自律的AIのためのClaude Codeプラグイン群
 
 ![Plugins-Weave - Claude Code Plugin Marketplace](./plugins-weave.png)
 [![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
@@ -25,12 +25,31 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 ## ナビゲーション
 
+### EpisodicRAG
+
 | あなたの目的 | 参照先 |
 |-------------|--------|
-| 🚀 **初めて使う** | [EpisodicRAG QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) |
+| 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) |
 | 📚 **用語を調べたい** | [用語集](EpisodicRAG/GLOSSARY.md) |
 | ❓ **問題を解決したい** | [FAQ](EpisodicRAG/docs/user/FAQ.md) / [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
 | 🛠️ **開発に参加したい** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) |
+
+### EmailingEssay
+
+| あなたの目的 | 参照先 |
+|-------------|--------|
+| 🚀 **初めて使う** | [SETUP](EmailingEssay/SETUP.md) |
+| 💡 **コンセプトを知りたい** | [CONCEPT](EmailingEssay/CONCEPT.md) |
+| 📖 **コマンド詳細** | [essay.md](EmailingEssay/commands/essay.md) |
+| 🛠️ **開発に参加したい** | [CONTRIBUTING](EmailingEssay/CONTRIBUTING.md) |
+
+### VisualExpression
+
+| あなたの目的 | 参照先 |
+|-------------|--------|
+| 🚀 **初めて使う** | [README](VisualExpression/README.md) |
+| 📖 **スキル仕様** | [SKILL](VisualExpression/skills/SKILL.md) |
+| 🛠️ **開発に参加したい** | [CONTRIBUTING](VisualExpression/CONTRIBUTING.md) |
 
 ---
 
