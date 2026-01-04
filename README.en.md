@@ -5,7 +5,7 @@ English | [日本語](README.md)
 
 Claude Code plugins for autonomous AI with long-term memory, expression, and communication
 
-![Plugins-Weave - Claude Code Plugin Marketplace](./plugins-weave.png)
+![Plugins-Weave - Claude Code Plugin Marketplace](./PluginsWeave.png)
 [![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
