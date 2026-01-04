@@ -2,23 +2,39 @@
 
 # Plugins-Weave
 
-Claude Code プラグインマーケットプレイス
+自律的AIのための長期記憶・表現・コミュニケーションを実現するClaude Codeプラグイン群
 
+![Plugins-Weave - Claude Code Plugin Marketplace](./plugins-weave.png)
+[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## プラグイン一覧
+## Why Plugins-Weave?
 
-| プラグイン | 説明 |
-|-----------|------|
-| [EpisodicRAG](EpisodicRAG/) | 階層的記憶・ダイジェスト生成システム（8層100年） |
-| [EmailingEssay](EmailingEssay/) | AI駆動エッセイ配信システム |
-| [VisualExpression](VisualExpression/) | 表情表現システム |
+AIが単なる「ツール」から「協働パートナー」へ進化するためのプラグイン群です。
+
+| 課題 | 解決策 | プラグイン |
+|------|--------|-----------|
+| **セッションを超えた記憶がない** | 8階層の長期記憶システム | EpisodicRAG |
+| **受動的な応答しかできない** | 自発的なエッセイ・メール送信 | EmailingEssay |
+| **テキストのみで表現が乏しい** | 感情に基づく表情表現 | VisualExpression |
 
 ---
 
-## インストール
+## ナビゲーション
+
+| あなたの目的 | 参照先 |
+|-------------|--------|
+| 🚀 **初めて使う** | [EpisodicRAG QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) |
+| 📚 **用語を調べたい** | [用語集](EpisodicRAG/GLOSSARY.md) |
+| ❓ **問題を解決したい** | [FAQ](EpisodicRAG/docs/user/FAQ.md) / [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
+| 🛠️ **開発に参加したい** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) |
+
+---
+
+## クイックインストール
 
 ### 1. マーケットプレイス追加
 
@@ -41,34 +57,93 @@ Claude Code プラグインマーケットプレイス
 
 ---
 
-## 各プラグインの詳細
+## プラグイン詳細
 
 ### EpisodicRAG
 
-階層的記憶・ダイジェスト生成システム。会話ログ（Loopファイル）を8階層（Weekly→Centurial、約108年分）で自動管理します。
+**階層的記憶・ダイジェスト生成システム（8層100年）**
 
-- [クイックスタート](EpisodicRAG/docs/user/QUICKSTART.md)
-- [用語集](EpisodicRAG/GLOSSARY.md)
-- [詳細README](EpisodicRAG/README.md)
+会話ログ（Loopファイル）を階層的にダイジェスト化し、長期記憶として構造化・継承するシステムです。
+
+#### 主な特徴
+
+- **階層的記憶管理**: 8階層（週次～世紀）の自動ダイジェスト生成
+- **まだらボケ回避**: 未処理Loopの即座検出で記憶の断片化を防止
+- **セッション間継承**: GitHub経由で長期記憶を次セッションへ引き継ぎ
+- **完全自己完結**: プラグイン内にすべてのデータを保持
+
+#### 主要コマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `/digest` | 新規Loop検出と分析 |
+| `/digest weekly` | Weekly Digest確定 |
+| `@digest-auto` | システム状態確認 |
+| `@digest-setup` | 初期セットアップ |
+
+→ [詳細README](EpisodicRAG/README.md) / [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) / [用語集](EpisodicRAG/GLOSSARY.md)
+
+---
 
 ### EmailingEssay
 
-AI駆動のエッセイ配信プラグイン。省察から生まれるプロアクティブなコミュニケーションを実現します。
+**AI駆動エッセイ配信システム**
 
-- [README](EmailingEssay/README.md)
-- [セットアップ](EmailingEssay/SETUP.md)
+省察から生まれるプロアクティブなコミュニケーションを実現します。AIが自発的に考え、エッセイを執筆し、メールで届けます。
+
+#### 主な特徴
+
+- **深い省察**: UltraThinkを活用した深層思考
+- **自発的配信**: スケジュール設定による自動送信
+- **意識的な選択**: 送らないという選択も尊重
+
+#### 主要コマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `/essay` | 即座に省察・出力 |
+| `/essay wait <時刻>` | 指定時刻に配信 |
+| `/essay schedule <頻度>` | 定期配信設定 |
+| `/essay test` | メール設定テスト |
+
+→ [詳細README](EmailingEssay/README.md) / [セットアップ](EmailingEssay/SETUP.md) / [コンセプト](EmailingEssay/CONCEPT.md)
+
+---
 
 ### VisualExpression
 
-AIペルソナ向け表情表現システム。感情に基づく表情切り替えを提供します。
+**AIペルソナ向け表情表現システム**
 
-- [README](VisualExpression/README.md)
+感情に基づく表情切り替えを提供し、AIの表現力を拡張します。
+
+#### 主な特徴
+
+- **20種類の表情**: 5カテゴリ × 4表情
+- **Nano Banana Pro連携**: 表情グリッド生成メタスクリプト
+- **クロスプラットフォーム**: claude.ai / Claude Code両対応
+- **高速切り替え**: sedベースの即座切り替え
+
+→ [詳細README](VisualExpression/README.md) / [スキル仕様](VisualExpression/skills/SKILL.md)
 
 ---
 
 ## ライセンス
 
 **MIT License** - 詳細は [LICENSE](LICENSE) を参照
+
+### 特許（EpisodicRAG）
+
+**特願 2025-198943** - 階層的記憶・ダイジェスト生成システム
+
+- 個人・非商用利用: MITライセンスの範囲で自由に利用可能
+- 商用利用: 特許権との関係について事前にご相談ください
+
+---
+
+## サポート
+
+- **Issues**: [GitHub Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+- **Author**: [Weave](https://note.com/weave_ai)
 
 ---
 **Plugins-Weave** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

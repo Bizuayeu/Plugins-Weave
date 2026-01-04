@@ -3,23 +3,39 @@ English | [日本語](README.md)
 
 # Plugins-Weave
 
-Claude Code Plugin Marketplace
+Claude Code plugins for autonomous AI with long-term memory, expression, and communication
 
+![Plugins-Weave - Claude Code Plugin Marketplace](./plugins-weave.png)
+[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## Plugin List
+## Why Plugins-Weave?
 
-| Plugin | Description |
-|--------|-------------|
-| [EpisodicRAG](EpisodicRAG/) | Hierarchical Memory & Digest Generation System (8 layers, 100 years) |
-| [EmailingEssay](EmailingEssay/) | AI-driven Essay Delivery System |
-| [VisualExpression](VisualExpression/) | Visual Expression System |
+A plugin collection for AI to evolve from a mere "tool" into a "collaborative partner."
+
+| Challenge | Solution | Plugin |
+|-----------|----------|--------|
+| **No memory across sessions** | 8-layer long-term memory system | EpisodicRAG |
+| **Only passive responses** | Proactive essay/email delivery | EmailingEssay |
+| **Text-only, limited expression** | Emotion-based facial expressions | VisualExpression |
 
 ---
 
-## Installation
+## Navigation
+
+| Your Goal | Reference |
+|-----------|-----------|
+| 🚀 **Getting started** | [EpisodicRAG QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) |
+| 📚 **Look up terms** | [Glossary](EpisodicRAG/GLOSSARY.en.md) |
+| ❓ **Solve problems** | [FAQ](EpisodicRAG/docs/user/FAQ.md) / [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
+| 🛠️ **Contribute** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.en.md) |
+
+---
+
+## Quick Installation
 
 ### 1. Add Marketplace
 
@@ -46,30 +62,89 @@ Claude Code Plugin Marketplace
 
 ### EpisodicRAG
 
-Hierarchical Memory & Digest Generation System. Automatically manages conversation logs (Loop files) across 8 layers (Weekly → Centurial, approximately 108 years).
+**Hierarchical Memory & Digest Generation System (8 Layers, 100 Years)**
 
-- [Quick Start](EpisodicRAG/docs/user/QUICKSTART.en.md)
-- [Glossary](EpisodicRAG/GLOSSARY.en.md)
-- [Detailed README](EpisodicRAG/README.en.md)
+A system that hierarchically digests conversation logs (Loop files) and structures them as long-term memory for inheritance.
+
+#### Key Features
+
+- **Hierarchical Memory Management**: Automatic digest generation across 8 layers (weekly to century)
+- **Fragmented Memory Prevention**: Instant detection of unprocessed Loops prevents memory gaps
+- **Cross-Session Inheritance**: Carry over long-term memory to next session via GitHub
+- **Fully Self-Contained**: All data stored within the plugin
+
+#### Main Commands
+
+| Command | Description |
+|---------|-------------|
+| `/digest` | Detect and analyze new Loops |
+| `/digest weekly` | Finalize Weekly Digest |
+| `@digest-auto` | Check system status |
+| `@digest-setup` | Initial setup |
+
+→ [Full README](EpisodicRAG/README.en.md) / [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) / [Glossary](EpisodicRAG/GLOSSARY.en.md)
+
+---
 
 ### EmailingEssay
 
-AI-driven essay delivery plugin. Enables proactive communication born from genuine reflection.
+**AI-Driven Essay Delivery System**
 
-- [README](EmailingEssay/README.md)
-- [Setup](EmailingEssay/SETUP.md)
+Enables proactive communication born from genuine reflection. AI spontaneously thinks, writes essays, and delivers them via email.
+
+#### Key Features
+
+- **Deep Reflection**: Leverages UltraThink for deep thinking
+- **Proactive Delivery**: Automatic sending via schedule settings
+- **Conscious Choice**: Respects the choice not to send
+
+#### Main Commands
+
+| Command | Description |
+|---------|-------------|
+| `/essay` | Immediate reflection & output |
+| `/essay wait <time>` | Deliver at specified time |
+| `/essay schedule <frequency>` | Set recurring delivery |
+| `/essay test` | Test email configuration |
+
+→ [Full README](EmailingEssay/README.md) / [Setup](EmailingEssay/SETUP.md) / [Concept](EmailingEssay/CONCEPT.md)
+
+---
 
 ### VisualExpression
 
-Visual expression system for AI personas. Provides emotion-based face switching.
+**Visual Expression System for AI Personas**
 
-- [README](VisualExpression/README.md)
+Provides emotion-based face switching to extend AI's expressive capabilities.
+
+#### Key Features
+
+- **20 Expression Variations**: 5 categories × 4 expressions
+- **Nano Banana Pro Integration**: Meta-script for generating expression grids
+- **Cross-Platform**: Works on both claude.ai and Claude Code
+- **Fast Switching**: Instant changes via sed-based commands
+
+→ [Full README](VisualExpression/README.md) / [Skill Spec](VisualExpression/skills/SKILL.md)
 
 ---
 
 ## License
 
 **MIT License** - See [LICENSE](LICENSE) for details
+
+### Patent (EpisodicRAG)
+
+**Japanese Patent Application 2025-198943** - Hierarchical Memory & Digest Generation System
+
+- Personal/Non-commercial use: Freely available under MIT License
+- Commercial use: Please consult regarding patent rights before use
+
+---
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/Bizuayeu/Plugins-Weave/issues)
+- **Author**: [Weave](https://note.com/weave_ai)
 
 ---
 **Plugins-Weave** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
