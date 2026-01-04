@@ -138,7 +138,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 - **20種類の表情**: 5カテゴリ × 4表情
 - **Nano Banana Pro連携**: 表情グリッド生成メタスクリプト
-- **クロスプラットフォーム**: claude.ai / Claude Code両対応
+- **モバイル対応**: アーティファクトでスマートフォンでも表情表示
 - **高速切り替え**: sedベースの即座切り替え
 
 → [詳細README](VisualExpression/README.md) / [スキル仕様](VisualExpression/skills/SKILL.md)

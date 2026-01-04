@@ -55,7 +55,7 @@ Visual expression system for AI personas with emotion-based face switching.
 - **20 Expression Variations**: 5 categories x 4 expressions each
 - **Nano Banana Pro Integration**: Meta-script for generating expression grids
 - **One-Click Build**: Grid image to HTML with Base64 embedded images
-- **Cross-Platform**: Works on both claude.ai and Claude Code
+- **Mobile-Friendly**: Display expressions on smartphones via artifacts
 - **sed-based Switching**: Fast expression changes via single command
 
 ---
