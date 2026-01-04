@@ -90,7 +90,6 @@ A system that hierarchically digests conversation logs (Loop files) and structur
 - **Hierarchical Memory Management**: Automatic digest generation across 8 layers (weekly to century)
 - **Fragmented Memory Prevention**: Instant detection of unprocessed Loops prevents memory gaps
 - **Cross-Session Inheritance**: Carry over long-term memory to next session via GitHub
-- **Fully Self-Contained**: All data stored within the plugin
 
 #### Main Commands
 

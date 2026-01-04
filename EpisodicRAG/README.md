@@ -5,7 +5,7 @@
 
 # EpisodicRAG Plugin
 
-階層的記憶・ダイジェスト生成システム（8 層 100 年、完全自己完結版）
+階層的記憶・ダイジェスト生成システム（8 層 100 年）
 
 ![EpisodicRAG Plugin - 8階層の階層的記憶管理システムのアーキテクチャ図](./EpisodicRAG.png)
 [![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
@@ -24,7 +24,6 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 - **階層的記憶管理**: 8 階層（週次～世紀）の自動ダイジェスト生成
 - **まだらボケ回避**: 未処理 Loop の即座検出で記憶の断片化を防止
 - **セッション間継承**: GitHub 経由で長期記憶を次セッションへ引き継ぎ
-- **完全自己完結**: プラグイン内にすべてのデータを保持（既存プロジェクト統合も可）
 
 ---
 

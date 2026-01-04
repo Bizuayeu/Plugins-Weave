@@ -6,7 +6,7 @@ English | [日本語](README.md)
 
 # EpisodicRAG Plugin
 
-Hierarchical Memory & Digest Generation System (8 Layers, 100 Years, Fully Self-Contained)
+Hierarchical Memory & Digest Generation System (8 Layers, 100 Years)
 
 ![EpisodicRAG Plugin - Architecture diagram of 8-layer hierarchical memory management system](./EpisodicRAG.png)
 [![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
@@ -25,7 +25,6 @@ EpisodicRAG is a system that hierarchically digests conversation logs (Loop file
 - **Hierarchical Memory Management**: Automatic digest generation across 8 layers (weekly to century)
 - **Fragmented Memory Prevention**: Instant detection of unprocessed Loops prevents memory gaps
 - **Cross-Session Inheritance**: Carry over long-term memory to next session via GitHub
-- **Fully Self-Contained**: All data stored within the plugin (can also integrate with existing projects)
 
 ---
 
