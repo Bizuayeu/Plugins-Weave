@@ -203,7 +203,7 @@ Loop追加 → /digest → 記憶定着 → Loop追加 → ...
 - **クイックスタート**: [QUICKSTART.md](docs/user/QUICKSTART.md)
 - **使い方ガイド**: [GUIDE.md](docs/user/GUIDE.md)
 - **技術仕様**: [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md)
-- **用語集**: [README.md](README.md)
+- **用語集**: [GLOSSARY.md](GLOSSARY.md)
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

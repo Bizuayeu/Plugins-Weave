@@ -139,7 +139,7 @@ Triennial → Decadal → Multi-decadal → Centurial
 
 ## 関連ドキュメント
 
-- [用語集・リファレンス](../../README.md) - 用語定義・共通概念
+- [用語集・リファレンス](../../GLOSSARY.md) - 用語定義・共通概念
 - [API_REFERENCE.md](../../docs/dev/API_REFERENCE.md) - DigestConfig API
 - [ARCHITECTURE.md](../../docs/dev/ARCHITECTURE.md) - 技術仕様
 - [interfaces/](../../scripts/interfaces/) - Python化スキル実装（digest_setup, digest_config, digest_auto）

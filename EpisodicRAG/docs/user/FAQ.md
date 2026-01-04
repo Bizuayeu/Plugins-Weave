@@ -36,7 +36,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 **A**: AI会話履歴を8階層で構造化し、セッション間で記憶を引き継ぐプラグインです。
 
-> 📖 詳細: [用語集](../../README.md)
+> 📖 詳細: [用語集](../../GLOSSARY.md)
 
 ### Q: 無料で使えますか？
 
@@ -66,7 +66,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 > 📖 詳細手順: [TROUBLESHOOTING.md](TROUBLESHOOTING.md#外部パス設定エラー)
 >
-> 📖 概念説明: [用語集](../../README.md#基本概念)
+> 📖 概念説明: [用語集](../../GLOSSARY.md#基本概念)
 
 ### Q: trusted_external_pathsとは何ですか？
 
@@ -78,7 +78,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 }
 ```
 
-> 📖 詳細: [用語集](../../README.md#trusted_external_paths)、[TROUBLESHOOTING.md](TROUBLESHOOTING.md#外部パス設定エラー)
+> 📖 詳細: [用語集](../../GLOSSARY.md#trusted_external_paths)、[TROUBLESHOOTING.md](TROUBLESHOOTING.md#外部パス設定エラー)
 
 ---
 
@@ -90,7 +90,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 **例**: `L00001_認知アーキテクチャ論.txt`、`L00225_プロジェクト振り返り.txt`
 
-> 📖 詳細（正規表現・連番ルール）: [用語集](../../README.md#ファイル命名規則)
+> 📖 詳細（正規表現・連番ルール）: [用語集](../../GLOSSARY.md#ファイル命名規則)
 
 ### Q: `/digest`と`/digest weekly`の違いは？
 
@@ -122,7 +122,7 @@ flowchart TB
 
 **A**: AIがLoopの内容を記憶できていない状態です。`Loop追加 → /digest`のサイクルで予防できます。
 
-> 📖 発生パターン・対策・記憶定着サイクルの詳細は [用語集](../../README.md#まだらボケ) を参照
+> 📖 発生パターン・対策・記憶定着サイクルの詳細は [用語集](../../GLOSSARY.md#まだらボケ) を参照
 
 ### Q: threshold（閾値）を変更したい
 
@@ -283,13 +283,13 @@ https://github.com/Bizuayeu/Plugins-Weave で "キーワード" を検索
 Ctrl+Shift+F → plugins-weave フォルダで検索
 ```
 
-> 💡 主要な用語は [用語集](../../README.md#用語インデックス) にインデックスがあります。
+> 💡 主要な用語は [用語集](../../GLOSSARY.md#用語インデックス) にインデックスがあります。
 
 ---
 
 ## 関連ドキュメント
 
-- [用語集](../../README.md) - 用語・共通概念
+- [用語集](../../GLOSSARY.md) - 用語・共通概念
 - [QUICKSTART.md](QUICKSTART.md) - 5分チュートリアル
 - [GUIDE.md](GUIDE.md) - ユーザーガイド
 - [CHEATSHEET.md](CHEATSHEET.md) - コマンド早見表

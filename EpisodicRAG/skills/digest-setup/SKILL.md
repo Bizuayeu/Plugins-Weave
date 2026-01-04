@@ -19,7 +19,7 @@ EpisodicRAG プラグインの初期セットアップを対話的に実行す�
 
 ## 用語説明
 
-> 📖 パス用語（plugin_root / base_dir / paths）・ID桁数・命名規則は [用語集](../../README.md#基本概念) を参照
+> 📖 パス用語（plugin_root / base_dir / paths）・ID桁数・命名規則は [用語集](../../GLOSSARY.md#基本概念) を参照
 
 ---
 
@@ -65,7 +65,7 @@ Claude がユーザーに確認する項目：
 - Q4: 外部Identity.md
 - Q5: Threshold設定
 
-> 📖 `trusted_external_paths` の詳細は [用語集](../../README.md#trusted_external_paths) を参照
+> 📖 `trusted_external_paths` の詳細は [用語集](../../GLOSSARY.md#trusted_external_paths) を参照
 
 ### CLI内部処理（Step 4）
 

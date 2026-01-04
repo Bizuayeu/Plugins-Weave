@@ -7,7 +7,7 @@ EpisodicRAGプラグインの**Python API仕様書**です。
 
 > **対応バージョン**: EpisodicRAG Plugin（[version.py](../../scripts/domain/version.py) 参照）/ ファイルフォーマット 1.0
 
-> 📖 用語・共通概念: [用語集](../../README.md)
+> 📖 用語・共通概念: [用語集](../../GLOSSARY.md)
 
 ---
 
@@ -109,7 +109,7 @@ EpisodicRAGで使用されているデザインパターン一覧：
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 技術仕様・データフロー
 - [CHANGELOG.md](../../CHANGELOG.md) - バージョン履歴・Breaking Changes
-- [用語集](../../README.md) - 用語・共通概念
+- [用語集](../../GLOSSARY.md) - 用語・共通概念
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - 開発参加ガイド
 
 ---

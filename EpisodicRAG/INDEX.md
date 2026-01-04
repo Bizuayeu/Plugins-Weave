@@ -79,7 +79,7 @@ EpisodicRAGプラグインの全ドキュメントへのナビゲーション。
 
 | ファイル | 説明 | 英語版 |
 |---------|------|-------|
-| [README.md](README.md) | 用語集・リファレンス | [EN](README.en.md) |
+| [GLOSSARY.md](GLOSSARY.md) | 用語集・リファレンス | [EN](GLOSSARY.en.md) |
 | [CONCEPT.md](CONCEPT.md) | 設計思想 | [EN](CONCEPT.en.md) |
 | [CHANGELOG.md](CHANGELOG.md) | 変更履歴 | [EN](CHANGELOG.en.md) |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 開発参加ガイド | [EN](CONTRIBUTING.en.md) |

@@ -101,7 +101,7 @@ python -m interfaces.digest_auto
 
 ## Shared Concepts
 
-> 📖 用語・共通概念は [EpisodicRAG/README.md](../README.md) を参照
+> 📖 用語・共通概念は [EpisodicRAG/GLOSSARY.md](../GLOSSARY.md) を参照
 >
 > 📖 設計思想・哲学は [CONCEPT.md](../CONCEPT.md) を参照
 

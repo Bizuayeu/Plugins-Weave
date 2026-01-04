@@ -11,7 +11,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Weave"}
 ]
-readme = "README.md"
+readme = "GLOSSARY.md"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

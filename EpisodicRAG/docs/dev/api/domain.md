@@ -7,7 +7,7 @@
 
 > **v4.0.0**: エラーフォーマッタがCompositeパターンに再編成されました。詳細は [DESIGN_DECISIONS.md](../DESIGN_DECISIONS.md) を参照。
 
-> 📖 用語・共通概念は [用語集](../../../README.md) を参照
+> 📖 用語・共通概念は [用語集](../../../GLOSSARY.md) を参照
 
 ```python
 from domain import (
@@ -67,7 +67,7 @@ print(DIGEST_FORMAT_VERSION) # "1.0"
 
 階層ごとの設定を定義する辞書。Single Source of Truth（唯一の真実の情報源）。
 
-> 📖 8階層のプレフィックス・桁数・時間スケールは [用語集](../../../README.md#8階層構造) を参照
+> 📖 8階層のプレフィックス・桁数・時間スケールは [用語集](../../../GLOSSARY.md#8階層構造) を参照
 
 ```python
 LEVEL_CONFIG: Dict[str, Dict[str, Any]] = {

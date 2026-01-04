@@ -7,7 +7,7 @@ config.json仕様とDigestConfigクラス。
 
 > **v4.0.0**: 設定管理機能は3層に分散配置されています。アーキテクチャ詳細は [ARCHITECTURE.md](../ARCHITECTURE.md#依存関係ルール) を参照。
 
-> 📖 用語・共通概念は [用語集](../../../README.md) を参照
+> 📖 用語・共通概念は [用語集](../../../GLOSSARY.md) を参照
 
 ```python
 from application.config import DigestConfig
@@ -269,7 +269,7 @@ class DigestConfig:
 
 ### プロパティ（パス関連）
 
-> 📖 パス用語の定義は [用語集](../../../README.md#基本概念) を参照
+> 📖 パス用語の定義は [用語集](../../../GLOSSARY.md#基本概念) を参照
 
 | プロパティ | 型 | 説明 |
 |-----------|-----|------|

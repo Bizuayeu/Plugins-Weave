@@ -1,4 +1,4 @@
-[English](README.en.md) | 日本語
+[English](GLOSSARY.en.md) | 日本語
 
 # EpisodicRAG Plugin - 用語集・リファレンス
 

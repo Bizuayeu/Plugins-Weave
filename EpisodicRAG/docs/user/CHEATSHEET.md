@@ -94,7 +94,7 @@
 | 初めての方 | [QUICKSTART.md](QUICKSTART.md) |
 | 日常操作 | [GUIDE.md](GUIDE.md) |
 | 高度な設定 | [ADVANCED.md](ADVANCED.md) |
-| 用語集 | [README.md](../../README.md) |
+| 用語集 | [GLOSSARY.md](../../GLOSSARY.md) |
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

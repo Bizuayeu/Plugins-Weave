@@ -296,7 +296,7 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ### 2. まだらボケ回避
 
-> 📖 まだらボケの詳細定義は [用語集](../README.md#まだらボケ) を参照
+> 📖 まだらボケの詳細定義は [用語集](../GLOSSARY.md#まだらボケ) を参照
 
 **ShadowGrandDigest 特有の重要概念**:
 

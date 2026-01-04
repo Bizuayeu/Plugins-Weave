@@ -71,7 +71,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 
 この「記憶定着サイクル」を守ることで、AIは全てのLoopを記憶できます。
 
-> 📖 詳細: [用語集 - 記憶定着サイクル](../README.md#記憶定着サイクル)
+> 📖 詳細: [用語集 - 記憶定着サイクル](../GLOSSARY.md#記憶定着サイクル)
 
 ---
 
@@ -179,14 +179,14 @@ from interfaces import DigestFinalizerFromShadow
 
 ### 共有概念の定義
 
-用語・共通概念は `README.md`（用語集・リファレンス）で定義されています。他のドキュメントでは**参照リンク**を使用してください：
+用語・共通概念は `GLOSSARY.md`（用語集・リファレンス）で定義されています。他のドキュメントでは**参照リンク**を使用してください：
 
 | 概念 | SSoTの場所 | 参照形式 |
 |------|-----------|---------|
-| まだらボケ | `README.md#まだらボケ` | `> 📖 詳細: [用語集](../../README.md#まだらボケ)` |
-| 記憶定着サイクル | `README.md#記憶定着サイクル` | 同上 |
-| 8階層構造 | `README.md#8階層構造` | 同上 |
-| 基本概念（パス用語） | `README.md#基本概念` | 同上 |
+| まだらボケ | `GLOSSARY.md#まだらボケ` | `> 📖 詳細: [用語集](../../GLOSSARY.md#まだらボケ)` |
+| 記憶定着サイクル | `GLOSSARY.md#記憶定着サイクル` | 同上 |
+| 8階層構造 | `GLOSSARY.md#8階層構造` | 同上 |
+| 基本概念（パス用語） | `GLOSSARY.md#基本概念` | 同上 |
 
 ### 実装ガイドライン
 
@@ -212,7 +212,7 @@ from interfaces import DigestFinalizerFromShadow
 
 ### ドキュメント変更時
 
-1. **概念の追加・変更**: まず `README.md`（用語集・リファレンス）を更新
+1. **概念の追加・変更**: まず `GLOSSARY.md`（用語集・リファレンス）を更新
 2. **参照の更新**: 関連ドキュメントの参照リンクを確認
 3. **breadcrumbの維持**: `docs/` 配下のファイルは breadcrumb を含める
 
@@ -255,7 +255,7 @@ from interfaces import DigestFinalizerFromShadow
 | API仕様 | `docs/dev/API_REFERENCE.md` |
 | アーキテクチャ | `docs/dev/ARCHITECTURE.md` |
 | トラブルシューティング | `docs/user/TROUBLESHOOTING.md` |
-| 用語集 | `README.md` |
+| 用語集 | `GLOSSARY.md` |
 | 開発者ガイド | `CONTRIBUTING.md` |
 
 ---
@@ -264,7 +264,7 @@ from interfaces import DigestFinalizerFromShadow
 
 ### やってはいけないこと
 
-- `README.md`（用語集）の内容を他のファイルに**コピー**する（参照リンクを使用）
+- `GLOSSARY.md`（用語集）の内容を他のファイルに**コピー**する（参照リンクを使用）
 - `config.py` をバイパスしてパスを直接指定する
 - テストを無効化してコミットする
 

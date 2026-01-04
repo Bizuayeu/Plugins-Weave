@@ -102,12 +102,12 @@ EpisodicRAGは依存関係ルールに基づく4層構造を採用していま�
 
 | 対象 | SSoT | 実装 |
 |------|------|------|
-| 用語定義 | `README.md` | 用語集として機能 |
+| 用語定義 | `GLOSSARY.md` | 用語集として機能 |
 | バージョン | `plugin.json` | 他ファイルはここを参照 |
 | 設定仕様 | `docs/dev/api/config.md` | 詳細は1箇所のみ |
 
 **学習ポイント**:
-- `README.md` → 用語集としての機能を確認
+- `GLOSSARY.md` → 用語集としての機能を確認
 - `plugin.json` → バージョンSSoTの実装を確認
 - `docs/dev/API_REFERENCE.md` → リンク集としてSSoT違反を回避する設計
 - 参照: [CONTRIBUTING.md](../../CONTRIBUTING.md#single-source-of-truth-ssot-原則)
@@ -166,7 +166,7 @@ EpisodicRAGは依存関係ルールに基づく4層構造を採用していま�
 ## 推奨学習順序
 
 ```
-1. README.md          → プロジェクト概要と用語を把握
+1. GLOSSARY.md        → プロジェクト概要と用語を把握
        ↓
 2. ARCHITECTURE.md    → 技術構造を理解
        ↓

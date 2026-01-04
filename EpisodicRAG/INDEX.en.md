@@ -80,7 +80,7 @@ Navigation to all EpisodicRAG plugin documentation.
 
 | File | Description | Japanese |
 |------|-------------|----------|
-| [README.en.md](README.en.md) | Glossary & Reference | [JP](README.md) |
+| [GLOSSARY.en.md](GLOSSARY.en.md) | Glossary & Reference | [JP](GLOSSARY.md) |
 | [CONCEPT.en.md](CONCEPT.en.md) | Design Philosophy | [JP](CONCEPT.md) |
 | [CHANGELOG.en.md](CHANGELOG.en.md) | Change History | [JP](CHANGELOG.md) |
 | [CONTRIBUTING.en.md](CONTRIBUTING.en.md) | Contribution Guide | [JP](CONTRIBUTING.md) |

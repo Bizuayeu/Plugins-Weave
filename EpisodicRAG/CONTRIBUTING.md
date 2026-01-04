@@ -527,7 +527,7 @@ python -m pytest test/ -v
 
 | 情報 | SSoT（正規の定義場所） | 参照方法 |
 |------|----------------------|----------|
-| 用語・概念定義 | [README.md](README.md)（用語集） | `> 📖 詳細: [用語集](../../README.md#セクション名)` |
+| 用語・概念定義 | [GLOSSARY.md](GLOSSARY.md)（用語集） | `> 📖 詳細: [用語集](../../GLOSSARY.md#セクション名)` |
 | フッター | `_footer.md` | 各ドキュメント末尾で統一 |
 | 設定仕様 | [api/config.md](docs/dev/api/config.md) | リンクで参照 |
 

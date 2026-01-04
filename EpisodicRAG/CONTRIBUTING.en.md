@@ -528,7 +528,7 @@ Update documentation as needed when making code changes:
 
 | Information | SSoT (Canonical Definition Location) | Reference Method |
 |-------------|--------------------------------------|------------------|
-| Terminology/concept definitions | [README.md](README.md) (Glossary) | `> 📖 Details: [Glossary](../../README.md#section-name)` |
+| Terminology/concept definitions | [GLOSSARY.md](GLOSSARY.md) (Glossary) | `> 📖 Details: [Glossary](../../GLOSSARY.md#section-name)` |
 | Footer | `_footer.md` | Unified at the end of each document |
 | Configuration specification | [api/config.md](docs/dev/api/config.md) | Reference via link |
 
