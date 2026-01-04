@@ -1,119 +1,69 @@
-<!--
-  This file is for GitHub repository landing page display.
-  See EpisodicRAG/ directory for detailed documentation.
-  Last synced: 2025-12-16
--->
+<!-- Last synced: 2026-01-04 -->
 English | [日本語](README.md)
 
-# EpisodicRAG Plugin
+# Plugins-Weave
 
-Hierarchical Memory & Digest Generation System (8 Layers, 100 Years, Fully Self-Contained)
+Claude Code Plugin Marketplace
 
-![EpisodicRAG Plugin - Architecture diagram of 8-layer hierarchical memory management system](EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
-[![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## Overview
+## Plugin List
 
-EpisodicRAG is a system that hierarchically digests conversation logs (Loop files) and structures them as long-term memory for inheritance. It automatically manages 8 layers of memory (Weekly → Centurial, approximately 108 years).
-
-### Key Features
-
-- **Hierarchical Memory Management**: Automatic digest generation across 8 layers (weekly to century)
-- **Fragmented Memory Prevention**: Instant detection of unprocessed Loops prevents memory gaps
-- **Cross-Session Inheritance**: Carry over long-term memory to next session via GitHub
-- **Fully Self-Contained**: All data stored within the plugin (can also integrate with existing projects)
+| Plugin | Description |
+|--------|-------------|
+| [EpisodicRAG](EpisodicRAG/) | Hierarchical Memory & Digest Generation System (8 layers, 100 years) |
+| [EmailingEssay](EmailingEssay/) | AI-driven Essay Delivery System |
+| [VisualExpression](VisualExpression/) | Visual Expression System |
 
 ---
 
-## Documentation Navigation
+## Installation
 
-| Your Goal | Documents to Read |
-|-----------|-------------------|
-| 📚 **Browse all documents** | [INDEX.en.md](EpisodicRAG/INDEX.en.md) |
-| 🚀 **Get started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) → [Glossary](EpisodicRAG/GLOSSARY.en.md) |
-| 📘 **Use daily** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) *(Japanese)* |
-| 📝 **Quick reference** | [CHEATSHEET](EpisodicRAG/docs/user/CHEATSHEET.en.md) |
-| 🔧 **Customize settings** | [digest-config](EpisodicRAG/skills/digest-config/SKILL.md) *(Japanese)* |
-| 📊 **Check status** | [digest-auto](EpisodicRAG/skills/digest-auto/SKILL.md) *(Japanese)* |
-| ❓ **Solve problems** | [FAQ](EpisodicRAG/docs/user/FAQ.md) → [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) *(Japanese)* |
-| 🛠️ **Contribute** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) → [ARCHITECTURE](EpisodicRAG/docs/dev/ARCHITECTURE.md) *(Japanese)* |
-| 💡 **Understand design philosophy** | [CONCEPT](EpisodicRAG/CONCEPT.en.md) |
-| 🤖 **View AI/Claude specs** | [AI Spec Hub](EpisodicRAG/docs/README.md) *(Japanese)* |
-| 📋 **Check changelog** | [CHANGELOG](EpisodicRAG/CHANGELOG.md) *(Japanese)* |
-
-> **Note**: Documents marked *(Japanese)* are available in Japanese only.
-> Per our [AI-First Documentation Policy](EpisodicRAG/GLOSSARY.en.md#language-policy), AI agents can understand and translate Japanese content on-the-fly.
-
----
-
-## Quick Installation
+### 1. Add Marketplace
 
 ```ClaudeCLI
-# 1. Add marketplace
 /marketplace add https://github.com/Bizuayeu/Plugins-Weave
+```
 
-# 2. Install plugin
+### 2. Install Plugins
+
+```ClaudeCLI
+# EpisodicRAG (Long-term Memory Management)
 /plugin install EpisodicRAG-Plugin@Plugins-Weave
 
-# 3. Initial setup (interactive)
-@digest-setup
-```
+# EmailingEssay (Essay Delivery)
+/plugin install EmailingEssay-Plugin@Plugins-Weave
 
-For detailed setup instructions, see [QUICKSTART.en.md](EpisodicRAG/docs/user/QUICKSTART.en.md).
+# VisualExpression (Visual Expression)
+/plugin install VisualExpression-Plugin@Plugins-Weave
+```
 
 ---
 
-## Basic Usage
+## Plugin Details
 
-### Memory Retention Cycle
+### EpisodicRAG
 
-```
-Add Loop → /digest → Add Loop → /digest → ...
-```
+Hierarchical Memory & Digest Generation System. Automatically manages conversation logs (Loop files) across 8 layers (Weekly → Centurial, approximately 108 years).
 
-By following this principle, AI can remember all Loops.
+- [Quick Start](EpisodicRAG/docs/user/QUICKSTART.en.md)
+- [Glossary](EpisodicRAG/GLOSSARY.en.md)
+- [Detailed README](EpisodicRAG/README.en.md)
 
-### Main Commands
+### EmailingEssay
 
-| Command | Description |
-|---------|-------------|
-| `/digest` | Detect and analyze new Loops |
-| `/digest weekly` | Finalize Weekly Digest |
-| `@digest-auto` | Check system status and recommended actions |
-| `@digest-setup` | Initial setup |
-| `@digest-config` | Change settings |
+AI-driven essay delivery plugin. Enables proactive communication born from genuine reflection.
 
-For details, see [GUIDE.md](EpisodicRAG/docs/user/GUIDE.md) *(Japanese)*.
+- [README](EmailingEssay/README.md)
+- [Setup](EmailingEssay/SETUP.md)
 
----
+### VisualExpression
 
-## 8-Layer Structure
+Visual expression system for AI personas. Provides emotion-based face switching.
 
-| Layer | Time Scale |
-|-------|------------|
-| Weekly | ~1 week |
-| Monthly | ~1 month |
-| Quarterly | ~3 months |
-| Annual | ~1 year |
-| Triennial | ~3 years |
-| Decadal | ~9 years |
-| Multi-decadal | ~27 years |
-| Centurial | ~108 years |
-
-> For complete layer table, see [Glossary](EpisodicRAG/GLOSSARY.en.md#8-layer-hierarchy)
-
----
-
-## Cross-Session Memory Inheritance
-
-With GitHub integration, you can retain and inherit long-term memory after session ends.
-
-→ [ADVANCED.md](EpisodicRAG/docs/user/ADVANCED.md) *(Japanese)*
+- [README](VisualExpression/README.md)
 
 ---
 
@@ -121,12 +71,5 @@ With GitHub integration, you can retain and inherit long-term memory after sessi
 
 **MIT License** - See [LICENSE](LICENSE) for details
 
-### Patent
-
-**Japanese Patent Application 2025-198943** - Hierarchical Memory & Digest Generation System
-
-- Personal/Non-commercial use: Freely available under MIT License
-- Commercial use: Please consult regarding patent rights before use
-
 ---
-**EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
+**Plugins-Weave** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

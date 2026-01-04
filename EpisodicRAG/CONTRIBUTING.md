@@ -550,7 +550,7 @@ python -m pytest test/ -v
 | `pyproject.toml` | `version` | 手動同期 |
 | `../.claude-plugin/marketplace.json` | `plugins[].version` | 手動同期 |
 | `CHANGELOG.md` | `## [x.x.x]` | 手動同期 |
-| `../README.md` / `../README.en.md` | バージョンバッジ | 手動同期 |
+| `README.md` / `README.en.md` | バージョンバッジ | 手動同期 |
 | `docs/README.md` | バージョンバッジ | 手動同期 |
 | `scripts/domain/version.py` | `__version__` | **自動**（動的読み込み） |
 
@@ -573,7 +573,7 @@ print(__version__)  # plugin.json の version が表示される
 2. `pyproject.toml` - `version` を同じ値に更新
 3. `../.claude-plugin/marketplace.json` - `plugins[0].version` を同じ値に更新
 4. `CHANGELOG.md` - 新しいセクション `## [x.x.x] - YYYY-MM-DD` を追加
-5. `../README.md` と `../README.en.md` - バージョンバッジを更新
+5. `README.md` と `README.en.md` - バージョンバッジを更新
 
 ```bash
 # 動作確認（テストで全ファイルの同期を検証）
@@ -608,7 +608,6 @@ EpisodicRAGプラグインは日本語を主言語とし、主要ドキュメン
 
 | Japanese | English | Status |
 |----------|---------|--------|
-| `../README.md` | `../README.en.md` | ✅ Synced |
 | `README.md` | `README.en.md` | ✅ Synced |
 | `CHANGELOG.md` | `CHANGELOG.en.md` | ✅ Synced |
 | `CONTRIBUTING.md` | `CONTRIBUTING.en.md` | ✅ Synced |

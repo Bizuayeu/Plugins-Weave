@@ -6,7 +6,7 @@ AI/Claudeエージェント向けの技術仕様ハブです。
 
 > 📖 ドキュメント一覧: [INDEX.md](../INDEX.md) - 全ドキュメントへのナビゲーション
 >
-> 📖 ユーザー向けドキュメント: [プロジェクト README](../../README.md)
+> 📖 ユーザー向けドキュメント: [プロジェクト README](../README.md)
 >
 > 📖 開発参加ガイド: [CONTRIBUTING.md](../CONTRIBUTING.md)
 
@@ -193,7 +193,7 @@ docs/
 
 ## Related Links
 
-- [プロジェクト README](../../README.md)
+- [プロジェクト README](../README.md)
 - [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [CHANGELOG.md](../CHANGELOG.md) - 変更履歴
 - [GitHub Repository](https://github.com/Bizuayeu/Plugins-Weave)

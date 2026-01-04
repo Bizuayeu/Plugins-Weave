@@ -3,7 +3,7 @@ English | [日本語](GLOSSARY.md)
 
 # EpisodicRAG Plugin - Glossary & Reference
 
-> **Project Overview & Installation**: See [Main README](../README.md)
+> **Project Overview & Installation**: See [Main README](./README.md)
 
 A collection of terminology definitions used in the EpisodicRAG plugin.
 
@@ -464,7 +464,7 @@ Multilingual documentation policy for EpisodicRAG:
 ## Related Documents
 
 - [Document Index](INDEX.en.md) - Navigation to all documents
-- [Main README](../README.md) - Project Overview
+- [Main README](./README.md) - Project Overview
 - [CONCEPT](CONCEPT.en.md) - Design Philosophy
 - [AI Spec Hub](docs/README.md) - Command, Skill & Agent Specifications
 - [QUICKSTART](docs/user/QUICKSTART.en.md) - 5-minute Tutorial

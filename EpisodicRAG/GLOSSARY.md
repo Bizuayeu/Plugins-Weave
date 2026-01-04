@@ -2,7 +2,7 @@
 
 # EpisodicRAG Plugin - 用語集・リファレンス
 
-> **プロジェクト概要・インストール**は [メインREADME](../README.md) を参照
+> **プロジェクト概要・インストール**は [メインREADME](./README.md) を参照
 
 EpisodicRAGプラグインで使用される専門用語の定義集です。
 
@@ -463,7 +463,7 @@ EpisodicRAGドキュメントの多言語対応方針：
 ## 関連ドキュメント
 
 - [ドキュメント一覧](INDEX.md) - 全ドキュメントへのナビゲーション
-- [メインREADME](../README.md) - プロジェクト概要
+- [メインREADME](./README.md) - プロジェクト概要
 - [CONCEPT](CONCEPT.md) - 設計思想・哲学
 - [AI Spec Hub](docs/README.md) - コマンド・スキル・エージェント仕様
 - [QUICKSTART](docs/user/QUICKSTART.md) - 5分チュートリアル

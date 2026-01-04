@@ -551,7 +551,7 @@ Version information's single source of truth is the `version` field in `.claude-
 | `pyproject.toml` | `version` | Manual sync |
 | `../.claude-plugin/marketplace.json` | `plugins[].version` | Manual sync |
 | `CHANGELOG.md` | `## [x.x.x]` | Manual sync |
-| `../README.md` / `../README.en.md` | Version badge | Manual sync |
+| `README.md` / `README.en.md` | Version badge | Manual sync |
 | `docs/README.md` | Version badge | Manual sync |
 | `scripts/domain/version.py` | `__version__` | **Automatic** (dynamic loading) |
 
@@ -574,7 +574,7 @@ When updating version, update **5 files**:
 2. `pyproject.toml` - Update `version` to same value
 3. `../.claude-plugin/marketplace.json` - Update `plugins[0].version` to same value
 4. `CHANGELOG.md` - Add new section `## [x.x.x] - YYYY-MM-DD`
-5. `../README.md` and `../README.en.md` - Update version badges
+5. `README.md` and `README.en.md` - Update version badges
 
 ```bash
 # Verification (tests verify sync across all files)
@@ -609,7 +609,6 @@ The EpisodicRAG plugin uses Japanese as the primary language and provides Englis
 
 | Japanese | English | Status |
 |----------|---------|--------|
-| `../README.md` | `../README.en.md` | ✅ Synced |
 | `README.md` | `README.en.md` | ✅ Synced |
 | `CHANGELOG.md` | `CHANGELOG.en.md` | ✅ Synced |
 | `CONTRIBUTING.md` | `CONTRIBUTING.en.md` | ✅ Synced |
