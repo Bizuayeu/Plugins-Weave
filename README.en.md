@@ -135,6 +135,10 @@ Enables proactive communication born from genuine reflection. AI spontaneously t
 
 Provides emotion-based face switching to extend AI's expressive capabilities.
 
+| Sample 1 | Sample 2 |
+|:---:|:---:|
+| ![Expression Sample 1](./ExpressionSample01.jpg) | ![Expression Sample 2](./ExpressionSample02.jpg) |
+
 #### Key Features
 
 - **20 Expression Variations**: 5 categories × 4 expressions

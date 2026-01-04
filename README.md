@@ -134,6 +134,10 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 感情に基づく表情切り替えを提供し、AIの表現力を拡張します。
 
+| 表情例1 | 表情例2 |
+|:---:|:---:|
+| ![Expression Sample 1](./ExpressionSample01.jpg) | ![Expression Sample 2](./ExpressionSample02.jpg) |
+
 #### 主な特徴
 
 - **20種類の表情**: 5カテゴリ × 4表情
