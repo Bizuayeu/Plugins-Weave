@@ -32,7 +32,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 | あなたの目的 | 読むべきドキュメント |
 |-------------|---------------------|
 | 📚 **全ドキュメント一覧** | [INDEX.md](./INDEX.md) |
-| 🚀 **初めて使う** | [QUICKSTART](./docs/user/QUICKSTART.md) → [用語集](./GLOSSARY.md) |
+| 🚀 **初めて使う** | [QUICKSTART](./docs/user/QUICKSTART.md) → [GLOSSARY](./GLOSSARY.md) |
 | 📘 **日常的に使う** | [GUIDE](./docs/user/GUIDE.md) |
 | 📝 **早見表を見たい** | [CHEATSHEET](./docs/user/CHEATSHEET.md) |
 | 🔧 **設定をカスタマイズしたい** | [digest-config](./skills/digest-config/SKILL.md) |
