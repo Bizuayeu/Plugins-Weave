@@ -95,7 +95,7 @@ Month-end: @digest-auto → /digest monthly
 | Getting Started | [QUICKSTART.en.md](QUICKSTART.en.md) |
 | Daily Operations | [GUIDE.md](GUIDE.md) |
 | Advanced Settings | [ADVANCED.md](ADVANCED.md) |
-| Glossary | [README.en.md](../../README.en.md) |
+| Glossary | [GLOSSARY.en.md](../../GLOSSARY.en.md) |
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

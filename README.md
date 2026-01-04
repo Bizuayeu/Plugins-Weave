@@ -34,7 +34,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 | あなたの目的 | 読むべきドキュメント |
 |-------------|---------------------|
 | 📚 **全ドキュメント一覧** | [INDEX.md](EpisodicRAG/INDEX.md) |
-| 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [用語集](EpisodicRAG/README.md) |
+| 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) → [用語集](EpisodicRAG/GLOSSARY.md) |
 | 📘 **日常的に使う** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) |
 | 📝 **早見表を見たい** | [CHEATSHEET](EpisodicRAG/docs/user/CHEATSHEET.md) |
 | 🔧 **設定をカスタマイズしたい** | [digest-config](EpisodicRAG/skills/digest-config/SKILL.md) |
@@ -46,7 +46,7 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 | 📋 **変更履歴を確認したい** | [CHANGELOG](EpisodicRAG/CHANGELOG.md) |
 
 > **Note**: 主要ドキュメントは英語版も提供しています。
-> 詳細は [言語ポリシー](EpisodicRAG/README.md#言語ポリシー) を参照してください。
+> 詳細は [言語ポリシー](EpisodicRAG/GLOSSARY.md#言語ポリシー) を参照してください。
 
 ---
 
@@ -104,7 +104,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 | Multi-decadal | ~27 年 |
 | Centurial | ~108 年 |
 
-> 📖 完全な階層テーブルは [用語集](EpisodicRAG/README.md#8階層構造) を参照
+> 📖 完全な階層テーブルは [用語集](EpisodicRAG/GLOSSARY.md#8階層構造) を参照
 
 ---
 

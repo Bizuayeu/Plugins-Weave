@@ -35,7 +35,7 @@ EpisodicRAG is a system that hierarchically digests conversation logs (Loop file
 | Your Goal | Documents to Read |
 |-----------|-------------------|
 | 📚 **Browse all documents** | [INDEX.en.md](EpisodicRAG/INDEX.en.md) |
-| 🚀 **Get started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) → [Glossary](EpisodicRAG/README.en.md) |
+| 🚀 **Get started** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) → [Glossary](EpisodicRAG/GLOSSARY.en.md) |
 | 📘 **Use daily** | [GUIDE](EpisodicRAG/docs/user/GUIDE.md) *(Japanese)* |
 | 📝 **Quick reference** | [CHEATSHEET](EpisodicRAG/docs/user/CHEATSHEET.en.md) |
 | 🔧 **Customize settings** | [digest-config](EpisodicRAG/skills/digest-config/SKILL.md) *(Japanese)* |
@@ -47,7 +47,7 @@ EpisodicRAG is a system that hierarchically digests conversation logs (Loop file
 | 📋 **Check changelog** | [CHANGELOG](EpisodicRAG/CHANGELOG.md) *(Japanese)* |
 
 > **Note**: Documents marked *(Japanese)* are available in Japanese only.
-> Per our [AI-First Documentation Policy](EpisodicRAG/README.en.md#language-policy), AI agents can understand and translate Japanese content on-the-fly.
+> Per our [AI-First Documentation Policy](EpisodicRAG/GLOSSARY.en.md#language-policy), AI agents can understand and translate Japanese content on-the-fly.
 
 ---
 
@@ -105,7 +105,7 @@ For details, see [GUIDE.md](EpisodicRAG/docs/user/GUIDE.md) *(Japanese)*.
 | Multi-decadal | ~27 years |
 | Centurial | ~108 years |
 
-> For complete layer table, see [Glossary](EpisodicRAG/README.en.md#8-layer-hierarchy)
+> For complete layer table, see [Glossary](EpisodicRAG/GLOSSARY.en.md#8-layer-hierarchy)
 
 ---
 

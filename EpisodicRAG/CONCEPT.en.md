@@ -204,7 +204,7 @@ It's like how humans organize memories during sleep—it's a process where you "
 - **Quick Start**: [QUICKSTART.en.md](docs/user/QUICKSTART.en.md)
 - **User Guide**: [GUIDE.md](docs/user/GUIDE.md)
 - **Technical Specifications**: [ARCHITECTURE.md](docs/dev/ARCHITECTURE.md)
-- **Glossary**: [README.en.md](README.en.md)
+- **Glossary**: [GLOSSARY.en.md](GLOSSARY.en.md)
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

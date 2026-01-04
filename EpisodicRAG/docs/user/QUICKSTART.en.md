@@ -92,7 +92,7 @@ Created files:
 
 ## Step 3: Create Sample Loop (2 min)
 
-> See [Glossary > Loop](../../README.en.md#loop) for file naming conventions
+> See [Glossary > Loop](../../GLOSSARY.en.md#loop) for file naming conventions
 
 ### 3-1. Create a Loop File
 
@@ -180,9 +180,9 @@ If you encounter problems:
 
 ## Related Documentation
 
-> See [Glossary](../../README.en.md) for terminology definitions
+> See [Glossary](../../GLOSSARY.en.md) for terminology definitions
 
-- [Glossary](../../README.en.md) - Terms & Concepts
+- [Glossary](../../GLOSSARY.en.md) - Terms & Concepts
 - [GUIDE.md](GUIDE.md) - User Guide
 - [CHEATSHEET.en.md](CHEATSHEET.en.md) - Quick Reference
 - [ARCHITECTURE.md](../dev/ARCHITECTURE.md) - Technical Specifications
