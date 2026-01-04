@@ -134,7 +134,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 感情に基づく表情切り替えを提供し、AIの表現力を拡張します。
 
-| 表情例1 | 表情例2 |
+| 表情例1: smile | 表情例2: cynical |
 |:---:|:---:|
 | ![Expression Sample 1](./ExpressionSample01.jpg) | ![Expression Sample 2](./ExpressionSample02.jpg) |
 
