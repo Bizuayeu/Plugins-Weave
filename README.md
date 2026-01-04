@@ -30,7 +30,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | あなたの目的 | 参照先 |
 |-------------|--------|
 | 🚀 **初めて使う** | [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) |
-| 📚 **用語を調べたい** | [用語集](EpisodicRAG/GLOSSARY.md) |
+| 📚 **用語を調べたい** | [GLOSSARY](EpisodicRAG/GLOSSARY.md) |
 | ❓ **問題を解決したい** | [FAQ](EpisodicRAG/docs/user/FAQ.md) / [TROUBLESHOOTING](EpisodicRAG/docs/user/TROUBLESHOOTING.md) |
 | 🛠️ **開発に参加したい** | [CONTRIBUTING](EpisodicRAG/CONTRIBUTING.md) |
 
