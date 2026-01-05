@@ -106,11 +106,12 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
 
         for _i, line in enumerate(lines):
             stripped = line.strip()
-            if stripped.startswith("#"):
-                # Essay_プレフィックスまたは既知の名前にマッチ
-                if "Essay_" in stripped or any(name in stripped for name in search_names):
-                    task_name = stripped.lstrip("# ")
-                    tasks.append({"name": task_name})
+            # Essay_プレフィックスまたは既知の名前にマッチするコメント行を検出
+            if stripped.startswith("#") and (
+                "Essay_" in stripped or any(name in stripped for name in search_names)
+            ):
+                task_name = stripped.lstrip("# ")
+                tasks.append({"name": task_name})
 
         return tasks
 
