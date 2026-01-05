@@ -137,6 +137,36 @@ class TestWindowsSchedulerAdapter:
 
         assert len(result) >= 0  # パース結果に依存
 
+    @patch('subprocess.run')
+    def test_list_detects_custom_named_task(self, mock_run, scheduler):
+        """カスタム名タスクをknown_names指定で検出できる"""
+        mock_run.return_value = Mock(
+            returncode=0,
+            stdout='"TaskName","Next Run Time","Status"\n"日々の雑感","21:00:00","Ready"\n"Essay_morning","09:00:00","Ready"\n',
+            stderr="",
+        )
+
+        result = scheduler.list(known_names=["日々の雑感"])
+
+        names = [t["name"] for t in result]
+        assert "日々の雑感" in names
+        assert "Essay_morning" in names  # 既存動作も維持
+
+    @patch('subprocess.run')
+    def test_list_without_known_names_backward_compatible(self, mock_run, scheduler):
+        """known_namesなしの場合はEssay_プレフィックスのみ検出（後方互換性）"""
+        mock_run.return_value = Mock(
+            returncode=0,
+            stdout='"TaskName","Next Run Time","Status"\n"日々の雑感","21:00:00","Ready"\n"Essay_morning","09:00:00","Ready"\n',
+            stderr="",
+        )
+
+        result = scheduler.list()
+
+        names = [t["name"] for t in result]
+        assert "Essay_morning" in names
+        assert "日々の雑感" not in names  # known_namesなしでは検出されない
+
 
 class TestUnixSchedulerAdapter:
     """UnixSchedulerAdapter のテスト"""

@@ -166,12 +166,13 @@ class ScheduleEssayUseCase:
 
     def list(self) -> None:
         """登録済みスケジュールを一覧表示する。"""
-        # OSスケジューラから取得
-        os_tasks = self._scheduler.list()
-        os_task_names = {t["name"] for t in os_tasks}
-
-        # JSONバックアップから取得
+        # JSONバックアップから取得（先に取得してknown_namesを構築）
         schedules = self._schedule_storage.load_schedules()
+        known_names = [s["name"] for s in schedules]
+
+        # OSスケジューラから取得（known_namesを渡してカスタム名タスクも検出）
+        os_tasks = self._scheduler.list(known_names=known_names)
+        os_task_names = {t["name"] for t in os_tasks}
 
         if not schedules and not os_tasks:
             logger.info("No schedules found.")

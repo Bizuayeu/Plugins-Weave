@@ -86,9 +86,12 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
 
         self._set_crontab("\n".join(new_lines))
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self, known_names: list[str] | None = None) -> list[dict[str, Any]]:
         """
-        Essay_で始まるCronエントリ一覧を取得する。
+        Essay_で始まるCronエントリ、および指定されたタスク名の一覧を取得する。
+
+        Args:
+            known_names: 追加で検索する既知のタスク名リスト
 
         Returns:
             エントリ情報のリスト
@@ -97,13 +100,17 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         if not current:
             return []
 
+        search_names = set(known_names or [])
         tasks = []
         lines = current.split("\n")
 
         for _i, line in enumerate(lines):
-            if "Essay_" in line and line.strip().startswith("#"):
-                task_name = line.strip().lstrip("# ")
-                tasks.append({"name": task_name})
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                # Essay_プレフィックスまたは既知の名前にマッチ
+                if "Essay_" in stripped or any(name in stripped for name in search_names):
+                    task_name = stripped.lstrip("# ")
+                    tasks.append({"name": task_name})
 
         return tasks
 
