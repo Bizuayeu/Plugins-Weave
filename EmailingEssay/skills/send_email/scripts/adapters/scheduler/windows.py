@@ -80,12 +80,9 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
         if result.returncode != 0:
             raise SchedulerError(f"Failed to delete task: {result.stderr}")
 
-    def list(self, known_names: _List[str] | None = None) -> _List[dict[str, Any]]:
+    def list(self) -> _List[dict[str, Any]]:
         """
-        Essay_で始まるタスク、および指定されたタスク名の一覧を取得する。
-
-        Args:
-            known_names: 追加で検索する既知のタスク名リスト
+        Essay_で始まるタスク一覧を取得する。
 
         Returns:
             タスク情報のリスト
@@ -94,11 +91,9 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
             ["schtasks", "/query", "/fo", "CSV"], capture_output=True, text=True
         )
 
-        search_names = set(known_names or [])
         tasks = []
         for line in result.stdout.split("\n"):
-            # Essay_プレフィックスまたは既知の名前にマッチ
-            if "Essay_" in line or any(name in line for name in search_names):
+            if "Essay_" in line:
                 parts = line.strip().strip('"').split('","')
                 if parts:
                     task_name = parts[0].replace('"', '').lstrip('\\')

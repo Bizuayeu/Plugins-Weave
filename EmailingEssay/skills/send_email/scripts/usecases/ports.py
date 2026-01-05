@@ -91,12 +91,8 @@ class SchedulerPort(Protocol):
         """スケジュールを削除する"""
         ...
 
-    def list(self, known_names: list[str] | None = None) -> list[TaskInfo]:
-        """スケジュール一覧を取得する
-
-        Args:
-            known_names: 追加で検索する既知のタスク名リスト（Essay_プレフィックス以外も検出可能にする）
-        """
+    def list(self) -> list[TaskInfo]:
+        """スケジュール一覧を取得する"""
         ...
 
 
