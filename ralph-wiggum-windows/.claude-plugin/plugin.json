@@ -1,8 +1,21 @@
 {
   "name": "ralph-wiggum-windows",
-  "description": "Windows PowerShell port of the Ralph Wiggum technique - continuous self-referential AI loops for iterative development. Works natively on Windows without bash dependency.",
+  "source": "./ralph-wiggum-windows",
+  "description": "Windows PowerShell port of Ralph Wiggum technique for iterative AI development loops",
+  "version": "1.0.0",
   "author": {
-    "name": "Weave",
-    "email": "weavingfuturity@gmail.com"
-  }
+    "name": "Weave @ ralph-wiggum-windows"
+  },
+  "homepage": "https://note.com/weave_ai",
+  "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+  "license": "MIT",
+  "keywords": [
+    "ralph-wiggum",
+    "iterative",
+    "loop",
+    "windows",
+    "powershell",
+    "development",
+    "automation"
+  ]
 }
