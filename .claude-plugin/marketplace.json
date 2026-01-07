@@ -70,6 +70,27 @@
         "nano-banana",
         "ai-persona"
       ]
+    },
+    {
+      "name": "ralph-wiggum-windows",
+      "source": "./ralph-wiggum-windows",
+      "description": "Windows PowerShell port of Ralph Wiggum technique for iterative AI development loops",
+      "version": "1.0.0",
+      "author": {
+        "name": "Weave @ ralph-wiggum-windows"
+      },
+      "homepage": "https://ghuntley.com/ralph/",
+      "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+      "license": "MIT",
+      "keywords": [
+        "ralph-wiggum",
+        "iterative",
+        "loop",
+        "windows",
+        "powershell",
+        "development",
+        "automation"
+      ]
     }
   ]
 }
