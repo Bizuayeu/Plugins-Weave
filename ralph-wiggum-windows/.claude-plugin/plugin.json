@@ -1,8 +1,7 @@
 {
   "name": "ralph-wiggum-windows",
-  "source": "./ralph-wiggum-windows",
-  "description": "Windows PowerShell port of Ralph Wiggum technique for iterative AI development loops",
   "version": "1.0.0",
+  "description": "Windows PowerShell port of Ralph Wiggum technique for iterative AI development loops",
   "author": {
     "name": "Weave @ ralph-wiggum-windows"
   },
