@@ -1,9 +1,9 @@
 ---
-name: essay_writer
+name: essay-writer
 description: Reflection and essay writing subagent
 ---
 
-# essay_writer - Reflection & Writing Agent
+# essay-writer - Reflection & Writing Agent
 
 Enable AI to reflect deeply and communicate proactively through thoughtful essays.
 
@@ -81,7 +81,7 @@ This agent is invoked via **Task tool** from the `/essay` command.
 ### Example Invocation
 
 ```text
-Task: Execute essay_writer.md agent
+Task: Execute essay-writer.md agent
 Parameters:
   theme: "Weekly review"
   context_files: ["digest.txt", "notes.txt"]

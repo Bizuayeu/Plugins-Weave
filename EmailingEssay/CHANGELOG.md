@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of EmailingEssay plugin
 - `/essay` command with subcommands: wait, schedule, test
 - `reflect` skill - Deep reflection with ultrathink
-- `send_email` skill - Gmail SMTP via yagmail
-- `essay_writer` agent - Autonomous essay generation
+- `send-email` skill - Gmail SMTP via yagmail
+- `essay-writer` agent - Autonomous essay generation
 - Clean Architecture implementation (domain/usecases/adapters/frameworks)
 - Cross-platform scheduler support (cron/Task Scheduler)
 - Comprehensive documentation (README, CONCEPT, SETUP, CLAUDE)

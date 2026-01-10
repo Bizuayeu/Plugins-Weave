@@ -45,11 +45,11 @@ EmailingEssay/
 ├── commands/
 │   └── essay.md              # /essay command definition
 ├── agents/
-│   └── essay_writer.md       # Reflection & writing agent
+│   └── essay-writer.md       # Reflection & writing agent
 └── skills/
     ├── reflect/
     │   └── SKILL.md          # Reflection skill
-    └── send_email/
+    └── send-email/
         ├── SKILL.md          # Email sending skill
         └── scripts/          # Clean Architecture implementation
             ├── main.py       # Entry point
@@ -126,7 +126,7 @@ Dependencies point inward only:
 ## Execution Flow
 
 ```text
-User → /essay command → essay_writer.md agent
+User → /essay command → essay-writer.md agent
                               ↓
                     reflect skill (ultrathink)
                               ↓
@@ -135,7 +135,7 @@ User → /essay command → essay_writer.md agent
             ┌─────────────────┴─────────────────┐
             ↓                                   ↓
     Interactive Mode                   Non-interactive Mode
-    (Chat output)                      (send_email skill)
+    (Chat output)                      (send-email skill)
 ```
 
 For reflection details, see `skills/reflect/SKILL.md` → **Reflection Process** section.
@@ -144,7 +144,7 @@ For reflection details, see `skills/reflect/SKILL.md` → **Reflection Process**
 
 ## Why Subagent Architecture?
 
-The `/essay` command delegates to `essay_writer.md` agent via Task tool for:
+The `/essay` command delegates to `essay-writer.md` agent via Task tool for:
 
 1. **Context Isolation**: Agent runs in its own context, preserving parent conversation's token budget
 2. **Async Execution**: Can run in background with `run_in_background: true`
@@ -188,9 +188,9 @@ For script-level Clean Architecture details, see [Clean Architecture Details](#c
 | Component | Role |
 |-----------|------|
 | `commands/essay.md` | User-facing command interface |
-| `agents/essay_writer.md` | Orchestrates reflection → delivery flow |
+| `agents/essay-writer.md` | Orchestrates reflection → delivery flow |
 | `skills/reflect/SKILL.md` | Deep reflection process definition |
-| `skills/send_email/SKILL.md` | Email delivery and scheduling |
+| `skills/send-email/SKILL.md` | Email delivery and scheduling |
 
 ---
 

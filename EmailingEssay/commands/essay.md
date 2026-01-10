@@ -19,13 +19,13 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 
 ## Architecture
 
-This command is a wrapper for `agents/essay_writer.md`. The actual reflection and writing logic is delegated to the subagent via Task tool. For design rationale, see `CLAUDE.md` → **Why Subagent Architecture?** section.
+This command is a wrapper for `agents/essay-writer.md`. The actual reflection and writing logic is delegated to the subagent via Task tool. For design rationale, see `CLAUDE.md` → **Why Subagent Architecture?** section.
 
 ### Execution Directive
 
 **CRITICAL**: When `/essay` is invoked (any mode except `test`), you MUST:
 
-1. Use the **Task tool** to invoke `agents/essay_writer.md`
+1. Use the **Task tool** to invoke `agents/essay-writer.md`
 2. Pass parameters as specified in the table below
 3. Do NOT process reflection logic directly in this command context
 
@@ -35,10 +35,10 @@ Execution flow for each mode:
 
 | Mode | Execution Flow |
 |------|----------------|
-| Reflection | `/essay` → essay_writer.md → (reflect → send) |
-| Wait | `/essay wait` → detached process → `/essay` → essay_writer.md |
-| Schedule | `/essay schedule` → OS scheduler → `/essay` → essay_writer.md |
-| Test | `/essay test` → skills/send_email (verify configuration) |
+| Reflection | `/essay` → essay-writer.md → (reflect → send) |
+| Wait | `/essay wait` → detached process → `/essay` → essay-writer.md |
+| Schedule | `/essay schedule` → OS scheduler → `/essay` → essay-writer.md |
+| Test | `/essay test` → skills/send-email (verify configuration) |
 
 **Parameters passed to agent**:
 
@@ -48,7 +48,7 @@ Execution flow for each mode:
 | `context_files` | From `-c` or `-f` option |
 | `language` | From `-l` option (default: auto) |
 
-For agent execution details, see `agents/essay_writer.md` → **Execution Flow** section.
+For agent execution details, see `agents/essay-writer.md` → **Execution Flow** section.
 For environment setup, see `SETUP.md` → **Environment Variables** / **Troubleshooting** section.
 
 ---
@@ -145,7 +145,7 @@ For environment setup, see `SETUP.md` → **Environment Variables** / **Troubles
 
 Schedule essay execution at a specified time. The process runs in the background and is sleep-resilient.
 
-For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** section.
+For implementation details, see `skills/send-email/SKILL.md` → **CLI Usage** section.
 
 ### Time Formats
 
@@ -178,7 +178,7 @@ For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** s
 
 Register recurring essay schedules using OS scheduler (Windows Task Scheduler / cron).
 
-For implementation details, see `skills/send_email/SKILL.md` → **CLI Usage** section.
+For implementation details, see `skills/send-email/SKILL.md` → **CLI Usage** section.
 
 ### Frequency
 

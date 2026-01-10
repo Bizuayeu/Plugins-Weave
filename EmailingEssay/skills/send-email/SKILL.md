@@ -1,9 +1,9 @@
 ---
-name: send_email
+name: send-email
 description: Email sending skill (Gmail SMTP + Yagmail)
 ---
 
-# send_email - Email Sending Skill
+# send-email - Email Sending Skill
 
 Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
@@ -20,8 +20,8 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 | Source | Operation |
 |--------|-----------|
-| `/send_email` | send |
-| `essay_writer.md` | send |
+| `/send-email` | send |
+| `essay-writer.md` | send |
 | `/essay test` | test |
 | `/essay wait` | wait |
 | `/essay schedule` | schedule |
@@ -33,7 +33,7 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 ### Script Path
 
 ```text
-skills/send_email/scripts/main.py
+skills/send-email/scripts/main.py
 ```
 
 ### Dependencies

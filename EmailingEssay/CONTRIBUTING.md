@@ -29,7 +29,7 @@ Welcome! This guide helps you contribute to EmailingEssay.
    ```
 3. Verify setup:
    ```bash
-   cd skills/send_email/scripts
+   cd skills/send-email/scripts
    pytest
    ```
 
@@ -39,14 +39,14 @@ Welcome! This guide helps you contribute to EmailingEssay.
 
 ```text
 EmailingEssay/
-├── commands/essay.md      # Command definition
-├── agents/essay_writer.md # Agent specification
+├── commands/essay.md       # Command definition
+├── agents/essay-writer.md  # Agent specification
 └── skills/
-    ├── reflect/           # Reflection skill (agent-driven)
+    ├── reflect/            # Reflection skill (agent-driven)
     │   └── SKILL.md
-    └── send_email/        # Email sending skill
+    └── send-email/         # Email sending skill
         ├── SKILL.md
-        └── scripts/       # Python implementation
+        └── scripts/        # Python implementation
             ├── domain/    # Core entities
             ├── usecases/  # Business logic
             ├── adapters/  # External interfaces
@@ -75,7 +75,7 @@ For detailed architecture, see `CLAUDE.md` → **Clean Architecture Details** se
 ### Running Tests
 
 ```bash
-cd skills/send_email/scripts
+cd skills/send-email/scripts
 pytest                    # All tests
 pytest tests/domain/      # Domain layer only
 pytest -v                 # Verbose output

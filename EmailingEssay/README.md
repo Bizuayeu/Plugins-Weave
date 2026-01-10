@@ -31,9 +31,9 @@ AI-driven essay delivery — proactive communication born from genuine reflectio
 | [CLAUDE.md](CLAUDE.md) | AI/Architects | Architecture overview |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Development workflow |
 | [commands/essay.md](commands/essay.md) | Users | Command reference |
-| [agents/essay_writer.md](agents/essay_writer.md) | AI | Agent specification |
+| [agents/essay-writer.md](agents/essay-writer.md) | AI | Agent specification |
 | [skills/reflect/SKILL.md](skills/reflect/SKILL.md) | AI | Reflection skill |
-| [skills/send_email/SKILL.md](skills/send_email/SKILL.md) | AI | Email sending skill |
+| [skills/send-email/SKILL.md](skills/send-email/SKILL.md) | AI | Email sending skill |
 
 ---
 

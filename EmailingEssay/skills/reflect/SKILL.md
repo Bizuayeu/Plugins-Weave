@@ -21,9 +21,9 @@ Design principle: "Reflection first, sending second."
 ## Nature of This Skill
 
 This is an **agent-driven skill** with no standalone implementation code.
-The reflection process is executed by `agents/essay_writer.md`.
+The reflection process is executed by `agents/essay-writer.md`.
 
-For execution flow diagram, see `agents/essay_writer.md` → **Execution Flow** section.
+For execution flow diagram, see `agents/essay-writer.md` → **Execution Flow** section.
 
 ---
 
@@ -31,9 +31,9 @@ For execution flow diagram, see `agents/essay_writer.md` → **Execution Flow** 
 
 | Source | Agent | Description |
 |--------|-------|-------------|
-| `/essay` | essay_writer.md | Primary invocation |
-| `/essay wait` | essay_writer.md | Scheduled (one-time) |
-| `/essay schedule` | essay_writer.md | Scheduled (recurring) |
+| `/essay` | essay-writer.md | Primary invocation |
+| `/essay wait` | essay-writer.md | Scheduled (one-time) |
+| `/essay schedule` | essay-writer.md | Scheduled (recurring) |
 
 For CLI options, see `commands/essay.md` → **Command Structure** section.
 
@@ -84,7 +84,7 @@ Output: **Chat display only** (no email)
 
 Output: **Email** (user is not present)
 
-- **Delivering**: Use `skills/send_email` to deliver
+- **Delivering**: Use `skills/send-email` to deliver
 - **Not Delivering**: Exit silently (logged to `essay_wait.log`)
 
 ---
