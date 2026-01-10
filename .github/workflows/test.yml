@@ -202,11 +202,11 @@ jobs:
 
       - name: Run ruff linter
         working-directory: EmailingEssay
-        run: ruff check skills/send_email/scripts/
+        run: ruff check skills/send-email/scripts/
 
       - name: Run ruff formatter check
         working-directory: EmailingEssay
-        run: ruff format --check skills/send_email/scripts/
+        run: ruff format --check skills/send-email/scripts/
 
   security-emailingessay:
     runs-on: ubuntu-latest
@@ -223,7 +223,7 @@ jobs:
 
       - name: Run Bandit security scan
         working-directory: EmailingEssay
-        run: bandit -r skills/send_email/scripts/ --exclude skills/send_email/scripts/tests --severity-level medium
+        run: bandit -r skills/send-email/scripts/ --exclude skills/send-email/scripts/tests --severity-level medium
 
   type-check-emailingessay:
     runs-on: ubuntu-latest
@@ -241,7 +241,7 @@ jobs:
           pip install mypy yagmail
 
       - name: Run mypy
-        working-directory: EmailingEssay/skills/send_email/scripts
+        working-directory: EmailingEssay/skills/send-email/scripts
         run: mypy --explicit-package-bases .
         continue-on-error: true
 
