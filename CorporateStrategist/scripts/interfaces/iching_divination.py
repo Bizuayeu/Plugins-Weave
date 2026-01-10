@@ -25,9 +25,9 @@ class IChingDivination:
             database_path: 大卦データベースのパス
         """
         if database_path is None:
-            # デフォルトパス
+            # デフォルトパス（scripts/interfaces/ から skills/foresight-reader/i-ching/ へ）
             current_dir = Path(__file__).parent
-            database_path = current_dir / "大卦データベース.json"
+            database_path = current_dir.parent.parent / "skills" / "foresight-reader" / "i-ching" / "大卦データベース.json"
 
         with open(database_path, 'r', encoding='utf-8') as f:
             self.database = json.load(f)
@@ -268,51 +268,52 @@ class IChingDivination:
 
 
 def main():
-    """直接実行時の警告とガイダンス"""
-    print("=" * 80)
-    print("WARNING: Direct Execution Mode / 警告：直接実行モード")
-    print("=" * 80)
-    print()
-    print("このスクリプトを正しく使用するには、先に以下のドキュメントを必ずお読みください：")
-    print()
-    print("1. デジタル心易システム仕様.md")
-    print("   場所: ./（相対パス）")
-    print("   内容: デジタル心易の理論、思想、実装詳細")
-    print()
-    print("2. ../CLAUDE.md")
-    print("   場所: ../（相対パス）")
-    print("   内容: 軍師型占術家システム全体の仕様")
-    print()
-    print("-" * 40)
-    print("[推奨される使用方法]")
-    print()
-    print("このスクリプトは直接実行せず、")
-    print("Claudeの対話内でライブラリとしてインポートして使用します：")
-    print()
-    print(">>> import sys")
-    print(">>> from pathlib import Path")
-    print(">>> # Weaveプロジェクトルートを探す（環境非依存）")
-    print(">>> cwd = Path.cwd()")
-    print(">>> weave_root = cwd if cwd.name == 'Weave' else next((p for p in cwd.parents if p.name == 'Weave'), cwd)")
-    print(">>> iching_path = weave_root / 'Expertises/CorporateStrategist/ForesightReader/I-Ching'")
-    print(">>> sys.path.append(str(iching_path))")
-    print(">>> from iching_divination import IChingDivination")
-    print(">>> ")
-    print(">>> divination = IChingDivination()")
-    print(">>> result = divination.divine(")
-    print(">>>     divination_question='占的文字列',")
-    print(">>>     context='状況整理文書'")
-    print(">>> )")
-    print()
-    print("-" * 40)
-    print("[重要な注意事項]")
-    print()
-    print("・占的の明確化が最も重要です")
-    print("・状況整理を加えることで個別性が高まります")
-    print("・結果はDivineTemplate.mdで整形して出力します")
-    print()
-    print("=" * 80)
+    """CLIエントリーポイント"""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog='iching_divination',
+        description='周易占断システム - CorporateStrategist/ForesightReader',
+        epilog='占的と状況整理から64卦384爻を導き出す計算エンジン'
+    )
+    parser.add_argument('--question', '-q', type=str, help='占的（問い）')
+    parser.add_argument('--context', '-c', type=str, help='状況整理（背景情報）')
+    parser.add_argument('--database', '-d', type=str, help='大卦データベースのパス')
+    parser.add_argument('--version', '-v', action='version', version='%(prog)s 1.0.0')
+
+    args = parser.parse_args()
+
+    if args.question and args.context:
+        try:
+            divination = IChingDivination(args.database)
+            result = divination.divine(args.question, args.context)
+            print(divination.format_result(result))
+        except FileNotFoundError as e:
+            print(f"Error: データベースファイルが見つかりません: {e}")
+            return 1
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
+    else:
+        print("=" * 60)
+        print("iching_divination - 周易占断システム")
+        print("=" * 60)
+        print()
+        print("このスクリプトはClaudeの対話内でライブラリとして使用することを推奨します。")
+        print()
+        print("CLI使用例:")
+        print('  python -m scripts.interfaces.iching_divination -q "占的" -c "状況"')
+        print()
+        print("ライブラリ使用例:")
+        print("  from scripts.interfaces.iching_divination import IChingDivination")
+        print("  divination = IChingDivination()")
+        print("  result = divination.divine('占的', '状況整理')")
+        print()
+        print("詳細: skills/foresight-reader/i-ching/デジタル心易システム仕様.md")
+        print("=" * 60)
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())

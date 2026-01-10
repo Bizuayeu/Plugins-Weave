@@ -138,22 +138,35 @@ class QCDAnalyzer:
 def main():
     """
     メイン処理（Phase 2で実装予定）
-
-    実装予定の処理:
-    1. コマンドライン引数の解析
-    2. QCDAnalyzerの初期化
-    3. 外注QCD比較の実行
-    4. レポート生成と出力
     """
-    print("qcd_analyzer.py - Phase 2で実装予定")
-    print("外注QCD比較ツール（プレースホルダー）")
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog='qcd_analyzer',
+        description='外注QCD比較ツール - CorporateStrategist/PersonnelDeveloper',
+        epilog='Phase 2で本格実装予定。現在はプレースホルダーです。'
+    )
+    parser.add_argument('--keyword', '-k', type=str, help='検索キーワード')
+    parser.add_argument('--platform', '-p', type=str,
+                       choices=['lancers', 'crowdworks', 'coconala'],
+                       help='クラウドソーシングプラットフォーム')
+    parser.add_argument('--version', '-v', action='version', version='%(prog)s 0.1.0')
+
+    args = parser.parse_args()
+
+    print("=" * 60)
+    print("qcd_analyzer - 外注QCD比較ツール")
+    print("=" * 60)
+    print()
+    print("Status: Phase 2で実装予定（プレースホルダー）")
     print()
     print("実装予定機能:")
-    print("- クラウドソーシングサイトのスクレイピング")
-    print("- 相場価格の自動調査")
-    print("- QCD比較レポートの自動生成")
+    print("  - クラウドソーシングサイトのスクレイピング")
+    print("  - 相場価格の自動調査")
+    print("  - QCD比較レポートの自動生成")
     print()
-    print("Phase 2（3ヶ月以内）で実装します。")
+    print("Usage: python -m scripts.interfaces.qcd_analyzer --help")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

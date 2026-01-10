@@ -116,7 +116,9 @@ class FortuneTellerAssessment:
         """
         # JSONファイルのディレクトリを決定
         if json_dir is None:
-            json_dir = Path(__file__).parent
+            # デフォルトパス（scripts/interfaces/ から skills/foresight-reader/seimei/ へ）
+            current_dir = Path(__file__).parent
+            json_dir = current_dir.parent.parent / "skills" / "foresight-reader" / "seimei"
         else:
             json_dir = Path(json_dir)
 
@@ -544,58 +546,61 @@ class FortuneTellerAssessment:
 
 
 def main():
-    """
-    直接実行時の警告とガイダンス
-    """
-    print("=" * 80)
-    print("WARNING: Direct Execution Mode / 警告：直接実行モード")
-    print("=" * 80)
-    print()
-    print("このスクリプトを直接実行していますが、")
-    print("正確な姓名判断を行うためには以下が必要です：")
-    print()
-    print("1. [CLAUDE.md] の完全な理解")
-    print("   場所：../CLAUDE.md（相対パス）")
-    print("   内容：")
-    print("   - 画数計算の詳細ルール（旧字体・新字体・異体字）")
-    print("   - 身強身弱判定の理論")
-    print("   - 人材4類型の判定方法")
-    print("   - 軍師としての献策フレームワーク")
-    print()
-    print("2. 姓名の正確な確認")
-    print("   - 使用する字体の確認（旧字体/新字体/異体字）")
-    print("   - 各文字の画数の事前確認と合意")
-    print()
-    print("3. [AssessmentTemplate.md] の使用")
-    print("   場所：./AssessmentTemplate.md（相対パス）")
-    print("   - 標準化された出力フォーマット")
-    print()
-    print("=" * 80)
-    print("推奨される使用方法：")
-    print()
-    print("1. ClaudeがCLAUDE.mdを事前に読み込み")
-    print("2. Claude対話内でこのスクリプトをインポート：")
-    print("   import sys")
-    print("   from pathlib import Path")
-    print("   # Weaveプロジェクトルートを探す（環境非依存）")
-    print("   cwd = Path.cwd()")
-    print("   weave_root = cwd if cwd.name == 'Weave' else next((p for p in cwd.parents if p.name == 'Weave'), cwd)")
-    print("   seimei_path = weave_root / 'Expertises/CorporateStrategist/ForesightReader/Seimei'")
-    print("   sys.path.append(str(seimei_path))")
-    print("   from fortune_teller_assessment import FortuneTellerAssessment")
-    print("3. 対話的に姓名と画数を確認")
-    print("4. assess()メソッドで計算を実行")
-    print("5. AssessmentTemplate.mdに結果を埋め込んで鑑定書を生成")
-    print("=" * 80)
-    print()
-    print("このスクリプトは直接実行するものではなく、")
-    print("Claudeの対話内でライブラリとしてインポートして使用します。")
-    print()
-    print("詳細な手順はCLAUDE.mdを参照してください。")
-    print("=" * 80)
+    """CLIエントリーポイント"""
+    import argparse
+    import json as json_module
+
+    parser = argparse.ArgumentParser(
+        prog='fortune_teller_assessment',
+        description='七格剖象法による姓名判定システム - CorporateStrategist/ForesightReader',
+        epilog='姓名と画数から七格・星導分布・人材4類型を計算'
+    )
+    parser.add_argument('--surname', '-s', type=str, help='姓（例: 田中）')
+    parser.add_argument('--given', '-g', type=str, help='名（例: 太郎）')
+    parser.add_argument('--surname-strokes', type=str, help='姓の画数（カンマ区切り。例: 5,4）')
+    parser.add_argument('--given-strokes', type=str, help='名の画数（カンマ区切り。例: 4,9）')
+    parser.add_argument('--json-dir', '-d', type=str, help='JSONデータのディレクトリパス')
+    parser.add_argument('--version', '-v', action='version', version='%(prog)s 1.0.0')
+
+    args = parser.parse_args()
+
+    if args.surname and args.given and args.surname_strokes and args.given_strokes:
+        try:
+            surname_strokes = [int(x.strip()) for x in args.surname_strokes.split(',')]
+            given_strokes = [int(x.strip()) for x in args.given_strokes.split(',')]
+
+            assessment = FortuneTellerAssessment(args.json_dir)
+            result = assessment.assess(args.surname, args.given, surname_strokes, given_strokes)
+            print(json_module.dumps(result, ensure_ascii=False, indent=2))
+        except FileNotFoundError as e:
+            print(f"Error: JSONファイルが見つかりません: {e}")
+            return 1
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
+    else:
+        print("=" * 60)
+        print("fortune_teller_assessment - 七格剖象法姓名判定")
+        print("=" * 60)
+        print()
+        print("このスクリプトはClaudeの対話内でライブラリとして使用することを推奨します。")
+        print()
+        print("CLI使用例:")
+        print('  python -m scripts.interfaces.fortune_teller_assessment \\')
+        print('    -s "田中" -g "太郎" --surname-strokes "5,4" --given-strokes "4,9"')
+        print()
+        print("ライブラリ使用例:")
+        print("  from scripts.interfaces.fortune_teller_assessment import FortuneTellerAssessment")
+        print("  assessment = FortuneTellerAssessment()")
+        print("  result = assessment.assess('田中', '太郎', [5,4], [4,9])")
+        print()
+        print("詳細: skills/foresight-reader/CLAUDE.md")
+        print("=" * 60)
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())
 
 
