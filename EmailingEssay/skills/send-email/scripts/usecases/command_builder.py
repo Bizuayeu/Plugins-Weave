@@ -110,6 +110,9 @@ class ClaudeCommandBuilder:
         if lang:
             args.append(f"-l {lang}")
 
+        # wait/schedule経由の実行は常にメール送信モード
+        args.append("--send")
+
         return " ".join(args)
 
     @classmethod

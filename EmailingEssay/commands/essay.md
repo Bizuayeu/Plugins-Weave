@@ -40,6 +40,11 @@ Execution flow for each mode:
 | Schedule | `/essay schedule` → OS scheduler → `/essay` → essay-writer.md |
 | Test | `/essay test` → skills/send-email (verify configuration) |
 
+**Mode determination**:
+
+When `--send` flag is present, pass `mode: non-interactive` to the agent (forces email delivery).
+Otherwise, pass `mode: interactive` (display in chat only).
+
 **Parameters passed to agent**:
 
 | Parameter | Source |
@@ -47,6 +52,7 @@ Execution flow for each mode:
 | `theme` | From `"theme"` argument or `-t` option |
 | `context_files` | From `-c` or `-f` option |
 | `language` | From `-l` option (default: auto) |
+| `mode` | `--send` flag → `non-interactive`, otherwise → `interactive` |
 
 For agent execution details, see `agents/essay-writer.md` → **Execution Flow** section.
 For environment setup, see `SETUP.md` → **Environment Variables** / **Troubleshooting** section.
@@ -76,6 +82,7 @@ For environment setup, see `SETUP.md` → **Environment Variables** / **Troubles
 | `-c file` | Single context file |
 | `-f list` | Multiple files (one path per line) |
 | `-l lang` | Language: `ja`, `en`, or `auto` (default: auto) |
+| `--send` | Force email delivery (used by wait/schedule, can also be used manually) |
 
 ### Options (for wait subcommand)
 

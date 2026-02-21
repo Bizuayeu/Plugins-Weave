@@ -33,7 +33,7 @@ Received from `/essay` command:
 | `theme` | Reflection theme (optional) |
 | `context_files` | Files to read as context (optional) |
 | `language` | `ja`, `en`, or `auto` (default: auto) |
-| `mode` | `interactive` (direct /essay) or `non-interactive` (wait/schedule) |
+| `mode` | `non-interactive` (from `--send` flag: send via email) or `interactive` (default: display in chat) |
 
 ---
 
@@ -98,7 +98,7 @@ Instructions: Follow Execution Flow (1-5) with TodoWrite tracking.
 | `"theme"` or `-t` | `theme` | Reflection topic |
 | `-c` or `-f` | `context_files` | Files to read |
 | `-l` | `language` | ja/en/auto |
-| (inferred) | `mode` | interactive (direct /essay) or non-interactive (wait/schedule) |
+| `--send` | `mode` | `--send` present → `non-interactive`, absent → `interactive` |
 
 ---
 

@@ -73,14 +73,21 @@ Use extended thinking to contemplate:
 
 ## Output
 
-### Interactive Mode (`/essay`)
+### Mode Determination
+
+| Condition | Mode |
+|-----------|------|
+| `--send` flag present | **Non-interactive** (send email) |
+| No `--send` flag | **Interactive** (display in chat) |
+
+### Interactive Mode (no `--send` flag)
 
 Output: **Chat display only** (no email)
 
 - **Delivering**: Write essay in chat
 - **Not Delivering**: Display "After reflection, I have nothing particular to share."
 
-### Non-interactive Mode (`wait`/`schedule`)
+### Non-interactive Mode (`--send` flag present)
 
 Output: **Email** (user is not present)
 

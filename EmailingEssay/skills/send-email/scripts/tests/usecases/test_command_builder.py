@@ -83,34 +83,34 @@ class TestEscapeForQuote:
 class TestBuildArgs:
     """build_argsメソッドのテスト"""
 
-    def test_empty_args_returns_empty_string(self):
-        """引数なしは空文字列"""
+    def test_empty_args_returns_send_only(self):
+        """引数なしでも--sendが付与される"""
         result = ClaudeCommandBuilder.build_args()
-        assert result == ""
+        assert result == "--send"
 
     def test_theme_only(self):
         """テーマのみ"""
         result = ClaudeCommandBuilder.build_args(theme="テスト", quote_style="single")
-        assert result == "'テスト'"
+        assert result == "'テスト' --send"
 
     def test_context_only(self):
         """コンテキストのみ"""
         result = ClaudeCommandBuilder.build_args(
             context="/path/to/context.md", quote_style="single"
         )
-        assert result == "-c '/path/to/context.md'"
+        assert result == "-c '/path/to/context.md' --send"
 
     def test_file_list_only(self):
         """ファイルリストのみ"""
         result = ClaudeCommandBuilder.build_args(
             file_list="/path/to/files.txt", quote_style="single"
         )
-        assert result == "-f '/path/to/files.txt'"
+        assert result == "-f '/path/to/files.txt' --send"
 
     def test_lang_only(self):
         """言語のみ"""
         result = ClaudeCommandBuilder.build_args(lang="ja")
-        assert result == "-l ja"
+        assert result == "-l ja --send"
 
     def test_all_args_combined(self):
         """全引数の組み合わせ"""
@@ -125,6 +125,7 @@ class TestBuildArgs:
         assert "-c '/path/to/context.md'" in result
         assert "-f '/path/to/files.txt'" in result
         assert "-l ja" in result
+        assert result.endswith("--send")
 
     def test_windows_path_normalization_in_context(self):
         """コンテキストパスのWindows形式正規化"""
@@ -133,6 +134,7 @@ class TestBuildArgs:
             quote_style="single",
         )
         assert "-c 'C:/Users/test/context.md'" in result
+        assert "--send" in result
 
     def test_windows_path_normalization_in_file_list(self):
         """ファイルリストパスのWindows形式正規化"""
@@ -141,6 +143,7 @@ class TestBuildArgs:
             quote_style="single",
         )
         assert "-f 'C:/Users/test/files.txt'" in result
+        assert "--send" in result
 
 
 class TestBuildFullCommand:
@@ -154,6 +157,7 @@ class TestBuildFullCommand:
         assert "claude.exe" in result
         assert "--dangerously-skip-permissions" in result
         assert '/essay \\"テスト\\"' in result
+        assert "--send" in result
 
     def test_unix_command(self, monkeypatch):
         """Unix/Linux/Macコマンド構築"""
@@ -161,7 +165,8 @@ class TestBuildFullCommand:
         result = ClaudeCommandBuilder.build_full_command(theme="テスト")
 
         assert result.startswith("claude --dangerously-skip-permissions")
-        assert "'/essay 'テスト''" in result or "/essay 'テスト'" in result
+        assert "テスト" in result
+        assert "--send" in result
 
     def test_unix_command_with_all_args(self, monkeypatch):
         """Unix/Linux/Macコマンド全引数"""
@@ -178,6 +183,7 @@ class TestBuildFullCommand:
         assert "-c '/home/user/context.md'" in result
         assert "-f '/home/user/files.txt'" in result
         assert "-l ja" in result
+        assert "--send" in result
 
 
 class TestBackwardCompatibilityFunctions:
@@ -186,12 +192,12 @@ class TestBackwardCompatibilityFunctions:
     def test_build_claude_args_default_is_single_quote(self):
         """build_claude_argsのデフォルトはシングルクォート"""
         result = build_claude_args(theme="テスト")
-        assert result == "'テスト'"
+        assert result == "'テスト' --send"
 
     def test_build_claude_args_with_escaped_style(self):
         """build_claude_argsでescapedスタイル指定"""
         result = build_claude_args(theme="テスト", quote_style="escaped")
-        assert result == '\\"テスト\\"'
+        assert result == '\\"テスト\\" --send'
 
     def test_build_claude_command_delegates_correctly(self, monkeypatch):
         """build_claude_commandが正しく委譲する"""
