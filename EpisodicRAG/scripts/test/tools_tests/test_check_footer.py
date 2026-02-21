@@ -488,8 +488,8 @@ class TestMain:
                     mock_footer = tmp_path / "_footer.md"
                     mock_footer.parent.mkdir(parents=True, exist_ok=True)
                     mock_footer.write_text("```text\n---\nFooter\n```\n", encoding="utf-8")
-                    mock_path.__truediv__ = (
-                        lambda s, x: tmp_path / x if x == "_footer.md" else tmp_path
+                    mock_path.__truediv__ = lambda s, x: (
+                        tmp_path / x if x == "_footer.md" else tmp_path
                     )
                     mock_path_cls.return_value = mock_path
                     mock_path_cls.__file__ = str(tmp_path / "check_footer.py")
