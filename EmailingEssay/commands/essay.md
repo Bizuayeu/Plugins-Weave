@@ -129,6 +129,10 @@ For environment setup, see `SETUP.md` → **Environment Variables** / **Troubles
 /essay "今週の振り返り" -f context_list.txt -l ja  # Theme + files + Japanese
 # Without -l option: auto (Claude chooses based on context)
 
+# Force email delivery (without wait/schedule)
+/essay --send
+/essay "Weekly review" -c digest.txt --send
+
 # One-time schedule (detached process, sleep-resilient)
 /essay wait 22:00 -t "Daily thoughts"
 /essay wait 22:00 -t "Weekly review" -c GrandDigest.txt
