@@ -207,7 +207,7 @@ Note: JSONはファイルまたは--stdinで渡してください。
             input_data = sys.stdin.read()
         else:
             input_data = args.input_data
-        individual_digests = InputLoader.load(input_data)
+        individual_digests = InputLoader.load(input_data, base_path=config.digests_path)
 
         # Empty list warning
         if len(individual_digests) == 0:

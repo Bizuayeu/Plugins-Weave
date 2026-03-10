@@ -107,6 +107,7 @@ TodoWrite items for Pattern 1:
 7. SGD統合更新 - long結果で5要素を更新
 8. 処理完了記録 - update_digest_timesを実行
 9. 次アクション提示 - threshold値を参照
+10. Git Commit & Push - 変更をコミットしてプッシュ
 ```
 
 **各ステップの概要**:
@@ -122,6 +123,7 @@ TodoWrite items for Pattern 1:
 | 7 | SGD統合更新 | long結果を統合しSGDの5要素を更新（last_updated, digest_type, keywords, abstract, impression） |
 | 8 | 処理完了記録 | `python -m interfaces.update_digest_times loop <最終番号>` |
 | 9 | 次アクション提示 | digest_entry.py出力とthreshold値を参照 |
+| 10 | Git Commit & Push | `{base_dir}`リポジトリへcommit & push |
 
 ### 各ステップの詳細
 
@@ -238,18 +240,19 @@ DigestAnalyzerからJSON形式で結果を受け取る。
 2. **スクリプト実行**
 
    ```bash
-   python -m interfaces.save_provisional_digest weekly temp_individual_digests.json --append
+   python -m interfaces.save_provisional_digest weekly {digests_path}/temp_individual_digests.json --append
    ```
 
 3. **一時ファイル削除**
 
    ```bash
-   rm temp_individual_digests.json
+   rm {digests_path}/temp_individual_digests.json
    ```
 
 **注意**:
 - abstract/impressionは`{long, short}`形式が必須
 - stdinパイプはシェル制限で切断されるため使用しないこと
+- 一時ファイルパスは必ず`{digests_path}/`を付けた絶対パスで指定すること
 
 ---
 
@@ -333,6 +336,38 @@ ShadowGrandDigest.weekly に追加しました。
 
 ---
 
+#### Step 10: Git Commit & Push
+
+**対象リポジトリ**: `{base_dir}`のgitリポジトリ
+
+**手順**:
+
+1. **変更確認**
+
+   ```bash
+   cd {base_dir} && git status --short
+   ```
+
+2. **変更がある場合のみ Stage & Commit**
+
+   ```bash
+   cd {base_dir} && git add Identities/GrandDigest.txt Identities/ShadowGrandDigest.txt Identities/IntentionPad.md && git commit -m "digest: {処理したLoop一覧} processed"
+   ```
+
+   **コミットメッセージ例**: `digest: L00386, L00387 processed`
+
+3. **Push**
+
+   ```bash
+   cd {base_dir} && git push
+   ```
+
+**注意**:
+- `git status`で変更がない場合はスキップ
+- Pushエラー時はユーザーに報告し、手動対応を促す
+
+---
+
 ## パターン2: /digest \<type\>（階層確定）
 
 **⚠️ 重要: 以下のTodoリストをTodoWriteで作成し、順番に実行すること**
@@ -349,6 +384,7 @@ TodoWrite items for Pattern 2:
 8. Digestカスケード - finalize_from_shadow.pyを実行
 8.5. 次階層への統合 - 次階層SGDのabstract/impressionを更新（centurial以外）
 9. 処理完了提示 - GrandDigestと次階層のDigest要否を確認
+10. Git Commit & Push - 変更をコミットしてプッシュ
 ```
 
 **各ステップの概要**:
@@ -365,6 +401,7 @@ TodoWrite items for Pattern 2:
 | 8 | Digestカスケード | `python -m interfaces.finalize_from_shadow <level> "タイトル"` |
 | 8.5 | 次階層への統合 | Task(DigestAnalyzer)並列 + 次階層SGD更新（centurial以外） |
 | 9 | 処理完了提示 | GrandDigest確認 + 次階層のDigest要否を案内 |
+| 10 | Git Commit & Push | `{base_dir}`リポジトリへcommit & push |
 
 ### 各ステップの詳細
 
@@ -591,18 +628,18 @@ DigestAnalyzerからJSON形式で結果を受け取る。
    **注意**: `<next_level>`は現在レベルの**次**（weekly→monthly, monthly→quarterly）
 
    ```bash
-   python -m interfaces.save_provisional_digest <next_level> temp_individual_digests.json --append
+   python -m interfaces.save_provisional_digest <next_level> {digests_path}/temp_individual_digests.json --append
    ```
 
    **例**: Monthly確定時（次階層はquarterly）
    ```bash
-   python -m interfaces.save_provisional_digest quarterly temp_individual_digests.json --append
+   python -m interfaces.save_provisional_digest quarterly {digests_path}/temp_individual_digests.json --append
    ```
 
 3. **一時ファイル削除**
 
    ```bash
-   rm temp_individual_digests.json
+   rm {digests_path}/temp_individual_digests.json
    ```
 
 ---
@@ -736,6 +773,38 @@ Quarterly生成まであと2個のMonthlyが必要です。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+---
+
+#### Step 10: Git Commit & Push
+
+**対象リポジトリ**: `{base_dir}`のgitリポジトリ
+
+**手順**:
+
+1. **変更確認**
+
+   ```bash
+   cd {base_dir} && git status --short
+   ```
+
+2. **変更がある場合のみ Stage & Commit**
+
+   ```bash
+   cd {base_dir} && git add Identities/GrandDigest.txt Identities/ShadowGrandDigest.txt Identities/IntentionPad.md && git commit -m "digest: {level} finalized - {承認されたタイトル}"
+   ```
+
+   **コミットメッセージ例**: `digest: weekly finalized - 知性射程理論と冬支度`
+
+3. **Push**
+
+   ```bash
+   cd {base_dir} && git push
+   ```
+
+**注意**:
+- `git status`で変更がない場合はスキップ
+- Pushエラー時はユーザーに報告し、手動対応を促す
 
 ---
 

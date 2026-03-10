@@ -6,7 +6,7 @@ Handles JSON parsing from files or strings.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ValidationError
@@ -21,12 +21,17 @@ class InputLoader:
     """Loads individual digests from various input sources."""
 
     @staticmethod
-    def load(input_data: str) -> List[IndividualDigestData]:
+    def load(
+        input_data: str, base_path: Optional[Path] = None
+    ) -> List[IndividualDigestData]:
         """
         Load individual_digests from a JSON file path or JSON string.
 
         Args:
             input_data: JSON file path or JSON string
+            base_path: Base directory for resolving relative file paths.
+                       When provided, relative paths are resolved against this directory
+                       before falling back to cwd or JSON parsing.
 
         Returns:
             List of individual digests
@@ -41,6 +46,8 @@ class InputLoader:
             >>> digests = InputLoader.load("path/to/digests.json")
             >>> len(digests)
             3
+            >>> # base_pathで相対パスを解決
+            >>> digests = InputLoader.load("temp.json", base_path=Path("/data"))
             >>> # JSON文字列から読み込み
             >>> json_str = '[{"source_file": "L00001.txt", "digest_type": "開発", ...}]'
             >>> digests = InputLoader.load(json_str)
@@ -59,7 +66,17 @@ class InputLoader:
         else:
             # Try as file path
             input_path = Path(input_data)
-            if input_path.exists():
+            if input_path.is_absolute() and input_path.exists():
+                data = InputLoader._load_from_file(input_path)
+            elif base_path is not None and not input_path.is_absolute():
+                # Resolve relative path against base_path
+                resolved = base_path / input_path
+                if resolved.exists():
+                    data = InputLoader._load_from_file(resolved)
+                else:
+                    # Fallback: try parsing as JSON string
+                    data = InputLoader._parse_json_string(input_data)
+            elif input_path.exists():
                 data = InputLoader._load_from_file(input_path)
             else:
                 # Fallback: try parsing as JSON string anyway

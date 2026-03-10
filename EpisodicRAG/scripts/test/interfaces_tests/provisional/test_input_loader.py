@@ -245,5 +245,55 @@ class TestInputLoaderEdgeCases(unittest.TestCase):
         self.assertIsNone(result[0]["metadata"])
 
 
+class TestInputLoaderBasePathResolution(unittest.TestCase):
+    """InputLoader.load() with base_path parameter tests"""
+
+    def setUp(self) -> None:
+        """Set up temp directory"""
+        import tempfile
+
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self) -> None:
+        """Clean up temp directory"""
+        import shutil
+
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def _create_json_file(self, filename: str, data) -> Path:
+        """Helper to create JSON file"""
+        file_path = Path(self.temp_dir) / filename
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        return file_path
+
+    def test_relative_path_resolved_against_base_path(self) -> None:
+        """Relative file path resolves against base_path when provided"""
+        data = [{"source_file": "L00001.txt"}]
+        self._create_json_file("data.json", data)
+
+        result = InputLoader.load("data.json", base_path=Path(self.temp_dir))
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["source_file"], "L00001.txt")
+
+    def test_absolute_path_ignores_base_path(self) -> None:
+        """Absolute file path ignores base_path"""
+        data = [{"source_file": "L00001.txt"}]
+        file_path = self._create_json_file("data.json", data)
+
+        result = InputLoader.load(str(file_path), base_path=Path("/nonexistent"))
+        self.assertEqual(len(result), 1)
+
+    def test_without_base_path_backward_compatible(self) -> None:
+        """Without base_path, relative path behavior is unchanged"""
+        with self.assertRaises(json.JSONDecodeError):
+            InputLoader.load("nonexistent_file.json")
+
+    def test_file_not_found_at_base_path_falls_through(self) -> None:
+        """File not found at base_path falls through to JSON parsing"""
+        with self.assertRaises(json.JSONDecodeError):
+            InputLoader.load("missing.json", base_path=Path(self.temp_dir))
+
+
 if __name__ == "__main__":
     unittest.main()
