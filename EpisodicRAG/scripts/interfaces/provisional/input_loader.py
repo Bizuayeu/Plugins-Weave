@@ -21,9 +21,7 @@ class InputLoader:
     """Loads individual digests from various input sources."""
 
     @staticmethod
-    def load(
-        input_data: str, base_path: Optional[Path] = None
-    ) -> List[IndividualDigestData]:
+    def load(input_data: str, base_path: Optional[Path] = None) -> List[IndividualDigestData]:
         """
         Load individual_digests from a JSON file path or JSON string.
 
