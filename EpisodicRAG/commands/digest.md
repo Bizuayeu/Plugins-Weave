@@ -51,7 +51,7 @@ DigestAnalyzerの出力は長文JSON（4000文字以上）のため、
 # パス例: {digests_path}/temp_individual_digests.json
 
 # 2. スクリプトにファイルパスを渡す
-python -m interfaces.save_provisional_digest weekly temp_individual_digests.json --append
+python -m interfaces.save_provisional_digest weekly {digests_path}/temp_individual_digests.json --append
 
 # 3. 一時ファイルを削除
 ```
