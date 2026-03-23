@@ -1,0 +1,77 @@
+"""T4: File reader tests."""
+import os
+import tempfile
+import unittest
+
+from scripts.domain.exceptions import SourceError
+from scripts.infrastructure.file_reader import read_text_file
+
+
+class TestReadTextFile(unittest.TestCase):
+    def test_read_ascii_text(self):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
+            f.write("Hello World")
+            f.flush()
+            path = f.name
+        try:
+            result = read_text_file(path, "utf-8", 0)
+            self.assertEqual(result, "Hello World")
+        finally:
+            os.unlink(path)
+
+    def test_read_utf8_japanese(self):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
+            f.write("日本語テスト\n二行目")
+            f.flush()
+            path = f.name
+        try:
+            result = read_text_file(path, "utf-8", 0)
+            self.assertIn("日本語テスト", result)
+            self.assertIn("二行目", result)
+        finally:
+            os.unlink(path)
+
+    def test_read_with_max_lines(self):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
+            for i in range(100):
+                f.write(f"Line {i}\n")
+            f.flush()
+            path = f.name
+        try:
+            result = read_text_file(path, "utf-8", 10)
+            lines = result.strip().split("\n")
+            self.assertEqual(len(lines), 11)  # 10 lines + truncated notice
+            self.assertIn("truncated", lines[-1].lower())
+        finally:
+            os.unlink(path)
+
+    def test_read_max_lines_zero(self):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
+            for i in range(100):
+                f.write(f"Line {i}\n")
+            f.flush()
+            path = f.name
+        try:
+            result = read_text_file(path, "utf-8", 0)
+            lines = result.strip().split("\n")
+            self.assertEqual(len(lines), 100)
+        finally:
+            os.unlink(path)
+
+    def test_read_empty_file(self):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
+            f.flush()
+            path = f.name
+        try:
+            result = read_text_file(path, "utf-8", 0)
+            self.assertEqual(result, "")
+        finally:
+            os.unlink(path)
+
+    def test_read_missing_file(self):
+        with self.assertRaises(SourceError):
+            read_text_file("/nonexistent/path/file.txt", "utf-8", 0)
+
+
+if __name__ == "__main__":
+    unittest.main()

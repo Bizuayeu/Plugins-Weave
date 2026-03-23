@@ -1,0 +1,19 @@
+{
+  "name": "ContextPreloader",
+  "version": "1.0.0",
+  "description": "Session context preloader - recreates claude.ai Project feature for Claude Code",
+  "author": {
+    "name": "Weave @ ContextPreloader"
+  },
+  "homepage": "https://note.com/weave_ai",
+  "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+  "license": "MIT",
+  "keywords": [
+    "context-preload",
+    "session-start",
+    "project-context",
+    "file-loader",
+    "url-fetcher",
+    "profile-management"
+  ]
+}
