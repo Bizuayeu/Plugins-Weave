@@ -116,6 +116,76 @@ def cmd_test(config_path: str, profile: str | None) -> list[dict]:
     return results
 
 
+def cmd_status() -> dict:
+    """Check setup state. Returns dict with status of each component."""
+    from pathlib import Path
+
+    config_path = get_default_config_path()
+    profiles_dir = get_profiles_dir()
+    hook_path = Path.home() / ".claude" / "hooks" / "context_preloader.py"
+
+    # 1. Config exists?
+    config_ok = config_path.exists()
+
+    # 2. Hook launcher exists?
+    hook_ok = hook_path.exists()
+
+    # 3. settings.json has ContextPreloader hook?
+    # Walk up from CWD to find .claude/settings.json (like git finds .git/)
+    settings_ok = False
+    settings_path = None
+    candidates = []
+    d = Path.cwd()
+    while True:
+        candidates.append(d / ".claude" / "settings.json")
+        parent = d.parent
+        if parent == d:
+            break
+        d = parent
+    candidates.append(Path.home() / ".claude" / "settings.json")
+
+    for candidate in candidates:
+        if candidate.exists():
+            try:
+                import json as _json
+                with open(candidate, "r", encoding="utf-8") as f:
+                    settings = _json.load(f)
+                hooks = settings.get("hooks", {}).get("SessionStart", [])
+                for group in hooks:
+                    for h in group.get("hooks", []):
+                        if "context_preloader" in h.get("command", ""):
+                            settings_ok = True
+                            settings_path = str(candidate)
+                            break
+            except Exception:
+                pass
+            if settings_ok:
+                break
+
+    # 4. Profiles
+    profiles = list_profiles(profiles_dir)
+
+    # 5. Source count
+    source_count = 0
+    if config_ok:
+        try:
+            cfg = load_config(str(config_path))
+            source_count = len(cfg.sources)
+        except ConfigError:
+            pass
+
+    ready = config_ok and hook_ok and settings_ok
+
+    return {
+        "ready": ready,
+        "config": {"ok": config_ok, "path": str(config_path)},
+        "hook": {"ok": hook_ok, "path": str(hook_path)},
+        "settings": {"ok": settings_ok, "path": settings_path},
+        "profiles": profiles,
+        "global_sources": source_count,
+    }
+
+
 def cmd_profiles(profiles_dir: str) -> list[str]:
     """List available profile names."""
     return list_profiles(profiles_dir)
@@ -134,6 +204,7 @@ def main() -> None:
 
     subparsers = parser.add_subparsers(dest="command")
 
+    subparsers.add_parser("status", help="Check setup state")
     subparsers.add_parser("list", help="List sources")
     subparsers.add_parser("profiles", help="List profiles")
     subparsers.add_parser("test", help="Test sources")
@@ -157,7 +228,11 @@ def main() -> None:
             from scripts.infrastructure.path_resolver import get_profile_path
             profile_path = str(get_profile_path(args.profile))
 
-    if args.command == "list":
+    if args.command == "status":
+        result = cmd_status()
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+
+    elif args.command == "list":
         result = cmd_list(args.config, profile_path)
         print(json.dumps(result, indent=2, ensure_ascii=False))
 

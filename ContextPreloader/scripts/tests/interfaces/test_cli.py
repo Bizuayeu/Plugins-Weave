@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.interfaces.cli import cmd_add, cmd_list, cmd_profiles, cmd_remove, cmd_test
+from scripts.interfaces.cli import cmd_add, cmd_list, cmd_profiles, cmd_remove, cmd_status, cmd_test
 
 
 class CLITestBase(unittest.TestCase):
@@ -120,6 +120,28 @@ class TestCmdProfiles(CLITestBase):
 
         result = cmd_profiles(self._profiles_dir)
         self.assertEqual(set(result), {"alpha", "beta"})
+
+
+class TestCmdStatus(unittest.TestCase):
+    def test_cmd_status_returns_all_keys(self):
+        result = cmd_status()
+        self.assertIn("ready", result)
+        self.assertIn("config", result)
+        self.assertIn("hook", result)
+        self.assertIn("settings", result)
+        self.assertIn("profiles", result)
+        self.assertIn("global_sources", result)
+
+    def test_cmd_status_config_exists(self):
+        """Config should exist (we created it during migration)."""
+        result = cmd_status()
+        self.assertIn("ok", result["config"])
+        self.assertIn("path", result["config"])
+
+    def test_cmd_status_hook_exists(self):
+        """Hook should exist (we deployed it during migration)."""
+        result = cmd_status()
+        self.assertIn("ok", result["hook"])
 
 
 if __name__ == "__main__":
