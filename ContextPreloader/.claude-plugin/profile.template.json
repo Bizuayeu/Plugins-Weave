@@ -1,0 +1,19 @@
+{
+  "_comment": "Profile template - Copy to ~/.claude/plugins/.contextpreloader/profiles/{name}.json",
+  "sources": [
+    {
+      "id": "meeting-notes",
+      "label": "Meeting Notes",
+      "path": "~/Documents/meetings/2026-Q1.md",
+      "type": "auto",
+      "enabled": true
+    },
+    {
+      "id": "team-wiki",
+      "label": "Team Wiki",
+      "path": "https://wiki.example.com/team/overview",
+      "type": "auto",
+      "enabled": true
+    }
+  ]
+}

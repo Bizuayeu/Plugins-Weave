@@ -3,6 +3,106 @@
 SessionStart hookで任意のファイル・URLを事前文脈として読み込むプラグイン。
 claude.aiのプロジェクト機能をClaude Codeで再現する。
 
+## Quick Start
+
+### 1. config作成
+
+`~/.claude/plugins/.contextpreloader/` に `sources.json` を配置:
+
+```json
+{
+  "version": "1.0.0",
+  "settings": {
+    "encoding": "utf-8",
+    "max_lines_per_file": 0,
+    "show_summary": true,
+    "url_timeout": 10
+  },
+  "sources": [
+    {
+      "id": "project-notes",
+      "label": "Project Notes",
+      "path": "~/projects/my-app/NOTES.md",
+      "type": "auto",
+      "enabled": true
+    },
+    {
+      "id": "api-docs",
+      "label": "API Reference",
+      "path": "https://docs.example.com/api/v2",
+      "type": "auto",
+      "enabled": true
+    },
+    {
+      "id": "design-spec",
+      "label": "Design Specification",
+      "path": "~/projects/my-app/docs/spec.pdf",
+      "type": "auto",
+      "enabled": true
+    }
+  ]
+}
+```
+
+テンプレート: `.claude-plugin/sources.template.json`
+
+### 2. hook配置
+
+`~/.claude/hooks/context_preloader.py` を配置（既にプラグインに同梱）。
+
+### 3. settings.json にhook登録
+
+プロジェクトの `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"~/.claude/hooks/context_preloader.py\"",
+            "timeout": 15000
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+プロファイルを使う場合（プロジェクト別に文脈を分ける）:
+
+```json
+"command": "python \"~/.claude/hooks/context_preloader.py\" --profile myproject"
+```
+
+### 4. プロファイル（任意）
+
+`~/.claude/plugins/.contextpreloader/profiles/myproject.json`:
+
+```json
+{
+  "sources": [
+    {"id": "meeting-notes", "label": "Meeting Notes", "path": "~/Documents/meetings.md"},
+    {"id": "team-wiki", "label": "Team Wiki", "path": "https://wiki.example.com/team"}
+  ]
+}
+```
+
+テンプレート: `.claude-plugin/profile.template.json`
+
+### Source Type の動作
+
+| path | type=auto | 動作 |
+|------|-----------|------|
+| `.txt`, `.md`, `.py` 等 | text | 内容をそのまま文脈に注入 |
+| `.pdf`, `.png`, `.docx` 等 | binary | パス・サイズを表示（Read toolで閲覧） |
+| `https://...` (HTML) | url | HTMLタグ除去しテキストを注入 |
+| `https://...` (non-HTML) | url | URL+Content-Typeを表示 |
+
 ## Architecture
 
 Clean Architecture 4層構造:

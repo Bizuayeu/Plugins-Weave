@@ -1,4 +1,5 @@
 {
+  "_comment": "ContextPreloader v1.0.0 - Copy to ~/.claude/plugins/.contextpreloader/sources.json",
   "version": "1.0.0",
   "settings": {
     "encoding": "utf-8",
@@ -12,5 +13,30 @@
     ".toml", ".ini", ".cfg", ".log",
     ".sh", ".bash", ".ps1", ".bat"
   ],
-  "sources": []
+  "sources": [
+    {
+      "_comment": "Example: text file (content loaded directly into context)",
+      "id": "project-notes",
+      "label": "Project Notes",
+      "path": "~/projects/my-app/NOTES.md",
+      "type": "auto",
+      "enabled": true
+    },
+    {
+      "_comment": "Example: URL (HTML stripped, text extracted into context)",
+      "id": "api-docs",
+      "label": "API Reference",
+      "path": "https://docs.example.com/api/v2",
+      "type": "auto",
+      "enabled": true
+    },
+    {
+      "_comment": "Example: binary file (path listed, use Read tool to view)",
+      "id": "design-spec",
+      "label": "Design Specification",
+      "path": "~/projects/my-app/docs/spec.pdf",
+      "type": "auto",
+      "enabled": true
+    }
+  ]
 }
