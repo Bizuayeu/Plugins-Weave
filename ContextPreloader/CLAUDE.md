@@ -48,7 +48,16 @@ claude.aiのプロジェクト機能をClaude Codeで再現する。
 
 ### 2. hook配置
 
-`~/.claude/hooks/context_preloader.py` を配置（既にプラグインに同梱）。
+プラグイン同梱の `hooks/context_preloader.py` を `~/.claude/hooks/` にコピー:
+
+```bash
+cp plugins-weave/ContextPreloader/hooks/context_preloader.py ~/.claude/hooks/
+```
+
+開発時は環境変数でプラグインパスを上書き可能:
+```bash
+export CONTEXTPRELOADER_PLUGIN_DIR=~/DEV/plugins-weave/ContextPreloader
+```
 
 ### 3. settings.json にhook登録
 
