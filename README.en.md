@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-01-04 -->
+<!-- Last synced: 2026-03-24 -->
 English | [日本語](README.md)
 
 # Plugins-Weave
@@ -18,6 +18,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 
 | Challenge | Solution | Plugin |
 |-----------|----------|--------|
+| **Need to load initial context** | Auto-load files & URLs at session start | ContextPreloader |
 | **No memory across sessions** | 8-layer long-term memory system | EpisodicRAG |
 | **Only passive responses** | Proactive essay/email delivery | EmailingEssay |
 | **Text-only, limited expression** | Emotion-based facial expressions | VisualExpression |
@@ -25,6 +26,13 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 ---
 
 ## Navigation
+
+### ContextPreloader
+
+| Your Goal | Reference |
+|-----------|-----------|
+| 🚀 **Getting started** | [CLAUDE.md (Quick Start)](ContextPreloader/CLAUDE.md) |
+| 📖 **Skill specification** | [SKILL](ContextPreloader/skills/context-preload/SKILL.md) |
 
 ### EpisodicRAG
 
@@ -65,6 +73,9 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 ### 2. Install Plugins
 
 ```ClaudeCLI
+# ContextPreloader (Initial Context Loading)
+/plugin install ContextPreloader@Plugins-Weave
+
 # EpisodicRAG (Long-term Memory Management)
 /plugin install EpisodicRAG@Plugins-Weave
 
@@ -78,6 +89,29 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 ---
 
 ## Plugin Details
+
+### ContextPreloader
+
+**Session Context Preloading System**
+
+Recreates claude.ai's Project feature for Claude Code. Automatically injects files and URLs into session context via SessionStart hook.
+
+#### Key Features
+
+- **Format-agnostic**: Supports text, PDF, images, Office docs, URLs — anything you point it at
+- **Profile system**: Switch file sets per project for context separation
+- **Interactive setup**: `@context-preload` auto-detects setup state and guides you through
+
+#### Main Commands
+
+| Command | Description |
+|---------|-------------|
+| `@context-preload` | Setup & management (auto-detects state) |
+| `/context-preload` | List, test, add, remove sources |
+
+→ [Quick Start](ContextPreloader/CLAUDE.md) / [Skill Spec](ContextPreloader/skills/context-preload/SKILL.md)
+
+---
 
 ### EpisodicRAG
 

@@ -17,6 +17,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 | 課題 | 解決策 | プラグイン |
 |------|--------|-----------|
+| **初期文脈を読み込ませたい** | セッション開始時にファイル・URLを自動読込 | ContextPreloader |
 | **セッションを超えた記憶がない** | 8階層の長期記憶システム | EpisodicRAG |
 | **受動的な応答しかできない** | 自発的なエッセイ・メール送信 | EmailingEssay |
 | **テキストのみで表現が乏しい** | 感情に基づく表情表現 | VisualExpression |
@@ -24,6 +25,13 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 ---
 
 ## ナビゲーション
+
+### ContextPreloader
+
+| あなたの目的 | 参照先 |
+|-------------|--------|
+| 🚀 **初めて使う** | [CLAUDE.md（Quick Start）](ContextPreloader/CLAUDE.md) |
+| 📖 **スキル仕様** | [SKILL](ContextPreloader/skills/context-preload/SKILL.md) |
 
 ### EpisodicRAG
 
@@ -64,6 +72,9 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 ### 2. プラグインインストール
 
 ```ClaudeCLI
+# ContextPreloader（初期文脈取込）
+/plugin install ContextPreloader@Plugins-Weave
+
 # EpisodicRAG（長期記憶管理）
 /plugin install EpisodicRAG@Plugins-Weave
 
@@ -77,6 +88,29 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 ---
 
 ## プラグイン詳細
+
+### ContextPreloader
+
+**セッション事前文脈読み込みシステム**
+
+claude.aiのプロジェクト機能をClaude Codeで再現。SessionStart hookでファイル・URLを自動的にセッション文脈に注入します。
+
+#### 主な特徴
+
+- **フォーマット非依存**: テキスト、PDF、画像、Office、URLなど何でも指定可能
+- **プロファイル制**: プロジェクト別に読み込むファイルセットを切り替え
+- **対話型セットアップ**: `@context-preload` で初期設定を自動検出・案内
+
+#### 主要コマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `@context-preload` | セットアップ・管理（状態自動検出） |
+| `/context-preload` | ソース一覧・テスト・追加・削除 |
+
+→ [Quick Start](ContextPreloader/CLAUDE.md) / [スキル仕様](ContextPreloader/skills/context-preload/SKILL.md)
+
+---
 
 ### EpisodicRAG
 
