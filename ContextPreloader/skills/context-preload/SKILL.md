@@ -126,6 +126,20 @@ python -m scripts test
 
 `ready: true` の場合、ステータス情報を表示した上で操作を選択。
 
+### `--profile` の動作
+
+| コマンド | 読み込み対象 |
+|---------|-------------|
+| `python -m scripts` | **グローバル** (`sources.json`) のみ |
+| `python -m scripts --profile weave` | **グローバル + プロファイル** (`profiles/weave.json`) をマージ |
+
+CLIコマンド（list, test, add, remove）も同様:
+- `--profile` なし → グローバルsourcesを操作
+- `--profile NAME` → グローバル + そのプロファイルを対象
+
+SessionStart hookの `--profile` 設定は `settings.json` で固定されるため、
+CLIで手動操作するときも同じプロファイル名を指定すること。
+
 ### ソース追加
 
 ```bash

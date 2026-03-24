@@ -88,6 +88,17 @@ export CONTEXTPRELOADER_PLUGIN_DIR=~/DEV/plugins-weave/ContextPreloader
 "command": "python \"~/.claude/hooks/context_preloader.py\" --profile myproject"
 ```
 
+**`--profile` の有無による動作の違い:**
+
+| hook コマンド | セッション開始時の読み込み |
+|--------------|------------------------|
+| `context_preloader.py` | `sources.json`（グローバル）のみ |
+| `context_preloader.py --profile NAME` | グローバル + `profiles/NAME.json` をマージ |
+
+プロファイルなしの場合、`profiles/` 内のファイルは一切読み込まれない。
+プロジェクト毎に異なる文脈が必要な場合は、プロジェクト毎の `.claude/settings.json` で
+異なる `--profile` を指定する。
+
 ### 4. プロファイル（任意）
 
 `~/.claude/plugins/.contextpreloader/profiles/myproject.json`:
