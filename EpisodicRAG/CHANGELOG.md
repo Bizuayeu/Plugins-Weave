@@ -11,11 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#520---2025-12-14)
+- [v5.x](#530---2026-03-26)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.3.0] - 2026-03-26
+
+### Added
+
+- **Auto-dream: メモリ棚卸し機能**
+  - digest処理のStep 11として、Claude Code auto-memoryファイルの自動スキャン・棚卸しを追加
+  - `python -m interfaces.auto_dream_scan` CLIで実行可能
+  - `~/.claude/projects/*/memory/` 配下のメモリファイルを検出・解析
+  - frontmatter（name, description, type）の自動パース（PyYAML不使用、依存ゼロ維持）
+  - Pattern 1（新Loop検出）・Pattern 2（階層確定）の両方で動作
+  - メモリ未使用環境では自動スキップ（graceful degradation）
+
+### Architecture
+
+- **新規パッケージ**: `domain/auto_dream/`, `infrastructure/auto_dream/`, `application/auto_dream/`
+- Clean Architecture 4層に準拠（Domain → Infrastructure → Application → Interfaces）
+- テスト46件追加（domain: 12, infrastructure: 34, application: 8, interfaces: 5）
 
 ---
 

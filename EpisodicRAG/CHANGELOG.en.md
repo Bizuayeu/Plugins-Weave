@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-16 -->
+<!-- Last synced: 2026-03-26 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,11 +12,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#520---2025-12-14)
+- [v5.x](#530---2026-03-26)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.3.0] - 2026-03-26
+
+### Added
+
+- **Auto-dream: Memory Consolidation**
+  - Added automatic scanning and consolidation of Claude Code auto-memory files as Step 11 of the digest process
+  - New CLI: `python -m interfaces.auto_dream_scan`
+  - Discovers and parses memory files under `~/.claude/projects/*/memory/`
+  - Lightweight frontmatter parser (no PyYAML dependency, zero-dependency policy maintained)
+  - Works with both Pattern 1 (new Loop detection) and Pattern 2 (level finalization)
+  - Graceful degradation: auto-skips in environments without auto-memory
+
+### Architecture
+
+- **New packages**: `domain/auto_dream/`, `infrastructure/auto_dream/`, `application/auto_dream/`
+- Clean Architecture 4-layer compliance (Domain → Infrastructure → Application → Interfaces)
+- 59 new tests added (domain: 12, infrastructure: 34, application: 8, interfaces: 5)
 
 ---
 

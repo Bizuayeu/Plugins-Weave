@@ -108,6 +108,7 @@ TodoWrite items for Pattern 1:
 8. 処理完了記録 - update_digest_timesを実行
 9. 次アクション提示 - threshold値を参照
 10. Git Commit & Push - 変更をコミットしてプッシュ
+11. Auto-dream: メモリ棚卸し - auto_dream_scan.pyを実行
 ```
 
 **各ステップの概要**:
@@ -124,6 +125,7 @@ TodoWrite items for Pattern 1:
 | 8 | 処理完了記録 | `python -m interfaces.update_digest_times loop <最終番号>` |
 | 9 | 次アクション提示 | digest_entry.py出力とthreshold値を参照 |
 | 10 | Git Commit & Push | `{base_dir}`リポジトリへcommit & push |
+| 11 | Auto-dream: メモリ棚卸し | `python -m interfaces.auto_dream_scan` |
 
 ### 各ステップの詳細
 
@@ -368,6 +370,51 @@ ShadowGrandDigest.weekly に追加しました。
 
 ---
 
+#### Step 11: Auto-dream: メモリ棚卸し
+
+**実行ディレクトリ**: `{plugin_root}/scripts`
+
+**コマンド**:
+```bash
+python -m interfaces.auto_dream_scan
+```
+
+**判定**:
+- `status: "no_memory"` → スキップ（メモリ未使用環境）
+- `status: "error"` → 警告表示のみ、digestは成功扱い
+- `status: "ok"` → 以下のメモリ棚卸しを実行
+
+**棚卸し手順**:
+
+1. **スキャン結果を確認**
+
+   `memory_files`の各ファイルについて、`frontmatter.type`別に確認
+
+2. **ShadowGrandDigestとの突合**
+
+   今回のdigest処理で更新されたShadowGrandDigestの内容と、
+   各メモリファイルの`content`を比較し、以下を判定：
+   - **stale**: 記載内容が古い（イベント日時が過去、プロジェクト状況が変化等）
+   - **current**: 最新の情報を反映済み
+   - **enrichable**: digest内容から追記すべき新しい知見がある
+
+3. **staleまたはenrichableなファイルを更新**
+
+   Editツールで該当ファイルの`content`部分を更新
+   - frontmatter（`---`で囲まれた部分）は変更しない
+   - body部分のみ更新
+
+4. **MEMORY.md更新（必要な場合）**
+
+   新しいメモリファイルを追加した場合、MEMORY.mdのインデックスも更新
+
+**注意**:
+- Step 11はdigest処理の成否に影響しない（失敗してもdigest自体は完了）
+- メモリファイルの更新はClaude Codeシステムパス上のファイル（gitコミット対象外）
+- auto-memoryが無効な環境では自動スキップ
+
+---
+
 ## パターン2: /digest \<type\>（階層確定）
 
 **⚠️ 重要: 以下のTodoリストをTodoWriteで作成し、順番に実行すること**
@@ -385,6 +432,7 @@ TodoWrite items for Pattern 2:
 8.5. 次階層への統合 - 次階層SGDのabstract/impressionを更新（centurial以外）
 9. 処理完了提示 - GrandDigestと次階層のDigest要否を確認
 10. Git Commit & Push - 変更をコミットしてプッシュ
+11. Auto-dream: メモリ棚卸し - auto_dream_scan.pyを実行
 ```
 
 **各ステップの概要**:
@@ -402,6 +450,7 @@ TodoWrite items for Pattern 2:
 | 8.5 | 次階層への統合 | Task(DigestAnalyzer)並列 + 次階層SGD更新（centurial以外） |
 | 9 | 処理完了提示 | GrandDigest確認 + 次階層のDigest要否を案内 |
 | 10 | Git Commit & Push | `{base_dir}`リポジトリへcommit & push |
+| 11 | Auto-dream: メモリ棚卸し | `python -m interfaces.auto_dream_scan` |
 
 ### 各ステップの詳細
 
@@ -805,6 +854,12 @@ Quarterly生成まであと2個のMonthlyが必要です。
 **注意**:
 - `git status`で変更がない場合はスキップ
 - Pushエラー時はユーザーに報告し、手動対応を促す
+
+---
+
+#### Step 11: Auto-dream: メモリ棚卸し
+
+> パターン1のStep 11と同一の手順です。[パターン1のStep 11](#step-11-auto-dream-メモリ棚卸し) を参照。
 
 ---
 
