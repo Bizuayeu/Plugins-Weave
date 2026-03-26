@@ -27,7 +27,9 @@ class TestParseFrontmatter:
     @pytest.mark.unit
     def test_正常なfrontmatterを解析(self) -> None:
         """標準的な---/name/description/type/---形式"""
-        content = "---\nname: テスト\ndescription: テスト用メモリ\ntype: user\n---\n\n## 内容\nテスト"
+        content = (
+            "---\nname: テスト\ndescription: テスト用メモリ\ntype: user\n---\n\n## 内容\nテスト"
+        )
         fm, body = parse_frontmatter(content)
         assert fm is not None
         assert fm["name"] == "テスト"

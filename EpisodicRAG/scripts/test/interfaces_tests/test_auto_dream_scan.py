@@ -25,10 +25,13 @@ class TestAutoDreamScanMain:
         """メモリなし → exit code 1"""
         fake_base = tmp_path / ".claude" / "projects"
 
-        with patch(
-            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
-            return_value=fake_base,
-        ), patch("sys.argv", ["auto_dream_scan"]):
+        with (
+            patch(
+                "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+                return_value=fake_base,
+            ),
+            patch("sys.argv", ["auto_dream_scan"]),
+        ):
             exit_code = main()
 
         assert exit_code == EXIT_NO_MEMORY
@@ -45,10 +48,13 @@ class TestAutoDreamScanMain:
         )
         fake_base = tmp_path / ".claude" / "projects"
 
-        with patch(
-            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
-            return_value=fake_base,
-        ), patch("sys.argv", ["auto_dream_scan"]):
+        with (
+            patch(
+                "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+                return_value=fake_base,
+            ),
+            patch("sys.argv", ["auto_dream_scan"]),
+        ):
             exit_code = main()
 
         assert exit_code == EXIT_OK
@@ -61,10 +67,13 @@ class TestAutoDreamScanMain:
         (memory_dir / "MEMORY.md").write_text("# Memory", encoding="utf-8")
         fake_base = tmp_path / ".claude" / "projects"
 
-        with patch(
-            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
-            return_value=fake_base,
-        ), patch("sys.argv", ["auto_dream_scan", "--project-path", "C:\\test"]):
+        with (
+            patch(
+                "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+                return_value=fake_base,
+            ),
+            patch("sys.argv", ["auto_dream_scan", "--project-path", "C:\\test"]),
+        ):
             exit_code = main()
 
         assert exit_code == EXIT_OK
@@ -74,10 +83,13 @@ class TestAutoDreamScanMain:
         """出力がvalid JSON"""
         fake_base = tmp_path / ".claude" / "projects"
 
-        with patch(
-            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
-            return_value=fake_base,
-        ), patch("sys.argv", ["auto_dream_scan"]):
+        with (
+            patch(
+                "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+                return_value=fake_base,
+            ),
+            patch("sys.argv", ["auto_dream_scan"]),
+        ):
             main()
 
         captured = capsys.readouterr()
