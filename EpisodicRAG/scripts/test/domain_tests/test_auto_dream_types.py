@@ -7,6 +7,7 @@ Auto-Dream型定義の構造検証。
 """
 
 import pytest
+
 from domain.auto_dream.types import (
     VALID_MEMORY_TYPES,
     AutoDreamScanResult,
