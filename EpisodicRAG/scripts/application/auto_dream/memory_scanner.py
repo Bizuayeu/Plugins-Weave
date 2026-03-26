@@ -12,7 +12,6 @@ Usage:
     result = scanner.scan()
 """
 
-from pathlib import Path
 from typing import List, Optional
 
 from domain.auto_dream.types import AutoDreamScanResult, MemoryFile

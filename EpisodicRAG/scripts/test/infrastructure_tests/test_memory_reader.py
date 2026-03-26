@@ -9,7 +9,6 @@ frontmatter解析、メモリファイル読み込み、インデックス解析
 from pathlib import Path
 
 import pytest
-
 from infrastructure.auto_dream.memory_reader import (
     parse_frontmatter,
     read_memory_file,

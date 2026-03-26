@@ -10,7 +10,6 @@ Usage:
     from infrastructure.auto_dream.memory_discovery import discover_memory_dirs
 """
 
-import re
 from pathlib import Path
 from typing import List, Optional
 

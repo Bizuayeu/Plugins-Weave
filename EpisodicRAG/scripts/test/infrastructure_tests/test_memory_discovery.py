@@ -10,7 +10,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from infrastructure.auto_dream.memory_discovery import (
     discover_memory_dirs,
     encode_project_path,
