@@ -17,7 +17,6 @@ from infrastructure.auto_dream.memory_discovery import (
     get_claude_projects_base,
 )
 
-
 # =============================================================================
 # encode_project_path テスト
 # =============================================================================
