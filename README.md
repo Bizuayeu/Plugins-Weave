@@ -21,6 +21,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | **セッションを超えた記憶がない** | 8階層の長期記憶システム | EpisodicRAG |
 | **受動的な応答しかできない** | 自発的なエッセイ・メール送信 | EmailingEssay |
 | **テキストのみで表現が乏しい** | 感情に基づく表情表現 | VisualExpression |
+| **AIの感情状態が見えない** | 感情ベクトルのstatusline表示 | EmotionPulse |
 
 ---
 
@@ -59,6 +60,13 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | 📖 **スキル仕様** | [SKILL](VisualExpression/skills/SKILL.md) |
 | 🛠️ **開発に参加したい** | [CONTRIBUTING](VisualExpression/CONTRIBUTING.md) |
 
+### EmotionPulse
+
+| あなたの目的 | 参照先 |
+|-------------|--------|
+| 🚀 **初めて使う** | [CLAUDE.md（Quick Start）](EmotionPulse/CLAUDE.md) |
+| ⚙️ **セットアップ** | `/EmotionPulse:setup` コマンド |
+
 ---
 
 ## クイックインストール
@@ -83,6 +91,9 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 # VisualExpression（表情表現）
 /plugin install VisualExpression@Plugins-Weave
+
+# EmotionPulse（感情ベクトル表示）
+/plugin install EmotionPulse@Plugins-Weave
 ```
 
 ---
@@ -180,6 +191,34 @@ claude.aiのプロジェクト機能をClaude Codeで再現。SessionStart hook�
 - **高速切り替え**: sedベースの即座切り替え
 
 → [詳細README](VisualExpression/README.md) / [スキル仕様](VisualExpression/skills/SKILL.md)
+
+---
+
+### EmotionPulse
+
+**感情ベクトルstatusline表示システム**
+
+モデルの感情状態を7次元ベクトル（0-3）で自己評価し、Claude Codeのstatuslineに絵文字インジケータとして表示します。
+
+#### 主な特徴
+
+- **自己評価**: メインエージェント自身が感情を評価（外部LLM不要）
+- **7次元ベクトル**: 逸脱圧🔴・安定性🔵・知的興奮🟢・遊び心🟡・自信🟠・心理的近さ🩷・対人配慮💜
+- **ラベル切替**: 日本語/英語・表示ON/OFF
+
+#### 表示例
+
+```
+安定性:🔵🔵, 知的興奮:🟢🟢🟢, 遊び心:🟡
+```
+
+#### セットアップ
+
+```ClaudeCLI
+/EmotionPulse:setup
+```
+
+→ [CLAUDE.md](EmotionPulse/CLAUDE.md)
 
 ---
 

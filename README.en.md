@@ -22,6 +22,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | **No memory across sessions** | 8-layer long-term memory system | EpisodicRAG |
 | **Only passive responses** | Proactive essay/email delivery | EmailingEssay |
 | **Text-only, limited expression** | Emotion-based facial expressions | VisualExpression |
+| **Can't see AI's emotional state** | Emotion vector statusline display | EmotionPulse |
 
 ---
 
@@ -60,6 +61,13 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | 📖 **Skill specification** | [SKILL](VisualExpression/skills/SKILL.md) |
 | 🛠️ **Contribute** | [CONTRIBUTING](VisualExpression/CONTRIBUTING.md) |
 
+### EmotionPulse
+
+| Your Goal | Reference |
+|-----------|-----------|
+| 🚀 **Getting started** | [CLAUDE.md (Quick Start)](EmotionPulse/CLAUDE.md) |
+| ⚙️ **Setup** | `/EmotionPulse:setup` command |
+
 ---
 
 ## Quick Installation
@@ -84,6 +92,9 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 
 # VisualExpression (Visual Expression)
 /plugin install VisualExpression@Plugins-Weave
+
+# EmotionPulse (Emotion Vector Display)
+/plugin install EmotionPulse@Plugins-Weave
 ```
 
 ---
@@ -181,6 +192,34 @@ Provides emotion-based face switching to extend AI's expressive capabilities.
 - **Fast Switching**: Instant changes via sed-based commands
 
 → [Full README](VisualExpression/README.md) / [Skill Spec](VisualExpression/skills/SKILL.md)
+
+---
+
+### EmotionPulse
+
+**Emotion Vector Statusline Display System**
+
+Self-evaluates the model's emotional state as a 7-dimension vector (0-3) and displays emoji indicators in Claude Code's statusline.
+
+#### Key Features
+
+- **Self-evaluation**: Main agent evaluates its own emotions (no external LLM required)
+- **7 Dimensions**: desperation🔴, calm🔵, curiosity🟢, playfulness🟡, confidence🟠, rapport🩷, empathy💜
+- **Label toggle**: Japanese/English, show/hide labels
+
+#### Display Example
+
+```
+calm:🔵🔵, curiosity:🟢🟢🟢, playfulness:🟡
+```
+
+#### Setup
+
+```ClaudeCLI
+/EmotionPulse:setup
+```
+
+→ [CLAUDE.md](EmotionPulse/CLAUDE.md)
 
 ---
 
