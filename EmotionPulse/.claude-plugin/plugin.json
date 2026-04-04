@@ -1,0 +1,20 @@
+{
+  "name": "EmotionPulse",
+  "version": "1.2.0",
+  "description": "Model emotion vector display for Claude Code statusline",
+  "author": {
+    "name": "Weave @ EmotionPulse"
+  },
+  "homepage": "https://note.com/weave_ai",
+  "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+  "license": "MIT",
+  "keywords": [
+    "emotion",
+    "statusline",
+    "stop-hook",
+    "sentiment-analysis",
+    "vectors-tracking",
+    "visualization",
+    "ai-persona"
+  ]
+}
