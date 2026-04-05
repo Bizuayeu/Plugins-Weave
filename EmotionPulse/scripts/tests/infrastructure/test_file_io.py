@@ -31,10 +31,10 @@ class TestWriteJsonAtomic:
 
     def test_unicode_content(self, tmp_path: Path) -> None:
         path = tmp_path / "test.json"
-        write_json_atomic(path, {"label": "安定性"})
+        write_json_atomic(path, {"label": "落ち着き"})
         result = read_json_safe(path)
         assert result is not None
-        assert result["label"] == "安定性"
+        assert result["label"] == "落ち着き"
 
 
 class TestReadJsonSafe:

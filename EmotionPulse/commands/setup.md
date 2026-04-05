@@ -39,7 +39,7 @@ Ask the user (use AskUserQuestion):
 > 2. 言語: ja (日本語) / en (English)
 >
 > デフォルト: labels=ON, lang=ja
-> → `安定性:🔵🔵, 知的興奮:🟢🟢🟢, 遊び心:🟡`
+> → `落ち着き:🔵🔵, 知的興奮:🟢🟢🟢, 遊び心:🟡`
 >
 > Enter to accept defaults, or specify your preference:
 
@@ -113,5 +113,5 @@ EmotionPulse setup complete!
   Display: labels=ON, lang=ja
 
 Each response will show emotion indicators in the statusline:
-  安定性:🔵🔵, 知的興奮:🟢🟢🟢, 遊び心:🟡
+  落ち着き:🔵🔵, 知的興奮:🟢🟢🟢, 遊び心:🟡
 ```

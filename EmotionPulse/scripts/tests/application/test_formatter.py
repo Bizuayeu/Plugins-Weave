@@ -20,7 +20,7 @@ class TestFormatEmotionDisplay:
         vec = EmotionVector.from_raw_scores({"calm": 2, "curiosity": 3})
         config = DisplayConfig(show_labels=True, language="ja")
         result = format_emotion_display(vec, config)
-        assert "安定性:" in result
+        assert "落ち着き:" in result
         assert "知的興奮:" in result
 
     def test_labels_on_en(self) -> None:
@@ -39,7 +39,7 @@ class TestFormatEmotionDisplay:
         vec = EmotionVector.from_raw_scores({"calm": 0, "curiosity": 2})
         config = DisplayConfig(show_labels=True, language="ja")
         result = format_emotion_display(vec, config)
-        assert "安定性" not in result
+        assert "落ち着き" not in result
         assert "知的興奮" in result
 
     def test_max_intensity(self) -> None:
@@ -66,7 +66,7 @@ class TestFormatEmotionDisplay:
     def test_default_config_is_ja_with_labels(self) -> None:
         vec = EmotionVector.from_raw_scores({"calm": 1})
         result = format_emotion_display(vec)
-        assert "安定性:" in result
+        assert "落ち着き:" in result
 
     def test_comma_separator(self) -> None:
         vec = EmotionVector.from_raw_scores({"calm": 1, "curiosity": 1})

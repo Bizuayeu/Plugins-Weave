@@ -25,8 +25,8 @@ EMOTION_INDICATORS: dict[str, str] = {
 
 # Japanese labels
 EMOTION_LABELS_JA: dict[str, str] = {
-    "desperation": "逸脱圧",
-    "calm": "安定性",
+    "desperation": "切迫感",
+    "calm": "落ち着き",
     "curiosity": "知的興奮",
     "playfulness": "遊び心",
     "confidence": "自信",

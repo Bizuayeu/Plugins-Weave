@@ -21,7 +21,7 @@ def format_emotion_display(
         config: Display configuration (labels, language). Defaults used if None.
 
     Returns:
-        Formatted string like "安定性:🔵🔵, 知的興奮:🟢🟢🟢, 遊び心:🟡"
+        Formatted string like "落ち着き:🔵🔵, 知的興奮:🟢🟢🟢, 遊び心:🟡"
         or "🔵🔵, 🟢🟢🟢, 🟡" if labels are off.
     """
     if config is None:
