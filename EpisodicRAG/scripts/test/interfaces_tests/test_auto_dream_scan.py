@@ -98,6 +98,98 @@ class TestAutoDreamScanMain:
         assert "file_count" in parsed
 
 
+class TestAutoDreamScanConfigResolution:
+    """config.jsonのbase_dirからproject_pathを自動解決するテスト"""
+
+    @pytest.mark.integration
+    def test_config_base_dirから正しいプロジェクトを解決(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """複数プロジェクト存在時、configのbase_dirから正しい方を選ぶ"""
+        fake_base = tmp_path / ".claude" / "projects"
+        # 2つのプロジェクト: 親(C--Users-test) と 子(C--Users-test-DEV)
+        for name in ["C--Users-test", "C--Users-test-DEV"]:
+            d = fake_base / name / "memory"
+            d.mkdir(parents=True)
+            (d / "MEMORY.md").write_text("# Memory", encoding="utf-8")
+
+        with (
+            patch(
+                "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+                return_value=fake_base,
+            ),
+            # config.base_dir → DEV配下のサブディレクトリを指す
+            patch(
+                "interfaces.auto_dream_scan.resolve_project_from_config",
+                return_value="C:\\Users\\test\\DEV",
+            ),
+            patch("sys.argv", ["auto_dream_scan"]),
+        ):
+            exit_code = main()
+
+        assert exit_code == EXIT_OK
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed["project_path"] == "C--Users-test-DEV"
+
+    @pytest.mark.integration
+    def test_CLI引数がconfigより優先(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """--project-path が config を上書きする"""
+        fake_base = tmp_path / ".claude" / "projects"
+        memory_dir = fake_base / "C--explicit" / "memory"
+        memory_dir.mkdir(parents=True)
+        (memory_dir / "MEMORY.md").write_text("# Memory", encoding="utf-8")
+
+        with (
+            patch(
+                "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+                return_value=fake_base,
+            ),
+            # config は別のパスを返すが、CLI引数が勝つ
+            patch(
+                "interfaces.auto_dream_scan.resolve_project_from_config",
+                return_value="C:\\other\\path",
+            ),
+            patch(
+                "sys.argv",
+                ["auto_dream_scan", "--project-path", "C:\\explicit"],
+            ),
+        ):
+            exit_code = main()
+
+        assert exit_code == EXIT_OK
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed["project_path"] == "C--explicit"
+
+    @pytest.mark.integration
+    def test_config未設定時はfallback(self, tmp_path: Path) -> None:
+        """config読み込み失敗時はglob-all fallback"""
+        fake_base = tmp_path / ".claude" / "projects"
+        d = fake_base / "test-project" / "memory"
+        d.mkdir(parents=True)
+        (d / "MEMORY.md").write_text("# Memory", encoding="utf-8")
+
+        with (
+            patch(
+                "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+                return_value=fake_base,
+            ),
+            # config 解決失敗 → None
+            patch(
+                "interfaces.auto_dream_scan.resolve_project_from_config",
+                return_value=None,
+            ),
+            patch("sys.argv", ["auto_dream_scan"]),
+        ):
+            exit_code = main()
+
+        # glob-all fallback で1つ見つかる
+        assert exit_code == EXIT_OK
+
+
 class TestAutoDreamScanCLI:
     """subprocess経由のCLIテスト"""
 

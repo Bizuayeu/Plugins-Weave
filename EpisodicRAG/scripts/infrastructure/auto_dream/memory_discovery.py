@@ -56,6 +56,43 @@ def encode_project_path(project_path: str) -> str:
     return encoded
 
 
+def resolve_project_from_path(filesystem_path: str) -> Optional[str]:
+    """
+    ファイルシステムパスからClaude Codeプロジェクトパスを逆引き
+
+    base_dir（またはその祖先ディレクトリ）がClaude Codeのプロジェクトとして
+    登録されており、かつmemory/MEMORY.mdが存在するパスを返す。
+
+    Args:
+        filesystem_path: 絶対パス（例: "C:/Users/anyth/DEV/homunculus/Weave"）
+
+    Returns:
+        マッチしたプロジェクトの元パス文字列、マッチなしの場合None
+
+    Example:
+        >>> resolve_project_from_path("C:\\\\Users\\\\anyth\\\\DEV\\\\sub\\\\deep")
+        'C:\\\\Users\\\\anyth\\\\DEV'
+    """
+    base = get_claude_projects_base()
+    if not base.exists():
+        return None
+
+    current = Path(filesystem_path).resolve()
+
+    while True:
+        encoded = encode_project_path(str(current))
+        memory_index = base / encoded / "memory" / "MEMORY.md"
+        if memory_index.exists():
+            return str(current)
+
+        parent = current.parent
+        if parent == current:  # root reached
+            break
+        current = parent
+
+    return None
+
+
 def discover_memory_dirs(project_path: Optional[str] = None) -> List[Path]:
     """
     auto-memoryディレクトリを発見

@@ -15,6 +15,7 @@ from infrastructure.auto_dream.memory_discovery import (
     discover_memory_dirs,
     encode_project_path,
     get_claude_projects_base,
+    resolve_project_from_path,
 )
 
 # =============================================================================
@@ -177,3 +178,87 @@ class TestDiscoverMemoryDirs:
             result = discover_memory_dirs()
 
         assert len(result) == 3
+
+
+# =============================================================================
+# resolve_project_from_path テスト
+# =============================================================================
+
+
+class TestResolveProjectFromPath:
+    """base_dirからClaude Codeプロジェクトパスを逆引きするテスト"""
+
+    @pytest.mark.unit
+    def test_完全一致でプロジェクトを発見(self, tmp_path: Path) -> None:
+        """base_dirが直接プロジェクトパスの場合"""
+        fake_base = tmp_path / ".claude" / "projects"
+        memory_dir = fake_base / "C--Users-test-DEV" / "memory"
+        memory_dir.mkdir(parents=True)
+        (memory_dir / "MEMORY.md").write_text("# Memory", encoding="utf-8")
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            result = resolve_project_from_path("C:\\Users\\test\\DEV")
+
+        assert result is not None
+        assert Path(result).name == "DEV"
+
+    @pytest.mark.unit
+    def test_祖先ディレクトリでプロジェクトを発見(self, tmp_path: Path) -> None:
+        """base_dirの祖先にプロジェクトがある場合（本バグの核心ケース）"""
+        fake_base = tmp_path / ".claude" / "projects"
+        memory_dir = fake_base / "C--Users-test-DEV" / "memory"
+        memory_dir.mkdir(parents=True)
+        (memory_dir / "MEMORY.md").write_text("# Memory", encoding="utf-8")
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            result = resolve_project_from_path("C:\\Users\\test\\DEV\\sub\\deep")
+
+        assert result is not None
+        assert Path(result).name == "DEV"
+
+    @pytest.mark.unit
+    def test_マッチなしでNone(self, tmp_path: Path) -> None:
+        """どの祖先にもメモリがない場合"""
+        fake_base = tmp_path / ".claude" / "projects"
+        fake_base.mkdir(parents=True)
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            result = resolve_project_from_path("C:\\nonexistent\\path")
+
+        assert result is None
+
+    @pytest.mark.unit
+    def test_ルートまで遡って停止(self, tmp_path: Path) -> None:
+        """無限ループしない（ルートで停止）"""
+        fake_base = tmp_path / ".claude" / "projects"
+        fake_base.mkdir(parents=True)
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            result = resolve_project_from_path("C:\\")
+
+        assert result is None
+
+    @pytest.mark.unit
+    def test_projects_base未存在でNone(self, tmp_path: Path) -> None:
+        """~/.claude/projects/自体がない場合"""
+        fake_base = tmp_path / "nonexistent"
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            result = resolve_project_from_path("C:\\Users\\test\\DEV")
+
+        assert result is None

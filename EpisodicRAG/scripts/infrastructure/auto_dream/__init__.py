@@ -13,6 +13,7 @@ from infrastructure.auto_dream.memory_discovery import (
     discover_memory_dirs,
     encode_project_path,
     get_claude_projects_base,
+    resolve_project_from_path,
 )
 from infrastructure.auto_dream.memory_reader import (
     parse_frontmatter,
@@ -27,4 +28,5 @@ __all__ = [
     "parse_frontmatter",
     "read_memory_file",
     "read_memory_index",
+    "resolve_project_from_path",
 ]
