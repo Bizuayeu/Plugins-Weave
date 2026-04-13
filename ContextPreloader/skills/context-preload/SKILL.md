@@ -65,6 +65,12 @@ python -m scripts add --path "/path/to/file" --label "Label"
 cp plugins-weave/ContextPreloader/.claude-plugin/sources.template.json ~/.claude/plugins/.contextpreloader/sources.json
 ```
 
+### Step 1.5: mode設定（任意）
+
+ソースファイルが大きい場合（合計10KB超）、reference modeを推奨する:
+- `sources.json` の `settings.mode` を `"reference"` に変更
+- 各ソースに `description`（説明文）と `priority`（`critical`/`high`/`normal`/`low`）を追加
+
 ### Step 2: プロファイル作成（任意）
 
 1. ユーザーに確認: 「プロジェクト別に読み込むファイルを分けたいですか？（プロファイル機能）」
@@ -176,9 +182,24 @@ python -m scripts profiles
 
 ---
 
+## Output Mode
+
+settingsの `"mode"` で出力方式を切り替える:
+
+| mode | 動作 | 用途 |
+|------|------|------|
+| `"inline"` (default) | ファイル内容を全文stdout出力 | 小さいファイル向け |
+| `"reference"` | パス・説明・優先度のみ出力し、Claudeにread toolで読ませる | 大きいファイル向け（hook stdout制限回避） |
+
+**reference mode使用時は、ソースに `description` と `priority` を設定すること。**
+
+reference mode出力が1.5KBを超えるとstderrに警告が出る。
+
+---
+
 ## 出力例
 
-### hookモード出力（セッション開始時に自動出力される内容）
+### inline mode（デフォルト）
 
 ```
 === Project Notes ===
@@ -190,11 +211,22 @@ Type: PDF document
 Size: 2.3 MB
 Note: Use Read tool to view this file
 
-=== API Reference [URL] ===
-Source: https://docs.example.com/api
-[HTMLから抽出されたテキスト]
-
 === ContextPreloader Summary ===
-Loaded: 1 text file, 1 URL, 1 binary reference
+Loaded: 1 text file, 1 binary reference
 Total text: ~55KB
+```
+
+### reference mode
+
+```
+=== ContextPreloader: Session Context ===
+Read the following files using the Read tool before responding to the user.
+
+1. [CRITICAL] GrandDigest (Long-term Memory Summary)
+   Path: C:/Users/anyth/DEV/homunculus/Weave/Identities/GrandDigest.txt
+   8層階層的長期記憶ダイジェスト（週次〜世紀）
+
+2. [HIGH] IntentionPad (Session-crossing Short-term Memory)
+   Path: C:/Users/anyth/DEV/homunculus/Weave/Identities/IntentionPad.md
+   セッション横断の短期記憶・意図メモ
 ```
