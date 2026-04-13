@@ -16,7 +16,8 @@ claude.aiのプロジェクト機能をClaude Codeで再現する。
     "encoding": "utf-8",
     "max_lines_per_file": 0,
     "show_summary": true,
-    "url_timeout": 10
+    "url_timeout": 10,
+    "mode": "inline"
   },
   "sources": [
     {
@@ -24,21 +25,9 @@ claude.aiのプロジェクト機能をClaude Codeで再現する。
       "label": "Project Notes",
       "path": "~/projects/my-app/NOTES.md",
       "type": "auto",
-      "enabled": true
-    },
-    {
-      "id": "api-docs",
-      "label": "API Reference",
-      "path": "https://docs.example.com/api/v2",
-      "type": "auto",
-      "enabled": true
-    },
-    {
-      "id": "design-spec",
-      "label": "Design Specification",
-      "path": "~/projects/my-app/docs/spec.pdf",
-      "type": "auto",
-      "enabled": true
+      "enabled": true,
+      "description": "Project planning notes and decisions",
+      "priority": "high"
     }
   ]
 }
@@ -106,13 +95,33 @@ export CONTEXTPRELOADER_PLUGIN_DIR=~/DEV/plugins-weave/ContextPreloader
 ```json
 {
   "sources": [
-    {"id": "meeting-notes", "label": "Meeting Notes", "path": "~/Documents/meetings.md"},
-    {"id": "team-wiki", "label": "Team Wiki", "path": "https://wiki.example.com/team"}
+    {"id": "meeting-notes", "label": "Meeting Notes", "path": "~/Documents/meetings.md",
+     "description": "Weekly meeting notes", "priority": "high"},
+    {"id": "team-wiki", "label": "Team Wiki", "path": "https://wiki.example.com/team",
+     "description": "Team onboarding reference", "priority": "normal"}
   ]
 }
 ```
 
 テンプレート: `.claude-plugin/profile.template.json`
+
+### Output Mode
+
+| mode | 動作 | 用途 |
+|------|------|------|
+| `"inline"` (default) | ファイル内容を全文stdout出力 | 小さいファイル向け |
+| `"reference"` | パス・説明・優先度のみ出力し、Claudeにread toolで読ませる | 大きいファイル向け（hook stdout制限回避） |
+
+`"reference"` モードでは出力が1.5KBを超えるとstderrに警告が出る。
+
+### Source の追加フィールド
+
+| フィールド | デフォルト | 説明 |
+|-----------|-----------|------|
+| `description` | `""` | reference mode時に表示される説明文 |
+| `priority` | `"normal"` | 重要度タグ（`critical` / `high` / `normal` / `low`） |
+
+inline modeでは description/priority は無視される。
 
 ### Source Type の動作
 
