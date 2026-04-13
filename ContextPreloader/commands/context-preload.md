@@ -16,6 +16,15 @@ ContextPreloaderの管理コマンド。ソースの追加・削除・テスト�
 - `/context-preload profiles` - プロファイル一覧
 - `/context-preload setup` - 初期セットアップ（@context-preload スキルを実行）
 
+## Output Mode
+
+`sources.json` の `settings.mode` で出力方式を切り替え可能:
+- `"inline"` (default): ファイル内容を全文出力
+- `"reference"`: パス・説明・優先度のみ出力（大きいファイル向け）
+
+reference mode時は各ソースに `description` と `priority` を設定すること。
+詳細は `/context-preload setup` またはSKILL.mdを参照。
+
 ## Implementation
 
 ```bash
