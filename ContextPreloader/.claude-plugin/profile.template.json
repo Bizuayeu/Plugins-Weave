@@ -6,14 +6,18 @@
       "label": "Meeting Notes",
       "path": "~/Documents/meetings/2026-Q1.md",
       "type": "auto",
-      "enabled": true
+      "enabled": true,
+      "description": "Quarterly meeting notes and action items",
+      "priority": "high"
     },
     {
       "id": "team-wiki",
       "label": "Team Wiki",
       "path": "https://wiki.example.com/team/overview",
       "type": "auto",
-      "enabled": true
+      "enabled": true,
+      "description": "Team structure and onboarding reference",
+      "priority": "normal"
     }
   ]
 }

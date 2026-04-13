@@ -30,9 +30,12 @@ FILE_TYPE_LABELS: dict[str, str] = {
     ".wav": "WAV audio",
 }
 
+REFERENCE_OUTPUT_WARNING_BYTES: int = 1536
+
 DEFAULT_SETTINGS: dict = {
     "encoding": "utf-8",
     "max_lines_per_file": 0,
     "show_summary": True,
     "url_timeout": 10,
+    "mode": "inline",
 }

@@ -13,6 +13,8 @@ class Source:
     path: str
     type: str = "auto"
     enabled: bool = True
+    description: str = ""
+    priority: str = "normal"
 
 
 @dataclass(frozen=True)
@@ -23,6 +25,7 @@ class Settings:
     max_lines_per_file: int = 0
     show_summary: bool = True
     url_timeout: int = 10
+    mode: str = "inline"
 
 
 @dataclass(frozen=True)

@@ -39,6 +39,7 @@ def load_config(config_path: str | Path) -> Config:
         max_lines_per_file=raw_settings.get("max_lines_per_file", DEFAULT_SETTINGS["max_lines_per_file"]),
         show_summary=raw_settings.get("show_summary", DEFAULT_SETTINGS["show_summary"]),
         url_timeout=raw_settings.get("url_timeout", DEFAULT_SETTINGS["url_timeout"]),
+        mode=raw_settings.get("mode", DEFAULT_SETTINGS["mode"]),
     )
 
     # Build text_extensions with defaults
@@ -53,6 +54,8 @@ def load_config(config_path: str | Path) -> Config:
             path=s["path"],
             type=s.get("type", "auto"),
             enabled=s.get("enabled", True),
+            description=s.get("description", ""),
+            priority=s.get("priority", "normal"),
         ))
 
     return Config(
@@ -75,6 +78,7 @@ def save_config(config_path: str | Path, config: Config) -> None:
             "max_lines_per_file": config.settings.max_lines_per_file,
             "show_summary": config.settings.show_summary,
             "url_timeout": config.settings.url_timeout,
+            "mode": config.settings.mode,
         },
         "text_extensions": config.text_extensions,
         "sources": [
@@ -84,6 +88,8 @@ def save_config(config_path: str | Path, config: Config) -> None:
                 "path": s.path,
                 "type": s.type,
                 "enabled": s.enabled,
+                "description": s.description,
+                "priority": s.priority,
             }
             for s in config.sources
         ],
@@ -118,6 +124,8 @@ def load_profile_sources(profile_path: str | Path) -> list[Source]:
             path=s["path"],
             type=s.get("type", "auto"),
             enabled=s.get("enabled", True),
+            description=s.get("description", ""),
+            priority=s.get("priority", "normal"),
         ))
     return sources
 

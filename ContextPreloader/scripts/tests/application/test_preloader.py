@@ -1,4 +1,5 @@
 """T9: Preloader integration tests."""
+import json
 import os
 import tempfile
 import unittest
@@ -6,6 +7,7 @@ from unittest.mock import patch
 
 from scripts.domain.models import Config, Settings, Source
 from scripts.application.preloader import Preloader
+from scripts.infrastructure.config_repository import load_config, load_profile_sources
 
 
 class TestPreloader(unittest.TestCase):
@@ -119,6 +121,201 @@ class TestPreloader(unittest.TestCase):
         finally:
             os.unlink(p1)
             os.unlink(p2)
+
+
+class TestPreloaderReferenceMode(unittest.TestCase):
+    def _make_config(self, sources, mode="reference"):
+        return Config(
+            version="1.0.0",
+            settings=Settings(mode=mode),
+            text_extensions=[".txt", ".md"],
+            sources=sources,
+        )
+
+    def test_reference_mode_no_file_reading(self):
+        """Reference mode succeeds even with nonexistent files (no I/O)."""
+        cfg = self._make_config([
+            Source(id="a", label="A", path="/nonexistent/file.txt"),
+            Source(id="b", label="B", path="/also/missing.md"),
+        ])
+        result = Preloader(cfg).run()
+        self.assertIn("/nonexistent/file.txt", result)
+        self.assertIn("/also/missing.md", result)
+        self.assertNotIn("ERROR", result)
+
+    def test_reference_mode_contains_paths_and_labels(self):
+        cfg = self._make_config([
+            Source(id="a", label="LabelA", path="C:/path/a.txt"),
+            Source(id="b", label="LabelB", path="C:/path/b.md"),
+        ])
+        result = Preloader(cfg).run()
+        self.assertIn("LabelA", result)
+        self.assertIn("LabelB", result)
+        self.assertIn("Path: C:/path/a.txt", result)
+        self.assertIn("Path: C:/path/b.md", result)
+
+    def test_reference_mode_contains_header(self):
+        cfg = self._make_config([
+            Source(id="a", label="A", path="/a.txt"),
+        ])
+        result = Preloader(cfg).run()
+        self.assertIn("ContextPreloader: Session Context", result)
+
+    def test_reference_mode_respects_enabled(self):
+        cfg = self._make_config([
+            Source(id="a", label="Visible", path="/a.txt"),
+            Source(id="b", label="Hidden", path="/b.txt", enabled=False),
+        ])
+        result = Preloader(cfg).run()
+        self.assertIn("Visible", result)
+        self.assertNotIn("Hidden", result)
+
+    def test_reference_mode_includes_description(self):
+        cfg = self._make_config([
+            Source(id="a", label="A", path="/a.txt", description="memo text"),
+        ])
+        result = Preloader(cfg).run()
+        self.assertIn("memo text", result)
+
+    def test_reference_mode_includes_priority(self):
+        cfg = self._make_config([
+            Source(id="a", label="A", path="/a.txt", priority="critical"),
+        ])
+        result = Preloader(cfg).run()
+        self.assertIn("[CRITICAL]", result)
+
+    def test_reference_mode_no_summary(self):
+        cfg = self._make_config([
+            Source(id="a", label="A", path="/a.txt"),
+        ])
+        result = Preloader(cfg).run()
+        self.assertNotIn("Summary", result)
+
+    @patch("sys.stderr")
+    def test_reference_mode_warns_over_threshold(self, mock_stderr):
+        """Output exceeding REFERENCE_OUTPUT_WARNING_BYTES triggers stderr warning."""
+        long_desc = "A" * 500
+        sources = [
+            Source(id=f"s{i}", label=f"Source{i}", path=f"C:/path/file{i}.txt",
+                   description=long_desc, priority="normal")
+            for i in range(20)
+        ]
+        cfg = self._make_config(sources)
+        Preloader(cfg).run()
+        mock_stderr.write.assert_called()
+        warning_text = "".join(
+            str(call.args[0]) for call in mock_stderr.write.call_args_list
+            if call.args
+        )
+        self.assertIn("warning", warning_text.lower())
+
+    @patch("sys.stderr")
+    def test_reference_mode_no_warning_under_threshold(self, mock_stderr):
+        """Output under threshold does not trigger warning."""
+        cfg = self._make_config([
+            Source(id="a", label="A", path="/a.txt", description="short"),
+        ])
+        Preloader(cfg).run()
+        warning_text = "".join(
+            str(call.args[0]) for call in mock_stderr.write.call_args_list
+            if call.args
+        )
+        self.assertNotIn("warning", warning_text.lower())
+
+    def test_inline_mode_unchanged(self):
+        """Inline mode regression guard: file content appears in output."""
+        f = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, encoding="utf-8"
+        )
+        f.write("inline content here")
+        f.close()
+        try:
+            cfg = self._make_config(
+                [Source(id="a", label="A", path=f.name)],
+                mode="inline",
+            )
+            result = Preloader(cfg).run()
+            self.assertIn("inline content here", result)
+        finally:
+            os.unlink(f.name)
+
+
+class TestPreloaderReferenceIntegration(unittest.TestCase):
+    """End-to-end: JSON config -> load_config -> Preloader -> reference output."""
+
+    def _write_json(self, data: dict) -> str:
+        f = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        )
+        json.dump(data, f)
+        f.close()
+        return f.name
+
+    def test_reference_e2e_from_config(self):
+        path = self._write_json({
+            "version": "1.0.0",
+            "settings": {"mode": "reference"},
+            "sources": [
+                {"id": "gd", "label": "GrandDigest", "path": "C:/fake/GrandDigest.txt",
+                 "description": "Long-term memory", "priority": "critical"},
+                {"id": "ip", "label": "IntentionPad", "path": "C:/fake/IntentionPad.md",
+                 "description": "Short-term notes", "priority": "high"},
+            ],
+        })
+        try:
+            cfg = load_config(path)
+            result = Preloader(cfg).run()
+            self.assertIn("ContextPreloader: Session Context", result)
+            self.assertIn("[CRITICAL]", result)
+            self.assertIn("[HIGH]", result)
+            self.assertIn("GrandDigest", result)
+            self.assertIn("Path: C:/fake/GrandDigest.txt", result)
+            self.assertIn("Long-term memory", result)
+            self.assertLess(len(result.encode("utf-8")), 2048)
+        finally:
+            os.unlink(path)
+
+    def test_reference_e2e_with_profile(self):
+        config_path = self._write_json({
+            "version": "1.0.0",
+            "settings": {"mode": "reference"},
+            "sources": [],
+        })
+        profile_path = self._write_json({
+            "sources": [
+                {"id": "x", "label": "ProfileSource", "path": "C:/fake/x.txt",
+                 "description": "From profile", "priority": "normal"},
+            ],
+        })
+        try:
+            cfg = load_config(config_path)
+            profile_sources = load_profile_sources(profile_path)
+            result = Preloader(cfg, profile_sources).run()
+            self.assertIn("ProfileSource", result)
+            self.assertIn("From profile", result)
+        finally:
+            os.unlink(config_path)
+            os.unlink(profile_path)
+
+    def test_inline_e2e_regression(self):
+        content_file = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, encoding="utf-8"
+        )
+        content_file.write("actual file content")
+        content_file.close()
+        config_path = self._write_json({
+            "version": "1.0.0",
+            "sources": [
+                {"id": "a", "label": "A", "path": content_file.name},
+            ],
+        })
+        try:
+            cfg = load_config(config_path)
+            result = Preloader(cfg).run()
+            self.assertIn("actual file content", result)
+        finally:
+            os.unlink(content_file.name)
+            os.unlink(config_path)
 
 
 if __name__ == "__main__":

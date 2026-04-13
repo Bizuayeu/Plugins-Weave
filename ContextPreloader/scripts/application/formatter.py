@@ -44,6 +44,29 @@ def format_error_output(label: str, error: str) -> str:
     )
 
 
+def format_reference_output(
+    sources: list[tuple[str, str, str, str]],
+) -> str:
+    """Reference mode output: compact instruction with paths and descriptions.
+
+    Args:
+        sources: list of (path, label, description, priority) tuples.
+    """
+    lines = [
+        "=== ContextPreloader: Session Context ===",
+        "Read the following files using the Read tool before responding to the user.",
+        "",
+    ]
+    for i, (path, label, description, priority) in enumerate(sources, 1):
+        tag = f"[{priority.upper()}]"
+        lines.append(f"{i}. {tag} {label}")
+        lines.append(f"   Path: {path}")
+        if description:
+            lines.append(f"   {description}")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def format_summary(
     text_count: int, url_count: int, binary_count: int, total_kb: float
 ) -> str:
