@@ -32,7 +32,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | あなたの目的 | 参照先 |
 |-------------|--------|
 | 🚀 **初めて使う** | [CLAUDE.md（Quick Start）](ContextPreloader/CLAUDE.md) |
-| 📖 **スキル仕様** | [SKILL](ContextPreloader/skills/context-preload/SKILL.md) |
+| 📖 **コマンド仕様** | [context-preload](ContextPreloader/commands/context-preload.md) |
 
 ### EpisodicRAG
 
@@ -119,7 +119,7 @@ claude.aiのプロジェクト機能をClaude Codeで再現。SessionStart hook�
 | `@context-preload` | セットアップ・管理（状態自動検出） |
 | `/context-preload` | ソース一覧・テスト・追加・削除 |
 
-→ [Quick Start](ContextPreloader/CLAUDE.md) / [スキル仕様](ContextPreloader/skills/context-preload/SKILL.md)
+→ [Quick Start](ContextPreloader/CLAUDE.md) / [コマンド仕様](ContextPreloader/commands/context-preload.md)
 
 ---
 

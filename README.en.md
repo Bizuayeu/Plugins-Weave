@@ -33,7 +33,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | Your Goal | Reference |
 |-----------|-----------|
 | 🚀 **Getting started** | [CLAUDE.md (Quick Start)](ContextPreloader/CLAUDE.md) |
-| 📖 **Skill specification** | [SKILL](ContextPreloader/skills/context-preload/SKILL.md) |
+| 📖 **Command specification** | [context-preload](ContextPreloader/commands/context-preload.md) |
 
 ### EpisodicRAG
 
@@ -120,7 +120,7 @@ Recreates claude.ai's Project feature for Claude Code. Automatically injects fil
 | `@context-preload` | Setup & management (auto-detects state) |
 | `/context-preload` | List, test, add, remove sources |
 
-→ [Quick Start](ContextPreloader/CLAUDE.md) / [Skill Spec](ContextPreloader/skills/context-preload/SKILL.md)
+→ [Quick Start](ContextPreloader/CLAUDE.md) / [Command Spec](ContextPreloader/commands/context-preload.md)
 
 ---
 
