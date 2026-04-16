@@ -29,7 +29,6 @@ jobs:
             --include-fragments
             --exclude 'https://github.com/Bizuayeu/Plugins-Weave/compare/*'
             --exclude 'https://github.com/Bizuayeu/Plugins-Weave/releases/*'
-            --exclude 'https://codecov.io/*'
             '**/*.md'
           fail: true
 
