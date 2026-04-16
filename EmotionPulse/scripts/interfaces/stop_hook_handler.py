@@ -64,8 +64,9 @@ def handle_stop() -> None:
 
     _write_lock(payload.session_id)
     system_message = build_system_message()
+    fallback_reason = f"EmotionPulse: evaluating emotions.\n\n{system_message}"
     print(json.dumps({
         "decision": "block",
-        "reason": "EmotionPulse: evaluating emotions",
+        "reason": fallback_reason,
         "systemMessage": system_message,
     }))

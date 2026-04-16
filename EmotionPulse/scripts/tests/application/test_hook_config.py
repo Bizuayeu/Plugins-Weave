@@ -2,28 +2,32 @@
 from scripts.application.hook_config import (
     build_stop_hook_entry,
     build_system_message,
-    get_writer_path,
+    get_launcher_path,
 )
 
 
-class TestGetWriterPath:
+class TestGetLauncherPath:
     def test_returns_string(self) -> None:
-        assert isinstance(get_writer_path(), str)
+        assert isinstance(get_launcher_path(), str)
 
-    def test_ends_with_emotion_writer(self) -> None:
-        assert get_writer_path().endswith("emotion_writer.py")
+    def test_ends_with_emotion_writer_launcher_py(self) -> None:
+        assert get_launcher_path().endswith("emotion_writer_launcher.py")
 
     def test_no_backslashes(self) -> None:
-        assert "\\" not in get_writer_path()
+        assert "\\" not in get_launcher_path()
+
+    def test_under_hooks_dir(self) -> None:
+        assert "/hooks/" in get_launcher_path()
 
 
 class TestBuildSystemMessage:
-    def test_contains_writer_path(self) -> None:
+    def test_contains_launcher_path(self) -> None:
         msg = build_system_message()
-        assert "emotion_writer.py" in msg
+        assert "emotion_writer_launcher.py" in msg
 
     def test_no_placeholder_remaining(self) -> None:
         msg = build_system_message()
+        assert "{launcher_path}" not in msg
         assert "{writer_path}" not in msg
 
     def test_contains_score_range(self) -> None:

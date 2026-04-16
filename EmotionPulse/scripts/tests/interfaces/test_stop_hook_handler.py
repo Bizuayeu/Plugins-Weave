@@ -36,9 +36,25 @@ class TestHandleStop:
         result = _capture_output({"session_id": "s1"}, lock=None)
         assert result["output"]["decision"] == "block"
         assert "systemMessage" in result["output"]
-        assert "emotion_writer.py" in result["output"]["systemMessage"]
+        assert "emotion_writer" in result["output"]["systemMessage"]
         assert result["write_called"] is True
         assert result["delete_called"] is False
+
+    def test_no_lock_blocks_includes_reason(self) -> None:
+        """reason fallback (#34600 silent mode迂回): prefixが期待文言で始まる."""
+        result = _capture_output({"session_id": "s1"}, lock=None)
+        assert "reason" in result["output"]
+        assert result["output"]["reason"].startswith("EmotionPulse: evaluating emotions.")
+
+    def test_no_lock_blocks_reason_includes_system_message(self) -> None:
+        """silent mode下でもreasonだけで実行可能なよう、systemMessage全文がreasonに埋め込まれる."""
+        result = _capture_output({"session_id": "s1"}, lock=None)
+        assert result["output"]["systemMessage"] in result["output"]["reason"]
+
+    def test_no_lock_blocks_reason_and_system_message_consistent(self) -> None:
+        """reason末尾 == systemMessage（prefix + 改行 + system_message構造の保証）."""
+        result = _capture_output({"session_id": "s1"}, lock=None)
+        assert result["output"]["reason"].endswith(result["output"]["systemMessage"])
 
     def test_fresh_lock_same_session_approves(self) -> None:
         """2回目stop（同session + fresh lock）→ approve + ロック削除."""

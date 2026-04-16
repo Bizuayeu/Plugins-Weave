@@ -55,8 +55,8 @@ class TestLockConstants:
 
 
 class TestStopSystemMessage:
-    def test_contains_writer_path_placeholder(self) -> None:
-        assert "{writer_path}" in STOP_SYSTEM_MESSAGE
+    def test_contains_launcher_path_placeholder(self) -> None:
+        assert "{launcher_path}" in STOP_SYSTEM_MESSAGE
 
     def test_mentions_all_emotion_keys(self) -> None:
         for key in EMOTION_KEYS:

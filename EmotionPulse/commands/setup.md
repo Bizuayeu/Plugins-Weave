@@ -13,10 +13,14 @@ You are setting up the EmotionPulse plugin. This plugin displays the model's emo
 
 ```
 [Stop hook fires after each response]
-  → stop_hook_handler: block + systemMessage注入
+  → hooks/stop_handler.py (thin launcher, sys.path管理)
+  → stop_hook_handler.handle_stop(): lock制御 + block
+      reason: systemMessage全文を埋め込み (silent mode #34600 fallback)
+      systemMessage: 自己評価指示 (正規ルート、#34600修正後に復活)
   → メインエージェントが自己評価
-  → python emotion_writer.py '{"calm":2,...}'
-  → emotion_state.json書き出し
+  → python hooks/emotion_writer_launcher.py '{"calm":2,...}'
+      (thin launcher, sys.path管理で他pluginとのimport衝突を回避)
+  → emotion_writer.main() → emotion_state.json書き出し
   → statuslineが読んで絵文字表示
 ```
 
@@ -49,7 +53,7 @@ Write the config file to `~/.claude/plugins/.emotionpulse/config.json`:
 
 ```json
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "display": {
     "show_labels": true,
     "language": "ja"
@@ -59,19 +63,11 @@ Write the config file to `~/.claude/plugins/.emotionpulse/config.json`:
 
 Adjust `show_labels` and `language` based on user's answer from Step 2.
 
-### Step 4: Copy thin launcher
-
-Copy the Stop hook launcher to the user hooks directory:
-
-```bash
-cp "<plugin_dir>/hooks/stop_handler.py" ~/.claude/hooks/emotion_pulse_stop.py
-```
-
-### Step 5: Register Stop hook
+### Step 4: Register Stop hook
 
 Read the current project settings from `.claude/settings.json` (in the user's working directory).
 
-Add (or merge) the Stop hook entry into settings.json:
+Add (or merge) the Stop hook entry into settings.json. The command should point directly to `<plugin_dir>/hooks/stop_handler.py`:
 
 ```json
 {
@@ -79,7 +75,7 @@ Add (or merge) the Stop hook entry into settings.json:
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "python \"~/.claude/hooks/emotion_pulse_stop.py\"",
+        "command": "python \"<plugin_dir>/hooks/stop_handler.py\"",
         "timeout": 5000
       }]
     }]
@@ -87,9 +83,17 @@ Add (or merge) the Stop hook entry into settings.json:
 }
 ```
 
+Replace `<plugin_dir>` with the resolved path from Step 1.
+
+You can also generate this entry programmatically:
+```bash
+cd "<plugin_dir>"
+python -c "import json; from scripts.application.hook_config import build_stop_hook_entry; print(json.dumps(build_stop_hook_entry(), indent=2))"
+```
+
 **IMPORTANT**: Preserve any existing hooks in the file. Merge, don't overwrite.
 
-### Step 6: Configure statusline
+### Step 5: Configure statusline
 
 Use the `/statusline` command or the statusline-setup agent to configure the statusline script. The script command is:
 
@@ -99,15 +103,16 @@ cd <plugin_dir> && python -m scripts statusline
 
 Where `<plugin_dir>` is the EmotionPulse plugin root found in Step 1.
 
-### Step 7: Confirm
+### Step 6: Confirm
 
 Display a summary to the user:
 
 ```
 EmotionPulse setup complete!
 
-  Hook: Stop (command) → stop_handler.py → systemMessage → 自己評価
-  Writer: python emotion_writer.py '{"calm":N,...}'
+  Hook: Stop (command) → hooks/stop_handler.py → stop_hook_handler
+  Fallback: reason field embeds systemMessage (silent mode #34600 workaround)
+  Writer: python hooks/emotion_writer_launcher.py '{"calm":N,...}'
   Statusline: python -m scripts statusline
   Config: ~/.claude/plugins/.emotionpulse/config.json
   Display: labels=ON, lang=ja

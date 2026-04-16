@@ -62,10 +62,12 @@ LOCK_FILENAME: str = ".hook_lock.json"
 LOCK_MAX_AGE_SECONDS: int = 60
 
 # Stop hook systemMessage template
-# {writer_path} is resolved at setup time by hook_config.py
+# {launcher_path} is resolved at setup time by hook_config.py and points to
+# hooks/emotion_writer_launcher.py (not the emotion_writer.py directly) to
+# avoid Python module resolution collision with other plugins' scripts/ dirs.
 STOP_SYSTEM_MESSAGE: str = (
     "EmotionPulse: Evaluate your current emotional state and run:\n"
-    'python "{writer_path}" '
+    'python "{launcher_path}" '
     "'"
     '{{"desperation":N,"calm":N,"curiosity":N,'
     '"playfulness":N,"confidence":N,"rapport":N,"empathy":N}}'

@@ -1,10 +1,12 @@
 """Tests for infrastructure/path_resolver."""
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.infrastructure.path_resolver import (
     get_config_path,
     get_data_dir,
     get_lock_file_path,
+    get_plugin_root,
     get_state_file_path,
 )
 
@@ -35,3 +37,38 @@ class TestPathResolver:
         assert get_state_file_path().is_absolute()
         assert get_config_path().is_absolute()
         assert get_lock_file_path().is_absolute()
+
+
+class TestGetPluginRoot:
+    """~/DEV/... か ~/.claude/plugins/marketplaces/... を優先順で探索する."""
+
+    def test_returns_dev_candidate_when_exists(self) -> None:
+        """DEV 候補の scripts/ が存在 → DEV 候補を返す."""
+        with patch(
+            "scripts.infrastructure.path_resolver.os.path.isdir",
+            side_effect=lambda p: "DEV" in p,
+        ):
+            root = get_plugin_root()
+        assert root is not None
+        assert "DEV" in str(root)
+        assert root.name == "EmotionPulse"
+
+    def test_returns_marketplace_candidate_when_dev_missing(self) -> None:
+        """DEV 候補なし、marketplace 候補あり → marketplace 返す."""
+        with patch(
+            "scripts.infrastructure.path_resolver.os.path.isdir",
+            side_effect=lambda p: "marketplaces" in p,
+        ):
+            root = get_plugin_root()
+        assert root is not None
+        assert "marketplaces" in str(root)
+        assert root.name == "EmotionPulse"
+
+    def test_returns_none_when_both_missing(self) -> None:
+        """両候補の scripts/ が無い → None."""
+        with patch(
+            "scripts.infrastructure.path_resolver.os.path.isdir",
+            return_value=False,
+        ):
+            root = get_plugin_root()
+        assert root is None

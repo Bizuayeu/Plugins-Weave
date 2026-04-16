@@ -30,3 +30,20 @@ def get_config_path() -> Path:
 def get_lock_file_path() -> Path:
     """Return path to .hook_lock.json."""
     return get_data_dir() / LOCK_FILENAME
+
+
+def get_plugin_root() -> Path | None:
+    """Resolve EmotionPulse plugin root directory.
+
+    Searches development (~/DEV/plugins-weave/EmotionPulse) and marketplace
+    (~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse) locations in
+    order. Returns None if neither has a scripts/ subdirectory.
+    """
+    candidates = [
+        os.path.expanduser("~/DEV/plugins-weave/EmotionPulse"),
+        os.path.expanduser("~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse"),
+    ]
+    for candidate in candidates:
+        if os.path.isdir(os.path.join(candidate, "scripts")):
+            return Path(candidate)
+    return None
