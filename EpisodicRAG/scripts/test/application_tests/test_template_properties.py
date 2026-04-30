@@ -18,9 +18,15 @@ from domain.constants import LEVEL_NAMES
 # =============================================================================
 
 # Valid level names (non-empty unique strings)
+# alphabet は ASCII 英字+10進数字+アンダースコアに限定する。
+# whitelist_categories=("L", "N") は Lo（CJK等）を含み生成候補が数十万になり、
+# hypothesis の Input generation が遅くなって FailedHealthCheck を起こすため。
 valid_levels = st.lists(
     st.text(
-        alphabet=st.characters(whitelist_categories=("L", "N")),
+        alphabet=st.characters(
+            whitelist_categories=("Ll", "Lu", "Nd"),
+            whitelist_characters="_",
+        ),
         min_size=1,
         max_size=20,
     ),
