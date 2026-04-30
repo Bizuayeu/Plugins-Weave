@@ -1,6 +1,6 @@
 <!--
   This file is the EpisodicRAG plugin landing page.
-  Last synced: 2025-12-16
+  Last synced: 2026-05-01
 -->
 English | [日本語](README.md)
 
@@ -9,7 +9,7 @@ English | [日本語](README.md)
 Hierarchical Memory & Digest Generation System (8 Layers, 100 Years)
 
 ![EpisodicRAG Plugin - Architecture diagram of 8-layer hierarchical memory management system](./EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-5.3.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.4.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)

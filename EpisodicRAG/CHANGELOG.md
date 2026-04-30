@@ -11,11 +11,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#530---2026-03-26)
+- [v5.x](#540---2026-05-01)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.4.0] - 2026-05-01
+
+### Changed
+
+- **auto_dream_scan の出力責務を「メモリ所在通知」に絞り込み（案B運用への移行）**
+  - `MemoryFile` から `content` / `content_length` を除去
+  - `MemoryIndex` から `raw_content` を除去
+  - 出力サイズ 68KB → 12.3KB（5.4倍縮減）、Claude Code preview の切り詰め問題が解消
+  - Claudeは MEMORY.md と各 frontmatter.description で関連性を判定し、関連メモリだけを `path` から個別Readで取得して digest 内容と突合する運用へ
+  - `commands/digest.md` の Step 11 を案B運用ガイダンスに刷新
+
+### Fixed
+
+- **hypothesis FailedHealthCheck in test_template_properties.py**
+  - `valid_levels` strategy の `whitelist_categories=("L", "N")` は Lo（CJK等）を含み生成候補が数十万となり、Input generation が遅くなって FailedHealthCheck を発火していた
+  - `("Ll", "Lu", "Nd")` + `whitelist_characters="_"` に絞り、ASCII 英数字+_ に限定
+  - 実行時間 242秒 → 5.80秒（13/13 pass）
+
+### Internal
+
+- TypedDict 構造検証 / 戻り値検証 / scanner結果検証のテスト9件追加
+- domain/auto_dream/types.py、infrastructure/auto_dream/memory_reader.py、interfaces/auto_dream_scan.py の docstring を新責務に合わせ更新
 
 ---
 

@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-03-26 -->
+<!-- Last synced: 2026-05-01 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,11 +12,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#530---2026-03-26)
+- [v5.x](#540---2026-05-01)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.4.0] - 2026-05-01
+
+### Changed
+
+- **Refocused auto_dream_scan output to "memory location notification" (case B operation)**
+  - Removed `content` / `content_length` from `MemoryFile`
+  - Removed `raw_content` from `MemoryIndex`
+  - Output size reduced from 68KB to 12.3KB (5.4x reduction); Claude Code preview truncation issue resolved
+  - Claude now judges relevance from `MEMORY.md` and each `frontmatter.description`, then individually reads only relevant memories via `path` to reconcile with digest content
+  - Updated Step 11 in `commands/digest.md` to reflect case B operation guidance
+
+### Fixed
+
+- **hypothesis FailedHealthCheck in test_template_properties.py**
+  - The `valid_levels` strategy's `whitelist_categories=("L", "N")` included `Lo` (CJK, etc.), generating hundreds of thousands of candidate characters, slowing input generation enough to trigger FailedHealthCheck
+  - Narrowed to `("Ll", "Lu", "Nd")` + `whitelist_characters="_"`, restricting to ASCII alphanumerics and underscore
+  - Runtime reduced from 242s to 5.80s (13/13 pass)
+
+### Internal
+
+- Added 9 tests for TypedDict structure / return value / scanner result verification
+- Updated docstrings in domain/auto_dream/types.py, infrastructure/auto_dream/memory_reader.py, and interfaces/auto_dream_scan.py to reflect the new responsibility
 
 ---
 
