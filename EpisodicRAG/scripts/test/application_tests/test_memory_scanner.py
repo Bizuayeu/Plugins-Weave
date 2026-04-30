@@ -198,7 +198,9 @@ class TestMemoryScanner:
         assert result["status"] == "ok"
         assert len(result["memory_files"]) > 0
         for mf in result["memory_files"]:
-            assert "content" not in mf, f"memory_file {mf['filename']} should not have 'content' key"
+            assert "content" not in mf, (
+                f"memory_file {mf['filename']} should not have 'content' key"
+            )
             assert "content_length" not in mf, (
                 f"memory_file {mf['filename']} should not have 'content_length' key"
             )
