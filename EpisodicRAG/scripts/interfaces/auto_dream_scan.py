@@ -3,8 +3,21 @@
 Auto-Dream Memory Scan CLI
 ===========================
 
-Claude Code auto-memoryファイルをスキャンし、構造化JSONを出力。
+Claude Code auto-memoryファイルの所在と概要（frontmatter）のみを軽量JSONで出力。
 digest処理のStep 11（メモリ棚卸し）で使用。
+
+v5.4.0以降の出力責務:
+    本CLIは「メモリの所在通知」のみを担う。各メモリのbody本文は含めない。
+    呼び出し側（Claude）はMEMORY.mdとfrontmatter.descriptionで関連性を判定し、
+    関連メモリだけを path から個別Readで取得してdigestと突合する。
+
+出力に含まれるもの:
+    - memory_files[*].filename, path, frontmatter（name, description, type）
+    - memory_index.path, sections（{セクション名: [filename, ...]}）
+
+出力に含まれないもの（v5.4.0で除去）:
+    - memory_files[*].content / content_length
+    - memory_index.raw_content
 
 Usage:
     python -m interfaces.auto_dream_scan

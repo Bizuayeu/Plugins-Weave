@@ -130,7 +130,19 @@ class TestReadMemoryFile:
         assert result is not None
         assert result["filename"] == "user_profile.md"
         assert result["frontmatter"]["type"] == "user"
-        assert "テスト本文" in result["content"]
+
+    @pytest.mark.integration
+    def test_contentキーが戻り値に含まれない(self, tmp_path: Path) -> None:
+        """v5.4.0軽量化: 戻り値からcontent/content_lengthが除外されている"""
+        f = tmp_path / "test.md"
+        f.write_text(
+            "---\nname: t\ndescription: d\ntype: user\n---\n\nbody本文",
+            encoding="utf-8",
+        )
+        result = read_memory_file(f)
+        assert result is not None
+        assert "content" not in result
+        assert "content_length" not in result
 
     @pytest.mark.integration
     def test_frontmatterなしのファイルはNone(self, tmp_path: Path) -> None:
@@ -145,20 +157,6 @@ class TestReadMemoryFile:
         """存在しないパス → None"""
         result = read_memory_file(tmp_path / "nonexistent.md")
         assert result is None
-
-    @pytest.mark.integration
-    def test_content_lengthが正確(self, tmp_path: Path) -> None:
-        """content_lengthがbody部分の文字数と一致"""
-        body = "テスト内容です。\n二行目。"
-        f = tmp_path / "test.md"
-        f.write_text(
-            f"---\nname: t\ndescription: d\ntype: feedback\n---\n{body}",
-            encoding="utf-8",
-        )
-        result = read_memory_file(f)
-        assert result is not None
-        assert result["content_length"] == len(body)
-        assert result["content_length"] == len(result["content"])
 
     @pytest.mark.integration
     def test_pathが絶対パス文字列(self, tmp_path: Path) -> None:
@@ -240,17 +238,17 @@ class TestReadMemoryIndex:
         assert result["sections"] == {}
 
     @pytest.mark.integration
-    def test_raw_contentが保持される(self, tmp_path: Path) -> None:
-        """元テキストがraw_contentに保持"""
+    def test_raw_contentキーが戻り値に含まれない(self, tmp_path: Path) -> None:
+        """v5.4.0軽量化: 戻り値からraw_contentが除外されている"""
         content = "# Memory\n## User\n- [u](u.md)"
         f = tmp_path / "MEMORY.md"
         f.write_text(content, encoding="utf-8")
         result = read_memory_index(f)
-        assert result["raw_content"] == content
+        assert "raw_content" not in result
 
     @pytest.mark.integration
     def test_存在しないファイル(self, tmp_path: Path) -> None:
         """存在しないパス → 空結果"""
         result = read_memory_index(tmp_path / "nonexistent.md")
         assert result["sections"] == {}
-        assert result["raw_content"] == ""
+        assert "raw_content" not in result

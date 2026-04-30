@@ -77,8 +77,8 @@ class TestMemoryFile:
     """MemoryFile TypedDictの検証"""
 
     @pytest.mark.unit
-    def test_必須フィールドで構築可能(self) -> None:
-        """5フィールドで構築"""
+    def test_必須フィールドのみで構築可能(self) -> None:
+        """filename, path, frontmatterの3フィールドで構築（v5.4.0で軽量化）"""
         mf: MemoryFile = {
             "filename": "user_profile.md",
             "path": "/home/user/.claude/projects/X/memory/user_profile.md",
@@ -87,24 +87,19 @@ class TestMemoryFile:
                 "description": "説明",
                 "type": "user",
             },
-            "content": "## 内容\nテスト",
-            "content_length": 10,
         }
         assert mf["filename"] == "user_profile.md"
-        assert mf["content_length"] == 10
+        assert mf["frontmatter"]["type"] == "user"
 
     @pytest.mark.unit
-    def test_content_lengthはcontentの文字数と対応(self) -> None:
-        """content_lengthがcontentのlen()と一致することを期待"""
-        content = "テスト内容"
-        mf: MemoryFile = {
-            "filename": "test.md",
-            "path": "/test.md",
-            "frontmatter": {"name": "t", "description": "d", "type": "feedback"},
-            "content": content,
-            "content_length": len(content),
-        }
-        assert mf["content_length"] == len(mf["content"])
+    def test_TypedDictにcontentキーが定義されていない(self) -> None:
+        """v5.4.0軽量化: contentフィールドはTypedDictから除外"""
+        assert "content" not in MemoryFile.__annotations__
+
+    @pytest.mark.unit
+    def test_TypedDictにcontent_lengthキーが定義されていない(self) -> None:
+        """v5.4.0軽量化: content_lengthフィールドはTypedDictから除外"""
+        assert "content_length" not in MemoryFile.__annotations__
 
 
 # =============================================================================
@@ -116,15 +111,14 @@ class TestMemoryIndex:
     """MemoryIndex TypedDictの検証"""
 
     @pytest.mark.unit
-    def test_必須フィールドで構築可能(self) -> None:
-        """path, sections, raw_contentの3フィールド"""
+    def test_必須フィールドのみで構築可能(self) -> None:
+        """path, sectionsの2フィールド（v5.4.0で軽量化）"""
         mi: MemoryIndex = {
             "path": "/memory/MEMORY.md",
             "sections": {
                 "User": ["user_profile.md"],
                 "Feedback": ["feedback_text_bias.md"],
             },
-            "raw_content": "# Memory Index\n...",
         }
         assert "User" in mi["sections"]
         assert mi["sections"]["User"] == ["user_profile.md"]
@@ -135,9 +129,13 @@ class TestMemoryIndex:
         mi: MemoryIndex = {
             "path": "/memory/MEMORY.md",
             "sections": {},
-            "raw_content": "",
         }
         assert mi["sections"] == {}
+
+    @pytest.mark.unit
+    def test_TypedDictにraw_contentキーが定義されていない(self) -> None:
+        """v5.4.0軽量化: raw_contentフィールドはTypedDictから除外"""
+        assert "raw_content" not in MemoryIndex.__annotations__
 
 
 # =============================================================================
@@ -158,7 +156,6 @@ class TestAutoDreamScanResult:
             "memory_index": {
                 "path": "/memory/MEMORY.md",
                 "sections": {},
-                "raw_content": "",
             },
             "memory_files": [],
             "file_count": 0,

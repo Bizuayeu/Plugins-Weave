@@ -181,3 +181,60 @@ class TestMemoryScanner:
         types = {mf["frontmatter"]["type"] for mf in result["memory_files"]}
         assert "user" in types
         assert "feedback" in types
+
+    @pytest.mark.integration
+    def test_memory_filesにcontentキーが含まれない(self, tmp_path: Path) -> None:
+        """v5.4.0軽量化: 各memory_fileから content/content_length が除外されている"""
+        _create_memory_env(tmp_path)
+        fake_base = tmp_path / ".claude" / "projects"
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            scanner = MemoryScanner()
+            result = scanner.scan()
+
+        assert result["status"] == "ok"
+        assert len(result["memory_files"]) > 0
+        for mf in result["memory_files"]:
+            assert "content" not in mf, f"memory_file {mf['filename']} should not have 'content' key"
+            assert "content_length" not in mf, (
+                f"memory_file {mf['filename']} should not have 'content_length' key"
+            )
+
+    @pytest.mark.integration
+    def test_memory_indexにraw_contentキーが含まれない(self, tmp_path: Path) -> None:
+        """v5.4.0軽量化: memory_indexから raw_content が除外されている"""
+        _create_memory_env(tmp_path)
+        fake_base = tmp_path / ".claude" / "projects"
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            scanner = MemoryScanner()
+            result = scanner.scan()
+
+        assert result["status"] == "ok"
+        assert result["memory_index"] is not None
+        assert "raw_content" not in result["memory_index"]
+
+    @pytest.mark.integration
+    def test_memory_filesに必要キーのみ含まれる(self, tmp_path: Path) -> None:
+        """v5.4.0軽量化: 各memory_fileは filename/path/frontmatter のみ持つ"""
+        _create_memory_env(tmp_path)
+        fake_base = tmp_path / ".claude" / "projects"
+
+        with patch(
+            "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
+            return_value=fake_base,
+        ):
+            scanner = MemoryScanner()
+            result = scanner.scan()
+
+        expected_keys = {"filename", "path", "frontmatter"}
+        for mf in result["memory_files"]:
+            assert set(mf.keys()) == expected_keys, (
+                f"memory_file should have only {expected_keys}, got {set(mf.keys())}"
+            )

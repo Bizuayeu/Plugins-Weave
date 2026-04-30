@@ -133,8 +133,6 @@ def read_memory_file(file_path: Path) -> Optional[MemoryFile]:
         filename=file_path.name,
         path=str(file_path),
         frontmatter=frontmatter,
-        content=body,
-        content_length=len(body),
     )
 
 
@@ -165,7 +163,6 @@ def read_memory_index(index_path: Path) -> MemoryIndex:
         return MemoryIndex(
             path=str(index_path),
             sections={},
-            raw_content="",
         )
 
     sections: Dict[str, List[str]] = {}
@@ -187,5 +184,4 @@ def read_memory_index(index_path: Path) -> MemoryIndex:
     return MemoryIndex(
         path=str(index_path),
         sections=sections,
-        raw_content=raw_content,
     )

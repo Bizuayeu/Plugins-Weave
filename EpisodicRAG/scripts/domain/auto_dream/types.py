@@ -49,14 +49,14 @@ class MemoryFile(TypedDict):
     """
     パース済みauto-memoryファイル
 
-    frontmatterとbodyを分離して保持。
+    所在情報（filename, path）とfrontmatterのみ保持し、body本文は含めない。
+    呼び出し側がメモリ本文を必要とする場合はpathから個別に読み出す。
+    （v5.4.0: 出力軽量化のためcontent/content_lengthを除去）
     """
 
     filename: str  # e.g. "user_profile.md"
     path: str  # 絶対パス
     frontmatter: MemoryFileFrontmatter
-    content: str  # body（frontmatter除く）
-    content_length: int  # bodyの文字数
 
 
 class MemoryIndex(TypedDict):
@@ -64,11 +64,12 @@ class MemoryIndex(TypedDict):
     MEMORY.md（インデックスファイル）のパース結果
 
     セクション別にリンクされたファイル名を保持。
+    raw_content本文は呼び出し側がpathから個別取得する。
+    （v5.4.0: 出力軽量化のためraw_contentを除去）
     """
 
     path: str  # 絶対パス
     sections: Dict[str, List[str]]  # {"User": ["user_profile.md"], ...}
-    raw_content: str  # 生テキスト
 
 
 # =============================================================================

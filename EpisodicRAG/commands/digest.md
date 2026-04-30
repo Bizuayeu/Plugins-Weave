@@ -372,6 +372,11 @@ ShadowGrandDigest.weekly に追加しました。
 
 #### Step 11: Auto-dream: メモリ棚卸し
 
+**設計方針（v5.4.0以降）**:
+auto_dream_scan は「メモリの所在通知」のみを担う。各メモリの本文は出力に含まれない（軽量化）。
+Claudeは MEMORY.md と各 frontmatter.description で関連性を判定し、
+**関連メモリだけを Read ツールで個別取得して** digest内容と突合する。
+
 **実行ディレクトリ**: `{plugin_root}/scripts`
 
 **コマンド**:
@@ -388,30 +393,50 @@ python -m interfaces.auto_dream_scan
 
 1. **スキャン結果を確認**
 
-   `memory_files`の各ファイルについて、`frontmatter.type`別に確認
+   出力構造:
+   ```json
+   {
+     "memory_dir": "/path/to/memory",
+     "memory_index": {"path": "...", "sections": {"User": ["user_profile.md"], ...}},
+     "memory_files": [
+       {"filename": "user_profile.md", "path": "...", "frontmatter": {"name": "...", "description": "...", "type": "user"}},
+       ...
+     ]
+   }
+   ```
 
-2. **ShadowGrandDigestとの突合**
+   各 `memory_files[*].frontmatter.description` と `memory_index.sections` の one-liner で
+   今回の digest 内容との関連性を判定する。
 
-   今回のdigest処理で更新されたShadowGrandDigestの内容と、
-   各メモリファイルの`content`を比較し、以下を判定：
+2. **関連メモリを個別Read**
+
+   関連と判定したメモリファイルのみ、`memory_files[*].path` を Read ツールで取得し、
+   ShadowGrandDigestの内容と突合：
    - **stale**: 記載内容が古い（イベント日時が過去、プロジェクト状況が変化等）
    - **current**: 最新の情報を反映済み
    - **enrichable**: digest内容から追記すべき新しい知見がある
 
+   **注意**: 一見無関係でも `Bluesky→Cloud Routine` のような構造的整合性のズレがある場合は、
+   one-liner だけで判断せず迷ったら Read で確認すること。
+
 3. **staleまたはenrichableなファイルを更新**
 
-   Editツールで該当ファイルの`content`部分を更新
+   Editツールで該当ファイルの本文部分を更新
    - frontmatter（`---`で囲まれた部分）は変更しない
    - body部分のみ更新
 
 4. **MEMORY.md更新（必要な場合）**
 
    新しいメモリファイルを追加した場合、MEMORY.mdのインデックスも更新
+   （**MEMORY.md の one-liner 品質が次回の関連性判定の精度を決める**ため、
+   description と一行hookは正確に維持する）
 
 **注意**:
 - Step 11はdigest処理の成否に影響しない（失敗してもdigest自体は完了）
 - メモリファイルの更新はClaude Codeシステムパス上のファイル（gitコミット対象外）
 - auto-memoryが無効な環境では自動スキップ
+- メモリ件数が50件を超えてくる場合、機械的全件カバー方式（last_synced_loop stamp 等）への
+  切り替えを再検討する
 
 ---
 
