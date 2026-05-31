@@ -55,7 +55,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 
 Read token は **Public repositories read-only** を含む fine-grained PAT。最新 SHA を取得し、SHA 固定の raw を取得する（いずれも Authorization ヘッダ。token は単一 bash 呼び出しで使い切る）：
 ```bash
-TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --zip /mnt/skills/user/wakeup/token.zip) \
+TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --archive /mnt/skills/user/wakeup/token.tar.gz) \
   && SHA=$(curl -s --fail -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/<owner>/<name>/git/refs/heads/<branch>" | grep -o '"sha": *"[^"]*"' | head -1 | cut -d'"' -f4) \
   && python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py resolve-urls --config <config-path> --sha "$SHA" \
   && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://raw.githubusercontent.com/<owner>/<name>/$SHA/<path>"
@@ -70,10 +70,10 @@ cp /mnt/skills/user/visual-expression/VisualExpressionUI.html /mnt/user-data/out
 ---
 
 ## Private 参照（on-demand）
-Private リポの記憶（個別エントリ・Wiki 等）を対話中に引く時**だけ**実行します。token は**スキル同梱の二重 zip**（`/mnt/skills/user/wakeup/token.zip`）から取り出し、**単一 bash 呼び出しで使い切る**（常駐させない）：
+Private リポの記憶（個別エントリ・Wiki 等）を対話中に引く時**だけ**実行します。token は**スキル同梱の tar.gz**（`/mnt/skills/user/wakeup/token.tar.gz`）から取り出し、**単一 bash 呼び出しで使い切る**（常駐させない）：
 
 ```bash
-TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --zip /mnt/skills/user/wakeup/token.zip) && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/<owner>/<private-name>/contents/<path>"
+TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --archive /mnt/skills/user/wakeup/token.tar.gz) && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/<owner>/<private-name>/contents/<path>"
 ```
 
 - token は **Read 権限のみ**の fine-grained PAT（漏洩時の被害を最小化）。
@@ -108,7 +108,7 @@ gh pr create --base <branch> --head claude/<topic> --title "<title>"
 - **全 HTTP**: token は **Authorization ヘッダ**のみ（URL には絶対に載せない）、`curl -s --fail` を用いる。
 - token は `$(...)` で受け、stdout・ログに出さない。
 - **default ブランチへの直接 push は禁止**（`claude/*` ブランチ ＋ PR）。
-- token は公開リポに含めない（`.gitignore`）。難読化（二重 zip）は補助で、本質防御は **fine-grained PAT の権限最小化**。
+- token は公開リポに含めない（`.gitignore`）。token は **tar.gz でスキル同梱**（プロジェクトナレッジは zip 非対応・スキル zip はネスト zip 不可のため。バイナリゆえコンテキストに自動展開されない）。engine は tar.gz/tgz/tar/gz/zip を読める。難読化は補助で、本質防御は **fine-grained PAT の権限最小化**。
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)

@@ -2,22 +2,28 @@
 """Self-contained CLI for claude.ai's bash sandbox. Stdlib only.
 
 It does NOT import the EpisodicRAG package (not installed in claude.ai); it only
-relies on this skill's own scripts/ tree, which is unzipped to /mnt/skills/user/wakeup/.
+relies on this skill's own scripts/ tree, unzipped to /mnt/skills/user/wakeup/.
 
 Subcommands:
   resolve-urls --config <path> --sha <ref>   -> JSON array of raw URLs on stdout
-  extract-token --zip <path> [--member NAME] -> token on stdout, for TOKEN=$(...)
+  extract-token --archive <path> [--member]  -> token on stdout, for TOKEN=$(...)
+
+Token archive: claude.ai forbids a nested .zip inside a skill zip but allows
+tar.gz, so extract-token accepts the whole family (tar.gz / tgz / tar / gz / zip)
+and dispatches by extension.
 
 Security: extract-token writes the token ONLY to stdout on success (captured by
-command substitution, so it never lands in tool output). On ANY failure it writes
-a masked line to stderr (no token, no traceback) and exits non-zero.
+command substitution, never landing in tool output). On ANY failure it writes a
+masked line to stderr (no token, no traceback) and exits non-zero.
 """
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 import sys
+import tarfile
 import zipfile
 
 # Make `domain`/`interfaces` importable when run as a standalone script
@@ -34,11 +40,30 @@ def resolve_urls(repo: RepoRef, ref: str, files: tuple[LoadFile, ...]) -> list[s
     return [build_raw_url(repo, ref, f.path) for f in files]
 
 
-def extract_token_from_zip(zip_path: str, member: str | None = None) -> str:
-    """Return the stripped token stored in a zip (first member by default)."""
-    with zipfile.ZipFile(zip_path) as zf:
-        name = member or zf.namelist()[0]
-        return zf.read(name).decode("utf-8").strip()
+def extract_token(archive_path: str, member: str | None = None) -> str:
+    """Return the stripped token from a tar.gz / tgz / tar / gz / zip archive.
+
+    Dispatch is by extension (``.tar.gz`` checked before ``.gz``). A bare ``.gz``
+    is a single compressed stream (the token itself); the tar/zip forms hold a
+    member file (the first entry unless ``member`` is given).
+    """
+    p = archive_path.lower()
+    if p.endswith(".tar.gz") or p.endswith(".tgz"):
+        with tarfile.open(archive_path, "r:gz") as tf:
+            name = member or tf.getnames()[0]
+            return tf.extractfile(name).read().decode("utf-8").strip()
+    if p.endswith(".tar"):
+        with tarfile.open(archive_path, "r:") as tf:
+            name = member or tf.getnames()[0]
+            return tf.extractfile(name).read().decode("utf-8").strip()
+    if p.endswith(".gz"):
+        with gzip.open(archive_path, "rt", encoding="utf-8") as f:
+            return f.read().strip()
+    if p.endswith(".zip"):
+        with zipfile.ZipFile(archive_path) as zf:
+            name = member or zf.namelist()[0]
+            return zf.read(name).decode("utf-8").strip()
+    raise ValueError(f"unsupported token archive format: {archive_path}")
 
 
 def _cmd_resolve_urls(args: argparse.Namespace) -> int:
@@ -49,7 +74,7 @@ def _cmd_resolve_urls(args: argparse.Namespace) -> int:
 
 def _cmd_extract_token(args: argparse.Namespace) -> int:
     # Token -> stdout ONLY (captured by TOKEN=$(...)); never logged elsewhere.
-    sys.stdout.write(extract_token_from_zip(args.zip, args.member))
+    sys.stdout.write(extract_token(args.archive, args.member))
     return 0
 
 
@@ -63,7 +88,7 @@ def main(argv: list[str] | None = None) -> int:
     p_urls.set_defaults(func=_cmd_resolve_urls)
 
     p_tok = sub.add_parser("extract-token")
-    p_tok.add_argument("--zip", required=True)
+    p_tok.add_argument("--archive", required=True)
     p_tok.add_argument("--member", default=None)
     p_tok.set_defaults(func=_cmd_extract_token)
 
