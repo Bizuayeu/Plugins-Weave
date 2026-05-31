@@ -43,3 +43,10 @@ Identities/
 
 # EmailingEssay
 archive/
+
+# Secrets — tokens/PATs are injected locally, never committed.
+# wakeup skill: place your own token.zip inside the skill before zipping it for claude.ai.
+*.pat
+*.token
+**/token.zip
+**/GitHubPAT*
