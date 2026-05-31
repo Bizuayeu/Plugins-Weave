@@ -18,7 +18,7 @@ claude.ai のプロジェクトナレッジは zip 非対応、かつスキル z
    printf '%s' "github_pat_xxxxx" > token.txt
    tar czf token.tar.gz token.txt && rm token.txt
    ```
-3. `token.tar.gz` を **スキルディレクトリ（`wakeup/`）に配置**（Read 用と Write 用で分けるなら `token-read.tar.gz` / `token-write.tar.gz` 等）。
+3. `token.tar.gz` を **スキルディレクトリ（`wakeup/`）に配置**（Read 用と Write 用で分けるなら `token-read.tar.gz` / `token-write.tar.gz` 等）。**ファイル名は SKILL.md / config と厳密一致させること——Linux はケースセンシティブなので `TOKEN.tar.gz`（大文字）は別物**。
 4. **スキル全体を zip 化** して claude.ai にスキル登録 → 展開後 `/mnt/skills/user/wakeup/token.tar.gz`。
 5. wakeup が `extract-token --archive /mnt/skills/user/wakeup/token.tar.gz` で読む（token は Authorization ヘッダにのみ載る）。
 

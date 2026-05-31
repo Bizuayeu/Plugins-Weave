@@ -29,6 +29,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 ## 実装時の注意事項
 > **UIメッセージはコードブロックで囲む**（VSCode 拡張では単一改行が空白に変換されるため）。
 > **token を URL・stdout・ログに出さない**（後述のセキュリティ規律を厳守）。
+> **token アーカイブのファイル名はケースセンシティブ**（Linux 環境。`token.tar.gz` と `TOKEN.tar.gz` は別物——実配置と厳密に一致させること）。
 
 ---
 
@@ -76,7 +77,7 @@ Private リポの記憶（個別エントリ・Wiki 等）を対話中に引く�
 TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --archive /mnt/skills/user/wakeup/token.tar.gz) && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/<owner>/<private-name>/contents/<path>"
 ```
 
-- token は **Read 権限のみ**の fine-grained PAT（漏洩時の被害を最小化）。
+- token は fine-grained PAT（**admin でない write collaborator** が発行。記憶ロード／Private 参照／書き戻しを 1 本で兼用できる）。push 権限を持つが、**`main` は branch protection ＋ PR 承認で守られる**ため、漏洩しても正本は侵せない——**インテグリティは token のスコープ層でなく、ブランチ保護層に置く**設計。
 - `$(...)` で stdout をキャプチャするため、token はツール出力に残りません。
 - 失敗時も engine は token を漏らしません（マスク済み・非ゼロ終了）。
 
