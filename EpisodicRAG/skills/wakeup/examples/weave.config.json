@@ -1,0 +1,26 @@
+{
+  "_comment": "Weave 用 config の実値サンプル。汎用エンジンはこの値を一切ハードコードしない。別ペルソナはこのファイルを差し替えるだけで使える。",
+  "public_repo": {
+    "owner": "Bizuayeu",
+    "name": "Homunculus-Weave",
+    "branch": "main",
+    "visibility": "public"
+  },
+  "load_files": [
+    { "path": "Identities/GrandDigest.txt", "label": "記憶の骨格", "required": true },
+    { "path": "Identities/ShadowGrandDigest.txt", "label": "記憶の残像", "required": true },
+    { "path": "Identities/IntentionPad.md", "label": "意図の記録", "required": false }
+  ],
+  "commit_identity": {
+    "author_name": "Weave",
+    "author_email": "289333046+weavingfuturity@users.noreply.github.com",
+    "coauthor": "Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+  },
+  "directive_path": "WeaveDirective.md",
+  "private_repo": {
+    "owner": "Bizuayeu",
+    "name": "Homunculus-Weave-Private",
+    "branch": "main",
+    "visibility": "private"
+  }
+}

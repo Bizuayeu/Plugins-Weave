@@ -8,7 +8,7 @@
 階層的記憶・ダイジェスト生成システム（8 層 100 年）
 
 ![EpisodicRAG Plugin - 8階層の階層的記憶管理システムのアーキテクチャ図](./EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-5.4.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.5.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
@@ -84,6 +84,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 | `@digest-auto` | システム状態確認と推奨アクション |
 | `@digest-setup` | 初期セットアップ |
 | `@digest-config` | 設定変更 |
+| `@wakeup` | claude.ai セッション開始時の記憶ロード＋人格・表情起動（要 config・Read token） |
 
 詳細は [GUIDE.md](./docs/user/GUIDE.md) を参照してください。
 
@@ -111,6 +112,8 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 GitHub 連携により、セッション終了後も長期記憶を保持・継承できます。
 
 → [ADVANCED.md](./docs/user/ADVANCED.md)
+
+claude.ai 環境では `@wakeup` スキルがセッション開始時の記憶ロードを自動化します（公開リポから Read token で SHA 固定取得、Private 参照・PR 書き戻しに対応。Weave 固有値は config に外出し）。
 
 ---
 

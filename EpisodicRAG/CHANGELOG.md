@@ -11,11 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#540---2026-05-01)
+- [v5.x](#550---2026-05-31)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.5.0] - 2026-05-31
+
+### Added
+
+- **wakeup スキル（claude.ai セッション開始エンジン）** — claude.ai でセッション開始時に長期記憶ロード＋人格ディレクティブ＋表情起動を担う汎用エンジン
+  - 「汎用エンジン（scripts/）＋ ペルソナ固有値（examples/）」を分離。リポ名・ファイル・commit identity・人格方針はすべて config 注入（決め打ちなし、lint で保証）
+  - Clean Architecture（Domain / UseCase / Interface）＋ TDD（54 tests: 値オブジェクト・BootSequence・config ローダ・engine・SKILL.md lint）
+  - 記憶ロードは Read token で SHA 固定取得（claude.ai 共有 IP では未認証 API が枯渇、raw の main は CDN キャッシュで最新が取れないため）
+  - Private 参照／書き戻し（`claude/*` → PR）に対応。token は二重 zip でスキル同梱、Authorization ヘッダのみで URL 非露出
+  - ※ Stage 0（claude.ai 実機検証）と `HowToUseEpisodicRAG.md` の移行は別途
 
 ---
 

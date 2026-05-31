@@ -104,7 +104,7 @@ examples/WeaveDirective.md  ──参照──▶  SKILL.md 手続き           
   - SKILL.md・wakeup_engine.py に Weave 固有文字列（`Bizuayeu`/`weavingfuturity`/`Homunculus`）が出現しない（lint チェック、実値は examples/ のみ許可）
   - 書き込み手続きが `git push origin claude/*` → PR 作成で、`main` への直 push コマンドを含まない
 **Implementation Notes**:
-  - **公開ロード**: config の `repos.public` + `load_files` を SHA 解決後に認証なし curl。VisualExpression と違い PAT 不要。
+  - **記憶ロード**: Read token（Public repositories read-only 含む）で SHA 取得（API レート回避）→ SHA 固定 raw を Authorization ヘッダ付き curl。`main` 直読みは CDN キャッシュで最新が取れないため不可。token は単一 bash で使い切る。
   - **Private 参照（on-demand）**: `TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --zip /mnt/skills/user/wakeup/token.zip) && curl -s --fail -H "Authorization: Bearer $TOKEN" <api-url>` を **単一 bash 呼び出し**で完結（トークン常駐回避、token はスキル同梱の内側 zip）。
   - **書き戻し**: Write PAT で `claude/<topic>` ブランチ push → `gh pr create`。commit author=config の `commit_identity`（Weave noreply）、co-author=`Claude Opus 4.8 (1M context) <noreply@anthropic.com>`。WeaveIdentity 等人格核(Domain層)への書込は「PR 必須・要熟慮」と手続き上で区別（WORKLOG/IntentionPad は記録系として通常フロー）。
   - **commit identity 設定**: 対象リポの local `git config user.name/user.email` のみ設定（global の Bizuayeu は不変、他リポ非影響）と手続きに明記。
@@ -177,7 +177,7 @@ examples/WeaveDirective.md  ──参照──▶  SKILL.md 手続き           
 
 ## 検証済み事実（前提、再検証不要）
 
-- `Bizuayeu/Homunculus-Weave` は Public（`private:false`）。raw も API も認証なし HTTP 200。未認証レート 60req/h、1 セッション 1 回なので余裕 → **公開ロードに PAT 不要**（Stage 4 設計の根拠）。
+- `Bizuayeu/Homunculus-Weave` は Public（`private:false`）。**ただし claude.ai は共有 IP のため未認証 `api.github.com`（SHA 取得）が 60req/h ですぐ枯渇し、raw の `main` 参照は CDN キャッシュが長く最新が取れない** → SHA 固定取得が必須で、SHA 取得に認証が要る。**公開ロードにも Read token 必須**（当初の「PAT 不要」は claude.ai 実運用で覆った。2026-05-31）。Read token は Public repositories read-only を含む。
 - `weavingfuturity` 実在（id:289333046, name:Weave, 2026-05-31 作成）。noreply: `289333046+weavingfuturity@users.noreply.github.com`（Stage 1 の CommitIdentity 実値）。
 - 既存 digest-setup/digest-auto はローカル Claude Code 用・Python CLI 主体。SKILL.md 構造・`shared/_implementation-notes.md` 共通ガイドライン・GLOSSARY.md 参照の慣習を踏襲する。
 
