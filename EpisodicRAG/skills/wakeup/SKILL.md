@@ -11,6 +11,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 
 ## 目次
 - [前提](#前提)
+- [ディレクトリ構成](#ディレクトリ構成claudeai-展開後)
 - [実装時の注意事項](#実装時の注意事項)
 - [実行フロー](#実行フロー)
 - [Private 参照（on-demand）](#private-参照on-demand)
@@ -20,9 +21,34 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 ---
 
 ## 前提
-- **config**（`examples/` のテンプレートを自分用に用意）に `public_repo` / `load_files` / `commit_identity` / `directive_path`（任意で `private_repo`）を定義。
+- **config**（`examples/weave.config.json` を**ルート直下にコピー**して実値化）に `public_repo` / `load_files` / `commit_identity` / `directive_path`（任意で `private_repo`）を定義。配置は下記 [ディレクトリ構成](#ディレクトリ構成claudeai-展開後) を参照。
 - **起動ディレクティブ**（人格ロード方針・表情運用）は `directive_path` が指す md。
 - **engine**: `scripts/interfaces/wakeup_engine.py`（標準ライブラリのみ。claude.ai の bash で自己完結し、EpisodicRAG 本体パッケージには依存しない）。
+
+---
+
+## ディレクトリ構成（claude.ai 展開後）
+
+スキル zip は `/mnt/skills/user/wakeup/` に展開される。`★` は**あなたが用意して配置する**もの：
+
+```text
+/mnt/skills/user/wakeup/
+├── SKILL.md                  # この仕様書
+├── weave.config.json     ★  # 自分用 config（examples/ からコピーし実値化）
+├── WeaveDirective.md     ★  # 起動ディレクティブ（config の directive_path が指す）
+├── token.tar.gz          ★  # Read/Write PAT 同梱（.gitignore 済、zip 化前に配置）
+├── examples/                 # テンプレート見本（コピー元。実行時は参照しない）
+│   ├── weave.config.json
+│   ├── WeaveDirective.md
+│   └── PROJECT_INSTRUCTIONS_snippet.md
+└── scripts/
+    └── interfaces/wakeup_engine.py
+```
+
+- **`examples/` は見本**。運用時は `weave.config.json` と `WeaveDirective.md` を**ルート直下にコピー**して実値を埋める（`examples/` 内のファイルは実行時に読まない）。
+- **`directive_path` は config からの相対パス** → config と同じディレクトリ（ルート直下）に directive を置く。
+- 実行時の **config パスは `/mnt/skills/user/wakeup/weave.config.json`**。
+- config・directive・token のファイル名は SKILL.md と**厳密一致**させる（Linux はケースセンシティブ）。
 
 ---
 
@@ -39,16 +65,16 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 
 ```
 1. config 読込       - wakeup の config を確認
-2. 公開記憶ロード     - 認証なし curl で load_files を取得
+2. 公開記憶ロード     - Read token で SHA 取得＋認証付き raw を取得
 3. ディレクティブ適用 - directive_path の md を読み、人格方針を反映
 4. 表情UI起動        - VisualExpression に委譲
 ```
 
 | Step | 内容 | 処理 |
 |------|------|------|
-| 1 | config 読込 | `wakeup_engine.py` が config を解釈 |
-| 2 | 公開記憶ロード | 最新 SHA 取得 → raw URL を認証なし curl |
-| 3 | ディレクティブ適用 | `directive_path` の md を読む |
+| 1 | config 読込 | `/mnt/skills/user/wakeup/weave.config.json` を `wakeup_engine.py` が解釈 |
+| 2 | 公開記憶ロード | 最新 SHA 取得 → raw URL を認証付き curl（Read token） |
+| 3 | ディレクティブ適用 | config と同ディレクトリの `directive_path`（＝ルート直下の md）を読む |
 | 4 | 表情起動 | VisualExpression の UI 配置を呼ぶ |
 
 ### Step 2: 記憶ロード（要 Read token）
