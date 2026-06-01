@@ -30,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 記憶ロードは Read token で SHA 固定取得（claude.ai 共有 IP では未認証 API が枯渇、raw の main は CDN キャッシュで最新が取れないため）
   - Private 参照／書き戻し（`claude/*` → PR）に対応。token は tar.gz でスキル同梱（claude.ai はネスト zip 不可のため）、Authorization ヘッダのみで URL 非露出
   - 表情 UI は担当しない（VisualExpression スキルと相互参照なし）。両スキルとも単体で完結し、claude.ai のプロジェクト指示で独立に有効化する設計
-  - ※ 未了（別途対応）: claude.ai 実機検証（Stage 0）／`HowToUseEpisodicRAG.md` を wakeup・VisualExpression の独立トリガー（プロジェクト指示）として整理／wakeup のドキュメント波及（`docs/user/ADVANCED.md`・`homunculus/Weave/STRUCTURE.md`・`WeaveSupplement.md`・`plugins-weave/README.md`・`skills/shared/_implementation-notes.md`・`EpisodicRAG/GLOSSARY.md`）
 
 ---
 

@@ -6,7 +6,7 @@ English | [日本語](README.md)
 Claude Code plugins for autonomous AI with long-term memory, expression, and communication
 
 ![Plugins-Weave - Claude Code Plugin Marketplace](./PluginsWeave.png)
-[![Version](https://img.shields.io/badge/version-5.3.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.5.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -145,6 +145,7 @@ A system that hierarchically digests conversation logs (Loop files) and structur
 | `/digest weekly` | Finalize Weekly Digest |
 | `@digest-auto` | Check system status |
 | `@digest-setup` | Initial setup |
+| `@wakeup` | Session-start engine for claude.ai: loads long-term memory and applies the persona directive |
 
 → [Full README](EpisodicRAG/README.en.md) / [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) / [Glossary](EpisodicRAG/GLOSSARY.en.md)
 

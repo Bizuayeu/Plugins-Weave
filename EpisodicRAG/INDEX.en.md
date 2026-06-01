@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-16 -->
+<!-- Last synced: 2026-05-31 -->
 English | [日本語](INDEX.md)
 
 # Document Index
@@ -67,6 +67,7 @@ Navigation to all EpisodicRAG plugin documentation.
 | `@digest-setup` | [SKILL.md](skills/digest-setup/SKILL.md) |
 | `@digest-config` | [SKILL.md](skills/digest-config/SKILL.md) |
 | `@digest-auto` | [SKILL.md](skills/digest-auto/SKILL.md) |
+| `@wakeup` | [SKILL.md](skills/wakeup/SKILL.md) |
 
 ### Agents (`agents/`)
 

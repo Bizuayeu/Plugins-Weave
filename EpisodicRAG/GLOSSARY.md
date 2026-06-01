@@ -376,6 +376,7 @@ L00001追加 → L00002追加 → /digest
 | `@digest-auto` | システム状態診断と推奨アクション提示 |
 | `@digest-setup` | 初期セットアップ（対話的） |
 | `@digest-config` | 設定変更（対話的） |
+| `@wakeup` | claude.ai セッション開始時の記憶ロード＋人格ディレクティブ適用（要 `wakeup.config.json`・Read token） |
 
 ---
 
@@ -409,6 +410,32 @@ L00001追加 → L00002追加 → /digest
 
 > **v4.0.0+**: `trusted_external_paths`は外部パスアクセスのホワイトリストです。外部パス（`identity_file_path`等）を使用する場合は明示的な登録が必要です。
 
+### wakeup.config.json
+**配置**: `/mnt/skills/user/wakeup/wakeup.config.json`
+
+`@wakeup` スキル（claude.ai セッション開始エンジン）用の設定ファイルです。汎用固定名で、`repo`・`load_files`・`directive_path` 等を注入します。人格名を含めない汎用名に固定し、ペルソナ固有値はすべてこの config 経由で与えます。
+
+> 📖 詳細: [wakeup/SKILL.md](skills/wakeup/SKILL.md)
+
+### wakeup 関連用語
+
+#### 起動ディレクティブ
+**定義**: `@wakeup` がセッション開始時に適用する人格ロード方針を記述した md。
+
+- `wakeup.config.json` の `directive_path` が指す（config と同ディレクトリ＝ルート直下）。ファイル名は任意。
+
+#### Read PAT
+**定義**: 公開記憶ロード／Private 参照に用いる読み取り用 fine-grained Personal Access Token。
+
+- claude.ai 共有 IP では未認証 API がレート枯渇するため、公開リポでも認証必須。Authorization ヘッダのみで使用し URL には載せない。
+
+#### Write PR フロー
+**定義**: 記憶の書き戻し方式。default ブランチへ直接 push せず `claude/*` ブランチ → PR → 人間マージで反映する。
+
+- Write 権限の PAT は admin でない write collaborator が発行（admin token はブランチ保護を bypass するため）。
+
+> 📖 詳細: [wakeup/SKILL.md](skills/wakeup/SKILL.md#セキュリティ規律)
+
 ---
 
 ## 開発者向けリファレンス
@@ -435,11 +462,15 @@ L00001追加 → L00002追加 → /digest
 | Placeholder | [プロセス・操作](#プレースホルダー) |
 | plugin_root | [基本概念](#plugin_root) |
 | Provisional Digest | [記憶構造](#provisional-digest) |
+| Read PAT | [設定ファイル](#read-pat) |
 | Regular Digest | [記憶構造](#regular-digest) |
 | ShadowGrandDigest | [記憶構造](#shadowgranddigest) |
 | Threshold | [プロセス・操作](#threshold閾値) |
+| wakeup.config.json | [設定ファイル](#wakeupconfigjson) |
+| Write PR フロー | [設定ファイル](#write-pr-フロー) |
 | まだらボケ | [プロセス・操作](#まだらボケ) |
 | 永続化パス | [基本概念](#永続化パス-v520) |
+| 起動ディレクティブ | [設定ファイル](#起動ディレクティブ) |
 
 ---
 

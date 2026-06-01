@@ -1,6 +1,6 @@
 # EpisodicRAG AI Specification Hub
 
-[![Version](https://img.shields.io/badge/version-5.4.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.5.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 
 AI/Claudeエージェント向けの技術仕様ハブです。
 
@@ -88,6 +88,7 @@ python -m interfaces.digest_auto
 | `@digest-setup` | [SKILL.md](../skills/digest-setup/SKILL.md) | 初期セットアップ（対話的） |
 | `@digest-config` | [SKILL.md](../skills/digest-config/SKILL.md) | 設定変更（対話的） |
 | `@digest-auto` | [SKILL.md](../skills/digest-auto/SKILL.md) | システム診断・推奨アクション |
+| `@wakeup` | [SKILL.md](../skills/wakeup/SKILL.md) | claude.ai セッション開始エンジン（記憶ロード＋人格ディレクティブ適用） |
 
 ---
 

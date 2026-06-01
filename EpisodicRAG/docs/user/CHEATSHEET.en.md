@@ -1,4 +1,4 @@
-<!-- Last synced: 2025-12-16 -->
+<!-- Last synced: 2026-05-31 -->
 English | [日本語](CHEATSHEET.md)
 
 # EpisodicRAG Quick Reference
@@ -33,6 +33,7 @@ A one-page cheat sheet for quick reference of key features.
 | `@digest-auto` | System status diagnosis & recommended actions |
 | `@digest-setup` | Initial setup |
 | `@digest-config` | Configuration changes |
+| `@wakeup` | Session-start engine that loads long-term memory and applies the persona directive (claude.ai-only) |
 
 ---
 

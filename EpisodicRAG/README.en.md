@@ -1,6 +1,6 @@
 <!--
   This file is the EpisodicRAG plugin landing page.
-  Last synced: 2026-05-01
+  Last synced: 2026-05-31
 -->
 English | [日本語](README.md)
 
@@ -9,7 +9,7 @@ English | [日本語](README.md)
 Hierarchical Memory & Digest Generation System (8 Layers, 100 Years)
 
 ![EpisodicRAG Plugin - Architecture diagram of 8-layer hierarchical memory management system](./EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-5.4.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.5.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
@@ -85,6 +85,7 @@ By following this principle, AI can remember all Loops.
 | `@digest-auto` | Check system status and recommended actions |
 | `@digest-setup` | Initial setup |
 | `@digest-config` | Change settings |
+| `@wakeup` | Session-start engine for claude.ai: loads long-term memory and applies the persona directive (requires config & Read token) |
 
 For details, see [GUIDE.md](./docs/user/GUIDE.md) *(Japanese)*.
 
@@ -110,6 +111,8 @@ For details, see [GUIDE.md](./docs/user/GUIDE.md) *(Japanese)*.
 ## Cross-Session Memory Inheritance
 
 With GitHub integration, you can retain and inherit long-term memory after session ends.
+
+In claude.ai environments, the `@wakeup` skill automates session-start memory loading (SHA-pinned fetch via Read token; supports Private repo reference and PR write-back; all repo-specific values injected via config).
 
 → [ADVANCED.md](./docs/user/ADVANCED.md) *(Japanese)*
 

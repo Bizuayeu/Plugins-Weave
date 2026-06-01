@@ -143,6 +143,7 @@ Triennial → Decadal → Multi-decadal → Centurial
 - [API_REFERENCE.md](../../docs/dev/API_REFERENCE.md) - DigestConfig API
 - [ARCHITECTURE.md](../../docs/dev/ARCHITECTURE.md) - 技術仕様
 - [interfaces/](../../scripts/interfaces/) - Python化スキル実装（digest_setup, digest_config, digest_auto）
+- [wakeup/SKILL.md](../wakeup/SKILL.md#セキュリティ規律) - claude.ai 向けスキル（`@wakeup`）のセキュリティ規律（PAT を stdout に出さない・`curl -s --fail`・Authorization ヘッダ・noreply commit・main 直 push 禁止）
 
 ---
 

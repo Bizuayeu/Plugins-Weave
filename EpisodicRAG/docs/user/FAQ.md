@@ -231,6 +231,12 @@ flowchart TB
 - `.gitignore`でキャッシュファイルを除外
 - 複数デバイス間での記憶共有が可能
 
+### Q: claude.ai で記憶を自動ロードするには？
+
+**A**: `@wakeup` スキルを使います。claude.ai セッション開始時に、公開リポの記憶を Read token で SHA 固定取得し、人格ディレクティブを適用します。
+
+> 📖 詳細: [ADVANCED.md](ADVANCED.md)
+
 ---
 
 ## トラブルシューティング

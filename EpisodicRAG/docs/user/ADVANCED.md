@@ -117,7 +117,11 @@ Claude Codeを再起動し、新しいセッションを開始すると、`.clau
 3. 記憶URLを生成（GrandDigest.txt, ShadowGrandDigest.txt）
 4. web_fetchで長期記憶を読み込み
 
-**WebChatの場合:**
+**claude.ai / WebChatの場合:**
+
+> 💡 **claude.ai では `@wakeup` スキルが Read token で SHA を自動取得するため、以下の手動 SHA コピペは不要です。** `@wakeup` がセッション開始時に最新 SHA 固定の記憶ロードと人格ディレクティブ適用を自動化します（要 `wakeup.config.json`・Read token）。詳細は [スキル仕様](../../skills/wakeup/SKILL.md) を参照。
+>
+> 以下の手動手順は、Claude Code や `@wakeup` を使わない環境向けの参考です。
 
 WebChatではプロジェクトナレッジが自動読み込みされないため、以下のいずれかの方法を使用します：
 
@@ -221,6 +225,8 @@ git remote set-url origin https://{TOKEN}@github.com/{USER}/{REPO}.git
 # またはSSH
 git remote set-url origin git@github.com:{USER}/{REPO}.git
 ```
+
+> ⚠️ **claude.ai では token を URL に載せず、Authorization ヘッダ方式（`@wakeup`）を使ってください。** 上記の URL 埋め込み方式は token がログ・履歴に残るため、claude.ai 環境では `@wakeup` スキル（`curl -H "Authorization: Bearer $TOKEN"`、token は URL 非露出）が安全です。詳細は [スキル仕様](../../skills/wakeup/SKILL.md#セキュリティ規律) を参照。
 
 WebFetchでのアクセスには、プライベートリポジトリのraw URLに認証が必要になる場合があります。パブリックリポジトリの使用を推奨します（記憶は個人情報を含まないため）。
 

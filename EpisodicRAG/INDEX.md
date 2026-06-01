@@ -66,6 +66,7 @@ EpisodicRAGプラグインの全ドキュメントへのナビゲーション。
 | `@digest-setup` | [SKILL.md](skills/digest-setup/SKILL.md) |
 | `@digest-config` | [SKILL.md](skills/digest-config/SKILL.md) |
 | `@digest-auto` | [SKILL.md](skills/digest-auto/SKILL.md) |
+| `@wakeup` | [SKILL.md](skills/wakeup/SKILL.md) |
 
 ### エージェント (`agents/`)
 

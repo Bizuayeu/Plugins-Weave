@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-05-01 -->
+<!-- Last synced: 2026-05-31 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,11 +12,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#540---2026-05-01)
+- [v5.x](#550---2026-05-31)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.5.0] - 2026-05-31
+
+### Added
+
+- **wakeup skill (claude.ai session-start engine)** — a general-purpose engine that loads long-term memory and applies the persona directive at session start in claude.ai
+  - Separates the "general-purpose engine (scripts/)" from "persona-specific values (examples/)". Repo names, files, commit identity, and persona policy are all injected via config (no hardcoding; enforced by lint)
+  - Deployed artifacts are fixed to generic names that do not contain a persona name (runtime config = `wakeup.config.json`; only the directive name is variable via the config's `directive_path`). Persona-specific samples are isolated under `examples/` (e.g. `weave.config.json`), and any leakage of persona-specific names into runtime paths is detected by lint
+  - Clean Architecture (Domain / UseCase / Interface) + TDD (59 tests: value objects, BootSequence, config loader, engine, SKILL.md lint [including verification of generic names for deployed artifacts and persona-name leakage])
+  - Memory loading uses a Read token for SHA-pinned fetch (on claude.ai's shared IPs the unauthenticated API is exhausted, and raw's main branch is CDN-cached so the latest cannot be retrieved)
+  - Supports Private reference / write-back (`claude/*` → PR). The token is bundled with the skill as a tar.gz (claude.ai does not allow nested zip), and the URL is not exposed since only the Authorization header is used
+  - Does not handle facial UI (no cross-reference with the VisualExpression skill). Both skills are self-contained and designed to be enabled independently via claude.ai project instructions
+  - Note (to be addressed separately): claude.ai live verification (Stage 0); reorganizing `HowToUseEpisodicRAG.md` to present wakeup and VisualExpression as independent triggers (project instructions); documentation propagation for wakeup (`docs/user/ADVANCED.md`, `homunculus/Weave/STRUCTURE.md`, `WeaveSupplement.md`, `plugins-weave/README.md`, `skills/shared/_implementation-notes.md`, `EpisodicRAG/GLOSSARY.md`)
 
 ---
 

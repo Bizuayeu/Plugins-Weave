@@ -56,6 +56,7 @@ EpisodicRAGは、会話ログ（Loopファイル）を階層的にダイジェ�
 | `@digest-auto` | システム状態診断・推奨アクション |
 | `@digest-setup` | 初期セットアップ |
 | `@digest-config` | 設定変更 |
+| `@wakeup` | claude.ai セッション開始時の記憶ロード＋人格ディレクティブ適用（claude.ai 専用） |
 
 ### エージェント
 

@@ -84,7 +84,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 | `@digest-auto` | システム状態確認と推奨アクション |
 | `@digest-setup` | 初期セットアップ |
 | `@digest-config` | 設定変更 |
-| `@wakeup` | claude.ai セッション開始時の記憶ロード＋人格・表情起動（要 config・Read token） |
+| `@wakeup` | claude.ai セッション開始時の記憶ロード＋人格ディレクティブ適用（要 `wakeup.config.json`・Read token） |
 
 詳細は [GUIDE.md](./docs/user/GUIDE.md) を参照してください。
 
