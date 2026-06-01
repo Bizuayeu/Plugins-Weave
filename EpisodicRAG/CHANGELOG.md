@@ -25,10 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **wakeup スキル（claude.ai セッション開始エンジン）** — claude.ai でセッション開始時に長期記憶ロード＋人格ディレクティブ＋表情起動を担う汎用エンジン
   - 「汎用エンジン（scripts/）＋ ペルソナ固有値（examples/）」を分離。リポ名・ファイル・commit identity・人格方針はすべて config 注入（決め打ちなし、lint で保証）
-  - Clean Architecture（Domain / UseCase / Interface）＋ TDD（54 tests: 値オブジェクト・BootSequence・config ローダ・engine・SKILL.md lint）
+  - 配置物は人格名を含まない汎用名に固定（実行時 config = `wakeup.config.json`、directive 名のみ config の `directive_path` 経由で可変）。ペルソナ固有のサンプルは `examples/`（`weave.config.json` 等）に隔離し、実行時パスへの固有名リークを lint で検出
+  - Clean Architecture（Domain / UseCase / Interface）＋ TDD（59 tests: 値オブジェクト・BootSequence・config ローダ・engine・SKILL.md lint〔配置物の汎用名・固有名リーク検証を含む〕）
   - 記憶ロードは Read token で SHA 固定取得（claude.ai 共有 IP では未認証 API が枯渇、raw の main は CDN キャッシュで最新が取れないため）
-  - Private 参照／書き戻し（`claude/*` → PR）に対応。token は二重 zip でスキル同梱、Authorization ヘッダのみで URL 非露出
-  - ※ Stage 0（claude.ai 実機検証）と `HowToUseEpisodicRAG.md` の移行は別途
+  - Private 参照／書き戻し（`claude/*` → PR）に対応。token は tar.gz でスキル同梱（claude.ai はネスト zip 不可のため）、Authorization ヘッダのみで URL 非露出
+  - ※ 未了（別途対応）: claude.ai 実機検証（Stage 0）／`HowToUseEpisodicRAG.md` の旧表情手順を wakeup へ移行（現状ポインタ行のみ追加・旧本文残存）／wakeup のドキュメント波及（`docs/user/ADVANCED.md`・`homunculus/Weave/STRUCTURE.md`・`WeaveSupplement.md`・`plugins-weave/README.md`・`skills/shared/_implementation-notes.md`・`EpisodicRAG/GLOSSARY.md`）
 
 ---
 

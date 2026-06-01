@@ -37,6 +37,16 @@ class TestNoPersonaLeak:
         leaked = [s for s in PERSONA_STRINGS if s in _read(ENGINE)]
         assert not leaked, f"engine must stay generic: {leaked}"
 
+    def test_skill_md_uses_generic_artifact_names(self):
+        """Deployed artifacts use generic names; persona-named files live only under examples/."""
+        text = _read(SKILL_MD)
+        # The runtime config path must be the generic wakeup.config.json, never a persona's name.
+        assert "wakeup/wakeup.config.json" in text, "runtime config must be the generic wakeup.config.json"
+        # A persona-named config/directive must never be a deployed artifact (directly under
+        # wakeup/); references under examples/ are fine.
+        assert "wakeup/weave.config.json" not in text, "persona config belongs under examples/, not deployed"
+        assert "wakeup/WeaveDirective.md" not in text, "persona directive belongs under examples/, not deployed"
+
 
 class TestCurlSafety:
     def test_no_token_embedded_in_url(self):

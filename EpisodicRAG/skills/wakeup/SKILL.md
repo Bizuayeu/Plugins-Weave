@@ -21,7 +21,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 ---
 
 ## 前提
-- **config**（`examples/weave.config.json` を**ルート直下にコピー**して実値化）に `public_repo` / `load_files` / `commit_identity` / `directive_path`（任意で `private_repo`）を定義。配置は下記 [ディレクトリ構成](#ディレクトリ構成claudeai-展開後) を参照。
+- **config**（`examples/` のサンプルを見本に**ルート直下へ `wakeup.config.json` として実値化**）に `public_repo` / `load_files` / `commit_identity` / `directive_path`（任意で `private_repo`）を定義。配置は下記 [ディレクトリ構成](#ディレクトリ構成claudeai-展開後) を参照。
 - **起動ディレクティブ**（人格ロード方針・表情運用）は `directive_path` が指す md。
 - **engine**: `scripts/interfaces/wakeup_engine.py`（標準ライブラリのみ。claude.ai の bash で自己完結し、EpisodicRAG 本体パッケージには依存しない）。
 
@@ -34,21 +34,21 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 ```text
 /mnt/skills/user/wakeup/
 ├── SKILL.md                  # この仕様書
-├── weave.config.json     ★  # 自分用 config（examples/ からコピーし実値化）
-├── WeaveDirective.md     ★  # 起動ディレクティブ（config の directive_path が指す）
+├── wakeup.config.json    ★  # 自分用 config（examples/ のサンプルを実値化。名前固定）
+├── <directive>.md        ★  # 起動ディレクティブ（config の directive_path が指す任意名）
 ├── token.tar.gz          ★  # Read/Write PAT 同梱（.gitignore 済、zip 化前に配置）
 ├── examples/                 # テンプレート見本（コピー元。実行時は参照しない）
-│   ├── weave.config.json
-│   ├── WeaveDirective.md
+│   ├── weave.config.json     #   Weave サンプル → wakeup.config.json として実値化
+│   ├── WeaveDirective.md     #   Weave サンプル → directive_path が指す名で配置
 │   └── PROJECT_INSTRUCTIONS_snippet.md
 └── scripts/
     └── interfaces/wakeup_engine.py
 ```
 
-- **`examples/` は見本**。運用時は `weave.config.json` と `WeaveDirective.md` を**ルート直下にコピー**して実値を埋める（`examples/` 内のファイルは実行時に読まない）。
-- **`directive_path` は config からの相対パス** → config と同じディレクトリ（ルート直下）に directive を置く。
-- 実行時の **config パスは `/mnt/skills/user/wakeup/weave.config.json`**。
-- config・directive・token のファイル名は SKILL.md と**厳密一致**させる（Linux はケースセンシティブ）。
+- **`examples/` は見本**。運用時は config サンプルを**ルート直下へ `wakeup.config.json` としてコピー**し実値を埋める。directive も同様にルート直下へ置き、その名前を config の `directive_path` に書く（`examples/` 内のファイルは実行時に読まない）。
+- **`directive_path` は config からの相対パス** → config と同じディレクトリ（ルート直下）に directive を置く。ファイル名は任意（汎用例 `directive.md`、Weave サンプルは `WeaveDirective.md`）。
+- 実行時の **config パスは固定で `/mnt/skills/user/wakeup/wakeup.config.json`**（人格名を含めない汎用名。directive 名のみ config 経由で可変）。
+- config・directive・token のファイル名は SKILL.md／config と**厳密一致**させる（Linux はケースセンシティブ）。
 
 ---
 
@@ -72,7 +72,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 
 | Step | 内容 | 処理 |
 |------|------|------|
-| 1 | config 読込 | `/mnt/skills/user/wakeup/weave.config.json` を `wakeup_engine.py` が解釈 |
+| 1 | config 読込 | `/mnt/skills/user/wakeup/wakeup.config.json` を `wakeup_engine.py` が解釈 |
 | 2 | 公開記憶ロード | 最新 SHA 取得 → raw URL を認証付き curl（Read token） |
 | 3 | ディレクティブ適用 | config と同ディレクトリの `directive_path`（＝ルート直下の md）を読む |
 | 4 | 表情起動 | VisualExpression の UI 配置を呼ぶ |
@@ -84,7 +84,7 @@ Read token は **Public repositories read-only** を含む fine-grained PAT。�
 ```bash
 TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --archive /mnt/skills/user/wakeup/token.tar.gz) \
   && SHA=$(curl -s --fail -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/<owner>/<name>/git/refs/heads/<branch>" | grep -o '"sha": *"[^"]*"' | head -1 | cut -d'"' -f4) \
-  && python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py resolve-urls --config <config-path> --sha "$SHA" \
+  && python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py resolve-urls --config /mnt/skills/user/wakeup/wakeup.config.json --sha "$SHA" \
   && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://raw.githubusercontent.com/<owner>/<name>/$SHA/<path>"
 ```
 
