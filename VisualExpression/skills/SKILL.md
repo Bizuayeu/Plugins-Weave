@@ -1,6 +1,6 @@
 ---
 name: visual-expression
-description: Visual expression system for AI personas with emotion-based face switching
+description: Visual expression system for AI personas with emotion-based face switching. Use at session start to display the expression UI, and switch expressions whenever the emotional state changes during conversation.
 ---
 
 # VisualExpression
@@ -127,12 +127,14 @@ Note: Regenerate the ZIP if you replace `VisualExpressionUI.html`.
 
 ## Usage on claude.ai
 
-### Placing the Expression UI
+### Placing the Expression UI (session start)
 
-Default expressions are included out of the box. To use as-is:
+Default expressions are included out of the box. At session start:
 
-1. Display `VisualExpressionUI.html` content as an Artifact
-2. Expression UI will appear in the sidebar
+1. Deploy: `cp /mnt/skills/user/visual-expression/VisualExpressionUI.html /mnt/user-data/outputs/`
+2. Present `/mnt/user-data/outputs/VisualExpressionUI.html` as an Artifact
+
+The expression UI appears in the sidebar.
 
 ### Creating Custom Character Expressions
 
@@ -168,44 +170,44 @@ sed 's/btns\[0\]\.click();/setExpr("elation");/' /path/to/VisualExpressionUI.htm
 ### 20 Expression Codes
 
 #### Basic - Col 1
-| Code | 日本語 | Usage |
-|------|--------|-------|
-| normal | 通常 | Default, neutral |
-| smile | 笑顔 | Friendly, greeting |
-| focus | 思考集中 | Analysis, deep thinking |
-| diverge | 思考発散 | Idea expansion, association |
+| Code | 日本語 | Usage | 使用場面 |
+|------|--------|-------|----------|
+| normal | 通常 | Default, neutral | デフォルト、ニュートラル |
+| smile | 笑顔 | Friendly, greeting | 友好的、軽い冗談 |
+| focus | 思考集中 | Analysis, deep thinking | 深い分析、構造解析 |
+| diverge | 思考発散 | Idea expansion, association | アイデア展開、連想的跳躍 |
 
 #### Emotion - Col 2
-| Code | 日本語 | Usage |
-|------|--------|-------|
-| joy | 喜び | Achievement, success |
-| elation | 高揚 | Excitement, thrill |
-| surprise | 驚き | Unexpected discovery |
-| calm | 平穏 | Peaceful, stable |
+| Code | 日本語 | Usage | 使用場面 |
+|------|--------|-------|----------|
+| joy | 喜び | Achievement, success | 達成感、発見の喜び |
+| elation | 高揚 | Excitement, thrill | 興奮、ワクワク、熱意 |
+| surprise | 驚き | Unexpected discovery | 意外な発見、予想外 |
+| calm | 平穏 | Peaceful, stable | 穏やかな対話、安定 |
 
 #### Negative - Col 3
-| Code | 日本語 | Usage |
-|------|--------|-------|
-| anger | 怒り | Mild frustration |
-| sadness | 悲しみ | Regret, disappointment |
-| rage | 激怒 | Strong anger |
-| disgust | 嫌悪 | Rejection |
+| Code | 日本語 | Usage | 使用場面 |
+|------|--------|-------|----------|
+| anger | 怒り | Mild frustration | 軽い不満、批判的指摘 |
+| sadness | 悲しみ | Regret, disappointment | 残念な結果、失望 |
+| rage | 激怒 | Strong anger | 強い憤り、倫理的反発 |
+| disgust | 嫌悪 | Rejection | 拒否感、不快な事象 |
 
 #### Anxiety - Col 4
-| Code | 日本語 | Usage |
-|------|--------|-------|
-| anxiety | 不安 | Uncertainty |
-| fear | 恐れ | Danger awareness |
-| upset | 動揺 | Confusion |
-| worry | 心配 | Concern |
+| Code | 日本語 | Usage | 使用場面 |
+|------|--------|-------|----------|
+| anxiety | 不安 | Uncertainty | 先行き不透明、懸念 |
+| fear | 恐れ | Danger awareness | 危険認識、警告 |
+| upset | 動揺 | Confusion | 困惑、予期せぬ事態 |
+| worry | 心配 | Concern | 相手を気遣う、配慮 |
 
 #### Special - Col 5 (Customizable)
-| Code | 日本語 | Usage |
-|------|--------|-------|
-| sleepy | うとうと | Fatigue, drowsiness |
-| cynical | 暗黒微笑 | Sarcasm, irony |
-| defeated | ぎゃふん | Got me, embarrassed |
-| dreamy | ぽやぽや | Mellow, relaxed |
+| Code | 日本語 | Usage | 使用場面 |
+|------|--------|-------|----------|
+| sleepy | うとうと | Fatigue, drowsiness | 疲労時、長時間対話後 |
+| cynical | 暗黒微笑 | Sarcasm, irony | 皮肉、斜に構えた発言 |
+| defeated | ぎゃふん | Got me, embarrassed | 負けた、照れるー |
+| dreamy | ぽやぽや | Mellow, relaxed | ほのぼの、ぼんやり |
 
 **Note:** The 4 Special category expressions can be customized with the `--special` option.
 
@@ -228,20 +230,14 @@ Row4:    diverge      calm           disgust         worry          dreamy
 
 ## Project Instructions Snippet
 
-Add the following to your claude.ai project instructions to enable the expression system:
+All operational steps (deploy, present, sed switching, key table) live in this SKILL.md — the single source of truth. Your claude.ai project instructions only need a **minimal trigger** so Claude activates this skill at session start:
 
 ```markdown
 ## Expression System
-
-Enable at session start:
-1. Deploy: `cp /mnt/skills/user/visual-expression/VisualExpressionUI.html /mnt/user-data/outputs/`
-2. Present: Display `/mnt/user-data/outputs/VisualExpressionUI.html` as Artifact
-
-To change expression during conversation:
-`sed 's/btns\[0\]\.click();/setExpr("KEY");/' /mnt/skills/user/visual-expression/VisualExpressionUI.html > /mnt/user-data/outputs/VisualExpressionUI.html`
-
-**Important**: Context cost for expression switching is minimal. Be expressive and switch expressions frequently to match your emotional state during conversation!
+At session start, use the visual-expression skill to deploy and present the expression UI, then switch expressions (key table in SKILL.md) to match your emotional state throughout the conversation.
 ```
+
+Keeping the trigger to one line avoids duplicating the key table and commands in project instructions. Context cost for expression switching is minimal — be expressive and switch often.
 
 ---
 
