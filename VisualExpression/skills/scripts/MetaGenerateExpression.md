@@ -192,7 +192,7 @@ python main.py your_grid_image.png --offsets offsets.json --output ./output/
 
 - `ExpressionImages.json` - Base64 encoded image data
 - `VisualExpressionUI.html` - Self-contained HTML
-- `VisualExpressionSkills.zip` - For claude.ai upload
+- `visual-expression.zip` - For claude.ai upload
 
 ---
 

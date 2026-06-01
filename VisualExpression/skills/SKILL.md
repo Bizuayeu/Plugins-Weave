@@ -79,7 +79,7 @@ python main.py your_grid.png --special wink,pout,smug,starry
 **Output:**
 - `ExpressionImages.json` - Base64 encoded images
 - `VisualExpressionUI.html` - Self-contained HTML
-- `VisualExpressionSkills.zip` - For claude.ai upload
+- `visual-expression.zip` - For claude.ai upload
 
 **Dependencies:**
 - Python 3.10+
@@ -135,7 +135,7 @@ The expression UI appears in the sidebar.
 cd /mnt/skills/user/visual-expression/scripts/MakeExpressionJson
 python main.py /mnt/user-data/uploads/your_grid.png --output /mnt/user-data/outputs/
 ```
-4. Present `/mnt/user-data/outputs/VisualExpressionSkills.zip` to user and prompt skill registration
+4. Present `/mnt/user-data/outputs/visual-expression.zip` to user and prompt skill registration
 5. Re-register as a new skill on claude.ai
 
 ### One-liner sed Expression Switching

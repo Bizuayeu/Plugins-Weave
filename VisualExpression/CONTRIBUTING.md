@@ -153,7 +153,7 @@ your_grid.png
     ↓
 [build] → VisualExpressionUI.html (template + JSON)
     ↓
-[package] → VisualExpressionSkills.zip (optional)
+[package] → visual-expression.zip (optional)
 ```
 
 For image specifications (grid size, cell dimensions), CLI options, and detailed usage, see [SKILL.md Technical Details](skills/SKILL.md#technical-details).

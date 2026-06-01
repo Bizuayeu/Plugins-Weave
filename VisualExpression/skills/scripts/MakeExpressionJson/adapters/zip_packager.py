@@ -27,7 +27,7 @@ class ZipPackager:
         html_path: Path,
         template_path: Path,
         json_path: Path,
-        output_name: str = "VisualExpressionSkills.zip",
+        output_name: str = "visual-expression.zip",
         additional_files: list[Path] | None = None,
         strict: bool = True,
     ) -> Path:
@@ -63,26 +63,26 @@ class ZipPackager:
             return False
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            # Add main skill file
-            if _check_file(skill_md_path, "skills/SKILL.md"):
-                zf.write(skill_md_path, "skills/SKILL.md")
+            # Add main skill file (ZIP root — SKILL.md sits at the ZIP root)
+            if _check_file(skill_md_path, "SKILL.md"):
+                zf.write(skill_md_path, "SKILL.md")
 
             # Add HTML files (required)
-            if _check_file(html_path, "skills/VisualExpressionUI.html", required=True):
-                zf.write(html_path, "skills/VisualExpressionUI.html")
+            if _check_file(html_path, "VisualExpressionUI.html", required=True):
+                zf.write(html_path, "VisualExpressionUI.html")
 
-            if _check_file(template_path, "skills/VisualExpressionUI.template.html"):
-                zf.write(template_path, "skills/VisualExpressionUI.template.html")
+            if _check_file(template_path, "VisualExpressionUI.template.html"):
+                zf.write(template_path, "VisualExpressionUI.template.html")
 
             # Add JSON (required)
-            if _check_file(json_path, "skills/ExpressionImages.json", required=True):
-                zf.write(json_path, "skills/ExpressionImages.json")
+            if _check_file(json_path, "ExpressionImages.json", required=True):
+                zf.write(json_path, "ExpressionImages.json")
 
             # Add additional files
             if additional_files:
                 for file_path in additional_files:
-                    if _check_file(file_path, f"skills/{file_path.name}"):
-                        arcname = f"skills/{file_path.name}"
+                    if _check_file(file_path, file_path.name):
+                        arcname = file_path.name
                         zf.write(file_path, arcname)
 
         return zip_path

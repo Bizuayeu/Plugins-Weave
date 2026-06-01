@@ -62,7 +62,7 @@ class TestMainZipCreation:
 
         # ZIPファイルが作成されたことを確認
         output_dir = setup_files['output_dir']
-        assert (output_dir / "VisualExpressionSkills.zip").exists()
+        assert (output_dir / "visual-expression.zip").exists()
 
     def test_no_zip_option_skips_zip(self, setup_files):
         """--no-zipオプションでZIP作成をスキップ"""
@@ -82,4 +82,4 @@ class TestMainZipCreation:
 
         # ZIPファイルが作成されないことを確認
         output_dir = setup_files['output_dir']
-        assert not (output_dir / "VisualExpressionSkills.zip").exists()
+        assert not (output_dir / "visual-expression.zip").exists()
