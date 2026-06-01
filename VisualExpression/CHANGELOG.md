@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Project Instructions Snippet" reframed as a minimal one-line trigger — operational steps (deploy, present, sed, key table) live in SKILL.md, no longer duplicated in project instructions
 - `description` (SKILL.md frontmatter + plugin.json) now states *when* to activate (session start / emotional state change), improving skill discovery
 - Session-start UI placement steps (cp → present) made explicit in "Usage on claude.ai"
+- Install step now zips the *contents* of `skills/` (SKILL.md at ZIP root) into `visual-expression.zip`, so Mac/Linux and Windows produce an identical archive; dropped exclusion flags (dev files are gitignored)
 
 ## [1.0.0] - 2026-01-03
 

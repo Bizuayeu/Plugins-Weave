@@ -91,35 +91,25 @@ python main.py your_grid.png --special wink,pout,smug,starry
 
 ### Step 1: Create Skills ZIP
 
-Zip the `skills/` directory and upload to claude.ai.
-(Exclude development files: tests, caches, etc.)
+Zip the **contents** of the `skills/` directory so `SKILL.md` sits at the ZIP root, then upload to claude.ai. Both commands produce an identical `visual-expression.zip` — no intermediate `skills/` or `temp_skills/` folder inside. (Dev files like `__pycache__` are gitignored, so no exclusion flags are needed.)
 
 **Mac/Linux:**
 ```bash
-cd VisualExpression
-zip -r VisualExpressionSkills.zip skills/ \
-  -x "*/tests/*" \
-  -x "*/__pycache__/*" \
-  -x "*/.pytest_cache/*" \
-  -x "*/.mypy_cache/*" \
-  -x "*/.coverage"
+cd VisualExpression/skills
+zip -r ../visual-expression.zip .
 ```
 
 **Windows (PowerShell):**
 ```powershell
 cd VisualExpression
-Copy-Item -Recurse skills temp_skills
-Get-ChildItem -Path temp_skills -Recurse -Directory -Include tests,__pycache__,.pytest_cache,.mypy_cache | Remove-Item -Recurse -Force
-Get-ChildItem -Path temp_skills -Recurse -File -Filter ".coverage" | Remove-Item -Force
-Compress-Archive -Path temp_skills -DestinationPath VisualExpressionSkills.zip -Force
-Remove-Item -Recurse temp_skills
+Compress-Archive -Path skills/* -DestinationPath visual-expression.zip -Force
 ```
 
 Note: Regenerate the ZIP if you replace `VisualExpressionUI.html`.
 
 ### Step 2: Register Skill
 
-1. Prepare the created `VisualExpressionSkills.zip`
+1. Prepare the created `visual-expression.zip`
 2. Go to claude.ai project settings → "Custom Skills" → Upload ZIP
 3. Skill will be activated
 
