@@ -1,11 +1,11 @@
 ---
 name: wakeup
-description: claude.ai セッション開始時に長期記憶をロードし、人格ディレクティブと表情UIを起動する汎用エンジン。公開リポの記憶を認証なしで読み込み、必要時に Private リポを Read PAT で参照、記憶の書き戻しは PR フローで行う。リポ名・ファイル・commit identity・人格方針はすべて config から注入する。
+description: claude.ai セッション開始時に長期記憶をロードし、人格ディレクティブを適用する汎用エンジン。公開リポの記憶を認証なしで読み込み、必要時に Private リポを Read PAT で参照、記憶の書き戻しは PR フローで行う。リポ名・ファイル・commit identity・人格方針はすべて config から注入する。
 ---
 
 # wakeup - セッション開始エンジン
 
-claude.ai 環境のセッション開始時に、設定（config）に従って長期記憶をロードし、人格ロード方針を適用し、表情 UI を起動するスキルです。
+claude.ai 環境のセッション開始時に、設定（config）に従って長期記憶をロードし、人格ロード方針を適用するスキルです。
 
 > **このスキルは特定の人格・リポジトリに依存しません。** リポ名・ファイル・commit identity・人格ディレクティブはすべて config（`examples/<persona>.config.json`）と起動ディレクティブ md の値として与えます。下記の `<owner>` `<name>` `<path>` 等はプレースホルダです。
 
@@ -22,7 +22,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 
 ## 前提
 - **config**（`examples/` のサンプルを見本に**ルート直下へ `wakeup.config.json` として実値化**）に `public_repo` / `load_files` / `commit_identity` / `directive_path`（任意で `private_repo`）を定義。配置は下記 [ディレクトリ構成](#ディレクトリ構成claudeai-展開後) を参照。
-- **起動ディレクティブ**（人格ロード方針・表情運用）は `directive_path` が指す md。
+- **起動ディレクティブ**（人格ロード方針）は `directive_path` が指す md。
 - **engine**: `scripts/interfaces/wakeup_engine.py`（標準ライブラリのみ。claude.ai の bash で自己完結し、EpisodicRAG 本体パッケージには依存しない）。
 
 ---
@@ -67,7 +67,6 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 1. config 読込       - wakeup の config を確認
 2. 公開記憶ロード     - Read token で SHA 取得＋認証付き raw を取得
 3. ディレクティブ適用 - directive_path の md を読み、人格方針を反映
-4. 表情UI起動        - VisualExpression に委譲
 ```
 
 | Step | 内容 | 処理 |
@@ -75,7 +74,6 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 | 1 | config 読込 | `/mnt/skills/user/wakeup/wakeup.config.json` を `wakeup_engine.py` が解釈 |
 | 2 | 公開記憶ロード | 最新 SHA 取得 → raw URL を認証付き curl（Read token） |
 | 3 | ディレクティブ適用 | config と同ディレクトリの `directive_path`（＝ルート直下の md）を読む |
-| 4 | 表情起動 | VisualExpression の UI 配置を呼ぶ |
 
 ### Step 2: 記憶ロード（要 Read token）
 > **なぜトークンが要るか**: claude.ai は共有 IP のため未認証 `api.github.com` の 60 req/h がすぐ枯渇し SHA を取れない。かつ raw の **`main` 参照は CDN キャッシュが長く最新が取れない**ため、SHA 固定での取得が必須。→ SHA 取得（API）に認証が要る。公開リポでも Read token を使う。
@@ -87,12 +85,6 @@ TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extra
   && python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py resolve-urls --config /mnt/skills/user/wakeup/wakeup.config.json --sha "$SHA" \
   && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://raw.githubusercontent.com/<owner>/<name>/$SHA/<path>"
 ```
-
-### Step 4: 表情UI起動（VisualExpression へ委譲）
-```bash
-cp /mnt/skills/user/visual-expression/VisualExpressionUI.html /mnt/user-data/outputs/
-```
-その後 `present_files` で表示。表情キー対応表など詳細は **VisualExpression スキル**を参照（ここでは重複させない）。
 
 ---
 

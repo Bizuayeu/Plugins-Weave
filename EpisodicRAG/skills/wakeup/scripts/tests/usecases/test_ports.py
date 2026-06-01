@@ -5,7 +5,6 @@ the SKILL.md procedure (Infrastructure) will implement, and the key security
 contract: SecretProviderPort hands a token to a callback then drops it.
 """
 from usecases.ports import (
-    FaceUiPort,
     MemoryLoaderPort,
     SecretProviderPort,
     VcsPort,
@@ -23,9 +22,6 @@ class TestPortShapes:
         assert hasattr(VcsPort, "push_branch")
         assert hasattr(VcsPort, "open_pr")
 
-    def test_face_ui_has_boot(self):
-        assert hasattr(FaceUiPort, "boot")
-
 
 class TestRuntimeCheckable:
     def test_fake_loader_satisfies_protocol(self):
@@ -34,13 +30,6 @@ class TestRuntimeCheckable:
                 return {}
 
         assert isinstance(FakeLoader(), MemoryLoaderPort)
-
-    def test_fake_face_satisfies_protocol(self):
-        class FakeFace:
-            def boot(self):
-                return None
-
-        assert isinstance(FakeFace(), FaceUiPort)
 
 
 class TestSecretProviderContract:

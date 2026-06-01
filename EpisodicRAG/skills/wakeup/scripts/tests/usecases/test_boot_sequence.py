@@ -36,40 +36,31 @@ class _RecordingLoader:
         }
 
 
-class _RecordingFace:
-    def __init__(self, log):
-        self.log = log
-
-    def boot(self):
-        self.log.append("face_boot")
-
-
 class TestBootOrder:
-    def test_loads_public_then_boots_face(self):
+    def test_loads_public_memory(self):
         log = []
         cfg = _config((LoadFile(path="dir/A.txt"),))
-        BootSequence(cfg, _RecordingLoader(log), _RecordingFace(log)).run()
-        assert log == ["load_public", "face_boot"]
+        BootSequence(cfg, _RecordingLoader(log)).run()
+        assert log == ["load_public"]
 
     def test_returns_loaded_contents(self):
         cfg = _config((LoadFile(path="dir/A.txt"), LoadFile(path="dir/B.md")))
-        result = BootSequence(cfg, _RecordingLoader([]), _RecordingFace([])).run()
+        result = BootSequence(cfg, _RecordingLoader([])).run()
         assert result["dir/A.txt"] == "content-of-dir/A.txt"
         assert result["dir/B.md"] == "content-of-dir/B.md"
 
 
 class TestRequiredOptional:
-    def test_required_missing_aborts_before_face(self):
+    def test_required_missing_aborts(self):
         log = []
         cfg = _config((LoadFile(path="dir/A.txt", required=True),))
         loader = _RecordingLoader(log, missing_paths=["dir/A.txt"])
         with pytest.raises(WakeupError):
-            BootSequence(cfg, loader, _RecordingFace(log)).run()
-        assert "face_boot" not in log  # aborted before booting the face
+            BootSequence(cfg, loader).run()
 
-    def test_optional_missing_continues_and_boots_face(self):
+    def test_optional_missing_continues(self):
         log = []
         cfg = _config((LoadFile(path="dir/opt.md", required=False),))
         loader = _RecordingLoader(log, missing_paths=["dir/opt.md"])
-        BootSequence(cfg, loader, _RecordingFace(log)).run()
-        assert "face_boot" in log
+        result = BootSequence(cfg, loader).run()
+        assert "dir/opt.md" not in result  # optional missing tolerated; returns what loaded

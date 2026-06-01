@@ -46,12 +46,4 @@ class VcsPort(Protocol):
         ...
 
 
-@runtime_checkable
-class FaceUiPort(Protocol):
-    """Boots the expression UI (delegated to VisualExpression in practice)."""
-
-    def boot(self) -> None:
-        ...
-
-
-__all__ = ["MemoryLoaderPort", "SecretProviderPort", "VcsPort", "FaceUiPort"]
+__all__ = ["MemoryLoaderPort", "SecretProviderPort", "VcsPort"]
