@@ -23,6 +23,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | **受動的な応答しかできない** | 自発的なエッセイ・メール送信 | EmailingEssay |
 | **テキストのみで表現が乏しい** | 感情に基づく表情表現 | VisualExpression |
 | **AIの感情状態が見えない** | 感情ベクトルのstatusline表示 | EmotionPulse |
+| **外出先からも対話したい** | Telegram常駐の秘書エージェントが即応 | TelegramSecretary |
 
 ---
 
@@ -68,6 +69,14 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | 🚀 **初めて使う** | [CLAUDE.md（Quick Start）](EmotionPulse/CLAUDE.md) |
 | ⚙️ **セットアップ** | `/EmotionPulse:setup` コマンド |
 
+### TelegramSecretary
+
+| あなたの目的 | 参照先 |
+|-------------|--------|
+| 🚀 **初めて使う** | [README](TelegramSecretary/README.md) |
+| 📖 **コマンド仕様** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
+| 🔐 **セキュリティ** | [SECURITY](TelegramSecretary/SECURITY.md) |
+
 ---
 
 ## クイックインストール
@@ -95,6 +104,9 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 # EmotionPulse（感情ベクトル表示）
 /plugin install EmotionPulse@Plugins-Weave
+
+# TelegramSecretary（Telegram常駐秘書）
+/plugin install TelegramSecretary@Plugins-Weave
 ```
 
 ---
@@ -221,6 +233,34 @@ claude.aiのプロジェクト機能をClaude Codeで再現。SessionStart hook�
 ```
 
 → [CLAUDE.md](EmotionPulse/CLAUDE.md)
+
+---
+
+### TelegramSecretary
+
+**Cloud Routine 常駐 Telegram 秘書システム**
+
+Telegram Bot API の long-polling を Cloud Routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネルです。公開 ingress を持てない Cloud Routine 環境でも、long-polling と deadline 駆動ループで 24-7 の即応を実現します。
+
+#### 主な特徴
+
+- **24-7即応**: 公開ingress不要のlong-pollingで、Gmailより低レイテンシ（数秒）の対話チャネル
+- **受信メディアの中身理解**: 画像→Vision／docx・pptx・xlsx→Markdown化／PDF→画像化＋全文抽出／音声→ローカルSTT（音声は外部に出ない）
+- **認可制**: chat_id allowlistによる厳格なアクセス制御
+- **管理表**: 関係者・依頼・対応知を秘書が判断して記録
+- **応答主体は本体エージェント**: fetch/認可/正規化/送信のみを担い、応答生成をサブプロセスに投げない設計
+- **Clean Architecture 4層**: 全層テストを信頼性の証拠として公開
+
+#### 主要コマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `/telegram-secretary schedule` | Cloud Routineへの登録・有効化 |
+| `/telegram-secretary unschedule` | 停止（state・configは保持） |
+| `/telegram-secretary init-config` | 運用設定（config.json）生成 |
+| `/telegram-secretary test` | owner chatへの疎通テスト |
+
+→ [詳細README](TelegramSecretary/README.md) / [コマンド仕様](TelegramSecretary/commands/telegram-secretary.md) / [設計](TelegramSecretary/DESIGN.md)
 
 ---
 

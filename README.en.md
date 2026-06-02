@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-03-24 -->
+<!-- Last synced: 2026-06-02 -->
 English | [日本語](README.md)
 
 # Plugins-Weave
@@ -24,6 +24,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | **Only passive responses** | Proactive essay/email delivery | EmailingEssay |
 | **Text-only, limited expression** | Emotion-based facial expressions | VisualExpression |
 | **Can't see AI's emotional state** | Emotion vector statusline display | EmotionPulse |
+| **Want to reach AI on the go** | Always-on Telegram secretary agent | TelegramSecretary |
 
 ---
 
@@ -69,6 +70,14 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | 🚀 **Getting started** | [CLAUDE.md (Quick Start)](EmotionPulse/CLAUDE.md) |
 | ⚙️ **Setup** | `/EmotionPulse:setup` command |
 
+### TelegramSecretary
+
+| Your Goal | Reference |
+|-----------|-----------|
+| 🚀 **Getting started** | [README](TelegramSecretary/README.md) |
+| 📖 **Command specification** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
+| 🔐 **Security** | [SECURITY](TelegramSecretary/SECURITY.md) |
+
 ---
 
 ## Quick Installation
@@ -96,6 +105,9 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 
 # EmotionPulse (Emotion Vector Display)
 /plugin install EmotionPulse@Plugins-Weave
+
+# TelegramSecretary (Always-on Telegram Secretary)
+/plugin install TelegramSecretary@Plugins-Weave
 ```
 
 ---
@@ -222,6 +234,34 @@ calm:🔵🔵, curiosity:🟢🟢🟢, playfulness:🟡
 ```
 
 → [CLAUDE.md](EmotionPulse/CLAUDE.md)
+
+---
+
+### TelegramSecretary
+
+**Always-on Telegram Secretary System (Cloud Routine)**
+
+Keeps Telegram Bot API long-polling alive on a Cloud Routine, so a secretary agent (SecretaryRole) responds in real time to messages from authorized chats. Achieves 24-7 responsiveness even in Cloud Routine environments without public ingress, via long-polling and a deadline-driven loop.
+
+#### Key Features
+
+- **24-7 Responsiveness**: Low-latency (seconds) chat channel via long-polling — no public ingress required
+- **Inbound Media Understanding**: images → Vision / docx・pptx・xlsx → Markdown / PDF → page images + full-text extraction / audio → local STT (audio never leaves the machine)
+- **Authorization**: Strict access control via chat_id allowlist
+- **Management Tables**: Secretary records stakeholders, tasks, and know-how at its own discretion
+- **Agent-Authored Replies**: Handles only fetch/auth/normalize/send — never delegates response generation to a subprocess
+- **Clean Architecture (4 layers)**: Full-layer tests published as evidence of reliability
+
+#### Main Commands
+
+| Command | Description |
+|---------|-------------|
+| `/telegram-secretary schedule` | Register/enable on Cloud Routine |
+| `/telegram-secretary unschedule` | Stop (state & config retained) |
+| `/telegram-secretary init-config` | Generate operational config (config.json) |
+| `/telegram-secretary test` | Connectivity test to owner chat |
+
+→ [Full README](TelegramSecretary/README.md) / [Command Spec](TelegramSecretary/commands/telegram-secretary.md) / [Design](TelegramSecretary/DESIGN.md)
 
 ---
 
