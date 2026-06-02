@@ -207,3 +207,58 @@ def test_agent_name_defaults_to_none_when_absent(tmp_path):
     cfg = Config.from_sources(config_path=path)
     assert cfg.agent_name is None
     assert cfg.private_dir is None
+
+
+# === R1: registry_dir（揮発 state と永続管理表のパス分離） ===
+
+
+def test_registry_paths_default_to_state_dir_when_registry_unset(tmp_path):
+    """REGISTRY_DIR 未設定なら管理表 path は state_dir 配下（後方互換）。"""
+    path = _write_config(tmp_path, {"session_duration_sec": 7200})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.individuals_path == cfg.state_dir / "individuals" / "INDIVIDUALS.json"
+    assert cfg.tasks_path == cfg.state_dir / "tasks" / "TASKS.json"
+    assert cfg.knowledge_path == cfg.state_dir / "knowledge" / "KNOWLEDGE.json"
+
+
+def test_registry_dir_config_separates_registry_from_state(tmp_path, monkeypatch):
+    """config.json の registry_dir 設定時、管理表 path は registry_dir 配下へ分離（state_dir とは別系統）。"""
+    state = tmp_path / "volatile"
+    reg = tmp_path / "registry"
+    monkeypatch.setenv("TELEGRAM_SECRETARY_STATE_DIR", str(state))
+    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_dir": str(reg)})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.state_dir == state.resolve()
+    assert reg.resolve() in cfg.individuals_path.parents
+    assert cfg.knowledge_path == reg.resolve() / "knowledge" / "KNOWLEDGE.json"
+    # 揮発 state とは別の根に分離されている（R1 の核心）
+    assert cfg.state_dir not in cfg.individuals_path.parents
+
+
+# === R2-3: registry_sync 設定（イベント駆動 git 同期のオプトイン） ===
+
+
+def test_registry_sync_disabled_by_default(tmp_path):
+    """REGISTRY_SYNC 未設定なら無効（ローカル CRUD は git に触れない、後方互換）。"""
+    path = _write_config(tmp_path, {"session_duration_sec": 7200})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.registry_sync_enabled is False
+
+
+def test_registry_sync_enabled_via_config(tmp_path):
+    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_sync": True})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.registry_sync_enabled is True
+
+
+def test_registry_remote_and_branch_defaults(tmp_path):
+    path = _write_config(tmp_path, {"session_duration_sec": 7200})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.registry_remote == "origin"
+    assert cfg.registry_branch == "claude/ts-registry"
+
+
+def test_registry_branch_from_config(tmp_path):
+    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_branch": "claude/custom-reg"})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.registry_branch == "claude/custom-reg"

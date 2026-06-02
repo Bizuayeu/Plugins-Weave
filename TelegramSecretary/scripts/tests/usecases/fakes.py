@@ -115,3 +115,36 @@ class FakeMediaRenderer:
             rendered_text=self._rendered_text,
             render_status=self._render_status,
         )
+
+
+class FakeGitSync:
+    """git 同期操作を記録する fake（R2）。
+
+    - commit: `committed` 値を返す（変更有無の擬似）
+    - push: `push_outcomes` の先頭を順に消費。None=成功、例外インスタンス=raise
+    - pull_rebase / fetch_checkout: 呼び出し回数・引数を記録
+    """
+
+    def __init__(self, committed: bool = True, push_outcomes=None) -> None:
+        self.committed = committed
+        self.commit_calls: List[Tuple[List[Path], str]] = []
+        self.push_calls = 0
+        self.pull_rebase_calls = 0
+        self.fetch_calls: List[str] = []
+        self._push_outcomes = list(push_outcomes) if push_outcomes is not None else [None]
+
+    def commit(self, paths, message: str) -> bool:
+        self.commit_calls.append((list(paths), message))
+        return self.committed
+
+    def push(self) -> None:
+        self.push_calls += 1
+        outcome = self._push_outcomes.pop(0) if self._push_outcomes else None
+        if outcome is not None:
+            raise outcome
+
+    def pull_rebase(self) -> None:
+        self.pull_rebase_calls += 1
+
+    def fetch_checkout(self, branch: str) -> None:
+        self.fetch_calls.append(branch)

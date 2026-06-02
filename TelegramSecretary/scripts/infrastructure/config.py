@@ -1,7 +1,7 @@
 """env と config.json から設定を読み込むローダ。fail-fast：欠損は EnvironmentError。
 
 純2層: 秘匿（token/chats）と state_dir は env、非秘匿の運用設定（session_duration_sec /
-agent_name / private_dir）は config.json（<INSTALL_DIR>/config.json 決め打ち）。
+agent_name / private_dir / registry_*）は config.json（<INSTALL_DIR>/config.json 決め打ち）。
 media_* は env 任意上書き口を持つコード内蔵デフォルト（据え置き）。
 """
 from __future__ import annotations
@@ -43,18 +43,31 @@ class Config:
     pdf_image_max_pages: int = DEFAULT_PDF_IMAGE_MAX_PAGES
     agent_name: str | None = None
     private_dir: str | None = None
+    registry_dir: Path | None = None  # 管理表（永続）の根。None なら state_dir にフォールバック（R1）
+    registry_sync_enabled: bool = False  # イベント駆動 git 同期のオプトイン（R2-3、既定無効）
+    registry_remote: str = "origin"
+    registry_branch: str = "claude/ts-registry"
+
+    @property
+    def registry_root(self) -> Path:
+        """管理表（individuals/tasks/knowledge）の根。
+
+        揮発 state（offset/lease/media）は state_dir、永続管理表は registry_dir に分離する（R1）。
+        registry_dir 未設定なら state_dir にフォールバック（後方互換）。
+        """
+        return self.registry_dir if self.registry_dir is not None else self.state_dir
 
     @property
     def individuals_path(self) -> Path:
-        return self.state_dir / "individuals" / "INDIVIDUALS.json"
+        return self.registry_root / "individuals" / "INDIVIDUALS.json"
 
     @property
     def tasks_path(self) -> Path:
-        return self.state_dir / "tasks" / "TASKS.json"
+        return self.registry_root / "tasks" / "TASKS.json"
 
     @property
     def knowledge_path(self) -> Path:
-        return self.state_dir / "knowledge" / "KNOWLEDGE.json"
+        return self.registry_root / "knowledge" / "KNOWLEDGE.json"
 
     @classmethod
     def from_sources(cls, config_path: Path | None = None) -> "Config":
@@ -89,7 +102,7 @@ class Config:
                 f"TELEGRAM_SECRETARY_AUTHORIZED_CHATS elements must be ints: {exc}"
             )
 
-        # --- state_dir: env 任意上書き（未設定なら ./state、bootstrap が絶対化） ---
+        # --- state_dir: env 任意上書き（未設定なら ./state、bootstrap が絶対化）。揮発 state 専用 ---
         state_dir = Path(os.environ.get("TELEGRAM_SECRETARY_STATE_DIR", "./state")).resolve()
 
         # --- 非秘匿の運用設定: config.json（<INSTALL_DIR>/config.json 決め打ち、必須） ---
@@ -117,6 +130,13 @@ class Config:
 
         agent_name = data.get("agent_name")  # Optional（prompt 用、CLI fetch/send では未使用）
         private_dir = data.get("private_dir")  # Optional
+
+        # --- registry（永続管理表）: config.json が正典（非秘匿運用設定の純2層、R1-R2） ---
+        registry_dir_raw = data.get("registry_dir")  # 未設定なら None で state_dir フォールバック
+        registry_dir = Path(registry_dir_raw).resolve() if registry_dir_raw else None
+        registry_sync_enabled = bool(data.get("registry_sync", False))  # オプトイン（既定無効）
+        registry_remote = data.get("registry_remote") or "origin"
+        registry_branch = data.get("registry_branch") or "claude/ts-registry"
 
         # --- media 系: env 任意上書き（未設定で DEFAULT、据え置き） ---
         max_size = cls._parse_positive_int(
@@ -152,6 +172,10 @@ class Config:
             pdf_image_max_pages=pdf_image_max_pages,
             agent_name=agent_name,
             private_dir=private_dir,
+            registry_dir=registry_dir,
+            registry_sync_enabled=registry_sync_enabled,
+            registry_remote=registry_remote,
+            registry_branch=registry_branch,
         )
 
     @staticmethod

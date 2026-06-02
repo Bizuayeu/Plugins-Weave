@@ -34,7 +34,7 @@ from infrastructure.exit_codes import (
     EXIT_OK,
 )
 from infrastructure.media_cleanup import cleanup_media_dir
-from infrastructure.registry_cli import run_registry_command
+from infrastructure.registry_cli import run_registry_command, run_registry_fetch
 from usecases.acquire_lease import AcquireLease
 from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
 from usecases.release_lease import ReleaseLease
@@ -514,6 +514,12 @@ def cmd_registry(args: argparse.Namespace) -> int:
     return run_registry_command(config, args.command, args.registry_action, args)
 
 
+def cmd_registry_sync(args: argparse.Namespace) -> int:
+    """起動時に固定ブランチから管理表を fetch（registry_sync 有効時のみ、R2-3）。"""
+    config = _load_config()
+    return run_registry_fetch(config)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="telegram-secretary")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -620,6 +626,11 @@ def build_parser() -> argparse.ArgumentParser:
         p_reg.add_argument("--json", help="add するレコードの JSON 文字列")
         p_reg.add_argument("--json-file", dest="json_file", help="add するレコードの JSON ファイル")
 
+    # 起動時 fetch（registry_sync 有効時、固定ブランチから最新管理表を引く。ROUTINE_PROMPT が起動時に1回叩く）
+    sub.add_parser(
+        "registry-sync", help="起動時に固定ブランチから管理表を fetch（R2-3、registry_sync 有効時）"
+    )
+
     return parser
 
 
@@ -640,6 +651,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "individuals": cmd_registry,
         "tasks": cmd_registry,
         "knowledge": cmd_registry,
+        "registry-sync": cmd_registry_sync,
     }
     try:
         return handlers[args.command](args)

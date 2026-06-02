@@ -87,3 +87,27 @@ class RegistryStore(Protocol):
 
     def save(self, records: List[dict]) -> None:
         ...
+
+
+class GitSyncPort(Protocol):
+    """管理表ブランチの git 操作を抽象化する Port（R2）。
+
+    実装は adapters/registry/git_cli.py（subprocess）。RegistrySyncService が
+    commit/push 分離・non-ff rebase フォールバックのロジックをこの Port 越しに駆動する。
+    """
+
+    def commit(self, paths: List[Path], message: str) -> bool:
+        """paths を stage して commit。変更が無ければ False（no-op）、commit したら True。"""
+        ...
+
+    def push(self) -> None:
+        """現在ブランチを push。non-fast-forward は PushRejectedError、他失敗は GitSyncError。"""
+        ...
+
+    def pull_rebase(self) -> None:
+        """リモートを pull --rebase（外部更新の取り込み）。"""
+        ...
+
+    def fetch_checkout(self, branch: str) -> None:
+        """固定ブランチを fetch して checkout（起動時、最新管理表を引く）。"""
+        ...
