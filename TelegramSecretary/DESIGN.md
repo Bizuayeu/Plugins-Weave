@@ -75,6 +75,25 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 詳細スキーマ・ディレクトリ配置は [STRUCTURE.md](./STRUCTURE.md)。
 
+### 3.6 なぜ管理表を git で永続化するか（揮発/永続分離）
+
+Cloud Routine は stateless（毎回 fresh clone）。揮発してよい state と、蓄積が本質の管理表は永続要件が正反対ゆえ物理分離する。
+
+| データ | 永続要件 | 解決 |
+|---|---|---|
+| `offset.json` / `lease.json` / `media/` | 揮発OK | `state_dir`（Telegram ~24h 保持・lease 再取得・retention 削除で復元/破棄） |
+| `individuals` / `tasks` / `knowledge` | **永続必須** | `registry_dir` を git で永続化（蓄積が本質、KNOWLEDGE は判例DB） |
+
+**永続化方式**（`registry_sync` オプトイン、既定無効で後方互換）:
+
+- **イベント駆動**: 管理表 add/remove のたびに固定ブランチへ commit & push。更新頻度が低く crash 耐性が高い
+- **commit/push 分離**: commit はローカル即時（確実）、push は best-effort（一時失敗は次回 sync でまとめて再送、ローカル commit は積まれるのでロスは commit 前 crash の極小窓のみ）
+- **固定ブランチ運用**: 専用ブランチ（`registry_branch`、既定 `claude/ts-registry`）へ push、起動時に fetch。feature ブランチ分岐や merge の手間を避ける（単一ファイル状態を持つ運用パターンの横展開）
+- **force 不使用**: 複数 JSON の独立した部分更新ゆえ、force（ツリー全体置換）は他ファイルの更新を壊す。通常 push（non-fast-forward 自動拒否が競合検出を内蔵）＋ 例外時のみ `pull --rebase` フォールバック。lease がシングルライターを保証し、外部更新（手動編集等）の例外にだけ rebase で保険をかける
+- **設定は config.json 正典**: `registry_sync` / `registry_dir` / `registry_branch` は非秘匿の運用設定ゆえ config.json（純2層）。Cloud Routine が fresh clone で読む
+
+> 設計の背骨は §2「決定論コア + エージェント判断の分離」の踏襲: git 操作（commit/push/rebase/fetch）は決定論の世界（コード・テスト可能）、「何を残すか」の判断は重要度の世界（エージェント）。
+
 ---
 
 ## 4. Scope: 公式 plugin（/channels）との差分と採否

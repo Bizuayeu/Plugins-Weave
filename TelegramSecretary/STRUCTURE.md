@@ -15,11 +15,12 @@
 | `<BASE_REPO>` | 基本設定リポ名（Cloud Routine が cwd 親に並列 clone する基本設定リポ。`schedule` が `sources` から実値置換） | `Homunculus-Weave` |
 | `<PRIVATE_DIR>` | 非公開データ・人格定義の配置先（Cloud Routine では cwd 親起点の相対） | `Homunculus-Weave-Private/TelegramSecretary` |
 | `<INSTALL_DIR>` | インストール先パス | TelegramSecretary 配置先 |
-| `<state_dir>` | 運用 state の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
+| `<state_dir>` | 揮発 state（offset/lease/media）の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
+| `<registry_dir>` | 永続管理表の保存先（git 永続化） | config.json `registry_dir`（未設定なら `<state_dir>`） |
 
 `SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/SecretaryRole.template.md`](./templates/SecretaryRole.template.md)。
 
-**運用設定は config.json に集約**: `agent_name` / `private_dir` / `session_duration_sec` は手置換せず `<INSTALL_DIR>/config.json`（`.gitignore` 除外、雛型 `templates/config.template.json`、`init-config` 生成）に置く。ROUTINE_PROMPT は Step 0 でこれを読み、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決する（運用値の手置換は不要）。秘匿（bot token / authorized chats）は env、非秘匿の運用設定は config.json が単一正典（**純2層**）。
+**運用設定は config.json に集約**: `agent_name` / `private_dir` / `session_duration_sec` / `registry_sync` / `registry_dir` / `registry_branch` は手置換せず `<INSTALL_DIR>/config.json`（`.gitignore` 除外、雛型 `templates/config.template.json`、`init-config` 生成）に置く。ROUTINE_PROMPT は Step 0 でこれを読み、`<INSTALL_DIR>` は bootstrap が env 解決する（運用値の手置換は不要）。秘匿（bot token / authorized chats）＋ `state_dir` は env、非秘匿の運用設定は config.json が単一正典（**純2層**）。
 
 ## 全体像（3区分）
 
@@ -98,10 +99,12 @@ TelegramSecretary/
 ├── Identities/                       # 人格定義（無いと人格的に振る舞えない）
 │   └── SecretaryRole.md              # SecretaryRole の存在論・対応原則（人格定義）
 │
-└── <TELEGRAM_SECRETARY_STATE_DIR>/   # 運用 state + 管理表実データ
+├── <state_dir>/                      # 揮発 state（消えてよい・git 非対象）
+│   ├── offset.json / lease.json      # Telegram ~24h 保持・lease 再取得で復元
+│   └── media/                        # 受信メディア（retention で自動削除）
+│
+└── <registry_dir>/                   # 永続管理表（git 永続化・消えると困る蓄積）
     ├── README.md                     # 蓄積データのユーザ用インデックス（生成物）
-    ├── offset.json / lease.json      # 既存 state
-    ├── media/                        # 受信メディア（retention で自動削除）
     ├── individuals/
     │   ├── INDIVIDUALS.json           # 現役（SSoT）
     │   └── archive/INDIVIDUALS_<YYYY-MM>.json
@@ -114,16 +117,16 @@ TelegramSecretary/
         └── archive/                   # （原則空。明示的廃棄時のみ）
 ```
 
-> `Identities/` と `<state_dir>/` の `<PRIVATE_DIR>` 内の正確な親パスは、利用者が自分の非公開リポ構成に合わせて決定する。env `TELEGRAM_SECRETARY_STATE_DIR` で state_dir を指す。
+> **揮発/永続の分離**: `state_dir`（offset/lease/media）は消えてよい揮発データ、`registry_dir`（管理表）は蓄積が本質ゆえ git で永続化する。`registry_dir` 未設定時は `state_dir` にフォールバック（後方互換）。`Identities/` と各 dir の `<PRIVATE_DIR>` 内の正確な親パスは利用者が決定する（state_dir は env、registry_dir は config.json）。
 
 ## どこに何を作るか（早見表）
 
 | 作るもの | 配置 | 区分 |
 |---|---|---|
 | 運用設定 config.json | `<INSTALL_DIR>/config.json`（`.gitignore`） | 実体（除外） |
-| 関係者データ INDIVIDUALS.json | `<state_dir>/individuals/` | Private |
-| 依頼データ TASKS.json | `<state_dir>/tasks/` | Private |
-| 対応知 KNOWLEDGE.json（→category 分割） | `<state_dir>/knowledge/` | Private |
+| 関係者データ INDIVIDUALS.json | `<registry_dir>/individuals/` | Private（永続） |
+| 依頼データ TASKS.json | `<registry_dir>/tasks/` | Private（永続） |
+| 対応知 KNOWLEDGE.json（→category 分割） | `<registry_dir>/knowledge/` | Private（永続） |
 | 秘書人格 SecretaryRole.md | `<Private>/Identities/` | Private |
 | 各管理表・秘書人格の雛型 | `templates/` | public |
 | 管理表の値オブジェクト | `scripts/domain/registry.py` | public |
@@ -136,6 +139,7 @@ TelegramSecretary/
 ```
 [起動] bootstrap → エージェント人格ロード（本体 Identity / Instruction / UserIdentity）
                  → Identities/SecretaryRole.md を重ねる（SecretaryRole 起動）
+                 → registry-sync（registry_sync 有効時、固定ブランチから管理表を fetch）
                  → lease acquire → watch 起動
 
 [受信] Telegram → fetch → 認可 → 正規化 → media download/render → emit(JSON Lines)
@@ -146,6 +150,7 @@ TelegramSecretary/
         - 依頼を TASKS に起票/進捗更新すべきか
         - 対応知を KNOWLEDGE に残すべきか
         → 該当する CLI subcommand を呼ぶ（決定論 I/O）
+        → registry_sync 有効なら commit&push（イベント駆動・non-ff は rebase で取り込み・force 不使用）
 
 [応答] エージェント起草 → 出力漏洩スキャン → send-reply（必要なら --file/--reply-to）
 

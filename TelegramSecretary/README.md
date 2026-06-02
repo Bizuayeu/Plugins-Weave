@@ -1,6 +1,6 @@
 # TelegramSecretary
 
-> 📦 **設定の置き場** — 環境固有の値は `<INSTALL_DIR>/config.json`（`agent_name` / `private_dir` / `session_duration_sec`、雛型 `templates/config.template.json`、`init-config` で生成）に集約します。秘匿（bot token / authorized chats）は env で注入。**運用値の手置換は不要**——人格名・private_dir は config.json、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決します（`<INSTALL_DIR>`=インストール先 / `<OWNER>`=運用主体 はドキュメント上の読み替え表記）。詳細は [STRUCTURE.md](./STRUCTURE.md)。
+> 📦 **設定の置き場** — 環境固有の値は `<INSTALL_DIR>/config.json`（`agent_name` / `private_dir` / `session_duration_sec` / `registry_*`、雛型 `templates/config.template.json`、`init-config` で生成）に集約します。秘匿（bot token / authorized chats）は env で注入。**運用値の手置換は不要**——人格名・private_dir は config.json、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決します（`<INSTALL_DIR>`=インストール先 / `<OWNER>`=運用主体 はドキュメント上の読み替え表記）。詳細は [STRUCTURE.md](./STRUCTURE.md)。
 
 Telegram Bot API の long-polling を Cloud Routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（`SecretaryRole` を被った本体エージェント。人格名は config.json の `agent_name`）が即応する対話チャネル。
 
@@ -19,7 +19,7 @@ Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、
   - PDF → 全ページ画像化（Vision）＋ オンデマンドの全文テキスト / 個別ページ抽出
   - voice / audio / video → 音声を文字起こし（ローカル STT、音声が外部に出ない）
 - **生成物の送り返し** — 画像・レポート等を返信に添付（reply threading、typing 表示）
-- **管理表** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）を秘書が判断して記録
+- **管理表** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）を秘書が判断して記録。`registry_sync` 有効時は固定ブランチへ git 永続化（揮発 state と分離・イベント駆動 commit&push）
 
 ## Quickstart（ローカル動作確認）
 
@@ -89,7 +89,8 @@ python scripts/main.py lease release
 | `render-pdf --path (--text \| --pages N-M)` | 受信済み PDF のオンデマンド抽出（`--text`=全文テキスト / `--pages`=指定ページ画像化） | 0, 2=不在/引数不正 |
 | `test --chat-id` | 疎通テスト（owner chat に ping 送信） | 0, 1, 3 |
 | `cleanup-media` | retention 超過の保存 media を削除（`watch` は自動発火、手動/cron 用） | 0, 2 |
-| `individuals\|tasks\|knowledge {list\|get\|add\|remove}` | 管理表 CRUD（値オブジェクトで入力検証、不正は exit 2） | 0, 2 |
+| `individuals\|tasks\|knowledge {list\|get\|add\|remove}` | 管理表 CRUD（値オブジェクトで入力検証、不正は exit 2）。`registry_sync` 有効時は add/remove 後に commit&push | 0, 2 |
+| `registry-sync` | 起動時に固定ブランチから管理表を fetch（`registry_sync` 有効時のみ、無効は no-op） | 0, 1 |
 
 `--owner` は省略可（`source bootstrap.sh` で env 経由自動同期、緊急時の上書きにのみ使用）。
 
