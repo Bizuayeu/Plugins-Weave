@@ -1,0 +1,16 @@
+{
+  "_template": "KNOWLEDGE — 対応知の蓄積（判例DB的）の雛型。実体は Private の <state_dir>/knowledge/KNOWLEDGE.json に置く（本ファイルはコピーされない雛型）",
+  "_record_schema": {
+    "id": "string — 一意ID",
+    "topic": "string — 知識の主題",
+    "category": "string — 分類（肥大化時のファイル分割単位。例: projects / clients / procedures）",
+    "content": "string — ratio decidendi 的散文（判断とその理由）",
+    "related": "knowledge_id[] — 関連する知識",
+    "sources": "string[] — 出典（task_id / individual uuid / 会話ログ参照 等）",
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601"
+  },
+  "_growth_policy": "Archive せず蓄積優先。肥大化時は category 単位で knowledge/<category>.json へシャード分割（カテゴリ別 wiki のシャーディングと同型）。知識は古いから捨てる対象ではない",
+  "version": 1,
+  "knowledge": []
+}

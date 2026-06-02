@@ -1,0 +1,43 @@
+# TelegramSecretary — 配布境界の .gitignore
+# 配布先への clean copy 時、ここで指定したものは配布物に含めない。
+# テストは信頼性証拠として公開する方針（除外しない）。
+
+# 配布除外（開発専用の記録・凍結中の拡張）
+# ※ 開発リポジトリで既追跡の場合は追跡を維持。本ルールは配布コピー先で効く。
+docs/devlog/
+LineBridge/
+
+# Runtime state（offset.json / lease.json / media 等の実行時データ）
+# skill root の state/ のみ除外。adapters/state/ パッケージは除外しない（先頭スラッシュで限定）。
+/state/
+
+# 運用設定の実体（config.json）。skill root のみ除外（先頭スラッシュ）。
+# 秘匿は含まないが個人/インスタンス固有設定ゆえ配布しない。templates/config.template.json（雛型）は配布対象。
+/config.json
+
+# Python 生成物
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+dist/
+build/
+# pytest 出力をリダイレクトした手動実行の残骸（例: pytest > _pytest_out.txt）
+_pytest_out.txt
+
+# Local env / editor
+.env
+.venv/
+venv/
+.vscode/
+.idea/
+
+# 親（ルート）.gitignore の `Identities/`（EpisodicRAG ユーザーデータ除外）が
+# 配布対象の雛型 templates/Identities/ まで巻き込むのを打ち消す。
+# SecretaryRole.template.md は配布雛型であり、ユーザーデータ Identities/ とは別物。
+!templates/Identities/

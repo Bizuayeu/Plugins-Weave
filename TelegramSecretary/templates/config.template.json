@@ -1,0 +1,12 @@
+{
+  "_template": "TelegramSecretary 運用設定の雛型。<INSTALL_DIR>/config.json にコピーして値を埋めるか、`python scripts/main.py init-config` で生成する。config.json 実体は .gitignore（/config.json）で配布除外、この .template のみ public。秘匿（TELEGRAM_BOT_TOKEN / TELEGRAM_SECRETARY_AUTHORIZED_CHATS）は env で注入し、ここには書かない（純2層: env=秘匿、config.json=非秘匿の運用設定）。",
+  "_field_schema": {
+    "session_duration_sec": "int — 必須（デフォルト無し、欠落は fail-fast）。1 セッションの継続秒。範囲 1〜86400（=24h）。deadline 計算の元。テスト/観測では短く（例 60）",
+    "agent_name": "string — 任意。秘書エージェントの人格名。ROUTINE_PROMPT が Step 0 で参照し Identities/<agent_name>Identity.md を読む",
+    "private_dir": "string — 任意。非公開データ・人格定義（SecretaryRole.md）の配置先"
+  },
+  "session_duration_sec": 7200,
+  "agent_name": "YourSecretary",
+  "private_dir": "/path/to/private/repo",
+  "version": 1
+}

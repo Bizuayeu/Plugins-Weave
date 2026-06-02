@@ -1,0 +1,25 @@
+{
+  "_template": "INDIVIDUALS — 関係者管理表の雛型。実体は Private の <state_dir>/individuals/INDIVIDUALS.json に置く（本ファイルはコピーされない雛型）",
+  "_record_schema": {
+    "uuid": "string — 一意ID",
+    "display_name": "string — 表示名",
+    "role": "principal | associate — principal=運用主体（管理権限）",
+    "status": "pending | active | blocked",
+    "telegram_chat_id": "int | null",
+    "line_user_id": "string | null — 他チャネル連携用（将来拡張）",
+    "identity": {
+      "category": "family | friend | client | vendor | employee | peer | introducer | other",
+      "relationship_label": "string — 例: 取引先の営業部長",
+      "honorific": "string — 例: 山田さん",
+      "tone": "casual | polite | formal",
+      "context_notes": "string — 自由記述（PII 前提、Private 限定）",
+      "priority_bias": "low | normal | high",
+      "taboo_topics": "string[] — 避ける話題",
+      "shared_with": "uuid[] — 情報共有を許可した相手（複数チャネル併用時）"
+    },
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601"
+  },
+  "version": 1,
+  "individuals": []
+}
