@@ -10,7 +10,7 @@ Cloud Routine 上で TelegramSecretary を常駐起動するための prompt bod
 
 ## 【cwd 前提】
 
-Cloud Routine は複数 source（人格リポ＋Private リポ）を**各リポ名のディレクトリで並列 clone** し、cwd はその親になる（織守 BlueberrySprite の実稼働で実証済み）。そのため以下 path は cwd（親）起点で、人格リポを `<PERSONA_REPO>`、Private を `<PRIVATE_DIR>` とプレースホルダ表記する（`schedule` が登録 body 生成時に実値へ置換するので**手置換不要**。Weave 運用例: `<PERSONA_REPO>`=`Homunculus-Weave` / `<PRIVATE_DIR>`=`Homunculus-Weave-Private/TelegramSecretary`）。**bootstrap 後**の bash call は bootstrap が絶対解決した `$TELEGRAM_SECRETARY_REPO_ROOT`（人格リポルート）/ `$TELEGRAM_SECRETARY_INSTALL_DIR`（skill root）で参照するため、プレースホルダは bootstrap 前（Step 0-2 の Read と source 行）にのみ現れる。
+Cloud Routine は複数 source（人格リポ＋Private リポ）を**各リポ名のディレクトリで並列 clone** し、cwd はその親になる（織守 BlueberrySprite の実稼働で実証済み）。そのため以下 path は cwd（親）起点で、人格リポを `<PERSONA_REPO>`、Private を `<PRIVATE_DIR>`（config の `private_dir`）と表記する（`schedule` が登録 body 生成時に `sources`・config から実値へ置換するので**手置換不要**——置換後は具体リポ名がそのまま入る）。**bootstrap 後**の bash call は bootstrap が絶対解決した `$TELEGRAM_SECRETARY_REPO_ROOT`（人格リポルート）/ `$TELEGRAM_SECRETARY_INSTALL_DIR`（skill root）で参照するため、プレースホルダは bootstrap 前（Step 0-2 の Read と source 行）にのみ現れる。
 
 ## Step 0 — 設定と人格のロード
 
