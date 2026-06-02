@@ -3,7 +3,7 @@
   "_field_schema": {
     "session_duration_sec": "int — 必須（デフォルト無し、欠落は fail-fast）。1 セッションの継続秒。範囲 1〜86400（=24h）。deadline 計算の元。テスト/観測では短く（例 60）",
     "agent_name": "string — 任意。秘書エージェントの人格名。ROUTINE_PROMPT が Step 0 で参照し Identities/<agent_name>Identity.md を読む",
-    "private_dir": "string — 任意。非公開データ・人格定義（SecretaryRole.md）の配置先"
+    "private_dir": "string — 任意。非公開データ・人格定義（SecretaryRole.md）の配置先。Cloud Routine では cwd（2リポ親）起点の相対パス（例 <PRIVATE_REPO>/TelegramSecretary）、ローカルは絶対 or 任意。ROUTINE_PROMPT の <PRIVATE_DIR> に対応"
   },
   "session_duration_sec": 7200,
   "agent_name": "YourSecretary",
