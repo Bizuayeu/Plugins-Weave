@@ -12,12 +12,12 @@
 | `<OWNER>` | 運用主体（principal） | あなた自身 |
 | `<ORGANIZATION>` | 組織名 | 所属企業・チーム |
 | `<REPO_ROOT>` | リポジトリルート | クローン先のルート |
-| `<PERSONA_REPO>` | 人格リポ名（Cloud Routine が cwd 親に並列 clone する人格定義リポ。`schedule` が `sources` から実値置換） | `Homunculus-Weave` |
+| `<BASE_REPO>` | 基本設定リポ名（Cloud Routine が cwd 親に並列 clone する基本設定リポ。`schedule` が `sources` から実値置換） | `Homunculus-Weave` |
 | `<PRIVATE_DIR>` | 非公開データ・人格定義の配置先（Cloud Routine では cwd 親起点の相対） | `Homunculus-Weave-Private/TelegramSecretary` |
 | `<INSTALL_DIR>` | インストール先パス | TelegramSecretary 配置先 |
 | `<state_dir>` | 運用 state の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
 
-`SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/Identities/SecretaryRole.template.md`](./templates/Identities/SecretaryRole.template.md)。
+`SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/SecretaryRole.template.md`](./templates/SecretaryRole.template.md)。
 
 **運用設定は config.json に集約**: `agent_name` / `private_dir` / `session_duration_sec` は手置換せず `<INSTALL_DIR>/config.json`（`.gitignore` 除外、雛型 `templates/config.template.json`、`init-config` 生成）に置く。ROUTINE_PROMPT は Step 0 でこれを読み、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決する（運用値の手置換は不要）。秘匿（bot token / authorized chats）は env、非秘匿の運用設定は config.json が単一正典（**純2層**）。
 
@@ -60,8 +60,7 @@ TelegramSecretary/
 │   ├── INDIVIDUALS.template.json
 │   ├── TASKS.template.json
 │   ├── KNOWLEDGE.template.json
-│   └── Identities/
-│       └── SecretaryRole.template.md
+│   └── SecretaryRole.template.md
 │
 ├── scripts/                  # Clean Architecture 4層
 │   ├── main.py               # CLI entrypoint（subcommands）
@@ -126,7 +125,7 @@ TelegramSecretary/
 | 依頼データ TASKS.json | `<state_dir>/tasks/` | Private |
 | 対応知 KNOWLEDGE.json（→category 分割） | `<state_dir>/knowledge/` | Private |
 | 秘書人格 SecretaryRole.md | `<Private>/Identities/` | Private |
-| 各管理表の雛型 | `templates/`（+ `templates/Identities/`） | public |
+| 各管理表・秘書人格の雛型 | `templates/` | public |
 | 管理表の値オブジェクト | `scripts/domain/registry.py` | public |
 | 管理表 CRUD ロジック | `scripts/usecases/manage_registry.py` + Port | public |
 | 管理表の JSON 永続化 | `scripts/adapters/registry/json_registry_store.py` | public |
