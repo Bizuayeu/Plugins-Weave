@@ -112,6 +112,27 @@
         "visualization",
         "ai-persona"
       ]
+    },
+    {
+      "name": "TelegramSecretary",
+      "source": "./TelegramSecretary",
+      "description": "Telegram Bot API の long-polling を Cloud Routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネル",
+      "version": "0.11.0",
+      "author": {
+        "name": "Weave @ TelegramSecretary"
+      },
+      "homepage": "https://note.com/weave_ai",
+      "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+      "license": "MIT",
+      "keywords": [
+        "telegram",
+        "bot",
+        "secretary",
+        "long-polling",
+        "cloud-routine",
+        "clean-architecture",
+        "media-understanding"
+      ]
     }
   ]
 }

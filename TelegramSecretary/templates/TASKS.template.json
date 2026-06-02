@@ -1,0 +1,19 @@
+{
+  "_template": "TASKS — 依頼進捗管理表の雛型。実体は Private の <state_dir>/tasks/TASKS.json に置く（本ファイルはコピーされない雛型）",
+  "_record_schema": {
+    "id": "string — 一意ID",
+    "title": "string — 依頼の要約",
+    "status": "open | in_progress | blocked | done",
+    "priority": "low | normal | high",
+    "due_date": "ISO date | null",
+    "requester": "uuid | 'principal' — 依頼主（INDIVIDUALS の uuid か principal）",
+    "related_individuals": "uuid[] — 関係する人物",
+    "notes": "string — 経緯メモ",
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601",
+    "closed_at": "ISO8601 | null — done になった時刻（Archive 判定に使用）"
+  },
+  "_archive_policy": "status=done かつ closed_at が保持期間を超えたレコードを tasks/archive/TASKS_<YYYY-MM>.json へ日付 Archive",
+  "version": 1,
+  "tasks": []
+}
