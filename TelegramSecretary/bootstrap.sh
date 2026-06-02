@@ -93,7 +93,15 @@ _ts_duration="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], e
 export TS_SESSION_DEADLINE_EPOCH="${TS_SESSION_DEADLINE_EPOCH:-$(( $(date +%s) + _ts_duration ))}"  # 停止主軸: この epoch 秒を過ぎたら /goal 停止
 export TS_POLL_SET_SEC="${TS_POLL_SET_SEC:-580}"                     # メッセージ無し時の 1 窓上限 (bash timeout より短く)
 export TS_POLL_BASH_TIMEOUT_MS="${TS_POLL_BASH_TIMEOUT_MS:-600000}"  # ポーリング call の bash tool timeout (=BASH_MAX_TIMEOUT_MS)
-export TS_MAX_TURNS="${TS_MAX_TURNS:-300}"                           # /goal turn 安全弁 (deadline 異常時の暴走防止、2h/30s≈240+バッファ)
+# TS_MAX_TURNS: 日次総量レートキャップ (旧: deadline 異常時の暴走保険、役割変更)。
+# 「~15通/h」を最低保証する天井 = アイドル下限(duration/POLL_SET_SEC) + 通数枠(15通/h)。
+# 24h→約507 (148+359)、2h→約42 (12+30)。高密度日は最大このturn数まで伸び、到達で当日沈黙
+# (lease release→次 cron が offset 継続)。先食い可ゆえ毎時平準化ではない。
+# 短 duration (テスト用、約1.4h 未満) では整数除算で算出が過小/0 になり /goal が即死するため
+# floor=30 を敷く (0 ターン停止の回避＝最低限の暴走保険予算)。env で上書き可。
+_ts_msg_per_hour=15
+_ts_max_turns_calc=$(( _ts_duration / TS_POLL_SET_SEC + _ts_msg_per_hour * _ts_duration / 3600 ))
+export TS_MAX_TURNS="${TS_MAX_TURNS:-$(( _ts_max_turns_calc < 30 ? 30 : _ts_max_turns_calc ))}"
 _ts_log "deadline-driven poll: deadline=$TS_SESSION_DEADLINE_EPOCH (now+${_ts_duration}s from config.json), window<=${TS_POLL_SET_SEC}s, max_turns=${TS_MAX_TURNS}, bash timeout ${TS_POLL_BASH_TIMEOUT_MS}ms"
 
 # --- 派生 env を source 可能ファイルへ書き出し (FINDING 1: Bash tool は call 間で env 揮発) ---

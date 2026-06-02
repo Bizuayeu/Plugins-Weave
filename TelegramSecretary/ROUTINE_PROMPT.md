@@ -74,7 +74,7 @@ source /tmp/telegram-secretary.env.sh && \
 
 10. `/goal` で「`$TS_SESSION_DEADLINE_EPOCH` 到達まで Telegram を監視し続ける」ゴールを駆動する。**各ターン = 1 つの foreground watch call**で、`--exit-on-message` 付きゆえ **メッセージを受けた瞬間に exit→返信→次ターンで再起動**する（即応）。メッセージが来なければ `--max-duration` の窓満了まで long-poll でブロック（待機トークンは getUpdates サーバ側ブロックでほぼゼロ＝コスト最小、かつ foreground call がセッションを warm に保つ＝アイドル閉鎖の回避）。
 
-**枠とポーリング回数は分離**: 停止主軸は deadline（時刻）。ポーリング回数はメッセージ頻度で可変（数えない）。`$TS_MAX_TURNS` は deadline 判定が壊れた時の暴走保険。
+**枠とポーリング回数は分離**: 停止主軸は deadline（時刻）。ポーリング回数はメッセージ頻度で可変（数えない）。`$TS_MAX_TURNS` は日次総量レートキャップ（≈15通/h を最低保証、bootstrap が `session_duration_sec` から算出＝24h≈507・2h≈42）。到達時は deadline 前でも停止する意図的上限であり、deadline 判定が壊れた時の暴走保険も兼ねる。
 
 `/goal` 起動（**この call も冒頭で `source /tmp/telegram-secretary.env.sh` してから打つ**——自然文中の `$TS_SESSION_DEADLINE_EPOCH` 等を展開するため）：
 
@@ -82,7 +82,7 @@ source /tmp/telegram-secretary.env.sh && \
 /goal "Telegram を deadline まで監視する。各ターンで下記の watch を1回 foreground 実行し、
        返ってきた JSON Lines の各メッセージに send-reply で返信する。
        現在時刻が $TS_SESSION_DEADLINE_EPOCH (epoch秒) を過ぎたら lease release して停止。
-       or stop after $TS_MAX_TURNS turns（保険）。停止時に未返信メッセージが無いこと。"
+       or stop after $TS_MAX_TURNS turns（日次総量上限＝保険兼用）。停止時に未返信メッセージが無いこと。"
 ```
 
 各ターンの手順：
@@ -202,7 +202,7 @@ source /tmp/telegram-secretary.env.sh && \
 
 ## Step 7 — セッション終端
 
-13. `/goal` が deadline 到達（または `$TS_MAX_TURNS` 保険）で停止したら、lease release で次 cron が拾えるようにする。deadline → lease release → 次 cron が `lease/offset` 冪等性で継続（cron 間隔の隙間メッセージは次回 getUpdates が offset 起点で回収、Telegram は ~24h 保持）：
+13. `/goal` が deadline 到達（または `$TS_MAX_TURNS` 日次総量上限）で停止したら、lease release で次 cron が拾えるようにする。deadline → lease release → 次 cron が `lease/offset` 冪等性で継続（cron 間隔の隙間メッセージは次回 getUpdates が offset 起点で回収、Telegram は ~24h 保持）：
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \

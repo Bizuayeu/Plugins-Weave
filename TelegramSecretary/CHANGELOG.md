@@ -2,6 +2,12 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [0.12.0] - 2026-06-03
+
+### Changed
+
+- **`TS_MAX_TURNS` を「暴走保険」から「日次総量レートキャップ」へ役割変更（duration 連動の動的算出）** — 固定 `300`（2h セッション前提の `2h/30s≈240+バッファ`）を廃し、`session_duration_sec` から `アイドル下限(duration/POLL_SET_SEC) + 15通/h 枠` で算出（24h→約507、2h→約42）。「≈15通/h を最低保証」する天井になり、`session_duration_sec` を変えても追従する。従来は 24h 運用へ 2h 前提の 300 を流用し、活発な日に deadline 前へ早期到達する不整合があった。停止主軸は引き続き deadline（時刻）で、本キャップは日次総量の上限＝暴走保険を兼ねる（累積カウンタゆえ先食い可・毎時平準化ではない）。`TS_MAX_TURNS` を env で明示すれば従来どおり上書き可、レート定数は 15通/h 固定（`bootstrap.sh` の `_ts_msg_per_hour`）。短 duration（テスト用、約1.4h 未満）では整数除算で算出が過小/0 になり `/goal` が即停止するため floor=30 を敷く。
+
 ## [0.11.1] - 2026-06-02
 
 ### Fixed
