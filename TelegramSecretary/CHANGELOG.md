@@ -2,6 +2,20 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [0.11.1] - 2026-06-02
+
+### Fixed
+
+- **ドキュメントと実装の不整合を解消** — Subcommands 表の記載漏れ（`watch --timeout` / `lease --ttl` / `poll --timeout`、いずれも実装済み）を補完。STRUCTURE.md の管理表 CRUD を実装どおり `list|get|add|remove` に修正（`update` は無く `add` が upsert）。
+
+### Changed
+
+- **運用設定パスを `<INSTALL_DIR>` 基準に汎用化（配置・junction 非依存）** — bootstrap が repo root を `../..`（2階層配置前提）で算出するのを廃止し、自分の物理位置から絶対解決する `INSTALL_DIR` に一本化。ROUTINE_PROMPT / SETUP / bootstrap コメントから運用固有の `Expertises/` 階層を除去し、`schedule` の body 生成時に `<INSTALL_DIR>` を実配置パスへ置換する手順を追加。env snapshot から派生 `TELEGRAM_SECRETARY_REPO_ROOT` を除去。
+
+### Removed
+
+- **未使用の `watch_loop.sh` を削除** — `/goal` が `watch` を直接呼ぶ設計（D 案）への転換で不要化していた pass-through ラッパーを除去（STRUCTURE / DESIGN / exit_codes.py の言及も整理）。
+
 ## [0.11.0] - 2026-06-02
 
 ### Added

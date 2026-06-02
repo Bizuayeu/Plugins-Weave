@@ -24,7 +24,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 | **Domain** | 純粋ロジック・値オブジェクト | `TelegramUpdate` / `OutboundMessage` / `Individual` / `Task` / `Knowledge` / `MediaAttachment` / 正規化・injection フラグ |
 | **UseCase** | オーケストレーション + Port 定義 | `FetchAuthorizedUpdates` / `SendReply` / 管理表 CRUD UseCase / Ports（`UpdateSource`・`MessageSink`・`OffsetStore`・各 `*Store`） |
 | **Interface (Adapter)** | ゲートウェイ・ストア・CLI | `TelegramApiGateway` / `JsonStateStore` / `JsonRegistryStore`（管理表）/ `StdoutEventEmitter` / `main.py` |
-| **Infrastructure** | 外部・フレームワーク・配線 | `bootstrap.sh` / `watch_loop.sh` / `config` / `composition`（Composition Root）/ `exit_codes` / `archive_rotate.py` |
+| **Infrastructure** | 外部・フレームワーク・配線 | `bootstrap.sh` / `config` / `composition`（Composition Root）/ `exit_codes` / `archive_rotate.py` |
 
 **Composition Root**: 依存組み立ては `infrastructure/composition.py` に集約する（`load_config` の fail-fast、`build_media_stack` による poll/watch 共通の media stack 構築）。各 CLI ハンドラは組み立て済みを受け取って実行に専念し、自前で adapter を new しない。終了コードは `infrastructure/exit_codes.py` が SSoT（値は外部契約＝SKILL/ROUTINE_PROMPT/SECURITY と一致）。
 

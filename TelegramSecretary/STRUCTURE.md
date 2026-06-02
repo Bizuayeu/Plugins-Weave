@@ -43,7 +43,7 @@ TelegramSecretary/
 ├── SECURITY.md               # 網羅的セキュリティ正典
 ├── ROUTINE_PROMPT.md         # Cloud Routine prompt body
 ├── CHANGELOG.md              # 変更履歴
-├── bootstrap.sh / watch_loop.sh
+├── bootstrap.sh
 ├── pyproject.toml
 ├── .gitignore
 │
@@ -155,4 +155,4 @@ TelegramSecretary/
 
 ## `/telegram-secretary` ラップ（操作の入口）
 
-管理表 CRUD の全インターフェース（`individuals|tasks|knowledge add|update|list|...`）は、マスタースキル `/telegram-secretary` の管理パネル経由でアクセスできる。エージェントも人間ユーザーも、コマンド名を覚えずに `/telegram-secretary` から操作に到達する。
+管理表 CRUD の全インターフェース（`individuals|tasks|knowledge list|get|add|remove`）は、マスタースキル `/telegram-secretary` の管理パネル経由でアクセスできる。エージェントも人間ユーザーも、コマンド名を覚えずに `/telegram-secretary` から操作に到達する。

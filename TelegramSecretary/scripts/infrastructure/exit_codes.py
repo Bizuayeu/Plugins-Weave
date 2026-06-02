@@ -2,7 +2,7 @@
 
 main.py と registry_cli.py が各々で定義/裸書きしていた終了コードをここに一本化する。
 **これらの値は外部契約**: SKILL.md / ROUTINE_PROMPT.md / SECURITY.md が 0/1/2/3/4 を
-公開仕様として明記し、bootstrap.sh / watch_loop.sh が分岐に使う。値は変更しない。
+公開仕様として明記し、bootstrap.sh が分岐に使う。値は変更しない。
 
 main.py は後方互換のためここから re-export する（既存テスト・docs の
 `from main import EXIT_*` を割らない）。

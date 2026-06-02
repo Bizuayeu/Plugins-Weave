@@ -82,9 +82,9 @@ python scripts/main.py lease release
 | `validate-config` | env + config.json の検証 | 0=OK, 2=設定欠損 |
 | `show-config` | 現設定を read-only 表示（秘匿はマスク） | 0（未設定でも 0） |
 | `init-config [--session-duration-sec] [--agent-name] [--private-dir] [--force]` | config.json を生成（範囲検証、既存は `--force` で上書き） | 0, 2=範囲外/既存 |
-| `lease acquire\|renew\|release [--owner]` | リースロック操作（並走防止） | 0, 4=conflict, 2 |
+| `lease acquire\|renew\|release [--owner] [--ttl SEC]` | リースロック操作（並走防止、`--ttl` 既定 300） | 0, 4=conflict, 2 |
 | `poll [--timeout]` | getUpdates 1サイクル、認可・正規化済み update を JSON Lines で emit | 0, 1=fetch失敗, 3=auth失敗 |
-| `watch [--max-duration] [--exit-on-message] [--max-iterations] [--cleanup-interval] [--owner]` | 長期 long-poll ループ（サイクル毎に lease 自動 renew）。`--max-duration`=窓満了で exit 0、`--exit-on-message`=メッセージ受信サイクルで exit 0 | 常駐 / 窓畳み |
+| `watch [--max-duration SEC] [--exit-on-message] [--timeout SEC] [--max-iterations N] [--cleanup-interval N] [--owner]` | 長期 long-poll ループ（サイクル毎に lease 自動 renew）。`--max-duration`=窓満了で exit 0、`--exit-on-message`=メッセージ受信サイクルで exit 0、`--timeout`=getUpdates long-poll 秒（既定 30） | 常駐 / 窓畳み |
 | `send-reply --chat-id --update-id --text-file [--file ...] [--reply-to] [--owner]` | 返信送信。`--file` で添付、`--reply-to` で threading | 0, 1=送信失敗, 2=添付不正, 3=auth, 4=lease |
 | `render-pdf --path (--text \| --pages N-M)` | 受信済み PDF のオンデマンド抽出（`--text`=全文テキスト / `--pages`=指定ページ画像化） | 0, 2=不在/引数不正 |
 | `test --chat-id` | 疎通テスト（owner chat に ping 送信） | 0, 1, 3 |
