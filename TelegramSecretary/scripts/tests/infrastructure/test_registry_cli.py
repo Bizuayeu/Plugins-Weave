@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
+import pytest
+
 from domain.authorization import AuthorizedChats
 from infrastructure.config import Config
 from infrastructure.registry_cli import run_registry_command, run_registry_fetch
@@ -152,3 +154,34 @@ def test_registry_fetch_noop_when_disabled(tmp_path):
     git = FakeGitSync()
     assert run_registry_fetch(config, git=git) == 0
     assert git.fetch_calls == []
+
+
+def test_registry_fetch_continues_when_registry_root_absent(tmp_path):
+    """初回起動で registry_root が物理的に未作成でも、クラッシュせず fetch 失敗
+    （EXIT_FETCH_FAILED=1）として握り、空のローカル管理表で継続できる。
+
+    実 GitCliAdapter を不在ディレクトリに向け、subprocess の OSError が
+    domain の GitSyncError に翻訳されること（OSError を漏らさないこと）を保証する
+    ──SETUP.md「初回は対象ブランチが空でも継続」の実装回帰テスト。
+    """
+    from adapters.registry.git_cli import GitCliAdapter
+    from domain.exceptions import GitSyncError
+
+    missing = tmp_path / "never-created" / "registry"
+    config = Config(
+        bot_token="x",
+        authorized_chats=AuthorizedChats.from_iterable([1]),
+        state_dir=tmp_path,
+        session_duration_sec=7200,
+        registry_sync_enabled=True,
+        registry_dir=missing,
+        registry_branch="claude/ts-registry",
+    )
+    adapter = GitCliAdapter(config.registry_root, branch=config.registry_branch)
+
+    # OSError ではなく domain の GitSyncError に翻訳される（cwd 不在で git を起動できない）
+    with pytest.raises(GitSyncError):
+        adapter.fetch_checkout(config.registry_branch)
+
+    # ハンドラは transient 扱いで EXIT_FETCH_FAILED（=1）を返し、例外を投げない
+    assert run_registry_fetch(config, git=adapter) == 1

@@ -32,13 +32,20 @@ class GitCliAdapter:
         self._branch = branch
 
     def _run(self, args: Sequence[str], check: bool = True) -> subprocess.CompletedProcess:
-        result = subprocess.run(
-            ["git", *args],
-            cwd=str(self._repo),
-            capture_output=True,
-            text=True,
-            env={**os.environ, "LC_ALL": "C", "LANG": "C"},
-        )
+        try:
+            result = subprocess.run(
+                ["git", *args],
+                cwd=str(self._repo),
+                capture_output=True,
+                text=True,
+                env={**os.environ, "LC_ALL": "C", "LANG": "C"},
+            )
+        except OSError as exc:
+            # registry_root が未作成の初回起動（cwd 不在）や git バイナリ不在で
+            # subprocess を起動できないケースを domain の GitSyncError に翻訳する。
+            # これにより run_registry_fetch が「fetch 失敗＝transient」として握り、
+            # 空のローカル管理表で継続できる（SETUP.md「初回は対象ブランチが空でも継続」）。
+            raise GitSyncError(f"git {' '.join(args)} could not run: {exc}") from None
         if check and result.returncode != 0:
             raise GitSyncError(
                 f"git {' '.join(args)} failed (rc={result.returncode}): {result.stderr.strip()}"
