@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from domain.registry import Identity, Individual, Knowledge, Task
+from domain.registry import Ability, Identity, Individual, Knowledge, Task
 
 
 # === Individual / Identity ===
@@ -107,6 +107,45 @@ def test_knowledge_requires_topic():
     with pytest.raises(ValueError):
         Knowledge(id="k", topic="", category="general", content="x",
                   related=[], sources=[], created_at="t", updated_at="t")
+
+
+# === Ability ===
+
+def test_ability_round_trip():
+    d = {
+        "id": "precognitive-viewer", "name": "三位占術フォーマル鑑定書",
+        "trigger": "占い・鑑定・姓名判断・易・タロット・人物リーディング",
+        "skill_path": "Homunculus-Weave/Expertises/PrecognitiveViewer",
+        "guidance": "占い依頼を受けたら SKILL.md を読み、鑑定書を生成して返す",
+        "related": ["knowledge-id-1"],
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+    }
+    a = Ability.from_dict(d)
+    assert a.id == "precognitive-viewer"
+    assert a.name == "三位占術フォーマル鑑定書"
+    assert a.skill_path == "Homunculus-Weave/Expertises/PrecognitiveViewer"
+    assert a.to_dict() == d
+
+
+def test_ability_requires_name():
+    with pytest.raises(ValueError):
+        Ability(id="a", name="", trigger="x", skill_path="p", guidance="g",
+                related=[], created_at="t", updated_at="t")
+
+
+def test_ability_defaults_are_safe():
+    a = Ability.from_dict({"id": "a", "name": "占い", "created_at": "t", "updated_at": "t"})
+    assert a.trigger == ""
+    assert a.skill_path == ""
+    assert a.guidance == ""
+    assert a.related == []
+
+
+def test_ability_is_immutable():
+    a = Ability(id="a", name="x", trigger="", skill_path="", guidance="",
+                related=[], created_at="t", updated_at="t")
+    with pytest.raises(AttributeError):
+        a.name = "y"  # type: ignore[misc]
 
 
 # === コレクション操作（upsert / find_by 純関数） ===

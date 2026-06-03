@@ -635,7 +635,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     # 管理表 CRUD（individuals / tasks / knowledge）。/telegram-secretary が全操作をラップする入口
-    for _name in ("individuals", "tasks", "knowledge"):
+    for _name in ("individuals", "tasks", "knowledge", "abilities"):
         p_reg = sub.add_parser(_name, help=f"{_name} 管理表の CRUD")
         p_reg.add_argument("registry_action", choices=["list", "get", "add", "remove"])
         p_reg.add_argument("--key", help="get/remove のキー（uuid または id）")
@@ -688,6 +688,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "individuals": cmd_registry,
         "tasks": cmd_registry,
         "knowledge": cmd_registry,
+        "abilities": cmd_registry,
         "registry-sync": cmd_registry_sync,
         "wal-append": cmd_wal_append,
         "wal-push": cmd_wal_push,

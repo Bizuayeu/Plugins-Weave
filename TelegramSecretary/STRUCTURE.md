@@ -61,6 +61,7 @@ TelegramSecretary/
 │   ├── INDIVIDUALS.template.json
 │   ├── TASKS.template.json
 │   ├── KNOWLEDGE.template.json
+│   ├── ABILITIES.template.json
 │   └── SecretaryRole.template.md
 │
 ├── scripts/                  # Clean Architecture 4層
@@ -68,7 +69,7 @@ TelegramSecretary/
 │   ├── domain/               # 純粋ロジック・値オブジェクト
 │   │   ├── models.py / media.py / outbound.py / exceptions.py
 │   │   ├── authorization.py / lease.py / normalize.py / offset.py / watch_window.py
-│   │   └── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge）
+│   │   └── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge / Ability）
 │   ├── usecases/             # オーケストレーション + Port
 │   │   ├── ports.py          # Port 定義（Store 群含む）
 │   │   ├── acquire_lease.py / renew_lease.py / release_lease.py
@@ -118,6 +119,8 @@ TelegramSecretary/
     │   ├── KNOWLEDGE.json             # 小規模時は単一
     │   ├── <category>.json            # 肥大化時はカテゴリ分割（archive せず蓄積）
     │   └── archive/                   # （原則空。明示的廃棄時のみ）
+    ├── abilities/
+    │   └── ABILITIES.json             # 能力カタログ（trigger/skill_path/guidance、WAL 非対象）
     └── wal/
         └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
 ```
@@ -132,6 +135,7 @@ TelegramSecretary/
 | 関係者データ INDIVIDUALS.json | `<registry_dir>/individuals/` | Private（永続） |
 | 依頼データ TASKS.json | `<registry_dir>/tasks/` | Private（永続） |
 | 対応知 KNOWLEDGE.json（→category 分割） | `<registry_dir>/knowledge/` | Private（永続） |
+| 能力カタログ ABILITIES.json | `<registry_dir>/abilities/` | Private（永続） |
 | 秘書人格 SecretaryRole.md | `<Private>/Identities/` | Private |
 | 各管理表・秘書人格の雛型 | `templates/` | public |
 | 管理表の値オブジェクト | `scripts/domain/registry.py` | public |
@@ -154,6 +158,7 @@ TelegramSecretary/
         - 関係者を INDIVIDUALS に登録/更新すべきか
         - 依頼を TASKS に起票/進捗更新すべきか
         - 対応知を KNOWLEDGE に残すべきか
+        - ABILITIES に依頼へ使える能力があるか（応答前に引く）／実在を確認した能力を残すべきか
         → 該当する CLI subcommand を呼ぶ（決定論 I/O）
         → registry_sync 有効なら commit&push（イベント駆動・non-ff は rebase で取り込み・force 不使用）
 
@@ -168,4 +173,4 @@ TelegramSecretary/
 
 ## `/telegram-secretary` ラップ（操作の入口）
 
-管理表 CRUD の全インターフェース（`individuals|tasks|knowledge list|get|add|remove`）は、マスタースキル `/telegram-secretary` の管理パネル経由でアクセスできる。エージェントも人間ユーザーも、コマンド名を覚えずに `/telegram-secretary` から操作に到達する。
+管理表 CRUD の全インターフェース（`individuals|tasks|knowledge|abilities list|get|add|remove`）は、マスタースキル `/telegram-secretary` の管理パネル経由でアクセスできる。エージェントも人間ユーザーも、コマンド名を覚えずに `/telegram-secretary` から操作に到達する。

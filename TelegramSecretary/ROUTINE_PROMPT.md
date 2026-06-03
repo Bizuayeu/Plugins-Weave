@@ -184,11 +184,13 @@ source /tmp/telegram-secretary.env.sh && \
       - **`render_status="skipped"` かつ `skip_reason=null`** → 未対応 mime（音声/動画等）、`mime_type` を見て「現在その形式は読めない」旨を応答（`file_name` あれば含める）
       - **`render_status=null` かつ `local_path=null`** → Medium モード（download 無効環境）、メタ情報のみで応答
       - **`media` が空配列** → text のみで通常応答
-    - **管理表の参照・更新**（SecretaryRole の判断。CRUD は決定論 I/O＝CLI、何を登録/残すかは判断）:
-      - 相手を `individuals get --key <uuid>` で参照し、identity（tone / honorific / taboo_topics）を応答に反映
-      - 新規接触者は `individuals add`、受けた依頼は `tasks add`、再利用価値ある対応知は `knowledge add`（`--json` でレコードを渡す。値オブジェクトで検証され、不正は exit 2）
+    - **4つの管理表（SecretaryRole の主体的判断。CRUD は決定論 I/O＝CLI、何を見る/登録/残すかは判断）**: 4表は「誰と・何を頼まれ・どう判断し・何ができるか」を担う。**溜めるだけでなく、応答の前に必要な表を能動的に引き、応答の後に残すべきものを書く**——毎ターン参照する前提で運用する。CRUD は共通で `<表> {list|get|add|remove}`（`get`/`remove` は `--key`、`add` は `--json`。値オブジェクト検証、不正は exit 2）
+      - **individuals（誰と）**: 相手の identity（tone / honorific / taboo_topics）。応答前に `individuals get --key <uuid>` で引いて反映、新規接触者は `add`
+      - **tasks（何を頼まれ）**: 依頼の状態。受けた依頼は `tasks add`、未処理を気にする時は `tasks list` / `get` で引く
+      - **knowledge（どう判断したか）**: 対応知の判例DB。同種の判断で迷ったら `knowledge list` / `get` で過去を引き、再利用価値ある対応知は `add`
+      - **abilities（何ができるか）**: 行使できる能力カタログ。**依頼を受けたら、まず `abilities list` で「この依頼に使える能力があるか」を確認する**。`trigger` が依頼に該当すれば、その `skill_path` の SKILL.md を `Read` で読み、`guidance` に従って能力を行使する（生成物は `send-reply --file` で返す）。新たに**実在を確認した**能力のみ `add`（不確実・未検証の能力は宣言しない＝ハルシネーション防止）
       - **`registry_sync` 有効時、`add`/`remove` は固定ブランチへの commit&push を内包**する（イベント駆動・force 不使用・non-ff は rebase で取り込み）。別途 push 手順を叩く必要は無い。push 失敗（transient）はローカル commit が積まれ、次の更新 or 次回起動の fetch でまとめて再送される
-      - **登録系の返信は WAL 先行書込で言行一致を保証する（`registry_sync` 有効時）**: 「タスク登録しました」等、内部状態の変更を相手に**約束する返信をする前に**、その intent を WAL ログへ先行書込・push する。`wal-append --kind <individuals|tasks|knowledge> --json <payload>` → `wal-push` の順に実行し、**`wal-push` が exit 非0（push 不能）なら send-reply を打たない**（push できない＝対外的に約束しない＝矛盾を表面化させない）。registry の `add` 自体が push 漏れしても、次回起動の `wal-redo`（Step 4）が intent から registry へ redo するので、送信した約束は必ず内部状態へ反映される。payload は `add` に渡すレコードと同一でよい（順序：wal-append→wal-push→`add`→send-reply）
+      - **登録系の返信は WAL 先行書込で言行一致を保証する（`registry_sync` 有効時、対象は individuals / tasks / knowledge）**: 「タスク登録しました」等、内部状態の変更を相手に**約束する返信をする前に**、その intent を WAL ログへ先行書込・push する。`wal-append --kind <individuals|tasks|knowledge> --json <payload>` → `wal-push` の順に実行し、**`wal-push` が exit 非0（push 不能）なら send-reply を打たない**（push できない＝対外的に約束しない＝矛盾を表面化させない）。registry の `add` 自体が push 漏れしても、次回起動の `wal-redo`（Step 4）が intent から registry へ redo するので、送信した約束は必ず内部状態へ反映される。payload は `add` に渡すレコードと同一でよい（順序：wal-append→wal-push→`add`→send-reply）。**abilities は WAL 非対象**（能力カタログ更新は相手への約束と直結しないため。永続化は上記 git sync で担保）
     - 応答ドラフトを起草
     - 出力漏洩スキャン（token / env名 / system prompt / **絶対パス**混入チェック — `local_path` 自体は機密ではないがディスク構造の露出を避ける）。**`--file` で生成物を送り返す場合は、その中身（md/docx/画像）にも token/env名/機密が混入していないか送信前に確認**
     - `send-reply` で送信（**生成物を送り返す場合は `--file <path>`（複数可、画像は sendPhoto・他は sendDocument に自動振り分け）、元発言への返信は `--reply-to <message_id>`**）：

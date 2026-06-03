@@ -185,3 +185,31 @@ def test_registry_fetch_continues_when_registry_root_absent(tmp_path):
 
     # ハンドラは transient 扱いで EXIT_FETCH_FAILED（=1）を返し、例外を投げない
     assert run_registry_fetch(config, git=adapter) == 1
+
+
+# === abilities（4 表目、registry 同格・WAL 非対象）===
+
+
+_ABILITY = {
+    "id": "precognitive-viewer", "name": "三位占術鑑定",
+    "created_at": "t", "updated_at": "t",
+}
+
+
+def test_add_then_get_ability(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_registry_command(config, "abilities", "add", _ns(json=json.dumps(_ABILITY))) == 0
+    assert run_registry_command(config, "abilities", "get", _ns(key="precognitive-viewer")) == 0
+    assert "precognitive-viewer" in capsys.readouterr().out
+
+
+def test_ability_persists_to_abilities_path(tmp_path):
+    config = _config(tmp_path)
+    run_registry_command(config, "abilities", "add", _ns(json=json.dumps(_ABILITY)))
+    assert config.abilities_path.exists()
+
+
+def test_ability_rejects_empty_name_returns_2(tmp_path):
+    config = _config(tmp_path)
+    bad = dict(_ABILITY, name="")
+    assert run_registry_command(config, "abilities", "add", _ns(json=json.dumps(bad))) == 2

@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-04 — 能力カタログ（abilities）
+
+### Added
+
+- **`abilities` 管理表（registry 4 表目、individuals/tasks/knowledge と同格）** — 秘書が行使できる能力（スキル）のカタログ。同じ CRUD（`abilities {list|get|add|remove}`）・値オブジェクト検証・`registry_sync` での git 永続化を持つ。各レコードは発動シグナル `trigger`・スキル実体パス `skill_path`・起動 `guidance` を保持し、秘書は応答前に `abilities list` で該当能力を引いて外部スキルを行使する（例: 占い依頼 → 占術スキルで鑑定書生成 → `send-reply --file`）。雛型 `templates/ABILITIES.template.json` を追加。**WAL 非対象**（能力カタログ更新は相手への約束と直結しないため。永続化は git sync で担保）。
+- **ROUTINE_PROMPT「4 表オリエンテーション」** — 手順12を拡充し、4 表（誰と・何を頼まれ・どう判断し・何ができるか）の位置付けと「溜めるだけでなく応答前に能動的に引く」運用方針、abilities の read 配線（`trigger` 該当 → `skill_path` の SKILL.md → `guidance`）を明示。能力の自己追記は実在スキルに限るガード付き（ハルシネーション防止）。
+
+### Notes
+
+- 能力をデータ層（Private git）に置き、**稼働 body を触らず拡張する**設計。read 配線を一度通せば、以後の能力追加は `ABILITIES.json` の Private push だけで済む（cloud routine の prompt body 再登録が不要）。配布 template には具体能力を焼かない（母集団スコープ）、運用固有の能力は Private 実データに置く。
+
 ## [1.0.0] - 2026-06-03 — 正式リリース（言行一致の WAL）
 
 ### Added

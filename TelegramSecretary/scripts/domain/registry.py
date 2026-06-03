@@ -1,4 +1,4 @@
-"""管理表（INDIVIDUALS / TASKS / KNOWLEDGE）の Domain 値オブジェクト。
+"""管理表（INDIVIDUALS / TASKS / KNOWLEDGE / ABILITIES）の Domain 値オブジェクト。
 
 外部依存ゼロ。frozen dataclass + from_dict/to_dict で JSON 相互変換。
 バリデーションは __post_init__（不正な enum 値は ValueError）。
@@ -198,6 +198,55 @@ class Knowledge:
             "content": self.content,
             "related": list(self.related),
             "sources": list(self.sources),
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+
+@dataclass(frozen=True)
+class Ability:
+    """秘書が行使できる能力（スキル）の1レコード。
+
+    individuals/tasks/knowledge と同格の管理表だが、外部スキル（例:
+    PrecognitiveViewer）への発動シグナルと起動ガイダンスを持つ「能力カタログ」。
+    秘書は応答前にこれを引いて「何ができるか」を把握する（read 配線は ROUTINE_PROMPT）。
+    永続化は registry の git sync で担保し、WAL（言行一致保険）の対象外（相手への約束と直結しないため）。
+    """
+
+    id: str
+    name: str
+    trigger: str
+    skill_path: str
+    guidance: str
+    related: List[str]
+    created_at: str
+    updated_at: str
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            raise ValueError("ability name must not be empty")
+
+    @classmethod
+    def from_dict(cls, d: Mapping[str, Any]) -> "Ability":
+        return cls(
+            id=d["id"],
+            name=d["name"],
+            trigger=d.get("trigger", ""),
+            skill_path=d.get("skill_path", ""),
+            guidance=d.get("guidance", ""),
+            related=list(d.get("related", [])),
+            created_at=d["created_at"],
+            updated_at=d["updated_at"],
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "trigger": self.trigger,
+            "skill_path": self.skill_path,
+            "guidance": self.guidance,
+            "related": list(self.related),
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }

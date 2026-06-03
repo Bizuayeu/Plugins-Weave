@@ -11,7 +11,7 @@ from typing import Any
 
 from adapters.registry.json_registry_store import JsonRegistryStore
 from domain.exceptions import GitSyncError
-from domain.registry import Individual, Knowledge, Task
+from domain.registry import Ability, Individual, Knowledge, Task
 from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
 from usecases.manage_registry import RegistryService
@@ -21,6 +21,7 @@ _REGISTRY_SPEC = {
     "individuals": ("individuals_path", "uuid", Individual),
     "tasks": ("tasks_path", "id", Task),
     "knowledge": ("knowledge_path", "id", Knowledge),
+    "abilities": ("abilities_path", "id", Ability),
 }
 
 

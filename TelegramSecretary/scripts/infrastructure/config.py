@@ -70,6 +70,10 @@ class Config:
         return self.registry_root / "knowledge" / "KNOWLEDGE.json"
 
     @property
+    def abilities_path(self) -> Path:
+        return self.registry_root / "abilities" / "ABILITIES.json"
+
+    @property
     def wal_log_path(self) -> Path:
         """WAL ログ（JSONL）。registry と同じ registry_root 配下＝同一固定ブランチに相乗り。
 

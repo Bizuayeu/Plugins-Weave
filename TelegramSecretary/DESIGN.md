@@ -21,7 +21,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 | Layer | 責務 | 例 |
 |---|---|---|
-| **Domain** | 純粋ロジック・値オブジェクト | `TelegramUpdate` / `OutboundMessage` / `Individual` / `Task` / `Knowledge` / `MediaAttachment` / 正規化・injection フラグ |
+| **Domain** | 純粋ロジック・値オブジェクト | `TelegramUpdate` / `OutboundMessage` / `Individual` / `Task` / `Knowledge` / `Ability` / `MediaAttachment` / 正規化・injection フラグ |
 | **UseCase** | オーケストレーション + Port 定義 | `FetchAuthorizedUpdates` / `SendReply` / 管理表 CRUD UseCase / Ports（`UpdateSource`・`MessageSink`・`OffsetStore`・各 `*Store`） |
 | **Interface (Adapter)** | ゲートウェイ・ストア・CLI | `TelegramApiGateway` / `JsonStateStore` / `JsonRegistryStore`（管理表）/ `StdoutEventEmitter` / `main.py` |
 | **Infrastructure** | 外部・フレームワーク・配線 | `bootstrap.sh` / `config` / `composition`（Composition Root）/ `exit_codes` / `archive_rotate.py` |
@@ -44,7 +44,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 ### 3.1 二系統のデータ
 
-- **管理表（事実データ）**: `INDIVIDUALS`（関係者）/ `TASKS`（依頼進捗）/ `KNOWLEDGE`（対応知の蓄積、判例DB的）
+- **管理表（4 表）**: `INDIVIDUALS`（関係者）/ `TASKS`（依頼進捗）/ `KNOWLEDGE`（対応知の蓄積、判例DB的）の事実データ3表 + `ABILITIES`（秘書が行使できる能力カタログ、§3.8）
 - **Identities（人格定義）**: `SecretaryRole` — **これが無いとエージェントが人格的に振る舞えない**。cloud routine 型エージェントのロール定義ファイルと同型
 
 ### 3.2 なぜ SSoT = Private JSON か
@@ -82,7 +82,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 | データ | 永続要件 | 解決 |
 |---|---|---|
 | `offset.json` / `lease.json` / `media/` | 揮発OK | `state_dir`（Telegram ~24h 保持・lease 再取得・retention 削除で復元/破棄） |
-| `individuals` / `tasks` / `knowledge` | **永続必須** | `registry_dir` を git で永続化（蓄積が本質、KNOWLEDGE は判例DB） |
+| `individuals` / `tasks` / `knowledge` / `abilities` | **永続必須** | `registry_dir` を git で永続化（蓄積が本質、KNOWLEDGE は判例DB、ABILITIES は能力カタログ） |
 
 **永続化方式**（`registry_sync` オプトイン、既定無効で後方互換）:
 
@@ -104,6 +104,16 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 - **二重役割**: ログは WAL（整合性＝pending redo）と短期記憶（直近 24h の会話文脈、起動時に読む）を兼ねる。pending は無条件保持（redo ソース）、done は起動時チェックポイントで 24h 掃除（ローテーションを終了処理に依存させない＝強制終了で飛ばない）
 
 > consistency と durability は別問題: durability の穴は冗長で塞ぐが、ここでの穴は「同一障害ドメイン（同じ git push）に冗長を足しても共倒れ」ゆえ順序で塞ぐ。設計の背骨は §2 の踏襲——WAL の純粋ロジック（reconcile/settle/checkpoint）は Domain、push/redo の順序遵守は ROUTINE_PROMPT（従属度の世界）、git 操作は決定論。`registry_sync` 有効時のみ稼働（無効は no-op、後方互換）。
+
+### 3.8 なぜ abilities を4表目として追加したか（能力カタログ・データ層での能力拡張）
+
+individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ・どう判断したか）であるのに対し、`abilities` は秘書が**行使できる能力（スキル）のカタログ**——「何ができるか」を担う第4の管理表。各レコードは発動シグナル（`trigger`）・スキル実体への相対パス（`skill_path`）・起動ガイダンス（`guidance`）を持ち、秘書は応答前に `abilities list` で「この依頼に使える能力があるか」を引き、該当すれば外部スキル（例: 占術鑑定）を行使する。
+
+- **なぜ registry 4表目か（同格）**: 能力も「秘書が判断して蓄積し、参照する」点で事実データ3表と同型。テーブル駆動の `_REGISTRY_SPEC` に1種別 + `Ability` 値オブジェクトを足すだけで CRUD・検証・git 永続化・起動時 fetch が付く（§2「決定論コア + エージェント判断の分離」をそのまま継承）。read 配線は ROUTINE_PROMPT の4表オリエンテーションで「応答前に引く」運用として明示
+- **なぜ WAL 非対象か**: WAL（§3.7）は「『登録しました』と相手に約束した返信」と内部状態の consistency を守る機構。abilities の更新（能力定義）は**相手への約束と直結しない**ため、言行一致の保護対象から外す。永続化は §3.6 の git sync が担保する（durability は確保、要らない consistency 保護だけ外す）
+- **なぜデータ層で能力拡張か（本質）**: 能力を ROUTINE_PROMPT（手順骨格＝稼働 body）でなく ABILITIES.json（データ）に置くことで、**稼働 body を触らずに能力を追加できる**。read 配線を一度通せば、以後の能力追加は Private の ABILITIES.json 更新（git push）だけで済み、cloud routine の prompt body 再登録（`RemoteTrigger update` の罠を踏むリスク）が不要になる。三世界分類で言えば、手順骨格（従属度の世界＝ROUTINE_PROMPT）は安定させ、可変の能力カタログを決定論の世界（データ）へ逃がす設計
+- **配布可能性（母集団スコープ）**: 配布 template（`ABILITIES.template.json`）には具体能力を焼かず空で配る。運用固有の能力（例: 占術スキル連携）は Private の実 ABILITIES.json に置く——§3.3 のテンプレート/データ分離を能力にも適用
+- **能力の自己追記ガード**: 秘書が能力を `add` するのは**実在を確認したスキルに限る**（不確実・未検証の能力は宣言しない＝存在しない能力をカタログに書くハルシネーションの防止）
 
 ---
 
