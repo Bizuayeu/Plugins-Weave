@@ -124,6 +124,7 @@ python -m pytest scripts/tests/ -v
 
 ## 関連ドキュメント
 
+- [SETUP.md](./SETUP.md) — セットアップガイド（cloud routine 運用開始の順路。はじめての方はここから）
 - [SKILL.md](./skills/telegram-secretary/SKILL.md) — スキルマニフェスト（仕様の SSoT）
 - [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) — cloud routine 実行手順
 - [DESIGN.md](./DESIGN.md) — 設計正典（なぜこの設計か）

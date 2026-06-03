@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-06-02 -->
+<!-- Last synced: 2026-06-03 -->
 English | [日本語](README.md)
 
 # Plugins-Weave
@@ -75,6 +75,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | Your Goal | Reference |
 |-----------|-----------|
 | 🚀 **Getting started** | [README](TelegramSecretary/README.md) |
+| ⚙️ **Setup** | [SETUP](TelegramSecretary/SETUP.md) |
 | 📖 **Command specification** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
 | 🔐 **Security** | [SECURITY](TelegramSecretary/SECURITY.md) |
 
@@ -248,7 +249,7 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 - **24-7 Responsiveness**: Low-latency (seconds) chat channel via long-polling — no public ingress required
 - **Inbound Media Understanding**: images → Vision / docx・pptx・xlsx → Markdown / PDF → page images + full-text extraction / audio → local STT (audio never leaves the machine)
 - **Authorization**: Strict access control via chat_id allowlist
-- **Management Tables**: Secretary records stakeholders, tasks, and know-how at its own discretion
+- **Management Tables + Say-Do Consistency (WAL)**: Secretary records stakeholders, tasks, and know-how at its own discretion, persisted to a fixed git branch. Before replying "registered," the intent is first pushed to a Write-Ahead Log (no push, no reply) — structurally preventing say-do mismatches
 - **Agent-Authored Replies**: Handles only fetch/auth/normalize/send — never delegates response generation to a subprocess
 - **Clean Architecture (4 layers)**: Full-layer tests published as evidence of reliability
 
@@ -261,7 +262,7 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 | `/telegram-secretary init-config` | Generate operational config (config.json) |
 | `/telegram-secretary test` | Connectivity test to owner chat |
 
-→ [Full README](TelegramSecretary/README.md) / [Command Spec](TelegramSecretary/commands/telegram-secretary.md) / [Design](TelegramSecretary/DESIGN.md)
+→ [Full README](TelegramSecretary/README.md) / [Setup](TelegramSecretary/SETUP.md) / [Command Spec](TelegramSecretary/commands/telegram-secretary.md) / [Design](TelegramSecretary/DESIGN.md)
 
 ---
 

@@ -74,6 +74,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | あなたの目的 | 参照先 |
 |-------------|--------|
 | 🚀 **初めて使う** | [README](TelegramSecretary/README.md) |
+| ⚙️ **セットアップ** | [SETUP](TelegramSecretary/SETUP.md) |
 | 📖 **コマンド仕様** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
 | 🔐 **セキュリティ** | [SECURITY](TelegramSecretary/SECURITY.md) |
 
@@ -247,7 +248,7 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 - **24-7即応**: 公開ingress不要のlong-pollingで、Gmailより低レイテンシ（数秒）の対話チャネル
 - **受信メディアの中身理解**: 画像→Vision／docx・pptx・xlsx→Markdown化／PDF→画像化＋全文抽出／音声→ローカルSTT（音声は外部に出ない）
 - **認可制**: chat_id allowlistによる厳格なアクセス制御
-- **管理表**: 関係者・依頼・対応知を秘書が判断して記録
+- **管理表＋言行一致保証（WAL）**: 関係者・依頼・対応知を秘書が判断して記録。固定ブランチへgit永続化し、「登録しました」と返信する前にWALへ先行push（push不能なら送信もしない）で言行不一致を構造的に防ぐ
 - **応答主体は本体エージェント**: fetch/認可/正規化/送信のみを担い、応答生成をサブプロセスに投げない設計
 - **Clean Architecture 4層**: 全層テストを信頼性の証拠として公開
 
@@ -260,7 +261,7 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 | `/telegram-secretary init-config` | 運用設定（config.json）生成 |
 | `/telegram-secretary test` | owner chatへの疎通テスト |
 
-→ [詳細README](TelegramSecretary/README.md) / [コマンド仕様](TelegramSecretary/commands/telegram-secretary.md) / [設計](TelegramSecretary/DESIGN.md)
+→ [詳細README](TelegramSecretary/README.md) / [セットアップ](TelegramSecretary/SETUP.md) / [コマンド仕様](TelegramSecretary/commands/telegram-secretary.md) / [設計](TelegramSecretary/DESIGN.md)
 
 ---
 
