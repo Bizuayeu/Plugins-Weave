@@ -8,6 +8,7 @@ from domain.lease import SessionLease
 from domain.media import MediaAttachment, RenderedMedia
 from domain.models import OutboundMessage, TelegramUpdate
 from domain.offset import UpdateOffset
+from domain.wal import WalEntry
 
 
 class FakeUpdateSource:
@@ -148,3 +149,36 @@ class FakeGitSync:
 
     def fetch_checkout(self, branch: str) -> None:
         self.fetch_calls.append(branch)
+
+
+class FakeWalLogStore:
+    """in-memory な WAL ログ store（append/load/rewrite）。"""
+
+    def __init__(self, entries=None) -> None:
+        self.entries: List[WalEntry] = list(entries or [])
+        self.append_calls: List[WalEntry] = []
+        self.rewrite_calls: List[List[WalEntry]] = []
+
+    def append(self, entry: WalEntry) -> None:
+        self.entries.append(entry)
+        self.append_calls.append(entry)
+
+    def load(self) -> List[WalEntry]:
+        return list(self.entries)
+
+    def rewrite(self, entries: List[WalEntry]) -> None:
+        self.entries = list(entries)
+        self.rewrite_calls.append(list(entries))
+
+
+class FakeRegistryStore:
+    """in-memory な RegistryStore（RegistryService に渡して redo の upsert 先にする）。"""
+
+    def __init__(self, records=None) -> None:
+        self.records: List[dict] = list(records or [])
+
+    def load(self) -> List[dict]:
+        return list(self.records)
+
+    def save(self, records: List[dict]) -> None:
+        self.records = list(records)

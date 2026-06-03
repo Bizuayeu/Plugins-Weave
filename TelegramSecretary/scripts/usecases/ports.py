@@ -11,6 +11,7 @@ from domain.lease import SessionLease
 from domain.media import MediaAttachment, RenderedMedia
 from domain.models import OutboundMessage, TelegramUpdate
 from domain.offset import UpdateOffset
+from domain.wal import WalEntry
 
 
 class UpdateSource(Protocol):
@@ -110,4 +111,21 @@ class GitSyncPort(Protocol):
 
     def fetch_checkout(self, branch: str) -> None:
         """固定ブランチを fetch して checkout（起動時、最新管理表を引く）。"""
+        ...
+
+
+class WalLogStore(Protocol):
+    """WAL ログ（JSONL）の永続化 Port（intent の追記・全読込・全書換）。
+
+    実装は adapters/wal/jsonl_wal_log_store.py。append は O(1) 追記、
+    rewrite は checkpoint 後の全書換（done 掃除の反映）。
+    """
+
+    def append(self, entry: WalEntry) -> None:
+        ...
+
+    def load(self) -> List[WalEntry]:
+        ...
+
+    def rewrite(self, entries: List[WalEntry]) -> None:
         ...

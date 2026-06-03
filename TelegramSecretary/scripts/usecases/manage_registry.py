@@ -19,6 +19,11 @@ class RegistryService:
         self._store = store
         self._key = key_field
 
+    @property
+    def key_field(self) -> str:
+        """この管理表のキー名（uuid / id）。WAL redo の registry_keys 収集に使う。"""
+        return self._key
+
     def list(self) -> List[dict]:
         return self._store.load()
 
