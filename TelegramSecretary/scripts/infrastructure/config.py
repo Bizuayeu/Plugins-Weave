@@ -69,6 +69,15 @@ class Config:
     def knowledge_path(self) -> Path:
         return self.registry_root / "knowledge" / "KNOWLEDGE.json"
 
+    @property
+    def wal_log_path(self) -> Path:
+        """WAL ログ（JSONL）。registry と同じ registry_root 配下＝同一固定ブランチに相乗り。
+
+        揮発 state_dir に置くと redo ソースが揮発して機構が無意味になるため、永続の
+        registry_dir 配下に置く（registry の push 経路・bootstrap の絶対化にそのまま乗る）。
+        """
+        return self.registry_root / "wal" / "WAL.jsonl"
+
     @classmethod
     def from_sources(cls, config_path: Path | None = None) -> "Config":
         """env（秘匿 + state_dir + media 任意上書き）と config.json（非秘匿の正典）から構築。

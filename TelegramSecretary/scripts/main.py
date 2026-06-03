@@ -35,6 +35,7 @@ from infrastructure.exit_codes import (
 )
 from infrastructure.media_cleanup import cleanup_media_dir
 from infrastructure.registry_cli import run_registry_command, run_registry_fetch
+from infrastructure.wal_cli import run_wal_append, run_wal_push, run_wal_redo
 from usecases.acquire_lease import AcquireLease
 from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
 from usecases.release_lease import ReleaseLease
@@ -520,6 +521,21 @@ def cmd_registry_sync(args: argparse.Namespace) -> int:
     return run_registry_fetch(config)
 
 
+def cmd_wal_append(args: argparse.Namespace) -> int:
+    """WAL に intent を pending 追記（送信前、registry_sync 有効時のみ）。"""
+    return run_wal_append(_load_config(), args.kind, args)
+
+
+def cmd_wal_push(args: argparse.Namespace) -> int:
+    """WAL ログを commit & push（must-succeed、push 失敗は exit 非0＝送信前ゲート）。"""
+    return run_wal_push(_load_config(), args)
+
+
+def cmd_wal_redo(args: argparse.Namespace) -> int:
+    """起動時に WAL pending を registry へ redo（registry_sync 有効時のみ）。"""
+    return run_wal_redo(_load_config())
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="telegram-secretary")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -631,6 +647,27 @@ def build_parser() -> argparse.ArgumentParser:
         "registry-sync", help="起動時に固定ブランチから管理表を fetch（R2-3、registry_sync 有効時）"
     )
 
+    # WAL（Write-Ahead Log）: 送信前 intent 書込→push→起動時 redo（registry_sync 有効時のみ稼働）
+    p_wal_append = sub.add_parser(
+        "wal-append", help="WAL に intent を pending 追記（送信前、registry_sync 有効時）"
+    )
+    p_wal_append.add_argument(
+        "--kind", required=True, choices=["individuals", "tasks", "knowledge"]
+    )
+    p_wal_append.add_argument("--json", help="intent payload の JSON 文字列")
+    p_wal_append.add_argument(
+        "--json-file", dest="json_file", help="intent payload の JSON ファイル"
+    )
+
+    p_wal_push = sub.add_parser(
+        "wal-push", help="WAL ログを commit & push（must-succeed、失敗は exit 非0＝送信前ゲート）"
+    )
+    p_wal_push.add_argument("--message", help="commit メッセージ")
+
+    sub.add_parser(
+        "wal-redo", help="起動時に WAL pending を registry へ redo（registry_sync 有効時）"
+    )
+
     return parser
 
 
@@ -652,6 +689,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "tasks": cmd_registry,
         "knowledge": cmd_registry,
         "registry-sync": cmd_registry_sync,
+        "wal-append": cmd_wal_append,
+        "wal-push": cmd_wal_push,
+        "wal-redo": cmd_wal_redo,
     }
     try:
         return handlers[args.command](args)
