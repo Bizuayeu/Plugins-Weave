@@ -1,0 +1,6 @@
+# lychee link-check ignore patterns（1行1正規表現、# はコメント）
+#
+# note.com は bot/自動アクセスを HTTP 403 で拒否するため、lychee では到達確認できない。
+# 実在する正当な URL（例: https://note.com/weave_ai = Weave の Author プロフィール）でも
+# 一律 403 になる構造的な誤検知のため、ドメイン単位で除外する。
+note\.com
