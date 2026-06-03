@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-06-03 — 管理表の git 永続化
+
 ### Added
 
 - **管理表の git 永続化（`registry_sync` オプトイン、既定無効）** — 秘書が蓄積する管理表（INDIVIDUALS／TASKS／KNOWLEDGE）を固定ブランチ（`registry_branch`、既定 `claude/ts-registry`）へ永続化し、cloud routine の fresh clone を跨いで残す。更新（add/remove）のたびにイベント駆動で commit&push、起動時に `registry-sync` で fetch。commit はローカル即時・push は best-effort（一時失敗は次回 sync でまとめて再送）。複数 JSON の独立した部分更新を壊さないため **force 不使用**（通常 push の non-fast-forward 拒否で競合を検出、外部更新の例外時のみ `pull --rebase` フォールバック、lease がシングルライターを保証）。
@@ -14,6 +16,10 @@
 
 - **管理表の保存先を揮発 state と分離** — offset/lease/media（揮発、`state_dir`）と管理表（永続、`registry_dir`）は永続要件が正反対ゆえ物理分離した。`registry_dir` 未設定時は `state_dir` にフォールバックし既存挙動を維持（後方互換）。
 - **`registry_dir` のパス解決を cloud routine の実行 cwd に非依存化** — config.json の相対 `registry_dir` を `Path.resolve()`（cwd 基準）で解決すると、registry サブコマンドが skill ディレクトリを cwd として実行されるため、複数リポ並列 clone 構造では Private clone の外側（git 追跡外）の誤ったパスに解決される。bootstrap が起動時 cwd（リポジトリ親）基準で絶対化して `TELEGRAM_SECRETARY_REGISTRY_DIR` に注入し、設定読込が env を優先する方式に統一した（揮発 `state_dir` の絶対化と同型）。env 不在時は従来どおり config.json 値を解決（ローカル運用の後方互換）。
+
+### Verified
+
+- **registry 永続化を実機（cloud routine）で検証** — Telegram 経由でタスクを登録→詳細更新し、固定ブランチ `claude/ts-registry` への add commit 到達、`TASKS.json` の upsert 冪等（同一 id が `created_at` 保持・`updated_at` 更新で 1 レコードに畳まれる）、起動時 fetch による復元を確認。push 経路の健全性（commit が origin に到達）も併せて確認した。
 
 ## [0.12.0] - 2026-06-03
 
