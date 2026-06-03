@@ -238,9 +238,9 @@ claude.aiのプロジェクト機能をClaude Codeで再現。SessionStart hook�
 
 ### TelegramSecretary
 
-**Cloud Routine 常駐 Telegram 秘書システム**
+**cloud routine 常駐 Telegram 秘書システム**
 
-Telegram Bot API の long-polling を Cloud Routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネルです。公開 ingress を持てない Cloud Routine 環境でも、long-polling と deadline 駆動ループで 24-7 の即応を実現します。
+Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**＝Anthropic のクラウド実行スケジュールエージェント基盤。Remote 実行の routine ＝ cloud routine）上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネルです。公開 ingress を持てない cloud routine 環境でも、long-polling と deadline 駆動ループで 24-7 の即応を実現します。
 
 #### 主な特徴
 
@@ -255,7 +255,7 @@ Telegram Bot API の long-polling を Cloud Routine 上で常駐させ、認可�
 
 | コマンド | 説明 |
 |---------|------|
-| `/telegram-secretary schedule` | Cloud Routineへの登録・有効化 |
+| `/telegram-secretary schedule` | cloud routineへの登録・有効化 |
 | `/telegram-secretary unschedule` | 停止（state・configは保持） |
 | `/telegram-secretary init-config` | 運用設定（config.json）生成 |
 | `/telegram-secretary test` | owner chatへの疎通テスト |

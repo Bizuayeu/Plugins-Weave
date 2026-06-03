@@ -239,9 +239,9 @@ calm:🔵🔵, curiosity:🟢🟢🟢, playfulness:🟡
 
 ### TelegramSecretary
 
-**Always-on Telegram Secretary System (Cloud Routine)**
+**Always-on Telegram Secretary System (cloud routine)**
 
-Keeps Telegram Bot API long-polling alive on a Cloud Routine, so a secretary agent (SecretaryRole) responds in real time to messages from authorized chats. Achieves 24-7 responsiveness even in Cloud Routine environments without public ingress, via long-polling and a deadline-driven loop.
+Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary agent (SecretaryRole) responds in real time to messages from authorized chats. Achieves 24-7 responsiveness even in cloud routine environments without public ingress, via long-polling and a deadline-driven loop.
 
 #### Key Features
 
@@ -256,7 +256,7 @@ Keeps Telegram Bot API long-polling alive on a Cloud Routine, so a secretary age
 
 | Command | Description |
 |---------|-------------|
-| `/telegram-secretary schedule` | Register/enable on Cloud Routine |
+| `/telegram-secretary schedule` | Register/enable on cloud routine |
 | `/telegram-secretary unschedule` | Stop (state & config retained) |
 | `/telegram-secretary init-config` | Generate operational config (config.json) |
 | `/telegram-secretary test` | Connectivity test to owner chat |

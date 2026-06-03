@@ -2,9 +2,9 @@
 
 > 📦 **設定の置き場** — 環境固有の値は `<INSTALL_DIR>/config.json`（`agent_name` / `private_dir` / `session_duration_sec` / `registry_*`、雛型 `templates/config.template.json`、`init-config` で生成）に集約します。秘匿（bot token / authorized chats）は env で注入。**運用値の手置換は不要**——人格名・private_dir は config.json、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決します（`<INSTALL_DIR>`=インストール先 / `<OWNER>`=運用主体 はドキュメント上の読み替え表記）。詳細は [STRUCTURE.md](./STRUCTURE.md)。
 
-Telegram Bot API の long-polling を Cloud Routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（`SecretaryRole` を被った本体エージェント。人格名は config.json の `agent_name`）が即応する対話チャネル。
+Telegram Bot API の long-polling を **Claude Code Routines**（Anthropic のクラウド実行スケジュールエージェント基盤。Remote 実行の routine ＝ cloud routine）上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（`SecretaryRole` を被った本体エージェント。人格名は config.json の `agent_name`）が即応する対話チャネル。
 
-公開 ingress を持てない Cloud Routine 環境でも、long-polling と deadline 駆動ループで 24-7 の即応を実現します（`watch --exit-on-message` がメッセージ受信時に即座に exit → 返信 → 再起動）。応答は親プロセスのエージェント本人が起草し、本スキルは fetch / 認可 / 正規化 / 送信のみを担います（応答生成をサブプロセスに投げない設計）。
+公開 ingress を持てない cloud routine 環境でも、long-polling と deadline 駆動ループで 24-7 の即応を実現します（`watch --exit-on-message` がメッセージ受信時に即座に exit → 返信 → 再起動）。応答は親プロセスのエージェント本人が起草し、本スキルは fetch / 認可 / 正規化 / 送信のみを担います（応答生成をサブプロセスに投げない設計）。
 
 ## アーキテクチャ
 
@@ -73,7 +73,7 @@ python scripts/main.py lease release
 | `TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES` | optional | 送信添付の上限（既定 50MB、Telegram bot API 上限）。超過は送信前に弾く |
 | `TELEGRAM_SECRETARY_PDF_IMAGE_MAX_PAGES` | optional | PDF 受信時に事前画像化する先頭ページ数の上限（既定 20）。超過分は `render-pdf` でオンデマンド |
 
-> **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須）。「9-17 時勤務」のような勤務帯は Cloud Routine の cron（例 `0 9-16 * * 1-5`）+ duration で表現します（コードに時計を持たせない）。deadline 駆動ループの運用変数（`TS_SESSION_DEADLINE_EPOCH` / `TS_POLL_SET_SEC` / `TS_POLL_BASH_TIMEOUT_MS` / `TS_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export します。詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)。
+> **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須）。「9-17 時勤務」のような勤務帯は cloud routine の cron（例 `0 9-16 * * 1-5`）+ duration で表現します（コードに時計を持たせない）。deadline 駆動ループの運用変数（`TS_SESSION_DEADLINE_EPOCH` / `TS_POLL_SET_SEC` / `TS_POLL_BASH_TIMEOUT_MS` / `TS_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export します。詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)。
 
 ## Subcommands
 
@@ -94,9 +94,9 @@ python scripts/main.py lease release
 
 `--owner` は省略可（`source bootstrap.sh` で env 経由自動同期、緊急時の上書きにのみ使用）。
 
-## Cloud Routine への登録（schedule / unschedule）
+## cloud routine への登録（schedule / unschedule）
 
-常駐 routine 自体の Cloud Routine 登録・更新・停止は `/telegram-secretary` の `schedule`（登録 / 有効化 / 設定上書き＝upsert）/ `unschedule`（停止＝`enabled:false`）で行います。**`RemoteTrigger` ツール手順**（CLI ではない）で、手順は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) の「Cloud Routine ライフサイクル管理」節が SSoT。秘匿は Cloud Routine の Environment に注入、運用設定（`session_duration_sec` 等）は `init-config`。物理削除（list から消す）のみ claude.ai UI 手動です。
+常駐 routine 自体の cloud routine 登録・更新・停止は `/telegram-secretary` の `schedule`（登録 / 有効化 / 設定上書き＝upsert）/ `unschedule`（停止＝`enabled:false`）で行います。**`RemoteTrigger` ツール手順**（CLI ではない）で、手順は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) の「cloud routine ライフサイクル管理」節が SSoT。秘匿は cloud routine の Environment に注入、運用設定（`session_duration_sec` 等）は `init-config`。物理削除（list から消す）のみ claude.ai UI 手動です。
 
 ## テスト
 
@@ -123,7 +123,7 @@ python -m pytest scripts/tests/ -v
 ## 関連ドキュメント
 
 - [SKILL.md](./skills/telegram-secretary/SKILL.md) — スキルマニフェスト（仕様の SSoT）
-- [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) — Cloud Routine 実行手順
+- [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) — cloud routine 実行手順
 - [DESIGN.md](./DESIGN.md) — 設計正典（なぜこの設計か）
 - [STRUCTURE.md](./STRUCTURE.md) — 構造地図（どこに何を置くか）
 - [SECURITY.md](./SECURITY.md) — セキュリティ正典（脅威モデル・配布前チェックリスト）

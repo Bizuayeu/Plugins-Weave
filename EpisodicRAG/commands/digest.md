@@ -416,7 +416,7 @@ python -m interfaces.auto_dream_scan
    - **current**: 最新の情報を反映済み
    - **enrichable**: digest内容から追記すべき新しい知見がある
 
-   **注意**: 一見無関係でも `Bluesky→Cloud Routine` のような構造的整合性のズレがある場合は、
+   **注意**: 一見無関係でも `Bluesky→cloud routine` のような構造的整合性のズレがある場合は、
    one-liner だけで判断せず迷ったら Read で確認すること。
 
 3. **staleまたはenrichableなファイルを更新**

@@ -3,7 +3,7 @@
 > **雛型**。実体は Private の `Identities/SecretaryRole.md` に置く（配布物に人格を焼き込まない）。
 > 起動時、ベース人格をロードした上に本ロールを重ねる（ROUTINE_PROMPT Step 0）。
 >
-> **本体との関係**: Domain 層（人格の芯）は本体の Identity 定義（例 `<AGENT_NAME>Identity.md`）、本ファイルは UseCase 層のロール定義（Cloud Routine 型エージェントのロール定義と同型）。
+> **本体との関係**: Domain 層（人格の芯）は本体の Identity 定義（例 `<AGENT_NAME>Identity.md`）、本ファイルは UseCase 層のロール定義（cloud routine 型エージェントのロール定義と同型）。
 > **配布ユーザーの場合**: 自分の AI 秘書の人格をここに定義する。
 
 ## 役割

@@ -2,6 +2,18 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [Unreleased]
+
+### Added
+
+- **管理表の git 永続化（`registry_sync` オプトイン、既定無効）** — 秘書が蓄積する管理表（INDIVIDUALS／TASKS／KNOWLEDGE）を固定ブランチ（`registry_branch`、既定 `claude/ts-registry`）へ永続化し、cloud routine の fresh clone を跨いで残す。更新（add/remove）のたびにイベント駆動で commit&push、起動時に `registry-sync` で fetch。commit はローカル即時・push は best-effort（一時失敗は次回 sync でまとめて再送）。複数 JSON の独立した部分更新を壊さないため **force 不使用**（通常 push の non-fast-forward 拒否で競合を検出、外部更新の例外時のみ `pull --rebase` フォールバック、lease がシングルライターを保証）。
+- **`registry-sync` サブコマンド** — 起動時に固定ブランチから管理表を fetch する（`registry_sync` 有効時のみ、無効は no-op）。fetch 失敗は transient（前回ローカル状態で起動し次回再試行）。
+- **registry 設定を config.json に集約** — `registry_sync` / `registry_dir` / `registry_branch`（＋ `registry_remote`）を非秘匿の運用設定として config.json（純2層）に追加、雛型 `templates/config.template.json` に反映。cloud routine 起動手順（`ROUTINE_PROMPT.md` の起動時 fetch・更新時 push・`schedule` body の書き戻し先 `outcomes`）と `SETUP.md` の設定手順も整備。
+
+### Changed
+
+- **管理表の保存先を揮発 state と分離** — offset/lease/media（揮発、`state_dir`）と管理表（永続、`registry_dir`）は永続要件が正反対ゆえ物理分離した。`registry_dir` 未設定時は `state_dir` にフォールバックし既存挙動を維持（後方互換）。
+
 ## [0.12.0] - 2026-06-03
 
 ### Changed
@@ -28,9 +40,9 @@
 
 - **plugins-weave marketplace プラグイン化** — TelegramSecretary を plugins-weave の marketplace プラグインとして配布。skill は `skills/telegram-secretary/`、スラッシュコマンドは `commands/telegram-secretary.md`、`.claude-plugin/plugin.json` を追加。配布実体は plugins-weave、Weave 運用は `Expertises/TelegramSecretary` の junction で透過（二重管理なし）。
 - **運用設定の単一正典化（config.json）** — 手置換が必要だったプレースホルダ（人格名・private_dir 等）を `config.json`（`<INSTALL_DIR>/config.json`、`.gitignore` 除外）に集約。雛型は `templates/config.template.json`、`init-config` で生成。ROUTINE_PROMPT の Step 0 が config.json から `agent_name`/`private_dir` を動的読込し、**prompt 本文の複製・手置換が不要**に。
-- **継続時間の設定可能化（`session_duration_sec`）** — セッション枠を config.json で設定（範囲 1〜86400 秒、fail-fast）。本番（勤務帯調整）／テスト（短縮で keep-alive 高速検証）／観測（Cloud Routine 実行制限の実測）の三役。
+- **継続時間の設定可能化（`session_duration_sec`）** — セッション枠を config.json で設定（範囲 1〜86400 秒、fail-fast）。本番（勤務帯調整）／テスト（短縮で keep-alive 高速検証）／観測（cloud routine 実行制限の実測）の三役。
 - **`show-config` / `init-config` サブコマンド** — 現設定の read-only 表示（秘匿マスク、未設定でも exit 0）と config.json 生成（範囲検証 + `--force` ガード）。
-- **Cloud Routine ライフサイクル統合（`/telegram-secretary schedule` / `unschedule`）** — 常駐 routine 自体の登録・更新・停止を skill 操作化。`schedule` は upsert（`RemoteTrigger create` or `get→modify→update` ＋ `init-config`）、`unschedule` は `enabled:false` 停止（物理削除は claude.ai UI 手動）。RemoteTrigger スキーマ罠（events v1 ネスト・session_context 全置換）の回避は内蔵 `schedule` skill を正典参照。手順 SSoT は ROUTINE_PROMPT.md。
+- **cloud routine ライフサイクル統合（`/telegram-secretary schedule` / `unschedule`）** — 常駐 routine 自体の登録・更新・停止を skill 操作化。`schedule` は upsert（`RemoteTrigger create` or `get→modify→update` ＋ `init-config`）、`unschedule` は `enabled:false` 停止（物理削除は claude.ai UI 手動）。RemoteTrigger スキーマ罠（events v1 ネスト・session_context 全置換）の回避は内蔵 `schedule` skill を正典参照。手順 SSoT は ROUTINE_PROMPT.md。
 - **ドキュメント命名統一** — ドキュメント内の旧称 `/secretary`（7 箇所）を skill 実名 `/telegram-secretary` に統一。
 
 ### Changed
@@ -46,7 +58,7 @@
 
 ### Verified
 
-- PDF オンデマンド抽出を実機（Cloud Routine）で検証。受信 PDF を自動で画像化し、エージェントが必要に応じて全文（`render-pdf --text`）や巻末ページ（`--pages`）を能動取得する流れを、テキスト PDF・スキャン PDF・多ページ・大量ページ・保持期限／出力漏洩スキャンにわたり確認。
+- PDF オンデマンド抽出を実機（cloud routine）で検証。受信 PDF を自動で画像化し、エージェントが必要に応じて全文（`render-pdf --text`）や巻末ページ（`--pages`）を能動取得する流れを、テキスト PDF・スキャン PDF・多ページ・大量ページ・保持期限／出力漏洩スキャンにわたり確認。
 
 ## [0.10.0] - 2026-05-31 — PDF オンデマンド抽出
 
@@ -89,7 +101,7 @@
 
 ### Verified
 
-- 音声・動画の文字起こしを Cloud Routine（Linux）実機で検証。音声ライブラリの導入、各種音声／動画形式の transcript 化、無音・破損ファイルの安全な空応答、保持期限クリーンアップ、出力漏洩スキャンを確認。
+- 音声・動画の文字起こしを cloud routine（Linux）実機で検証。音声ライブラリの導入、各種音声／動画形式の transcript 化、無音・破損ファイルの安全な空応答、保持期限クリーンアップ、出力漏洩スキャンを確認。
 
 ### Fixed
 
@@ -109,7 +121,7 @@
 
 ### Fixed
 
-- Cloud Routine のシェルは呼び出しごとに環境変数が揮発する（カレントディレクトリのみ持続する）前提に対応。bootstrap が派生環境変数を snapshot ファイルへ書き出し、各ステップが冒頭で読み直す方式に変更。これによりリース所有者・期限変数が全呼び出しで一貫。
+- cloud routine のシェルは呼び出しごとに環境変数が揮発する（カレントディレクトリのみ持続する）前提に対応。bootstrap が派生環境変数を snapshot ファイルへ書き出し、各ステップが冒頭で読み直す方式に変更。これによりリース所有者・期限変数が全呼び出しで一貫。
 - 相対指定の state ディレクトリがサブシェルの `cd` で実体のないパスに化ける問題を、bootstrap 実行時に絶対パス化して固定することで解消（既定運用は不変）。
 
 ## [0.7.2] - 2026-05-29
@@ -123,7 +135,7 @@
 
 ### Verified
 
-- 前面実行の長時間ポーリングで Cloud Routine のコンテナが枠の間 warm 維持され、期限到達で正常終了することを実機確認。セッション内 keep-alive 方式の成立を確認。
+- 前面実行の長時間ポーリングで cloud routine のコンテナが枠の間 warm 維持され、期限到達で正常終了することを実機確認。セッション内 keep-alive 方式の成立を確認。
 
 ### Fixed
 

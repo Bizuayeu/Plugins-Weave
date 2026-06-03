@@ -12,8 +12,8 @@
 | `<OWNER>` | 運用主体（principal） | あなた自身 |
 | `<ORGANIZATION>` | 組織名 | 所属企業・チーム |
 | `<REPO_ROOT>` | リポジトリルート | クローン先のルート |
-| `<BASE_REPO>` | 基本設定リポ名（Cloud Routine が cwd 親に並列 clone する基本設定リポ。`schedule` が `sources` から実値置換） | `Homunculus-Weave` |
-| `<PRIVATE_DIR>` | 非公開データ・人格定義の配置先（Cloud Routine では cwd 親起点の相対） | `Homunculus-Weave-Private/TelegramSecretary` |
+| `<BASE_REPO>` | 基本設定リポ名（cloud routine が cwd 親に並列 clone する基本設定リポ。`schedule` が `sources` から実値置換） | `Homunculus-Weave` |
+| `<PRIVATE_DIR>` | 非公開データ・人格定義の配置先（cloud routine では cwd 親起点の相対） | `Homunculus-Weave-Private/TelegramSecretary` |
 | `<INSTALL_DIR>` | インストール先パス | TelegramSecretary 配置先 |
 | `<state_dir>` | 揮発 state（offset/lease/media）の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
 | `<registry_dir>` | 永続管理表の保存先（git 永続化） | config.json `registry_dir`（未設定なら `<state_dir>`） |
@@ -42,7 +42,7 @@ TelegramSecretary/
 ├── DESIGN.md                 # 設計正典（why）
 ├── STRUCTURE.md              # 本ファイル（where）
 ├── SECURITY.md               # 網羅的セキュリティ正典
-├── ROUTINE_PROMPT.md         # Cloud Routine prompt body
+├── ROUTINE_PROMPT.md         # cloud routine prompt body
 ├── CHANGELOG.md              # 変更履歴
 ├── bootstrap.sh
 ├── pyproject.toml
