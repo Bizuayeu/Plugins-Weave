@@ -74,18 +74,21 @@ TelegramSecretary/
 │   │   ├── acquire_lease.py / renew_lease.py / release_lease.py
 │   │   ├── fetch_authorized_updates.py / send_reply.py
 │   │   ├── download_authorized_media.py / render_authorized_media.py
-│   │   └── manage_registry.py # 管理表 CRUD UseCase
+│   │   ├── manage_registry.py # 管理表 CRUD UseCase
+│   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents）
 │   ├── adapters/
 │   │   ├── media_failure.py  # render/transcribe 共通の失敗ログ + redact ヘルパ
 │   │   ├── telegram/         # api_gateway / media_downloader
 │   │   ├── state/            # json_state_store / emitter
 │   │   ├── render/ transcribe/ audio/   # markitdown / pdf / moonshine / ffmpeg
-│   │   └── registry/         # json_registry_store
+│   │   ├── registry/         # json_registry_store
+│   │   └── wal/              # jsonl_wal_log_store（WAL ログの JSONL 永続化）
 │   ├── infrastructure/
 │   │   ├── config.py / media_cleanup.py
 │   │   ├── composition.py    # Composition Root（load_config / build_media_stack）
 │   │   ├── exit_codes.py     # 終了コード（0/1/2/3/4）の SSoT
 │   │   ├── registry_cli.py   # 管理表 CRUD の CLI 配線
+│   │   ├── wal_cli.py        # WAL の CLI 配線（wal-append / wal-push / wal-redo）
 │   │   └── archive_rotate.py # 日付Archive（TASKS/INDIVIDUALS）+ カテゴリ分割（KNOWLEDGE）
 │   └── tests/                # 全層のテスト（配布物として公開）
 │
@@ -111,10 +114,12 @@ TelegramSecretary/
     ├── tasks/
     │   ├── TASKS.json
     │   └── archive/TASKS_<YYYY-MM>.json
-    └── knowledge/
-        ├── KNOWLEDGE.json             # 小規模時は単一
-        ├── <category>.json            # 肥大化時はカテゴリ分割（archive せず蓄積）
-        └── archive/                   # （原則空。明示的廃棄時のみ）
+    ├── knowledge/
+    │   ├── KNOWLEDGE.json             # 小規模時は単一
+    │   ├── <category>.json            # 肥大化時はカテゴリ分割（archive せず蓄積）
+    │   └── archive/                   # （原則空。明示的廃棄時のみ）
+    └── wal/
+        └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
 ```
 
 > **揮発/永続の分離**: `state_dir`（offset/lease/media）は消えてよい揮発データ、`registry_dir`（管理表）は蓄積が本質ゆえ git で永続化する。`registry_dir` 未設定時は `state_dir` にフォールバック（後方互換）。`Identities/` と各 dir の `<PRIVATE_DIR>` 内の正確な親パスは利用者が決定する（state_dir は env、registry_dir は config.json）。
@@ -152,7 +157,10 @@ TelegramSecretary/
         → 該当する CLI subcommand を呼ぶ（決定論 I/O）
         → registry_sync 有効なら commit&push（イベント駆動・non-ff は rebase で取り込み・force 不使用）
 
-[応答] エージェント起草 → 出力漏洩スキャン → send-reply（必要なら --file/--reply-to）
+[応答] 登録系の返信は先に WAL 先行書込（registry_sync 有効時、言行一致）:
+        wal-append（intent pending）→ wal-push（must-succeed、失敗なら送信中止）
+        → registry add → エージェント起草 → 出力漏洩スキャン → send-reply（必要なら --file/--reply-to）
+        ※起動時 wal-redo が前回 push 漏れの intent を registry へ反映（registry-sync 直後）
 
 [保守] archive_rotate: TASKS/INDIVIDUALS は日付 Archive、KNOWLEDGE は category 分割
         state README を再生成（件数・最終更新・分割状況）

@@ -20,6 +20,7 @@ Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、
   - voice / audio / video → 音声を文字起こし（ローカル STT、音声が外部に出ない）
 - **生成物の送り返し** — 画像・レポート等を返信に添付（reply threading、typing 表示）
 - **管理表** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）を秘書が判断して記録。`registry_sync` 有効時は固定ブランチへ git 永続化（揮発 state と分離・イベント駆動 commit&push）
+- **言行一致の保証（WAL）** — `registry_sync` 有効時、「登録しました」等の約束をする返信の前に intent を WAL ログへ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo。push 漏れによる「言ったのに未登録」を構造的に防ぐ
 
 ## Quickstart（ローカル動作確認）
 
@@ -91,6 +92,7 @@ python scripts/main.py lease release
 | `cleanup-media` | retention 超過の保存 media を削除（`watch` は自動発火、手動/cron 用） | 0, 2 |
 | `individuals\|tasks\|knowledge {list\|get\|add\|remove}` | 管理表 CRUD（値オブジェクトで入力検証、不正は exit 2）。`registry_sync` 有効時は add/remove 後に commit&push | 0, 2 |
 | `registry-sync` | 起動時に固定ブランチから管理表を fetch（`registry_sync` 有効時のみ、無効は no-op） | 0, 1 |
+| `wal-append --kind <...> (--json\|--json-file)` / `wal-push` / `wal-redo` | WAL（言行一致）: 登録系返信の前に intent を先行 push（must-succeed）、起動時に未反映分を registry へ redo。`registry_sync` 有効時のみ | 0, 1=push失敗, 2 |
 
 `--owner` は省略可（`source bootstrap.sh` で env 経由自動同期、緊急時の上書きにのみ使用）。
 

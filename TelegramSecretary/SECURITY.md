@@ -64,6 +64,7 @@ TelegramSecretary は **cloud routine（＝ Claude Code Routines のクラウド
 - **shared_with 境界**（複数チャネル併用時）— 関係者間の情報共有は `identity.shared_with` の明示許可制。未承認の relay は拒否し、`<OWNER>`（principal）に承認伺い
 - **principal / associate の権限分離** — 管理系操作（approve/block/edit 等）は principal（`<OWNER>`）起源のみ
 - **git 永続化のセキュリティ**（`registry_sync` 有効時）— 管理表は **Private リポの固定ブランチ**（`registry_branch`）へ push し、public（配布物）には実体を置かない。git 認証（PAT 等）は env / cloud routine Environment に注入し、コミット・ログ・prompt body に焼かない。commit 対象は `registry_dir` 配下の管理表ファイルのみ（人格・秘匿の混入を構造的に排除）。force 不使用ゆえ外部更新を破壊しない
+- **WAL ログの PII 範囲**（`registry_sync` 有効時）— WAL ログ（`registry_dir/wal/WAL.jsonl`）の各 intent payload は **registry へ add するレコードと同一**（individuals/tasks/knowledge の構造化レコード）ゆえ、registry を超える PII 範囲の拡大は無い（**会話本文全体はログに載せない**）。同じ Private リポ固定ブランチに置かれ、commit 対象も `registry_dir` 配下に限定。done 化後は起動時チェックポイントで 24h 掃除（pending は redo まで保持）。WAL push も registry と同じ git 認証経路ゆえ、秘匿の扱いは上記と同一
 
 ## 8. 配布時の責任分界 ⚠️
 

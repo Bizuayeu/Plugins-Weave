@@ -94,6 +94,17 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 > 設計の背骨は §2「決定論コア + エージェント判断の分離」の踏襲: git 操作（commit/push/rebase/fetch）は決定論の世界（コード・テスト可能）、「何を残すか」の判断は重要度の世界（エージェント）。
 
+### 3.7 なぜ WAL（Write-Ahead Log）で言行一致を保証するか（consistency vs durability）
+
+§3.6 の registry 永続化は push が **best-effort**（一時失敗は次回再送）。これは durability（データを失わない）には十分だが、**consistency（対外的な約束と内部状態の一致）には穴がある**: 秘書が「登録しました」と返信した後にコンテナが強制終了され push が漏れると、「言ったのに registry に無い」言行不一致が起きうる。これは冗長化でなく**順序**（WAL）で解く。
+
+- **先行書込**: 内部状態の変更を約束する返信の**前に**、intent を WAL ログ（`registry_dir/wal/WAL.jsonl`、registry と同一固定ブランチ）へ追記し push する
+- **must-succeed push（送信前ゲート）**: WAL ログ push は redo のソースゆえ best-effort では不可。push 成功まで send-reply を打たない＝**push できないなら約束もしない**（矛盾が表面化する前に止まる）。registry の add 自体は従来どおり best-effort（漏れても redo される側）
+- **起動時 redo**: 次回起動で WAL の pending（registry に無いやり残し）を registry へ upsert（key 冪等）。registry-sync（fetch）の**後**に置き最新 registry で照合。**返信は再送しない**——送信前クラッシュ分は offset 再取得が再処理を担う（役割分担: offset=メッセージ再処理、WAL=送信後の registry 漏れ専任）
+- **二重役割**: ログは WAL（整合性＝pending redo）と短期記憶（直近 24h の会話文脈、起動時に読む）を兼ねる。pending は無条件保持（redo ソース）、done は起動時チェックポイントで 24h 掃除（ローテーションを終了処理に依存させない＝強制終了で飛ばない）
+
+> consistency と durability は別問題: durability の穴は冗長で塞ぐが、ここでの穴は「同一障害ドメイン（同じ git push）に冗長を足しても共倒れ」ゆえ順序で塞ぐ。設計の背骨は §2 の踏襲——WAL の純粋ロジック（reconcile/settle/checkpoint）は Domain、push/redo の順序遵守は ROUTINE_PROMPT（従属度の世界）、git 操作は決定論。`registry_sync` 有効時のみ稼働（無効は no-op、後方互換）。
+
 ---
 
 ## 4. Scope: 公式 plugin（/channels）との差分と採否

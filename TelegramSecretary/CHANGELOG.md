@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **返信送信前の WAL 先行書込（言行一致の保証、`registry_sync` 有効時）** — registry の push 漏れで「登録しました」と返信したのに未登録、という consistency 違反をゼロにする Write-Ahead Log。内部状態の変更を約束する返信の前に intent を WAL ログ（`registry_dir/wal/WAL.jsonl`、registry と同一固定ブランチ）へ追記・push（**must-succeed**＝push 不能なら send-reply も打たない）し、起動時に未反映 intent を registry へ redo（key 冪等・**返信は再送しない**＝送信前クラッシュ分は offset 再取得が担う役割分担）。ログは直近 24h の会話文脈の短期記憶も兼ね、pending は無条件保持・done は起動時チェックポイントで 24h 掃除。新規 CLI: `wal-append` / `wal-push` / `wal-redo`。durability（冗長化）でなく consistency（言行一致）を**順序**で解く設計。
+
 ## [0.13.0] - 2026-06-03 — 管理表の git 永続化
 
 ### Added

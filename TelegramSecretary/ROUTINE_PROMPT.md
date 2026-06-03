@@ -65,12 +65,16 @@ curl -sS -o /dev/null -w '%{http_code}\n' "https://api.telegram.org/botINVALID_T
 # (1) 管理表の起動時 fetch（registry_sync 無効なら no-op で素通り）
 source /tmp/telegram-secretary.env.sh && \
   (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && python scripts/main.py registry-sync)
+# (1.5) WAL redo: 前回 push 漏れの intent を registry へ反映（fetch の後＝最新 registry で照合）
+source /tmp/telegram-secretary.env.sh && \
+  (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && python scripts/main.py wal-redo)
 # (2) リース取得
 source /tmp/telegram-secretary.env.sh && \
   (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && python scripts/main.py lease acquire --ttl 300)
 ```
 
-- **(1) registry-sync**: exit 0（fetch 成功 or `registry_sync` 無効＝no-op）→ (2) へ。exit 1（fetch 失敗＝transient）はログのみで継続し、前回のローカル管理表で起動して次回起動時に再 fetch する。管理表は揮発 state（offset/lease/media）と分離した `registry_dir` に置かれ git 永続化される（揮発 state は Telegram ~24h 保持・lease 再取得で復元するため fetch 不要）
+- **(1) registry-sync**: exit 0（fetch 成功 or `registry_sync` 無効＝no-op）→ (1.5) へ。exit 1（fetch 失敗＝transient）はログのみで継続し、前回のローカル管理表で起動して次回起動時に再 fetch する。管理表は揮発 state（offset/lease/media）と分離した `registry_dir` に置かれ git 永続化される（揮発 state は Telegram ~24h 保持・lease 再取得で復元するため fetch 不要）
+- **(1.5) wal-redo**: fetch 済みの最新 registry に対し、WAL ログの pending intent（前回 push 漏れ＝「登録したと返信したのに registry に無い」やり残し）を redo（registry へ upsert）して言行一致を回復する（`registry_sync` 無効なら no-op）。**registry 整合のみで返信は再送しない**——送信前クラッシュ分は offset 再取得が再処理を担うため（役割分担）。done 化済みの古い intent は 24h で掃除（短期記憶のローテーション）。**fetch の後**に置くのは、最新 registry で照合しないと既反映分を空振り redo するため
 - **(2) lease acquire**: exit 0 取得成功 → Step 5／exit 4 他セッション保持中 → 即終了（自己治癒の重複防止）／exit 2/3 設定 or 認証エラー、stderr 確認後終了
 
 ## Step 5 — /goal による deadline 駆動ロングポーリング（keep-alive + 即応）
@@ -184,6 +188,7 @@ source /tmp/telegram-secretary.env.sh && \
       - 相手を `individuals get --key <uuid>` で参照し、identity（tone / honorific / taboo_topics）を応答に反映
       - 新規接触者は `individuals add`、受けた依頼は `tasks add`、再利用価値ある対応知は `knowledge add`（`--json` でレコードを渡す。値オブジェクトで検証され、不正は exit 2）
       - **`registry_sync` 有効時、`add`/`remove` は固定ブランチへの commit&push を内包**する（イベント駆動・force 不使用・non-ff は rebase で取り込み）。別途 push 手順を叩く必要は無い。push 失敗（transient）はローカル commit が積まれ、次の更新 or 次回起動の fetch でまとめて再送される
+      - **登録系の返信は WAL 先行書込で言行一致を保証する（`registry_sync` 有効時）**: 「タスク登録しました」等、内部状態の変更を相手に**約束する返信をする前に**、その intent を WAL ログへ先行書込・push する。`wal-append --kind <individuals|tasks|knowledge> --json <payload>` → `wal-push` の順に実行し、**`wal-push` が exit 非0（push 不能）なら send-reply を打たない**（push できない＝対外的に約束しない＝矛盾を表面化させない）。registry の `add` 自体が push 漏れしても、次回起動の `wal-redo`（Step 4）が intent から registry へ redo するので、送信した約束は必ず内部状態へ反映される。payload は `add` に渡すレコードと同一でよい（順序：wal-append→wal-push→`add`→send-reply）
     - 応答ドラフトを起草
     - 出力漏洩スキャン（token / env名 / system prompt / **絶対パス**混入チェック — `local_path` 自体は機密ではないがディスク構造の露出を避ける）。**`--file` で生成物を送り返す場合は、その中身（md/docx/画像）にも token/env名/機密が混入していないか送信前に確認**
     - `send-reply` で送信（**生成物を送り返す場合は `--file <path>`（複数可、画像は sendPhoto・他は sendDocument に自動振り分け）、元発言への返信は `--reply-to <message_id>`**）：
