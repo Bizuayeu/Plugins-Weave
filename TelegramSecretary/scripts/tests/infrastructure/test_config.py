@@ -24,6 +24,7 @@ def base_env(monkeypatch, tmp_path):
         "TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD",
         "TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES",
         "TELEGRAM_SECRETARY_PDF_IMAGE_MAX_PAGES",
+        "TELEGRAM_SECRETARY_REGISTRY_DIR",
     ]:
         monkeypatch.delenv(k, raising=False)
     cfg = tmp_path / "config.json"
@@ -262,3 +263,32 @@ def test_registry_branch_from_config(tmp_path):
     path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_branch": "claude/custom-reg"})
     cfg = Config.from_sources(config_path=path)
     assert cfg.registry_branch == "claude/custom-reg"
+
+
+# === R3: registry_dir の env 優先（bootstrap 絶対化のキャリア、cwd 依存 .resolve() 回避） ===
+
+
+def test_registry_dir_env_overrides_config(tmp_path, monkeypatch):
+    """TELEGRAM_SECRETARY_REGISTRY_DIR env 設定時、config.json の registry_dir より env を優先する。
+
+    config.json の registry_dir は cwd（=2リポ親）起点の相対だが、registry コマンドは
+    ROUTINE_PROMPT で `cd $INSTALL_DIR`（skill root）してから走るため、config.py の
+    `.resolve()`（cwd 基準）では二重ネストの幽霊パスに解決される（FINDING 3 同型、R3 物証）。
+    bootstrap が source 時の cwd（=2リポ親）基準で絶対化して env 注入し、config.py は
+    その絶対パスをそのまま信頼する（再 resolve しない＝state_dir と同型の Z 案）。
+    """
+    abs_reg = (tmp_path / "abs_registry").resolve()
+    monkeypatch.setenv("TELEGRAM_SECRETARY_REGISTRY_DIR", str(abs_reg))
+    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_dir": "relative/ignored"})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.registry_dir == abs_reg
+    assert cfg.registry_root == abs_reg
+    assert cfg.knowledge_path == abs_reg / "knowledge" / "KNOWLEDGE.json"
+
+
+def test_registry_dir_falls_back_to_config_when_env_absent(tmp_path):
+    """REGISTRY_DIR env が無ければ config.json の registry_dir を従来通り解決（後方互換・ローカル運用）。"""
+    reg = tmp_path / "registry"
+    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_dir": str(reg)})
+    cfg = Config.from_sources(config_path=path)
+    assert cfg.registry_dir == reg.resolve()

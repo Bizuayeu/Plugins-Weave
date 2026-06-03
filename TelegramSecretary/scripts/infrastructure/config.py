@@ -131,9 +131,19 @@ class Config:
         agent_name = data.get("agent_name")  # Optional（prompt 用、CLI fetch/send では未使用）
         private_dir = data.get("private_dir")  # Optional
 
-        # --- registry（永続管理表）: config.json が正典（非秘匿運用設定の純2層、R1-R2） ---
-        registry_dir_raw = data.get("registry_dir")  # 未設定なら None で state_dir フォールバック
-        registry_dir = Path(registry_dir_raw).resolve() if registry_dir_raw else None
+        # --- registry（永続管理表）: config.json が値の正典。ただしパス解決は env 優先（R3）。 ---
+        # config.json の registry_dir は cwd（=2リポ親）起点の相対だが、registry コマンドは
+        # ROUTINE_PROMPT で `cd $INSTALL_DIR`（skill root）してから走るため、ここで .resolve() すると
+        # cwd 基準で二重ネストの幽霊パス化する（state_dir の FINDING 3 同型、R3 物証）。bootstrap が
+        # source 時の cwd（=2リポ親）基準で絶対化して TELEGRAM_SECRETARY_REGISTRY_DIR に注入するので、
+        # env があればその絶対パスをそのまま信頼（再 resolve しない）。env 無し（ローカル運用/テスト）は
+        # 従来どおり config.json の値を .resolve()。
+        registry_dir_env = os.environ.get("TELEGRAM_SECRETARY_REGISTRY_DIR", "").strip()
+        if registry_dir_env:
+            registry_dir = Path(registry_dir_env)
+        else:
+            registry_dir_raw = data.get("registry_dir")  # 未設定なら None で state_dir フォールバック
+            registry_dir = Path(registry_dir_raw).resolve() if registry_dir_raw else None
         registry_sync_enabled = bool(data.get("registry_sync", False))  # オプトイン（既定無効）
         registry_remote = data.get("registry_remote") or "origin"
         registry_branch = data.get("registry_branch") or "claude/ts-registry"

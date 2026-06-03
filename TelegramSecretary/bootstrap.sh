@@ -83,6 +83,18 @@ _ts_log "install_dir=$TELEGRAM_SECRETARY_INSTALL_DIR state_dir=$TELEGRAM_SECRETA
 # 後段の session_duration_sec 取得は「検証済み」前提で単純化できる（取得前に die させる）。
 (cd "$_ts_script_dir" && python scripts/main.py validate-config) || _ts_die "validate-config failed"
 
+# --- REGISTRY_DIR の絶対パス固定 (FINDING 3 同型: registry_dir も cwd 依存 .resolve() を回避) ---
+# config.json の registry_dir（2リポ親起点の相対）を bootstrap 実行時 cwd（=2リポ親）基準で絶対化して
+# env 注入する。registry コマンドは後続 call で (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && ...) するため、
+# config.py 側の .resolve()（cwd=skill root）では二重ネストの幽霊パス化する（state_dir の FINDING 3 同型）。
+# config.json が値の正典、env は解決済み絶対パスのキャリア（STATE_DIR と同型）。未設定なら注入せず
+# config.py が state_dir フォールバック。bootstrap source 時の cwd は 2リポ親（ROUTINE_PROMPT Step 2、cd 前）。
+_ts_registry_raw="$(python -c 'import json, sys; d = json.load(open(sys.argv[1], encoding="utf-8")); print(d.get("registry_dir") or "")' "$_ts_script_dir/config.json")"
+if [ -n "$_ts_registry_raw" ]; then
+    export TELEGRAM_SECRETARY_REGISTRY_DIR="$(python -c 'import os, sys; print(os.path.abspath(sys.argv[1]))' "$_ts_registry_raw")"
+    _ts_log "registry_dir=$TELEGRAM_SECRETARY_REGISTRY_DIR"
+fi
+
 # --- D: deadline 駆動ロングポーリング運用変数 (Stage 10.3 / D 改修、config.json 化) ---
 # 「枠 (deadline)」と「ポーリング回数 (メッセージ頻度で可変)」を分離する。停止主軸は
 # TS_SESSION_DEADLINE_EPOCH (時刻)。回数は数えない (早期 exit→返信→再起動)。
@@ -119,6 +131,10 @@ _ts_env_file="${TELEGRAM_SECRETARY_ENV_FILE:-/tmp/telegram-secretary.env.sh}"
     echo "export TS_POLL_SET_SEC=$(printf '%q' "$TS_POLL_SET_SEC")"
     echo "export TS_POLL_BASH_TIMEOUT_MS=$(printf '%q' "$TS_POLL_BASH_TIMEOUT_MS")"
     echo "export TS_MAX_TURNS=$(printf '%q' "$TS_MAX_TURNS")"
+    # registry_dir は registry を使う環境でのみ存在（config.json に registry_dir があれば上で絶対化済み）。
+    if [ -n "${TELEGRAM_SECRETARY_REGISTRY_DIR:-}" ]; then
+        echo "export TELEGRAM_SECRETARY_REGISTRY_DIR=$(printf '%q' "$TELEGRAM_SECRETARY_REGISTRY_DIR")"
+    fi
 } > "$_ts_env_file" || _ts_die "failed to write env snapshot: $_ts_env_file"
 export TELEGRAM_SECRETARY_ENV_FILE="$_ts_env_file"
 _ts_log "env snapshot -> $_ts_env_file"
