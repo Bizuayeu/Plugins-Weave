@@ -2,6 +2,17 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.2.0] - 2026-06-04 — 能動 push（proactive-send）
+
+### Added
+
+- **`proactive-send` サブコマンド（秘書による能動 outbound）** — 受信への返信（`send-reply`）に対し、inbound に紐づかない能動送信を担う双方向化。`SendReply` から `OffsetStore` 依存と offset advance を除いた姉妹 UseCase で、**offset 非干渉**（offset は inbound 専用の既読台帳ゆえ依存に持たない＝「advance して未読 inbound を取りこぼす」事故を構造的に封じる）。lease 検証→添付検証→送信→lease renew の不変条件は send-reply から継承。引数は `--chat-id`（必須）/ `--text-file`（必須）/ `--owner` / `--file`（複数可）/ `--reply-to` で、**`--update-id` は持たない**（send-reply との差分）。exit code は send-reply と同一（0/1/2/3/4）。能力境界（秘書は基本 inbound、口頭 grant で outbound）は SecretaryRole、再送の冪等性設計は DESIGN §3.9 が SSoT。
+- **`wal-redo` の outbound 再送（言行一致の outbound 版）** — proactive-send は inbound に紐づかず offset の安全網が無いため、WAL 再送が唯一の冪等性保証になる。起動時に outbound kind の pending を **1回だけ再送**（本文頭に元送信予定時刻＋謝罪プレフィックスを付す）して即 `mark_done` する（再送→即 done で無限再送ループを防ぐ。TTL も content-hash dedup も持たない）。買える保証は at-least-once で、重複は技術で潰さず「受け手の混乱」を社会レイヤで無害化する設計（DESIGN §3.9）。`wal-append --kind outbound`（`chat_id` 必須）で先行書込。
+
+### Changed
+
+- **`wal-redo` 契約を「outbound kind に限り再送する」へ拡張** — 従来「返信は再送しない」（registry kind の redo 専任）だった契約を、entries を registry kind と outbound kind に二分する形へ拡張。**registry kind は不変**（reconcile→upsert→settle、送信前クラッシュ分は offset 再取得が担うため再送しない）で、outbound kind のみ独立ループで1回再送する。`wal-append --kind` の choices に `outbound` を追加。
+
 ## [1.1.0] - 2026-06-04 — 能力カタログ（abilities）
 
 ### Added

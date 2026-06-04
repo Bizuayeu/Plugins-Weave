@@ -7,12 +7,12 @@ from domain.authorization import AuthorizedChats
 from domain.exceptions import GitSyncError
 from domain.wal import WalEntry
 from infrastructure.config import Config
-from infrastructure.exit_codes import EXIT_FETCH_FAILED, EXIT_OK
+from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
 from infrastructure.wal_cli import run_wal_append, run_wal_push, run_wal_redo
 
 from adapters.registry.json_registry_store import JsonRegistryStore
 from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
-from tests.usecases.fakes import FakeGitSync
+from tests.usecases.fakes import FakeGitSync, FakeMessageSink
 
 
 def _config(tmp_path, sync=True):
@@ -109,3 +109,44 @@ def test_redo_reconciles_abilities_pending_into_registry(tmp_path):
     records = JsonRegistryStore(config.abilities_path).load()
     assert any(r["id"] == "A1" for r in records)  # registry へ反映
     assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
+
+
+# --- outbound kind（proactive-send 送信ロスト対策、Stage 3）---
+
+
+def test_append_writes_outbound_pending(tmp_path):
+    """outbound kind は key_field 不在ゆえ created_at をキーに pending 追記。"""
+    config = _config(tmp_path, sync=True)
+    args = SimpleNamespace(json='{"chat_id": 100, "text": "hi"}', json_file=None)
+    assert run_wal_append(config, "outbound", args) == EXIT_OK
+    entries = JsonlWalLogStore(config.wal_log_path).load()
+    assert entries[0].kind == "outbound"
+    assert entries[0].status == "pending"
+    assert entries[0].payload["chat_id"] == 100
+
+
+def test_append_outbound_missing_chat_id_is_config_invalid(tmp_path):
+    """outbound payload に chat_id が無ければ入力不正（exit 2）。"""
+    config = _config(tmp_path, sync=True)
+    args = SimpleNamespace(json='{"text": "hi"}', json_file=None)
+    assert run_wal_append(config, "outbound", args) == EXIT_CONFIG_INVALID
+
+
+def test_redo_resends_outbound_via_sink(tmp_path):
+    """redo が outbound pending を sink へ1回再送（謝罪プレフィックス）し done 化する。"""
+    config = _config(tmp_path, sync=True)
+    JsonlWalLogStore(config.wal_log_path).append(
+        WalEntry(
+            key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
+            payload={"chat_id": 100, "text": "関連トピック"},
+            created_at="2026-06-03T18:00:00+00:00",
+        )
+    )
+    sink = FakeMessageSink()
+    assert run_wal_redo(config, sink=sink) == EXIT_OK
+    assert len(sink.sent) == 1
+    assert "念のため再送します" in sink.sent[0].text
+    assert "関連トピック" in sink.sent[0].text
+    assert all(
+        e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load()
+    )

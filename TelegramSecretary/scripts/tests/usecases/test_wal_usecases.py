@@ -15,7 +15,12 @@ from domain.wal import WalEntry
 from usecases.manage_registry import RegistryService
 from usecases.wal import AppendWalIntent, PushWalLog, RedoPendingIntents
 
-from tests.usecases.fakes import FakeGitSync, FakeRegistryStore, FakeWalLogStore
+from tests.usecases.fakes import (
+    FakeGitSync,
+    FakeMessageSink,
+    FakeRegistryStore,
+    FakeWalLogStore,
+)
 
 
 def _now():
@@ -108,3 +113,66 @@ def test_redo_checkpoint_drops_old_done():
     result = RedoPendingIntents(log, _services(), now_fn=_now, retention_h=24).execute()
     assert log.load() == []  # 古い done は掃除
     assert result["kept"] == 0
+
+
+# --- RedoPendingIntents: outbound 再送（Stage 3、offset 非依存の at-least-once）---
+
+
+def _outbound_entry(
+    chat_id=100, text="hi", status="pending", created_at="2026-06-03T18:00:00+00:00"
+):
+    # outbound は registry key を持たないので created_at をキーにする（reconcile 照合に乗らない）
+    return WalEntry(
+        key=created_at,
+        kind="outbound",
+        status=status,
+        payload={"chat_id": chat_id, "text": text},
+        created_at=created_at,
+    )
+
+
+def test_redo_resends_pending_outbound_once_with_apology_prefix():
+    sink = FakeMessageSink()
+    log = FakeWalLogStore(entries=[_outbound_entry(text="関連トピックあり")])
+    result = RedoPendingIntents(log, _services(), sink=sink, now_fn=_now).execute()
+    assert len(sink.sent) == 1
+    sent = sink.sent[0]
+    assert sent.chat_id == 100
+    # 元の送信予定時刻＋謝罪プレフィックスが本文頭に付く（鮮度を人間に委ねる＝v4）
+    assert "2026-06-03T18:00:00+00:00" in sent.text
+    assert "念のため再送します" in sent.text
+    assert "関連トピックあり" in sent.text
+    assert result["resent"] == 1
+    # 再送後 done 化（無限再送防止の起点）
+    assert all(e.status == "done" for e in log.load() if e.kind == "outbound")
+
+
+def test_redo_does_not_resend_outbound_twice():
+    sink = FakeMessageSink()
+    log = FakeWalLogStore(entries=[_outbound_entry()])
+    RedoPendingIntents(log, _services(), sink=sink, now_fn=_now).execute()
+    # 1回目で done 化済み。2回目の redo では再送しない（v4 の掃除＝再送→即 done で無限ループ防止）
+    result2 = RedoPendingIntents(log, _services(), sink=sink, now_fn=_now).execute()
+    assert len(sink.sent) == 1
+    assert result2["resent"] == 0
+
+
+def test_redo_outbound_and_registry_are_independent():
+    # 混在 log: registry pending（やり残し）+ outbound pending → 互いに干渉しない
+    sink = FakeMessageSink()
+    log = FakeWalLogStore(entries=[_entry("T0001"), _outbound_entry()])
+    store = FakeRegistryStore(records=[])
+    services = {"tasks": RegistryService(store, "id")}
+    result = RedoPendingIntents(log, services, sink=sink, now_fn=_now).execute()
+    assert {r["id"] for r in store.load()} == {"T0001"}  # registry は upsert
+    assert result["redone"] == 1  # registry やり残し（outbound はカウントしない）
+    assert result["resent"] == 1  # outbound 再送
+    assert len(sink.sent) == 1
+
+
+def test_redo_without_sink_leaves_outbound_pending():
+    # sink 未注入（既存呼び出し）なら outbound は送信されず pending のまま（後方互換）
+    log = FakeWalLogStore(entries=[_outbound_entry()])
+    result = RedoPendingIntents(log, _services(), now_fn=_now).execute()
+    assert result.get("resent", 0) == 0
+    assert any(e.status == "pending" and e.kind == "outbound" for e in log.load())

@@ -74,7 +74,7 @@ source /tmp/telegram-secretary.env.sh && \
 ```
 
 - **(1) registry-sync**: exit 0（fetch 成功 or `registry_sync` 無効＝no-op）→ (1.5) へ。exit 1（fetch 失敗＝transient）はログのみで継続し、前回のローカル管理表で起動して次回起動時に再 fetch する。管理表は揮発 state（offset/lease/media）と分離した `registry_dir` に置かれ git 永続化される（揮発 state は Telegram ~24h 保持・lease 再取得で復元するため fetch 不要）
-- **(1.5) wal-redo**: fetch 済みの最新 registry に対し、WAL ログの pending intent（前回 push 漏れ＝「登録したと返信したのに registry に無い」やり残し）を redo（registry へ upsert）して言行一致を回復する（`registry_sync` 無効なら no-op）。**registry 整合のみで返信は再送しない**——送信前クラッシュ分は offset 再取得が再処理を担うため（役割分担）。done 化済みの古い intent は 24h で掃除（短期記憶のローテーション）。**fetch の後**に置くのは、最新 registry で照合しないと既反映分を空振り redo するため
+- **(1.5) wal-redo**: fetch 済みの最新 registry に対し、WAL ログの pending intent（前回 push 漏れ＝「登録したと返信したのに registry に無い」やり残し）を redo（registry へ upsert）して言行一致を回復する（`registry_sync` 無効なら no-op）。**registry kind（individuals/tasks/knowledge/abilities）は整合のみで返信は再送しない**——送信前クラッシュ分は offset 再取得が再処理を担うため（役割分担）。**ただし outbound kind（proactive-send）は例外で1回だけ再送する**——inbound のような offset 安全網が無く、送信前クラッシュした「送ろうとした意図」は他に再現経路が無いため、元の送信予定時刻＋謝罪プレフィックスを本文頭に付して再送 → 即 done（無限再送ループ防止）。done 化済みの古い intent は 24h で掃除（短期記憶のローテーション）。**fetch の後**に置くのは、最新 registry で照合しないと既反映分を空振り redo するため。**再送方針の詳細（at-least-once・offset 非干渉・謝罪プレフィックス）は DESIGN §3.9 が SSoT**
 - **(2) lease acquire**: exit 0 取得成功 → Step 5／exit 4 他セッション保持中 → 即終了（自己治癒の重複防止）／exit 2/3 設定 or 認証エラー、stderr 確認後終了
 
 ## Step 5 — /goal による deadline 駆動ロングポーリング（keep-alive + 即応）
@@ -210,6 +210,27 @@ source /tmp/telegram-secretary.env.sh && \
 `watch` ループはサイクル毎に **自分で `lease renew` を実行する**。したがって エージェント側で定期的な手動 renew を呼ぶ必要は無い。
 
 並走奪取が発生した場合（他セッションが lease を奪った場合）、`watch` は内部で `LeaseConflictError` を検出して **exit 4 で自己終了**する。次の hourly cron が `lease acquire` で拾い直し、自己治癒は完了する。
+
+## 自由時間の能動発信（proactive-send）
+
+秘書は inbound 応答（send-reply）に加え、**口頭での権限 grant（例: 自由時間の付与）がある時に限り**、文脈駆動の不定期 push（proactive-send）を行える。pull 口（getUpdates）に push を足すことで対話チャネルが双方向化する（SecretaryRole §2.5「重要案件は握り込まず即時 push」の能動版）。
+
+- **親性ゲート（noise を投げない）**: 能動発信は **actionability を高めに張る**——「本当に面白い／役立つ」と判断した signal だけを投げ、頻度を抑える。受信への返信と違い、こちらから割り込む行為ゆえ、迷ったら投げない。signal を投げ noise は投げない（actionability ゲートの SSoT は本 ROUTINE_PROMPT）。grant が無い・自由時間でない時は inbound 応答に徹する
+- **offset 非干渉**: proactive-send は inbound に紐づかないため `--update-id` を**付けない**（offset は inbound 専用の既読台帳ゆえ触らない＝未読の取りこぼし防止）。`--chat-id`（必須）/ `--text-file`（必須）/ 任意で `--file`（生成物、複数可）/ `--reply-to` を渡す
+- **送信手順（`registry_sync` 有効時）**: 送ろうとした意図を先に WAL へ書き込んでから送る（send-reply の登録系と同じ言行一致の順序、outbound 専用 kind）。`wal-append --kind outbound --json '{"chat_id":<id>,"text":"<本文>"}'` → `wal-push`（push 不能なら送信中止）→ `proactive-send`。送信前クラッシュ時は次回起動の `wal-redo`（Step 4）が **元の送信予定時刻＋謝罪プレフィックスを付して1回だけ再送 → 即 done** する（再送方針の SSoT は DESIGN §3.9）
+- **出力漏洩スキャン**: send-reply と共通——本文・添付（`--file` の md/docx/画像）に token / env名 / system prompt / 絶対パスが混入していないか送信前に確認
+
+```bash
+source /tmp/telegram-secretary.env.sh && \
+  (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && \
+   echo "<起草した本文>" > /tmp/push.txt && \
+   python scripts/main.py wal-append --kind outbound --json '{"chat_id":<chat_id>,"text":"<本文>"}' && \
+   python scripts/main.py wal-push && \
+   python scripts/main.py proactive-send --chat-id <chat_id> --text-file /tmp/push.txt)
+# 生成物を添えて push する例（--update-id は付けない＝offset 非干渉）:
+#   python scripts/main.py proactive-send --chat-id <chat_id> --text-file /tmp/push.txt --file /tmp/figure.png --reply-to <message_id>
+# registry_sync 無効時は wal-append/wal-push を省き proactive-send のみ（再送保証は付かない）
+```
 
 ## Step 7 — セッション終端
 

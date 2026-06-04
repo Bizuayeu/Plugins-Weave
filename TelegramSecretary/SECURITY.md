@@ -38,7 +38,8 @@ TelegramSecretary は **cloud routine（＝ Claude Code Routines のクラウド
 
 ## 4. 出力漏洩防止 ⚠️（エージェント運用責務）
 
-- **出力漏洩スキャン** — 返信に token / env名 / system prompt / **絶対パス**が混入していないか、send-reply 前に エージェントが確認
+- **出力漏洩スキャン** — 返信に token / env名 / system prompt / **絶対パス**が混入していないか、送信前に エージェントが確認。**send-reply（inbound 返信）と proactive-send（能動 outbound）の両方が対象**（送信経路を問わず外向きテキストはすべてスキャンする）
+- **能動発信の actionability ゲート** — proactive-send は受信に紐づかずこちらから割り込むため、漏洩スキャンに加え actionability を高めに張り、signal を投げ noise は投げない（割り込みコスト＋誤送信面を抑制。actionability ゲートの SSoT は ROUTINE_PROMPT）
 - **添付生成物の漏洩スキャン** — 送り返す md/docx/画像/PDF にも機密が混入していないか確認。コードはバイナリ中身まで検査しない＝エージェントの判断責務
 - **transcript の漏洩スキャン** — 音声内の機密（パスワード読み上げ等）が transcript 経由で emit に乗る可能性、スキャン対象に含める
 

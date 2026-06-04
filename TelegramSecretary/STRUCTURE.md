@@ -74,6 +74,7 @@ TelegramSecretary/
 │   │   ├── ports.py          # Port 定義（Store 群含む）
 │   │   ├── acquire_lease.py / renew_lease.py / release_lease.py
 │   │   ├── fetch_authorized_updates.py / send_reply.py
+│   │   ├── proactive_send.py    # 能動送信（send-reply から OffsetStore 依存を除いた姉妹 UseCase・offset 非干渉）
 │   │   ├── download_authorized_media.py / render_authorized_media.py
 │   │   ├── manage_registry.py # 管理表 CRUD UseCase
 │   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents）
@@ -166,6 +167,11 @@ TelegramSecretary/
         wal-append（intent pending）→ wal-push（must-succeed、失敗なら送信中止）
         → registry add → エージェント起草 → 出力漏洩スキャン → send-reply（必要なら --file/--reply-to）
         ※起動時 wal-redo が前回 push 漏れの intent を registry へ反映（registry-sync 直後）
+
+[能動発信] grant された自由時間の不定期 push（proactive-send、offset 非干渉）:
+        wal-append --kind outbound（intent pending）→ wal-push（must-succeed）
+        → エージェント起草 → 出力漏洩スキャン → proactive-send（--update-id を付けない＝offset を触らない）
+        ※起動時 wal-redo が outbound pending を元時刻＋謝罪プレフィックスで1回再送→即done（DESIGN §3.9）
 
 [保守] 肥大化対策（重要度の世界＝エージェント判断、DESIGN §3.5）:
         エージェントが「いつ・どの単位で」を判断し archive_rotate の純関数 + JsonRegistryStore で実行

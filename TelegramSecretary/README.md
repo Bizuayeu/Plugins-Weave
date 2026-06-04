@@ -13,6 +13,7 @@ Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、
 ## できること
 
 - **テキスト即応** — Gmail より低レイテンシ（数秒）で `<OWNER>` から呼べる 24-7 の対話チャネル
+- **能動 push（proactive-send）** — 受信への返信だけでなく、秘書側から能動的に送る outbound（双方向化）も可能。秘書は基本 inbound（受信→返信）稼働だが、口頭での権限 grant（例: 自由時間の付与）により outbound も担う（能力境界の詳細は SecretaryRole、再送の冪等性設計は [DESIGN.md](./DESIGN.md) §3.9）
 - **受信メディアの中身理解** — file 転送で止まらず中身を読む：
   - 画像 → Vision で解釈
   - docx / pptx / xlsx → Markdown 化
@@ -87,6 +88,7 @@ python scripts/main.py lease release
 | `poll [--timeout]` | getUpdates 1サイクル、認可・正規化済み update を JSON Lines で emit | 0, 1=fetch失敗, 3=auth失敗 |
 | `watch [--max-duration SEC] [--exit-on-message] [--timeout SEC] [--max-iterations N] [--cleanup-interval N] [--owner]` | 長期 long-poll ループ（サイクル毎に lease 自動 renew）。`--max-duration`=窓満了で exit 0、`--exit-on-message`=メッセージ受信サイクルで exit 0、`--timeout`=getUpdates long-poll 秒（既定 30） | 常駐 / 窓畳み |
 | `send-reply --chat-id --update-id --text-file [--file ...] [--reply-to] [--owner]` | 返信送信。`--file` で添付、`--reply-to` で threading | 0, 1=送信失敗, 2=添付不正, 3=auth, 4=lease |
+| `proactive-send --chat-id --text-file [--file ...] [--reply-to] [--owner]` | 秘書からの能動送信（inbound 非依存の outbound push、offset 非干渉）。**`--update-id` 無し**が send-reply との差分。`--file` で添付、`--reply-to` で threading | 0, 1=送信失敗, 2=添付不正, 3=auth, 4=lease |
 | `render-pdf --path (--text \| --pages N-M)` | 受信済み PDF のオンデマンド抽出（`--text`=全文テキスト / `--pages`=指定ページ画像化） | 0, 2=不在/引数不正 |
 | `test --chat-id` | 疎通テスト（owner chat に ping 送信） | 0, 1, 3 |
 | `cleanup-media` | retention 超過の保存 media を削除（`watch` は自動発火、手動/cron 用） | 0, 2 |

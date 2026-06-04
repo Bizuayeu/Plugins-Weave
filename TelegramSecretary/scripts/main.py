@@ -40,6 +40,7 @@ from usecases.acquire_lease import AcquireLease
 from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
 from usecases.release_lease import ReleaseLease
 from usecases.renew_lease import RenewLease
+from usecases.proactive_send import ProactiveSend
 from usecases.send_reply import SendReply
 
 # 終了コードは infrastructure/exit_codes.py が SSoT。後方互換のため re-export
@@ -443,25 +444,47 @@ def cmd_render_pdf(args: argparse.Namespace) -> int:
     return EXIT_CONFIG_INVALID
 
 
+def _load_owned_lease(config: Config, owner: str):
+    """lease を load し owner 一致を検証（send-reply / proactive-send 共通）。OK なら
+    (lease, lease_store)、NG なら None（stderr 出力済み、呼び出し側で EXIT_LEASE_CONFLICT）。
+    """
+    lease_store = JsonLeaseStore(config.state_dir)
+    lease = lease_store.load()
+    if lease is None:
+        print("no active lease (acquire first)", file=sys.stderr)
+        return None
+    if lease.owner != owner:
+        print(
+            f"lease owned by {lease.owner!r}, not {owner!r} — refusing send",
+            file=sys.stderr,
+        )
+        return None
+    return lease, lease_store
+
+
+def _outbound_exception_to_exit(exc: TelegramSecretaryError) -> int:
+    """送信例外を exit code にマップ（send-reply / proactive-send 共通）。"""
+    if isinstance(exc, (AttachmentNotFound, AttachmentTooLarge)):
+        print(f"attachment error: {exc}", file=sys.stderr)
+        return EXIT_CONFIG_INVALID
+    if isinstance(exc, AuthFailureError):
+        print(f"auth failure: {exc}", file=sys.stderr)
+        return EXIT_AUTH_FAILED
+    print(f"send failed: {exc}", file=sys.stderr)
+    return EXIT_FETCH_FAILED
+
+
 def cmd_send_reply(args: argparse.Namespace) -> int:
     config = _load_config()
 
     owner = _session_owner(args.owner)
     text = Path(args.text_file).read_text(encoding="utf-8")
     attachments = [OutboundAttachment(path=Path(f)) for f in (args.file or [])]
+    owned = _load_owned_lease(config, owner)
+    if owned is None:
+        return EXIT_LEASE_CONFLICT
+    lease, lease_store = owned
     offset_store = JsonOffsetStore(config.state_dir)
-    lease_store = JsonLeaseStore(config.state_dir)
-    lease = lease_store.load()
-    if lease is None:
-        print("no active lease (acquire first)", file=sys.stderr)
-        return EXIT_LEASE_CONFLICT
-    if lease.owner != owner:
-        # 自分以外の owner の lease で送信しようとしている (運用律 B 案: env 経由で統一)
-        print(
-            f"lease owned by {lease.owner!r}, not {owner!r} — refusing send",
-            file=sys.stderr,
-        )
-        return EXIT_LEASE_CONFLICT
 
     with TelegramApiGateway(bot_token=config.bot_token) as gateway:
         # 送信前に typing を best-effort で出す（watch→Monitor→応答の数秒ラグの UX 緩和）
@@ -479,17 +502,49 @@ def cmd_send_reply(args: argparse.Namespace) -> int:
                 now=utc_now(),
                 max_bytes=config.outbound_max_size_bytes,
             )
-        except (AttachmentNotFound, AttachmentTooLarge) as exc:
-            print(f"attachment error: {exc}", file=sys.stderr)
-            return EXIT_CONFIG_INVALID
-        except AuthFailureError as exc:
-            print(f"auth failure: {exc}", file=sys.stderr)
-            return EXIT_AUTH_FAILED
         except TelegramSecretaryError as exc:
-            print(f"send failed: {exc}", file=sys.stderr)
-            return EXIT_FETCH_FAILED
+            return _outbound_exception_to_exit(exc)
 
     print(f"sent chat_id={args.chat_id} update_id={args.update_id}")
+    return EXIT_OK
+
+
+def cmd_proactive_send(args: argparse.Namespace) -> int:
+    """秘書による能動発信（inbound 非依存の outbound push）。
+
+    `cmd_send_reply` の写像から `offset_store` 構築と `--update-id` を除去したもの。
+    offset は inbound 専用の既読台帳ゆえ能動送信では一切触れない（`ProactiveSend` が
+    `OffsetStore` を依存に持たないことで構造的に保証）。lease 検証→typing→送信→renew は共通。
+    """
+    config = _load_config()
+
+    owner = _session_owner(args.owner)
+    text = Path(args.text_file).read_text(encoding="utf-8")
+    attachments = [OutboundAttachment(path=Path(f)) for f in (args.file or [])]
+    owned = _load_owned_lease(config, owner)
+    if owned is None:
+        return EXIT_LEASE_CONFLICT
+    lease, lease_store = owned
+
+    with TelegramApiGateway(bot_token=config.bot_token) as gateway:
+        # 送信前に typing を best-effort で出す（send-reply と共通の UX）
+        gateway.send_chat_action(args.chat_id)
+        try:
+            ProactiveSend(gateway, lease_store).execute(
+                message=OutboundMessage(
+                    chat_id=args.chat_id,
+                    text=text,
+                    reply_to_message_id=args.reply_to,
+                    attachments=attachments,
+                ),
+                lease=lease,
+                now=utc_now(),
+                max_bytes=config.outbound_max_size_bytes,
+            )
+        except TelegramSecretaryError as exc:
+            return _outbound_exception_to_exit(exc)
+
+    print(f"sent chat_id={args.chat_id}")
     return EXIT_OK
 
 
@@ -612,6 +667,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="返信先メッセージ ID（reply threading）",
     )
 
+    p_proactive = sub.add_parser(
+        "proactive-send",
+        help="秘書による能動発信（inbound 非依存の outbound push、offset 非干渉）",
+    )
+    p_proactive.add_argument("--chat-id", type=int, required=True)
+    p_proactive.add_argument("--text-file", required=True)
+    p_proactive.add_argument(
+        "--owner", help="session owner id (lease 検証用、省略時は env か uuid)"
+    )
+    p_proactive.add_argument(
+        "--file",
+        action="append",
+        default=[],
+        help="送り返す添付ファイルパス（複数指定可、画像は sendPhoto・他は sendDocument）",
+    )
+    p_proactive.add_argument(
+        "--reply-to",
+        type=int,
+        default=None,
+        help="返信先メッセージ ID（reply threading）",
+    )
+
     p_test = sub.add_parser("test", help="疎通テスト：owner chat に ping 送信")
     p_test.add_argument("--chat-id", type=int, required=True)
     p_test.add_argument("--text", default="ping from TelegramSecretary")
@@ -654,7 +731,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_wal_append.add_argument(
         "--kind",
         required=True,
-        choices=["individuals", "tasks", "knowledge", "abilities"],
+        choices=["individuals", "tasks", "knowledge", "abilities", "outbound"],
     )
     p_wal_append.add_argument("--json", help="intent payload の JSON 文字列")
     p_wal_append.add_argument(
@@ -684,6 +761,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "poll": cmd_poll,
         "watch": cmd_watch,
         "send-reply": cmd_send_reply,
+        "proactive-send": cmd_proactive_send,
         "test": cmd_test,
         "cleanup-media": cmd_cleanup_media,
         "render-pdf": cmd_render_pdf,

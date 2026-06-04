@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 from typing import Any, Optional
 
+from adapters.telegram.api_gateway import TelegramApiGateway
 from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
 from domain.exceptions import GitSyncError
 from domain.lease import utc_now
@@ -29,26 +30,39 @@ _WAL_KINDS = {k: spec[1] for k, spec in _REGISTRY_SPEC.items()}
 
 
 def run_wal_append(config: Config, kind: str, args: Any) -> int:
-    """intent を pending で WAL ログに追記（registry_sync 無効なら no-op）。"""
+    """intent を pending で WAL ログに追記（registry_sync 無効なら no-op）。
+
+    registry kind（individuals/tasks/knowledge/abilities）は payload の key_field をキーにする。
+    outbound kind（proactive-send）は registry key を持たないため created_at をキーにする
+    （reconcile 照合に乗らない＝registry redo と独立、DESIGN §3.9）。
+    """
     if not config.registry_sync_enabled:
         return EXIT_OK  # WAL は registry 永続化に相乗り、無効環境では素通り
-    if kind not in _WAL_KINDS:
-        print(f"unknown wal kind: {kind}", file=sys.stderr)
-        return EXIT_CONFIG_INVALID
-    key_field = _WAL_KINDS[kind]
     try:
         payload = _read_json_arg(args)
     except (ValueError, OSError, TypeError) as exc:
         print(f"invalid wal payload: {exc}", file=sys.stderr)
         return EXIT_CONFIG_INVALID
-    key = payload.get(key_field)
-    if not key:
-        print(f"wal payload missing key field {key_field!r}", file=sys.stderr)
+    created_at = utc_now().isoformat()
+    if kind == "outbound":
+        # outbound は registry key を持たない。送信予定時刻（created_at）をキーにする
+        if not payload.get("chat_id"):
+            print("wal outbound payload missing 'chat_id'", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
+        key = created_at
+    elif kind in _WAL_KINDS:
+        key_field = _WAL_KINDS[kind]
+        key = payload.get(key_field)
+        if not key:
+            print(f"wal payload missing key field {key_field!r}", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
+    else:
+        print(f"unknown wal kind: {kind}", file=sys.stderr)
         return EXIT_CONFIG_INVALID
     AppendWalIntent(JsonlWalLogStore(config.wal_log_path)).execute(
-        key=key, kind=kind, payload=payload, created_at=utc_now().isoformat()
+        key=key, kind=kind, payload=payload, created_at=created_at
     )
-    print(f"wal appended {kind} {key_field}={key}")
+    print(f"wal appended {kind} key={key}")
     return EXIT_OK
 
 
@@ -72,13 +86,23 @@ def run_wal_push(config: Config, args: Any, git=None) -> int:
     return EXIT_OK
 
 
-def run_wal_redo(config: Config, args: Optional[Any] = None) -> int:
-    """起動時に WAL pending を registry へ redo（registry_sync 有効時のみ）。返信は再送しない。"""
+def run_wal_redo(config: Config, args: Optional[Any] = None, sink=None) -> int:
+    """起動時に WAL pending を registry へ redo + outbound を1回再送（registry_sync 有効時のみ）。
+
+    registry kind は再送しない（送信前クラッシュ分は offset 再取得が担う）。outbound kind は
+    offset の安全網が無いため sink へ1回再送して done 化する（DESIGN §3.9）。sink 注入はテスト用、
+    本番は config から TelegramApiGateway を組む（run_wal_push の git=None 注入と同型）。
+    """
     if not config.registry_sync_enabled:
         return EXIT_OK
     services = {kind: _service(config, kind) for kind in _WAL_KINDS}
-    result = RedoPendingIntents(
-        JsonlWalLogStore(config.wal_log_path), services
-    ).execute()
-    print(f"wal redo: redone={result['redone']} kept={result['kept']}")
+    log = JsonlWalLogStore(config.wal_log_path)
+    if sink is not None:
+        result = RedoPendingIntents(log, services, sink=sink).execute()
+    else:
+        with TelegramApiGateway(bot_token=config.bot_token) as gateway:
+            result = RedoPendingIntents(log, services, sink=gateway).execute()
+    print(
+        f"wal redo: redone={result['redone']} resent={result['resent']} kept={result['kept']}"
+    )
     return EXIT_OK

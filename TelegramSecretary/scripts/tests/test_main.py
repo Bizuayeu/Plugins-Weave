@@ -1271,3 +1271,203 @@ def test_parse_page_range():
     assert _parse_page_range("1-3") == (0, 3)
     start, end = _parse_page_range("21-")
     assert start == 20 and end >= 22
+
+
+# --- proactive-send（offset 非干渉の能動 outbound）---
+
+
+def test_proactive_send_requires_lease(env_ready, monkeypatch, tmp_path):
+    """lease 無しでは送信せず exit 4（send-reply と同じ CLI 層防御）。"""
+    text_file = tmp_path / "push.txt"
+    text_file.write_text("最近の Loop で面白い話が", encoding="utf-8")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"ok": True, "result": {}})
+
+    _install_mock_transport(monkeypatch, handler)
+    rc = main(["proactive-send", "--chat-id", "100", "--text-file", str(text_file)])
+    assert rc == EXIT_LEASE_CONFLICT
+
+
+def test_proactive_send_after_lease_acquire_omits_update_id(
+    env_ready, monkeypatch, tmp_path, capsys
+):
+    """acquire 後に能動送信 → exit 0、body に chat_id/text、stdout に update_id を出さない。"""
+    text_file = tmp_path / "push.txt"
+    text_file.write_text("能動発信", encoding="utf-8")
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "sendMessage" in str(request.url):
+            captured["body"] = json.loads(request.read())
+        return httpx.Response(200, json={"ok": True, "result": {}})
+
+    _install_mock_transport(monkeypatch, handler)
+    assert main(["lease", "acquire", "--owner", "S1"]) == EXIT_OK
+    rc = main(
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(text_file),
+            "--owner",
+            "S1",
+        ]
+    )
+    assert rc == EXIT_OK
+    assert captured["body"]["chat_id"] == 100
+    assert captured["body"]["text"] == "能動発信"
+    out = capsys.readouterr().out
+    assert "sent chat_id=100" in out
+    assert "update_id" not in out  # inbound セマンティクスを持ち込まない
+
+
+def test_proactive_send_fails_when_owner_mismatch(env_ready, monkeypatch, tmp_path):
+    """別 owner の lease で proactive-send は exit 4（並走奪取の二重 push 防止）。"""
+    text_file = tmp_path / "push.txt"
+    text_file.write_text("x", encoding="utf-8")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"ok": True, "result": {}})
+
+    _install_mock_transport(monkeypatch, handler)
+    assert main(["lease", "acquire", "--owner", "S1"]) == EXIT_OK
+    rc = main(
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(text_file),
+            "--owner",
+            "S2",
+        ]
+    )
+    assert rc == EXIT_LEASE_CONFLICT
+
+
+def test_proactive_send_missing_file_exits_config_invalid(
+    env_ready, monkeypatch, tmp_path
+):
+    """存在しない添付は送信前に弾く（入力不正 = exit 2、send-reply と共通）。"""
+    text_file = tmp_path / "push.txt"
+    text_file.write_text("x", encoding="utf-8")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"ok": True, "result": {}})
+
+    _install_mock_transport(monkeypatch, handler)
+    assert main(["lease", "acquire", "--owner", "S1"]) == EXIT_OK
+    rc = main(
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(text_file),
+            "--owner",
+            "S1",
+            "--file",
+            str(tmp_path / "nonexistent.png"),
+        ]
+    )
+    assert rc == EXIT_CONFIG_INVALID
+
+
+def test_proactive_send_with_file_uses_sendphoto(env_ready, monkeypatch, tmp_path):
+    """--file 添付の richness は send-reply と共通（画像は sendPhoto）。"""
+    text_file = tmp_path / "push.txt"
+    text_file.write_text("caption", encoding="utf-8")
+    img = tmp_path / "fig.png"
+    img.write_bytes(b"\x89PNG\r\n")
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url))
+        return httpx.Response(200, json={"ok": True, "result": {}})
+
+    _install_mock_transport(monkeypatch, handler)
+    assert main(["lease", "acquire", "--owner", "S1"]) == EXIT_OK
+    rc = main(
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(text_file),
+            "--owner",
+            "S1",
+            "--file",
+            str(img),
+        ]
+    )
+    assert rc == EXIT_OK
+    assert any("sendPhoto" in c for c in calls)
+
+
+def test_proactive_send_with_reply_to(env_ready, monkeypatch, tmp_path):
+    """--reply-to も send-reply と共通で配線される。"""
+    text_file = tmp_path / "push.txt"
+    text_file.write_text("threaded", encoding="utf-8")
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "sendMessage" in str(request.url):
+            captured["body"] = json.loads(request.read())
+        return httpx.Response(200, json={"ok": True, "result": {}})
+
+    _install_mock_transport(monkeypatch, handler)
+    assert main(["lease", "acquire", "--owner", "S1"]) == EXIT_OK
+    rc = main(
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(text_file),
+            "--owner",
+            "S1",
+            "--reply-to",
+            "42",
+        ]
+    )
+    assert rc == EXIT_OK
+    assert captured["body"]["reply_to_message_id"] == 42
+
+
+def test_proactive_send_rejects_update_id_flag(env_ready, tmp_path):
+    """proactive-send は --update-id を受け付けない（send-reply との差分の明示検証）。
+
+    offset 非干渉ゆえ inbound の update_id セマンティクスを CLI からも排除する。
+    argparse は未知フラグで SystemExit を出す。
+    """
+    text_file = tmp_path / "push.txt"
+    text_file.write_text("x", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "proactive-send",
+                "--chat-id",
+                "100",
+                "--text-file",
+                str(text_file),
+                "--update-id",
+                "1",
+            ]
+        )
+
+
+# --- wal-append --kind outbound（proactive-send WAL 配線の parser 入口）---
+
+
+def test_wal_append_accepts_outbound_kind(env_ready):
+    """parser が --kind outbound を受け付ける（registry_sync 無効ゆえ no-op で exit 0）。
+
+    outbound 送信ロスト対策で wal-append --kind outbound を ROUTINE_PROMPT が叩くための入口。
+    registry_sync 無効環境では run_wal_append が no-op で素通り（後方互換）。
+    """
+    rc = main(
+        ["wal-append", "--kind", "outbound", "--json", '{"chat_id": 100, "text": "hi"}']
+    )
+    assert rc == EXIT_OK
