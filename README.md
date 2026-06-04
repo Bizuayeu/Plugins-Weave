@@ -85,29 +85,29 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 ### 1. マーケットプレイス追加
 
 ```ClaudeCLI
-/marketplace add https://github.com/Bizuayeu/Plugins-Weave
+/plugin marketplace add https://github.com/Bizuayeu/Plugins-Weave
 ```
 
 ### 2. プラグインインストール
 
 ```ClaudeCLI
 # ContextPreloader（初期文脈取込）
-/plugin install ContextPreloader@Plugins-Weave
+/plugin install ContextPreloader@plugins-weave
 
 # EpisodicRAG（長期記憶管理）
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 
 # EmailingEssay（エッセイ配信）
-/plugin install EmailingEssay@Plugins-Weave
+/plugin install EmailingEssay@plugins-weave
 
 # VisualExpression（表情表現）
-/plugin install VisualExpression@Plugins-Weave
+/plugin install VisualExpression@plugins-weave
 
 # EmotionPulse（感情ベクトル表示）
-/plugin install EmotionPulse@Plugins-Weave
+/plugin install EmotionPulse@plugins-weave
 
 # TelegramSecretary（Telegram常駐秘書）
-/plugin install TelegramSecretary@Plugins-Weave
+/plugin install TelegramSecretary@plugins-weave
 ```
 
 ---

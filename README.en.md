@@ -86,29 +86,29 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 ### 1. Add Marketplace
 
 ```ClaudeCLI
-/marketplace add https://github.com/Bizuayeu/Plugins-Weave
+/plugin marketplace add https://github.com/Bizuayeu/Plugins-Weave
 ```
 
 ### 2. Install Plugins
 
 ```ClaudeCLI
 # ContextPreloader (Initial Context Loading)
-/plugin install ContextPreloader@Plugins-Weave
+/plugin install ContextPreloader@plugins-weave
 
 # EpisodicRAG (Long-term Memory Management)
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 
 # EmailingEssay (Essay Delivery)
-/plugin install EmailingEssay@Plugins-Weave
+/plugin install EmailingEssay@plugins-weave
 
 # VisualExpression (Visual Expression)
-/plugin install VisualExpression@Plugins-Weave
+/plugin install VisualExpression@plugins-weave
 
 # EmotionPulse (Emotion Vector Display)
-/plugin install EmotionPulse@Plugins-Weave
+/plugin install EmotionPulse@plugins-weave
 
 # TelegramSecretary (Always-on Telegram Secretary)
-/plugin install TelegramSecretary@Plugins-Weave
+/plugin install TelegramSecretary@plugins-weave
 ```
 
 ---
