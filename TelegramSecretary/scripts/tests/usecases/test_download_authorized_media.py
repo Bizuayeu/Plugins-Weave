@@ -4,10 +4,7 @@ from pathlib import Path
 
 from domain.media import MediaAttachment
 from domain.models import TelegramUpdate
-from usecases.download_authorized_media import (
-    DownloadAuthorizedMedia,
-    MediaDownloadResult,
-)
+from usecases.download_authorized_media import DownloadAuthorizedMedia
 from usecases.fetch_authorized_updates import NormalizedUpdate
 
 from tests.usecases.fakes import FakeMediaDownloader

@@ -3,7 +3,7 @@
 イベント駆動 commit & push。commit はローカル即時（確実）、push は best-effort
 （non-fast-forward は pull --rebase で取り込んで再 push、ネットワーク失敗はローカル commit を残す）。
 git 操作は GitSyncPort（adapters 実装）越し。固定ブランチ運用・force 不使用の競合設計は
-docs/devlog/REGISTRY_PERSISTENCE_PLAN.md を参照。
+DESIGN.md §3.6 を参照。
 """
 from __future__ import annotations
 

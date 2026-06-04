@@ -2,14 +2,18 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
-## [Unreleased]
-
 ## [1.1.0] - 2026-06-04 — 能力カタログ（abilities）
 
 ### Added
 
-- **`abilities` 管理表（registry 4 表目、individuals/tasks/knowledge と同格）** — 秘書が行使できる能力（スキル）のカタログ。同じ CRUD（`abilities {list|get|add|remove}`）・値オブジェクト検証・`registry_sync` での git 永続化を持つ。各レコードは発動シグナル `trigger`・スキル実体パス `skill_path`・起動 `guidance` を保持し、秘書は応答前に `abilities list` で該当能力を引いて外部スキルを行使する（例: 占い依頼 → 占術スキルで鑑定書生成 → `send-reply --file`）。雛型 `templates/ABILITIES.template.json` を追加。**WAL 非対象**（能力カタログ更新は相手への約束と直結しないため。永続化は git sync で担保）。
+- **`abilities` 管理表（registry 4 表目、individuals/tasks/knowledge と同格）** — 秘書が行使できる能力（スキル）のカタログ。同じ CRUD（`abilities {list|get|add|remove}`）・値オブジェクト検証・`registry_sync` での git 永続化を持つ。各レコードは発動シグナル `trigger`・スキル実体パス `skill_path`・起動 `guidance` を保持し、秘書は応答前に `abilities list` で該当能力を引いて外部スキルを行使する（例: 占い依頼 → 占術スキルで鑑定書生成 → `send-reply --file`）。雛型 `templates/ABILITIES.template.json` を追加。**WAL 対象**（4 表一様、§3.8）：能力の自己追記は「『○○できます』と相手に宣言する返信」を伴いうるため、individuals/tasks/knowledge と同様に WAL 先行書込で保護する（`wal-append --kind abilities` 受理、起動時 redo も abilities を反映。宣言したのに push 漏れで未登録、の言行不一致を防ぐ）。
 - **ROUTINE_PROMPT「4 表オリエンテーション」** — 手順12を拡充し、4 表（誰と・何を頼まれ・どう判断し・何ができるか）の位置付けと「溜めるだけでなく応答前に能動的に引く」運用方針、abilities の read 配線（`trigger` 該当 → `skill_path` の SKILL.md → `guidance`）を明示。能力の自己追記は実在スキルに限るガード付き（ハルシネーション防止）。
+
+### Changed
+
+- **配布用の一般化リファクタ（用語・テンプレート整合）** — 固有名の一括中立化で生じた末尾スペース（`エージェント␣`、56 箇所）を除去、cloud routine 表記を統一、運用固有名（PrecognitiveViewer / Expertises 等）を中立例へ置換。管理表テンプレート（INDIVIDUALS/TASKS/KNOWLEDGE）の保存先記述を `<registry_dir>` へ整合（registry_dir 分離の反映漏れ）、プレースホルダを規約（`<AGENT_NAME>`/`<OWNER>`）へ統一。コードコメントの devlog 参照（配布物に無い無効リンク）を DESIGN §3.6 へ振替。
+- **registry/wal CLI の DRY 統合** — `_WAL_KINDS` を `_REGISTRY_SPEC`（SSoT）全種別から導出し二重管理を解消、`_service`/`_build_git`/`_read_json_arg` を共通利用。`wal-append --kind` の choices に abilities を追加し CLI・wal_cli・ドキュメントを整合。`_NON_FF_MARKERS` の冗長要素・テストの未使用 import を整理。
+- **archive/分割の位置づけを設計整合** — 「いつ・どの単位で分割/archive するか」は重要度の世界（エージェント判断）であり決定論的に自動実行しない、と DESIGN §2/§3.5・STRUCTURE を訂正（情報の持ち方は情報の主体が決める）。`archive_rotate.py` は純関数（道具）として位置づけを明確化。
 
 ### Notes
 
@@ -56,7 +60,7 @@
 
 ### Changed
 
-- **運用設定パスを `<INSTALL_DIR>` 基準に汎用化（配置・junction 非依存）** — bootstrap が repo root を `../..`（2階層配置前提）で算出するのを廃止し、自分の物理位置から絶対解決する `INSTALL_DIR` に一本化。ROUTINE_PROMPT / SETUP / bootstrap コメントから運用固有の `Expertises/` 階層を除去し、`schedule` の body 生成時に `<INSTALL_DIR>` を実配置パスへ置換する手順を追加。env snapshot から派生 `TELEGRAM_SECRETARY_REPO_ROOT` を除去。
+- **運用設定パスを `<INSTALL_DIR>` 基準に汎用化（配置・junction 非依存）** — bootstrap が repo root を `../..`（2階層配置前提）で算出するのを廃止し、自分の物理位置から絶対解決する `INSTALL_DIR` に一本化。ROUTINE_PROMPT / SETUP / bootstrap コメントから運用固有のディレクトリ階層を除去し、`schedule` の body 生成時に `<INSTALL_DIR>` を実配置パスへ置換する手順を追加。env snapshot から派生 `TELEGRAM_SECRETARY_REPO_ROOT` を除去。
 
 ### Removed
 
@@ -66,7 +70,7 @@
 
 ### Added
 
-- **plugins-weave marketplace プラグイン化** — TelegramSecretary を plugins-weave の marketplace プラグインとして配布。skill は `skills/telegram-secretary/`、スラッシュコマンドは `commands/telegram-secretary.md`、`.claude-plugin/plugin.json` を追加。配布実体は plugins-weave、Weave 運用は `Expertises/TelegramSecretary` の junction で透過（二重管理なし）。
+- **plugins-weave marketplace プラグイン化** — TelegramSecretary を plugins-weave の marketplace プラグインとして配布。skill は `skills/telegram-secretary/`、スラッシュコマンドは `commands/telegram-secretary.md`、`.claude-plugin/plugin.json` を追加。
 - **運用設定の単一正典化（config.json）** — 手置換が必要だったプレースホルダ（人格名・private_dir 等）を `config.json`（`<INSTALL_DIR>/config.json`、`.gitignore` 除外）に集約。雛型は `templates/config.template.json`、`init-config` で生成。ROUTINE_PROMPT の Step 0 が config.json から `agent_name`/`private_dir` を動的読込し、**prompt 本文の複製・手置換が不要**に。
 - **継続時間の設定可能化（`session_duration_sec`）** — セッション枠を config.json で設定（範囲 1〜86400 秒、fail-fast）。本番（勤務帯調整）／テスト（短縮で keep-alive 高速検証）／観測（cloud routine 実行制限の実測）の三役。
 - **`show-config` / `init-config` サブコマンド** — 現設定の read-only 表示（秘匿マスク、未設定でも exit 0）と config.json 生成（範囲検証 + `--force` ガード）。

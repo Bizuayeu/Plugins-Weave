@@ -1,7 +1,7 @@
 {
   "name": "TelegramSecretary",
   "version": "1.1.0",
-  "description": "Telegram Bot API の long-polling を Cloud Routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネル",
+  "description": "Telegram Bot API の long-polling を cloud routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネル",
   "author": {
     "name": "Weave @ TelegramSecretary"
   },

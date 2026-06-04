@@ -21,7 +21,7 @@ class MediaAttachment:
     file_id: str
     mime_type: str
     size: int
-    file_name: Optional[str] = None  # Stage 7.1: document の元ファイル名（エージェント の判断材料）
+    file_name: Optional[str] = None  # Stage 7.1: document の元ファイル名（エージェントの判断材料）
 
     @classmethod
     def from_photo_api(
@@ -120,9 +120,9 @@ class RenderedMedia:
 
     render_status 四状態:
     - "ok": markitdown 等で md 化成功、rendered_text 非 None
-    - "passthrough": image/pdf 等 エージェント が Read で直接読める形式、render 不要
+    - "passthrough": image/pdf 等 エージェントが Read で直接読める形式、render 不要
     - "skipped": 未対応 mime（音声/動画等 Stage 7 射程外）、メタのみ
-    - "failed": render を試みたが内部例外発生、エージェント に正直に伝える
+    - "failed": render を試みたが内部例外発生、エージェントに正直に伝える
     """
 
     rendered_text: Optional[str]
@@ -131,7 +131,7 @@ class RenderedMedia:
     # str パスのみ保持し bytes は持たない（純粋性維持、MediaAttachment の identifier-only 方針と同型）。
     # 非画像 PDF・テキスト PDF・非 PDF は空 list（欠落≠未対応の明示、media:[] と同規律）。
     derived_image_paths: List[str] = field(default_factory=list)
-    # Stage 11.1: PDF の総ページ数（両経路共通メタ）。エージェント が総量を把握して段階 Vision を判断する材料。
+    # Stage 11.1: PDF の総ページ数（両経路共通メタ）。エージェントが総量を把握して段階 Vision を判断する材料。
     # PDF 以外 / Stage 10 までの emit は None（後方互換）。
     page_count: Optional[int] = None
 

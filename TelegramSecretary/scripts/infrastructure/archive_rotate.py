@@ -1,9 +1,11 @@
-"""管理表の肥大化対策。
+"""管理表の肥大化対策の純関数（エージェントが分割を判断する際に使う道具）。
 
 - `partition_for_archive`: TASKS / INDIVIDUALS の日付 Archive 用（条件を満たすレコードを分離）
-- `split_by_category`: KNOWLEDGE のカテゴリ分割用（category ごとにシャード化、Archive せず蓄積）
+- `split_by_category`: KNOWLEDGE / ABILITIES のカテゴリ分割用（category ごとにシャード化、Archive せず蓄積）
 
-いずれも純関数。実ファイルの移動・書き出しは CLI / 運用層が `JsonRegistryStore` と組み合わせて行う。
+いずれも純関数。**「いつ・どの単位で分割/archive するか」はエージェントの判断**（重要度の世界、DESIGN §3.5）——
+本モジュールは決定論的な自動実行（subcommand）を持たず、エージェントが判断した分割の「計算」だけを担う。
+実ファイルの移動・書き出しはエージェントが `JsonRegistryStore` と組み合わせて行う。
 """
 from __future__ import annotations
 

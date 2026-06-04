@@ -1,5 +1,5 @@
 {
-  "_template": "KNOWLEDGE — 対応知の蓄積（判例DB的）の雛型。実体は Private の <state_dir>/knowledge/KNOWLEDGE.json に置く（本ファイルはコピーされない雛型）",
+  "_template": "KNOWLEDGE — 対応知の蓄積（判例DB的）の雛型。実体は Private の <registry_dir>/knowledge/KNOWLEDGE.json に置く（本ファイルはコピーされない雛型）",
   "_record_schema": {
     "id": "string — 一意ID",
     "topic": "string — 知識の主題",

@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 MIN_SECONDS = 1
-MAX_SECONDS = 86400  # 24h（Cloud Routine の 1 セッション上限ガード）
+MAX_SECONDS = 86400  # 24h（cloud routine の 1 セッション上限ガード）
 
 
 @dataclass(frozen=True)

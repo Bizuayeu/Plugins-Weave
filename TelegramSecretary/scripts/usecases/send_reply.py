@@ -1,4 +1,4 @@
-"""エージェント 起草の返信を送信 → offset 永続化 → lease renew。"""
+"""エージェント起草の返信を送信 → offset 永続化 → lease renew。"""
 from __future__ import annotations
 
 from datetime import datetime

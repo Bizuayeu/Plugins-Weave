@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from domain.authorization import AuthorizedChats
 from domain.models import TelegramUpdate
-from domain.offset import UpdateOffset
 from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
 
 from tests.usecases.fakes import FakeOffsetStore, FakeUpdateSource

@@ -71,7 +71,7 @@ class TelegramUpdate:
 
 @dataclass(frozen=True)
 class OutboundMessage:
-    """エージェント 起草の送信メッセージ。"""
+    """エージェント起草の送信メッセージ。"""
 
     chat_id: int
     text: str

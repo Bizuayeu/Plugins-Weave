@@ -104,7 +104,7 @@ def test_media_attachment_is_immutable():
 # === Stage 7.1: MediaAttachment.file_name ===
 
 def test_media_from_document_api_extracts_file_name():
-    """document に file_name があれば取り込む（エージェント の判断材料）。"""
+    """document に file_name があれば取り込む（エージェントの判断材料）。"""
     document = {
         "file_id": "BQACAgIAA",
         "mime_type": "application/pdf",
@@ -147,7 +147,7 @@ def test_rendered_media_holds_text_and_status():
 
 
 def test_rendered_media_passthrough_has_no_text():
-    """image/pdf 等 エージェント が直接読む形式は rendered_text=None で passthrough。"""
+    """image/pdf 等 エージェントが直接読む形式は rendered_text=None で passthrough。"""
     rendered = RenderedMedia(rendered_text=None, render_status="passthrough")
     assert rendered.rendered_text is None
     assert rendered.render_status == "passthrough"
@@ -160,7 +160,7 @@ def test_rendered_media_skipped_status():
 
 
 def test_rendered_media_failed_status():
-    """render を試みたが失敗した場合は failed、エージェント に正直に伝える。"""
+    """render を試みたが失敗した場合は failed、エージェントに正直に伝える。"""
     rendered = RenderedMedia(rendered_text=None, render_status="failed")
     assert rendered.render_status == "failed"
 

@@ -64,7 +64,7 @@ class MediaDownloader(Protocol):
 
 
 class MediaRenderer(Protocol):
-    """Download 済み media を エージェント が読める形式に変換する Port（Stage 7.2）。
+    """Download 済み media を エージェントが読める形式に変換する Port（Stage 7.2）。
 
     実装は adapters/render/markitdown_renderer.py（Stage 7.3）。
     mime-routing は呼び出し側（UseCase）が担い、ここに来た時点で render 対象は確定。

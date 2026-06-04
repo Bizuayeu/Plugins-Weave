@@ -1,5 +1,5 @@
 {
-  "_template": "TASKS — 依頼進捗管理表の雛型。実体は Private の <state_dir>/tasks/TASKS.json に置く（本ファイルはコピーされない雛型）",
+  "_template": "TASKS — 依頼進捗管理表の雛型。実体は Private の <registry_dir>/tasks/TASKS.json に置く（本ファイルはコピーされない雛型）",
   "_record_schema": {
     "id": "string — 一意ID",
     "title": "string — 依頼の要約",

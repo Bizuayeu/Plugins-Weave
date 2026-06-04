@@ -1,6 +1,6 @@
 """outbound 添付メディアの Domain 値オブジェクトと送信前検証の純ロジック。
 
-Stage 8.1: エージェント 起草の生成物（画像 / docx / PDF 等）を Telegram に送り返す際の
+Stage 8.1: エージェント起草の生成物（画像 / docx / PDF 等）を Telegram に送り返す際の
 添付を Domain 表現する。bytes は持たず Path（identifier）のみ保持し、実バイト読み込みは
 Adapter（送信時の open()）に閉じ込める（Stage 6 の MediaAttachment が identifier のみ
 持つ方針と同型）。

@@ -1,5 +1,5 @@
 {
-  "_template": "INDIVIDUALS — 関係者管理表の雛型。実体は Private の <state_dir>/individuals/INDIVIDUALS.json に置く（本ファイルはコピーされない雛型）",
+  "_template": "INDIVIDUALS — 関係者管理表の雛型。実体は Private の <registry_dir>/individuals/INDIVIDUALS.json に置く（本ファイルはコピーされない雛型）",
   "_record_schema": {
     "uuid": "string — 一意ID",
     "display_name": "string — 表示名",

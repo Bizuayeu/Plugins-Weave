@@ -3,7 +3,7 @@
 PyAV（`av`）で ffmpeg を wheel 内包で呼ぶ（システム ffmpeg 不要）。
 Telegram voice(OGG/OPUS) / audio(mp3/m4a) / video の音声トラックを、
 Moonshine が食える 16kHz mono float（-1.0〜1.0）に正規化する。
-壊れた/音声なしファイルは空リストを返す（クラッシュしない、エージェント に「無音」を渡す）。
+壊れた/音声なしファイルは空リストを返す（クラッシュしない、エージェントに「無音」を渡す）。
 """
 from __future__ import annotations
 

@@ -120,7 +120,7 @@ TelegramSecretary/
     │   ├── <category>.json            # 肥大化時はカテゴリ分割（archive せず蓄積）
     │   └── archive/                   # （原則空。明示的廃棄時のみ）
     ├── abilities/
-    │   └── ABILITIES.json             # 能力カタログ（trigger/skill_path/guidance、WAL 非対象）
+    │   └── ABILITIES.json             # 能力カタログ（trigger/skill_path/guidance、WAL 対象）
     └── wal/
         └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
 ```
@@ -167,7 +167,9 @@ TelegramSecretary/
         → registry add → エージェント起草 → 出力漏洩スキャン → send-reply（必要なら --file/--reply-to）
         ※起動時 wal-redo が前回 push 漏れの intent を registry へ反映（registry-sync 直後）
 
-[保守] archive_rotate: TASKS/INDIVIDUALS は日付 Archive、KNOWLEDGE は category 分割
+[保守] 肥大化対策（重要度の世界＝エージェント判断、DESIGN §3.5）:
+        エージェントが「いつ・どの単位で」を判断し archive_rotate の純関数 + JsonRegistryStore で実行
+        — TASKS/INDIVIDUALS は日付 Archive、KNOWLEDGE/ABILITIES は category 分割。決定論的自動実行は持たない
         state README を再生成（件数・最終更新・分割状況）
 ```
 

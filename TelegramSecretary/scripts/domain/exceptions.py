@@ -22,7 +22,7 @@ class MediaSizeLimitExceeded(TelegramSecretaryError):
 
     DownloadAuthorizedMedia 内部で raise → 同 UseCase 内で catch して
     `MediaDownloadResult.skip_reason="media_size_exceeded"` に変換する。
-    Stage 1 の `flag_injection` と同型の「フラグ化して emit、判断は エージェント に委ねる」原則。
+    Stage 1 の `flag_injection` と同型の「フラグ化して emit、判断は エージェントに委ねる」原則。
     """
 
 

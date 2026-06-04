@@ -113,17 +113,17 @@ def test_knowledge_requires_topic():
 
 def test_ability_round_trip():
     d = {
-        "id": "precognitive-viewer", "name": "三位占術フォーマル鑑定書",
+        "id": "fortune-telling", "name": "占術鑑定",
         "trigger": "占い・鑑定・姓名判断・易・タロット・人物リーディング",
-        "skill_path": "Homunculus-Weave/Expertises/PrecognitiveViewer",
+        "skill_path": "base-repo/skills/fortune-telling",
         "guidance": "占い依頼を受けたら SKILL.md を読み、鑑定書を生成して返す",
         "related": ["knowledge-id-1"],
         "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
     }
     a = Ability.from_dict(d)
-    assert a.id == "precognitive-viewer"
-    assert a.name == "三位占術フォーマル鑑定書"
-    assert a.skill_path == "Homunculus-Weave/Expertises/PrecognitiveViewer"
+    assert a.id == "fortune-telling"
+    assert a.name == "占術鑑定"
+    assert a.skill_path == "base-repo/skills/fortune-telling"
     assert a.to_dict() == d
 
 

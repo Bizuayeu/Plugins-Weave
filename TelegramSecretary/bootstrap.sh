@@ -1,5 +1,5 @@
 #!/bin/bash
-# TelegramSecretary bootstrap — idempotent setup for Cloud Routine / manual runs.
+# TelegramSecretary bootstrap — idempotent setup for cloud routine / manual runs.
 #
 # Use:
 #   source <INSTALL_DIR>/bootstrap.sh
@@ -9,7 +9,7 @@
 #     → installs only, env exports do not persist
 #
 # Single source of truth for runtime deps: <INSTALL_DIR>/pyproject.toml
-# 姉妹エージェントの bootstrap パターンと同型 (source/exec デュアル対応).
+# source/exec デュアル対応の bootstrap パターン.
 
 set -u
 
@@ -34,7 +34,7 @@ _ts_log() { echo "[telegram-secretary-bootstrap] $*"; }
 _ts_script_path="${BASH_SOURCE[0]:-$0}"
 _ts_script_dir="$(cd "$(dirname "$_ts_script_path")" && pwd)"
 
-# --- 依存導入（pyproject.toml dependencies が SSoT、Tier 別に Cloud Routine 起動コストを制御）---
+# --- 依存導入（pyproject.toml dependencies が SSoT、Tier 別に cloud routine 起動コストを制御）---
 # base: httpx（必須）。Heavy モード時のみ markitdown(docx render) と voice(moonshine+av) を追加。
 # media を扱わない Medium 運用・keep-alive 検証は httpx だけで起動が軽い（FINDING A/B）。
 python -m pip install --quiet "httpx>=0.27" || _ts_die "httpx install failed"
@@ -117,7 +117,7 @@ export TS_MAX_TURNS="${TS_MAX_TURNS:-$(( _ts_max_turns_calc < 30 ? 30 : _ts_max_
 _ts_log "deadline-driven poll: deadline=$TS_SESSION_DEADLINE_EPOCH (now+${_ts_duration}s from config.json), window<=${TS_POLL_SET_SEC}s, max_turns=${TS_MAX_TURNS}, bash timeout ${TS_POLL_BASH_TIMEOUT_MS}ms"
 
 # --- 派生 env を source 可能ファイルへ書き出し (FINDING 1: Bash tool は call 間で env 揮発) ---
-# Claude Code / Cloud Routine の Bash tool は call 毎に fresh shell (cwd のみ persist、env は揮発)。
+# Claude Code / cloud routine の Bash tool は call 毎に fresh shell (cwd のみ persist、env は揮発)。
 # 運用律 B 案の「source で親シェルへ引き継ぐ」は成立しないため、後続 Step が各 call 冒頭で
 # re-source する env snapshot を残す。TELEGRAM_BOT_TOKEN / AUTHORIZED_CHATS は Environment 注入で
 # 各 call に入る & 秘匿のため、ここには書かない (出力漏洩スキャン規律)。

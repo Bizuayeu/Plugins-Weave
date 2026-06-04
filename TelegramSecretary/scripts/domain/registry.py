@@ -208,9 +208,9 @@ class Ability:
     """秘書が行使できる能力（スキル）の1レコード。
 
     individuals/tasks/knowledge と同格の管理表だが、外部スキル（例:
-    PrecognitiveViewer）への発動シグナルと起動ガイダンスを持つ「能力カタログ」。
+    占術鑑定）への発動シグナルと起動ガイダンスを持つ「能力カタログ」。
     秘書は応答前にこれを引いて「何ができるか」を把握する（read 配線は ROUTINE_PROMPT）。
-    永続化は registry の git sync で担保し、WAL（言行一致保険）の対象外（相手への約束と直結しないため）。
+    永続化は registry の git sync で担保し、WAL（言行一致保険）の対象（能力宣言が対外的約束を伴うため、DESIGN §3.8）。
     """
 
     id: str

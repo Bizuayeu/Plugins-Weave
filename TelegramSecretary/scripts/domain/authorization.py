@@ -7,7 +7,7 @@ from typing import FrozenSet, Iterable
 
 @dataclass(frozen=True)
 class AuthorizedChats:
-    """allowlist 化された chat_id の集合。未認可は Domain で破棄、エージェント に渡らない。"""
+    """allowlist 化された chat_id の集合。未認可は Domain で破棄、エージェントに渡らない。"""
 
     chat_ids: FrozenSet[int]
 

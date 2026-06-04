@@ -4,7 +4,7 @@ FfmpegAudioPreprocessor で 16kHz mono float にした音声を Moonshine 日本
 transcribe し、transcript を RenderedMedia.rendered_text に乗せ render_status="ok"。
 例外は内部 catch → render_status="failed"（markitdown_renderer 同型、クラッシュしない）。
 
-model load は lazy（初回の実音声 render 時）。Cloud Routine 起動を速くし、
+model load は lazy（初回の実音声 render 時）。cloud routine 起動を速くし、
 空音声/前処理失敗では load しない。
 
 ライセンス: Moonshine Community License（年商 $1M 未満は商用も無料）。年商 $1M 以上の組織本番は
@@ -46,7 +46,7 @@ class MoonshineTranscriber:
         return self._model
 
     def render(self, media: MediaAttachment, local_path: Path) -> RenderedMedia:
-        """音声を transcript 化。失敗は flag 化、エージェント に正直に伝える。"""
+        """音声を transcript 化。失敗は flag 化、エージェントに正直に伝える。"""
         try:
             samples, rate = self._preprocessor.to_float_pcm(local_path)
             if not samples:

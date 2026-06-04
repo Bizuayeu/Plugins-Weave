@@ -23,8 +23,8 @@ _WAL_STATUSES = frozenset({"pending", "done"})
 class WalEntry:
     """WAL ログ 1 行。registry への intent（kind/key/payload）と処理状態（status）。
 
-    - key: registry のキー（individuals=uuid, tasks=id, knowledge=id）
-    - kind: 対象管理表（"individuals" / "tasks" / "knowledge"）。同 key でも kind で区別
+    - key: registry のキー（individuals=uuid, tasks=id, knowledge=id, abilities=id）
+    - kind: 対象管理表（"individuals" / "tasks" / "knowledge" / "abilities"）。同 key でも kind で区別
     - status: "pending"（未確認）/ "done"（registry 反映済み）
     - payload: registry へ upsert するレコード dict
     - created_at: ISO 8601（tz aware）文字列。checkpoint の retention 判定に使う

@@ -13,7 +13,7 @@ from usecases.ports import OffsetStore, UpdateSource
 
 @dataclass(frozen=True)
 class NormalizedUpdate:
-    """認可・正規化・フラグ判定済みの update。エージェント に渡す単位。"""
+    """認可・正規化・フラグ判定済みの update。エージェントに渡す単位。"""
 
     update: TelegramUpdate
     normalized_text: str
@@ -34,7 +34,7 @@ class FetchAuthorizedUpdates:
     def execute(self, timeout_seconds: int = 30) -> List[NormalizedUpdate]:
         """1 サイクル分の update を取得・認可・正規化して返す。
 
-        - 未認可 chat の update は Domain で破棄、エージェント に渡さない
+        - 未認可 chat の update は Domain で破棄、エージェントに渡さない
         - offset は取得した update 群（認可不問）の最大値に応じて advance（古い update の再取得を防ぐ）
         - Stage 6.2: caption は normalized_text に統合（merge_caption_into_text）、media は update に保持
         """

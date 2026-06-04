@@ -191,7 +191,7 @@ def test_video_is_skipped():
 
 
 def test_unknown_mime_is_skipped():
-    """未知 mime は保守的に skipped（エージェント に「読めない」を正直に渡す）。"""
+    """未知 mime は保守的に skipped（エージェントに「読めない」を正直に渡す）。"""
     dr = _download_result(1, "application/octet-stream")
     renderer = FakeMediaRenderer()
     uc = RenderAuthorizedMedia(renderer)

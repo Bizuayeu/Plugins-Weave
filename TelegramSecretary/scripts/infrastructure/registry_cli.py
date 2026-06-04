@@ -72,7 +72,8 @@ def run_registry_command(config: Config, name: str, action: str, args: Any, sync
 def _read_json_arg(args: Any) -> dict:
     """--json または --json-file から1レコードの dict を読む。"""
     if getattr(args, "json_file", None):
-        text = open(args.json_file, encoding="utf-8").read()
+        with open(args.json_file, encoding="utf-8") as f:
+            text = f.read()
     else:
         text = args.json
     return json.loads(text)

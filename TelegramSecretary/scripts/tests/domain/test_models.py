@@ -243,7 +243,7 @@ def test_telegram_update_from_api_voice_with_caption():
 
 
 def test_telegram_update_from_api_extracts_message_id():
-    """message_id を抽出。emit に乗せて エージェント が --reply-to threading に使う。"""
+    """message_id を抽出。emit に乗せて エージェントが --reply-to threading に使う。"""
     payload = {
         "update_id": 12345,
         "message": {

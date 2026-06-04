@@ -30,7 +30,7 @@ class MarkitdownRenderer:
         self._md = MarkItDown()
 
     def render(self, media: MediaAttachment, local_path: Path) -> RenderedMedia:
-        """local_path のファイルを md 化。失敗は flag 化、エージェント に正直に伝える。"""
+        """local_path のファイルを md 化。失敗は flag 化、エージェントに正直に伝える。"""
         try:
             result = self._md.convert(str(local_path))
             rendered_text = result.text_content

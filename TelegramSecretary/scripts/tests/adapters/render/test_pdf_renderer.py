@@ -109,7 +109,7 @@ def test_render_derived_png_flat_with_stem_prefix(tmp_path):
 
 
 def test_render_respects_cap_but_page_count_is_total(tmp_path):
-    """cap 超: derived は cap 枚で打ち切り、page_count は実総数（エージェント の総量把握用）。"""
+    """cap 超: derived は cap 枚で打ち切り、page_count は実総数（エージェントの総量把握用）。"""
     pdf = tmp_path / "many.pdf"
     _make_multipage_blank_pdf(pdf, 5)
     result = PdfRenderer(image_max_pages=2).render(_pdf(), pdf)
@@ -166,7 +166,7 @@ def test_extract_text_japanese(tmp_path):
 
 
 def test_extract_text_empty_for_scan_pdf(tmp_path):
-    """テキスト層ゼロのスキャン PDF → rendered_text=""（エージェント に正直に）。"""
+    """テキスト層ゼロのスキャン PDF → rendered_text=""（エージェントに正直に）。"""
     pdf = tmp_path / "scan.pdf"
     _make_multipage_blank_pdf(pdf, 2)
     result = PdfRenderer().extract_text(pdf)

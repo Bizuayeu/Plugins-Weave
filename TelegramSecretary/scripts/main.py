@@ -371,7 +371,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
 def cmd_cleanup_media(args: argparse.Namespace) -> int:
     """`state_dir/media/` 配下で `media_retention_hours` 超過のファイルを削除。
 
-    Stage 6.5 follow-up: 単独実行用エンドポイント。Cloud Routine 外で
+    Stage 6.5 follow-up: 単独実行用エンドポイント。cloud routine 外で
     cron 起動するか、人手で叩いて掃除する用途。
     """
     config = _load_config()
@@ -402,7 +402,7 @@ def _parse_page_range(spec: str) -> tuple[int, int]:
 def cmd_render_pdf(args: argparse.Namespace) -> int:
     """オンデマンド PDF 抽出: --text 全文テキスト / --pages N-M 個別ページ画像化。
 
-    エージェント が画像 Vision で大枠把握後（ROUTINE_PROMPT）、①全文テキスト or ②個別ページ
+    エージェントが画像 Vision で大枠把握後（ROUTINE_PROMPT）、①全文テキスト or ②個別ページ
     （cap 超の 21 枚目以降含む）を要求した時に叩く。結果は JSON 1 行で stdout。
     """
     config = _load_config()
@@ -574,13 +574,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--max-iterations",
         type=int,
         default=0,
-        help="0=無限ループ (Cloud Routine 常駐用), >0 はテスト用",
+        help="0=無限ループ (cloud routine 常駐用), >0 はテスト用",
     )
     p_watch.add_argument(
         "--max-duration",
         type=int,
         default=0,
-        help="0=無限 (既存挙動), >0 で N 秒経過後に自然終了。Cloud Routine の窓畳み用",
+        help="0=無限 (既存挙動), >0 で N 秒経過後に自然終了。cloud routine の窓畳み用",
     )
     p_watch.add_argument(
         "--exit-on-message",
@@ -594,7 +594,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="N サイクル毎に cleanup_media_dir を発火（0=無効、default 120 ≒ 1h with timeout=30s）",
     )
 
-    p_send = sub.add_parser("send-reply", help="エージェント 起草の返信を送信")
+    p_send = sub.add_parser("send-reply", help="エージェント起草の返信を送信")
     p_send.add_argument("--chat-id", type=int, required=True)
     p_send.add_argument("--update-id", type=int, required=True)
     p_send.add_argument("--text-file", required=True)
@@ -652,7 +652,9 @@ def build_parser() -> argparse.ArgumentParser:
         "wal-append", help="WAL に intent を pending 追記（送信前、registry_sync 有効時）"
     )
     p_wal_append.add_argument(
-        "--kind", required=True, choices=["individuals", "tasks", "knowledge"]
+        "--kind",
+        required=True,
+        choices=["individuals", "tasks", "knowledge", "abilities"],
     )
     p_wal_append.add_argument("--json", help="intent payload の JSON 文字列")
     p_wal_append.add_argument(

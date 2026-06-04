@@ -187,7 +187,7 @@ def test_registry_fetch_continues_when_registry_root_absent(tmp_path):
     assert run_registry_fetch(config, git=adapter) == 1
 
 
-# === abilities（4 表目、registry 同格・WAL 非対象）===
+# === abilities（4 表目、registry 同格・WAL 対象）===
 
 
 _ABILITY = {

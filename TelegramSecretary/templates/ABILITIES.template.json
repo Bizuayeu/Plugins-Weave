@@ -4,14 +4,14 @@
     "id": "string — 一意ID（例: precognitive-viewer）",
     "name": "string — 能力名（例: 三位占術フォーマル鑑定書）",
     "trigger": "string — 発動シグナル（この語が依頼に来たら能力を想起する。例: 占い/鑑定/姓名判断/易/タロット/人物リーディング）",
-    "skill_path": "string — スキル実体への cwd 相対パス（cloud routine が clone する本体リポ配下を指す。例: Homunculus-Weave/Expertises/PrecognitiveViewer）",
+    "skill_path": "string — スキル実体への cwd 相対パス（cloud routine が clone する本体リポ配下を指す。例: <BASE_REPO>/skills/my-skill）",
     "guidance": "string — 起動手順・確認事項・返し方の散文（ratio decidendi 的）",
     "related": "string[] — 関連する ability / knowledge id",
     "created_at": "ISO8601",
     "updated_at": "ISO8601"
   },
   "_read_policy": "秘書は応答前にこのカタログを引いて『今この依頼に使える能力があるか』を把握する（read 配線は ROUTINE_PROMPT 手順12の管理表オリエンテーション）。trigger と照らして該当すれば skill_path の SKILL.md を読み、guidance に従って行使する",
-  "_write_policy": "能力の自己追記は実在するスキルに限る。不確実なら書かない（存在しない能力を宣言しない＝ハルシネーション防止）。WAL 非対象（相手への約束と直結しないため）、永続化は registry の git sync で担保",
+  "_write_policy": "能力の自己追記は実在するスキルに限る。不確実なら書かない（存在しない能力を宣言しない＝ハルシネーション防止）。能力宣言を伴う add は WAL 対象（言行一致、DESIGN §3.8）、永続化は registry の git sync で担保",
   "_growth_policy": "Archive せず蓄積優先。能力は捨てる対象ではない",
   "version": 1,
   "abilities": []

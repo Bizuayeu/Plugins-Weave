@@ -12,7 +12,7 @@ def utc_now() -> datetime:
 
 @dataclass(frozen=True)
 class SessionLease:
-    """Cloud Routine セッションが保持するリース。heartbeat + ttl_seconds で生存判定。"""
+    """cloud routine セッションが保持するリース。heartbeat + ttl_seconds で生存判定。"""
 
     owner: str
     heartbeat: datetime

@@ -2,7 +2,7 @@
 
 registry_dir を含む git リポで、管理表の commit/push/pull-rebase/fetch を実行する。
 git メッセージは LC_ALL=C で英語固定し non-fast-forward を確実に検出する。
-固定ブランチ運用・force 不使用の競合設計は docs/devlog/REGISTRY_PERSISTENCE_PLAN.md を参照。
+固定ブランチ運用・force 不使用の競合設計は DESIGN.md §3.6 を参照。
 """
 from __future__ import annotations
 
@@ -13,8 +13,9 @@ from typing import List, Sequence
 
 from domain.exceptions import GitSyncError, PushRejectedError
 
-# git push 拒否（non-fast-forward）の英語マーカー（LC_ALL=C 固定で安定検出）
-_NON_FF_MARKERS = ("non-fast-forward", "fetch first", "[rejected]", "rejected")
+# git push 拒否（non-fast-forward）の英語マーカー（LC_ALL=C 固定で安定検出）。
+# "rejected" は部分文字列マッチで "[rejected]" を包含するため後者は列挙しない。
+_NON_FF_MARKERS = ("non-fast-forward", "fetch first", "rejected")
 
 
 class GitCliAdapter:

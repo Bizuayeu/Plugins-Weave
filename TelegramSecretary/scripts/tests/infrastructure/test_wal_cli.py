@@ -81,3 +81,31 @@ def test_redo_reconciles_pending_into_registry(tmp_path):
     records = JsonRegistryStore(config.tasks_path).load()
     assert any(r["id"] == "T0001" for r in records)  # registry へ反映
     assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
+
+
+# --- abilities も WAL 対象（4 表一様、DESIGN §3.8）---
+
+def test_append_writes_abilities_pending(tmp_path):
+    """abilities の add も能力宣言（対外的約束）を伴うため WAL 先行書込の対象。"""
+    config = _config(tmp_path, sync=True)
+    args = SimpleNamespace(json='{"id": "A1"}', json_file=None)
+    assert run_wal_append(config, "abilities", args) == EXIT_OK
+    entries = JsonlWalLogStore(config.wal_log_path).load()
+    assert entries[0].key == "A1"
+    assert entries[0].kind == "abilities"
+    assert entries[0].status == "pending"
+
+
+def test_redo_reconciles_abilities_pending_into_registry(tmp_path):
+    """起動時 redo が abilities の pending intent も registry へ反映し done 化する。"""
+    config = _config(tmp_path, sync=True)
+    JsonlWalLogStore(config.wal_log_path).append(
+        WalEntry(
+            key="A1", kind="abilities", status="pending",
+            payload={"id": "A1"}, created_at="2026-06-04T18:00:00+00:00",
+        )
+    )
+    assert run_wal_redo(config) == EXIT_OK
+    records = JsonRegistryStore(config.abilities_path).load()
+    assert any(r["id"] == "A1" for r in records)  # registry へ反映
+    assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())

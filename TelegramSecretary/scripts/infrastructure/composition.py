@@ -7,7 +7,7 @@
 - build_media_stack(): poll の eager 構築と watch の lazy closure を 1 関数に統一。
   markitdown は必須、transcriber(moonshine)/pdf_renderer(pdfplumber) は optional
   （未導入なら None で構築し該当 media は skipped にフォールバック）。重い import は
-  関数内 lazy に保ち、テストの monkeypatch（モジュールパス指定）と Cloud Routine 起動の
+  関数内 lazy に保ち、テストの monkeypatch（モジュールパス指定）と cloud routine 起動の
   軽量性を両立する（呼び出し＝実際に media を受けた時のみ重い import が走る）。
 """
 from __future__ import annotations

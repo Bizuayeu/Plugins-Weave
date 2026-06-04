@@ -42,7 +42,7 @@ def test_empty_samples_returns_ok_empty_without_model_load():
 
 
 def test_failed_on_preprocessor_exception():
-    """前処理で例外 → failed（クラッシュさせず エージェント に正直に、markitdown 同型）。"""
+    """前処理で例外 → failed（クラッシュさせず エージェントに正直に、markitdown 同型）。"""
     t = MoonshineTranscriber(preprocessor=_FakePreprocessor(raise_exc=True))
     result = t.render(_voice("abcdef1234"), Path("x.ogg"))
     assert result.render_status == "failed"
