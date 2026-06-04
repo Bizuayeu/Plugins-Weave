@@ -8,7 +8,7 @@ description: Telegram Bot API の long-polling を cloud routine 上で常駐さ
 ## 概要
 
 - **目的**: Gmail より低レイテンシ（数秒）で `<OWNER>` から呼べる常駐秘書。定時通知配信のような push 型に対し、pull/対話型として 24-7 到達口を提供
-- **受信方式**: Telegram getUpdates の long-polling（公開 ingress 不要のため **Claude Code Routines**〔Anthropic のクラウド実行＝cloud routine〕と整合）
+- **受信方式**: Telegram getUpdates の long-polling（公開 ingress 不要のため **Claude Code Routines**（Anthropic のクラウド実行＝cloud routine）と整合）
 - **応答主体**: 親プロセスのエージェント本人が担う（LLM 推論をサブプロセスで多重起動しない設計原則）。本スキルは fetch / 認可 / 正規化 / 送信のみ
 - **state 永続化**: `offset.json` + `lease.json` を `state_dir` に保存、heartbeat + TTL リースで並走防止と crash 自己治癒。**管理表（individuals/tasks/knowledge/abilities）は揮発 state と分離した `registry_dir` に置き、`registry_sync` 有効時は固定ブランチへ git 永続化**（イベント駆動 commit&push + 起動時 fetch、force 不使用）
 - **言行一致の保証（WAL、`registry_sync` 有効時）**: registry の push は best-effort ゆえ「登録したと返信したのに未登録」の不整合が起きうる。これを **WAL（Write-Ahead Log）** で防ぐ——登録系の返信の前に intent を WAL ログ（`registry_dir/wal/WAL.jsonl`、同一固定ブランチ）へ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo（key 冪等）。ログは直近 24h の会話文脈の短期記憶も兼ねる

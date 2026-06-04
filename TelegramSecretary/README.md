@@ -2,7 +2,7 @@
 
 > 📦 **設定の置き場** — 環境固有の値は `<INSTALL_DIR>/config.json`（`agent_name` / `private_dir` / `session_duration_sec` / `registry_*`、雛型 `templates/config.template.json`、`init-config` で生成）に集約します。秘匿（bot token / authorized chats）は env で注入。**運用値の手置換は不要**——人格名・private_dir は config.json、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決します（`<INSTALL_DIR>`=インストール先 / `<OWNER>`=運用主体 はドキュメント上の読み替え表記）。詳細は [STRUCTURE.md](./STRUCTURE.md)。
 
-Telegram Bot API の long-polling を **Claude Code Routines**（Anthropic のクラウド実行スケジュールエージェント基盤。Remote 実行の routine ＝ cloud routine）上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（`SecretaryRole` を被った本体エージェント。人格名は config.json の `agent_name`）が即応する対話チャネル。
+Telegram Bot API の long-polling を **Claude Code Routines**（Anthropic のクラウド実行スケジュールエージェント基盤。Remote 実行＝cloud routine）上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（`SecretaryRole` を被った本体エージェント。人格名は config.json の `agent_name`）が即応する対話チャネル。
 
 公開 ingress を持てない cloud routine 環境でも、long-polling と deadline 駆動ループで 24-7 の即応を実現します（`watch --exit-on-message` がメッセージ受信時に即座に exit → 返信 → 再起動）。応答は親プロセスのエージェント本人が起草し、本スキルは fetch / 認可 / 正規化 / 送信のみを担います（応答生成をサブプロセスに投げない設計）。
 
@@ -68,12 +68,7 @@ python scripts/main.py lease release
 | `TELEGRAM_SECRETARY_AUTHORIZED_CHATS` | ✅ | JSON array of int（chat_id allowlist） |
 | `TELEGRAM_SECRETARY_STATE_DIR` | optional | offset/lease/media の保存先（既定 `./state`） |
 | `TELEGRAM_SECRETARY_SESSION_ID` | optional | リース owner ID（省略時は uuid 自動生成）。`source bootstrap.sh` で自動 export され全コマンドで共有 |
-| `TELEGRAM_SECRETARY_MEDIA_MAX_SIZE_BYTES` | optional | 受信 media download のサイズ上限（既定 20MB）。超過は download せず skip |
-| `TELEGRAM_SECRETARY_MEDIA_RETENTION_HOURS` | optional | 保存 media の保持期限（既定 24h）。超過分は自動削除 |
-| `TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD` | optional | Heavy（true=既定、保存して中身理解）/ Medium（false、メタのみ）切替 |
-| `TELEGRAM_SECRETARY_BUNDLE_VOICE` | optional | 音声/動画 STT を導入するか（既定 true）。`false` で音声は `skipped`（軽量化・ライセンス回避、後述） |
-| `TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES` | optional | 送信添付の上限（既定 50MB、Telegram bot API 上限）。超過は送信前に弾く |
-| `TELEGRAM_SECRETARY_PDF_IMAGE_MAX_PAGES` | optional | PDF 受信時に事前画像化する先頭ページ数の上限（既定 20）。超過分は `render-pdf` でオンデマンド |
+| media / PDF / 音声 / 送信添付の optional 群 | optional | `*_MEDIA_MAX_SIZE_BYTES`（20MB）/ `*_MEDIA_RETENTION_HOURS`（24h）/ `*_MEDIA_ENABLE_DOWNLOAD`（Heavy/Medium）/ `*_BUNDLE_VOICE`（STT 同梱）/ `*_OUTBOUND_MAX_SIZE_BYTES`（50MB）/ `*_PDF_IMAGE_MAX_PAGES`（20）。各既定値・挙動は [SKILL.md](./skills/telegram-secretary/SKILL.md) の env vars 表（SSoT）参照 |
 
 > **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須）。「9-17 時勤務」のような勤務帯は cloud routine の cron（例 `0 9-16 * * 1-5`）+ duration で表現します（コードに時計を持たせない）。deadline 駆動ループの運用変数（`TS_SESSION_DEADLINE_EPOCH` / `TS_POLL_SET_SEC` / `TS_POLL_BASH_TIMEOUT_MS` / `TS_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export します。詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)。
 

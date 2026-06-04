@@ -6,7 +6,7 @@
 
 ## 脅威モデル概観
 
-TelegramSecretary は **cloud routine（＝ Claude Code Routines のクラウド実行）上で常駐し、外部（Telegram）からのメッセージを受けて エージェントが応答する**。攻撃面は以下:
+TelegramSecretary は **Claude Code Routines（Anthropic のクラウド実行＝cloud routine）上で常駐し、外部（Telegram）からのメッセージを受けて エージェントが応答する**。攻撃面は以下:
 
 1. **未認可の第三者**が bot にメッセージを送る → 認可で遮断
 2. **受信本文によるプロンプトインジェクション** → フェンシング＋フラグ
@@ -58,15 +58,15 @@ TelegramSecretary は **cloud routine（＝ Claude Code Routines のクラウド
 - **heartbeat + TTL リースロック** — 並走セッションの二重応答・offset 競合を構造的に防止。新セッションは heartbeat が新鮮なら起動拒否、stale なら奪取（crash 自己治癒と両立）
 - **SendReply の owner 二重検証** — 送信前に lease を再 load し owner 一致を確認（CLI 層 + UseCase 層の二重防御）
 
-## 7. 管理表・人格データ（PII）の保護 📋（計画）
+## 7. 管理表・人格データ（PII）の保護 ✅（Private 分離・git/WAL/abilities）/ 📋（複数チャネル時の境界）
 
-- **Private 分離が第一防御** — INDIVIDUALS（関係者の honorific/context_notes/taboo_topics）・TASKS・KNOWLEDGE・Identities はすべて Private リポ。public（配布物）には実体を置かない
-- **context_notes / taboo_topics に PII 前提** — 関係者の自由記述に個人情報が入る前提で、Private リポのアクセス権限を最小化
-- **shared_with 境界**（複数チャネル併用時）— 関係者間の情報共有は `identity.shared_with` の明示許可制。未承認の relay は拒否し、`<OWNER>`（principal）に承認伺い
-- **principal / associate の権限分離** — 管理系操作（approve/block/edit 等）は principal（`<OWNER>`）起源のみ
-- **git 永続化のセキュリティ**（`registry_sync` 有効時）— 管理表は **Private リポの固定ブランチ**（`registry_branch`）へ push し、public（配布物）には実体を置かない。git 認証（PAT 等）は env / cloud routine Environment に注入し、コミット・ログ・prompt body に焼かない。commit 対象は `registry_dir` 配下の管理表ファイルのみ（人格・秘匿の混入を構造的に排除）。force 不使用ゆえ外部更新を破壊しない
-- **WAL ログの PII 範囲**（`registry_sync` 有効時）— WAL ログ（`registry_dir/wal/WAL.jsonl`）の各 intent payload は **registry へ add するレコードと同一**（individuals/tasks/knowledge の構造化レコード）ゆえ、registry を超える PII 範囲の拡大は無い（**会話本文全体はログに載せない**）。同じ Private リポ固定ブランチに置かれ、commit 対象も `registry_dir` 配下に限定。done 化後は起動時チェックポイントで 24h 掃除（pending は redo まで保持）。WAL push も registry と同じ git 認証経路ゆえ、秘匿の扱いは上記と同一
-- **abilities（能力カタログ）の信頼境界**（`registry_sync` 有効時）— abilities の `skill_path` は秘書が読む/行使する外部スキルを指す入口ゆえ、信頼性が要点。能力カタログは Private（registry の一部、lease がシングルライターを保証）で、`add` は**実在を確認したスキルに限る**（自己追記ガード＝存在しない能力を書かない）。配布 template は空配列＝任意の `skill_path` を焼かない。PII ではないが、運用固有の能力は Private に置く（母集団スコープ、§8）
+- ✅ **Private 分離が第一防御** — INDIVIDUALS（関係者の honorific/context_notes/taboo_topics）・TASKS・KNOWLEDGE・Identities はすべて Private リポ。public（配布物）には実体を置かない
+- ⚠️ **context_notes / taboo_topics に PII 前提** — 関係者の自由記述に個人情報が入る前提で、Private リポのアクセス権限を最小化
+- 📋 **shared_with 境界**（複数チャネル併用時、未稼働）— 関係者間の情報共有は `identity.shared_with` の明示許可制。未承認の relay は拒否し、`<OWNER>`（principal）に承認伺い。Telegram 単体では関係者間 relay が無く、LineBridge 等の複数チャネル導入時に発効
+- 📋 **principal / associate の権限分離**（強制は複数チャネル時）— role enum（`principal`/`associate`）は値オブジェクトに実装済みだが、管理系操作（approve/block/edit 等）を principal（`<OWNER>`）起源に限る強制は、承認フローを持つ複数チャネル導入時に発効
+- ✅ **git 永続化のセキュリティ**（`registry_sync` 有効時）— 管理表は **Private リポの固定ブランチ**（`registry_branch`）へ push し、public（配布物）には実体を置かない。git 認証（PAT 等）は env / cloud routine Environment に注入し、コミット・ログ・prompt body に焼かない。commit 対象は `registry_dir` 配下の管理表ファイルのみ（人格・秘匿の混入を構造的に排除）。force 不使用ゆえ外部更新を破壊しない
+- ✅ **WAL ログの PII 範囲**（`registry_sync` 有効時）— WAL ログ（`registry_dir/wal/WAL.jsonl`）の各 intent payload は **registry へ add するレコードと同一**（individuals/tasks/knowledge の構造化レコード）ゆえ、registry を超える PII 範囲の拡大は無い（**会話本文全体はログに載せない**）。同じ Private リポ固定ブランチに置かれ、commit 対象も `registry_dir` 配下に限定。done 化後は起動時チェックポイントで 24h 掃除（pending は redo まで保持）。WAL push も registry と同じ git 認証経路ゆえ、秘匿の扱いは上記と同一
+- ✅ **abilities（能力カタログ）の信頼境界**（`registry_sync` 有効時）— abilities の `skill_path` は秘書が読む/行使する外部スキルを指す入口ゆえ、信頼性が要点。能力カタログは Private（registry の一部、lease がシングルライターを保証）で、`add` は**実在を確認したスキルに限る**（自己追記ガード＝存在しない能力を書かない）。配布 template は空配列＝任意の `skill_path` を焼かない。PII ではないが、運用固有の能力は Private に置く（母集団スコープ、§8）
 
 ## 8. 配布時の責任分界 ⚠️
 

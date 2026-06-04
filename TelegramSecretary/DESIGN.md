@@ -21,7 +21,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 | Layer | 責務 | 例 |
 |---|---|---|
-| **Domain** | 純粋ロジック・値オブジェクト | `TelegramUpdate` / `OutboundMessage` / `Individual` / `Task` / `Knowledge` / `Ability` / `MediaAttachment` / 正規化・injection フラグ |
+| **Domain** | 純粋ロジック・値オブジェクト | `TelegramUpdate` / `OutboundMessage` / `Individual` / `Identity` / `Task` / `Knowledge` / `Ability` / `MediaAttachment` / 正規化・injection フラグ |
 | **UseCase** | オーケストレーション + Port 定義 | `FetchAuthorizedUpdates` / `SendReply` / 管理表 CRUD UseCase / Ports（`UpdateSource`・`MessageSink`・`OffsetStore`・各 `*Store`） |
 | **Interface (Adapter)** | ゲートウェイ・ストア・CLI | `TelegramApiGateway` / `JsonStateStore` / `JsonRegistryStore`（管理表）/ `StdoutEventEmitter` / `main.py` |
 | **Infrastructure** | 外部・フレームワーク・配線 | `bootstrap.sh` / `config` / `composition`（Composition Root）/ `exit_codes` / `archive_rotate.py` |
