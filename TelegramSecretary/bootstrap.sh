@@ -93,6 +93,38 @@ _ts_registry_raw="$(python -c 'import json, sys; d = json.load(open(sys.argv[1],
 if [ -n "$_ts_registry_raw" ]; then
     export TELEGRAM_SECRETARY_REGISTRY_DIR="$(python -c 'import os, sys; print(os.path.abspath(sys.argv[1]))' "$_ts_registry_raw")"
     _ts_log "registry_dir=$TELEGRAM_SECRETARY_REGISTRY_DIR"
+
+    # --- REGISTRY worktree provisioning（層1 根治：registry_dir を独立 git 作業ツリー化）---
+    # registry_sync 有効時、registry_dir を Private リポの第二作業ツリー（worktree）として冪等に用意する。
+    # これで GitCliAdapter の cwd=registry_dir が独立作業ツリーになり、起動時 fetch_checkout の
+    # checkout -B が親 Private dev ツリーを汚染せず（欠陥2）、registry_dir 不在の OSError(Errno 2)
+    # （欠陥1）も解消する。ts-registry は registry ファイルを root 直下に持つ専用ブランチ。
+    # provisioning 失敗時は _ts_die せず継続し、registry-sync が空ロード警告（層3）を出す
+    # （fail-fast でなく graceful。worktree add の dev ツリー非干渉は Stage 1 spike で実証済み）。
+    _ts_reg_sync="$(python -c 'import json,sys; print(str(json.load(open(sys.argv[1],encoding="utf-8")).get("registry_sync", False)).lower())' "$_ts_script_dir/config.json")"
+    if [ "$_ts_reg_sync" = "true" ]; then
+        _ts_reg_branch="$(python -c 'import json,sys; print(json.load(open(sys.argv[1],encoding="utf-8")).get("registry_branch") or "claude/ts-registry")' "$_ts_script_dir/config.json")"
+        # Private リポルート = private_dir の先頭パスセグメント（cwd=2リポ親起点）
+        _ts_priv_repo="$(python -c 'import json,sys; p=(json.load(open(sys.argv[1],encoding="utf-8")).get("private_dir") or "").replace(chr(92),"/").strip("/"); print(p.split("/")[0] if p else "")' "$_ts_script_dir/config.json")"
+        if [ -n "$_ts_priv_repo" ] && { [ -d "$_ts_priv_repo/.git" ] || [ -f "$_ts_priv_repo/.git" ]; }; then
+            git -C "$_ts_priv_repo" fetch origin "$_ts_reg_branch" 2>/dev/null \
+                || _ts_log "warn: registry fetch failed (registry-sync will retry / surface empty-load)"
+            _ts_reg_top="$(git -C "$TELEGRAM_SECRETARY_REGISTRY_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+            if [ "$_ts_reg_top" = "$TELEGRAM_SECRETARY_REGISTRY_DIR" ]; then
+                git -C "$TELEGRAM_SECRETARY_REGISTRY_DIR" checkout -B "$_ts_reg_branch" "origin/$_ts_reg_branch" 2>/dev/null \
+                    && _ts_log "registry worktree refreshed ($_ts_reg_branch)" \
+                    || _ts_log "warn: registry worktree refresh failed"
+            else
+                git -C "$_ts_priv_repo" worktree prune 2>/dev/null
+                rm -rf "$TELEGRAM_SECRETARY_REGISTRY_DIR" 2>/dev/null
+                git -C "$_ts_priv_repo" worktree add "$TELEGRAM_SECRETARY_REGISTRY_DIR" "$_ts_reg_branch" 2>/dev/null \
+                    && _ts_log "registry worktree provisioned ($_ts_reg_branch -> $TELEGRAM_SECRETARY_REGISTRY_DIR)" \
+                    || _ts_log "warn: registry worktree add failed (registry-sync will surface empty-load)"
+            fi
+        else
+            _ts_log "warn: Private repo root not found ($_ts_priv_repo); registry provisioning skipped"
+        fi
+    fi
 fi
 
 # --- D: deadline 駆動ロングポーリング運用変数 (Stage 10.3 / D 改修、config.json 化) ---
