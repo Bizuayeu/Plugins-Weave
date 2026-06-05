@@ -101,6 +101,9 @@ if [ -n "$_ts_registry_raw" ]; then
     # （欠陥1）も解消する。ts-registry は registry ファイルを root 直下に持つ専用ブランチ。
     # provisioning 失敗時は _ts_die せず継続し、registry-sync が空ロード警告（層3）を出す
     # （fail-fast でなく graceful。worktree add の dev ツリー非干渉は Stage 1 spike で実証済み）。
+    # worktree add は -B "$BR" ... "origin/$BR" で常に origin から強制（registry の SSoT は origin）。
+    # stateful 環境（手動/ローカル実行）に古い同名ローカルブランチが残っても掴まず最新を反映し、
+    # 既存 worktree のリフレッシュ（checkout -B "origin/$BR"）と origin 強制で対称。
     _ts_reg_sync="$(python -c 'import json,sys; print(str(json.load(open(sys.argv[1],encoding="utf-8")).get("registry_sync", False)).lower())' "$_ts_script_dir/config.json")"
     if [ "$_ts_reg_sync" = "true" ]; then
         _ts_reg_branch="$(python -c 'import json,sys; print(json.load(open(sys.argv[1],encoding="utf-8")).get("registry_branch") or "claude/ts-registry")' "$_ts_script_dir/config.json")"
@@ -117,7 +120,7 @@ if [ -n "$_ts_registry_raw" ]; then
             else
                 git -C "$_ts_priv_repo" worktree prune 2>/dev/null
                 rm -rf "$TELEGRAM_SECRETARY_REGISTRY_DIR" 2>/dev/null
-                git -C "$_ts_priv_repo" worktree add "$TELEGRAM_SECRETARY_REGISTRY_DIR" "$_ts_reg_branch" 2>/dev/null \
+                git -C "$_ts_priv_repo" worktree add -B "$_ts_reg_branch" "$TELEGRAM_SECRETARY_REGISTRY_DIR" "origin/$_ts_reg_branch" 2>/dev/null \
                     && _ts_log "registry worktree provisioned ($_ts_reg_branch -> $TELEGRAM_SECRETARY_REGISTRY_DIR)" \
                     || _ts_log "warn: registry worktree add failed (registry-sync will surface empty-load)"
             fi
