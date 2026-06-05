@@ -39,7 +39,7 @@ $env:TELEGRAM_SECRETARY_AUTHORIZED_CHATS = "[<your-chat-id>]"
 $env:TELEGRAM_SECRETARY_STATE_DIR = ".\state"   # 任意（既定 ./state）
 
 # 運用設定 config.json を生成（session_duration_sec 必須、範囲 1〜86400）
-python scripts/main.py init-config --session-duration-sec 7200 --agent-name YourSecretary
+python scripts/main.py init-config --session-duration-sec 14400 --agent-name YourSecretary
 
 # 設定検証 → 現設定の確認 → 疎通 ping → 1サイクル poll
 python scripts/main.py validate-config
@@ -51,7 +51,7 @@ python scripts/main.py poll --timeout 5
 python scripts/main.py lease acquire
 python scripts/main.py watch --exit-on-message --max-duration 30 --timeout 5
 #   → メッセージが来たサイクルで即 exit 0／無ければ 30 秒の窓満了で exit 0
-#   （本番の常駐設定＝2h 枠・580s 窓は ROUTINE_PROMPT.md 参照）
+#   （本番の常駐設定＝4h 枠・580s 窓は ROUTINE_PROMPT.md 参照）
 python scripts/main.py lease release
 ```
 

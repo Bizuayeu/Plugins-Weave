@@ -1,14 +1,14 @@
 {
   "_template": "TelegramSecretary 運用設定の雛型。<INSTALL_DIR>/config.json にコピーして値を埋めるか、`python scripts/main.py init-config` で生成する。config.json 実体は .gitignore（/config.json）で配布除外、この .template のみ public。秘匿（TELEGRAM_BOT_TOKEN / TELEGRAM_SECRETARY_AUTHORIZED_CHATS）は env で注入し、ここには書かない（純2層: env=秘匿、config.json=非秘匿の運用設定）。",
   "_field_schema": {
-    "session_duration_sec": "int — 必須（デフォルト無し、欠落は fail-fast）。1 セッションの継続秒。範囲 1〜86400（=24h）。deadline 計算の元。テスト/観測では短く（例 60）",
+    "session_duration_sec": "int — 必須（デフォルト無し、欠落は fail-fast）。1 セッションの継続秒。範囲 1〜86400（=24h）。deadline 計算の元。雛型の既定 14400（=4h）は cloud routine コンテナの連続稼働上限の実測値（約 4h・プラットフォーム依存で変動しうる）に合わせた常駐向けの目安。テスト/観測では短く（例 60）。常駐の cron との組み方は SETUP.md『勤務帯の設計』参照",
     "agent_name": "string — 任意。秘書エージェントの人格名。ROUTINE_PROMPT が Step 0 で参照し Identities/<agent_name>Identity.md を読む",
     "private_dir": "string — 任意。非公開データ・人格定義（SecretaryRole.md）の配置先。cloud routine では cwd（2リポ親）起点の相対パス（例 <PRIVATE_REPO>/TelegramSecretary）、ローカルは絶対 or 任意。ROUTINE_PROMPT の <PRIVATE_DIR> に対応",
     "registry_sync": "bool — 任意（既定 false）。管理表の git 永続化（イベント駆動 commit & push）。Cloud で true、ローカルは false で git に触れない（R2）",
     "registry_dir": "string — 任意。永続管理表の根。未設定なら state_dir にフォールバック。Private リポ配下を指す（cwd 親起点の相対、例 <PRIVATE_REPO>/TelegramSecretary/registry）",
     "registry_branch": "string — 任意（既定 claude/ts-registry）。管理表を push する固定ブランチ。registry_remote（既定 origin）と組で運用"
   },
-  "session_duration_sec": 7200,
+  "session_duration_sec": 14400,
   "agent_name": "YourSecretary",
   "private_dir": "/path/to/private/repo",
   "registry_sync": false,

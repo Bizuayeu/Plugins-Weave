@@ -107,7 +107,7 @@ export TS_POLL_SET_SEC="${TS_POLL_SET_SEC:-580}"                     # メッセ
 export TS_POLL_BASH_TIMEOUT_MS="${TS_POLL_BASH_TIMEOUT_MS:-600000}"  # ポーリング call の bash tool timeout (=BASH_MAX_TIMEOUT_MS)
 # TS_MAX_TURNS: 日次総量レートキャップ (旧: deadline 異常時の暴走保険、役割変更)。
 # 「~15通/h」を最低保証する天井 = アイドル下限(duration/POLL_SET_SEC) + 通数枠(15通/h)。
-# 24h→約507 (148+359)、2h→約42 (12+30)。高密度日は最大このturn数まで伸び、到達で当日沈黙
+# 24h→約507 (148+359)、4h→約84 (24+60)。高密度日は最大このturn数まで伸び、到達で当日沈黙
 # (lease release→次 cron が offset 継続)。先食い可ゆえ毎時平準化ではない。
 # 短 duration (テスト用、約1.4h 未満) では整数除算で算出が過小/0 になり /goal が即死するため
 # floor=30 を敷く (0 ターン停止の回避＝最低限の暴走保険予算)。env で上書き可。

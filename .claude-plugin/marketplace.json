@@ -117,7 +117,7 @@
       "name": "TelegramSecretary",
       "source": "./TelegramSecretary",
       "description": "Telegram Bot API の long-polling を cloud routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネル",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "Weave @ TelegramSecretary"
       },

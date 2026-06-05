@@ -97,6 +97,8 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 > 設計の背骨は §2「決定論コア + エージェント判断の分離」の踏襲: git 操作（commit/push/rebase/fetch）は決定論の世界（コード・テスト可能）、「何を残すか」の判断は重要度の世界（エージェント）。
 
+> **cloud routine harness の作業ブランチについて**: cloud routine は session ごとに `<registry_branch>-<ランダム SUFFIX>`（例 `claude/ts-registry-AbCdE`）の作業ブランチをローカルに自動生成する。一方 registry_sync は `git push HEAD:<registry_branch>`（SUFFIX なし）で固定ブランチへ直接 push するため、管理表は常に1本（`registry_branch`）へ集約される。**harness 作業ブランチは commit が乗った時だけ GitHub に push される**ので、registry_cli 以外で git commit しない限り（＝作業ブランチが空のまま）リモートに残骸は生じない。`<registry_branch>-XXXXX` がリモートに増えていたら、それは session 中に registry_cli を通さない手動 commit が乗ったサイン——削除は手動掃除（`gh api -X DELETE .../git/refs/heads/<branch>`）で足り、毎 session の常設削除処理は要らない。
+
 ### 3.7 なぜ WAL（Write-Ahead Log）で言行一致を保証するか（consistency vs durability）
 
 §3.6 の registry 永続化は push が **best-effort**（一時失敗は次回再送）。これは durability（データを失わない）には十分だが、**consistency（対外的な約束と内部状態の一致）には穴がある**: 秘書が「登録しました」と返信した後にコンテナが強制終了され push が漏れると、「言ったのに registry に無い」言行不一致が起きうる。これは冗長化でなく**順序**（WAL）で解く。

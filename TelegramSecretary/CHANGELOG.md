@@ -2,7 +2,17 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
-## [1.2.0] - 2026-06-04 — 能動 push（proactive-send）
+## [1.2.1] - 2026-06-05 — cloud routine 実測 4h への整合
+
+### Fixed
+
+- **SETUP.md「勤務帯の設計」の 24h 常駐例を実測整合へ修正** — cloud routine コンテナの連続稼働は実測で約 4h（プラットフォーム依存・変動しうる）であり、従来例「1日1回 cron ＋ `session_duration_sec=86340`」では上限で切れた後に翌日まで沈黙し常駐にならなかった。常駐は「実測上限と同程度の枠（例 `14400`）＋ その間隔の cron 複数回（例 4h ごと＝ JST 0/4/8/12/16/20）」で実現する旨へ訂正。
+
+### Changed
+
+- **`session_duration_sec` の雛型既定・クイックスタート例を `14400`（4h）へ** — `config.template.json` の既定値と `init-config` 例（README / commands）を、cloud routine 実測上限（約 4h）に合わせた常駐向けの目安 `14400` に統一（従来 `7200`）。`config.template.json` のフィールド説明にも既定値の根拠を明記。
+- **本番常駐例を 2h 枠から 4h 枠へ統一** — README クイックスタート注記の本番設定と ROUTINE_PROMPT の `$TS_MAX_TURNS` 算出例を実測 4h に更新（`24h≈507・2h≈42` → `24h≈507・4h≈84`）。`bootstrap.sh` のコメント算出例も同期（挙動・式は不変、例示値のみ）。`580s` 窓（1 ポーリングサイクル長）は session 枠と独立ゆえ不変。
+- **`session_config.py` の `MAX_SECONDS` コメントを明確化** — `86400`（24h）は値域の妥当性ガード上限であり、プラットフォームの実セッション上限（実測 約 4h）とは別レイヤーである旨を注記（値は不変）。
 
 ### Added
 
