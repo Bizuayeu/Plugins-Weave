@@ -123,7 +123,17 @@ def run_registry_fetch(config: Config, git=None) -> int:
     try:
         service.fetch_checkout(config.registry_branch)
     except GitSyncError as exc:
+        # 層3 可観測性: transient を沈黙して握り潰すと「気づけない空表稼働」になる。
+        # 失敗の事実に加え、空表で継続＝記憶なし稼働という運用上の含意を警告で明示する
+        # （principal への一報は ROUTINE_PROMPT 手順に委譲＝送信責務をコードに持たせない）。
         print(f"registry fetch failed: {exc}", file=sys.stderr)
+        print(
+            "WARNING: registry-sync is continuing with EMPTY tables — the secretary "
+            "runs WITHOUT memory this session (individuals/tasks/knowledge/abilities, "
+            "and any grants, are unavailable until the next successful fetch). "
+            "Treat registry reads as empty and notify the principal that memory is unloaded.",
+            file=sys.stderr,
+        )
         return EXIT_FETCH_FAILED
     print(f"registry fetched: {config.registry_branch}")
     return EXIT_OK

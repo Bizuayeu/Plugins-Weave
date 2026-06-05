@@ -12,7 +12,7 @@ import subprocess
 import pytest
 
 from adapters.registry.git_cli import GitCliAdapter
-from domain.exceptions import PushRejectedError
+from domain.exceptions import PushRejectedError, RegistryWorktreeError
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git not on PATH")
 
@@ -126,3 +126,18 @@ def test_fetch_checkout_gets_remote_state(repos, tmp_path):
     _clone_and_advance(remote, tmp_path, "other")  # remote に other.json
     adapter.fetch_checkout(_BRANCH)
     assert (work / "other.json").exists()  # origin の最新が work に反映
+
+
+def test_fetch_checkout_rejects_when_toplevel_differs(repos):
+    """registry_dir が独立作業ツリーでなく親リポ subdir のとき、checkout -B を撃たず
+    RegistryWorktreeError で停止する（親リポ誤爆＝潜在第二欠陥の遮断、層2）。
+    toplevel 一致時の proceeds は test_fetch_checkout_gets_remote_state が担保。"""
+    work, _ = repos
+    _git(work, "checkout", "-b", "dev-work")  # 親リポは別ブランチで作業中
+    subdir = work / "registry"                # work（独立ツリー）の内側の subdir
+    subdir.mkdir()
+    adapter = GitCliAdapter(subdir, branch=_BRANCH)
+    with pytest.raises(RegistryWorktreeError):
+        adapter.fetch_checkout(_BRANCH)
+    # checkout -B が撃たれていない＝親リポ（work）のブランチが切り替わっていない
+    assert _git(work, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip() == "dev-work"

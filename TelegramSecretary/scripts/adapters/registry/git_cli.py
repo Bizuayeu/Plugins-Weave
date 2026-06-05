@@ -11,7 +11,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Sequence
 
-from domain.exceptions import GitSyncError, PushRejectedError
+from domain.exceptions import GitSyncError, PushRejectedError, RegistryWorktreeError
 
 # git push 拒否（non-fast-forward）の英語マーカー（LC_ALL=C 固定で安定検出）。
 # "rejected" は部分文字列マッチで "[rejected]" を包含するため後者は列挙しない。
@@ -75,7 +75,31 @@ class GitCliAdapter:
         """remote の固定 branch を pull --rebase で取り込む（外部更新の統合）。"""
         self._run(["pull", "--rebase", self._remote, self._branch])
 
+    def _assert_independent_worktree(self) -> None:
+        """cwd が registry_dir を root とする独立 git 作業ツリーか検証する（層2 防御ガード）。
+
+        registry_dir が他リポ（親 Private 等）の作業ツリー内サブディレクトリだと、
+        checkout -B が親リポ全体のブランチを切り替えて破壊する（潜在第二欠陥）。
+        show-toplevel が registry_dir 自身と一致しなければ checkout を撃たず停止する。
+        registry_dir 不在/git 管理外なら _run が OSError/非0 を GitSyncError に翻訳する
+        （初回起動の transient 経路、SETUP.md「初回は対象ブランチが空でも継続」）。
+        """
+        result = self._run(["rev-parse", "--show-toplevel"])
+        toplevel = Path(result.stdout.strip()).resolve()
+        expected = self._repo.resolve()
+        if toplevel != expected:
+            raise RegistryWorktreeError(
+                f"registry_dir is not an independent git work tree: "
+                f"expected top-level {expected}, got {toplevel}. "
+                f"checkout -B aborted to avoid corrupting the parent repository."
+            )
+
     def fetch_checkout(self, branch: str) -> None:
-        """remote の branch を fetch し、ローカルを origin/branch に合わせて checkout（起動時の最新取得）。"""
+        """remote の branch を fetch し、ローカルを origin/branch に合わせて checkout（起動時の最新取得）。
+
+        checkout -B は cwd の作業ツリー全体を branch へ切り替えるため、cwd が registry_dir を
+        root とする独立作業ツリーであることを先に検証する（親リポ誤爆の構造的禁止、層2）。
+        """
+        self._assert_independent_worktree()
         self._run(["fetch", self._remote, branch])
         self._run(["checkout", "-B", branch, f"{self._remote}/{branch}"])

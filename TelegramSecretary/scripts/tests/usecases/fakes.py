@@ -123,16 +123,18 @@ class FakeGitSync:
 
     - commit: `committed` 値を返す（変更有無の擬似）
     - push: `push_outcomes` の先頭を順に消費。None=成功、例外インスタンス=raise
-    - pull_rebase / fetch_checkout: 呼び出し回数・引数を記録
+    - fetch_checkout: `fetch_outcomes` の先頭を順に消費（None=成功、例外=raise）。引数も記録
+    - pull_rebase: 呼び出し回数・引数を記録
     """
 
-    def __init__(self, committed: bool = True, push_outcomes=None) -> None:
+    def __init__(self, committed: bool = True, push_outcomes=None, fetch_outcomes=None) -> None:
         self.committed = committed
         self.commit_calls: List[Tuple[List[Path], str]] = []
         self.push_calls = 0
         self.pull_rebase_calls = 0
         self.fetch_calls: List[str] = []
         self._push_outcomes = list(push_outcomes) if push_outcomes is not None else [None]
+        self._fetch_outcomes = list(fetch_outcomes) if fetch_outcomes is not None else []
 
     def commit(self, paths, message: str) -> bool:
         self.commit_calls.append((list(paths), message))
@@ -149,6 +151,10 @@ class FakeGitSync:
 
     def fetch_checkout(self, branch: str) -> None:
         self.fetch_calls.append(branch)
+        if self._fetch_outcomes:
+            outcome = self._fetch_outcomes.pop(0)
+            if outcome is not None:
+                raise outcome
 
 
 class FakeWalLogStore:

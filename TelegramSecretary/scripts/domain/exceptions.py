@@ -51,3 +51,14 @@ class PushRejectedError(GitSyncError):
     pull --rebase で取り込んでから再 push する（独立ファイルは自動マージ）。
     GitSyncError のサブクラスゆえ、握り潰し catch でも拾われる（rebase を先に試す順序に注意）。
     """
+
+
+class RegistryWorktreeError(GitSyncError):
+    """registry_dir が独立した git 作業ツリーでない（親リポのサブディレクトリ等、層2）。
+
+    checkout -B は cwd の作業ツリー全体をブランチへ切り替えるため、registry_dir が
+    独立作業ツリーでないと親リポ（Private 等）を破壊する。fetch_checkout はこれを
+    事前検証し、独立でなければ checkout を撃たず本例外で停止する。GitSyncError の
+    サブクラスゆえ run_registry_fetch の except 経路に乗り、transient 扱い（空表継続）で
+    後方互換を保つ（provisioning 完了までの過渡期も安全）。
+    """

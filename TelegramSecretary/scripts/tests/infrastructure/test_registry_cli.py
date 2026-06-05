@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from domain.authorization import AuthorizedChats
+from domain.exceptions import GitSyncError
 from infrastructure.config import Config
 from infrastructure.registry_cli import run_registry_command, run_registry_fetch
 from usecases.registry_sync import RegistrySyncService
@@ -156,7 +157,7 @@ def test_registry_fetch_noop_when_disabled(tmp_path):
     assert git.fetch_calls == []
 
 
-def test_registry_fetch_continues_when_registry_root_absent(tmp_path):
+def test_registry_fetch_continues_when_registry_root_absent(tmp_path, capsys):
     """初回起動で registry_root が物理的に未作成でも、クラッシュせず fetch 失敗
     （EXIT_FETCH_FAILED=1）として握り、空のローカル管理表で継続できる。
 
@@ -165,7 +166,6 @@ def test_registry_fetch_continues_when_registry_root_absent(tmp_path):
     ──SETUP.md「初回は対象ブランチが空でも継続」の実装回帰テスト。
     """
     from adapters.registry.git_cli import GitCliAdapter
-    from domain.exceptions import GitSyncError
 
     missing = tmp_path / "never-created" / "registry"
     config = Config(
@@ -183,8 +183,44 @@ def test_registry_fetch_continues_when_registry_root_absent(tmp_path):
     with pytest.raises(GitSyncError):
         adapter.fetch_checkout(config.registry_branch)
 
-    # ハンドラは transient 扱いで EXIT_FETCH_FAILED（=1）を返し、例外を投げない
+    # ハンドラは transient 扱いで EXIT_FETCH_FAILED（=1）を返し、例外を投げない。
+    # かつ「空表で継続＝記憶なし稼働」を沈黙せず警告で明示する（層3 可観測性）。
     assert run_registry_fetch(config, git=adapter) == 1
+    assert "empty" in capsys.readouterr().err.lower()
+
+
+def test_registry_fetch_emits_empty_load_warning_on_failure(tmp_path, capsys):
+    """fetch 失敗時、空表で継続する旨（記憶なし稼働）を警告レベルで明示する（層3）。
+    transient を沈黙して握り潰す → 気づけない空表稼働、を防ぐ。"""
+    config = Config(
+        bot_token="x",
+        authorized_chats=AuthorizedChats.from_iterable([1]),
+        state_dir=tmp_path,
+        session_duration_sec=7200,
+        registry_sync_enabled=True,
+        registry_branch="claude/ts-registry",
+    )
+    git = FakeGitSync(fetch_outcomes=[GitSyncError("simulated fetch failure")])
+    assert run_registry_fetch(config, git=git) == 1
+    err = capsys.readouterr().err.lower()
+    assert "warning" in err and "empty" in err  # 警告レベルで空表継続を明示
+
+
+def test_registry_fetch_silent_on_success_and_noop(tmp_path, capsys):
+    """成功時・no-op（registry_sync 無効）時は空表警告を出さない（偽陽性の沈黙破り防止）。"""
+    enabled = Config(
+        bot_token="x",
+        authorized_chats=AuthorizedChats.from_iterable([1]),
+        state_dir=tmp_path,
+        session_duration_sec=7200,
+        registry_sync_enabled=True,
+        registry_branch="claude/ts-registry",
+    )
+    assert run_registry_fetch(enabled, git=FakeGitSync()) == 0  # fetch 成功
+    assert "empty" not in capsys.readouterr().err.lower()
+
+    assert run_registry_fetch(_config(tmp_path), git=FakeGitSync()) == 0  # no-op（無効）
+    assert "empty" not in capsys.readouterr().err.lower()
 
 
 # === abilities（4 表目、registry 同格・WAL 対象）===
