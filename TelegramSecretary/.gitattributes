@@ -1,3 +1,14 @@
+# Line-ending policy for this subtree, which is junction-shared with Homunculus-Weave
+# (Expertises/TelegramSecretary -> here). Normalize text to LF so the same physical files
+# stay consistent across both repos. Without this, plugins-weave's root (no .gitattributes
+# + core.autocrlf=true) re-CRLFs .md on checkout, causing perpetual phantom-M in
+# Homunculus-Weave whose policy is `* text=auto eol=lf`.
+* text=auto eol=lf
+
+# Windows batch files need CRLF — cmd.exe mis-parses LF-terminated lines.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 # Shell scripts must stay LF: they run on Linux (cloud routine) where CRLF would break the
-# shebang (#!/bin/bash). Force LF regardless of the checkout platform's autocrlf setting.
+# shebang (#!/bin/bash). (Subsumed by the * rule above; kept explicit for intent.)
 *.sh text eol=lf
