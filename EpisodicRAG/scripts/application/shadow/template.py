@@ -50,7 +50,7 @@ class ShadowTemplate:
         """
         limits = PLACEHOLDER_LIMITS
         return {
-            "timestamp": PLACEHOLDER_SIMPLE,
+            "timestamp": datetime.now().isoformat(),
             "source_files": [],
             "digest_type": PLACEHOLDER_SIMPLE,
             "keywords": create_placeholder_keywords(limits["keyword_count"]),

@@ -75,10 +75,17 @@ class TestCreateEmptyOverallDigest:
             assert field in result, f"Missing field: {field}"
 
     @pytest.mark.unit
-    def test_timestamp_is_placeholder(self, template: "ShadowTemplate") -> None:
-        """timestampはプレースホルダー"""
+    def test_timestamp_is_iso_now(self, template: "ShadowTemplate") -> None:
+        """timestampはテンプレ生成時刻のISO 8601文字列（PLACEHOLDERではない）
+
+        timestampは機械値ゆえコードで管理する。finalize時にdigest_builderが
+        datetime.now()で確定値に上書きするため、テンプレ段階でも実時刻を入れて
+        PLACEHOLDER残留（表示整合性の欠落）を防ぐ。
+        """
         result = template.create_empty_overall_digest()
-        assert result["timestamp"] == PLACEHOLDER_SIMPLE
+        assert result["timestamp"] != PLACEHOLDER_SIMPLE
+        # ISO 8601 としてパース可能であること（datetime.now().isoformat() 由来）
+        datetime.fromisoformat(result["timestamp"])
 
     @pytest.mark.unit
     def test_source_files_is_empty(self, template: "ShadowTemplate") -> None:
@@ -238,11 +245,11 @@ class TestGetTemplate:
 
     @pytest.mark.unit
     def test_level_overall_digest_has_placeholders(self, template: "ShadowTemplate") -> None:
-        """各レベルのoverall_digestにプレースホルダーが含まれる"""
+        """各レベルのoverall_digestにプレースホルダーが含まれる（timestampは実時刻ゆえ除外）"""
         result = template.get_template()
         for level in LEVEL_NAMES:
             overall = result["latest_digests"][level]["overall_digest"]
-            assert PLACEHOLDER_SIMPLE in overall["timestamp"]
+            assert overall["digest_type"] == PLACEHOLDER_SIMPLE
             assert len(overall["keywords"]) == PLACEHOLDER_LIMITS["keyword_count"]
 
     @pytest.mark.unit
