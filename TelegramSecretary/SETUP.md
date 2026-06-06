@@ -80,7 +80,7 @@ marketplace からインストール、または基本設定リポの `TelegramS
 - routine 本体（cron＋prompt body＋sources）を作成します
 - **sources は基本設定＋非公開**（分けるなら2つ、1リポにまとめるなら1つ）
 - prompt body 内の `<BASE_REPO>` / `<PRIVATE_DIR>` は schedule が自動で実リポ名に置換します（手置換不要）
-- **`registry_sync` を有効にした場合**、管理表の push 先 `registry_branch`（既定 `claude/ts-registry`）が routine の書き戻し先（`outcomes`）として宣言されます。これが無いと cloud routine から管理表ブランチへ push できません（`registry_sync` 無効なら不要）
+- **`registry_sync` を有効にした場合**、管理表は `registry_dir`（独立 worktree）から `registry_cli` が固定ブランチ `registry_branch`（既定 `claude/ts-registry`）へ直接 push します（`bootstrap.sh` が worktree を provisioning、認証は cloud routine の git credential。DESIGN §3.6）。routine の `outcomes` への `registry_branch` 名指し宣言は不要です（2026-06-05 worktree 移行後）
 
 > **`environment_id` は後から差し替え可能**です。先に routine を作っておき、次の ⑦ で環境を整えてから紐付ける流れが、一般には迷いにくくおすすめです。
 
@@ -121,7 +121,7 @@ claude.ai の Code → Environments で：
 | exit 4（lease conflict） | 他セッションが保持中 | 自己治癒の正常動作（重複起動防止）。放置でよい |
 | Step 0 でパス解決失敗 | 2リポ配置の不整合 | sources に基本設定リポ＋非公開リポの両方があるか、config の `private_dir` が cwd 親起点か確認 |
 | 返信が返らない | egress or 認可 | chat_id が `AUTHORIZED_CHATS` に入っているか、`api.telegram.org` egress が通っているか |
-| 管理表が毎回空に戻る | `registry_sync` 無効 or `outcomes` 未配線 | config の `registry_sync:true` と `registry_dir` を確認 → `/telegram-secretary schedule` 再登録で push 先ブランチ（outcomes）を配線 |
+| 管理表が毎回空に戻る | `registry_sync` 無効 or worktree 未 provisioning or git 認証不足 | config の `registry_sync:true` / `registry_dir`（独立 worktree）を確認 → bootstrap の `registry worktree provisioned/refreshed` ログと固定ブランチへの push 認証（git credential）を確認（DESIGN §3.6） |
 | `registry fetch failed`（起動時） | 固定ブランチ未作成 or git 認証不足 | 初回は対象ブランチが空でも継続（前回ローカル状態で起動）。git 認証（PAT 等）が Environment にあるか確認 |
 | 管理表が空＝記憶なし稼働（stderr に `WARNING: ... EMPTY tables`） | `registry_dir` が独立 worktree でない（dev ツリー内サブディレクトリ＝旧構成） | `registry_dir` を独立 worktree 値（`ts-registry-wt`）にする。bootstrap の `registry worktree provisioned/refreshed` ログを確認（→ DESIGN §3.6） |
 
