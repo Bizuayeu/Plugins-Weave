@@ -77,7 +77,7 @@ def test_redo_reconciles_pending_into_registry(tmp_path):
             payload={"id": "T0001"}, created_at="2026-06-03T18:00:00+00:00",
         )
     )
-    assert run_wal_redo(config) == EXIT_OK
+    assert run_wal_redo(config, git=FakeGitSync()) == EXIT_OK
     records = JsonRegistryStore(config.tasks_path).load()
     assert any(r["id"] == "T0001" for r in records)  # registry へ反映
     assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
@@ -105,7 +105,7 @@ def test_redo_reconciles_abilities_pending_into_registry(tmp_path):
             payload={"id": "A1"}, created_at="2026-06-04T18:00:00+00:00",
         )
     )
-    assert run_wal_redo(config) == EXIT_OK
+    assert run_wal_redo(config, git=FakeGitSync()) == EXIT_OK
     records = JsonRegistryStore(config.abilities_path).load()
     assert any(r["id"] == "A1" for r in records)  # registry へ反映
     assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
@@ -143,10 +143,48 @@ def test_redo_resends_outbound_via_sink(tmp_path):
         )
     )
     sink = FakeMessageSink()
-    assert run_wal_redo(config, sink=sink) == EXIT_OK
+    assert run_wal_redo(config, sink=sink, git=FakeGitSync()) == EXIT_OK
     assert len(sink.sent) == 1
     assert "念のため再送します" in sink.sent[0].text
     assert "関連トピック" in sink.sent[0].text
     assert all(
         e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load()
     )
+
+
+# --- 回帰: redo の done-marking を固定ブランチへ push（4時間ごと無限再送バグの再発防止）---
+
+
+def test_redo_persists_done_marking_to_branch(tmp_path):
+    """redo が outbound を再送して done 化した後、その done-marking を commit & push する。
+
+    push しないと次回起動の reset で done が消え outbound=pending が復活＝無限再送（旧バグ）。
+    redo は done の永続化まで含めて完了する。
+    """
+    config = _config(tmp_path, sync=True)
+    JsonlWalLogStore(config.wal_log_path).append(
+        WalEntry(
+            key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
+            payload={"chat_id": 100, "text": "感想"},
+            created_at="2026-06-03T18:00:00+00:00",
+        )
+    )
+    git = FakeGitSync(committed=True, push_outcomes=[None])
+    assert run_wal_redo(config, sink=FakeMessageSink(), git=git) == EXIT_OK
+    assert git.push_calls == 1  # done-marking が固定ブランチへ push された
+    assert git.commit_calls and config.wal_log_path in git.commit_calls[0][0]
+
+
+def test_redo_persist_is_best_effort_on_push_failure(tmp_path):
+    """push 失敗（transient）でも redo は exit 0（起動経路を git 失敗で止めない＝best-effort）。"""
+    config = _config(tmp_path, sync=True)
+    JsonlWalLogStore(config.wal_log_path).append(
+        WalEntry(
+            key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
+            payload={"chat_id": 100, "text": "感想"},
+            created_at="2026-06-03T18:00:00+00:00",
+        )
+    )
+    git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("net down"),
+                                                     GitSyncError("still down")])
+    assert run_wal_redo(config, sink=FakeMessageSink(), git=git) == EXIT_OK

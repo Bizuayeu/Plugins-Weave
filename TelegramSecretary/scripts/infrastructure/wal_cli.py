@@ -86,12 +86,18 @@ def run_wal_push(config: Config, args: Any, git=None) -> int:
     return EXIT_OK
 
 
-def run_wal_redo(config: Config, args: Optional[Any] = None, sink=None) -> int:
+def run_wal_redo(config: Config, args: Optional[Any] = None, sink=None, git=None) -> int:
     """起動時に WAL pending を registry へ redo + outbound を1回再送（registry_sync 有効時のみ）。
 
     registry kind は再送しない（送信前クラッシュ分は offset 再取得が担う）。outbound kind は
     offset の安全網が無いため sink へ1回再送して done 化する（DESIGN §3.9）。sink 注入はテスト用、
     本番は config から TelegramApiGateway を組む（run_wal_push の git=None 注入と同型）。
+
+    **redo 後の done-marking を固定ブランチへ push する**（best-effort）。これを欠くと
+    `RedoPendingIntents.execute()` の rewrite はローカル作業ツリーにしか残らず、次回起動の
+    bootstrap（worktree を origin へ reset）で done が消え、remote の outbound=pending が復活し
+    **4時間ごと（session_duration_sec ごと）に無限再送される**（旧バグ）。「1回だけ再送→即 done」
+    の冪等性保証は done の永続化まで含めて初めて成立する。git 注入はテスト用（run_wal_push と同型）。
     """
     if not config.registry_sync_enabled:
         return EXIT_OK
@@ -105,4 +111,22 @@ def run_wal_redo(config: Config, args: Optional[Any] = None, sink=None) -> int:
     print(
         f"wal redo: redone={result['redone']} resent={result['resent']} kept={result['kept']}"
     )
+    _persist_redo_log(config, git=git)
     return EXIT_OK
+
+
+def _persist_redo_log(config: Config, git=None) -> None:
+    """redo で書き戻した WAL ログ（done-marking / checkpoint）を固定ブランチへ best-effort push。
+
+    add/remove と同じイベント駆動 best-effort（registry_sync の握る push）。push 不能なら
+    ローカルに残し次回起動で再試行する。**must-succeed にしない**のは起動経路（wal-redo は
+    Step 4）を git の transient 失敗で止めないため——失敗時の最悪ケースは outbound が次回再送
+    （謝罪プレフィックスで社会的に無害化、DESIGN §3.9）に留まる。差分が無ければ commit が
+    no-op（False）で push も走らない。
+    """
+    if git is None:
+        git = _build_git(config)
+    try:
+        PushWalLog(git, config.wal_log_path).execute("wal: persist redo (done-marking)")
+    except GitSyncError as exc:
+        print(f"wal redo persist (best-effort) skipped: {exc}", file=sys.stderr)
