@@ -16,7 +16,7 @@
 | `<PRIVATE_DIR>` | 非公開データ・人格定義の配置先（cloud routine では cwd 親起点の相対） | `my-private-repo/TelegramSecretary` |
 | `<INSTALL_DIR>` | インストール先パス | TelegramSecretary 配置先 |
 | `<state_dir>` | 揮発 state（offset/lease/media）の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
-| `<registry_dir>` | 永続管理表の保存先（git 永続化） | config.json `registry_dir`（未設定なら `<state_dir>`） |
+| `<registry_dir>` | 永続管理表の保存先（`claude/ts-registry` の独立 git worktree、root 直下5系統。→ DESIGN §3.6） | config.json `registry_dir`（推奨 `ts-registry-wt`、未設定なら `<state_dir>`） |
 
 `SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/SecretaryRole.template.md`](./templates/SecretaryRole.template.md)。
 

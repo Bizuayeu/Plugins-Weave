@@ -95,6 +95,16 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 - **force 不使用**: 複数 JSON の独立した部分更新ゆえ、force（ツリー全体置換）は他ファイルの更新を壊す。通常 push（non-fast-forward 自動拒否が競合検出を内蔵）＋ 例外時のみ `pull --rebase` フォールバック。lease がシングルライターを保証し、外部更新（手動編集等）の例外にだけ rebase で保険をかける
 - **設定は config.json 正典**: `registry_sync` / `registry_dir` / `registry_branch` は非秘匿の運用設定ゆえ config.json（純2層）。cloud routine が fresh clone で読む
 
+**registry_dir は独立 git 作業ツリー（worktree）であること**（worktree provisioning 3層・2026-06-05 インシデント恒久対策、本項が SSoT）:
+
+`registry_dir` を Private dev リポの**サブディレクトリ**（例 `<PRIVATE_REPO>/TelegramSecretary/registry`）に置くと2つの欠陥が同時に出る——起動時 fetch の `checkout -B` が**親リポ全体のブランチを切替えて dev ツリーを破壊**（欠陥2）、かつ cloud routine の fresh clone では registry_dir が不在で `cwd=registry_dir` の git が `OSError`（欠陥1）。結果、**4管理表が空のまま「記憶なし」稼働**する事故が起きた（T0002 誤答・grant 未ロード）。registry_dir を**独立した第二 worktree**にして3層で根治する：
+
+- **層1（根治）** `bootstrap.sh`: `registry_dir` を Private リポの第二 worktree として冪等 provisioning（`git worktree add -B <branch> <registry_dir> origin/<branch>`、既存なら `checkout -B origin/<branch>` でリフレッシュ）。常に `origin/<branch>` 強制＝SSoT は origin、古いローカルブランチを掴まない。失敗は `_ts_die` せず継続し層3 が警告（graceful）
+- **層2（防御）** `GitCliAdapter.fetch_checkout`: `checkout -B` の**前に** `rev-parse --show-toplevel == registry_dir` を検証、不一致なら `RegistryWorktreeError`（`GitSyncError` サブクラス）で停止＝親リポ誤爆を構造的に禁止
+- **層3（可観測）** `run_registry_fetch`: fetch 失敗時に「EMPTY tables＝記憶なし稼働」を WARNING 出力（exit code 不変、principal 一報は ROUTINE_PROMPT へ委譲）＝沈黙の空表稼働を可視化
+
+固定ブランチ `claude/ts-registry` は **registry 専用 orphan ブランチ**として **root 直下に5系統のみ**（`individuals/ tasks/ knowledge/ abilities/ wal/`）を持つ（旧: Private 全ツリー＋`TelegramSecretary/registry/` ネスト → 新: フラット）。これで第二 worktree が registry だけを最小展開し dev ツリーと干渉しない。**方式B（単一 worktree）**を Stage 1 spike で確定し、本番稼働（post-fix の cloud run が provisioning→fetch→write→push を完走）で実証済み。
+
 > 設計の背骨は §2「決定論コア + エージェント判断の分離」の踏襲: git 操作（commit/push/rebase/fetch）は決定論の世界（コード・テスト可能）、「何を残すか」の判断は重要度の世界（エージェント）。
 
 > **cloud routine harness の作業ブランチについて**: cloud routine は session ごとに `<registry_branch>-<ランダム SUFFIX>`（例 `claude/ts-registry-AbCdE`）の作業ブランチをローカルに自動生成する。一方 registry_sync は `git push HEAD:<registry_branch>`（SUFFIX なし）で固定ブランチへ直接 push するため、管理表は常に1本（`registry_branch`）へ集約される。**harness 作業ブランチは commit が乗った時だけ GitHub に push される**ので、registry_cli 以外で git commit しない限り（＝作業ブランチが空のまま）リモートに残骸は生じない。`<registry_branch>-XXXXX` がリモートに増えていたら、それは session 中に registry_cli を通さない手動 commit が乗ったサイン——削除は手動掃除（`gh api -X DELETE .../git/refs/heads/<branch>`）で足り、毎 session の常設削除処理は要らない。

@@ -62,13 +62,13 @@ marketplace からインストール、または基本設定リポの `TelegramS
 ```json
 {
   "registry_sync": true,
-  "registry_dir": "<PRIVATE_REPO>/TelegramSecretary/registry",
+  "registry_dir": "ts-registry-wt",
   "registry_branch": "claude/ts-registry"
 }
 ```
 
 - `registry_sync`: `true` で管理表を固定ブランチへ git 永続化（更新のたび commit&push＋起動時 fetch）。ローカル動作確認では `false`（git に触れない）
-- `registry_dir`: 永続管理表（individuals/tasks/knowledge/abilities）の置き場。**揮発 state（offset/lease/media）の `state_dir` とは別**にし、非公開リポ配下を指す。未設定なら `state_dir` にフォールバック
+- `registry_dir`: 永続管理表（individuals/tasks/knowledge/abilities）の置き場。**揮発 state（offset/lease/media）の `state_dir` とは別**にし、**非公開リポの独立した第二 git 作業ツリー（worktree）**を指す（bootstrap が `git worktree add` で冪等 provisioning、推奨値 `ts-registry-wt`）。**dev ツリー内サブディレクトリにすると起動時 fetch の `checkout -B` が親リポを破壊する**ため不可（→ DESIGN §3.6）。未設定なら `state_dir` にフォールバック
 - `registry_branch`: push 先の固定ブランチ（既定 `claude/ts-registry`）。`registry_remote`（既定 `origin`）と組で運用。揮発 state と分けることで「消えてよいもの」と「蓄積が本質のもの」を物理分離します
 
 ### ⑥ cloud routine に登録
@@ -123,6 +123,7 @@ claude.ai の Code → Environments で：
 | 返信が返らない | egress or 認可 | chat_id が `AUTHORIZED_CHATS` に入っているか、`api.telegram.org` egress が通っているか |
 | 管理表が毎回空に戻る | `registry_sync` 無効 or `outcomes` 未配線 | config の `registry_sync:true` と `registry_dir` を確認 → `/telegram-secretary schedule` 再登録で push 先ブランチ（outcomes）を配線 |
 | `registry fetch failed`（起動時） | 固定ブランチ未作成 or git 認証不足 | 初回は対象ブランチが空でも継続（前回ローカル状態で起動）。git 認証（PAT 等）が Environment にあるか確認 |
+| 管理表が空＝記憶なし稼働（stderr に `WARNING: ... EMPTY tables`） | `registry_dir` が独立 worktree でない（dev ツリー内サブディレクトリ＝旧構成） | `registry_dir` を独立 worktree 値（`ts-registry-wt`）にする。bootstrap の `registry worktree provisioned/refreshed` ログを確認（→ DESIGN §3.6） |
 
 ## 参照
 
