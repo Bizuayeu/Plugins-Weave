@@ -64,7 +64,7 @@ def resolve_project_from_path(filesystem_path: str) -> Optional[str]:
     登録されており、かつmemory/MEMORY.mdが存在するパスを返す。
 
     Args:
-        filesystem_path: 絶対パス（例: "C:/Users/anyth/DEV/homunculus/Weave"）
+        filesystem_path: 絶対パス（例: "/path/to/workspace"）
 
     Returns:
         マッチしたプロジェクトの元パス文字列、マッチなしの場合None

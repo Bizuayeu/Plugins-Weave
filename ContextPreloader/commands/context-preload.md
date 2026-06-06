@@ -118,6 +118,6 @@ python -m scripts remove --id ID              # 削除
 Read the following files using the Read tool before responding to the user.
 
 1. [CRITICAL] GrandDigest (Long-term Memory Summary)
-   Path: C:/Users/anyth/DEV/homunculus/Weave/Identities/GrandDigest.txt
+   Path: /path/to/workspace/Identities/GrandDigest.txt
    8層階層的長期記憶ダイジェスト（週次〜世紀）
 ```

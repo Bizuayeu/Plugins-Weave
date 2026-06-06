@@ -101,13 +101,13 @@ class TestFormatReferenceOutput(unittest.TestCase):
 
     def test_reference_output_size_under_2kb(self):
         sources = [
-            ("C:/Users/anyth/DEV/homunculus/Weave/Identities/GrandDigest.txt",
+            ("/path/to/workspace/Identities/GrandDigest.txt",
              "GrandDigest (Long-term Memory Summary)",
              "8層階層的長期記憶ダイジェスト（週次〜世紀）", "critical"),
-            ("C:/Users/anyth/DEV/homunculus/Weave/Identities/ShadowGrandDigest.txt",
+            ("/path/to/workspace/Identities/ShadowGrandDigest.txt",
              "ShadowGrandDigest (Latest Context)",
              "直近の文脈層、GrandDigestの影", "critical"),
-            ("C:/Users/anyth/DEV/homunculus/Weave/Identities/IntentionPad.md",
+            ("/path/to/workspace/Identities/IntentionPad.md",
              "IntentionPad (Session-crossing Short-term Memory)",
              "セッション横断の短期記憶・意図メモ", "high"),
         ]
