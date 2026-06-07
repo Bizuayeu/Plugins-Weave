@@ -68,7 +68,7 @@ def extract_token(archive_path: str, member: str | None = None) -> str:
 
 def _cmd_resolve_urls(args: argparse.Namespace) -> int:
     cfg = load_config_file(args.config)
-    json.dump(resolve_urls(cfg.public_repo, args.sha, cfg.load_files), sys.stdout)
+    json.dump(resolve_urls(cfg.load_repo, args.sha, cfg.load_files), sys.stdout)
     return 0
 
 

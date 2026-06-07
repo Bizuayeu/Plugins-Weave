@@ -7,6 +7,7 @@
 - CLI security invariant: on failure the token never reaches stdout/stderr.
 """
 import gzip
+import json
 import subprocess
 import sys
 import tarfile
@@ -104,3 +105,49 @@ class TestCliTokenNeverLeaks:
         assert result.returncode == 0
         assert result.stdout.strip() == "github_pat_TGZ789"
         assert result.stderr == ""
+
+
+class TestResolveUrlsCommand:
+    """resolve-urls resolves boot memory against the private repo when configured.
+
+    Memory (GrandDigest etc.) moved to the private repo under private-by-default,
+    so load_files must resolve there; public-only personas still fall back.
+    """
+
+    def _write_config(self, tmp_path, with_private):
+        config = {
+            "public_repo": {"owner": "acme", "name": "memo"},
+            "load_files": [{"path": "Identities/GrandDigest.txt"}],
+            "commit_identity": {
+                "author_name": "P",
+                "author_email": "1+u@users.noreply.github.com",
+            },
+            "directive_path": "Directive.md",
+        }
+        if with_private:
+            config["private_repo"] = {"owner": "acme", "name": "secret", "visibility": "private"}
+        p = tmp_path / "wakeup.config.json"
+        p.write_text(json.dumps(config), encoding="utf-8")
+        return p
+
+    def test_resolves_against_private_repo(self, tmp_path):
+        cfg = self._write_config(tmp_path, with_private=True)
+        result = subprocess.run(
+            [sys.executable, str(ENGINE), "resolve-urls", "--config", str(cfg), "--sha", "sha123"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        assert json.loads(result.stdout) == [
+            "https://raw.githubusercontent.com/acme/secret/sha123/Identities/GrandDigest.txt"
+        ]
+
+    def test_falls_back_to_public_repo(self, tmp_path):
+        cfg = self._write_config(tmp_path, with_private=False)
+        result = subprocess.run(
+            [sys.executable, str(ENGINE), "resolve-urls", "--config", str(cfg), "--sha", "sha123"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        assert json.loads(result.stdout) == [
+            "https://raw.githubusercontent.com/acme/memo/sha123/Identities/GrandDigest.txt"
+        ]

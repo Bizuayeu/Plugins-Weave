@@ -1,5 +1,5 @@
 {
-  "_comment": "Weave 用 config の実値サンプル。汎用エンジンはこの値を一切ハードコードしない。別ペルソナはこのファイルを差し替えるだけで使える。",
+  "_comment": "Weave 用 config の実値サンプル。汎用エンジンはこの値を一切ハードコードしない。別ペルソナはこのファイルを差し替えるだけで使える。load_files は load_repo（private_repo があればそこ、なければ public_repo）から解決される——記憶（GrandDigest 等）は Private 正典のため private_repo を指す。",
   "public_repo": {
     "owner": "Bizuayeu",
     "name": "Homunculus-Weave",

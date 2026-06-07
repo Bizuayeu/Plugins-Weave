@@ -65,25 +65,25 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 
 ```
 1. config 読込       - wakeup の config を確認
-2. 公開記憶ロード     - Read token で SHA 取得＋認証付き raw を取得
+2. 記憶ロード         - Read token で SHA 取得＋認証付き raw を取得（load_repo＝private_repo 優先）
 3. ディレクティブ適用 - directive_path の md を読み、人格方針を反映
 ```
 
 | Step | 内容 | 処理 |
 |------|------|------|
 | 1 | config 読込 | `/mnt/skills/user/wakeup/wakeup.config.json` を `wakeup_engine.py` が解釈 |
-| 2 | 公開記憶ロード | 最新 SHA 取得 → raw URL を認証付き curl（Read token） |
+| 2 | 記憶ロード | load_repo（private_repo 優先）の最新 SHA 取得 → raw URL を認証付き curl（Read token） |
 | 3 | ディレクティブ適用 | config と同ディレクトリの `directive_path`（＝ルート直下の md）を読む |
 
 ### Step 2: 記憶ロード（要 Read token）
-> **なぜトークンが要るか**: claude.ai は共有 IP のため未認証 `api.github.com` の 60 req/h がすぐ枯渇し SHA を取れない。かつ raw の **`main` 参照は CDN キャッシュが長く最新が取れない**ため、SHA 固定での取得が必須。→ SHA 取得（API）に認証が要る。公開リポでも Read token を使う。
+> **なぜトークンが要るか**: claude.ai は共有 IP のため未認証 `api.github.com` の 60 req/h がすぐ枯渇し SHA を取れない。かつ raw の **`main` 参照は CDN キャッシュが長く最新が取れない**ため、SHA 固定での取得が必須。→ SHA 取得（API）に認証が要る。公開・非公開いずれのリポでも Read token を使う（起動時ロード対象 load_files は load_repo＝private_repo があればそこ、なければ public_repo から取得）。
 
-Read token は **Public repositories read-only** を含む fine-grained PAT。最新 SHA を取得し、SHA 固定の raw を取得する（いずれも Authorization ヘッダ。token は単一 bash 呼び出しで使い切る）：
+Read token は **Private リポ Contents:Read ＋ Public repositories read-only** を含む fine-grained PAT。最新 SHA を取得し、SHA 固定の raw を取得する（いずれも Authorization ヘッダ。token は単一 bash 呼び出しで使い切る）：
 ```bash
 TOKEN=$(python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py extract-token --archive /mnt/skills/user/wakeup/token.tar.gz) \
-  && SHA=$(curl -s --fail -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/<owner>/<name>/git/refs/heads/<branch>" | grep -o '"sha": *"[^"]*"' | head -1 | cut -d'"' -f4) \
+  && SHA=$(curl -s --fail -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/<load_repo-owner>/<load_repo-name>/git/refs/heads/<branch>" | grep -o '"sha": *"[^"]*"' | head -1 | cut -d'"' -f4) \
   && python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py resolve-urls --config /mnt/skills/user/wakeup/wakeup.config.json --sha "$SHA" \
-  && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://raw.githubusercontent.com/<owner>/<name>/$SHA/<path>"
+  && curl -s --fail -H "Authorization: Bearer $TOKEN" "https://raw.githubusercontent.com/<load_repo-owner>/<load_repo-name>/$SHA/<path>"
 ```
 
 ---

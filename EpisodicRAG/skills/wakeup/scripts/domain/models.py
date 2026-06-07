@@ -58,3 +58,12 @@ class WakeupConfig:
     commit_identity: CommitIdentity
     directive_path: str
     private_repo: RepoRef | None = None
+
+    @property
+    def load_repo(self) -> RepoRef:
+        """Repo to load boot memory from: private if configured, else public.
+
+        Under private-by-default, boot memory (GrandDigest etc.) lives only in
+        the private repo; public-only personas fall back to the public repo.
+        """
+        return self.private_repo or self.public_repo

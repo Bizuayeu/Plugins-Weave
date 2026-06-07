@@ -97,3 +97,24 @@ class TestWakeupConfig:
         assert cfg.private_repo is not None
         assert cfg.private_repo.visibility == "private"
         assert len(cfg.load_files) == 2
+
+    def test_load_repo_prefers_private(self):
+        """Boot memory lives in the private repo under private-by-default."""
+        cfg = WakeupConfig(
+            public_repo=RepoRef(owner="acme", name="memo"),
+            load_files=(LoadFile(path="dir/A.txt"),),
+            commit_identity=self._identity(),
+            directive_path="dir/Directive.md",
+            private_repo=RepoRef(owner="acme", name="private", visibility="private"),
+        )
+        assert cfg.load_repo == cfg.private_repo
+
+    def test_load_repo_falls_back_to_public_when_no_private(self):
+        """Public-only personas keep resolving boot files against the public repo."""
+        cfg = WakeupConfig(
+            public_repo=RepoRef(owner="acme", name="memo"),
+            load_files=(LoadFile(path="dir/A.txt"),),
+            commit_identity=self._identity(),
+            directive_path="dir/Directive.md",
+        )
+        assert cfg.load_repo == cfg.public_repo
