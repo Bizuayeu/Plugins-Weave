@@ -33,7 +33,7 @@ EpisodicRAGプラグインで使用される専門用語の定義集です。
 
 - `.claude-plugin/` ディレクトリが存在するディレクトリ
 - スキルやスクリプトはこのディレクトリを基準に動作
-- 例: `C:\Users\anyth\.claude\plugins\marketplaces\Plugins-Weave\EpisodicRAG`
+- 例: `~/.claude/plugins/marketplaces/plugins-weave/EpisodicRAG`
 
 ### 永続化パス (v5.2.0+)
 **定義**: プラグイン自動更新で消えない設定保存先
@@ -51,7 +51,7 @@ EpisodicRAGは環境によって異なるパスを使用します：
 | 環境 | パス形式 | 例 |
 |------|---------|-----|
 | **開発環境** | ソースコード直接 | `plugins-weave/EpisodicRAG/` |
-| **マーケットプレース** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
+| **マーケットプレース** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/plugins-weave/EpisodicRAG/` |
 | **プラグイン直接インストール** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG/` |
 
 **重要**: 設定ファイル（config.json）は永続化ディレクトリ（`~/.claude/plugins/.episodicrag/`）に自動配置されます。データはインストール先に配置します。開発環境のソースコードディレクトリには配置しないでください。
@@ -65,7 +65,7 @@ EpisodicRAGは環境によって異なるパスを使用します：
   - `.`（プラグイン内、デフォルト）
   - `subdir`（プラグイン内のサブディレクトリ）
   - `~/DEV/production/EpisodicRAG`（外部パス、`trusted_external_paths`で許可が必要）
-  - `C:/Users/anyth/DEV/data`（Windows絶対パス、`trusted_external_paths`で許可が必要）
+  - `C:/Data/EpisodicRAG`（Windows絶対パス、`trusted_external_paths`で許可が必要）
 
 パス解決:
 - 相対パス: `plugin_root + base_dir` → 実際のデータ基準ディレクトリ

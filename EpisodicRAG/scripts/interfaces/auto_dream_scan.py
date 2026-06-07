@@ -21,7 +21,7 @@ v5.4.0以降の出力責務:
 
 Usage:
     python -m interfaces.auto_dream_scan
-    python -m interfaces.auto_dream_scan --project-path "C:\\Users\\anyth\\DEV"
+    python -m interfaces.auto_dream_scan --project-path "C:\\Users\\you\\DEV"
 
 Exit codes:
     0: success (memory found and scanned)

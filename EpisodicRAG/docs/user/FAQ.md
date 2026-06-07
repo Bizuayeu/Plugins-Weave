@@ -52,7 +52,7 @@ EpisodicRAGプラグインに関するよくある質問と回答集です。
 
 ### Q: インストールに失敗します
 
-**A**: マーケットプレイス追加（`/marketplace list`で確認）→ プラグイン名確認（`EpisodicRAG@Plugins-Weave`）→ ネットワーク確認の順でチェック。
+**A**: マーケットプレイス追加（`/marketplace list`で確認）→ プラグイン名確認（`EpisodicRAG@plugins-weave`）→ ネットワーク確認の順でチェック。
 
 > 📖 詳細: [QUICKSTART.md](QUICKSTART.md)
 

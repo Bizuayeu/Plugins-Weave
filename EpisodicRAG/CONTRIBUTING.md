@@ -77,21 +77,21 @@ Claude Codeで以下を実行：
 
 ```ClaudeCLI
 # 相対パスの場合
-/marketplace add ./plugins-weave
+/plugin marketplace add ./plugins-weave
 
 # または絶対パスの場合
-/marketplace add C:\Users\anyth\DEV\plugins-weave
+/plugin marketplace add C:\path\to\plugins-weave
 ```
 
 **成功時の出力**:
 ```text
-✅ Marketplace 'Plugins-Weave' added successfully
+✅ Marketplace 'plugins-weave' added successfully
 ```
 
 #### 3. プラグインのインストール
 
 ```ClaudeCLI
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 ```
 
 **成功時の出力**:
@@ -127,10 +127,10 @@ Claude Codeで以下を実行：
 
 ```ClaudeCLI
 # 1. アンインストール
-/plugin uninstall EpisodicRAG@Plugins-Weave
+/plugin uninstall EpisodicRAG@plugins-weave
 
 # 2. 再インストール
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 
 # 3. セットアップ（必要に応じて）
 @digest-setup

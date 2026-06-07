@@ -36,14 +36,14 @@ def encode_project_path(project_path: str) -> str:
     パス区切り文字とコロンをハイフンに置換する。
 
     Args:
-        project_path: プロジェクトの絶対パス（例: "C:\\Users\\anyth\\DEV"）
+        project_path: プロジェクトの絶対パス（例: "C:\\Users\\you\\DEV"）
 
     Returns:
-        エンコード済みディレクトリ名（例: "C--Users-anyth-DEV"）
+        エンコード済みディレクトリ名（例: "C--Users-you-DEV"）
 
     Example:
-        >>> encode_project_path("C:\\\\Users\\\\anyth\\\\DEV")
-        'C--Users-anyth-DEV'
+        >>> encode_project_path("C:\\\\Users\\\\you\\\\DEV")
+        'C--Users-you-DEV'
         >>> encode_project_path("/home/user/project")
         '-home-user-project'
     """
@@ -70,8 +70,8 @@ def resolve_project_from_path(filesystem_path: str) -> Optional[str]:
         マッチしたプロジェクトの元パス文字列、マッチなしの場合None
 
     Example:
-        >>> resolve_project_from_path("C:\\\\Users\\\\anyth\\\\DEV\\\\sub\\\\deep")
-        'C:\\\\Users\\\\anyth\\\\DEV'
+        >>> resolve_project_from_path("C:\\\\Users\\\\you\\\\DEV\\\\sub\\\\deep")
+        'C:\\\\Users\\\\you\\\\DEV'
     """
     base = get_claude_projects_base()
     if not base.exists():
@@ -108,9 +108,9 @@ def discover_memory_dirs(project_path: Optional[str] = None) -> List[Path]:
 
     Example:
         >>> discover_memory_dirs()
-        [PosixPath('/home/user/.claude/projects/C--Users-anyth-DEV/memory')]
-        >>> discover_memory_dirs("C:\\\\Users\\\\anyth\\\\DEV")
-        [PosixPath('/home/user/.claude/projects/C--Users-anyth-DEV/memory')]
+        [PosixPath('/home/user/.claude/projects/C--Users-you-DEV/memory')]
+        >>> discover_memory_dirs("C:\\\\Users\\\\you\\\\DEV")
+        [PosixPath('/home/user/.claude/projects/C--Users-you-DEV/memory')]
     """
     base = get_claude_projects_base()
 

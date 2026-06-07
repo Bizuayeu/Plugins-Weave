@@ -151,8 +151,8 @@ class TestAutoDreamScanResult:
         """status="ok"の完全な結果"""
         result: AutoDreamScanResult = {
             "status": "ok",
-            "project_path": "C--Users-anyth-DEV",
-            "memory_dir": "/home/.claude/projects/C--Users-anyth-DEV/memory",
+            "project_path": "C--Users-you-DEV",
+            "memory_dir": "/home/.claude/projects/C--Users-you-DEV/memory",
             "memory_index": {
                 "path": "/memory/MEMORY.md",
                 "sections": {},

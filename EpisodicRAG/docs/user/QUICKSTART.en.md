@@ -50,13 +50,13 @@ flowchart LR
 ### 1-1. Add Marketplace
 
 ```ClaudeCLI
-/marketplace add https://github.com/Bizuayeu/Plugins-Weave
+/plugin marketplace add https://github.com/Bizuayeu/Plugins-Weave
 ```
 
 ### 1-2. Install Plugin
 
 ```ClaudeCLI
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 ```
 
 ---

@@ -55,9 +55,9 @@ class TestSafeCodeGenerator:
         from domain.code_generator import SafeCodeGenerator
 
         result = SafeCodeGenerator.escape_for_python_string(
-            r'python "C:\Users\anyth\scripts\main.py"'
+            r'python "C:\Users\you\scripts\main.py"'
         )
-        expected = r'python \"C:\\Users\\anyth\\scripts\\main.py\"'
+        expected = r'python \"C:\\Users\\you\\scripts\\main.py\"'
         assert result == expected
 
     def test_escape_multiple_backslashes(self):

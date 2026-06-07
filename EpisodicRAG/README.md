@@ -52,10 +52,10 @@ EpisodicRAG は、会話ログ（Loop ファイル）を階層的にダイジェ
 
 ```ClaudeCLI
 # 1. マーケットプレイス追加
-/marketplace add https://github.com/Bizuayeu/Plugins-Weave
+/plugin marketplace add https://github.com/Bizuayeu/Plugins-Weave
 
 # 2. プラグインインストール
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 
 # 3. 初期セットアップ（対話形式）
 @digest-setup

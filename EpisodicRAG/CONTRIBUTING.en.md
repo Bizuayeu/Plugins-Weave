@@ -78,21 +78,21 @@ Execute the following in Claude Code:
 
 ```ClaudeCLI
 # With relative path
-/marketplace add ./plugins-weave
+/plugin marketplace add ./plugins-weave
 
 # Or with absolute path
-/marketplace add C:\Users\anyth\DEV\plugins-weave
+/plugin marketplace add C:\path\to\plugins-weave
 ```
 
 **Success output**:
 ```text
-✅ Marketplace 'Plugins-Weave' added successfully
+✅ Marketplace 'plugins-weave' added successfully
 ```
 
 #### 3. Install the Plugin
 
 ```ClaudeCLI
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 ```
 
 **Success output**:
@@ -128,10 +128,10 @@ After modifying plugin code, retest with:
 
 ```ClaudeCLI
 # 1. Uninstall
-/plugin uninstall EpisodicRAG@Plugins-Weave
+/plugin uninstall EpisodicRAG@plugins-weave
 
 # 2. Reinstall
-/plugin install EpisodicRAG@Plugins-Weave
+/plugin install EpisodicRAG@plugins-weave
 
 # 3. Setup (if needed)
 @digest-setup

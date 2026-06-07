@@ -34,7 +34,7 @@ A collection of terminology definitions used in the EpisodicRAG plugin.
 
 - The directory where `.claude-plugin/` directory exists
 - Skills and scripts operate relative to this directory
-- Example: `C:\Users\anyth\.claude\plugins\marketplaces\Plugins-Weave\EpisodicRAG`
+- Example: `~/.claude/plugins/marketplaces/plugins-weave/EpisodicRAG`
 
 ### Persistent Path (v5.2.0+)
 **Definition**: Configuration storage that survives plugin auto-updates
@@ -52,7 +52,7 @@ EpisodicRAG uses different paths depending on the environment:
 | Environment | Path Format | Example |
 |-------------|-------------|---------|
 | **Development** | Source code directly | `plugins-weave/EpisodicRAG/` |
-| **Marketplace** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/Plugins-Weave/EpisodicRAG/` |
+| **Marketplace** | `~/.claude/plugins/marketplaces/` | `~/.claude/plugins/marketplaces/plugins-weave/EpisodicRAG/` |
 | **Direct Plugin Install** | `~/.claude/plugins/` | `~/.claude/plugins/EpisodicRAG/` |
 
 **Important**: Configuration files (config.json) are automatically stored in the persistent directory (`~/.claude/plugins/.episodicrag/`). Data is placed in the installation directory. Do not place them in the development source code directory.
@@ -66,7 +66,7 @@ EpisodicRAG uses different paths depending on the environment:
   - `.` (within plugin, default)
   - `subdir` (subdirectory within plugin)
   - `~/DEV/production/EpisodicRAG` (external path, requires `trusted_external_paths` permission)
-  - `C:/Users/anyth/DEV/data` (Windows absolute path, requires `trusted_external_paths` permission)
+  - `C:/Data/EpisodicRAG` (Windows absolute path, requires `trusted_external_paths` permission)
 
 Path resolution:
 - Relative path: `plugin_root + base_dir` → actual data base directory

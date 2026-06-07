@@ -28,9 +28,9 @@ class TestEncodeProjectPath:
 
     @pytest.mark.unit
     def test_windowsパス(self) -> None:
-        """C:\\Users\\anyth\\DEV → C--Users-anyth-DEV"""
-        result = encode_project_path("C:\\Users\\anyth\\DEV")
-        assert result == "C--Users-anyth-DEV"
+        """C:\\Users\\you\\DEV → C--Users-you-DEV"""
+        result = encode_project_path("C:\\Users\\you\\DEV")
+        assert result == "C--Users-you-DEV"
 
     @pytest.mark.unit
     def test_unixパス(self) -> None:
@@ -47,8 +47,8 @@ class TestEncodeProjectPath:
     @pytest.mark.unit
     def test_混合パス区切り(self) -> None:
         """バックスラッシュとフォワードスラッシュの混在"""
-        result = encode_project_path("C:\\Users/anyth\\DEV")
-        assert result == "C--Users-anyth-DEV"
+        result = encode_project_path("C:\\Users/you\\DEV")
+        assert result == "C--Users-you-DEV"
 
     @pytest.mark.unit
     def test_空文字列(self) -> None:
@@ -102,7 +102,7 @@ class TestDiscoverMemoryDirs:
     def test_メモリディレクトリが存在する場合(self, tmp_path: Path) -> None:
         """MEMORY.mdがあるディレクトリを発見"""
         fake_base = tmp_path / ".claude" / "projects"
-        memory_dir = fake_base / "C--Users-anyth-DEV" / "memory"
+        memory_dir = fake_base / "C--Users-you-DEV" / "memory"
         memory_dir.mkdir(parents=True)
         (memory_dir / "MEMORY.md").write_text("# Memory Index", encoding="utf-8")
 
@@ -119,7 +119,7 @@ class TestDiscoverMemoryDirs:
     def test_project_path指定で正確に発見(self, tmp_path: Path) -> None:
         """--project-pathでエンコードして直接チェック"""
         fake_base = tmp_path / ".claude" / "projects"
-        memory_dir = fake_base / "C--Users-anyth-DEV" / "memory"
+        memory_dir = fake_base / "C--Users-you-DEV" / "memory"
         memory_dir.mkdir(parents=True)
         (memory_dir / "MEMORY.md").write_text("# Memory Index", encoding="utf-8")
 
@@ -127,7 +127,7 @@ class TestDiscoverMemoryDirs:
             "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
             return_value=fake_base,
         ):
-            result = discover_memory_dirs(project_path="C:\\Users\\anyth\\DEV")
+            result = discover_memory_dirs(project_path="C:\\Users\\you\\DEV")
 
         assert len(result) == 1
         assert result[0] == memory_dir
@@ -150,7 +150,7 @@ class TestDiscoverMemoryDirs:
     def test_MEMORY_md無しのディレクトリは除外(self, tmp_path: Path) -> None:
         """memory/ディレクトリはあるがMEMORY.mdがない → 除外"""
         fake_base = tmp_path / ".claude" / "projects"
-        memory_dir = fake_base / "C--Users-anyth-DEV" / "memory"
+        memory_dir = fake_base / "C--Users-you-DEV" / "memory"
         memory_dir.mkdir(parents=True)
         # MEMORY.md は作成しない
 
