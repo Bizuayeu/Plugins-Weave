@@ -169,9 +169,10 @@ TelegramSecretary/
         ※起動時 wal-redo が前回 push 漏れの intent を registry へ反映（registry-sync 直後）
 
 [能動発信] grant された自由時間の不定期 push（proactive-send、offset 非干渉）:
-        wal-append --kind outbound（intent pending）→ wal-push（must-succeed）
-        → エージェント起草 → 出力漏洩スキャン → proactive-send（--update-id を付けない＝offset を触らない）
-        ※起動時 wal-redo が outbound pending を元時刻＋謝罪プレフィックスで1回再送→即done（DESIGN §3.9）
+        エージェント起草 → 出力漏洩スキャン → proactive-send（--update-id を付けない＝offset を触らない）
+        ※proactive-send が WAL ライフサイクル（append→push→送信→settle→push）を内包する（registry_sync
+          有効時）。送信成功分は即 done 化＝次回再送しない（happy-path settle）。送信成功↔done の窓で
+          クラッシュした分のみ起動時 wal-redo が元時刻＋中立プレフィックスで1回再送→即done（DESIGN §3.9）
 
 [保守] 肥大化対策（重要度の世界＝エージェント判断、DESIGN §3.5）:
         エージェントが「いつ・どの単位で」を判断し archive_rotate の純関数 + JsonRegistryStore で実行

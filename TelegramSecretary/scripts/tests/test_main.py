@@ -7,6 +7,7 @@ import httpx
 import pytest
 
 import adapters.telegram.api_gateway as gateway_module
+from infrastructure.exit_codes import EXIT_FETCH_FAILED
 from main import (
     EXIT_AUTH_FAILED,
     EXIT_CONFIG_INVALID,
@@ -1274,6 +1275,61 @@ def test_parse_page_range():
 
 
 # --- proactive-send（offset 非干渉の能動 outbound）---
+
+
+def test_proactive_send_wal_gate_then_send_then_settle(env_ready, monkeypatch):
+    """WAL ライフサイクル内包: append（送信前ゲート）→ 送信 → settle（happy-path）の順序で配線する。"""
+    calls: list = []
+
+    def fake_append(*a, **k):
+        calls.append("append")
+        return True, "K1"
+
+    def fake_settle(config, key, **k):
+        calls.append(("settle", key))
+
+    monkeypatch.setattr("main.run_wal_append_outbound", fake_append)
+    monkeypatch.setattr("main.run_wal_settle_outbound", fake_settle)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append("send")
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+    _install_mock_transport(monkeypatch, handler)
+    assert main(["lease", "acquire", "--owner", "S1"]) == EXIT_OK
+    text_file = env_ready / "push.txt"
+    text_file.write_text("能動メッセージ", encoding="utf-8")
+    rc = main(
+        ["proactive-send", "--chat-id", "100", "--text-file", str(text_file), "--owner", "S1"]
+    )
+    assert rc == EXIT_OK
+    # append が先頭・settle が末尾（送信は両者の間）、settle に append の created_at キーが渡る
+    assert calls[0] == "append"
+    assert calls[-1] == ("settle", "K1")
+    assert "send" in calls
+
+
+def test_proactive_send_aborts_when_wal_push_fails(env_ready, monkeypatch):
+    """WAL push 失敗（送信前ゲート）→ 送信せず・settle せず exit 非0（push できないなら送らない）。"""
+    monkeypatch.setattr("main.run_wal_append_outbound", lambda *a, **k: (False, "K1"))
+    settled: list = []
+    monkeypatch.setattr("main.run_wal_settle_outbound", lambda *a, **k: settled.append(1))
+    sent: list = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(1)
+        return httpx.Response(200, json={"ok": True, "result": {}})
+
+    _install_mock_transport(monkeypatch, handler)
+    assert main(["lease", "acquire", "--owner", "S1"]) == EXIT_OK
+    text_file = env_ready / "push.txt"
+    text_file.write_text("hi", encoding="utf-8")
+    rc = main(
+        ["proactive-send", "--chat-id", "100", "--text-file", str(text_file), "--owner", "S1"]
+    )
+    assert rc == EXIT_FETCH_FAILED
+    assert sent == []  # 送信されない（送信前ゲートで止まる）
+    assert settled == []  # settle も呼ばれない
 
 
 def test_proactive_send_requires_lease(env_ready, monkeypatch, tmp_path):

@@ -8,7 +8,13 @@ from domain.exceptions import GitSyncError
 from domain.wal import WalEntry
 from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
-from infrastructure.wal_cli import run_wal_append, run_wal_push, run_wal_redo
+from infrastructure.wal_cli import (
+    run_wal_append,
+    run_wal_append_outbound,
+    run_wal_push,
+    run_wal_redo,
+    run_wal_settle_outbound,
+)
 
 from adapters.registry.json_registry_store import JsonRegistryStore
 from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
@@ -145,7 +151,8 @@ def test_redo_resends_outbound_via_sink(tmp_path):
     sink = FakeMessageSink()
     assert run_wal_redo(config, sink=sink, git=FakeGitSync()) == EXIT_OK
     assert len(sink.sent) == 1
-    assert "念のため再送します" in sink.sent[0].text
+    assert "お届けします" in sink.sent[0].text
+    assert "システムが落ちていた" not in sink.sent[0].text  # 障害断定の除去（偽謝罪の根治）
     assert "関連トピック" in sink.sent[0].text
     assert all(
         e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load()
@@ -188,3 +195,65 @@ def test_redo_persist_is_best_effort_on_push_failure(tmp_path):
     git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("net down"),
                                                      GitSyncError("still down")])
     assert run_wal_redo(config, sink=FakeMessageSink(), git=git) == EXIT_OK
+
+
+# --- outbound happy-path settle ヘルパ（proactive-send 内包、Stage 3a）---
+
+
+def test_append_outbound_helper_noop_when_sync_disabled(tmp_path):
+    # registry_sync 無効なら WAL スキップ＝(True, "")（送信は続行＝後方互換）
+    ok, key = run_wal_append_outbound(_config(tmp_path, sync=False), 100, "hi", [], None)
+    assert ok is True and key == ""
+
+
+def test_append_outbound_helper_writes_pending_and_pushes(tmp_path):
+    # 送信前ゲート: pending を created_at キーで書き、添付パス・reply_to も payload に載せる
+    config = _config(tmp_path, sync=True)
+    git = FakeGitSync(committed=True, push_outcomes=[None])
+    ok, key = run_wal_append_outbound(config, 100, "hi", ["/tmp/a.png"], 42, git=git)
+    assert ok is True and key  # created_at が返る（settle のキー）
+    entry = JsonlWalLogStore(config.wal_log_path).load()[0]
+    assert entry.kind == "outbound" and entry.status == "pending"
+    assert entry.payload["chat_id"] == 100
+    assert entry.payload["attachments"] == ["/tmp/a.png"]  # 添付欠落の解消（再送忠実性）
+    assert entry.payload["reply_to_message_id"] == 42
+    assert git.push_calls == 1  # must-succeed push
+
+
+def test_append_outbound_helper_returns_false_on_push_failure(tmp_path):
+    # push 失敗（must-succeed）→ ok=False（呼び出し側は送信を中止＝送信前ゲート）
+    config = _config(tmp_path, sync=True)
+    git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("net down"),
+                                                     GitSyncError("still down")])
+    ok, key = run_wal_append_outbound(config, 100, "hi", [], None, git=git)
+    assert ok is False and key  # append 済み（created_at は返す）
+
+
+def test_settle_outbound_helper_marks_done_and_pushes(tmp_path):
+    config = _config(tmp_path, sync=True)
+    JsonlWalLogStore(config.wal_log_path).append(
+        WalEntry(key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
+                 payload={"chat_id": 100, "text": "hi"},
+                 created_at="2026-06-03T18:00:00+00:00")
+    )
+    git = FakeGitSync(committed=True, push_outcomes=[None])
+    run_wal_settle_outbound(config, "2026-06-03T18:00:00+00:00", git=git)
+    assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
+    assert git.push_calls == 1  # done-marking を固定ブランチへ永続化
+
+
+def test_settle_outbound_helper_noop_when_sync_disabled(tmp_path):
+    # sync 無効なら no-op（WAL 不在環境で settle を呼んでも安全＝例外を出さない）
+    run_wal_settle_outbound(_config(tmp_path, sync=False), "any-key")
+
+
+def test_settle_outbound_helper_best_effort_on_push_failure(tmp_path):
+    # settle の push 失敗は best-effort（送信は既に成功済み、done はローカルに残り次回 redo で再試行）
+    config = _config(tmp_path, sync=True)
+    JsonlWalLogStore(config.wal_log_path).append(
+        WalEntry(key="k", kind="outbound", status="pending",
+                 payload={"chat_id": 100, "text": "hi"}, created_at="2026-06-03T18:00:00+00:00")
+    )
+    git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("down"), GitSyncError("down")])
+    run_wal_settle_outbound(config, "k", git=git)  # 例外を投げない
+    assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())

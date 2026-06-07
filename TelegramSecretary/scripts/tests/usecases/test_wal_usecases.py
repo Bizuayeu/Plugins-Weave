@@ -13,7 +13,12 @@ import pytest
 from domain.exceptions import GitSyncError, PushRejectedError
 from domain.wal import WalEntry
 from usecases.manage_registry import RegistryService
-from usecases.wal import AppendWalIntent, PushWalLog, RedoPendingIntents
+from usecases.wal import (
+    AppendWalIntent,
+    PushWalLog,
+    RedoPendingIntents,
+    SettleOutboundIntent,
+)
 
 from tests.usecases.fakes import (
     FakeGitSync,
@@ -140,7 +145,8 @@ def test_redo_resends_pending_outbound_once_with_apology_prefix():
     assert sent.chat_id == 100
     # 元の送信予定時刻＋謝罪プレフィックスが本文頭に付く（鮮度を人間に委ねる＝v4）
     assert "2026-06-03T18:00:00+00:00" in sent.text
-    assert "念のため再送します" in sent.text
+    assert "お届けします" in sent.text
+    assert "システムが落ちていた" not in sent.text  # 障害断定の除去（偽謝罪の根治）
     assert "関連トピックあり" in sent.text
     assert result["resent"] == 1
     # 再送後 done 化（無限再送防止の起点）
@@ -176,3 +182,40 @@ def test_redo_without_sink_leaves_outbound_pending():
     result = RedoPendingIntents(log, _services(), now_fn=_now).execute()
     assert result.get("resent", 0) == 0
     assert any(e.status == "pending" and e.kind == "outbound" for e in log.load())
+
+
+# --- SettleOutboundIntent: 送信成功時の happy-path settle（Stage 2） ---
+
+
+def test_settle_outbound_intent_marks_sent_done():
+    # 送信成功した outbound（key=created_at）を done 化し rewrite する
+    log = FakeWalLogStore(entries=[_outbound_entry(created_at="2026-06-03T18:00:00+00:00")])
+    SettleOutboundIntent(log).execute("2026-06-03T18:00:00+00:00")
+    assert all(e.status == "done" for e in log.load() if e.kind == "outbound")
+
+
+def test_settle_outbound_intent_only_targets_given_key():
+    # 複数 pending のうち指定 key だけ done、他は pending 据え置き
+    log = FakeWalLogStore(
+        entries=[
+            _outbound_entry(created_at="2026-06-03T18:00:00+00:00"),
+            _outbound_entry(created_at="2026-06-03T19:00:00+00:00"),
+        ]
+    )
+    SettleOutboundIntent(log).execute("2026-06-03T18:00:00+00:00")
+    by = {e.key: e.status for e in log.load()}
+    assert by == {
+        "2026-06-03T18:00:00+00:00": "done",
+        "2026-06-03T19:00:00+00:00": "pending",
+    }
+
+
+def test_settled_outbound_is_not_resent_by_redo():
+    # happy-path settle の核心: 送信成功→settle 済みの outbound は次回 redo で再送されない
+    # （= 偽謝罪付きの複製が構造的に起きない＝報告①②の根治を直接証明）
+    sink = FakeMessageSink()
+    log = FakeWalLogStore(entries=[_outbound_entry(created_at="2026-06-03T18:00:00+00:00")])
+    SettleOutboundIntent(log).execute("2026-06-03T18:00:00+00:00")
+    result = RedoPendingIntents(log, _services(), sink=sink, now_fn=_now).execute()
+    assert sink.sent == []
+    assert result["resent"] == 0

@@ -2,6 +2,23 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.2.2] - 2026-06-07 — proactive-send の happy-path settle（偽の障害謝罪を根治）
+
+### Fixed
+
+- **能動送信（proactive-send）が成功しても毎起動で複製され、複製に偽の障害謝罪が乗る不具合を修正** — `proactive-send` は送信成功後に outbound WAL を done 化しておらず（lease renew のみ）、次回起動の `wal-redo` が pending を**無条件**再送していた。outbound は registry のような外部真実源を持たず「送信済みか」を redo 時点で判別できないため、成功送信まで再送対象になり、しかも再送文面が「システムが落ちていたので…」と実際には起きていない障害を断定していた（既に届いているのに未送信を騙る二重の誤り）。DESIGN §3.9 は「送信成功と done 記録の間にクラッシュすれば重複」と happy-path settle の存在を前提にしていたが、その done 記録が実装漏れだった。
+- **happy-path settle の実装** — `proactive-send` が送信成功直後に当該 outbound intent を done 化 + push する（`domain.wal.settle_outbound` / `usecases.wal.SettleOutboundIntent` / `wal_cli.run_wal_settle_outbound`）。redo が再送するのは「送信成功↔done 記録の窓でクラッシュした真の中断分」だけになり、正常送信は二度と再送されない。registry kind の冪等化（reconcile/settle）と対称な、外部真実源を持たない outbound 向けの settle。
+- **謝罪プレフィックスの中立化** — 障害原因を断定する旧文言（`…に送ろうとした件、システムが落ちていたので念のため再送します`）を、送信済み/未送信のどちらでも偽にならない中立文言（`…にお送りしようとした内容を、念のためお届けします（既に届いていたらご容赦ください）`）へ変更。
+
+### Changed
+
+- **`proactive-send` が outbound WAL ライフサイクルを内包** — 従来エージェントが `wal-append --kind outbound`→`wal-push`→`proactive-send` の3コマンドで回していた手順を、`proactive-send` 一発に集約（内部で `append`(pending)→`push`(must-succeed 送信前ゲート)→送信→`settle`(done)→`push`(best-effort)）。created_at を内部生成して settle キーに使うことで、done 化がエージェントの手順遵守に依存しなくなった。`registry_sync` 無効時は送信のみ（後方互換）。**ROUTINE_PROMPT の outbound 送信手順を更新**（cloud routine prompt body の再登録が必要）。
+- **outbound WAL payload に添付パス・reply_to を保存** — 再送時に本文だけでなく添付・スレッド先も復元する（従来は本文のみで添付が落ちていた）。SECURITY §7 の PII 範囲（本文 + 添付パス + chat_id + reply_to）内。
+
+### Notes
+
+- 再送方針の SSoT は DESIGN §3.9。registry kind の冪等化（reconcile/settle）と outbound kind の happy-path settle が対称に揃った。
+
 ## [1.2.1] - 2026-06-05 — cloud routine 実測 4h への整合
 
 ### Fixed

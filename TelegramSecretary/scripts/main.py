@@ -35,7 +35,13 @@ from infrastructure.exit_codes import (
 )
 from infrastructure.media_cleanup import cleanup_media_dir
 from infrastructure.registry_cli import run_registry_command, run_registry_fetch
-from infrastructure.wal_cli import run_wal_append, run_wal_push, run_wal_redo
+from infrastructure.wal_cli import (
+    run_wal_append,
+    run_wal_append_outbound,
+    run_wal_push,
+    run_wal_redo,
+    run_wal_settle_outbound,
+)
 from usecases.acquire_lease import AcquireLease
 from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
 from usecases.release_lease import ReleaseLease
@@ -514,7 +520,13 @@ def cmd_proactive_send(args: argparse.Namespace) -> int:
 
     `cmd_send_reply` の写像から `offset_store` 構築と `--update-id` を除去したもの。
     offset は inbound 専用の既読台帳ゆえ能動送信では一切触れない（`ProactiveSend` が
-    `OffsetStore` を依存に持たないことで構造的に保証）。lease 検証→typing→送信→renew は共通。
+    `OffsetStore` を依存に持たないことで構造的に保証）。
+
+    outbound は inbound と違い offset の安全網を持たないため、WAL ライフサイクルをこのコマンドが
+    内包する（DESIGN §3.9）: `append→push(送信前ゲート)→send→settle→push`。created_at を内部
+    生成して settle のキーに使うことで、送信成功した intent をその場で done 化し、次回 redo の
+    「成功送信の偽謝罪付き再送」を構造的に断つ（happy-path settle）。registry_sync 無効時は WAL を
+    丸ごと素通りし、現行どおり send のみ（後方互換）。
     """
     config = _load_config()
 
@@ -525,6 +537,14 @@ def cmd_proactive_send(args: argparse.Namespace) -> int:
     if owned is None:
         return EXIT_LEASE_CONFLICT
     lease, lease_store = owned
+
+    # 送信前ゲート: outbound intent を WAL へ先行書込み + must-succeed push（registry_sync 有効時）。
+    # push できなければ送信もしない＝言行一致（§3.7/§3.9）。wal_key は送信成功後の settle キー。
+    ok, wal_key = run_wal_append_outbound(
+        config, args.chat_id, text, [str(a.path) for a in attachments], args.reply_to
+    )
+    if not ok:
+        return EXIT_FETCH_FAILED
 
     with TelegramApiGateway(bot_token=config.bot_token) as gateway:
         # 送信前に typing を best-effort で出す（send-reply と共通の UX）
@@ -543,6 +563,10 @@ def cmd_proactive_send(args: argparse.Namespace) -> int:
             )
         except TelegramSecretaryError as exc:
             return _outbound_exception_to_exit(exc)
+
+    # happy-path settle: 送信成功した outbound intent を done 化 + push（次回 redo の偽謝罪付き
+    # 再送を断つ）。送信は既に成功済みゆえ best-effort（§3.9）。
+    run_wal_settle_outbound(config, wal_key)
 
     print(f"sent chat_id={args.chat_id}")
     return EXIT_OK

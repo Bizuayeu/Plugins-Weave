@@ -14,7 +14,7 @@ from domain.exceptions import PushRejectedError
 from domain.lease import utc_now
 from domain.models import OutboundMessage
 from domain.outbound import OutboundAttachment
-from domain.wal import WalEntry, checkpoint, reconcile, settle
+from domain.wal import WalEntry, checkpoint, reconcile, settle, settle_outbound
 from usecases.manage_registry import RegistryService
 from usecases.ports import GitSyncPort, MessageSink, WalLogStore
 
@@ -31,6 +31,24 @@ class AppendWalIntent:
         )
         self._log.append(entry)
         return entry
+
+
+class SettleOutboundIntent:
+    """送信成功した outbound intent を done 化する（happy-path settle）。
+
+    `proactive-send` が送信成功直後に呼ぶ。outbound は registry のような外部真実源を
+    持たないため、**送信者自身が key（created_at）直指定で done 化**する。これにより
+    `RedoPendingIntents` の outbound 再送が「成功送信まで巻き込んで偽謝罪付きで複製する」
+    のを断つ（DESIGN §3.9 が前提とする happy-path settle の実装）。送信成功と done 記録の
+    間でクラッシュした分だけが pending として残り、次回 redo の at-least-once 再送が拾う。
+    """
+
+    def __init__(self, log_store: WalLogStore) -> None:
+        self._log = log_store
+
+    def execute(self, key: str) -> None:
+        entries = self._log.load()
+        self._log.rewrite(settle_outbound(entries, key))
 
 
 class PushWalLog:
@@ -58,7 +76,7 @@ class PushWalLog:
 
 
 _OUTBOUND_RESEND_PREFIX = (
-    "[{created_at}] に送ろうとした件、システムが落ちていたので念のため再送します"
+    "[{created_at}] にお送りしようとした内容を、念のためお届けします（既に届いていたらご容赦ください）"
 )
 
 

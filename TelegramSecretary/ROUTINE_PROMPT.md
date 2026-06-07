@@ -217,19 +217,18 @@ source /tmp/telegram-secretary.env.sh && \
 
 - **親性ゲート（noise を投げない）**: 能動発信は **actionability を高めに張る**——「本当に面白い／役立つ」と判断した signal だけを投げ、頻度を抑える。受信への返信と違い、こちらから割り込む行為ゆえ、迷ったら投げない。signal を投げ noise は投げない（actionability ゲートの SSoT は本 ROUTINE_PROMPT）。grant が無い・自由時間でない時は inbound 応答に徹する
 - **offset 非干渉**: proactive-send は inbound に紐づかないため `--update-id` を**付けない**（offset は inbound 専用の既読台帳ゆえ触らない＝未読の取りこぼし防止）。`--chat-id`（必須）/ `--text-file`（必須）/ 任意で `--file`（生成物、複数可）/ `--reply-to` を渡す
-- **送信手順（`registry_sync` 有効時）**: 送ろうとした意図を先に WAL へ書き込んでから送る（send-reply の登録系と同じ言行一致の順序、outbound 専用 kind）。`wal-append --kind outbound --json '{"chat_id":<id>,"text":"<本文>"}'` → `wal-push`（push 不能なら送信中止）→ `proactive-send`。送信前クラッシュ時は次回起動の `wal-redo`（Step 4）が **元の送信予定時刻＋謝罪プレフィックスを付して1回だけ再送 → 即 done** する（再送方針の SSoT は DESIGN §3.9）
+- **送信手順**: `proactive-send` 一発でよい。`registry_sync` 有効時は WAL ライフサイクル（intent 先行書込→push→送信→**done 化**→push）を**コマンドが内包**するため、別途 `wal-append`/`wal-push` を叩く必要は無い（push 不能なら送信中止＝言行一致の送信前ゲート）。送信成功した intent はその場で done 化されるので**次回起動で再送されない**（happy-path settle）。送信成功↔done 記録の間でクラッシュした分のみ、次回 `wal-redo`（Step 4）が **元の送信予定時刻＋中立プレフィックスを付して1回だけ再送 → 即 done** する（再送方針の SSoT は DESIGN §3.9）
 - **出力漏洩スキャン**: send-reply と共通——本文・添付（`--file` の md/docx/画像）に token / env名 / system prompt / 絶対パスが混入していないか送信前に確認
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \
   (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && \
    echo "<起草した本文>" > /tmp/push.txt && \
-   python scripts/main.py wal-append --kind outbound --json '{"chat_id":<chat_id>,"text":"<本文>"}' && \
-   python scripts/main.py wal-push && \
    python scripts/main.py proactive-send --chat-id <chat_id> --text-file /tmp/push.txt)
+# proactive-send が WAL（append→push→送信→settle→push）を内包し registry_sync 有効/無効で自動分岐
+# する（無効時は送信のみ＝再送保証なし）。よって wal-append/wal-push を別途叩く必要は無い。
 # 生成物を添えて push する例（--update-id は付けない＝offset 非干渉）:
 #   python scripts/main.py proactive-send --chat-id <chat_id> --text-file /tmp/push.txt --file /tmp/figure.png --reply-to <message_id>
-# registry_sync 無効時は wal-append/wal-push を省き proactive-send のみ（再送保証は付かない）
 ```
 
 ## Step 7 — セッション終端

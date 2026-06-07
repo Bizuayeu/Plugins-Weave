@@ -21,7 +21,12 @@ from infrastructure.registry_cli import (
     _read_json_arg,
     _service,
 )
-from usecases.wal import AppendWalIntent, PushWalLog, RedoPendingIntents
+from usecases.wal import (
+    AppendWalIntent,
+    PushWalLog,
+    RedoPendingIntents,
+    SettleOutboundIntent,
+)
 
 # WAL 対象種別は registry の全管理表種別（individuals/tasks/knowledge/abilities）。
 # abilities も能力宣言（「○○できます」という対外的約束）を伴うため一様に対象（DESIGN §3.8）。
@@ -130,3 +135,59 @@ def _persist_redo_log(config: Config, git=None) -> None:
         PushWalLog(git, config.wal_log_path).execute("wal: persist redo (done-marking)")
     except GitSyncError as exc:
         print(f"wal redo persist (best-effort) skipped: {exc}", file=sys.stderr)
+
+
+def run_wal_append_outbound(
+    config: Config,
+    chat_id: int,
+    text: str,
+    attachment_paths: list,
+    reply_to: Optional[int],
+    git=None,
+) -> tuple[bool, str]:
+    """outbound intent を WAL に先行書込み + push（proactive-send の送信前ゲート）。
+
+    registry_sync 無効なら (True, "")＝WAL スキップで送信続行（後方互換）。`created_at` を
+    キーに pending を書き（添付パス・reply_to も payload に載せ、再送時の添付欠落を解消）、
+    must-succeed push する。push 失敗なら (False, created_at)＝呼び出し側は送信を中止する
+    （§3.9 送信前ゲート）。成功なら (True, created_at)——created_at は送信成功後の settle キー。
+    """
+    if not config.registry_sync_enabled:
+        return True, ""
+    created_at = utc_now().isoformat()
+    payload: dict = {"chat_id": chat_id, "text": text}
+    if attachment_paths:
+        payload["attachments"] = list(attachment_paths)
+    if reply_to is not None:
+        payload["reply_to_message_id"] = reply_to
+    AppendWalIntent(JsonlWalLogStore(config.wal_log_path)).execute(
+        key=created_at, kind="outbound", payload=payload, created_at=created_at
+    )
+    if git is None:
+        git = _build_git(config)
+    try:
+        PushWalLog(git, config.wal_log_path).execute(f"wal: outbound intent {created_at}")
+    except GitSyncError as exc:
+        print(f"wal outbound push failed (send aborted): {exc}", file=sys.stderr)
+        return False, created_at
+    return True, created_at
+
+
+def run_wal_settle_outbound(config: Config, key: str, git=None) -> None:
+    """送信成功した outbound intent を done 化 + push（happy-path settle、best-effort）。
+
+    proactive-send が送信成功直後に呼ぶ。registry_sync 無効 or key 空なら no-op。
+    `SettleOutboundIntent` で done 化（ローカル rewrite）後、done-marking を固定ブランチへ
+    best-effort push（`_persist_redo_log` と同型——push 失敗の最悪ケースは次回 redo が done を
+    再試行するだけ、送信は既に成功済みゆえ起動を止めない）。これで「成功送信が次回 redo で
+    偽謝罪付き再送される」のを構造的に断つ（§3.9 happy-path settle）。
+    """
+    if not config.registry_sync_enabled or not key:
+        return
+    SettleOutboundIntent(JsonlWalLogStore(config.wal_log_path)).execute(key)
+    if git is None:
+        git = _build_git(config)
+    try:
+        PushWalLog(git, config.wal_log_path).execute(f"wal: settle outbound {key}")
+    except GitSyncError as exc:
+        print(f"wal outbound settle persist (best-effort) skipped: {exc}", file=sys.stderr)

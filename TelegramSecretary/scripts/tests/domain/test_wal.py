@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from domain.wal import WalEntry, checkpoint, reconcile, settle
+from domain.wal import WalEntry, checkpoint, reconcile, settle, settle_outbound
 
 
 def _entry(key, status="pending", kind="tasks", created_at="2026-06-03T00:00:00+00:00"):
@@ -101,3 +101,37 @@ def test_checkpoint_drops_done_older_than_retention():
     fresh_done = _entry("T0002", status="done", created_at="2026-06-03T18:00:00+00:00")  # 6h前
     out = checkpoint([old_done, fresh_done], now, retention_h=24)
     assert [e.key for e in out] == ["T0002"]
+
+
+# --- settle_outbound: 指定 key の outbound pending を done 化（happy-path settle） ---
+
+def test_settle_outbound_marks_matching_pending_done():
+    # 送信成功した本人が key 直指定で done 化（外部真実源の無い outbound の冪等化）
+    entries = [_entry("k1", kind="outbound"), _entry("k2", kind="outbound")]
+    by_key = {e.key: e.status for e in settle_outbound(entries, "k1")}
+    assert by_key == {"k1": "done", "k2": "pending"}
+
+
+def test_settle_outbound_ignores_non_outbound_same_key():
+    # 同じ key でも registry kind は触らない（kind=outbound 限定＝reconcile/settle 経路を侵さない）
+    entries = [_entry("k1", kind="tasks"), _entry("k1", kind="outbound")]
+    by = {(e.kind, e.key): e.status for e in settle_outbound(entries, "k1")}
+    assert by == {("tasks", "k1"): "pending", ("outbound", "k1"): "done"}
+
+
+def test_settle_outbound_leaves_existing_done_untouched():
+    entries = [_entry("k1", status="done", kind="outbound")]
+    assert settle_outbound(entries, "k1")[0].status == "done"
+
+
+def test_settle_outbound_noop_when_key_absent():
+    # 該当 key が無ければ全件不変（送信前クラッシュで append すら無い場合の安全）
+    entries = [_entry("k1", kind="outbound"), _entry("k2", kind="outbound")]
+    assert [e.status for e in settle_outbound(entries, "zzz")] == ["pending", "pending"]
+
+
+def test_settle_outbound_preserves_order():
+    entries = [_entry("a", kind="outbound"), _entry("b", kind="tasks"), _entry("c", kind="outbound")]
+    out = settle_outbound(entries, "c")
+    assert [e.key for e in out] == ["a", "b", "c"]
+    assert [e.status for e in out] == ["pending", "pending", "done"]

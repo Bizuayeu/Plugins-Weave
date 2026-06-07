@@ -7,6 +7,7 @@ __post_init__ 検証 + from_dict/to_dict + 純関数）と lease.py（now を引
 - WalEntry: 1 intent の値オブジェクト（key/kind/status/payload/created_at）
 - reconcile: pending のうち registry に無い (kind, key)＝やり残しを抽出（redo 対象）
 - settle: registry に存在する pending を done 化（正常反映済み intent の累積を防ぐ）
+- settle_outbound: 指定 key の outbound pending を done 化（外部真実源の無い能動送信の happy-path settle）
 - checkpoint: pending は無条件保持（redo ソース）、done は retention で掃除
   （WAL〔整合性〕と短期記憶〔直近 retention の会話文脈〕の二役を一手に引き受ける）
 """
@@ -96,6 +97,23 @@ def settle(
     out: List[WalEntry] = []
     for e in entries:
         if e.status == "pending" and (e.kind, e.key) in registry_keys:
+            out.append(e.mark_done())
+        else:
+            out.append(e)
+    return out
+
+
+def settle_outbound(entries: List[WalEntry], key: str) -> List[WalEntry]:
+    """指定 key の outbound pending を done 化（happy-path settle）。
+
+    registry kind の settle が registry_keys 照合で done 化するのに対し、outbound は
+    照合先（外部真実源）を持たないため、**送信に成功した本人が key 直指定で done 化**する。
+    redo（起動時の at-least-once 再送）を待たず即 done にすることで「成功送信が次回起動で
+    再送される」のを断つ。kind != "outbound" / key 不一致 / 既 done は不変・順序保持。
+    """
+    out: List[WalEntry] = []
+    for e in entries:
+        if e.kind == "outbound" and e.key == key and e.status == "pending":
             out.append(e.mark_done())
         else:
             out.append(e)
