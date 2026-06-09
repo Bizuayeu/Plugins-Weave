@@ -75,7 +75,35 @@ source /tmp/telegram-secretary.env.sh && \
 
 - **(1) registry-sync**: exit 0（fetch 成功 or `registry_sync` 無効＝no-op）→ (1.5) へ。exit 1（fetch 失敗＝transient）はログのみで継続し、前回のローカル管理表で起動して次回起動時に再 fetch する。管理表は揮発 state（offset/lease/media）と分離した `registry_dir` に置かれ git 永続化される（揮発 state は Telegram ~24h 保持・lease 再取得で復元するため fetch 不要）
 - **(1.5) wal-redo**: fetch 済みの最新 registry に対し、WAL ログの pending intent（前回 push 漏れ＝「登録したと返信したのに registry に無い」やり残し）を redo（registry へ upsert）して言行一致を回復する（`registry_sync` 無効なら no-op）。**registry kind（individuals/tasks/knowledge/abilities）は整合のみで返信は再送しない**——送信前クラッシュ分は offset 再取得が再処理を担うため（役割分担）。**ただし outbound kind（proactive-send）は例外で再送経路を持つ**——inbound のような offset 安全網が無いため。ただし proactive-send は送信成功時に当該 intent を即 done 化する（happy-path settle）ので、ここで再送されるのは「送信成功↔done 記録の窓でクラッシュした中断分」だけ。元の送信予定時刻＋中立プレフィックス（障害を断定しない文）を本文頭に付して1回だけ再送 → 即 done（無限再送ループ防止）。done 化済みの古い intent は 24h で掃除（短期記憶のローテーション）。**fetch の後**に置くのは、最新 registry で照合しないと既反映分を空振り redo するため。**再送方針の詳細（happy-path settle・at-least-once・offset 非干渉・中立プレフィックス）は DESIGN §3.9 が SSoT**
-- **(2) lease acquire**: exit 0 取得成功 → Step 5／exit 4 他セッション保持中 → 即終了（自己治癒の重複防止）／exit 2/3 設定 or 認証エラー、stderr 確認後終了
+- **(2) lease acquire**: exit 0 取得成功 → Step 4.5／exit 4 他セッション保持中 → 即終了（自己治癒の重複防止）／exit 2/3 設定 or 認証エラー、stderr 確認後終了
+
+## Step 4.5 — 起動時オリエンテーション（管理表の一括ロード ＋ 自由時間の判断）
+
+Step 4 の fetch はデータをローカルに降ろすだけで、**あなた（LLM）が読んでコンテキストに乗せて初めて「思い出した」状態になる**。この読み込みを省くと、登録済みのタスクや方針を毎起動で取りこぼす。watch ループに入る前に、4つの管理表を**一括で**読む。
+
+9.5. **4表の一括ロード**。registry は4表合計でも数千トークン規模で、一括読みのコストは無視できる。かつ表は相互参照する——「tasks をどう扱うか」の方針（自由時間の運用規範・grant 条件・行使してよい能力）は knowledge / abilities 側にあるため、tasks だけでは判断材料が欠ける。選り好みせず4表を揃える：
+
+```bash
+source /tmp/telegram-secretary.env.sh && \
+  (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && \
+   echo "=== individuals ===" && python scripts/main.py individuals list && \
+   echo "=== tasks ==="       && python scripts/main.py tasks list && \
+   echo "=== knowledge ==="   && python scripts/main.py knowledge list && \
+   echo "=== abilities ==="   && python scripts/main.py abilities list)
+```
+
+   - **individuals（誰と）** — 相手の tone / honorific / taboo、疎遠な相手の鮮度
+   - **tasks（何を頼まれ）** — open な依頼、期限が近接/超過しているもの、**継続型タスク**（notes に「各セッション起動時に継続」「定期配信」等の指示があるもの）
+   - **knowledge（どう判断するか）** — 判断方針・運用規範（**自由時間の使い方・actionability ゲート・grant 条件**）・蓄積した方法論・環境の制約（egress 等）。tasks の処理方針はここに書かれていることが多い
+   - **abilities（何ができるか）** — 行使できる能力カタログ（`trigger` / `skill_path` / `guidance`）
+
+9.6. **自由時間（autonomous turn）の判断**。4表を揃えたら、その起動を「自律的に1ターン使うに値するか」判断する。**毎起動で機械的に発信せず、knowledge に記録された運用規範（actionability ゲート）を通す**——渡すに値する signal だけを起こす。grant（自由時間の付与等）が生きていて値する signal があれば、次の候補から **1つだけ** 能動的に進める（手順は「自由時間の能動発信（proactive-send）」節に従う）：
+
+   - tasks の期限近接/継続型を idle 明けに能動 push（proactive-send、grant 下）
+   - 直近の会話を knowledge へ結晶化（夜の自分への digest）
+   - individuals の鮮度チェック（疎遠な相手を気にかける）
+
+   grant が無い／値する signal が無い／knowledge に自由時間の方針が未記録なら、**自律発信はせず inbound 応答に徹する**（Step 5 の watch ループへ素通り）。自由時間の運用規範そのものを knowledge に育てるのも、この自律ターンの正当な使い道（noise は投げない＝親性ゲート）。
 
 ## Step 5 — /goal による deadline 駆動ロングポーリング（keep-alive + 即応）
 

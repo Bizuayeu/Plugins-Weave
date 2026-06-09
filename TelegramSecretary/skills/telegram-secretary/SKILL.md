@@ -20,6 +20,7 @@ description: Telegram Bot API の long-polling を cloud routine 上で常駐さ
 1. Step 0 で `config.json` を読み `agent_name`/`private_dir` を把握 → `source bootstrap.sh` で依存導入 + validate-config（config.json の session_duration_sec 検証含む）+ `TELEGRAM_SECRETARY_SESSION_ID` を env 共有
 2. egress 疎通確認（curl api.telegram.org/.../getMe を invalid token で叩いて 401/404 が返ることを確認）
 3. lease acquire（他セッション保持中なら exit 4 で即終了＝自己治癒）
+3.5. 起動時オリエンテーション = registry 4表（individuals/tasks/knowledge/abilities）を一括 list でコンテキストにロードし、自由時間（autonomous turn）の actionability 判断（grant 下なら継続型タスクの能動 push 等を1つ、値しなければ inbound 専念）。詳細は ROUTINE_PROMPT Step 4.5
 4. `/goal` で deadline（`$TS_SESSION_DEADLINE_EPOCH`）まで監視を駆動。各ターン = foreground
    `watch --exit-on-message --max-duration <残り窓> --timeout 30`（この call のみ bash
    `timeout: $TS_POLL_BASH_TIMEOUT_MS`、他は既定 2分）
