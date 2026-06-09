@@ -16,7 +16,7 @@
 | `<PRIVATE_DIR>` | 非公開データ・人格定義の配置先（cloud routine では cwd 親起点の相対） | `my-private-repo/TelegramSecretary` |
 | `<INSTALL_DIR>` | インストール先パス | TelegramSecretary 配置先 |
 | `<state_dir>` | 揮発 state（offset/lease/media）の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
-| `<registry_dir>` | 永続管理表の保存先（`claude/ts-registry` の独立 git worktree、root 直下5系統。→ DESIGN §3.6） | config.json `registry_dir`（推奨 `ts-registry-wt`、未設定なら `<state_dir>`） |
+| `<registry_dir>` | 永続管理表＋成果物の保存先（`claude/ts-registry` の独立 git worktree、root 直下に4管理表＋`wal/`＋`artifacts/`。→ DESIGN §3.6/§3.10） | config.json `registry_dir`（推奨 `ts-registry-wt`、未設定なら `<state_dir>`） |
 
 `SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/SecretaryRole.template.md`](./templates/SecretaryRole.template.md)。
 
@@ -122,8 +122,10 @@ TelegramSecretary/
     │   └── archive/                   # （原則空。明示的廃棄時のみ）
     ├── abilities/
     │   └── ABILITIES.json             # 能力カタログ（trigger/skill_path/guidance、WAL 対象）
-    └── wal/
-        └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
+    ├── wal/
+    │   └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
+    └── artifacts/                     # 秘書の成果物層（非定型・スキーマレス、§3.10）。蓄積が本質ゆえ永続
+        └── <成果物>.{json,md} …       # 構成・命名・索引は秘書判断（CRUD/WAL/スキーマを持たない＝重要度の世界）
 ```
 
 > **揮発/永続の分離**: `state_dir`（offset/lease/media）は消えてよい揮発データ、`registry_dir`（管理表）は蓄積が本質ゆえ git で永続化する。`registry_dir` 未設定時は `state_dir` にフォールバック（後方互換）。`Identities/` と各 dir の `<PRIVATE_DIR>` 内の正確な親パスは利用者が決定する（state_dir は env、registry_dir は config.json）。
@@ -137,6 +139,7 @@ TelegramSecretary/
 | 依頼データ TASKS.json | `<registry_dir>/tasks/` | Private（永続） |
 | 対応知 KNOWLEDGE.json（→category 分割） | `<registry_dir>/knowledge/` | Private（永続） |
 | 能力カタログ ABILITIES.json | `<registry_dir>/abilities/` | Private（永続） |
+| 成果物（非定型 md/json） | `<registry_dir>/artifacts/`（ツリー同期・§3.10） | Private（永続・**重要度の世界**） |
 | 秘書人格 SecretaryRole.md | `<Private>/Identities/` | Private |
 | 各管理表・秘書人格の雛型 | `templates/` | public |
 | 管理表の値オブジェクト | `scripts/domain/registry.py` | public |
