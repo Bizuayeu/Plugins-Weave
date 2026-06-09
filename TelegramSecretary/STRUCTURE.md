@@ -69,7 +69,9 @@ TelegramSecretary/
 │   ├── domain/               # 純粋ロジック・値オブジェクト
 │   │   ├── models.py / media.py / outbound.py / exceptions.py
 │   │   ├── authorization.py / lease.py / normalize.py / offset.py / watch_window.py
-│   │   └── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge / Ability）
+│   │   ├── session_config.py # session_duration_sec の値域検証（範囲ガード・MAX_SECONDS）
+│   │   ├── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge / Ability）
+│   │   └── wal.py            # WAL 純粋ロジック（reconcile/settle/checkpoint・outbound の二分、DESIGN §3.9）
 │   ├── usecases/             # オーケストレーション + Port
 │   │   ├── ports.py          # Port 定義（Store 群含む）
 │   │   ├── acquire_lease.py / renew_lease.py / release_lease.py
@@ -77,13 +79,13 @@ TelegramSecretary/
 │   │   ├── proactive_send.py    # 能動送信（send-reply から OffsetStore 依存を除いた姉妹 UseCase・offset 非干渉）
 │   │   ├── download_authorized_media.py / render_authorized_media.py
 │   │   ├── manage_registry.py # 管理表 CRUD UseCase
-│   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents）
+│   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents / SettleOutboundIntent）
 │   ├── adapters/
 │   │   ├── media_failure.py  # render/transcribe 共通の失敗ログ + redact ヘルパ
 │   │   ├── telegram/         # api_gateway / media_downloader
 │   │   ├── state/            # json_state_store / emitter
 │   │   ├── render/ transcribe/ audio/   # markitdown / pdf / moonshine / ffmpeg
-│   │   ├── registry/         # json_registry_store
+│   │   ├── registry/         # json_registry_store / git_cli（固定ブランチへの commit&push）
 │   │   └── wal/              # jsonl_wal_log_store（WAL ログの JSONL 永続化）
 │   ├── infrastructure/
 │   │   ├── config.py / media_cleanup.py
