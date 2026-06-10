@@ -5,7 +5,7 @@ import json
 import httpx
 import pytest
 
-from adapters.telegram import api_gateway as gateway_module
+from adapters.telegram import http_retry
 from adapters.telegram.api_gateway import TelegramApiGateway
 from domain.exceptions import AuthFailureError, TelegramSecretaryError
 from domain.models import OutboundMessage
@@ -142,7 +142,7 @@ def test_send_failure_raises_on_ok_false():
 
 def test_429_is_retried_until_success(monkeypatch):
     sleep_calls: list[float] = []
-    monkeypatch.setattr(gateway_module.time, "sleep", lambda s: sleep_calls.append(s))
+    monkeypatch.setattr(http_retry.time, "sleep", lambda s: sleep_calls.append(s))
 
     attempts: list[int] = []
 
@@ -161,7 +161,7 @@ def test_429_is_retried_until_success(monkeypatch):
 
 
 def test_429_fails_after_retries_exhausted(monkeypatch):
-    monkeypatch.setattr(gateway_module.time, "sleep", lambda s: None)
+    monkeypatch.setattr(http_retry.time, "sleep", lambda s: None)
 
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(429, headers={"Retry-After": "1"})
@@ -174,7 +174,7 @@ def test_429_fails_after_retries_exhausted(monkeypatch):
 
 def test_429_caps_sleep_at_max_retry_after(monkeypatch):
     sleep_calls: list[float] = []
-    monkeypatch.setattr(gateway_module.time, "sleep", lambda s: sleep_calls.append(s))
+    monkeypatch.setattr(http_retry.time, "sleep", lambda s: sleep_calls.append(s))
 
     attempts: list[int] = []
 
@@ -192,7 +192,7 @@ def test_429_caps_sleep_at_max_retry_after(monkeypatch):
 
 def test_429_without_retry_after_does_not_sleep(monkeypatch):
     sleep_calls: list[float] = []
-    monkeypatch.setattr(gateway_module.time, "sleep", lambda s: sleep_calls.append(s))
+    monkeypatch.setattr(http_retry.time, "sleep", lambda s: sleep_calls.append(s))
 
     attempts: list[int] = []
 
@@ -211,7 +211,7 @@ def test_429_without_retry_after_does_not_sleep(monkeypatch):
 
 def test_429_invalid_retry_after_does_not_sleep(monkeypatch):
     sleep_calls: list[float] = []
-    monkeypatch.setattr(gateway_module.time, "sleep", lambda s: sleep_calls.append(s))
+    monkeypatch.setattr(http_retry.time, "sleep", lambda s: sleep_calls.append(s))
 
     attempts: list[int] = []
 

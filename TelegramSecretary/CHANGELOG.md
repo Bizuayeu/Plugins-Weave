@@ -2,6 +2,30 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.2.3] - 2026-06-10 — 公開後フルレビューに基づく堅牢性修正と内部リファクタ
+
+### Fixed
+
+- **media download の通信失敗で watch が即死し、当該バッチの全メッセージが恒久消失する不具合を修正** — catch が size 超過のみで、CDN 4xx・期限切れ file_id 等の通信系例外が素通りして watch を traceback 死させていた。fetch が download 前に offset を確定するため、落ちたバッチのメッセージ（テキスト含む）は再取得不能だった。通信失敗を `skip_reason="download_failed"` へフラグ化し（「フラグ化して emit、ブロックしない」原則）、`AuthFailureError`（401）のみ伝播させる。MediaDownloader Port に失敗時契約を明文化。
+- **caption が NFKC 正規化と injection フラグを素通りする非対称を修正** — text のみ正規化され caption は生のまま merge されていたため、写真＋caption（最頻の入力形）に載せた全角 injection 文にフラグが付かなかった。merge 前に caption も `normalize_input` を通す。
+- **`init-config` の argparse 既定値を雛型既定 `14400` に統一** — 1.2.1 の 14400 統一スイープの取りこぼしで、フラグ省略時のみ `7200`（2h）が書かれていた。
+- **CLI の未捕捉 traceback を入力不正（exit 2）へ整備** — registry add の `--json`/`--json-file` 両方未指定（TypeError）・`--json-file` 不在パス（FileNotFoundError）、`send-reply`/`proactive-send` の `--text-file` 不在、`render-pdf` の `--pages` 不正書式が、いずれも traceback で exit 1（transient の誤シグナル）に落ちていた。EXIT_CONFIG_INVALID で明示メッセージを返す。
+
+### Changed
+
+- **全 JSON store の save/rewrite を atomic 化（tmp + `os.replace`）** — truncate→write は書込中クラッシュ（cloud routine の約 4h 強制終了等）で WAL 全損や registry の silent wipe（破損→`[]` ロード→1件だけの表が push されリモート伝播）に至る経路だった。共有ヘルパ `adapters/atomic_io.py` へ集約し、破損フォールバック付き load も一本化。
+- **lease 新規取得を排他作成（`O_CREAT|O_EXCL`）に** — load→check→save の TOCTOU で、同時 cron 起動の 2 コンテナが両方 acquire に成功し得た。新規取得経路を `try_create`（OS の排他作成）にし、勝者を構造的に 1 つへ（stale 奪取・自己更新は従来どおり）。
+- **git subprocess に timeout（90s）と `GIT_TERMINAL_PROMPT=0`** — credential プロンプト待ちの永久ブロック（WAL push は送信ゲートのため秘書のターン全体が無期限停止）を遮断。`pull --rebase` 失敗時は `rebase --abort` を best-effort 実行してから raise（rebase-in-progress 放置による自己復旧不能を防止）。git stderr の URL 埋め込み認証はスクラブし、PAT がログへ漏れる残存経路を閉鎖。
+- **bootstrap の registry worktree 再 provision 前にサニティチェック** — `registry_dir` 誤設定時に既存の実データディレクトリを黙って `rm -rf` しない（不在/空/registry 既知エントリのみ破壊的再 provision を許可、worktree 判定のパス比較は物理パス化で symlink 誤判定も解消）。
+- **依存ピンの二重管理を解消** — heavy 依存を pyproject の `media` / `voice` extras へ分離し、bootstrap は tier に応じ `pip install -e ".[media,voice]"` を叩く形へ一本化（ピンの正典は pyproject、bootstrap は再記述しない）。pyproject に `[build-system]` / `[tool.setuptools] packages = []` / `license` を追加（editable install 基盤、ShioriSecretary からの還流）。coverage の omit から `main.py` を外し実測を可視化（95%）。
+- **telegram retry の共通化と 429 ポリシー統一** — api_gateway / media_downloader の retry 重複を `http_retry.py` へ抽出。CDN 経路が 429 の Retry-After を無視して即死していたのを Bot API 経路と同じ尊重 retry に統一。到達不能コード（`last_exc`）と `DEFAULT_USER_AGENT` 二重定義も解消。
+- **ffmpeg 前処理の `tolist()` 廃止** — 長尺音声で Python list 化が数 GB 級に膨らむメモリ暴発リスク。ndarray のまま transcriber へ渡す。
+- **内部リファクタ（挙動不変）** — send-reply/proactive-send の lease 検証重複を `usecases/outbound.py` のヘルパへ、FS I/O を伴う添付検証を domain から usecases へ移動（domain 純粋性の回復）、main.py の subparser×handlers dict 二重管理を `set_defaults(handler=)` へ、private シンボル越境 import の解消（DI 組み立てを composition へ公開名移設）、WAL checkpoint の時系列保持（kind 別連結で崩れていた interleave 順を復元）、registry remove の domain 純関数化（`remove_by`）、config の `agent_name`/`private_dir` 型検証、`message_id` の int 防御キャスト、テストの時刻ヘルパ・fake・Config 組み立ての重複一本化、docstring の言行一致修正。
+
+### Notes
+
+- ShioriSecretary（配布独立リポ）公開直後のフルレビュー（domain+usecases / adapters / infrastructure+CLI / 配布物整合の4観点並列）に基づく一括修正を母体へ還流。SECURITY.md のプレースホルダ統一（`<BASE_REPO>`）・SKILL.md の `wal-append --kind outbound` 記載・config.template の `registry_remote` 項目・CHANGELOG 1.2.1 の見出し重複統合も同時適用。挙動契約の変更はなし。テスト 512 → 562（+50）。
+
 ## [1.2.2] - 2026-06-07 — proactive-send の happy-path settle（偽の障害謝罪を根治）
 
 ### Fixed
@@ -30,15 +54,12 @@
 - **`session_duration_sec` の雛型既定・クイックスタート例を `14400`（4h）へ** — `config.template.json` の既定値と `init-config` 例（README / commands）を、cloud routine 実測上限（約 4h）に合わせた常駐向けの目安 `14400` に統一（従来 `7200`）。`config.template.json` のフィールド説明にも既定値の根拠を明記。
 - **本番常駐例を 2h 枠から 4h 枠へ統一** — README クイックスタート注記の本番設定と ROUTINE_PROMPT の `$TS_MAX_TURNS` 算出例を実測 4h に更新（`24h≈507・2h≈42` → `24h≈507・4h≈84`）。`bootstrap.sh` のコメント算出例も同期（挙動・式は不変、例示値のみ）。`580s` 窓（1 ポーリングサイクル長）は session 枠と独立ゆえ不変。
 - **`session_config.py` の `MAX_SECONDS` コメントを明確化** — `86400`（24h）は値域の妥当性ガード上限であり、プラットフォームの実セッション上限（実測 約 4h）とは別レイヤーである旨を注記（値は不変）。
+- **`wal-redo` 契約を「outbound kind に限り再送する」へ拡張** — 従来「返信は再送しない」（registry kind の redo 専任）だった契約を、entries を registry kind と outbound kind に二分する形へ拡張。**registry kind は不変**（reconcile→upsert→settle、送信前クラッシュ分は offset 再取得が担うため再送しない）で、outbound kind のみ独立ループで1回再送する。`wal-append --kind` の choices に `outbound` を追加。
 
 ### Added
 
 - **`proactive-send` サブコマンド（秘書による能動 outbound）** — 受信への返信（`send-reply`）に対し、inbound に紐づかない能動送信を担う双方向化。`SendReply` から `OffsetStore` 依存と offset advance を除いた姉妹 UseCase で、**offset 非干渉**（offset は inbound 専用の既読台帳ゆえ依存に持たない＝「advance して未読 inbound を取りこぼす」事故を構造的に封じる）。lease 検証→添付検証→送信→lease renew の不変条件は send-reply から継承。引数は `--chat-id`（必須）/ `--text-file`（必須）/ `--owner` / `--file`（複数可）/ `--reply-to` で、**`--update-id` は持たない**（send-reply との差分）。exit code は send-reply と同一（0/1/2/3/4）。能力境界（秘書は基本 inbound、口頭 grant で outbound）は SecretaryRole、再送の冪等性設計は DESIGN §3.9 が SSoT。
 - **`wal-redo` の outbound 再送（言行一致の outbound 版）** — proactive-send は inbound に紐づかず offset の安全網が無いため、WAL 再送が唯一の冪等性保証になる。起動時に outbound kind の pending を **1回だけ再送**（本文頭に元送信予定時刻＋謝罪プレフィックスを付す）して即 `mark_done` する（再送→即 done で無限再送ループを防ぐ。TTL も content-hash dedup も持たない）。買える保証は at-least-once で、重複は技術で潰さず「受け手の混乱」を社会レイヤで無害化する設計（DESIGN §3.9）。`wal-append --kind outbound`（`chat_id` 必須）で先行書込。
-
-### Changed
-
-- **`wal-redo` 契約を「outbound kind に限り再送する」へ拡張** — 従来「返信は再送しない」（registry kind の redo 専任）だった契約を、entries を registry kind と outbound kind に二分する形へ拡張。**registry kind は不変**（reconcile→upsert→settle、送信前クラッシュ分は offset 再取得が担うため再送しない）で、outbound kind のみ独立ループで1回再送する。`wal-append --kind` の choices に `outbound` を追加。
 
 ## [1.1.0] - 2026-06-04 — 能力カタログ（abilities）
 

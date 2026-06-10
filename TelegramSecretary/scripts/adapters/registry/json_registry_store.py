@@ -9,31 +9,33 @@ import json
 from pathlib import Path
 from typing import List
 
+from adapters.atomic_io import load_json_or_default, write_text_atomic
+
 
 class JsonRegistryStore:
     """管理表 1 ファイルの load/save。
 
     - load: ファイルが無ければ `[]`、破損していても `[]` にフォールバック
-    - save: 親ディレクトリを作成、`ensure_ascii=False` で日本語をそのまま保存
+    - save: 親ディレクトリを作成、`ensure_ascii=False` で日本語をそのまま保存。
+      `atomic_io.write_text_atomic`（tmp + os.replace）で書く——truncate→write だと
+      書込中クラッシュで破損→load() が []→次の add で 1 件だけの表が push され
+      リモートへ伝播する silent wipe 経路になるため
     """
 
     def __init__(self, path: Path, version: int = 1) -> None:
-        self._path = path
+        self._path = Path(path)  # str 渡しでも壊れない防御変換（wal/state store と統一）
         self._version = version
 
     def load(self) -> List[dict]:
-        if not self._path.exists():
-            return []
-        try:
-            data = json.loads(self._path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError, ValueError):
-            return []
+        return load_json_or_default(self._path, parse=self._records_of, default=list)
+
+    @staticmethod
+    def _records_of(data: object) -> List[dict]:
         records = data.get("records") if isinstance(data, dict) else None
         return list(records) if isinstance(records, list) else []
 
     def save(self, records: List[dict]) -> None:
-        self._path.parent.mkdir(parents=True, exist_ok=True)
         payload = {"version": self._version, "records": list(records)}
-        self._path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+        write_text_atomic(
+            self._path, json.dumps(payload, ensure_ascii=False, indent=2)
         )

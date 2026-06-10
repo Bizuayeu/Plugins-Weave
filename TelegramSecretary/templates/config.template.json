@@ -6,7 +6,8 @@
     "private_dir": "string — 任意。非公開データ・人格定義（SecretaryRole.md）の配置先。cloud routine では cwd（2リポ親）起点の相対パス（例 <PRIVATE_REPO>/TelegramSecretary）、ローカルは絶対 or 任意。ROUTINE_PROMPT の <PRIVATE_DIR> に対応",
     "registry_sync": "bool — 任意（既定 false）。管理表の git 永続化（イベント駆動 commit & push）。Cloud で true、ローカルは false で git に触れない（R2）",
     "registry_dir": "string — 任意。永続管理表の根。Private リポの独立した第二 git 作業ツリー（worktree）を指し bootstrap が git worktree add で冪等 provisioning する（cwd 親起点の相対、推奨値 ts-registry-wt）。dev ツリー内サブディレクトリにすると起動時 fetch が親リポを破壊するため不可（DESIGN §3.6）。未設定なら state_dir にフォールバック",
-    "registry_branch": "string — 任意（既定 claude/ts-registry）。管理表を push する固定ブランチ。registry_remote（既定 origin）と組で運用"
+    "registry_branch": "string — 任意（既定 claude/ts-registry）。管理表を push する固定ブランチ。registry_remote（既定 origin）と組で運用",
+    "registry_remote": "string — 任意（既定 origin）。registry push/fetch のリモート名"
   },
   "session_duration_sec": 14400,
   "agent_name": "YourSecretary",

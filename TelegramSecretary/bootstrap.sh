@@ -30,33 +30,55 @@ _ts_die() {
 
 _ts_log() { echo "[telegram-secretary-bootstrap] $*"; }
 
+# 物理パス化（symlink/junction 成分を解消）。存在しないパスも python の realpath が
+# 解決できる範囲で正規化する（cd && pwd -P は不在パスで使えない）。
+_ts_phys_path() { python -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"; }
+
+# registry worktree 再provision前のサニティチェック。
+# config の registry_dir 誤設定（既存の実データディレクトリ等）を黙って rm -rf しないため、
+# 「不在 / 空 / registry 既知エントリのみ」のときだけ破壊的再provisionを許す。
+# 既知エントリ = worktree の .git、registry 4 表 + wal の各ディレクトリ、空ブランチ用 .keep。
+# 未知エントリが 1 つでもあれば 1（呼び出し側が warn+skip、graceful 方針は worktree add 失敗時と同じ）。
+_ts_reg_safe_to_wipe() {
+    [ ! -e "$1" ] && return 0   # 不在: rm -rf は no-op、worktree add が新規作成する
+    [ ! -d "$1" ] && return 1   # ディレクトリ以外（ファイル/リンク）: 触らない
+    local _entry _base
+    for _entry in "$1"/* "$1"/.*; do
+        _base="${_entry##*/}"
+        case "$_base" in .|..) continue ;; esac
+        [ -e "$_entry" ] || continue   # glob 不一致の literal はスキップ
+        case "$_base" in
+            .git|.keep|individuals|tasks|knowledge|abilities|wal) continue ;;
+            *) return 1 ;;
+        esac
+    done
+    return 0
+}
+
 # Resolve script dir robustly whether sourced or executed.
 _ts_script_path="${BASH_SOURCE[0]:-$0}"
 _ts_script_dir="$(cd "$(dirname "$_ts_script_path")" && pwd)"
 
-# --- 依存導入（pyproject.toml dependencies が SSoT、Tier 別に cloud routine 起動コストを制御）---
-# base: httpx（必須）。Heavy モード時のみ markitdown(docx render) と voice(moonshine+av) を追加。
-# media を扱わない Medium 運用・keep-alive 検証は httpx だけで起動が軽い（FINDING A/B）。
-python -m pip install --quiet "httpx>=0.27" || _ts_die "httpx install failed"
+# --- 依存導入（pyproject.toml が SSoT、Tier 別に cloud routine 起動コストを制御）---
+# editable install（packages=[] なので依存導入専用）で pyproject の extras を引く。
+# ピンを bootstrap に再記述しない（二重管理だと片側だけ更新されるドリフトの温床）。
+# base: httpx のみ。Heavy モード時に media extras（markitdown/pdf 系）、さらに voice extras を追加。
+# media を扱わない Medium 運用・keep-alive 検証は base だけで起動が軽い（FINDING A/B）。
+# voice(moonshine+av) は BUNDLE_VOICE=false で除外可（moonshine Community License は年商$1M未満のみ
+# 商用無料・~134MB model ゆえ大規模/ライセンス回避向け）。未導入時は watch が transcriber=None で
+# 起動し音声を skipped にフォールバック（FINDING B、render usecase は transcriber Optional）。
 if [ "${TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD:-true}" != "false" ]; then
-    _ts_log "Heavy mode: installing markitdown (docx/pptx/xlsx render)..."
-    python -m pip install --quiet "markitdown[docx,pptx,xlsx]>=0.1.6" || _ts_die "markitdown install failed"
-    # Stage 10: PDF テキスト層抽出（pdfplumber、MIT、pure-python）。passthrough(Read tool 依存)からの移行。
-    # Stage 11: 画像 PDF を pypdfium2 で全ページ画像化し to_pil() で png 保存（Pillow）。pdfplumber が
-    # 両者を transitive に引くが、pdf_renderer が pypdfium2 を直接 import するため再現性重視で明示 install。
-    _ts_log "installing pdfplumber + pypdfium2 + Pillow (PDF text-layer & image render)..."
-    python -m pip install --quiet "pdfplumber>=0.11" "pypdfium2>=4.18.0" "Pillow>=9.1" || _ts_die "pdf deps install failed"
-    # voice(moonshine+av) は BUNDLE_VOICE=false で除外可（moonshine Community License は年商$1M未満のみ
-    # 商用無料・~134MB model ゆえ大規模/ライセンス回避向け）。未導入時は watch が transcriber=None で
-    # 起動し音声を skipped にフォールバック（FINDING B、render usecase は transcriber Optional）。
     if [ "${TELEGRAM_SECRETARY_BUNDLE_VOICE:-true}" != "false" ]; then
-        _ts_log "installing voice deps (moonshine + av; BUNDLE_VOICE!=false)..."
-        python -m pip install --quiet "moonshine-voice>=0.0.59" "av>=17.0" || _ts_die "voice deps install failed"
+        _ts_log "Heavy mode: installing media+voice extras from pyproject..."
+        python -m pip install --quiet -e "$_ts_script_dir[media,voice]" || _ts_die "media+voice deps install failed"
     else
+        _ts_log "Heavy mode (BUNDLE_VOICE=false): installing media extras from pyproject..."
+        python -m pip install --quiet -e "$_ts_script_dir[media]" || _ts_die "media deps install failed"
         _ts_log "voice deps skipped (BUNDLE_VOICE=false) -> 音声は skipped にフォールバック"
     fi
 else
-    _ts_log "Medium mode (MEDIA_ENABLE_DOWNLOAD=false): media deps skipped, httpx only"
+    _ts_log "Medium mode (MEDIA_ENABLE_DOWNLOAD=false): installing base deps only (httpx)..."
+    python -m pip install --quiet -e "$_ts_script_dir" || _ts_die "base deps install failed"
 fi
 python -c "import httpx" >/dev/null || _ts_die "httpx import failed after install"
 
@@ -66,7 +88,7 @@ python -c "import httpx" >/dev/null || _ts_die "httpx import failed after instal
 export TELEGRAM_SECRETARY_SESSION_ID="${TELEGRAM_SECRETARY_SESSION_ID:-session-$(python -c 'import uuid; print(uuid.uuid4().hex[:8])')}"
 _ts_log "session_id=$TELEGRAM_SECRETARY_SESSION_ID"
 
-# --- INSTALL_DIR と STATE_DIR の絶対パス固定 (FINDING 3: subshell cd でズレないように) ---
+# --- INSTALL_DIR と STATE_DIR の絶対パス固定 (subshell cd でズレないように)---
 # 後続 Step は (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && ...) で subshell cd する。相対 STATE_DIR は
 # その subshell cwd 基準で解決され幽霊パス化するため、bootstrap 実行時に skill root (INSTALL_DIR) 基準で
 # 絶対化して固定する。既定 ./state は <INSTALL_DIR>/state/ に解決され、
@@ -83,10 +105,10 @@ _ts_log "install_dir=$TELEGRAM_SECRETARY_INSTALL_DIR state_dir=$TELEGRAM_SECRETA
 # 後段の session_duration_sec 取得は「検証済み」前提で単純化できる（取得前に die させる）。
 (cd "$_ts_script_dir" && python scripts/main.py validate-config) || _ts_die "validate-config failed"
 
-# --- REGISTRY_DIR の絶対パス固定 (FINDING 3 同型: registry_dir も cwd 依存 .resolve() を回避) ---
+# --- REGISTRY_DIR の絶対パス固定 (registry_dir も cwd 依存 .resolve() を回避)---
 # config.json の registry_dir（2リポ親起点の相対）を bootstrap 実行時 cwd（=2リポ親）基準で絶対化して
 # env 注入する。registry コマンドは後続 call で (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && ...) するため、
-# config.py 側の .resolve()（cwd=skill root）では二重ネストの幽霊パス化する（state_dir の FINDING 3 同型）。
+# config.py 側の .resolve()（cwd=skill root）では二重ネストの幽霊パス化する（state_dir と同型）。
 # config.json が値の正典、env は解決済み絶対パスのキャリア（STATE_DIR と同型）。未設定なら注入せず
 # config.py が state_dir フォールバック。bootstrap source 時の cwd は 2リポ親（ROUTINE_PROMPT Step 2、cd 前）。
 _ts_registry_raw="$(python -c 'import json, sys; d = json.load(open(sys.argv[1], encoding="utf-8")); print(d.get("registry_dir") or "")' "$_ts_script_dir/config.json")"
@@ -100,7 +122,7 @@ if [ -n "$_ts_registry_raw" ]; then
     # checkout -B が親 Private dev ツリーを汚染せず（欠陥2）、registry_dir 不在の OSError(Errno 2)
     # （欠陥1）も解消する。ts-registry は registry ファイルを root 直下に持つ専用ブランチ。
     # provisioning 失敗時は _ts_die せず継続し、registry-sync が空ロード警告（層3）を出す
-    # （fail-fast でなく graceful。worktree add の dev ツリー非干渉は Stage 1 spike で実証済み）。
+    # （fail-fast でなく graceful。worktree add の dev ツリー非干渉は技術検証で実証済み）。
     # worktree add は -B "$BR" ... "origin/$BR" で常に origin から強制（registry の SSoT は origin）。
     # stateful 環境（手動/ローカル実行）に古い同名ローカルブランチが残っても掴まず最新を反映し、
     # 既存 worktree のリフレッシュ（checkout -B "origin/$BR"）と origin 強制で対称。
@@ -112,17 +134,23 @@ if [ -n "$_ts_registry_raw" ]; then
         if [ -n "$_ts_priv_repo" ] && { [ -d "$_ts_priv_repo/.git" ] || [ -f "$_ts_priv_repo/.git" ]; }; then
             git -C "$_ts_priv_repo" fetch origin "$_ts_reg_branch" 2>/dev/null \
                 || _ts_log "warn: registry fetch failed (registry-sync will retry / surface empty-load)"
+            # toplevel 比較は物理パス同士で行う（symlink/junction 成分による
+            # 「正しい worktree なのに不一致→誤って破壊的再provision」を防ぐ）。
             _ts_reg_top="$(git -C "$TELEGRAM_SECRETARY_REGISTRY_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
-            if [ "$_ts_reg_top" = "$TELEGRAM_SECRETARY_REGISTRY_DIR" ]; then
+            if [ -n "$_ts_reg_top" ] \
+                && [ "$(_ts_phys_path "$_ts_reg_top")" = "$(_ts_phys_path "$TELEGRAM_SECRETARY_REGISTRY_DIR")" ]; then
                 git -C "$TELEGRAM_SECRETARY_REGISTRY_DIR" checkout -B "$_ts_reg_branch" "origin/$_ts_reg_branch" 2>/dev/null \
                     && _ts_log "registry worktree refreshed ($_ts_reg_branch)" \
                     || _ts_log "warn: registry worktree refresh failed"
-            else
+            elif _ts_reg_safe_to_wipe "$TELEGRAM_SECRETARY_REGISTRY_DIR"; then
                 git -C "$_ts_priv_repo" worktree prune 2>/dev/null
                 rm -rf "$TELEGRAM_SECRETARY_REGISTRY_DIR" 2>/dev/null
                 git -C "$_ts_priv_repo" worktree add -B "$_ts_reg_branch" "$TELEGRAM_SECRETARY_REGISTRY_DIR" "origin/$_ts_reg_branch" 2>/dev/null \
                     && _ts_log "registry worktree provisioned ($_ts_reg_branch -> $TELEGRAM_SECRETARY_REGISTRY_DIR)" \
                     || _ts_log "warn: registry worktree add failed (registry-sync will surface empty-load)"
+            else
+                # registry_dir 誤設定の疑い（未知の実データが居る）: 黙って消さない。
+                _ts_log "warn: registry_dir has unexpected content; skipping destructive re-provision ($TELEGRAM_SECRETARY_REGISTRY_DIR)"
             fi
         else
             _ts_log "warn: Private repo root not found ($_ts_priv_repo); registry provisioning skipped"
@@ -130,28 +158,28 @@ if [ -n "$_ts_registry_raw" ]; then
     fi
 fi
 
-# --- D: deadline 駆動ロングポーリング運用変数 (Stage 10.3 / D 改修、config.json 化) ---
+# --- deadline 駆動ロングポーリング運用変数 (config.json 化) ---
 # 「枠 (deadline)」と「ポーリング回数 (メッセージ頻度で可変)」を分離する。停止主軸は
-# TS_SESSION_DEADLINE_EPOCH (時刻)。回数は数えない (早期 exit→返信→再起動)。
+# TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH (時刻)。回数は数えない (早期 exit→返信→再起動)。
 # session_duration_sec は config.json が正典 (validate-config 検証済み)。bootstrap はローカル取得して
-# deadline を計算するのみ。TS_SESSION_DURATION_SEC env は作らない (純2層: duration 設定値を env に置かない、
+# deadline を計算するのみ。TELEGRAM_SECRETARY_SESSION_DURATION_SEC env は作らない (純2層: duration 設定値を env に置かない、
 # env は秘匿のみ)。deadline_epoch は計算"結果"ゆえ env スナップショットに残してよい。
 _ts_duration="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["session_duration_sec"])' "$_ts_script_dir/config.json")" || _ts_die "failed to read session_duration_sec from config.json"
-export TS_SESSION_DEADLINE_EPOCH="${TS_SESSION_DEADLINE_EPOCH:-$(( $(date +%s) + _ts_duration ))}"  # 停止主軸: この epoch 秒を過ぎたら /goal 停止
-export TS_POLL_SET_SEC="${TS_POLL_SET_SEC:-580}"                     # メッセージ無し時の 1 窓上限 (bash timeout より短く)
-export TS_POLL_BASH_TIMEOUT_MS="${TS_POLL_BASH_TIMEOUT_MS:-600000}"  # ポーリング call の bash tool timeout (=BASH_MAX_TIMEOUT_MS)
-# TS_MAX_TURNS: 日次総量レートキャップ (旧: deadline 異常時の暴走保険、役割変更)。
+export TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH="${TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH:-$(( $(date +%s) + _ts_duration ))}"  # 停止主軸: この epoch 秒を過ぎたら /goal 停止
+export TELEGRAM_SECRETARY_POLL_SET_SEC="${TELEGRAM_SECRETARY_POLL_SET_SEC:-580}"                     # メッセージ無し時の 1 窓上限 (bash timeout より短く)
+export TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS="${TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS:-600000}"  # ポーリング call の bash tool timeout (=BASH_MAX_TIMEOUT_MS)
+# TELEGRAM_SECRETARY_MAX_TURNS: 日次総量レートキャップ (旧: deadline 異常時の暴走保険、役割変更)。
 # 「~15通/h」を最低保証する天井 = アイドル下限(duration/POLL_SET_SEC) + 通数枠(15通/h)。
 # 24h→約507 (148+359)、4h→約84 (24+60)。高密度日は最大このturn数まで伸び、到達で当日沈黙
 # (lease release→次 cron が offset 継続)。先食い可ゆえ毎時平準化ではない。
 # 短 duration (テスト用、約1.4h 未満) では整数除算で算出が過小/0 になり /goal が即死するため
 # floor=30 を敷く (0 ターン停止の回避＝最低限の暴走保険予算)。env で上書き可。
 _ts_msg_per_hour=15
-_ts_max_turns_calc=$(( _ts_duration / TS_POLL_SET_SEC + _ts_msg_per_hour * _ts_duration / 3600 ))
-export TS_MAX_TURNS="${TS_MAX_TURNS:-$(( _ts_max_turns_calc < 30 ? 30 : _ts_max_turns_calc ))}"
-_ts_log "deadline-driven poll: deadline=$TS_SESSION_DEADLINE_EPOCH (now+${_ts_duration}s from config.json), window<=${TS_POLL_SET_SEC}s, max_turns=${TS_MAX_TURNS}, bash timeout ${TS_POLL_BASH_TIMEOUT_MS}ms"
+_ts_max_turns_calc=$(( _ts_duration / TELEGRAM_SECRETARY_POLL_SET_SEC + _ts_msg_per_hour * _ts_duration / 3600 ))
+export TELEGRAM_SECRETARY_MAX_TURNS="${TELEGRAM_SECRETARY_MAX_TURNS:-$(( _ts_max_turns_calc < 30 ? 30 : _ts_max_turns_calc ))}"
+_ts_log "deadline-driven poll: deadline=$TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH (now+${_ts_duration}s from config.json), window<=${TELEGRAM_SECRETARY_POLL_SET_SEC}s, max_turns=${TELEGRAM_SECRETARY_MAX_TURNS}, bash timeout ${TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS}ms"
 
-# --- 派生 env を source 可能ファイルへ書き出し (FINDING 1: Bash tool は call 間で env 揮発) ---
+# --- 派生 env を source 可能ファイルへ書き出し (Bash tool は call 間で env 揮発) ---
 # Claude Code / cloud routine の Bash tool は call 毎に fresh shell (cwd のみ persist、env は揮発)。
 # 運用律 B 案の「source で親シェルへ引き継ぐ」は成立しないため、後続 Step が各 call 冒頭で
 # re-source する env snapshot を残す。TELEGRAM_BOT_TOKEN / AUTHORIZED_CHATS は Environment 注入で
@@ -162,10 +190,10 @@ _ts_env_file="${TELEGRAM_SECRETARY_ENV_FILE:-/tmp/telegram-secretary.env.sh}"
     echo "export TELEGRAM_SECRETARY_SESSION_ID=$(printf '%q' "$TELEGRAM_SECRETARY_SESSION_ID")"
     echo "export TELEGRAM_SECRETARY_INSTALL_DIR=$(printf '%q' "$TELEGRAM_SECRETARY_INSTALL_DIR")"
     echo "export TELEGRAM_SECRETARY_STATE_DIR=$(printf '%q' "$TELEGRAM_SECRETARY_STATE_DIR")"
-    echo "export TS_SESSION_DEADLINE_EPOCH=$(printf '%q' "$TS_SESSION_DEADLINE_EPOCH")"
-    echo "export TS_POLL_SET_SEC=$(printf '%q' "$TS_POLL_SET_SEC")"
-    echo "export TS_POLL_BASH_TIMEOUT_MS=$(printf '%q' "$TS_POLL_BASH_TIMEOUT_MS")"
-    echo "export TS_MAX_TURNS=$(printf '%q' "$TS_MAX_TURNS")"
+    echo "export TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH=$(printf '%q' "$TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH")"
+    echo "export TELEGRAM_SECRETARY_POLL_SET_SEC=$(printf '%q' "$TELEGRAM_SECRETARY_POLL_SET_SEC")"
+    echo "export TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS=$(printf '%q' "$TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS")"
+    echo "export TELEGRAM_SECRETARY_MAX_TURNS=$(printf '%q' "$TELEGRAM_SECRETARY_MAX_TURNS")"
     # registry_dir は registry を使う環境でのみ存在（config.json に registry_dir があれば上で絶対化済み）。
     if [ -n "${TELEGRAM_SECRETARY_REGISTRY_DIR:-}" ]; then
         echo "export TELEGRAM_SECRETARY_REGISTRY_DIR=$(printf '%q' "$TELEGRAM_SECRETARY_REGISTRY_DIR")"

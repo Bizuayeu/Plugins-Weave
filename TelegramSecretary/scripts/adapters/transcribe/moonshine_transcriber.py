@@ -4,8 +4,9 @@ FfmpegAudioPreprocessor で 16kHz mono float にした音声を Moonshine 日本
 transcribe し、transcript を RenderedMedia.rendered_text に乗せ render_status="ok"。
 例外は内部 catch → render_status="failed"（markitdown_renderer 同型、クラッシュしない）。
 
-model load は lazy（初回の実音声 render 時）。cloud routine 起動を速くし、
-空音声/前処理失敗では load しない。
+モデル解決（言語→パス・クラスの引き当て）は lazy（初回の実音声 render 時）で、
+cloud routine 起動を速くし、空音声/前処理失敗では解決しない。Transcriber 実体は
+render 毎に開閉する（キャッシュは解決結果のみ＝transcript 間で常駐メモリを持たない）。
 
 ライセンス: Moonshine Community License（年商 $1M 未満は商用も無料）。年商 $1M 以上の組織本番は
 Enterprise License or kotoba-whisper(Apache-2.0) へ Port 差し替え。
@@ -24,7 +25,8 @@ class MoonshineTranscriber:
     """音声 → transcript（Moonshine、MediaRenderer Port 実装）。
 
     `RenderAuthorizedMedia` の transcriber として注入。watch ループでは loop 外で
-    1 インスタンス作り使い回す。model load は lazy（初回の実音声 render 時）。
+    1 インスタンス作り使い回す（使い回されるのはモデル解決結果のみ。Transcriber 実体は
+    render 毎に開閉し、常駐メモリを持たない）。モデル解決は lazy（初回の実音声 render 時）。
     """
 
     def __init__(
@@ -49,7 +51,8 @@ class MoonshineTranscriber:
         """音声を transcript 化。失敗は flag 化、エージェントに正直に伝える。"""
         try:
             samples, rate = self._preprocessor.to_float_pcm(local_path)
-            if not samples:
+            # 空判定は len で行う（samples は ndarray、truthiness は ambiguous）
+            if len(samples) == 0:
                 # 無音/デコード不可: 失敗ではなく「音声なし」として空 transcript
                 return RenderedMedia(rendered_text="", render_status="ok")
             transcriber_cls, model_path, model_arch = self._ensure_model()

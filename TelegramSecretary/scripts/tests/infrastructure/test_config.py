@@ -210,6 +210,22 @@ def test_agent_name_defaults_to_none_when_absent(tmp_path):
     assert cfg.private_dir is None
 
 
+def test_agent_name_non_string_raises(tmp_path):
+    """数値 agent_name は型不正で fail-fast（他キーと同じ EnvironmentError）。"""
+    path = _write_config(tmp_path, {"session_duration_sec": 7200, "agent_name": 123})
+    with pytest.raises(EnvironmentError):
+        Config.from_sources(config_path=path)
+
+
+def test_private_dir_non_string_raises(tmp_path):
+    """非 str の private_dir も型不正で fail-fast（agent_name と対称）。"""
+    path = _write_config(
+        tmp_path, {"session_duration_sec": 7200, "private_dir": ["Private"]}
+    )
+    with pytest.raises(EnvironmentError):
+        Config.from_sources(config_path=path)
+
+
 # === R1: registry_dir（揮発 state と永続管理表のパス分離） ===
 
 

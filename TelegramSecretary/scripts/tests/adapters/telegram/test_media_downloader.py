@@ -142,3 +142,66 @@ def test_download_5xx_on_file_cdn_is_retried(tmp_path: Path):
     saved = downloader.download("AgACAg", tmp_path)
     assert saved.read_bytes() == b"ok"
     assert len(attempts) == 2
+
+
+# --- 429 / Retry-After（file CDN 経路も Bot API 経路とポリシー統一）---
+
+
+def test_download_429_on_file_cdn_respects_retry_after(tmp_path: Path, monkeypatch):
+    """CDN の 429 は Retry-After を尊重して sleep → retry する（即死しない）。
+
+    旧実装は 429 が `>=400` 分岐に落ち Retry-After を無視して即死していた
+    （Bot API 経路とのポリシー乖離）。共有 retry ヘルパで 429 ハンドリングを継承する。
+    """
+    import time as time_module
+
+    sleep_calls: list[float] = []
+    monkeypatch.setattr(time_module, "sleep", lambda s: sleep_calls.append(s))
+
+    def api_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"ok": True, "result": {"file_path": "photos/x.jpg"}},
+        )
+
+    attempts: list[int] = []
+
+    def file_handler(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        if len(attempts) < 2:
+            return httpx.Response(429, headers={"Retry-After": "2"})
+        return httpx.Response(200, content=b"ok")
+
+    _, downloader = _make_gateway_and_downloader(api_handler, file_handler, retry_count=2)
+    saved = downloader.download("AgACAg", tmp_path)
+    assert saved.read_bytes() == b"ok"
+    assert len(attempts) == 2
+    assert sleep_calls == [2]  # Retry-After を尊重して sleep してから再試行
+
+
+def test_download_429_exhausted_retries_then_raises_redacted(tmp_path: Path, monkeypatch):
+    """429 が続く場合も即死せず retry を使い切ってから raise（token は漏らさない）。"""
+    import time as time_module
+
+    monkeypatch.setattr(time_module, "sleep", lambda s: None)
+
+    def api_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"ok": True, "result": {"file_path": "photos/x.jpg"}},
+        )
+
+    attempts: list[int] = []
+
+    def file_handler(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        return httpx.Response(429, headers={"Retry-After": "1"})
+
+    _, downloader = _make_gateway_and_downloader(api_handler, file_handler, retry_count=1)
+    with pytest.raises(TelegramSecretaryError) as excinfo:
+        downloader.download("AgACAg", tmp_path)
+    assert len(attempts) == 2  # retry_count=1 → 2 試行（429 は transient 扱い）
+    msg = str(excinfo.value)
+    assert "429" in msg
+    assert "TEST_TOKEN" not in msg
+    assert "api.telegram.org/file/bot" not in msg

@@ -2,18 +2,7 @@ from __future__ import annotations
 
 from usecases.manage_registry import RegistryService
 
-
-class FakeStore:
-    """RegistryStore Port の fake（in-memory）。"""
-
-    def __init__(self, initial=None):
-        self._records = list(initial or [])
-
-    def load(self):
-        return list(self._records)
-
-    def save(self, records):
-        self._records = list(records)
+from tests.usecases.fakes import FakeRegistryStore as FakeStore
 
 
 def test_add_or_update_adds_new():

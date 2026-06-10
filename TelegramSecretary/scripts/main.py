@@ -437,7 +437,12 @@ def cmd_render_pdf(args: argparse.Namespace) -> int:
         )
         return EXIT_OK
     if args.pages:
-        start, end = _parse_page_range(args.pages)
+        try:
+            start, end = _parse_page_range(args.pages)
+        except ValueError as exc:
+            # 不正書式（'abc' 等）は traceback でなく入力不正として返す
+            print(f"render-pdf: invalid --pages {args.pages!r}: {exc}", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
         paths = renderer.rasterize_pages(path, start, end)
         print(
             json.dumps(
@@ -448,6 +453,20 @@ def cmd_render_pdf(args: argparse.Namespace) -> int:
         return EXIT_OK
     print("render-pdf: specify --text or --pages N-M", file=sys.stderr)
     return EXIT_CONFIG_INVALID
+
+
+def _read_text_file(path_str: str) -> Optional[str]:
+    """--text-file を読む（send-reply / proactive-send 共通）。OK なら本文、NG なら None
+    （stderr 出力済み、呼び出し側で EXIT_CONFIG_INVALID）。`_load_owned_lease` と同型。
+
+    不在パス等の OSError を traceback で落とさず入力不正として返す（lease 検証や
+    API 呼び出しの前段なので、失敗しても状態には何も触れていない）。
+    """
+    try:
+        return Path(path_str).read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"cannot read --text-file: {exc}", file=sys.stderr)
+        return None
 
 
 def _load_owned_lease(config: Config, owner: str):
@@ -484,7 +503,9 @@ def cmd_send_reply(args: argparse.Namespace) -> int:
     config = _load_config()
 
     owner = _session_owner(args.owner)
-    text = Path(args.text_file).read_text(encoding="utf-8")
+    text = _read_text_file(args.text_file)
+    if text is None:
+        return EXIT_CONFIG_INVALID
     attachments = [OutboundAttachment(path=Path(f)) for f in (args.file or [])]
     owned = _load_owned_lease(config, owner)
     if owned is None:
@@ -531,7 +552,9 @@ def cmd_proactive_send(args: argparse.Namespace) -> int:
     config = _load_config()
 
     owner = _session_owner(args.owner)
-    text = Path(args.text_file).read_text(encoding="utf-8")
+    text = _read_text_file(args.text_file)
+    if text is None:
+        return EXIT_CONFIG_INVALID
     attachments = [OutboundAttachment(path=Path(f)) for f in (args.file or [])]
     owned = _load_owned_lease(config, owner)
     if owned is None:
@@ -589,9 +612,10 @@ def cmd_test(args: argparse.Namespace) -> int:
 
 
 def cmd_registry(args: argparse.Namespace) -> int:
-    """個人/タスク/知識 管理表の CRUD。args.command が管理表名（individuals/tasks/knowledge）。"""
+    """個人/タスク/知識 管理表の CRUD。args.registry_name が管理表名
+    （individuals/tasks/knowledge/abilities、build_parser の set_defaults で注入）。"""
     config = _load_config()
-    return run_registry_command(config, args.command, args.registry_action, args)
+    return run_registry_command(config, args.registry_name, args.registry_action, args)
 
 
 def cmd_registry_sync(args: argparse.Namespace) -> int:
@@ -616,21 +640,33 @@ def cmd_wal_redo(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """subcommand parser を組み立てる。
+
+    各 subparser は `set_defaults(handler=cmd_x)` で自身のハンドラを携行する——
+    main() は `args.handler(args)` を呼ぶだけで、subcommand 名 × handlers dict の
+    二重管理（追加漏れで KeyError）を構造的に排除する。registry 4 表は同一ハンドラを
+    共有するため、表名を `set_defaults(registry_name=...)` で併せて注入する。
+    """
     parser = argparse.ArgumentParser(prog="telegram-secretary")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("validate-config", help="env vars と設定の検証 (exit 0=OK / 2=設定欠損)")
+    sub.add_parser(
+        "validate-config", help="env vars と設定の検証 (exit 0=OK / 2=設定欠損)"
+    ).set_defaults(handler=cmd_validate_config)
 
-    sub.add_parser("show-config", help="現在の設定を read-only 表示（秘匿はマスク、未設定でも exit 0）")
+    sub.add_parser(
+        "show-config", help="現在の設定を read-only 表示（秘匿はマスク、未設定でも exit 0）"
+    ).set_defaults(handler=cmd_show_config)
 
     p_init = sub.add_parser(
         "init-config", help="config.json を生成（決定論 I/O、対話的収集は /telegram-secretary 経由）"
     )
+    p_init.set_defaults(handler=cmd_init_config)
     p_init.add_argument(
         "--session-duration-sec",
         type=int,
-        default=7200,
-        help="セッション継続秒（1〜86400、default 7200=2h。config.json の記入例値）",
+        default=14400,
+        help="セッション継続秒（1〜86400、default 14400=4h。雛型既定と同値）",
     )
     p_init.add_argument("--agent-name", help="秘書エージェントの人格名")
     p_init.add_argument("--private-dir", help="非公開データ・人格定義の配置先")
@@ -639,14 +675,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     p_lease = sub.add_parser("lease", help="リースの取得/更新/解放")
+    p_lease.set_defaults(handler=cmd_lease)
     p_lease.add_argument("action", choices=["acquire", "renew", "release"])
     p_lease.add_argument("--owner", help="session owner id (省略時は env か uuid 生成)")
     p_lease.add_argument("--ttl", type=int, default=300, help="TTL seconds (default 300)")
 
     p_poll = sub.add_parser("poll", help="getUpdates 1 サイクル")
+    p_poll.set_defaults(handler=cmd_poll)
     p_poll.add_argument("--timeout", type=int, default=30, help="long-poll timeout seconds")
 
     p_watch = sub.add_parser("watch", help="バックグラウンド long-poll ループ")
+    p_watch.set_defaults(handler=cmd_watch)
     p_watch.add_argument("--timeout", type=int, default=30)
     p_watch.add_argument("--owner", help="session owner id (lease renew 用、省略時は env か uuid)")
     p_watch.add_argument(
@@ -674,6 +713,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     p_send = sub.add_parser("send-reply", help="エージェント起草の返信を送信")
+    p_send.set_defaults(handler=cmd_send_reply)
     p_send.add_argument("--chat-id", type=int, required=True)
     p_send.add_argument("--update-id", type=int, required=True)
     p_send.add_argument("--text-file", required=True)
@@ -695,6 +735,7 @@ def build_parser() -> argparse.ArgumentParser:
         "proactive-send",
         help="秘書による能動発信（inbound 非依存の outbound push、offset 非干渉）",
     )
+    p_proactive.set_defaults(handler=cmd_proactive_send)
     p_proactive.add_argument("--chat-id", type=int, required=True)
     p_proactive.add_argument("--text-file", required=True)
     p_proactive.add_argument(
@@ -714,18 +755,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     p_test = sub.add_parser("test", help="疎通テスト：owner chat に ping 送信")
+    p_test.set_defaults(handler=cmd_test)
     p_test.add_argument("--chat-id", type=int, required=True)
     p_test.add_argument("--text", default="ping from TelegramSecretary")
 
     sub.add_parser(
         "cleanup-media",
         help="保持期限超過の media ファイルを state_dir/media/ から削除",
-    )
+    ).set_defaults(handler=cmd_cleanup_media)
 
     p_render = sub.add_parser(
         "render-pdf",
         help="オンデマンド PDF 抽出: --text 全文テキスト / --pages N-M 個別ページ画像化",
     )
+    p_render.set_defaults(handler=cmd_render_pdf)
     p_render.add_argument("--path", required=True, help="対象 PDF の local_path")
     g_render = p_render.add_mutually_exclusive_group(required=True)
     g_render.add_argument(
@@ -735,9 +778,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--pages", help="画像化するページ範囲 N-M（1-indexed inclusive）"
     )
 
-    # 管理表 CRUD（individuals / tasks / knowledge）。/telegram-secretary が全操作をラップする入口
+    # 管理表 CRUD（individuals / tasks / knowledge）。/telegram-secretary が全操作をラップする入口。
+    # 4 表は cmd_registry を共有するため、表名を registry_name として set_defaults で温存する
     for _name in ("individuals", "tasks", "knowledge", "abilities"):
         p_reg = sub.add_parser(_name, help=f"{_name} 管理表の CRUD")
+        p_reg.set_defaults(handler=cmd_registry, registry_name=_name)
         p_reg.add_argument("registry_action", choices=["list", "get", "add", "remove"])
         p_reg.add_argument("--key", help="get/remove のキー（uuid または id）")
         p_reg.add_argument("--json", help="add するレコードの JSON 文字列")
@@ -746,12 +791,13 @@ def build_parser() -> argparse.ArgumentParser:
     # 起動時 fetch（registry_sync 有効時、固定ブランチから最新管理表を引く。ROUTINE_PROMPT が起動時に1回叩く）
     sub.add_parser(
         "registry-sync", help="起動時に固定ブランチから管理表を fetch（R2-3、registry_sync 有効時）"
-    )
+    ).set_defaults(handler=cmd_registry_sync)
 
     # WAL（Write-Ahead Log）: 送信前 intent 書込→push→起動時 redo（registry_sync 有効時のみ稼働）
     p_wal_append = sub.add_parser(
         "wal-append", help="WAL に intent を pending 追記（送信前、registry_sync 有効時）"
     )
+    p_wal_append.set_defaults(handler=cmd_wal_append)
     p_wal_append.add_argument(
         "--kind",
         required=True,
@@ -765,11 +811,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_wal_push = sub.add_parser(
         "wal-push", help="WAL ログを commit & push（must-succeed、失敗は exit 非0＝送信前ゲート）"
     )
+    p_wal_push.set_defaults(handler=cmd_wal_push)
     p_wal_push.add_argument("--message", help="commit メッセージ")
 
     sub.add_parser(
         "wal-redo", help="起動時に WAL pending を registry へ redo（registry_sync 有効時）"
-    )
+    ).set_defaults(handler=cmd_wal_redo)
 
     return parser
 
@@ -777,29 +824,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    handlers = {
-        "validate-config": cmd_validate_config,
-        "show-config": cmd_show_config,
-        "init-config": cmd_init_config,
-        "lease": cmd_lease,
-        "poll": cmd_poll,
-        "watch": cmd_watch,
-        "send-reply": cmd_send_reply,
-        "proactive-send": cmd_proactive_send,
-        "test": cmd_test,
-        "cleanup-media": cmd_cleanup_media,
-        "render-pdf": cmd_render_pdf,
-        "individuals": cmd_registry,
-        "tasks": cmd_registry,
-        "knowledge": cmd_registry,
-        "abilities": cmd_registry,
-        "registry-sync": cmd_registry_sync,
-        "wal-append": cmd_wal_append,
-        "wal-push": cmd_wal_push,
-        "wal-redo": cmd_wal_redo,
-    }
+    # handler は各 subparser の set_defaults が携行（subparsers required=True ゆえ必ず存在）。
+    # 旧 handlers dict（subcommand 名との二重管理）は廃止
     try:
-        return handlers[args.command](args)
+        return args.handler(args)
     except _ConfigInvalid:
         return EXIT_CONFIG_INVALID
 

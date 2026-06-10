@@ -272,3 +272,8 @@ def find_by(records: List[dict], key: str, value: Any) -> Optional[dict]:
         if r.get(key) == value:
             return r
     return None
+
+
+def remove_by(records: List[dict], key: str, value: Any) -> List[dict]:
+    """key == value のレコードを除いた新 list を返す。元 list は変更しない（upsert と対称）。"""
+    return [r for r in records if r.get(key) != value]

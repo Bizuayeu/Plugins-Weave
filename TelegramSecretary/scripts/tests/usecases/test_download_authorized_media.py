@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+from domain.exceptions import AuthFailureError, TelegramSecretaryError
 from domain.media import MediaAttachment
 from domain.models import TelegramUpdate
 from usecases.download_authorized_media import DownloadAuthorizedMedia
@@ -196,3 +199,53 @@ def test_skips_oversized_voice():
 
     assert results[0].skip_reason == "media_size_exceeded"
     assert downloader.download_calls == []
+
+
+# === 通信失敗のフラグ化（download_failed）と 401 の伝播 ===
+
+def test_download_failure_is_flagged_not_raised():
+    """通信失敗は skip_reason="download_failed" にフラグ化し、他 media を妨げない。
+
+    fetch が download 前に offset を確定するため、ここで raise すると
+    当該バッチの全メッセージが再取得不能になる（watch 即死＝メッセージ消失の根治）。
+    """
+    bad = MediaAttachment(kind="photo", file_id="bad", mime_type="image/jpeg", size=1024)
+    good = MediaAttachment(
+        kind="document", file_id="good", mime_type="application/pdf", size=1024
+    )
+    nu = _nu(update_id=30, media=[bad, good])
+    downloader = FakeMediaDownloader(
+        exc_by_file_id={"bad": TelegramSecretaryError("network error during media download")}
+    )
+    uc = DownloadAuthorizedMedia(downloader)
+
+    results = uc.execute(
+        normalized_updates=[nu],
+        target_dir=Path("/tmp/media"),
+        max_size_bytes=20_000_000,
+    )
+
+    assert len(results) == 2
+    bad_result = next(r for r in results if r.media.file_id == "bad")
+    good_result = next(r for r in results if r.media.file_id == "good")
+    assert bad_result.skip_reason == "download_failed"
+    assert bad_result.local_path is None
+    assert good_result.skip_reason is None
+    assert good_result.local_path == Path("/tmp/media/good.bin")
+
+
+def test_auth_failure_propagates():
+    """401（AuthFailureError）は exit 3 系の決定打なのでフラグ化せず伝播する。"""
+    media = MediaAttachment(kind="photo", file_id="x", mime_type="image/jpeg", size=1024)
+    nu = _nu(update_id=31, media=[media])
+    downloader = FakeMediaDownloader(
+        exc_by_file_id={"x": AuthFailureError("401 unauthorized")}
+    )
+    uc = DownloadAuthorizedMedia(downloader)
+
+    with pytest.raises(AuthFailureError):
+        uc.execute(
+            normalized_updates=[nu],
+            target_dir=Path("/tmp/media"),
+            max_size_bytes=20_000_000,
+        )

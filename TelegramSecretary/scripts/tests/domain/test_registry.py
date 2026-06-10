@@ -148,9 +148,9 @@ def test_ability_is_immutable():
         a.name = "y"  # type: ignore[misc]
 
 
-# === コレクション操作（upsert / find_by 純関数） ===
+# === コレクション操作（upsert / find_by / remove_by 純関数） ===
 
-from domain.registry import find_by, upsert
+from domain.registry import find_by, remove_by, upsert
 
 
 def test_upsert_adds_new_record():
@@ -176,3 +176,24 @@ def test_find_by_returns_match():
 
 def test_find_by_returns_none_when_absent():
     assert find_by([{"id": "a"}], "id", "z") is None
+
+
+def test_remove_by_deletes_matching_record():
+    out = remove_by([{"id": "a"}, {"id": "b"}], "id", "a")
+    assert out == [{"id": "b"}]
+
+
+def test_remove_by_returns_same_records_when_absent():
+    out = remove_by([{"id": "a"}], "id", "z")
+    assert out == [{"id": "a"}]
+
+
+def test_remove_by_does_not_mutate_input():
+    records = [{"id": "a"}, {"id": "b"}]
+    remove_by(records, "id", "a")
+    assert records == [{"id": "a"}, {"id": "b"}]
+
+
+def test_remove_by_preserves_order_of_remaining():
+    records = [{"id": "a"}, {"id": "b"}, {"id": "c"}]
+    assert remove_by(records, "id", "b") == [{"id": "a"}, {"id": "c"}]

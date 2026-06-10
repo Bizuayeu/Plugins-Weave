@@ -47,6 +47,15 @@ class LeaseStore(Protocol):
     def save(self, lease: SessionLease) -> None:
         ...
 
+    def try_create(self, lease: SessionLease) -> bool:
+        """lease 不在時のみ atomic に新規作成する（並走新規取得の排他）。
+
+        既存があれば False を返し上書きしない——load→check→save の TOCTOU で
+        並走 2 プロセスが両方勝つのを「最初の 1 プロセスだけが勝つ」へ置き換える。
+        stale 奪取・自己更新（既存ありの経路）は従来どおり save を使う。
+        """
+        ...
+
     def clear(self) -> None:
         ...
 
@@ -57,6 +66,11 @@ class MediaDownloader(Protocol):
     実装は adapters/telegram/media_downloader.py（Stage 6.3）。
     target_dir は state_dir/media/ を想定（呼び出し側が用意）。
     戻り値は保存先の絶対 Path。
+
+    失敗時契約: 通信失敗は TelegramSecretaryError を raise してよい——呼び出し側
+    UseCase（DownloadAuthorizedMedia）が skip_reason="download_failed" へフラグ化する
+    （MediaRenderer の「フラグ化、ブロックしない」契約と同型）。AuthFailureError（401）
+    のみ UseCase を貫通して伝播する（exit 3 系の決定打）。
     """
 
     def download(self, file_id: str, target_dir: Path) -> Path:

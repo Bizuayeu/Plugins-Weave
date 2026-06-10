@@ -15,12 +15,20 @@ from usecases.registry_sync import RegistrySyncService
 from tests.usecases.fakes import FakeGitSync
 
 
-def _config(tmp_path: Path) -> Config:
+def _config(
+    tmp_path: Path,
+    sync: bool = False,
+    registry_dir: Path | None = None,
+) -> Config:
+    """テスト用 Config（test_wal_cli.py の _config と同型の組み立てヘルパ）。"""
     return Config(
         bot_token="x",
         authorized_chats=AuthorizedChats.from_iterable([1]),
         state_dir=tmp_path,
         session_duration_sec=7200,
+        registry_sync_enabled=sync,
+        registry_dir=registry_dir,
+        registry_branch="claude/ts-registry",
     )
 
 
@@ -73,17 +81,33 @@ def test_add_persists_to_correct_path(tmp_path):
     assert config.individuals_path.exists()
 
 
+# === add の入力不正はクラッシュではなく EXIT_CONFIG_INVALID（例外捕捉の対称性）===
+
+
+def test_add_without_json_or_json_file_returns_2(tmp_path, capsys):
+    """--json / --json-file 両方未指定は入力不正（exit 2）。
+
+    旧実装は json.loads(None) の TypeError が未捕捉で exit 1（transient の誤シグナル）
+    だった。明示メッセージの ValueError 化＋捕捉統一で設定不正として返す。
+    """
+    config = _config(tmp_path)
+    assert run_registry_command(config, "individuals", "add", _ns()) == 2
+    assert "--json" in capsys.readouterr().err  # どう直せばよいかが stderr で分かる
+
+
+def test_add_with_missing_json_file_returns_2(tmp_path, capsys):
+    """--json-file の不在パスは入力不正（exit 2）。FileNotFoundError でクラッシュさせない。"""
+    config = _config(tmp_path)
+    ns = _ns(json_file=str(tmp_path / "nope.json"))
+    assert run_registry_command(config, "individuals", "add", ns) == 2
+    assert "invalid individuals record" in capsys.readouterr().err
+
+
 def test_add_persists_to_registry_dir_when_set(tmp_path):
     """registry_dir 指定時、管理表は state_dir でなく registry_dir 配下に書かれる（揮発/永続分離）。"""
     state = tmp_path / "volatile"
     reg = tmp_path / "registry"
-    config = Config(
-        bot_token="x",
-        authorized_chats=AuthorizedChats.from_iterable([1]),
-        state_dir=state,
-        session_duration_sec=7200,
-        registry_dir=reg,
-    )
+    config = _config(state, registry_dir=reg)
     run_registry_command(config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL)))
     assert (reg / "individuals" / "INDIVIDUALS.json").exists()
     assert not (state / "individuals").exists()
@@ -136,14 +160,7 @@ def test_no_sync_when_not_provided(tmp_path):
 
 def test_registry_fetch_calls_fetch_checkout_when_enabled(tmp_path):
     """registry_sync 有効時、固定ブランチを fetch_checkout で引く（起動時の最新取得）。"""
-    config = Config(
-        bot_token="x",
-        authorized_chats=AuthorizedChats.from_iterable([1]),
-        state_dir=tmp_path,
-        session_duration_sec=7200,
-        registry_sync_enabled=True,
-        registry_branch="claude/ts-registry",
-    )
+    config = _config(tmp_path, sync=True)
     git = FakeGitSync()
     assert run_registry_fetch(config, git=git) == 0
     assert git.fetch_calls == ["claude/ts-registry"]
@@ -168,15 +185,7 @@ def test_registry_fetch_continues_when_registry_root_absent(tmp_path, capsys):
     from adapters.registry.git_cli import GitCliAdapter
 
     missing = tmp_path / "never-created" / "registry"
-    config = Config(
-        bot_token="x",
-        authorized_chats=AuthorizedChats.from_iterable([1]),
-        state_dir=tmp_path,
-        session_duration_sec=7200,
-        registry_sync_enabled=True,
-        registry_dir=missing,
-        registry_branch="claude/ts-registry",
-    )
+    config = _config(tmp_path, sync=True, registry_dir=missing)
     adapter = GitCliAdapter(config.registry_root, branch=config.registry_branch)
 
     # OSError ではなく domain の GitSyncError に翻訳される（cwd 不在で git を起動できない）
@@ -192,14 +201,7 @@ def test_registry_fetch_continues_when_registry_root_absent(tmp_path, capsys):
 def test_registry_fetch_emits_empty_load_warning_on_failure(tmp_path, capsys):
     """fetch 失敗時、空表で継続する旨（記憶なし稼働）を警告レベルで明示する（層3）。
     transient を沈黙して握り潰す → 気づけない空表稼働、を防ぐ。"""
-    config = Config(
-        bot_token="x",
-        authorized_chats=AuthorizedChats.from_iterable([1]),
-        state_dir=tmp_path,
-        session_duration_sec=7200,
-        registry_sync_enabled=True,
-        registry_branch="claude/ts-registry",
-    )
+    config = _config(tmp_path, sync=True)
     git = FakeGitSync(fetch_outcomes=[GitSyncError("simulated fetch failure")])
     assert run_registry_fetch(config, git=git) == 1
     err = capsys.readouterr().err.lower()
@@ -208,14 +210,7 @@ def test_registry_fetch_emits_empty_load_warning_on_failure(tmp_path, capsys):
 
 def test_registry_fetch_silent_on_success_and_noop(tmp_path, capsys):
     """成功時・no-op（registry_sync 無効）時は空表警告を出さない（偽陽性の沈黙破り防止）。"""
-    enabled = Config(
-        bot_token="x",
-        authorized_chats=AuthorizedChats.from_iterable([1]),
-        state_dir=tmp_path,
-        session_duration_sec=7200,
-        registry_sync_enabled=True,
-        registry_branch="claude/ts-registry",
-    )
+    enabled = _config(tmp_path, sync=True)
     assert run_registry_fetch(enabled, git=FakeGitSync()) == 0  # fetch 成功
     assert "empty" not in capsys.readouterr().err.lower()
 

@@ -257,6 +257,26 @@ def test_telegram_update_from_api_extracts_message_id():
     assert update.message_id == 678
 
 
+def test_telegram_update_from_api_casts_message_id_to_int():
+    """文字列 message_id も int 化される（update_id / chat_id と同じ防御キャスト）。
+
+    --reply-to threading に流れる値ゆえ、型が str のまま emit されると
+    下流の int 前提（reply_to_message_id: Optional[int]）が崩れる。
+    """
+    payload = {
+        "update_id": 1,
+        "message": {
+            "message_id": "678",
+            "chat": {"id": 100},
+            "from": {"id": 200},
+            "text": "hi",
+        },
+    }
+    update = TelegramUpdate.from_api(payload)
+    assert update.message_id == 678
+    assert isinstance(update.message_id, int)
+
+
 def test_telegram_update_from_api_message_id_absent_is_none():
     """message_id 欠落時は None（後方互換、既存の text-only payload）。"""
     payload = {

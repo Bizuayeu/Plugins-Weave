@@ -176,6 +176,34 @@ def test_redo_outbound_and_registry_are_independent():
     assert len(sink.sent) == 1
 
 
+def test_redo_preserves_interleaved_order_of_registry_and_outbound():
+    """checkpoint 後も WAL の時系列（registry / outbound の interleave 順）が保たれる。
+
+    WAL は整合性と短期記憶（直近 retention の会話文脈）の二役を担うため、
+    kind 別分離→連結で読み出し順が崩れてはならない（R-34）。
+    """
+    sink = FakeMessageSink()
+    log = FakeWalLogStore(
+        entries=[
+            _entry("T0001", created_at="2026-06-03T18:00:00+00:00"),
+            _outbound_entry(created_at="2026-06-03T19:00:00+00:00"),
+            _entry("T0002", created_at="2026-06-03T20:00:00+00:00"),
+            _outbound_entry(created_at="2026-06-03T21:00:00+00:00"),
+        ]
+    )
+    store = FakeRegistryStore(records=[])
+    services = {"tasks": RegistryService(store, "id")}
+    RedoPendingIntents(log, services, sink=sink, now_fn=_now).execute()
+    # 全 entry が retention 内 done で残り、元の interleave 順をそのまま保持する
+    assert [(e.kind, e.created_at) for e in log.load()] == [
+        ("tasks", "2026-06-03T18:00:00+00:00"),
+        ("outbound", "2026-06-03T19:00:00+00:00"),
+        ("tasks", "2026-06-03T20:00:00+00:00"),
+        ("outbound", "2026-06-03T21:00:00+00:00"),
+    ]
+    assert all(e.status == "done" for e in log.load())
+
+
 def test_redo_without_sink_leaves_outbound_pending():
     # sink 未注入（既存呼び出し）なら outbound は送信されず pending のまま（後方互換）
     log = FakeWalLogStore(entries=[_outbound_entry()])
@@ -212,7 +240,7 @@ def test_settle_outbound_intent_only_targets_given_key():
 
 def test_settled_outbound_is_not_resent_by_redo():
     # happy-path settle の核心: 送信成功→settle 済みの outbound は次回 redo で再送されない
-    # （= 偽謝罪付きの複製が構造的に起きない＝報告①②の根治を直接証明）
+    # （= 偽謝罪付きの複製が構造的に起きない＝実運用で観測された複製不具合の根治を直接証明）
     sink = FakeMessageSink()
     log = FakeWalLogStore(entries=[_outbound_entry(created_at="2026-06-03T18:00:00+00:00")])
     SettleOutboundIntent(log).execute("2026-06-03T18:00:00+00:00")

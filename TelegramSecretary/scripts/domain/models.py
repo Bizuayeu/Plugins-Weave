@@ -56,6 +56,7 @@ class TelegramUpdate:
         if video_note:
             media.append(MediaAttachment.from_video_note_api(video_note))
 
+        message_id = message.get("message_id")
         return cls(
             update_id=int(payload["update_id"]),
             chat_id=int(chat.get("id", 0)),
@@ -65,7 +66,8 @@ class TelegramUpdate:
             raw=payload,
             media=media,
             caption=message.get("caption"),
-            message_id=message.get("message_id"),
+            # update_id / chat_id と同じ防御キャスト（欠落時は None 維持）
+            message_id=int(message_id) if message_id is not None else None,
         )
 
 

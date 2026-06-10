@@ -11,8 +11,9 @@ import subprocess
 
 import pytest
 
+import adapters.registry.git_cli as git_cli
 from adapters.registry.git_cli import GitCliAdapter
-from domain.exceptions import PushRejectedError, RegistryWorktreeError
+from domain.exceptions import GitSyncError, PushRejectedError, RegistryWorktreeError
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git not on PATH")
 
@@ -126,6 +127,108 @@ def test_fetch_checkout_gets_remote_state(repos, tmp_path):
     _clone_and_advance(remote, tmp_path, "other")  # remote に other.json
     adapter.fetch_checkout(_BRANCH)
     assert (work / "other.json").exists()  # origin の最新が work に反映
+
+
+# --- subprocess モックによるハング・credential 安全弁の単体検証 ---
+# （実 git 不要だが、ファイル先頭の skipif を共有する——integration と同居の流儀）
+
+
+def test_run_sets_timeout_and_disables_credential_prompt(tmp_path, monkeypatch):
+    """全 git subprocess に timeout と GIT_TERMINAL_PROMPT=0 が入る。
+
+    credential 未設定の push/fetch が認証プロンプト待ちで永久ブロックすると、
+    WAL push は送信ゲートゆえ秘書のターン全体が無期限停止する——二重の安全弁で遮断。
+    """
+    recorded = {}
+
+    def fake_run(cmd, **kwargs):
+        recorded["cmd"] = cmd
+        recorded["kwargs"] = kwargs
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(git_cli.subprocess, "run", fake_run)
+    GitCliAdapter(tmp_path).push()
+    assert recorded["kwargs"]["timeout"] == 90
+    assert recorded["kwargs"]["env"]["GIT_TERMINAL_PROMPT"] == "0"
+
+
+def test_timeout_expired_translates_to_git_sync_error(tmp_path, monkeypatch):
+    """TimeoutExpired は domain の GitSyncError に翻訳される（subprocess 例外を漏らさない）。"""
+
+    def fake_run(cmd, **kwargs):
+        raise subprocess.TimeoutExpired(cmd=cmd, timeout=90)
+
+    monkeypatch.setattr(git_cli.subprocess, "run", fake_run)
+    with pytest.raises(GitSyncError) as ei:
+        GitCliAdapter(tmp_path).push()
+    assert "timed out" in str(ei.value)
+
+
+def test_pull_rebase_failure_aborts_inprogress_rebase_then_raises(tmp_path, monkeypatch):
+    """pull --rebase 失敗時は rebase --abort を best-effort で撃ってから raise する。
+
+    rebase-in-progress を放置すると以降の commit/push が全滅し自己復旧不能になる
+    （「失敗してもクリーンな作業ツリー」不変条件）。
+    """
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(list(cmd))
+        if cmd[1] == "pull":
+            return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="CONFLICT (content)")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(git_cli.subprocess, "run", fake_run)
+    with pytest.raises(GitSyncError):
+        GitCliAdapter(tmp_path).pull_rebase()
+    assert ["git", "rebase", "--abort"] in calls
+
+
+def test_pull_rebase_success_does_not_abort(tmp_path, monkeypatch):
+    """成功経路では rebase --abort を撃たない（成功直後の作業ツリーを巻き戻さない）。"""
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(list(cmd))
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(git_cli.subprocess, "run", fake_run)
+    GitCliAdapter(tmp_path).pull_rebase()
+    assert ["git", "rebase", "--abort"] not in calls
+
+
+_CRED_STDERR = (
+    "fatal: unable to access "
+    "'https://x-access-token:ghp_SECRETSECRET@github.com/o/r.git/': 403"
+)
+
+
+def test_run_failure_scrubs_credentials_from_message(tmp_path, monkeypatch):
+    """URL 埋め込み PAT が例外メッセージへ素通りしない（telegram 側の redact 規律と対称化）。"""
+
+    def fake_run(cmd, **kwargs):
+        return subprocess.CompletedProcess(cmd, 128, stdout="", stderr=_CRED_STDERR)
+
+    monkeypatch.setattr(git_cli.subprocess, "run", fake_run)
+    with pytest.raises(GitSyncError) as ei:
+        GitCliAdapter(tmp_path).pull_rebase()
+    assert "ghp_SECRETSECRET" not in str(ei.value)
+    assert "://***@" in str(ei.value)
+
+
+def test_push_rejected_scrubs_credentials_from_message(tmp_path, monkeypatch):
+    """push の check=False 経路（PushRejectedError / GitSyncError 両方）もスクラブを通す。"""
+
+    def fake_run(cmd, **kwargs):
+        return subprocess.CompletedProcess(
+            cmd, 1, stdout="", stderr=_CRED_STDERR + "\n ! [rejected] (fetch first)"
+        )
+
+    monkeypatch.setattr(git_cli.subprocess, "run", fake_run)
+    with pytest.raises(PushRejectedError) as ei:
+        GitCliAdapter(tmp_path).push()
+    assert "ghp_SECRETSECRET" not in str(ei.value)
+    assert "://***@" in str(ei.value)
 
 
 def test_fetch_checkout_rejects_when_toplevel_differs(repos):

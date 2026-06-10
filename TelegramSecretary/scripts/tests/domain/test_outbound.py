@@ -5,9 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from domain.exceptions import AttachmentNotFound, AttachmentTooLarge
 from domain.models import OutboundMessage
-from domain.outbound import OutboundAttachment, validate_attachments
+from domain.outbound import OutboundAttachment
+
+# validate_attachments（FS I/O を伴う送信前検証）は usecases 層へ移動済み。
+# テストも tests/usecases/test_outbound.py に追従移動（R-31）。
 
 
 # === OutboundAttachment.is_photo ===
@@ -26,48 +28,6 @@ def test_is_photo_normalizes_case():
     # Telegram 添付の拡張子は大文字でも来うる（OS 由来）。lower 正規化で判定。
     assert OutboundAttachment(path=Path("PHOTO.JPG")).is_photo() is True
     assert OutboundAttachment(path=Path("Photo.PnG")).is_photo() is True
-
-
-# === validate_attachments ===
-
-def test_validate_attachments_passes_for_valid_file(tmp_path):
-    f = tmp_path / "ok.png"
-    f.write_bytes(b"x" * 100)
-    # 例外が出なければ合格（戻り値は無い）
-    validate_attachments([OutboundAttachment(path=f)], max_bytes=1024)
-
-
-def test_validate_attachments_raises_when_missing(tmp_path):
-    with pytest.raises(AttachmentNotFound):
-        validate_attachments(
-            [OutboundAttachment(path=tmp_path / "nope.png")], max_bytes=1024
-        )
-
-
-def test_validate_attachments_raises_when_too_large(tmp_path):
-    big = tmp_path / "big.bin"
-    big.write_bytes(b"x" * 2048)
-    with pytest.raises(AttachmentTooLarge):
-        validate_attachments([OutboundAttachment(path=big)], max_bytes=1024)
-
-
-def test_validate_attachments_empty_list_is_noop():
-    # 添付なし（attachments=[]）は検証スルー＝従来 text-only 送信の後方互換
-    validate_attachments([], max_bytes=1024)
-
-
-def test_validate_attachments_checks_every_item(tmp_path):
-    # 1件目は正常でも、2件目の不正で raise（全件検証）
-    good = tmp_path / "good.png"
-    good.write_bytes(b"x" * 10)
-    with pytest.raises(AttachmentNotFound):
-        validate_attachments(
-            [
-                OutboundAttachment(path=good),
-                OutboundAttachment(path=tmp_path / "missing.pdf"),
-            ],
-            max_bytes=1024,
-        )
 
 
 # === OutboundMessage.attachments（後方互換） ===

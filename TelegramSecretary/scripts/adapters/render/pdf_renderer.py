@@ -9,9 +9,11 @@
     21 枚目以降を個別要求された時用）
 
 render() は先頭 image_max_pages 枚を画像化し rendered_text=""・page_count・derived_image_paths。
-派生 png は local_path.parent（=state_dir/media/）フラット直下に local_path.stem プレフィックスで
-保存する（media_downloader が {file_id}{ext} 命名するため stem==file_id、render と
-rasterize_pages で命名が一貫）。既存 cleanup_media_dir の retention にそのまま乗る
+派生 png は local_path.parent（=state_dir/media/）フラット直下に保存する。プレフィックスは
+local_path.stem の先頭 FILE_ID_PREFIX_LEN 文字——media_downloader が
+`{file_id[:FILE_ID_PREFIX_LEN]}_{basename}` で命名するため、stem 先頭の同長切り出しで
+file_id 由来プレフィックスに一致する（render と rasterize_pages で命名が一貫）。
+既存 cleanup_media_dir の retention にそのまま乗る
 （サブディレクトリを切ると retention から漏れ機密スキャン画像が残存する）。
 
 例外は内部 catch → render_status="failed"（markitdown_renderer / moonshine_transcriber 同型、
@@ -25,6 +27,7 @@ from pathlib import Path
 from typing import List
 
 from adapters.media_failure import failed_render, log_media_failure
+from adapters.telegram.media_downloader import FILE_ID_PREFIX_LEN
 from domain.media import MediaAttachment, RenderedMedia
 
 
@@ -122,12 +125,12 @@ class PdfRenderer:
         """開いた pdf の [start, end) ページを png 化（範囲は実ページ数でクランプ）。
 
         派生画像は local_path.parent フラット直下に local_path.stem プレフィックス命名で保存
-        （media_downloader の {file_id}{ext} 命名により stem==file_id、cleanup_media_dir の
+        （media_downloader の {file_id[:FILE_ID_PREFIX_LEN]}_{basename} 命名と同長切り出しで一致、cleanup_media_dir の
         is_file() フラット retention にそのまま乗る）。scale=2.0 は ~144dpi 相当で Vision 可読。
         ファイル名は 1-indexed の page 番号（doc_page-001.png）で エージェントのページ指定と一致。
         """
         target_dir = local_path.parent
-        prefix = local_path.stem[:16]
+        prefix = local_path.stem[:FILE_ID_PREFIX_LEN]
         total = len(pdf)
         lo = max(0, start)
         hi = min(total, end)

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-
 import pytest
 
 from domain.exceptions import LeaseConflictError
@@ -12,9 +10,7 @@ from usecases.renew_lease import RenewLease
 from tests.usecases.fakes import FakeLeaseStore
 
 
-def _t(seconds: int = 0) -> datetime:
-    base = datetime(2026, 5, 26, 12, 0, 0, tzinfo=timezone.utc)
-    return base + timedelta(seconds=seconds)
+from tests.conftest import t_utc as _t
 
 
 def test_renew_updates_heartbeat_when_owner_matches():

@@ -10,10 +10,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from domain.exceptions import LeaseConflictError
 from domain.lease import SessionLease
 from domain.models import OutboundMessage
-from domain.outbound import validate_attachments
+from usecases.outbound import validate_attachments, verify_owned_lease
 from usecases.ports import LeaseStore, MessageSink
 from usecases.send_reply import DEFAULT_OUTBOUND_MAX_BYTES
 
@@ -43,13 +42,8 @@ class ProactiveSend:
           → sink は呼ばれず lease 据え置き。添付なしは no-op
         - 送信失敗（例外伝播）時は lease を変更しない
         """
-        # 1. 並走防止：現在の lease 保持者が自分か確認
-        current = self._lease_store.load()
-        if current is None or current.owner != lease.owner:
-            current_owner = current.owner if current is not None else None
-            raise LeaseConflictError(
-                f"lease no longer held by {lease.owner!r} (current owner: {current_owner!r})"
-            )
+        # 1. 並走防止：現在の lease 保持者が自分か確認（usecases.outbound 共有ヘルパ）
+        current = verify_owned_lease(self._lease_store, lease.owner)
 
         # 2. 送信前検証：添付の存在/サイズを決定論的に弾く（lease 再検証の後・送信の前）
         validate_attachments(message.attachments, max_bytes)

@@ -5,6 +5,8 @@ import struct
 import wave
 from pathlib import Path
 
+import numpy as np
+
 from adapters.audio.ffmpeg_preprocessor import FfmpegAudioPreprocessor
 
 
@@ -39,6 +41,8 @@ def test_decodes_16k_mono_wav_to_float(tmp_path):
     pre = FfmpegAudioPreprocessor()
     samples, rate = pre.to_float_pcm(wav)
     assert rate == 16000
+    # ndarray のまま返す（Python float list 化は 2 時間級音声で数 GB → コンテナ OOM）
+    assert isinstance(samples, np.ndarray)
     # 0.5s @16kHz ≒ 8000 サンプル（端数許容で範囲チェック）
     assert 7000 < len(samples) < 9000
     # float PCM は -1.0〜1.0
@@ -57,10 +61,14 @@ def test_resamples_and_downmixes_44k_stereo_to_16k_mono(tmp_path):
 
 
 def test_returns_empty_for_no_audio_stream(tmp_path):
-    """音声ストリームが無い/壊れたファイルは空リストを返す（クラッシュしない）。"""
+    """音声ストリームが無い/壊れたファイルは空配列を返す（クラッシュしない）。
+
+    空判定は truthiness でなく len で行う契約（ndarray の bool は ambiguous）。
+    """
     broken = tmp_path / "broken.wav"
     broken.write_bytes(b"not a real wav file at all")
     pre = FfmpegAudioPreprocessor()
     samples, rate = pre.to_float_pcm(broken)
-    assert samples == []
+    assert isinstance(samples, np.ndarray)
+    assert len(samples) == 0
     assert rate == 16000

@@ -142,7 +142,11 @@ class Config:
             raise EnvironmentError(f"config.json: session_duration_sec invalid: {exc}")
 
         agent_name = data.get("agent_name")  # Optional（prompt 用、CLI fetch/send では未使用）
+        if agent_name is not None and not isinstance(agent_name, str):
+            raise EnvironmentError("config.json: agent_name must be a string")
         private_dir = data.get("private_dir")  # Optional
+        if private_dir is not None and not isinstance(private_dir, str):
+            raise EnvironmentError("config.json: private_dir must be a string")
 
         # --- registry（永続管理表）: config.json が値の正典。ただしパス解決は env 優先（R3）。 ---
         # config.json の registry_dir は cwd（=2リポ親）起点の相対だが、registry コマンドは

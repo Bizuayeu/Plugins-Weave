@@ -1,11 +1,11 @@
 """Telegram Bot API への HTTP クライアント。getUpdates / sendMessage を提供。"""
 from __future__ import annotations
 
-import time
 from typing import Any, List, Optional
 
 import httpx
 
+from adapters.telegram import http_retry
 from domain.exceptions import AuthFailureError, TelegramSecretaryError
 from domain.models import OutboundMessage, TelegramUpdate
 from domain.offset import UpdateOffset
@@ -15,16 +15,16 @@ from domain.outbound import OutboundAttachment
 class TelegramApiGateway:
     """Telegram Bot API の getUpdates / sendMessage を呼ぶ実装。
 
-    - 5xx / 429 は retry_count 回まで自動再試行
+    - 5xx / 429 は retry_count 回まで自動再試行（retry ループは http_retry と共有）
     - 429 は `Retry-After` ヘッダを尊重して sleep（最大 `max_retry_after_seconds` 秒）
     - 401 は AuthFailureError（exit 3 系の決定打）
     - その他 4xx は TelegramSecretaryError
     - ネットワークエラーは retry 後に TelegramSecretaryError
     """
 
-    DEFAULT_BASE_URL = "https://api.telegram.org"
-    DEFAULT_USER_AGENT = "TelegramSecretary/0.1 (+bot)"
-    DEFAULT_MAX_RETRY_AFTER_SECONDS = 60
+    DEFAULT_BASE_URL = http_retry.DEFAULT_BASE_URL
+    DEFAULT_USER_AGENT = http_retry.DEFAULT_USER_AGENT
+    DEFAULT_MAX_RETRY_AFTER_SECONDS = http_retry.DEFAULT_MAX_RETRY_AFTER_SECONDS
 
     def __init__(
         self,
@@ -169,64 +169,39 @@ class TelegramApiGateway:
         return str(file_path)
 
     def _request_with_retry(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
-        last_exc: Optional[Exception] = None
-        for attempt in range(self._retry_count + 1):
-            try:
-                response = self._client.request(method, url, **kwargs)
-            except httpx.RequestError as exc:
-                last_exc = exc
-                if attempt < self._retry_count:
-                    continue
-                # exc には token 込み URL が混入し得る → from None で chain を切り、
-                # メッセージにも exc を載せない（media_downloader の network error と同型の redact）
-                raise TelegramSecretaryError(
-                    "network error after retries (request to Telegram API failed)"
-                ) from None
+        # network error の固定文言: exc には token 込み URL が混入し得るため、ヘルパ側が
+        # from None で chain を切り、この文言だけを raise する（redact）
+        return http_retry.request_with_retry(
+            lambda: self._client.request(method, url, **kwargs),
+            self._classify_status,
+            retry_count=self._retry_count,
+            network_error_message=(
+                "network error after retries (request to Telegram API failed)"
+            ),
+            max_retry_after_seconds=self._max_retry_after_seconds,
+        )
 
-            if response.status_code == 401:
-                raise AuthFailureError(f"401 Unauthorized: {response.text[:200]}")
-            if response.status_code == 429:
-                # Telegram のレート制限。Retry-After ヘッダを尊重して sleep してから再試行
-                last_exc = httpx.HTTPStatusError(
-                    "429 Too Many Requests",
-                    request=response.request,
-                    response=response,
-                )
-                if attempt < self._retry_count:
-                    self._sleep_for_retry_after(response.headers.get("Retry-After"))
-                    continue
-                raise TelegramSecretaryError(
-                    f"rate limited after retries (429), Retry-After={response.headers.get('Retry-After')!r}"
-                )
-            if response.status_code >= 500:
-                last_exc = httpx.HTTPStatusError(
-                    f"{response.status_code}", request=response.request, response=response
-                )
-                if attempt < self._retry_count:
-                    continue
-                raise TelegramSecretaryError(
-                    f"server error after retries: {response.status_code}"
-                )
-            if response.status_code >= 400:
-                raise TelegramSecretaryError(
-                    f"client error: {response.status_code} {response.text[:200]}"
-                )
-            return response
+    @staticmethod
+    def _classify_status(response: httpx.Response) -> Optional[str]:
+        """Bot API 応答の status 分類（http_retry.request_with_retry の callback 契約）。
 
-        raise TelegramSecretaryError(f"unreachable, last_exc={last_exc}")
-
-    def _sleep_for_retry_after(self, header_value: Optional[str]) -> None:
-        """`Retry-After` ヘッダの秒数だけ sleep（上限 `max_retry_after_seconds`）。
-
-        - ヘッダ無しまたは parse 失敗時は sleep しない（即時 retry）
-        - 上限を超える値は上限に丸める（DoS 自損防止）
+        - 401 → AuthFailureError（致命、retry しない）
+        - 429 / 5xx → transient 文言を返す（retry、尽きたらその文言で raise）
+        - その他 4xx → TelegramSecretaryError（致命）
+        - 2xx 系 → None（成功）
         """
-        if not header_value:
-            return
-        try:
-            seconds = int(header_value)
-        except (ValueError, TypeError):
-            return
-        if seconds <= 0:
-            return
-        time.sleep(min(seconds, self._max_retry_after_seconds))
+        if response.status_code == 401:
+            raise AuthFailureError(f"401 Unauthorized: {response.text[:200]}")
+        if response.status_code == 429:
+            # Telegram のレート制限。Retry-After 尊重の sleep はヘルパ側が担う
+            return (
+                "rate limited after retries (429), "
+                f"Retry-After={response.headers.get('Retry-After')!r}"
+            )
+        if response.status_code >= 500:
+            return f"server error after retries: {response.status_code}"
+        if response.status_code >= 400:
+            raise TelegramSecretaryError(
+                f"client error: {response.status_code} {response.text[:200]}"
+            )
+        return None

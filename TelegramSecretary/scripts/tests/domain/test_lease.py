@@ -4,11 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from domain.lease import SessionLease, utc_now
 
-
-def _t(seconds: int = 0) -> datetime:
-    """テスト用の固定基準時刻 + seconds。"""
-    base = datetime(2026, 5, 26, 12, 0, 0, tzinfo=timezone.utc)
-    return base + timedelta(seconds=seconds)
+from tests.conftest import t_utc as _t
 
 
 def test_fresh_lease_is_not_stale():

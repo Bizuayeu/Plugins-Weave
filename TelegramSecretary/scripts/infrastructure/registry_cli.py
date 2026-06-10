@@ -2,37 +2,57 @@
 
 main.py の subcommand から呼ばれる。値オブジェクトで入力を検証してから永続化する
 （決定論的 I/O。何を登録/更新するかの判断は エージェント = 重要度の世界）。
+
+`REGISTRY_SPEC` / `read_json_arg` / `registry_service` は wal_cli と共有する公開名
+（旧 private 名の越境 import を解消）。git/sync の DI 組み立ては composition.py に移設済み。
 """
 from __future__ import annotations
 
 import json
 import sys
-from typing import Any
+from typing import Any, NamedTuple, Type
 
 from adapters.registry.json_registry_store import JsonRegistryStore
 from domain.exceptions import GitSyncError
 from domain.registry import Ability, Individual, Knowledge, Task
+from infrastructure.composition import build_git, build_sync
 from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
 from usecases.manage_registry import RegistryService
 
-# name -> (Config の path property 名, キーフィールド, 値オブジェクトクラス)
-_REGISTRY_SPEC = {
-    "individuals": ("individuals_path", "uuid", Individual),
-    "tasks": ("tasks_path", "id", Task),
-    "knowledge": ("knowledge_path", "id", Knowledge),
-    "abilities": ("abilities_path", "id", Ability),
+
+class RegistrySpec(NamedTuple):
+    """管理表 1 表分の静的仕様（SSoT）。
+
+    path の導出・キーフィールド・値オブジェクトの対応はすべてここから引く
+    （`f"{name}_path"` のような文字列組み立てを散らさない）。
+    """
+
+    path_attr: str  # Config の path property 名
+    key_field: str  # レコードの一意キー
+    record_cls: Type  # 検証に使う値オブジェクトクラス
+
+
+# name -> RegistrySpec。wal_cli の kind -> key_field 導出もここを SSoT とする
+REGISTRY_SPEC = {
+    "individuals": RegistrySpec("individuals_path", "uuid", Individual),
+    "tasks": RegistrySpec("tasks_path", "id", Task),
+    "knowledge": RegistrySpec("knowledge_path", "id", Knowledge),
+    "abilities": RegistrySpec("abilities_path", "id", Ability),
 }
 
 
-def _service(config: Config, name: str) -> RegistryService:
-    path_attr, key_field, _ = _REGISTRY_SPEC[name]
-    return RegistryService(JsonRegistryStore(getattr(config, path_attr)), key_field)
+def registry_service(config: Config, name: str) -> RegistryService:
+    """name の管理表に対する RegistryService を組み立てる（wal_cli と共有）。"""
+    spec = REGISTRY_SPEC[name]
+    return RegistryService(
+        JsonRegistryStore(getattr(config, spec.path_attr)), spec.key_field
+    )
 
 
 def run_registry_command(config: Config, name: str, action: str, args: Any, sync=None) -> int:
-    key_field, vo_cls = _REGISTRY_SPEC[name][1], _REGISTRY_SPEC[name][2]
-    svc = _service(config, name)
+    spec = REGISTRY_SPEC[name]
+    svc = registry_service(config, name)
 
     if action == "list":
         print(json.dumps(svc.list(), ensure_ascii=False, indent=2))
@@ -41,41 +61,50 @@ def run_registry_command(config: Config, name: str, action: str, args: Any, sync
     if action == "get":
         rec = svc.get(args.key)
         if rec is None:
-            print(f"not found: {name} {key_field}={args.key}", file=sys.stderr)
+            print(f"not found: {name} {spec.key_field}={args.key}", file=sys.stderr)
             return EXIT_CONFIG_INVALID
         print(json.dumps(rec, ensure_ascii=False, indent=2))
         return EXIT_OK
 
     if action == "add":
         try:
-            raw = _read_json_arg(args)
-            vo = vo_cls.from_dict(raw)  # 値オブジェクトで検証
-        except (ValueError, KeyError, json.JSONDecodeError) as exc:
+            raw = read_json_arg(args)
+            vo = spec.record_cls.from_dict(raw)  # 値オブジェクトで検証
+        except (ValueError, OSError, TypeError, KeyError) as exc:
+            # wal_cli.run_wal_append と同一の捕捉タプル（入力不正は exit 2 に統一）。
+            # json.JSONDecodeError は ValueError の子なので個別列挙しない
             print(f"invalid {name} record: {exc}", file=sys.stderr)
             return EXIT_CONFIG_INVALID
         record = vo.to_dict()
         svc.add_or_update(record)
-        _sync_after_change(config, name, f"registry: add {name} {record[key_field]}", sync)
-        print(f"saved {name} {key_field}={record[key_field]}")
+        _sync_after_change(config, name, f"registry: add {name} {record[spec.key_field]}", sync)
+        print(f"saved {name} {spec.key_field}={record[spec.key_field]}")
         return EXIT_OK
 
     if action == "remove":
         svc.remove(args.key)
         _sync_after_change(config, name, f"registry: remove {name} {args.key}", sync)
-        print(f"removed {name} {key_field}={args.key}")
+        print(f"removed {name} {spec.key_field}={args.key}")
         return EXIT_OK
 
     print(f"unknown action: {action}", file=sys.stderr)
     return EXIT_CONFIG_INVALID
 
 
-def _read_json_arg(args: Any) -> dict:
-    """--json または --json-file から1レコードの dict を読む。"""
+def read_json_arg(args: Any) -> dict:
+    """--json または --json-file から1レコードの dict を読む（wal_cli と共有）。
+
+    両方未指定は明示メッセージの ValueError——json.loads(None) の TypeError に任せると
+    「型エラー」という誤シグナルになるため、入力不正として言語化する
+    （CLI 層の捕捉で EXIT_CONFIG_INVALID に翻訳される）。
+    """
     if getattr(args, "json_file", None):
         with open(args.json_file, encoding="utf-8") as f:
             text = f.read()
-    else:
+    elif getattr(args, "json", None):
         text = args.json
+    else:
+        raise ValueError("provide --json or --json-file")
     return json.loads(text)
 
 
@@ -84,30 +113,13 @@ def _sync_after_change(config: Config, name: str, message: str, sync) -> None:
 
     sync 注入を優先（テスト/外部組み立て）、無ければ config から組み立てる
     （registry_sync_enabled 有効時のみ。無効なら no-op＝ローカルは git に触れない）。
+    対象 path は REGISTRY_SPEC から引く（`f"{name}_path"` の文字列組み立てを廃し SSoT 化）。
     """
-    service = sync if sync is not None else _build_sync(config)
+    service = sync if sync is not None else build_sync(config)
     if service is None:
         return
-    path = getattr(config, f"{name}_path")
+    path = getattr(config, REGISTRY_SPEC[name].path_attr)
     service.sync([path], message)
-
-
-def _build_git(config: Config):
-    """config から GitCliAdapter を組み立てる（registry_root を git リポとして操作）。"""
-    from adapters.registry.git_cli import GitCliAdapter
-
-    return GitCliAdapter(
-        config.registry_root, remote=config.registry_remote, branch=config.registry_branch
-    )
-
-
-def _build_sync(config: Config):
-    """config から RegistrySyncService を組み立てる（registry_sync_enabled 無効なら None）。"""
-    if not config.registry_sync_enabled:
-        return None
-    from usecases.registry_sync import RegistrySyncService
-
-    return RegistrySyncService(_build_git(config))
 
 
 def run_registry_fetch(config: Config, git=None) -> int:
@@ -119,7 +131,7 @@ def run_registry_fetch(config: Config, git=None) -> int:
     """
     if not config.registry_sync_enabled:
         return EXIT_OK  # no-op
-    service = git if git is not None else _build_git(config)
+    service = git if git is not None else build_git(config)
     try:
         service.fetch_checkout(config.registry_branch)
     except GitSyncError as exc:

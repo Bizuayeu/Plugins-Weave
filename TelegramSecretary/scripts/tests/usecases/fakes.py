@@ -54,12 +54,18 @@ class FakeOffsetStore:
 
 
 class FakeLeaseStore:
-    """in-memory な lease store。"""
+    """in-memory な lease store。
+
+    create_race_winner に並走者の lease を仕込むと、try_create が False を返しつつ
+    その lease を「先に書かれた」状態にする（新規取得 TOCTOU レースのシミュレート）。
+    """
 
     def __init__(self, initial: Optional[SessionLease] = None) -> None:
         self.lease: Optional[SessionLease] = initial
         self.save_calls: List[SessionLease] = []
         self.clear_calls: int = 0
+        self.try_create_calls: int = 0
+        self.create_race_winner: Optional[SessionLease] = None
 
     def load(self) -> Optional[SessionLease]:
         return self.lease
@@ -68,25 +74,41 @@ class FakeLeaseStore:
         self.lease = lease
         self.save_calls.append(lease)
 
+    def try_create(self, lease: SessionLease) -> bool:
+        self.try_create_calls += 1
+        if self.create_race_winner is not None:
+            self.lease = self.create_race_winner
+            return False
+        if self.lease is not None:
+            return False
+        self.lease = lease
+        self.save_calls.append(lease)
+        return True
+
     def clear(self) -> None:
         self.lease = None
         self.clear_calls += 1
 
 
 class FakeMediaDownloader:
-    """Stage 6.2: download 呼び出しを記録、`fail` フラグで例外を投げる fake。
+    """Stage 6.2: download 呼び出しを記録、`fail` フラグ / `exc_by_file_id` で例外を投げる fake。
 
     成功時は target_dir / f"{file_id}.bin" を返す（実 I/O はなし）。
+    exc_by_file_id は file_id 毎に raise する例外の注入（通信失敗・401 のシミュレート）。
     """
 
-    def __init__(self, fail: bool = False) -> None:
+    def __init__(self, fail: bool = False, exc_by_file_id=None) -> None:
         self.download_calls: List[Tuple[str, Path]] = []
         self.fail = fail
+        self.exc_by_file_id = dict(exc_by_file_id or {})
 
     def download(self, file_id: str, target_dir: Path) -> Path:
         self.download_calls.append((file_id, target_dir))
         if self.fail:
             raise RuntimeError("simulated download failure")
+        exc = self.exc_by_file_id.get(file_id)
+        if exc is not None:
+            raise exc
         return target_dir / f"{file_id}.bin"
 
 

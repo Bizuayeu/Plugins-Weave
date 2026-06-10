@@ -9,6 +9,8 @@
   （未導入なら None で構築し該当 media は skipped にフォールバック）。重い import は
   関数内 lazy に保ち、テストの monkeypatch（モジュールパス指定）と cloud routine 起動の
   軽量性を両立する（呼び出し＝実際に media を受けた時のみ重い import が走る）。
+- build_git() / build_sync(): registry_cli / wal_cli が共有する git 同期系の DI 組み立て。
+  旧 registry_cli._build_git/_build_sync を移設・公開名化（private 名の越境 import 解消）。
 """
 from __future__ import annotations
 
@@ -34,6 +36,28 @@ def load_config() -> Config:
     config.json（<INSTALL_DIR>/config.json 決め打ち）から読む（純2層）。
     """
     return Config.from_sources()
+
+
+def build_git(config: Config):
+    """config から GitCliAdapter を組み立てる（registry_root を git リポとして操作）。
+
+    registry_cli / wal_cli 共用。adapter の import は呼び出し時 lazy に保ち、
+    git 同期を使わない経路（registry_sync 無効のローカル運用）に import を波及させない。
+    """
+    from adapters.registry.git_cli import GitCliAdapter
+
+    return GitCliAdapter(
+        config.registry_root, remote=config.registry_remote, branch=config.registry_branch
+    )
+
+
+def build_sync(config: Config):
+    """config から RegistrySyncService を組み立てる（registry_sync_enabled 無効なら None）。"""
+    if not config.registry_sync_enabled:
+        return None
+    from usecases.registry_sync import RegistrySyncService
+
+    return RegistrySyncService(build_git(config))
 
 
 @dataclass

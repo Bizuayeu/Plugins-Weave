@@ -10,8 +10,14 @@ from typing import Any, Optional
 
 import httpx
 
+from adapters.telegram import http_retry
 from adapters.telegram.api_gateway import TelegramApiGateway
 from domain.exceptions import TelegramSecretaryError
+
+# 保存名 `{file_id[:FILE_ID_PREFIX_LEN]}_{basename}` のプレフィックス長。
+# pdf_renderer が派生画像の命名で同じ長さを stem から切り出して一致させるため共有する
+# （どちらかが独断で変えると derived_image_paths の対応が静かに崩れる）。
+FILE_ID_PREFIX_LEN = 16
 
 
 class TelegramMediaDownloader:
@@ -21,8 +27,8 @@ class TelegramMediaDownloader:
     で API base と異なり、token が URL path に入る。
     """
 
-    DEFAULT_BASE_URL = "https://api.telegram.org"
-    DEFAULT_USER_AGENT = "TelegramSecretary/0.1 (+bot)"
+    DEFAULT_BASE_URL = http_retry.DEFAULT_BASE_URL
+    DEFAULT_USER_AGENT = http_retry.DEFAULT_USER_AGENT
 
     def __init__(
         self,
@@ -57,42 +63,49 @@ class TelegramMediaDownloader:
         """file_id → getFile → file_path → bytes 取得 → target_dir に保存。
 
         - get_file は gateway 側の retry / 401 / 4xx ハンドリングを継承
-        - file CDN は別 client、5xx は retry、token は例外メッセージに残さない
+        - file CDN は別 client。retry ポリシー（5xx retry / 429 Retry-After 尊重）は
+          http_retry を Bot API 経路と共有し、token は例外メッセージに残さない
         """
         file_path = self._gateway.get_file(file_id)
         url = f"{self._file_base_url}/file/bot{self._bot_token}/{file_path}"
         safe_id = file_id[:8]  # 例外メッセージ用の短縮 id（token redact 文脈）
 
-        for attempt in range(self._retry_count + 1):
-            try:
-                response = self._file_client.get(url)
-            except httpx.RequestError:
-                if attempt < self._retry_count:
-                    continue
-                # exc には URL が含まれる可能性 → from None で chain を切って token を秘匿
-                raise TelegramSecretaryError(
-                    f"network error during media download (file_id={safe_id})"
-                ) from None
-
-            if response.status_code >= 500:
-                if attempt < self._retry_count:
-                    continue
-                raise TelegramSecretaryError(
-                    f"media CDN server error after retries "
-                    f"(file_id={safe_id}, status={response.status_code})"
-                )
-            if response.status_code >= 400:
-                raise TelegramSecretaryError(
-                    f"media CDN client error "
-                    f"(file_id={safe_id}, status={response.status_code})"
-                )
-
-            return self._save_to_target(file_id, file_path, response.content, target_dir)
-
-        # retry loop が完走しないケース（理論上到達しない）
-        raise TelegramSecretaryError(
-            f"media download unreachable path (file_id={safe_id})"
+        # network error の固定文言: exc には URL（token 込み）が含まれる可能性があるため、
+        # ヘルパ側が from None で chain を切り、この文言だけを raise する（redact）
+        response = http_retry.request_with_retry(
+            lambda: self._file_client.get(url),
+            lambda res: self._classify_cdn_status(res, safe_id),
+            retry_count=self._retry_count,
+            network_error_message=(
+                f"network error during media download (file_id={safe_id})"
+            ),
         )
+        return self._save_to_target(file_id, file_path, response.content, target_dir)
+
+    @staticmethod
+    def _classify_cdn_status(response: httpx.Response, safe_id: str) -> Optional[str]:
+        """file CDN 応答の status 分類（http_retry.request_with_retry の callback 契約）。
+
+        429 を transient に分類することで Retry-After 尊重の retry を Bot API 経路から
+        継承する（旧実装は `>=400` 分岐で即死し Retry-After を無視していた）。
+        文言は safe_id のみ載せ、URL/token は含めない（redact）。
+        """
+        if response.status_code == 429:
+            return (
+                f"media CDN rate limited after retries "
+                f"(file_id={safe_id}, status=429)"
+            )
+        if response.status_code >= 500:
+            return (
+                f"media CDN server error after retries "
+                f"(file_id={safe_id}, status={response.status_code})"
+            )
+        if response.status_code >= 400:
+            raise TelegramSecretaryError(
+                f"media CDN client error "
+                f"(file_id={safe_id}, status={response.status_code})"
+            )
+        return None
 
     def _save_to_target(
         self,
@@ -101,13 +114,13 @@ class TelegramMediaDownloader:
         content: bytes,
         target_dir: Path,
     ) -> Path:
-        """target_dir / "<file_id 先頭16>_<basename>" に bytes を保存。
+        """target_dir / "<file_id 先頭 FILE_ID_PREFIX_LEN 文字>_<basename>" に bytes を保存。
 
         file_id プレフィックスで衝突回避と追跡性を両立。
         """
         target_dir.mkdir(parents=True, exist_ok=True)
         basename = Path(file_path).name
-        prefix = file_id[:16]
+        prefix = file_id[:FILE_ID_PREFIX_LEN]
         save_path = target_dir / f"{prefix}_{basename}"
         save_path.write_bytes(content)
         return save_path

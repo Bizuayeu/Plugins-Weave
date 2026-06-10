@@ -123,6 +123,15 @@ def test_init_config_rejects_out_of_range(monkeypatch, tmp_path):
     assert not target.exists()
 
 
+def test_init_config_default_matches_template(monkeypatch, tmp_path):
+    """フラグ省略時の既定値は雛型既定 14400（=4h）と一致する（v1.2.1 統一の取りこぼし防止）。"""
+    target = tmp_path / "config.json"
+    monkeypatch.setattr("infrastructure.config._default_config_path", lambda: target)
+    assert main(["init-config"]) == EXIT_OK
+    data = json.loads(target.read_text(encoding="utf-8"))
+    assert data["session_duration_sec"] == 14400
+
+
 # --- lease ---
 
 
@@ -681,6 +690,43 @@ def test_send_reply_missing_file_exits_config_invalid(env_ready, monkeypatch, tm
     assert rc == EXIT_CONFIG_INVALID
 
 
+def test_send_reply_missing_text_file_exits_config_invalid(env_ready, capsys, tmp_path):
+    """--text-file 不在は traceback でなく stderr 1 行＋exit 2（入力不正）。
+
+    lease 検証・API 呼び出しの前に読むため、transport モックも lease も不要。
+    """
+    rc = main(
+        [
+            "send-reply",
+            "--chat-id",
+            "100",
+            "--update-id",
+            "1",
+            "--text-file",
+            str(tmp_path / "missing.txt"),
+        ]
+    )
+    assert rc == EXIT_CONFIG_INVALID
+    assert "text-file" in capsys.readouterr().err
+
+
+def test_proactive_send_missing_text_file_exits_config_invalid(
+    env_ready, capsys, tmp_path
+):
+    """proactive-send も同じ共有ヘルパで --text-file 不在を exit 2 に翻訳する。"""
+    rc = main(
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(tmp_path / "missing.txt"),
+        ]
+    )
+    assert rc == EXIT_CONFIG_INVALID
+    assert "text-file" in capsys.readouterr().err
+
+
 def test_send_reply_with_reply_to(env_ready, monkeypatch, tmp_path):
     text_file = tmp_path / "reply.txt"
     text_file.write_text("threaded", encoding="utf-8")
@@ -851,7 +897,8 @@ def test_poll_emits_caption_in_text_with_photo(env_ready, monkeypatch, capsys):
     rc = main(["poll", "--timeout", "1"])
     assert rc == EXIT_OK
     payload = json.loads(capsys.readouterr().out.strip())
-    assert payload["text"] == "見える？"
+    # caption も text と同じ NFKC 正規化を通る（全角「？」→ 半角「?」）
+    assert payload["text"] == "見える?"
     assert len(payload["media"]) == 1
     assert payload["media"][0]["kind"] == "photo"
 
@@ -1253,6 +1300,17 @@ def test_render_pdf_missing_file_returns_config_invalid(env_ready, tmp_path):
         main(["render-pdf", "--path", str(tmp_path / "nope.pdf"), "--text"])
         == EXIT_CONFIG_INVALID
     )
+
+
+def test_render_pdf_invalid_pages_format_exits_config_invalid(
+    env_ready, capsys, tmp_path
+):
+    """--pages 不正書式（abc）は traceback でなく stderr 1 行＋exit 2（入力不正）。"""
+    pdf = tmp_path / "doc.pdf"
+    pdf.write_bytes(b"%PDF-1.4")  # 存在チェック通過用ダミー（parse で弾かれ rasterize 不到達）
+    rc = main(["render-pdf", "--path", str(pdf), "--pages", "abc"])
+    assert rc == EXIT_CONFIG_INVALID
+    assert "pages" in capsys.readouterr().err
 
 
 def test_render_pdf_requires_text_or_pages(tmp_path):

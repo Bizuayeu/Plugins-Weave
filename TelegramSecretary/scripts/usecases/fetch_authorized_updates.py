@@ -52,7 +52,8 @@ class FetchAuthorizedUpdates:
             if not self._allowlist.is_authorized(u.chat_id):
                 continue
             text = normalize_input(u.text)
-            merged = merge_caption_into_text(text, u.caption)
+            caption = normalize_input(u.caption) if u.caption else u.caption
+            merged = merge_caption_into_text(text, caption)
             flags = flag_injection(merged)
             normalized_list.append(
                 NormalizedUpdate(update=u, normalized_text=merged, injection_flags=flags)

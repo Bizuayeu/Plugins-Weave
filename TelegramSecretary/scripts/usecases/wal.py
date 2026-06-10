@@ -104,8 +104,8 @@ class RedoPendingIntents:
 
     **registry kind**（individuals/tasks/knowledge/abilities）: load → reconcile（やり残し抽出）→
     registry へ upsert → settle（registry にある pending を done 化）→ checkpoint → rewrite。
-    送信前クラッシュ分は offset 再取得が再処理を担うため **返信は再送しない**（WAL redo は送信後の
-    registry 漏れ専任）。
+    **返信は再送しない**（WAL redo は送信後の registry 漏れ専任。送信前クラッシュ分の再処理は
+    Telegram サーバ側の unconfirmed 再配送＝新コンテナの fresh state_dir での再取得が担う）。
 
     **outbound kind**（proactive-send、DESIGN §3.9）: inbound に紐づかず offset の安全網が無いため
     WAL 再送が唯一の冪等性保証になる。pending を **1回だけ再送**（元時刻＋謝罪プレフィックス）して即
@@ -152,9 +152,17 @@ class RedoPendingIntents:
             else:
                 settled_outbound.append(e)
 
-        kept = checkpoint(
-            settled_registry + settled_outbound, self._now_fn(), self._retention_h
-        )
+        # kind 別の settle 結果を元 entries の並びへ書き戻す（WAL の時系列＝interleave 順を
+        # 保持。連結だと registry が前・outbound が後ろへ寄り、短期記憶の読み出し順が崩れる）。
+        # 分離リストは各 kind 内の元順序を保つため、kind 判定で交互に消費すれば復元できる。
+        registry_iter = iter(settled_registry)
+        outbound_iter = iter(settled_outbound)
+        settled = [
+            next(outbound_iter) if e.kind == "outbound" else next(registry_iter)
+            for e in entries
+        ]
+
+        kept = checkpoint(settled, self._now_fn(), self._retention_h)
         self._log.rewrite(kept)
         return {"redone": len(todo), "resent": resent, "kept": len(kept)}
 

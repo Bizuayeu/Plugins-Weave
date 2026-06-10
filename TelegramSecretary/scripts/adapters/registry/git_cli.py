@@ -7,6 +7,7 @@ git メッセージは LC_ALL=C で英語固定し non-fast-forward を確実に
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import List, Sequence
@@ -16,6 +17,21 @@ from domain.exceptions import GitSyncError, PushRejectedError, RegistryWorktreeE
 # git push 拒否（non-fast-forward）の英語マーカー（LC_ALL=C 固定で安定検出）。
 # "rejected" は部分文字列マッチで "[rejected]" を包含するため後者は列挙しない。
 _NON_FF_MARKERS = ("non-fast-forward", "fetch first", "rejected")
+
+# git subprocess の上限秒。credential プロンプト・ネットワーク膠着での永久ブロックを遮断する
+# （WAL push は送信ゲートなので、ここが固まると秘書のターン全体が無期限停止する）。
+# GIT_TERMINAL_PROMPT=0 がプロンプト自体を抑止する第一弁、timeout は第二弁。
+_GIT_TIMEOUT_SECONDS = 90
+
+
+def _scrub_credentials(text: str) -> str:
+    """URL 埋め込み認証（`https://user:pat@host` 等）を `://***@` に伏せる。
+
+    本 Adapter は URL 埋め込み認証をサポートしつつ git の stderr を例外メッセージへ
+    埋め込むため、生のままだと PAT がログ・emit へ漏れる（telegram 側 redact 規律との
+    非対称解消）。例外メッセージに乗せる文字列はすべてこれを通す。
+    """
+    return re.sub(r"://[^/@\s]+@", "://***@", text)
 
 
 class GitCliAdapter:
@@ -39,8 +55,20 @@ class GitCliAdapter:
                 cwd=str(self._repo),
                 capture_output=True,
                 text=True,
-                env={**os.environ, "LC_ALL": "C", "LANG": "C"},
+                timeout=_GIT_TIMEOUT_SECONDS,
+                env={
+                    **os.environ,
+                    "LC_ALL": "C",
+                    "LANG": "C",
+                    "GIT_TERMINAL_PROMPT": "0",  # 認証プロンプト待ちの永久ブロックを禁止
+                },
             )
+        except subprocess.TimeoutExpired:
+            # ネットワーク膠着等のハングを transient な GitSyncError に翻訳する
+            # （best-effort 経路は握って継続、must-succeed 経路は上位が露見させる）。
+            raise GitSyncError(
+                f"git {' '.join(args)} timed out after {_GIT_TIMEOUT_SECONDS}s"
+            ) from None
         except OSError as exc:
             # registry_root が未作成の初回起動（cwd 不在）や git バイナリ不在で
             # subprocess を起動できないケースを domain の GitSyncError に翻訳する。
@@ -48,9 +76,10 @@ class GitCliAdapter:
             # 空のローカル管理表で継続できる（SETUP.md「初回は対象ブランチが空でも継続」）。
             raise GitSyncError(f"git {' '.join(args)} could not run: {exc}") from None
         if check and result.returncode != 0:
-            raise GitSyncError(
+            # args にも remote URL（認証埋め込みの可能性）が乗り得るため、メッセージ全体を通す。
+            raise GitSyncError(_scrub_credentials(
                 f"git {' '.join(args)} failed (rc={result.returncode}): {result.stderr.strip()}"
-            )
+            ))
         return result
 
     def commit(self, paths: List[Path], message: str) -> bool:
@@ -68,12 +97,25 @@ class GitCliAdapter:
         if result.returncode != 0:
             blob = (result.stderr + "\n" + result.stdout).lower()
             if any(m in blob for m in _NON_FF_MARKERS):
-                raise PushRejectedError(result.stderr.strip())
-            raise GitSyncError(f"git push failed: {result.stderr.strip()}")
+                raise PushRejectedError(_scrub_credentials(result.stderr.strip()))
+            raise GitSyncError(_scrub_credentials(f"git push failed: {result.stderr.strip()}"))
 
     def pull_rebase(self) -> None:
-        """remote の固定 branch を pull --rebase で取り込む（外部更新の統合）。"""
-        self._run(["pull", "--rebase", self._remote, self._branch])
+        """remote の固定 branch を pull --rebase で取り込む（外部更新の統合）。
+
+        conflict 等で失敗したら rebase --abort を best-effort で実行してから raise する。
+        rebase-in-progress を放置すると以降の commit/push が全滅し自己復旧不能になるため、
+        「失敗してもクリーンな作業ツリー」を本 Adapter の不変条件とする。
+        """
+        try:
+            self._run(["pull", "--rebase", self._remote, self._branch])
+        except GitSyncError:
+            try:
+                # check=False: rebase 中でない等で abort が非 0 でも元エラーを優先する。
+                self._run(["rebase", "--abort"], check=False)
+            except GitSyncError:
+                pass  # abort 自体の起動失敗（timeout/OSError 翻訳）も best-effort で握る
+            raise
 
     def _assert_independent_worktree(self) -> None:
         """cwd が registry_dir を root とする独立 git 作業ツリーか検証する（層2 防御ガード）。

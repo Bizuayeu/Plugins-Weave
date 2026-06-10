@@ -1,37 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "telegramsecretary"
-version = "1.2.2"
+version = "1.2.3"
 description = "Telegram Bot API の long-polling を cloud routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネル"
+license = {text = "MIT"}
 requires-python = ">=3.10"
+# base 依存は httpx のみ（Medium 運用＝media を扱わない構成の最小起動セット）。
+# heavy 依存は media / voice extras に分離し、bootstrap.sh が tier に応じて
+# `pip install -e .[media,voice]` 等で導入する（ピンの正典は本ファイル、bootstrap は再記述しない）。
 dependencies = [
     "httpx>=0.27",
-    # ドキュメント Markdown 化: docx/pptx/xlsx を markdown 化してエージェントに渡す。
-    # markitdown が内部で mammoth (docx 読込) / python-pptx / openpyxl /
-    # magika (ML model) / onnxruntime 等の再帰依存を連れてくる点に留意。
-    # ※ docx 読込は mammoth であり python-docx は引かれない（python-docx は書込用）。
-    #   テストは fixture 生成に python-docx を使うため dev extras 側で別途宣言する。
-    "markitdown[docx,pptx,xlsx]>=0.1.6",
-    # 音声 STT: voice/audio/video の音声トラックを transcript 化。
-    # moonshine-voice = Moonshine 日本語 STT（torch-free・onnxruntime、日本語 base-ja モデルは
-    #   ランタイムDL ~134MB）。Community License は年商$1M未満は商用も無料だが、年商 $1M 以上の本番は
-    #   Enterprise License が必要 → 本番商用化前に Enterprise 契約 or kotoba-whisper(Apache-2.0) へ
-    #   MediaRenderer Port 差し替え。
-    # av (PyAV) = ffmpeg を wheel 内包し OGG/OPUS/mp4 を 16kHz mono float へ decode（システム ffmpeg 不要）。
-    "moonshine-voice>=0.0.59",
-    "av>=17.0",
-    # PDF テキスト抽出: テキスト層を rendered_text に載せ、passthrough(Read tool 依存)から
-    # render(Read tool 非依存)へ移行。pdfplumber は MIT（配布安全）。pymupdf(AGPL) は同等品質だが
-    # 配布制約のため不採用。pure-python。
-    "pdfplumber>=0.11",
-    # PDF 画像化: スキャン・図面 PDF を pypdfium2 で全ページ画像化し to_pil() で png 保存（Vision 経路）。
-    # pdf_renderer が pypdfium2 を直接 import するため直接依存として明示（pdfplumber>=0.11 が両者を
-    # transitive に引くが、コードが直接使う依存は明示する原則＋再現性のため直接化）。
-    # Pillow は pypdfium2.bitmap.to_pil() が要する（pypdfium2 は Pillow を任意依存にするため明示）。
-    "pypdfium2>=4.18.0",
-    "Pillow>=9.1",
 ]
 
 [project.optional-dependencies]
+# media extras: ドキュメント・PDF render（TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD!=false で導入）。
+# - markitdown: docx/pptx/xlsx を markdown 化してエージェントに渡す。内部で mammoth (docx 読込) /
+#   python-pptx / openpyxl / magika (ML model) / onnxruntime 等の再帰依存を連れてくる点に留意。
+#   ※ docx 読込は mammoth であり python-docx は引かれない（python-docx は書込用）。
+#     テストは fixture 生成に python-docx を使うため dev extras 側で別途宣言する。
+# - pdfplumber: PDF テキスト層抽出。MIT（配布安全）。pymupdf(AGPL) は同等品質だが配布制約のため不採用。
+# - pypdfium2: スキャン・図面 PDF を全ページ画像化し to_pil() で png 保存（Vision 経路）。
+#   pdf_renderer が直接 import するため直接依存として明示（pdfplumber が transitive に引くが、
+#   コードが直接使う依存は明示する原則＋再現性のため直接化）。
+# - Pillow: pypdfium2.bitmap.to_pil() が要する（pypdfium2 は Pillow を任意依存にするため明示）。
+media = [
+    "markitdown[docx,pptx,xlsx]>=0.1.6",
+    "pdfplumber>=0.11",
+    "pypdfium2>=4.18.0",
+    "Pillow>=9.1",
+]
+# voice extras: 音声 STT（TELEGRAM_SECRETARY_BUNDLE_VOICE!=false で media と併せて導入）。
+# - moonshine-voice: Moonshine 日本語 STT（torch-free・onnxruntime、日本語 base-ja モデルは
+#   ランタイムDL ~134MB）。Community License は年商$1M未満は商用も無料だが、年商 $1M 以上の本番は
+#   Enterprise License が必要 → 本番商用化前に Enterprise 契約 or kotoba-whisper(Apache-2.0) へ
+#   MediaRenderer Port 差し替え。
+# - av (PyAV): ffmpeg を wheel 内包し OGG/OPUS/mp4 を 16kHz mono float へ decode（システム ffmpeg 不要）。
+voice = [
+    "moonshine-voice>=0.0.59",
+    "av>=17.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=6.0",
@@ -48,6 +58,12 @@ dev = [
     "reportlab>=4.0",
 ]
 
+[tool.setuptools]
+# コードは pythonpath=["scripts"] で解決し、配布パッケージ化はしない（editable install は依存導入専用）。
+# 明示しないと setuptools が flat-layout auto-discovery で skills/commands/templates を
+# 複数トップレベルパッケージと誤検出し、`pip install -e .` がビルド失敗する。
+packages = []
+
 [tool.pytest.ini_options]
 testpaths = ["scripts/tests"]
 pythonpath = ["scripts"]
@@ -55,7 +71,7 @@ asyncio_mode = "auto"
 
 [tool.coverage.run]
 source = ["scripts"]
-omit = ["scripts/tests/*", "scripts/main.py"]
+omit = ["scripts/tests/*"]
 branch = true
 
 [tool.coverage.report]
