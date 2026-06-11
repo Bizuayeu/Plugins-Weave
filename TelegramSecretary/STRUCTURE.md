@@ -77,12 +77,15 @@ TelegramSecretary/
 │   │   ├── acquire_lease.py / renew_lease.py / release_lease.py
 │   │   ├── fetch_authorized_updates.py / send_reply.py
 │   │   ├── proactive_send.py    # 能動送信（send-reply から OffsetStore 依存を除いた姉妹 UseCase・offset 非干渉）
+│   │   ├── outbound.py       # send-reply / proactive-send 共有の送信前ガード（lease 再検証・添付検証）
 │   │   ├── download_authorized_media.py / render_authorized_media.py
 │   │   ├── manage_registry.py # 管理表 CRUD UseCase
+│   │   ├── registry_sync.py  # 管理表の git 永続化（イベント駆動 commit&push、GitSyncPort 越し、DESIGN §3.6）
 │   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents / SettleOutboundIntent）
 │   ├── adapters/
+│   │   ├── atomic_io.py      # JSON store 共有の atomic 書込（tmp→os.replace）＋破損フォールバック load
 │   │   ├── media_failure.py  # render/transcribe 共通の失敗ログ + redact ヘルパ
-│   │   ├── telegram/         # api_gateway / media_downloader
+│   │   ├── telegram/         # api_gateway / media_downloader / http_retry（共通 retry・429 Retry-After 尊重）
 │   │   ├── state/            # json_state_store / emitter
 │   │   ├── render/ transcribe/ audio/   # markitdown / pdf / moonshine / ffmpeg
 │   │   ├── registry/         # json_registry_store / git_cli（固定ブランチへの commit&push）
