@@ -57,7 +57,7 @@ marketplace からインストール、または基本設定リポの `TelegramS
 
 > config.json は**基本設定リポの `TelegramSecretary/config.json` に置き、cloud routine が fresh clone で読めるようコミット**します（秘匿を含まない運用設定ゆえコミット可）。配布リポでは `.gitignore` 対象なので、運用リポ側で明示追跡してください。
 
-**管理表（関係者・依頼・対応知・能力カタログ）をリポジトリに永続化する場合**（任意・推奨）— cloud routine は毎回 fresh clone で起動し実行環境は揮発するため、秘書が蓄積した管理表を次回起動へ残すには、**リポジトリの固定ブランチ**に git 永続化します。`init-config` では生成されないので、config.json に以下を追記します（雛型は `templates/config.template.json`）:
+**管理表（関係者・依頼・対応知・能力カタログ・人物理解・目標・逆算ステップ）をリポジトリに永続化する場合**（任意・推奨）— cloud routine は毎回 fresh clone で起動し実行環境は揮発するため、秘書が蓄積した管理表を次回起動へ残すには、**リポジトリの固定ブランチ**に git 永続化します。`init-config` では生成されないので、config.json に以下を追記します（雛型は `templates/config.template.json`）:
 
 ```json
 {
@@ -68,7 +68,7 @@ marketplace からインストール、または基本設定リポの `TelegramS
 ```
 
 - `registry_sync`: `true` で管理表を固定ブランチへ git 永続化（更新のたび commit&push＋起動時 fetch）。ローカル動作確認では `false`（git に触れない）
-- `registry_dir`: 永続管理表（individuals/tasks/knowledge/abilities）の置き場。**揮発 state（offset/lease/media）の `state_dir` とは別**にし、**非公開リポの独立した第二 git 作業ツリー（worktree）**を指す（bootstrap が `git worktree add` で冪等 provisioning、推奨値 `ts-registry-wt`）。**dev ツリー内サブディレクトリにすると起動時 fetch の `checkout -B` が親リポを破壊する**ため不可（→ DESIGN §3.6）。未設定なら `state_dir` にフォールバック
+- `registry_dir`: 永続管理表（individuals/tasks/knowledge/abilities/profile/goals/steps）の置き場。**揮発 state（offset/lease/media）の `state_dir` とは別**にし、**非公開リポの独立した第二 git 作業ツリー（worktree）**を指す（bootstrap が `git worktree add` で冪等 provisioning、推奨値 `ts-registry-wt`）。**dev ツリー内サブディレクトリにすると起動時 fetch の `checkout -B` が親リポを破壊する**ため不可（→ DESIGN §3.6）。未設定なら `state_dir` にフォールバック
 - `registry_branch`: push 先の固定ブランチ（既定 `claude/ts-registry`）。`registry_remote`（既定 `origin`）と組で運用。揮発 state と分けることで「消えてよいもの」と「蓄積が本質のもの」を物理分離します
 
 ### ⑥ cloud routine に登録

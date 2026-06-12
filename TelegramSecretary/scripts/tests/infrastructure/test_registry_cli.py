@@ -244,3 +244,98 @@ def test_ability_rejects_empty_name_returns_2(tmp_path):
     config = _config(tmp_path)
     bad = dict(_ABILITY, name="")
     assert run_registry_command(config, "abilities", "add", _ns(json=json.dumps(bad))) == 2
+
+
+# === P/A 軸 3 表（PROFILE / GOALS / STEPS、registry 同格・WAL 対象）===
+
+
+_PROFILE = {
+    "id": "pf1", "subject": "principal", "method": "mbti",
+    "content": "INTJ", "created_at": "t", "updated_at": "t",
+}
+_GOAL = {
+    "id": "g1", "title": "半年で貯蓄30万円", "category": "money",
+    "status": "active", "created_at": "t", "updated_at": "t",
+}
+_STEP = {
+    "id": "s1", "goal_id": "g1", "title": "固定費一覧を作る",
+    "created_at": "t", "updated_at": "t",
+}
+
+
+def test_add_then_get_profile(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_registry_command(config, "profile", "add", _ns(json=json.dumps(_PROFILE))) == 0
+    assert run_registry_command(config, "profile", "get", _ns(key="pf1")) == 0
+    assert "principal" in capsys.readouterr().out
+
+
+def test_profile_persists_to_profile_path(tmp_path):
+    config = _config(tmp_path)
+    run_registry_command(config, "profile", "add", _ns(json=json.dumps(_PROFILE)))
+    assert config.profile_path.exists()
+
+
+def test_profile_rejects_invalid_method_returns_2(tmp_path):
+    config = _config(tmp_path)
+    bad = dict(_PROFILE, method="palm_reading")
+    assert run_registry_command(config, "profile", "add", _ns(json=json.dumps(bad))) == 2
+
+
+def test_add_then_get_goal(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_registry_command(config, "goals", "add", _ns(json=json.dumps(_GOAL))) == 0
+    assert run_registry_command(config, "goals", "get", _ns(key="g1")) == 0
+    assert "money" in capsys.readouterr().out
+
+
+def test_goal_rejects_invalid_category_returns_2(tmp_path):
+    config = _config(tmp_path)
+    bad = dict(_GOAL, category="gambling")
+    assert run_registry_command(config, "goals", "add", _ns(json=json.dumps(bad))) == 2
+
+
+def test_add_then_get_step(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_registry_command(config, "steps", "add", _ns(json=json.dumps(_STEP))) == 0
+    assert run_registry_command(config, "steps", "get", _ns(key="s1")) == 0
+    assert "g1" in capsys.readouterr().out
+
+
+def test_step_rejects_empty_goal_id_returns_2(tmp_path):
+    config = _config(tmp_path)
+    bad = dict(_STEP, goal_id="")
+    assert run_registry_command(config, "steps", "add", _ns(json=json.dumps(bad))) == 2
+
+
+# === role-status（P×A 役割のデータ駆動判定）===
+
+from infrastructure.registry_cli import run_role_status
+
+
+def test_role_status_secretary_when_tables_empty(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_role_status(config) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out == {"role": "secretary", "personalize": False, "accompany": False}
+
+
+def test_role_status_anego_when_profile_and_active_goal(tmp_path, capsys):
+    config = _config(tmp_path)
+    run_registry_command(config, "profile", "add", _ns(json=json.dumps(_PROFILE)))
+    run_registry_command(config, "goals", "add", _ns(json=json.dumps(_GOAL)))
+    capsys.readouterr()  # add の出力を捨てる
+    assert run_role_status(config) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out == {"role": "anego", "personalize": True, "accompany": True}
+
+
+def test_role_status_coach_ignores_profile_of_others(tmp_path, capsys):
+    """関係者のプロファイルだけでは P は立たない（subject=principal のみが軸を立てる）。"""
+    config = _config(tmp_path)
+    other = dict(_PROFILE, id="pf2", subject="u1")
+    run_registry_command(config, "profile", "add", _ns(json=json.dumps(other)))
+    run_registry_command(config, "goals", "add", _ns(json=json.dumps(_GOAL)))
+    capsys.readouterr()
+    assert run_role_status(config) == 0
+    assert json.loads(capsys.readouterr().out)["role"] == "coach"

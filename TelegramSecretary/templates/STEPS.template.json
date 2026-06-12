@@ -1,0 +1,19 @@
+{
+  "_template": "STEPS — 目標逆算ステップ管理表の雛型。実体は Private の <registry_dir>/steps/STEPS.json に置く（本ファイルはコピーされない雛型）。GOALS の子テーブル（goal_id 必須）で、プロマネ巻き取り（進捗確認・期限ナッジ）の追跡単位。TASKS（他者起点の依頼）とはドメインが異なるため別表",
+  "_record_schema": {
+    "id": "string — 一意ID（例: s-money-1-3）",
+    "goal_id": "string — 親 GOAL の id（必須・非空）",
+    "title": "string — アクションの言語化（例: 固定費一覧を作る）",
+    "seq": "int — 逆算順序（target_date から後ろ向きに分解した実行順）",
+    "status": "todo | in_progress | done | skipped",
+    "due_date": "ISO date | null — このステップの期日",
+    "notes": "string — 進捗メモ・障害の記録",
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601"
+  },
+  "_read_policy": "起動時オリエンテーションと自由時間（grant 下）に期限近接・滞留中のステップを確認し、伴走ナッジ（proactive-send）の材料にする。役割判定（role-status）には参加しない（GOALS が判定主体）",
+  "_write_policy": "ステップは目標起票時に target_date から逆算で分解し、進捗対話のたびに status を更新する。完了報告を受けたら done、不要になったら skipped（黙って消さない）。更新は WAL 対象（言行一致）",
+  "_archive_policy": "親 GOAL の Archive に連動して steps/archive/STEPS_<YYYY-MM>.json へ移す（孤児ステップを残さない）",
+  "version": 1,
+  "steps": []
+}

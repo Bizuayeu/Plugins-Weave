@@ -39,6 +39,14 @@ def test_config_defaults_when_media_env_missing():
     assert cfg.media_enable_download is True
 
 
+def test_config_new_table_paths():
+    """P/A 軸の3表（PROFILE/GOALS/STEPS）も registry_root 配下の既存4表と同型のパス規約。"""
+    cfg = Config.from_sources()
+    assert cfg.profile_path == cfg.registry_root / "profile" / "PROFILE.json"
+    assert cfg.goals_path == cfg.registry_root / "goals" / "GOALS.json"
+    assert cfg.steps_path == cfg.registry_root / "steps" / "STEPS.json"
+
+
 def test_config_parses_max_size_bytes(monkeypatch):
     monkeypatch.setenv("TELEGRAM_SECRETARY_MEDIA_MAX_SIZE_BYTES", "5242880")
     cfg = Config.from_sources()

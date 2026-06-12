@@ -1,0 +1,18 @@
+{
+  "_template": "PROFILE — 人物理解（パーソナライズ＝P軸）管理表の雛型。実体は Private の <registry_dir>/profile/PROFILE.json に置く（本ファイルはコピーされない雛型）。subject='principal' のレコードが1件以上あると役割判定の P 軸が立つ（role-status: 秘書→執事、コーチ→アネゴ）",
+  "_record_schema": {
+    "id": "string — 一意ID（例: pf-mbti-1）",
+    "subject": "string — 'principal'（運用主体本人）または INDIVIDUALS の uuid",
+    "method": "precognitive_viewer | json_fortune | mbti | interview | observation | other — 理解の取得経路",
+    "content": "string — 解釈の散文（占術結果の要点・性格特性・価値観など。生データではなく秘書が応答調整に使える形で）",
+    "traits": "string[] — 応答調整に引く特性タグ（例: 計画的/直感型/朝型）",
+    "sources": "string[] — 出典（鑑定書ファイル名・対話日付・占いサイト名等）",
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601"
+  },
+  "_read_policy": "秘書は principal への応答・提案・伴走の前にこの表を引き、励まし方・段取りの提案・選択肢の絞り方を相手の特性に合わせる（パーソナライズ）。当たっていなかった解釈は対話で訂正されたら update する（記憶の手入れ）",
+  "_write_policy": "占い結果は本人の同意を得て記録する（押し付けない）。method を必ず記し、解釈（content）と出典（sources）を分ける。principal 本人のレコード追加は WAL 対象（言行一致）",
+  "_growth_policy": "Archive せず蓄積優先。人物理解は捨てる対象ではなく、対話で精緻化される",
+  "version": 1,
+  "profile": []
+}

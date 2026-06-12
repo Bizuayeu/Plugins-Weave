@@ -16,7 +16,7 @@
 | `<PRIVATE_DIR>` | 非公開データ・人格定義の配置先（cloud routine では cwd 親起点の相対） | `my-private-repo/TelegramSecretary` |
 | `<INSTALL_DIR>` | インストール先パス | TelegramSecretary 配置先 |
 | `<state_dir>` | 揮発 state（offset/lease/media）の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
-| `<registry_dir>` | 永続管理表＋成果物の保存先（`claude/ts-registry` の独立 git worktree、root 直下に4管理表＋`wal/`＋`artifacts/`。→ DESIGN §3.6/§3.10） | config.json `registry_dir`（推奨 `ts-registry-wt`、未設定なら `<state_dir>`） |
+| `<registry_dir>` | 永続管理表＋成果物の保存先（`claude/ts-registry` の独立 git worktree、root 直下に7管理表＋`wal/`＋`artifacts/`。→ DESIGN §3.6/§3.10/§3.11） | config.json `registry_dir`（推奨 `ts-registry-wt`、未設定なら `<state_dir>`） |
 
 `SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/SecretaryRole.template.md`](./templates/SecretaryRole.template.md)。
 
@@ -62,6 +62,9 @@ TelegramSecretary/
 │   ├── TASKS.template.json
 │   ├── KNOWLEDGE.template.json
 │   ├── ABILITIES.template.json
+│   ├── PROFILE.template.json          # 人物理解（P軸）の雛型
+│   ├── GOALS.template.json            # 目標（A軸）の雛型
+│   ├── STEPS.template.json            # 逆算ステップの雛型
 │   └── SecretaryRole.template.md
 │
 ├── scripts/                  # Clean Architecture 4層
@@ -70,7 +73,7 @@ TelegramSecretary/
 │   │   ├── models.py / media.py / outbound.py / exceptions.py
 │   │   ├── authorization.py / lease.py / normalize.py / offset.py / watch_window.py
 │   │   ├── session_config.py # session_duration_sec の値域検証（範囲ガード・MAX_SECONDS）
-│   │   ├── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge / Ability）
+│   │   ├── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge / Ability / Profile / Goal / Step）＋ derive_role（P×A 役割導出、§3.11）
 │   │   └── wal.py            # WAL 純粋ロジック（reconcile/settle/checkpoint・outbound の二分、DESIGN §3.9）
 │   ├── usecases/             # オーケストレーション + Port
 │   │   ├── ports.py          # Port 定義（Store 群含む）
@@ -127,6 +130,14 @@ TelegramSecretary/
     │   └── archive/                   # （原則空。明示的廃棄時のみ）
     ├── abilities/
     │   └── ABILITIES.json             # 能力カタログ（trigger/skill_path/guidance、WAL 対象）
+    ├── profile/
+    │   └── PROFILE.json               # 人物理解（P軸。subject=principal で役割判定、蓄積優先）
+    ├── goals/
+    │   ├── GOALS.json                 # 目標（A軸。status=active で役割判定）
+    │   └── archive/GOALS_<YYYY-MM>.json
+    ├── steps/
+    │   ├── STEPS.json                 # 逆算ステップ（goal_id 必須、伴走ナッジの参照単位）
+    │   └── archive/STEPS_<YYYY-MM>.json   # 親 GOAL の Archive に連動
     ├── wal/
     │   └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
     └── artifacts/                     # 秘書の成果物層（非定型・スキーマレス、§3.10）。蓄積が本質ゆえ永続
@@ -144,6 +155,8 @@ TelegramSecretary/
 | 依頼データ TASKS.json | `<registry_dir>/tasks/` | Private（永続） |
 | 対応知 KNOWLEDGE.json（→category 分割） | `<registry_dir>/knowledge/` | Private（永続） |
 | 能力カタログ ABILITIES.json | `<registry_dir>/abilities/` | Private（永続） |
+| 人物理解 PROFILE.json（P軸） | `<registry_dir>/profile/` | Private（永続・機微 PII） |
+| 目標 GOALS.json / ステップ STEPS.json（A軸） | `<registry_dir>/goals/` `<registry_dir>/steps/` | Private（永続） |
 | 成果物（非定型 md/json） | `<registry_dir>/artifacts/`（ツリー同期・§3.10） | Private（永続・**重要度の世界**） |
 | 秘書人格 SecretaryRole.md | `<Private>/Identities/` | Private |
 | 各管理表・秘書人格の雛型 | `templates/` | public |

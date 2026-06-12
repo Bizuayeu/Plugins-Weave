@@ -2,6 +2,27 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.3.0] - 2026-06-12 — アネゴ機能（P×A 役割進化・3表追加）
+
+### Added
+
+- **役割のデータ駆動進化（P×A 直交2軸、通称アネゴ機能）** — 預けたデータで秘書の顔が進化する: **秘書**（baseline）→ principal のプロファイルを預けると**執事**（P✓: 嗜好を踏まえた先回り）→ active な目標を預けると**コーチ**（A✓: 目標逆算とプロマネ巻き取り）→ 両方で**アネゴ**（P×A: 人物理解 × 伴走の両輪）。全目標達成で A 軸が降りて自然に卒業（アネゴ→執事）。判定は `derive_role` 純関数＋`role-status` subcommand（決定論）が担い、役割の演じ方のみ SecretaryRole ガイダンスに置く——LLM の役割自称ハルシネーションを構造的に排除（DESIGN §3.11）
+- **管理表3表追加（4→7表）** — `PROFILE`（人物理解＝P軸。method ∈ precognitive_viewer/json_fortune/mbti/interview/observation/other、蓄積優先）／`GOALS`（目標＝A軸。category ∈ money/work/relationship/health/other の四大相談コース、closed_at 起点の日付 Archive）／`STEPS`（目標逆算ステップ。goal_id 必須・seq 順、親 GOAL 連動 Archive）。既存4表と同型の CRUD subcommand・値オブジェクト検証・git 永続化・**WAL 言行一致**が `REGISTRY_SPEC` 追加だけで自動適用（abilities 前例 §3.8 の踏襲、UseCase/Adapter 無変更）。雛型 `templates/{PROFILE,GOALS,STEPS}.template.json` を追加
+- **パーソナライズ聴取3経路**（SecretaryRole「パーソナライズの聴取」） — ①ABILITIES に登録済みの占術スキル（例: PrecognitiveViewer）で鑑定 ②JSON 出力型占いサイトの紹介（例: senjutsu.jp——ブラウザ内計算・データ外部送信なし。**ユーザー自身が**取得した JSON を秘書が LLM 解釈、パーサー固定せず外部形式変更に頑健）③MBTI 等の直接聴取。いずれも本人同意のもと PROFILE へ method 付きで記録
+- **伴走方針（A軸）**（SecretaryRole「伴走の方針」） — 1コースから開始（伴走密度を薄めない）、対話で目標言語化→success_criteria→target_date から STEPS へ逆算分解、起動時オリエンテーションと自由時間（grant 下）の伴走ナッジ（proactive-send 既存経路を再利用、新規送信機構なし）。健康=医療助言でなく生活習慣の伴走／お金=投資助言でなく家計行動の伴走の境界を明文化
+- **`role-status` subcommand** — PROFILE/GOALS から現在の役割を JSON 1行で emit。ROUTINE_PROMPT Step 5 の起動時オリエンテーションが7表一括ロードと併せて1回叩く
+
+### Changed
+
+- **ROUTINE_PROMPT Step 5 を7表オリエンテーションへ拡張** — 一括ロードに profile/goals/steps と `role-status` を追加、自由時間の能動発信候補に「STEPS 期限近接の伴走ナッジ」を追加（**稼働中 routine は prompt body の再登録が必要**）
+- **wal-append の `--kind` choices を `REGISTRY_SPEC` 導出へ統一** — 表追加のたびに argparse 列挙を手で増やす二重管理を解消（main.py の registry subparser 生成も同様に SSoT 導出化）
+- **SECURITY §7 に PROFILE の機微 PII 項目と占術経路の PII 分界を追記** — PROFILE は本人同意前提・Private 分離、占術3経路はいずれも秘書から外部への PII 送信が構造的に発生しない
+
+### Notes
+
+- 占術スキルの接続は既存 ABILITIES 経由のまま（`skill_path` に Expertises 実体を登録、§3.8 の実在確認ガードで充足。配布版 ShioriSecretary には同スキルをリポ同梱）
+- テスト 562 → 600。既存挙動の破壊的変更なし（minor bump）
+
 ## [1.2.3] - 2026-06-10 — 公開後フルレビューに基づく堅牢性修正と内部リファクタ
 
 ### Fixed

@@ -117,6 +117,33 @@ def test_redo_reconciles_abilities_pending_into_registry(tmp_path):
     assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
 
 
+# --- P/A 軸 3 表も WAL 対象（REGISTRY_SPEC 導出で自動拡張、二重管理なし）---
+
+def test_wal_append_accepts_new_kinds(tmp_path):
+    """profile/goals/steps の add も WAL 先行書込の対象（_WAL_KINDS は REGISTRY_SPEC 導出）。"""
+    config = _config(tmp_path, sync=True)
+    for kind in ("profile", "goals", "steps"):
+        args = SimpleNamespace(json=f'{{"id": "{kind}-1"}}', json_file=None)
+        assert run_wal_append(config, kind, args) == EXIT_OK
+    entries = JsonlWalLogStore(config.wal_log_path).load()
+    assert [e.kind for e in entries] == ["profile", "goals", "steps"]
+    assert all(e.status == "pending" for e in entries)
+
+
+def test_wal_redo_upserts_new_kinds(tmp_path):
+    """起動時 redo が新3表の pending intent も registry へ反映し done 化する。"""
+    config = _config(tmp_path, sync=True)
+    log = JsonlWalLogStore(config.wal_log_path)
+    log.append(WalEntry(key="pf1", kind="profile", status="pending",
+                        payload={"id": "pf1"}, created_at="2026-06-12T00:00:00+00:00"))
+    log.append(WalEntry(key="g1", kind="goals", status="pending",
+                        payload={"id": "g1"}, created_at="2026-06-12T00:00:01+00:00"))
+    assert run_wal_redo(config, git=FakeGitSync()) == EXIT_OK
+    assert any(r["id"] == "pf1" for r in JsonRegistryStore(config.profile_path).load())
+    assert any(r["id"] == "g1" for r in JsonRegistryStore(config.goals_path).load())
+    assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
+
+
 # --- outbound kind（proactive-send 送信ロスト対策、Stage 3）---
 
 

@@ -102,7 +102,7 @@ def _rebuild_outbound(entry: WalEntry) -> OutboundMessage:
 class RedoPendingIntents:
     """起動時の redo: registry の pending を upsert し、outbound の pending を1回だけ再送する。
 
-    **registry kind**（individuals/tasks/knowledge/abilities）: load → reconcile（やり残し抽出）→
+    **registry kind**（REGISTRY_SPEC の各表）: load → reconcile（やり残し抽出）→
     registry へ upsert → settle（registry にある pending を done 化）→ checkpoint → rewrite。
     **返信は再送しない**（WAL redo は送信後の registry 漏れ専任。送信前クラッシュ分の再処理は
     Telegram サーバ側の unconfirmed 再配送＝新コンテナの fresh state_dir での再取得が担う）。

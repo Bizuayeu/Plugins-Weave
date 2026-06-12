@@ -28,16 +28,17 @@ from usecases.wal import (
     SettleOutboundIntent,
 )
 
-# WAL 対象種別は registry の全管理表種別（individuals/tasks/knowledge/abilities）。
-# abilities も能力宣言（「○○できます」という対外的約束）を伴うため一様に対象（DESIGN §3.8）。
-# registry_cli.REGISTRY_SPEC を SSoT とし、kind -> key_field を導出する（二重管理の解消）。
+# WAL 対象種別は registry の全管理表種別（REGISTRY_SPEC の全キー）。
+# abilities の能力宣言や goals の目標起票も「○○します」という対外的約束を伴うため一様に対象
+# （DESIGN §3.8/§3.11）。registry_cli.REGISTRY_SPEC を SSoT とし、kind -> key_field を導出する
+# （表追加はここに自動で乗る＝二重管理なし）。
 _WAL_KINDS = {k: spec.key_field for k, spec in REGISTRY_SPEC.items()}
 
 
 def run_wal_append(config: Config, kind: str, args: Any) -> int:
     """intent を pending で WAL ログに追記（registry_sync 無効なら no-op）。
 
-    registry kind（individuals/tasks/knowledge/abilities）は payload の key_field をキーにする。
+    registry kind（REGISTRY_SPEC の各表）は payload の key_field をキーにする。
     outbound kind（proactive-send）は registry key を持たないため created_at をキーにする
     （reconcile 照合に乗らない＝registry redo と独立、DESIGN §3.9）。
     """

@@ -14,7 +14,16 @@ from typing import Any, NamedTuple, Type
 
 from adapters.registry.json_registry_store import JsonRegistryStore
 from domain.exceptions import GitSyncError
-from domain.registry import Ability, Individual, Knowledge, Task
+from domain.registry import (
+    Ability,
+    Goal,
+    Individual,
+    Knowledge,
+    Profile,
+    Step,
+    Task,
+    derive_role,
+)
 from infrastructure.composition import build_git, build_sync
 from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
@@ -33,12 +42,16 @@ class RegistrySpec(NamedTuple):
     record_cls: Type  # 検証に使う値オブジェクトクラス
 
 
-# name -> RegistrySpec。wal_cli の kind -> key_field 導出もここを SSoT とする
+# name -> RegistrySpec。wal_cli の kind -> key_field 導出と main.py の subparser 生成も
+# ここを SSoT とする（表追加はこの dict に1行足すだけで CRUD/WAL/CLI が揃う）
 REGISTRY_SPEC = {
     "individuals": RegistrySpec("individuals_path", "uuid", Individual),
     "tasks": RegistrySpec("tasks_path", "id", Task),
     "knowledge": RegistrySpec("knowledge_path", "id", Knowledge),
     "abilities": RegistrySpec("abilities_path", "id", Ability),
+    "profile": RegistrySpec("profile_path", "id", Profile),
+    "goals": RegistrySpec("goals_path", "id", Goal),
+    "steps": RegistrySpec("steps_path", "id", Step),
 }
 
 
@@ -122,6 +135,19 @@ def _sync_after_change(config: Config, name: str, message: str, sync) -> None:
     service.sync([path], message)
 
 
+def run_role_status(config: Config) -> int:
+    """PROFILE / GOALS から現在の役割（秘書/執事/コーチ/アネゴ）を決定論導出して JSON 1行で emit。
+
+    起動時オリエンテーション（ROUTINE_PROMPT）が叩き、秘書は「今日の自分の顔」を知る。
+    判定はコード（derive_role 純関数）、演じ方は SecretaryRole ガイダンス——LLM の役割自称を
+    判定根拠にしない（DESIGN §3.11）。
+    """
+    profiles = registry_service(config, "profile").list()
+    goals = registry_service(config, "goals").list()
+    print(json.dumps(derive_role(profiles, goals).to_dict(), ensure_ascii=False))
+    return EXIT_OK
+
+
 def run_registry_fetch(config: Config, git=None) -> int:
     """起動時に固定ブランチから管理表を fetch（R2-3、ROUTINE_PROMPT が起動時に呼ぶ）。
 
@@ -141,8 +167,8 @@ def run_registry_fetch(config: Config, git=None) -> int:
         print(f"registry fetch failed: {exc}", file=sys.stderr)
         print(
             "WARNING: registry-sync is continuing with EMPTY tables — the secretary "
-            "runs WITHOUT memory this session (individuals/tasks/knowledge/abilities, "
-            "and any grants, are unavailable until the next successful fetch). "
+            "runs WITHOUT memory this session (all registry tables and any grants "
+            "are unavailable until the next successful fetch). "
             "Treat registry reads as empty and notify the principal that memory is unloaded.",
             file=sys.stderr,
         )

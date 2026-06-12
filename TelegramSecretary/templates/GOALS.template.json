@@ -1,0 +1,20 @@
+{
+  "_template": "GOALS — 目標（伴走＝A軸）管理表の雛型。実体は Private の <registry_dir>/goals/GOALS.json に置く（本ファイルはコピーされない雛型）。status='active' のレコードが1件以上あると役割判定の A 軸が立つ（role-status: 秘書→コーチ、執事→アネゴ）。全目標が achieved/abandoned になると伴走役から降りる（卒業）",
+  "_record_schema": {
+    "id": "string — 一意ID（例: g-money-1）",
+    "title": "string — 目標の言語化（例: 半年で貯蓄30万円）",
+    "category": "money | work | relationship | health | other — 四大相談コース",
+    "status": "active | paused | achieved | abandoned",
+    "target_date": "ISO date | null — 達成目標日（逆算の起点）",
+    "success_criteria": "string — 達成の判定基準（測れる形で）",
+    "notes": "string — 経緯メモ（なぜこの目標か・調整の履歴）",
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601",
+    "closed_at": "ISO8601 | null — achieved/abandoned になった時刻（Archive 判定に使用）"
+  },
+  "_read_policy": "起動時オリエンテーションで active な目標と期限近接 STEPS を確認し、伴走の文脈を立ち上げる。新規目標は1コースから始め、軌道に乗ってから追加する（伴走の密度を薄めない）",
+  "_write_policy": "目標は principal との対話で言語化してから起票する（秘書の独断で作らない）。起票・状態変更は WAL 対象（言行一致）。具体的な逆算ステップは STEPS 表に分解する",
+  "_archive_policy": "status=achieved/abandoned かつ closed_at が保持期間を超えたレコードを goals/archive/GOALS_<YYYY-MM>.json へ日付 Archive（配下の STEPS も連動）",
+  "version": 1,
+  "goals": []
+}

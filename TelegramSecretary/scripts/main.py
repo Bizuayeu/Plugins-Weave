@@ -34,7 +34,12 @@ from infrastructure.exit_codes import (
     EXIT_OK,
 )
 from infrastructure.media_cleanup import cleanup_media_dir
-from infrastructure.registry_cli import run_registry_command, run_registry_fetch
+from infrastructure.registry_cli import (
+    REGISTRY_SPEC,
+    run_registry_command,
+    run_registry_fetch,
+    run_role_status,
+)
 from infrastructure.wal_cli import (
     run_wal_append,
     run_wal_append_outbound,
@@ -612,10 +617,15 @@ def cmd_test(args: argparse.Namespace) -> int:
 
 
 def cmd_registry(args: argparse.Namespace) -> int:
-    """個人/タスク/知識 管理表の CRUD。args.registry_name が管理表名
-    （individuals/tasks/knowledge/abilities、build_parser の set_defaults で注入）。"""
+    """管理表（7表）の CRUD。args.registry_name が管理表名
+    （REGISTRY_SPEC のキー、build_parser の set_defaults で注入）。"""
     config = _load_config()
     return run_registry_command(config, args.registry_name, args.registry_action, args)
+
+
+def cmd_role_status(args: argparse.Namespace) -> int:
+    """P×A 役割（秘書/執事/コーチ/アネゴ）をデータ駆動で判定し JSON 1行で表示。"""
+    return run_role_status(_load_config())
 
 
 def cmd_registry_sync(args: argparse.Namespace) -> int:
@@ -644,8 +654,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     各 subparser は `set_defaults(handler=cmd_x)` で自身のハンドラを携行する——
     main() は `args.handler(args)` を呼ぶだけで、subcommand 名 × handlers dict の
-    二重管理（追加漏れで KeyError）を構造的に排除する。registry 4 表は同一ハンドラを
-    共有するため、表名を `set_defaults(registry_name=...)` で併せて注入する。
+    二重管理（追加漏れで KeyError）を構造的に排除する。registry 各表（REGISTRY_SPEC）は
+    同一ハンドラを共有するため、表名を `set_defaults(registry_name=...)` で併せて注入する。
     """
     parser = argparse.ArgumentParser(prog="telegram-secretary")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -778,15 +788,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--pages", help="画像化するページ範囲 N-M（1-indexed inclusive）"
     )
 
-    # 管理表 CRUD（individuals / tasks / knowledge）。/telegram-secretary が全操作をラップする入口。
-    # 4 表は cmd_registry を共有するため、表名を registry_name として set_defaults で温存する
-    for _name in ("individuals", "tasks", "knowledge", "abilities"):
+    # 管理表 CRUD（7表）。/telegram-secretary が全操作をラップする入口。
+    # 表名は REGISTRY_SPEC（SSoT）から生成し、cmd_registry を共有するため
+    # registry_name として set_defaults で温存する（表追加時の列挙漏れを構造的に防ぐ）
+    for _name in REGISTRY_SPEC:
         p_reg = sub.add_parser(_name, help=f"{_name} 管理表の CRUD")
         p_reg.set_defaults(handler=cmd_registry, registry_name=_name)
         p_reg.add_argument("registry_action", choices=["list", "get", "add", "remove"])
         p_reg.add_argument("--key", help="get/remove のキー（uuid または id）")
         p_reg.add_argument("--json", help="add するレコードの JSON 文字列")
         p_reg.add_argument("--json-file", dest="json_file", help="add するレコードの JSON ファイル")
+
+    # P×A 役割のデータ駆動判定（起動時オリエンテーションが1回叩く）
+    sub.add_parser(
+        "role-status", help="PROFILE/GOALS から現在の役割（秘書/執事/コーチ/アネゴ）を判定"
+    ).set_defaults(handler=cmd_role_status)
 
     # 起動時 fetch（registry_sync 有効時、固定ブランチから最新管理表を引く。ROUTINE_PROMPT が起動時に1回叩く）
     sub.add_parser(
@@ -801,7 +817,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_wal_append.add_argument(
         "--kind",
         required=True,
-        choices=["individuals", "tasks", "knowledge", "abilities", "outbound"],
+        # registry 全表 + outbound。表の列挙は REGISTRY_SPEC（SSoT）から導出し二重管理を排す
+        choices=[*REGISTRY_SPEC, "outbound"],
     )
     p_wal_append.add_argument("--json", help="intent payload の JSON 文字列")
     p_wal_append.add_argument(

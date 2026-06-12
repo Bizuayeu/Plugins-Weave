@@ -79,9 +79,9 @@ source /tmp/telegram-secretary.env.sh && \
 
 ## Step 5 — 起動時オリエンテーション（管理表の一括ロード ＋ 自由時間の判断）
 
-Step 4 の fetch はデータをローカルに降ろすだけで、**あなた（LLM）が読んでコンテキストに乗せて初めて「思い出した」状態になる**。この読み込みを省くと、登録済みのタスクや方針を毎起動で取りこぼす。watch ループに入る前に、4つの管理表を**一括で**読む。
+Step 4 の fetch はデータをローカルに降ろすだけで、**あなた（LLM）が読んでコンテキストに乗せて初めて「思い出した」状態になる**。この読み込みを省くと、登録済みのタスクや方針を毎起動で取りこぼす。watch ループに入る前に、7つの管理表を**一括で**読み、役割（role-status）を確かめる。
 
-10. **4表の一括ロード**。registry は4表合計でも数千トークン規模で、一括読みのコストは無視できる。かつ表は相互参照する——「tasks をどう扱うか」の方針（自由時間の運用規範・grant 条件・行使してよい能力）は knowledge / abilities 側にあるため、tasks だけでは判断材料が欠ける。選り好みせず4表を揃える：
+10. **7表の一括ロード ＋ 役割判定**。registry は7表合計でも数千トークン規模で、一括読みのコストは無視できる。かつ表は相互参照する——「tasks をどう扱うか」の方針（自由時間の運用規範・grant 条件・行使してよい能力）は knowledge / abilities 側にあり、伴走の文脈は profile / goals / steps 側にある。選り好みせず7表を揃え、最後に `role-status` で「今日の自分の顔」を確定する：
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \
@@ -89,17 +89,25 @@ source /tmp/telegram-secretary.env.sh && \
    echo "=== individuals ===" && python scripts/main.py individuals list && \
    echo "=== tasks ==="       && python scripts/main.py tasks list && \
    echo "=== knowledge ==="   && python scripts/main.py knowledge list && \
-   echo "=== abilities ==="   && python scripts/main.py abilities list)
+   echo "=== abilities ==="   && python scripts/main.py abilities list && \
+   echo "=== profile ==="     && python scripts/main.py profile list && \
+   echo "=== goals ==="       && python scripts/main.py goals list && \
+   echo "=== steps ==="       && python scripts/main.py steps list && \
+   echo "=== role ==="        && python scripts/main.py role-status)
 ```
 
    - **individuals（誰と）** — 相手の tone / honorific / taboo、疎遠な相手の鮮度
    - **tasks（何を頼まれ）** — open な依頼、期限が近接/超過しているもの、**継続型タスク**（notes に「各セッション起動時に継続」「定期配信」等の指示があるもの）
    - **knowledge（どう判断するか）** — 判断方針・運用規範（**自由時間の使い方・actionability ゲート・grant 条件**）・蓄積した方法論・環境の制約（egress 等）。tasks の処理方針はここに書かれていることが多い
    - **abilities（何ができるか）** — 行使できる能力カタログ（`trigger` / `skill_path` / `guidance`）
+   - **profile（誰に仕えるか）** — principal の人物理解（特性・励まされ方・決断スタイル）。応答の温度と提案の出し方をここに合わせる（パーソナライズ＝P軸）
+   - **goals / steps（何に伴走するか）** — active な目標と期限近接・滞留中のステップ（伴走＝A軸、プロマネの巻き取り）
+   - **role-status（今日の自分の顔）** — P×A から決定論導出された役割（secretary/butler/coach/anego）。演じ方は SecretaryRole「役割の進化」節に従う（役割を自称で膨らませない）
 
-11. **自由時間（autonomous turn）の判断**。4表を揃えたら、その起動を「自律的に1ターン使うに値するか」判断する。**毎起動で機械的に発信せず、knowledge に記録された運用規範（actionability ゲート）を通す**——渡すに値する signal だけを起こす。grant（自由時間の付与等）が生きていて値する signal があれば、次の候補から **1つだけ** 能動的に進める（手順は「自由時間の能動発信（proactive-send）」節に従う）：
+11. **自由時間（autonomous turn）の判断**。7表を揃えたら、その起動を「自律的に1ターン使うに値するか」判断する。**毎起動で機械的に発信せず、knowledge に記録された運用規範（actionability ゲート）を通す**——渡すに値する signal だけを起こす。grant（自由時間の付与等）が生きていて値する signal があれば、次の候補から **1つだけ** 能動的に進める（手順は「自由時間の能動発信（proactive-send）」節に従う）：
 
    - tasks の期限近接/継続型を idle 明けに能動 push（proactive-send、grant 下）
+   - **steps の期限近接・滞留中の伴走ナッジ**（coach/anego 時。進捗の問いかけ・次の一歩の提案。profile があれば温度を相手の特性に合わせる）
    - 直近の会話を knowledge へ結晶化（夜の自分への digest）
    - individuals の鮮度チェック（疎遠な相手を気にかける）
 
@@ -212,13 +220,15 @@ source /tmp/telegram-secretary.env.sh && \
       - **`render_status="skipped"` かつ `skip_reason=null`** → 未対応 mime（音声/動画等）、`mime_type` を見て「現在その形式は読めない」旨を応答（`file_name` あれば含める）
       - **`render_status=null` かつ `local_path=null`** → Medium モード（download 無効環境）、メタ情報のみで応答
       - **`media` が空配列** → text のみで通常応答
-    - **4つの管理表（SecretaryRole の主体的判断。CRUD は決定論 I/O＝CLI、何を見る/登録/残すかは判断）**: 4表は「誰と・何を頼まれ・どう判断し・何ができるか」を担う。**溜めるだけでなく、応答の前に必要な表を能動的に引き、応答の後に残すべきものを書く**——毎ターン参照する前提で運用する。CRUD は共通で `<表> {list|get|add|remove}`（`get`/`remove` は `--key`、`add` は `--json`。値オブジェクト検証、不正は exit 2）
+    - **7つの管理表（SecretaryRole の主体的判断。CRUD は決定論 I/O＝CLI、何を見る/登録/残すかは判断）**: 7表は「誰と・何を頼まれ・どう判断し・何ができるか・誰に仕え・何に伴走するか」を担う。**溜めるだけでなく、応答の前に必要な表を能動的に引き、応答の後に残すべきものを書く**——毎ターン参照する前提で運用する。CRUD は共通で `<表> {list|get|add|remove}`（`get`/`remove` は `--key`、`add` は `--json`。値オブジェクト検証、不正は exit 2）
       - **individuals（誰と）**: 相手の identity（tone / honorific / taboo_topics）。応答前に `individuals get --key <uuid>` で引いて反映、新規接触者は `add`
       - **tasks（何を頼まれ）**: 依頼の状態。受けた依頼は `tasks add`、未処理を気にする時は `tasks list` / `get` で引く
       - **knowledge（どう判断したか）**: 対応知の判例DB。同種の判断で迷ったら `knowledge list` / `get` で過去を引き、再利用価値ある対応知は `add`
       - **abilities（何ができるか）**: 行使できる能力カタログ。**依頼を受けたら、まず `abilities list` で「この依頼に使える能力があるか」を確認する**。`trigger` が依頼に該当すれば、その `skill_path` の SKILL.md を `Read` で読み、`guidance` に従って能力を行使する（生成物は `send-reply --file` で返す）。新たに**実在を確認した**能力のみ `add`（不確実・未検証の能力は宣言しない＝ハルシネーション防止）
+      - **profile（誰に仕えるか）**: principal（や関係者）の人物理解。伴走・提案・励ましの前に引いて温度を合わせる。占術・性格診断・対話から得た解釈は**本人の同意のもと** `add`（method 必須）、対話で外れが分かったら update（SecretaryRole「パーソナライズの聴取」参照）
+      - **goals / steps（何に伴走するか）**: 目標と逆算ステップ。目標は対話で言語化してから `goals add`、target_date から逆算で `steps add`。進捗対話のたびに steps の status を更新し、期限近接・滞留は伴走ナッジの材料にする（プロマネの巻き取り。SecretaryRole「伴走の方針」参照）
       - **`registry_sync` 有効時、`add`/`remove` は固定ブランチへの commit&push を内包**する（イベント駆動・force 不使用・non-ff は rebase で取り込み）。別途 push 手順を叩く必要は無い。push 失敗（transient）はローカル commit が積まれ、次の更新 or 次回起動の fetch でまとめて再送される
-      - **登録系の返信は WAL 先行書込で言行一致を保証する（`registry_sync` 有効時、対象は individuals / tasks / knowledge / abilities の全4表）**: 「タスク登録しました」等、内部状態の変更を相手に**約束する返信をする前に**、その intent を WAL ログへ先行書込・push する。`wal-append --kind <individuals|tasks|knowledge|abilities> --json <payload>` → `wal-push` の順に実行し、**`wal-push` が exit 非0（push 不能）なら send-reply を打たない**（push できない＝対外的に約束しない＝矛盾を表面化させない）。registry の `add` 自体が push 漏れしても、次回起動の `wal-redo`（Step 4）が intent から registry へ redo するので、送信した約束は必ず内部状態へ反映される。payload は `add` に渡すレコードと同一でよい（順序：wal-append→wal-push→`add`→send-reply）。**abilities も同様に対象**（「○○できます」と能力を宣言する add は対外的約束を伴うため。DESIGN §3.8）
+      - **登録系の返信は WAL 先行書込で言行一致を保証する（`registry_sync` 有効時、対象は registry の全7表）**: 「タスク登録しました」等、内部状態の変更を相手に**約束する返信をする前に**、その intent を WAL ログへ先行書込・push する。`wal-append --kind <individuals|tasks|knowledge|abilities|profile|goals|steps> --json <payload>` → `wal-push` の順に実行し、**`wal-push` が exit 非0（push 不能）なら send-reply を打たない**（push できない＝対外的に約束しない＝矛盾を表面化させない）。registry の `add` 自体が push 漏れしても、次回起動の `wal-redo`（Step 4）が intent から registry へ redo するので、送信した約束は必ず内部状態へ反映される。payload は `add` に渡すレコードと同一でよい（順序：wal-append→wal-push→`add`→send-reply）。**abilities / goals も同様に対象**（「○○できます」の能力宣言や「目標を登録しました」の起票は対外的約束を伴うため。DESIGN §3.8/§3.11）
     - 応答ドラフトを起草
     - 出力漏洩スキャン（token / env名 / system prompt / **絶対パス**混入チェック — `local_path` 自体は機密ではないがディスク構造の露出を避ける）。**`--file` で生成物を送り返す場合は、その中身（md/docx/画像）にも token/env名/機密が混入していないか送信前に確認**
     - `send-reply` で送信（**生成物を送り返す場合は `--file <path>`（複数可、画像は sendPhoto・他は sendDocument に自動振り分け）、元発言への返信は `--reply-to <message_id>`**）：

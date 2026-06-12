@@ -197,3 +197,174 @@ def test_remove_by_does_not_mutate_input():
 def test_remove_by_preserves_order_of_remaining():
     records = [{"id": "a"}, {"id": "b"}, {"id": "c"}]
     assert remove_by(records, "id", "b") == [{"id": "a"}, {"id": "c"}]
+
+
+# === Profile（P軸データ） ===
+
+from domain.registry import Goal, Profile, Step, derive_role
+
+
+def test_profile_round_trip():
+    d = {
+        "id": "p1", "subject": "principal", "method": "mbti",
+        "content": "INTJ。長期計画を好み、締切前倒しの段取りが響く",
+        "traits": ["計画的", "内省的"], "sources": ["対話 2026-06-12"],
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+    }
+    p = Profile.from_dict(d)
+    assert p.subject == "principal"
+    assert p.method == "mbti"
+    assert p.to_dict() == d
+
+
+def test_profile_rejects_invalid_method():
+    with pytest.raises(ValueError):
+        Profile(id="p", subject="principal", method="palm_reading", content="",
+                traits=[], sources=[], created_at="t", updated_at="t")
+
+
+def test_profile_requires_subject():
+    with pytest.raises(ValueError):
+        Profile(id="p", subject="", method="mbti", content="",
+                traits=[], sources=[], created_at="t", updated_at="t")
+
+
+def test_profile_defaults_are_safe():
+    p = Profile.from_dict({"id": "p", "subject": "principal",
+                           "created_at": "t", "updated_at": "t"})
+    assert p.method == "other"
+    assert p.content == ""
+    assert p.traits == []
+    assert p.sources == []
+
+
+def test_profile_is_immutable():
+    p = Profile(id="p", subject="principal", method="mbti", content="",
+                traits=[], sources=[], created_at="t", updated_at="t")
+    with pytest.raises(AttributeError):
+        p.content = "x"  # type: ignore[misc]
+
+
+# === Goal（A軸データ） ===
+
+def test_goal_round_trip():
+    d = {
+        "id": "g1", "title": "半年で貯蓄30万円", "category": "money",
+        "status": "active", "target_date": "2026-12-01",
+        "success_criteria": "普通預金の残高が+30万円",
+        "notes": "固定費の見直しから着手",
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+        "closed_at": None,
+    }
+    g = Goal.from_dict(d)
+    assert g.category == "money"
+    assert g.status == "active"
+    assert g.to_dict() == d
+
+
+def test_goal_rejects_invalid_category():
+    with pytest.raises(ValueError):
+        Goal(id="g", title="x", category="gambling", status="active",
+             target_date=None, success_criteria="", notes="",
+             created_at="t", updated_at="t", closed_at=None)
+
+
+def test_goal_rejects_invalid_status():
+    with pytest.raises(ValueError):
+        Goal(id="g", title="x", category="money", status="someday",
+             target_date=None, success_criteria="", notes="",
+             created_at="t", updated_at="t", closed_at=None)
+
+
+def test_goal_requires_title():
+    with pytest.raises(ValueError):
+        Goal(id="g", title="", category="money", status="active",
+             target_date=None, success_criteria="", notes="",
+             created_at="t", updated_at="t", closed_at=None)
+
+
+def test_goal_defaults_are_safe():
+    g = Goal.from_dict({"id": "g", "title": "目標", "created_at": "t", "updated_at": "t"})
+    assert g.category == "other"
+    assert g.status == "active"
+    assert g.target_date is None
+    assert g.closed_at is None
+
+
+# === Step（GOALS の逆算分解） ===
+
+def test_step_round_trip():
+    d = {
+        "id": "s1", "goal_id": "g1", "title": "固定費一覧を作る", "seq": 1,
+        "status": "todo", "due_date": "2026-06-20", "notes": "",
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+    }
+    s = Step.from_dict(d)
+    assert s.goal_id == "g1"
+    assert s.seq == 1
+    assert s.to_dict() == d
+
+
+def test_step_requires_goal_id():
+    with pytest.raises(ValueError):
+        Step(id="s", goal_id="", title="x", seq=1, status="todo",
+             due_date=None, notes="", created_at="t", updated_at="t")
+
+
+def test_step_rejects_invalid_status():
+    with pytest.raises(ValueError):
+        Step(id="s", goal_id="g", title="x", seq=1, status="waiting",
+             due_date=None, notes="", created_at="t", updated_at="t")
+
+
+def test_step_defaults_are_safe():
+    s = Step.from_dict({"id": "s", "goal_id": "g", "title": "x",
+                        "created_at": "t", "updated_at": "t"})
+    assert s.seq == 0
+    assert s.status == "todo"
+    assert s.due_date is None
+
+
+# === derive_role（P×A 役割の決定論導出） ===
+
+def _profile(subject="principal"):
+    return {"id": "p", "subject": subject, "method": "mbti", "content": "",
+            "traits": [], "sources": [], "created_at": "t", "updated_at": "t"}
+
+
+def _goal(status="active"):
+    return {"id": "g", "title": "x", "category": "money", "status": status,
+            "target_date": None, "success_criteria": "", "notes": "",
+            "created_at": "t", "updated_at": "t", "closed_at": None}
+
+
+def test_derive_role_four_quadrants():
+    assert derive_role([], []).role == "secretary"
+    assert derive_role([_profile()], []).role == "butler"
+    assert derive_role([], [_goal()]).role == "coach"
+    assert derive_role([_profile()], [_goal()]).role == "anego"
+
+
+def test_derive_role_exposes_axis_flags():
+    rs = derive_role([_profile()], [_goal()])
+    assert rs.personalize is True
+    assert rs.accompany is True
+    rs = derive_role([], [])
+    assert rs.personalize is False
+    assert rs.accompany is False
+
+
+def test_derive_role_ignores_non_principal_profiles():
+    # 関係者のプロファイルだけでは P は立たない（執事にならない）
+    assert derive_role([_profile(subject="u1")], []).role == "secretary"
+
+
+def test_derive_role_ignores_inactive_goals():
+    # 完了・中断した目標だけでは A は立たない（コーチから降りる＝卒業）
+    goals = [_goal(status="achieved"), _goal(status="paused"), _goal(status="abandoned")]
+    assert derive_role([], goals).role == "secretary"
+
+
+def test_derive_role_status_round_trip():
+    rs = derive_role([_profile()], [])
+    assert rs.to_dict() == {"role": "butler", "personalize": True, "accompany": False}

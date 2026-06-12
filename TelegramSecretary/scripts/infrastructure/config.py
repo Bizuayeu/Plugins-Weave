@@ -74,6 +74,18 @@ class Config:
         return self.registry_root / "abilities" / "ABILITIES.json"
 
     @property
+    def profile_path(self) -> Path:
+        return self.registry_root / "profile" / "PROFILE.json"
+
+    @property
+    def goals_path(self) -> Path:
+        return self.registry_root / "goals" / "GOALS.json"
+
+    @property
+    def steps_path(self) -> Path:
+        return self.registry_root / "steps" / "STEPS.json"
+
+    @property
     def wal_log_path(self) -> Path:
         """WAL ログ（JSONL）。registry と同じ registry_root 配下＝同一固定ブランチに相乗り。
 
