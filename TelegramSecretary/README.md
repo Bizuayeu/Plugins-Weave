@@ -22,7 +22,7 @@ Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、
   - PDF → 全ページ画像化（Vision）＋ オンデマンドの全文テキスト / 個別ページ抽出
   - voice / audio / video → 音声を文字起こし（ローカル STT、音声が外部に出ない）
 - **生成物の送り返し** — 画像・レポート等を返信に添付（reply threading、typing 表示）
-- **管理表（7 表）** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）／能力カタログ（ABILITIES）／人物理解（PROFILE）／目標（GOALS）／逆算ステップ（STEPS）を秘書が判断して記録。秘書は応答前に能力カタログを引き、依頼に使えるスキルがあれば行使する。`registry_sync` 有効時は固定ブランチへ git 永続化（揮発 state と分離・イベント駆動 commit&push）。PROFILE / GOALS が蓄積すると秘書の役割が進化する（次節）
+- **管理表** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）／能力カタログ（ABILITIES）を秘書が判断して記録。秘書は応答前に能力カタログを引き、依頼に使えるスキルがあれば行使する。`registry_sync` 有効時は固定ブランチへ git 永続化（揮発 state と分離・イベント駆動 commit&push）。PROFILE / GOALS が蓄積すると秘書の役割が進化する（次節）
 - **言行一致の保証（WAL）** — `registry_sync` 有効時、「登録しました」等の約束をする返信の前に intent を WAL ログへ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo。push 漏れによる「言ったのに未登録」を構造的に防ぐ
 
 ## 秘書が育つ——役割の進化（P×A、守護霊機能）
