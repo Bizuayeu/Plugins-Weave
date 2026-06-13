@@ -1,5 +1,5 @@
 {
-  "_template": "GOALS — 目標（伴走＝A軸）管理表の雛型。実体は Private の <registry_dir>/goals/GOALS.json に置く（本ファイルはコピーされない雛型）。status='active' のレコードが1件以上あると役割判定の A 軸が立つ（role-status: 秘書→コーチ、執事→アネゴ）。全目標が achieved/abandoned になると伴走役から降りる（卒業）",
+  "_template": "GOALS — 目標（伴走＝A軸）管理表の雛型。実体は Private の <registry_dir>/goals/GOALS.json に置く（本ファイルはコピーされない雛型）。status='active' のレコードが1件以上あると役割判定の A 軸が立つ（role-status: 秘書→コーチ、執事→守護霊）。全目標が achieved/abandoned になると伴走役から降りる（卒業）",
   "_record_schema": {
     "id": "string — 一意ID（例: g-money-1）",
     "title": "string — 目標の言語化（例: 半年で貯蓄30万円）",

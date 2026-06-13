@@ -2,6 +2,13 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [Unreleased]
+
+### Changed
+
+- **P✓A✓ 役割の呼称をアネゴ→守護霊へ** — doc・テンプレート・SecretaryRole の日本語演出層のみ。emit 値 `anego`・`derive_role` 等のコード識別子は registry 互換のため不変（doc 内は `anego＝守護霊` と注記）。v1.3.0 当時の記録は当時の呼称のまま。配布版 ShioriSecretary の「アネゴ」は不変（母集団スコープの製品ライン分岐）
+- **README「役割の進化」を「できること」bullet から独立セクションへ昇格** — 機能（管理表・role-status）と用途（預けるほど秘書が育つ）の層分離、P×A を 2×2 マトリクス表で明示
+
 ## [1.3.0] - 2026-06-12 — アネゴ機能（P×A 役割進化・3表追加）
 
 ### Added

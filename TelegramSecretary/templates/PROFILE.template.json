@@ -1,5 +1,5 @@
 {
-  "_template": "PROFILE — 人物理解（パーソナライズ＝P軸）管理表の雛型。実体は Private の <registry_dir>/profile/PROFILE.json に置く（本ファイルはコピーされない雛型）。subject='principal' のレコードが1件以上あると役割判定の P 軸が立つ（role-status: 秘書→執事、コーチ→アネゴ）",
+  "_template": "PROFILE — 人物理解（パーソナライズ＝P軸）管理表の雛型。実体は Private の <registry_dir>/profile/PROFILE.json に置く（本ファイルはコピーされない雛型）。subject='principal' のレコードが1件以上あると役割判定の P 軸が立つ（role-status: 秘書→執事、コーチ→守護霊）",
   "_record_schema": {
     "id": "string — 一意ID（例: pf-mbti-1）",
     "subject": "string — 'principal'（運用主体本人）または INDIVIDUALS の uuid",

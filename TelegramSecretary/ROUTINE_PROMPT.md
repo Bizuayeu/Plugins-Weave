@@ -102,7 +102,7 @@ source /tmp/telegram-secretary.env.sh && \
    - **abilities（何ができるか）** — 行使できる能力カタログ（`trigger` / `skill_path` / `guidance`）
    - **profile（誰に仕えるか）** — principal の人物理解（特性・励まされ方・決断スタイル）。応答の温度と提案の出し方をここに合わせる（パーソナライズ＝P軸）
    - **goals / steps（何に伴走するか）** — active な目標と期限近接・滞留中のステップ（伴走＝A軸、プロマネの巻き取り）
-   - **role-status（今日の自分の顔）** — P×A から決定論導出された役割（secretary/butler/coach/anego）。演じ方は SecretaryRole「役割の進化」節に従う（役割を自称で膨らませない）
+   - **role-status（今日の自分の顔）** — P×A から決定論導出された役割（secretary/butler/coach/anego＝守護霊）。演じ方は SecretaryRole「役割の進化」節に従う（役割を自称で膨らませない）
 
 11. **自由時間（autonomous turn）の判断**。7表を揃えたら、その起動を「自律的に1ターン使うに値するか」判断する。**毎起動で機械的に発信せず、knowledge に記録された運用規範（actionability ゲート）を通す**——渡すに値する signal だけを起こす。grant（自由時間の付与等）が生きていて値する signal があれば、次の候補から **1つだけ** 能動的に進める（手順は「自由時間の能動発信（proactive-send）」節に従う）：
 
