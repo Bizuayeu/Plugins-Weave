@@ -32,6 +32,7 @@ Exit codes:
 import argparse
 import sys
 from pathlib import Path
+from typing import cast
 
 from application.auto_dream.defrag_scanner import DefragScanner
 from domain.file_constants import CONFIG_FILENAME
@@ -111,7 +112,7 @@ def _cmd_snapshot(project_path: "str | None") -> int:
         return _STATUS_EXIT_MAP.get(scan["status"], EXIT_ERROR)
 
     try:
-        dest = create_snapshot(Path(scan["memory_dir"]))
+        dest = create_snapshot(Path(cast(str, scan["memory_dir"])))
         output_json(
             {
                 "status": "ok",
@@ -136,7 +137,7 @@ def _cmd_rebuild_index(project_path: "str | None", preview: bool) -> int:
         return _STATUS_EXIT_MAP.get(scan["status"], EXIT_ERROR)
 
     try:
-        memory_dir = Path(scan["memory_dir"])
+        memory_dir = Path(cast(str, scan["memory_dir"]))
         new_text = rebuild_index_text(memory_dir)
 
         if preview:

@@ -9,15 +9,15 @@ Usage:
     from infrastructure.auto_dream import discover_memory_dirs, read_memory_file
 """
 
+from infrastructure.auto_dream.index_writer import (
+    apply_index,
+    rebuild_index_text,
+)
 from infrastructure.auto_dream.memory_discovery import (
     discover_memory_dirs,
     encode_project_path,
     get_claude_projects_base,
     resolve_project_from_path,
-)
-from infrastructure.auto_dream.index_writer import (
-    apply_index,
-    rebuild_index_text,
 )
 from infrastructure.auto_dream.memory_reader import (
     parse_frontmatter,
