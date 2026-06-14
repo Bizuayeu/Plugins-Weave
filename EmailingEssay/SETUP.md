@@ -145,6 +145,17 @@ SMTPAuthenticationError: Username and Password not accepted
 2. Check `~/.claude/plugins/.emailingessay/essay_wait.log` for errors
 3. Wait and retry (Gmail has daily sending limits)
 
+### Scheduled Run Not Firing on Battery (Windows)
+
+**Symptom**: The essay is automated via Windows Task Scheduler, but the daily run fails intermittently. Task Scheduler history shows `LastTaskResult = 0x800710E0` ("The operator or administrator has refused the request").
+
+**Cause**: By default, Task Scheduler refuses to start a task while the machine is running on battery power.
+
+**Solution**:
+1. Open the task in Task Scheduler → **Conditions** tab
+2. Uncheck **"Start the task only if the computer is on AC power"**
+3. (Optional) **Settings** tab → enable **"Run task as soon as possible after a scheduled start is missed"** so a slot missed on battery still fires once back on AC
+
 ---
 
 **EmailingEssay** | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
