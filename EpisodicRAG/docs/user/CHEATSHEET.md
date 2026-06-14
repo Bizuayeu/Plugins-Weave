@@ -24,6 +24,7 @@
 | `/digest` | 新規Loop検出・分析 | Loopを追加したら都度 |
 | `/digest weekly` | Weekly Digest確定 | 5個のLoopが揃ったら |
 | `/digest monthly` | Monthly Digest確定 | 5個のWeeklyが揃ったら |
+| `/dream-defrag` | auto-memory の剪定（引く dream） | メモリが増えすぎたら（50件超） |
 
 ## スキル早見表
 

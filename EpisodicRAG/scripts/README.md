@@ -136,6 +136,8 @@ from domain.validators import validate_type, is_valid_dict, is_valid_list
 | `digest_setup.py` | - | 初期セットアップCLI (`python -m interfaces.digest_setup`) |
 | `digest_config.py` | - | 設定変更CLI (`python -m interfaces.digest_config`) |
 | `digest_auto/` | - | 健全性診断CLIパッケージ (`python -m interfaces.digest_auto`) *(v5.2.0+パッケージ化)* |
+| `auto_dream_scan.py` | - | auto-memory 所在スキャンCLI（足す dream＝`/digest` Step 11） |
+| `dream_defrag.py` | - | dream-defrag CLI（引く dream＝GC、`scan`/`snapshot`/`rebuild-index`）*(v5.6.0+)* |
 | `shadow_state_checker.py` | - | Shadow状態チェッカー |
 | `config_cli.py` | - | 設定CLIエントリーポイント |
 | `interface_helpers.py` | - | ヘルパー関数（`sanitize_filename`, `get_next_digest_number`） |

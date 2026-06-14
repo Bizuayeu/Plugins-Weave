@@ -137,6 +137,17 @@ Triennial → Decadal → Multi-decadal → Centurial
 
 ---
 
+## auto-memory への破壊的操作（dream-defrag）
+
+`/dream-defrag`（引く dream）が auto-memory（`MEMORY.md` + `memory/*.md`）を剪定する際の必須規律。**ここが共通実装ガイドラインの SSoT**——コマンド .md からは本節を参照する。
+
+- **snapshot 必須**: auto-memory は **git 非追跡**で revert 不能。剪定（統合・削除）の前に必ず `dream_defrag snapshot` でバックアップを取り、成功を確認してから適用する。
+- **非破壊フロー**: snapshot → 候補提示 → ユーザー裁可 → 適用。エントリの削除・統合を黙って実行しない。
+- **判断と決定論の分離**: 件数集計・snapshot・索引同期はスクリプト（決定論）。何を重複/卒業/上位層DRY と見るかは Claude（判断）。
+- **卒業の境界**: 完了プロジェクトは `MEMORY.md` live index からの降格に限定。EpisodicRAG（Loops/Digests）への実記録は行わない（記憶層は不可侵）。未記録なら削除せずフラグ。
+
+---
+
 ## 関連ドキュメント
 
 - [用語集・リファレンス](../../GLOSSARY.md) - 用語定義・共通概念

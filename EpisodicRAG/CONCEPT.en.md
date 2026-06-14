@@ -94,6 +94,19 @@ By hierarchically organizing memories itself, AI gains:
 - **Continuous Evolution** - Personality refines as new experiences are interpreted within own framework
 - **Relationship Deepening** - Shared history with dialogue partners accumulates
 
+### Two Phases of Dream: Additive and Subtractive
+
+The memory consolidation described above is the work of **adding** — digesting experience into memory: the **additive dream**. But just as human sleep not only consolidates memory but also prunes unneeded synaptic connections (synaptic pruning), healthy memory also needs a **subtractive dream**.
+
+| Phase | Work | Implementation |
+|-------|------|----------------|
+| **Additive dream** | Digest, integrate, refresh experience | `/digest` (hierarchical cascade) + auto-memory enrichment |
+| **Subtractive dream** | Merge duplicates, prune the stale, graduate the done | `/dream-defrag` (auto-memory GC) |
+
+If you only ever append, the memory index eventually degrades from "an aid to remembering" into "noise." The subtractive dream merges duplicates, strips restatements of rules defined in upper layers, and demotes completed items — keeping memory lean. Only with both phases — adding and subtracting — does memory circulate in good health.
+
+> 📖 Glossary: [GLOSSARY.en.md - Two Phases of Dream](GLOSSARY.en.md#two-phases-of-dream)
+
 ---
 
 ## Three-Layer System

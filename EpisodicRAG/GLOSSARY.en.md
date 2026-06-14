@@ -326,6 +326,23 @@ L00001 added → L00002 added → /digest
 - **Cause**: Error during `/digest` processing, or analysis incomplete
 - **Resolution**: Re-run `/digest` to complete analysis
 
+### Two Phases of Dream
+
+**Definition**: An operational concept dividing AI memory consolidation (dream) into two phases, keeping auto-memory (`MEMORY.md` + `memory/*.md`) healthy with both.
+
+| Phase | Command | Nature |
+|-------|---------|--------|
+| **Additive dream** | `/digest` Step 11 (auto_dream_scan) | Additive enrichment (freshness update / append); runs per-digest |
+| **Subtractive dream** | `/dream-defrag` | Reductive GC (cross-entry dedup / pruning); runs when count exceeds threshold |
+
+### DEFRAG_THRESHOLD
+
+**Definition**: The auto-memory file-count threshold that recommends the subtractive dream (`/dream-defrag`).
+
+- **Value**: 50 (`domain/auto_dream/defrag_types.py`)
+- **Origin**: The inflection point named in `/digest` Step 11 — "when memory count exceeds 50, reconsider switching to a mechanical full-coverage approach"
+- **Decision**: `over_threshold=True` when the memory file count is **greater than** 50 (`> 50`)
+
 ---
 
 ## File Naming Conventions
@@ -378,6 +395,7 @@ Examples: W0001_CognitiveArchitecture.txt
 | `@digest-setup` | Initial setup (interactive) |
 | `@digest-config` | Configuration changes (interactive) |
 | `@wakeup` | Session-start engine for claude.ai: loads long-term memory and applies the persona directive (requires config & Read token) |
+| `/dream-defrag` | Prune auto-memory (subtractive dream = GC): cross-entry dedup, upper-layer DRY, graduate completed, lean index |
 
 ---
 
@@ -429,7 +447,9 @@ Examples: W0001_CognitiveArchitecture.txt
 |------|---------|
 | base_dir | [Basic Concepts](#base_dir) |
 | Cascade | [8-Layer Hierarchy](#hierarchical-cascade) |
+| DEFRAG_THRESHOLD | [Processes & Operations](#defrag_threshold) |
 | Digest | [Basic Concepts](#digest) |
+| Two Phases of Dream | [Processes & Operations](#two-phases-of-dream) |
 | Essences | [Basic Concepts](#essences) |
 | GrandDigest | [Memory Structure](#granddigest) |
 | Loop | [Basic Concepts](#loop) |

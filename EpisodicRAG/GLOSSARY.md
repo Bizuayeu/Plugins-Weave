@@ -325,6 +325,23 @@ L00001追加 → L00002追加 → /digest
 - **原因**: `/digest`処理中のエラー、または分析が未完了
 - **解決方法**: `/digest`を再実行して分析を完了
 
+### dream の二相
+
+**定義**: AI の記憶定着（dream）を二つの相に分ける運用概念。auto-memory（`MEMORY.md` + `memory/*.md`）の健全性を両相で保つ。
+
+| 相 | コマンド | 性質 |
+|----|---------|------|
+| **足す dream** | `/digest` Step 11（auto_dream_scan） | additive enrichment（鮮度更新・追記）。per-digest で実行 |
+| **引く dream** | `/dream-defrag` | reductive GC（横断重複統合・剪定）。件数が閾値超過時に実行 |
+
+### DEFRAG_THRESHOLD
+
+**定義**: 引く dream（`/dream-defrag`）を推奨する auto-memory 件数の閾値。
+
+- **値**: 50（`domain/auto_dream/defrag_types.py`）
+- **由来**: `/digest` Step 11 が「メモリ件数が 50 件を超えてくる場合、機械的全件カバー方式への切り替えを再検討する」と名指した変曲点
+- **判定**: memory ファイル数が 50 を**超える**（`> 50`）と `over_threshold=True`
+
 ---
 
 ## ファイル命名規則
@@ -377,6 +394,7 @@ L00001追加 → L00002追加 → /digest
 | `@digest-setup` | 初期セットアップ（対話的） |
 | `@digest-config` | 設定変更（対話的） |
 | `@wakeup` | claude.ai セッション開始時の記憶ロード＋人格ディレクティブ適用（要 `wakeup.config.json`・Read token） |
+| `/dream-defrag` | auto-memory の剪定（引く dream＝GC）。横断重複統合・上位層DRY・完了卒業・index lean 化 |
 
 ---
 
@@ -454,7 +472,9 @@ L00001追加 → L00002追加 → /digest
 |------|----------|
 | base_dir | [基本概念](#base_dir) |
 | Cascade | [8階層構造](#階層的カスケード) |
+| DEFRAG_THRESHOLD | [プロセス・操作](#defrag_threshold) |
 | Digest | [基本概念](#digest) |
+| dream の二相 | [プロセス・操作](#dream-の二相) |
 | Essences | [基本概念](#essences) |
 | GrandDigest | [記憶構造](#granddigest) |
 | Loop | [基本概念](#loop) |

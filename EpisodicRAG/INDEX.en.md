@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-05-31 -->
+<!-- Last synced: 2026-06-14 -->
 English | [日本語](INDEX.md)
 
 # Document Index
@@ -59,6 +59,7 @@ Navigation to all EpisodicRAG plugin documentation.
 | Command | File |
 |---------|------|
 | `/digest` | [digest.md](commands/digest.md) |
+| `/dream-defrag` | [dream-defrag.md](commands/dream-defrag.md) |
 
 ### Skills (`skills/`)
 

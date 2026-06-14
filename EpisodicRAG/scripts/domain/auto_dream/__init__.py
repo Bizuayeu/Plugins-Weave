@@ -9,6 +9,13 @@ Usage:
     from domain.auto_dream import MemoryFile, AutoDreamScanResult
 """
 
+from domain.auto_dream.defrag_types import (
+    DEFRAG_THRESHOLD,
+    VALID_DEFRAG_KINDS,
+    DefragCandidate,
+    DefragKind,
+    DefragScanResult,
+)
 from domain.auto_dream.types import (
     AutoDreamScanResult,
     MemoryFile,
@@ -18,9 +25,16 @@ from domain.auto_dream.types import (
 )
 
 __all__ = [
+    # types.py（足す dream＝auto_dream_scan）
     "AutoDreamScanResult",
     "MemoryFile",
     "MemoryFileFrontmatter",
     "MemoryIndex",
     "MemoryType",
+    # defrag_types.py（引く dream＝dream-defrag）
+    "DEFRAG_THRESHOLD",
+    "VALID_DEFRAG_KINDS",
+    "DefragCandidate",
+    "DefragKind",
+    "DefragScanResult",
 ]

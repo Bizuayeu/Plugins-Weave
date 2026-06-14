@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-05-31 -->
+<!-- Last synced: 2026-06-14 -->
 English | [日本語](CHEATSHEET.md)
 
 # EpisodicRAG Quick Reference
@@ -25,6 +25,7 @@ A one-page cheat sheet for quick reference of key features.
 | `/digest` | Detect & analyze new Loops | After adding each Loop |
 | `/digest weekly` | Finalize Weekly Digest | When 5 Loops are ready |
 | `/digest monthly` | Finalize Monthly Digest | When 5 Weeklies are ready |
+| `/dream-defrag` | Prune auto-memory (subtractive dream) | When memory grows too large (>50) |
 
 ## Skill Quick Reference
 

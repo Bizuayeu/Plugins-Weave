@@ -48,7 +48,8 @@
 │   └── shared/                          # 共通コンポーネント
 │       └── _implementation-notes.md     # 実装ノート
 ├── commands/
-│   └── digest.md                        # /digest コマンド
+│   ├── digest.md                        # /digest コマンド（足す dream）
+│   └── dream-defrag.md                  # /dream-defrag コマンド（引く dream＝GC）
 ├── scripts/                             # Clean Architecture実装
 │   ├── domain/                          # コアビジネスロジック（最内層）
 │   │   └── config/                      # 設定定数・バリデーション

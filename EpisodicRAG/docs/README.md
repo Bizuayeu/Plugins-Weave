@@ -1,6 +1,6 @@
 # EpisodicRAG AI Specification Hub
 
-[![Version](https://img.shields.io/badge/version-5.5.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.6.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 
 AI/Claudeエージェント向けの技術仕様ハブです。
 
@@ -78,6 +78,7 @@ python -m interfaces.digest_auto
 | コマンド | 仕様書 | 概要 |
 |---------|--------|------|
 | `/digest` | [digest.md](../commands/digest.md) | 新規 Loop 検出・分析・階層確定 |
+| `/dream-defrag` | [dream-defrag.md](../commands/dream-defrag.md) | auto-memory の剪定（引く dream＝GC） |
 
 ---
 

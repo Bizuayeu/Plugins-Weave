@@ -9,7 +9,7 @@ English | [日本語](README.md)
 Hierarchical Memory & Digest Generation System (8 Layers, 100 Years)
 
 ![EpisodicRAG Plugin - Architecture diagram of 8-layer hierarchical memory management system](./EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-5.5.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.6.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
@@ -82,6 +82,7 @@ By following this principle, AI can remember all Loops.
 |---------|-------------|
 | `/digest` | Detect and analyze new Loops |
 | `/digest weekly` | Finalize Weekly Digest |
+| `/dream-defrag` | Prune auto-memory (subtractive dream = GC; recommended when >50) |
 | `@digest-auto` | Check system status and recommended actions |
 | `@digest-setup` | Initial setup |
 | `@digest-config` | Change settings |

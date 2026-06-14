@@ -312,7 +312,7 @@ python -m pytest test/config_tests/ -v
 
 変更を加えた後は、必ず以下をテストしてください：
 
-1. 基本的なコマンド（`/digest`, `@digest-auto`）
+1. 基本的なコマンド（`/digest`, `@digest-auto`, `/dream-defrag`）
 2. スキル（`@digest-setup`, `@digest-config`）
 3. エージェント（`@DigestAnalyzer`）
 4. 階層的Digest生成フロー

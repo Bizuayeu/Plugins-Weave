@@ -8,7 +8,7 @@
 階層的記憶・ダイジェスト生成システム（8 層 100 年）
 
 ![EpisodicRAG Plugin - 8階層の階層的記憶管理システムのアーキテクチャ図](./EpisodicRAG.png)
-[![Version](https://img.shields.io/badge/version-5.5.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.6.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
@@ -81,6 +81,7 @@ Loop追加 → /digest → Loop追加 → /digest → ...
 |---------|------|
 | `/digest` | 新規 Loop 検出と分析 |
 | `/digest weekly` | Weekly Digest 確定 |
+| `/dream-defrag` | auto-memory の剪定（引く dream＝GC、50件超で推奨） |
 | `@digest-auto` | システム状態確認と推奨アクション |
 | `@digest-setup` | 初期セットアップ |
 | `@digest-config` | 設定変更 |

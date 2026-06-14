@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-05-31 -->
+<!-- Last synced: 2026-06-14 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,11 +12,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#550---2026-05-31)
+- [v5.x](#560---2026-06-14)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.6.0] - 2026-06-14
+
+### Added
+
+- **dream-defrag command (subtractive dream = auto-memory GC)** — a reductive housekeeping pass over Claude Code auto-memory (`MEMORY.md` + `memory/*.md`), forming a pair with the `/digest` Step 11 Auto-dream (additive dream = enrichment)
+  - Handles **③Dedup & Resolve (cross-entry merge) and ④Prune & Index (graduate completed, lean index)** of the memory-dream 4 phases (①Mine and ②Consolidate remain Step 11's responsibility)
+  - Subcommands: `scan` (count diagnosis / `DEFRAG_THRESHOLD=50` over-threshold check) / `snapshot` (pre-prune backup) / `rebuild-index` (sync `MEMORY.md` to on-disk files, `--preview` supported)
+  - **Separation of judgment and determinism**: the scripts do only deterministic work (count, snapshot, index sync). What counts as a duplicate / graduate / upper-layer-DRY violation is judged by Claude in the `commands/dream-defrag.md` flow
+  - **Safety**: auto-memory is not git-tracked (not revertable), so a pre-prune snapshot is mandatory. Non-destructive flow (snapshot → propose → user approval → apply). Snapshots are created outside the scanned dir (under the persistent dir's `snapshots/`)
+  - **Graduation boundary**: completed projects are only demoted from the `MEMORY.md` live index; nothing is written to EpisodicRAG (Loops/Digests) (the memory layer is immutable). If not yet recorded, flag rather than delete
+  - Clean Architecture (Domain / UseCase / Interface / Infrastructure) + TDD (24 tests: defrag types, DefragScanner count check, snapshot, index round-trip, CLI subcommands)
+
+### Architecture
+
+- Co-located within the existing `auto_dream` package (no new package): `domain/auto_dream/defrag_types.py`, `application/auto_dream/defrag_scanner.py`, `infrastructure/auto_dream/{snapshot_writer,index_writer}.py`, `interfaces/dream_defrag.py`
 
 ---
 

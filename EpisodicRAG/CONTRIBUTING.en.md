@@ -313,7 +313,7 @@ python -m pytest test/config_tests/ -v
 
 After making changes, always test the following:
 
-1. Basic commands (`/digest`, `@digest-auto`)
+1. Basic commands (`/digest`, `@digest-auto`, `/dream-defrag`)
 2. Skills (`@digest-setup`, `@digest-config`)
 3. Agent (`@DigestAnalyzer`)
 4. Hierarchical Digest generation flow

@@ -11,11 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#550---2026-05-31)
+- [v5.x](#560---2026-06-14)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.6.0] - 2026-06-14
+
+### Added
+
+- **dream-defrag コマンド（引く dream＝auto-memory の GC）** — `/digest` Step 11 の Auto-dream（足す dream＝additive enrichment）と対をなす、Claude Code auto-memory（`MEMORY.md` + `memory/*.md`）の reductive な棚卸し
+  - memory-dream の 4 フェーズのうち **③Dedup & Resolve（横断重複統合）・④Prune & Index（完了卒業・index lean 化）** を担う（①Mine・②Consolidate は Step 11 の責務）
+  - サブコマンド: `scan`（件数診断・`DEFRAG_THRESHOLD=50` 超過判定）/ `snapshot`（剪定前バックアップ）/ `rebuild-index`（`MEMORY.md` をディスク現存に同期、`--preview` 対応）
+  - **判断と決定論の分離**: スクリプトは件数集計・snapshot・索引同期の決定論のみ。何を重複/卒業/上位層DRY と見て剪定するかの判断は Claude が `commands/dream-defrag.md` のフローで担う
+  - **安全要件**: auto-memory は git 非追跡で revert 不能なため、剪定前 snapshot を必須化。非破壊フロー（snapshot → 候補提示 → ユーザー裁可 → 適用）。snapshot は走査対象 dir の外（永続化 dir 配下 `snapshots/`）に作成
+  - **卒業の境界**: 完了プロジェクトは `MEMORY.md` live index からの降格に限定し、EpisodicRAG（Loops/Digests）への実記録は行わない（記憶層は不可侵）。未記録なら削除せずフラグ
+  - Clean Architecture（Domain / UseCase / Interface / Infrastructure）＋ TDD（24 tests: defrag 型・DefragScanner 件数判定・snapshot・index round-trip・CLI subcommand）
+
+### Architecture
+
+- 既存 `auto_dream` パッケージ内に同居（新パッケージは切らない）: `domain/auto_dream/defrag_types.py`, `application/auto_dream/defrag_scanner.py`, `infrastructure/auto_dream/{snapshot_writer,index_writer}.py`, `interfaces/dream_defrag.py`
 
 ---
 

@@ -58,6 +58,7 @@ EpisodicRAGプラグインの全ドキュメントへのナビゲーション。
 | コマンド | ファイル |
 |---------|---------|
 | `/digest` | [digest.md](commands/digest.md) |
+| `/dream-defrag` | [dream-defrag.md](commands/dream-defrag.md) |
 
 ### スキル (`skills/`)
 
