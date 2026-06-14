@@ -19,8 +19,12 @@ def _build_memory(base: Path) -> Path:
     memory_dir = base / "memory"
     memory_dir.mkdir(parents=True)
     (memory_dir / "MEMORY.md").write_text("# Memory Index\n", encoding="utf-8")
-    (memory_dir / "a.md").write_text("---\nname: a\ndescription: d\ntype: user\n---\nx", encoding="utf-8")
-    (memory_dir / "b.md").write_text("---\nname: b\ndescription: d\ntype: project\n---\ny", encoding="utf-8")
+    (memory_dir / "a.md").write_text(
+        "---\nname: a\ndescription: d\ntype: user\n---\nx", encoding="utf-8"
+    )
+    (memory_dir / "b.md").write_text(
+        "---\nname: b\ndescription: d\ntype: project\n---\ny", encoding="utf-8"
+    )
     return memory_dir
 
 

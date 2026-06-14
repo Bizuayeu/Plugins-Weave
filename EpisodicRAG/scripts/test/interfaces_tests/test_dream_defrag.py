@@ -60,9 +60,7 @@ class TestScanSubcommand:
 
 class TestSnapshotSubcommand:
     @pytest.mark.integration
-    def test_snapshotがパスを返す(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_snapshotがパスを返す(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         fake_base = tmp_path / ".claude" / "projects"
         _build_memory(fake_base)
         with (
