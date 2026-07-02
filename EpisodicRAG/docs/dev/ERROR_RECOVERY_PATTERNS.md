@@ -176,6 +176,22 @@ with open(file_path, 'r', encoding='utf-8') as f:
 - `ensure_ascii=False`で日本語などを正しく保存
 - BOM付きファイルは別途処理が必要
 
+### ログハンドラの cp932 問題（Windows）
+
+ファイル I/O だけでなく、`logging.StreamHandler` の出力先エンコーディングも
+エンコーディングエラーの発生源になる。Windows のリダイレクト・パイプ環境では
+`sys.stdout` が cp932 となり、em-dash「—」(U+2014) 等 cp932 に無い文字の
+ログ出力が `UnicodeEncodeError`（`--- Logging error ---`）を引き起こす。
+
+```python
+# logging_config.py の対策: handler の stream を UTF-8 で包み直す
+stdout_handler = logging.StreamHandler(_utf8_safe_stream(sys.stdout))
+```
+
+- 対応するテスト: `test_logging_config.py::TestHandlerEncodingSafety`
+- logging は emit 内の例外を握り潰す（`handleError`）ため、クラッシュしなくても
+  メッセージが失われる。「例外が出ない」ではなく「内容が出力先に到達する」を検証する
+
 ---
 
 ## 6. 同時アクセスエラー

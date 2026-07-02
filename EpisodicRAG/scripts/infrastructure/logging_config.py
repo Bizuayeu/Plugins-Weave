@@ -27,10 +27,11 @@ Usage:
     EPISODIC_RAG_LOG_FORMAT: ログフォーマット (simple, detailed)
 """
 
+import io
 import logging
 import os
 import sys
-from typing import Optional
+from typing import Optional, TextIO
 
 __all__ = [
     "get_logger",
@@ -93,6 +94,46 @@ def _get_log_format_from_env() -> str:
     return FORMAT_SIMPLE
 
 
+def _utf8_safe_stream(stream: TextIO) -> TextIO:
+    """
+    UTF-8 で書き込める stream を返す（非 UTF-8 コンソール対策）
+
+    Windows の cmd.exe / PowerShell はリダイレクト・パイプ時に既定で
+    cp932 (Shift-JIS) を使うため、em-dash「—」(U+2014) 等 cp932 に
+    存在しない文字のログ出力が UnicodeEncodeError となり
+    "--- Logging error ---" を引き起こす。
+
+    バイナリバッファを持つ stream は UTF-8 の TextIOWrapper で包み直して
+    返す（handler-local な差し替えで、sys.stdout 自体は変更しない）。
+
+    - 既に UTF-8 の stream はそのまま返す
+    - バッファを持たない stream（StringIO 等）は encode を伴わないため
+      そのまま返す
+    - StreamHandler.close() は stream を close しないため、包んだ wrapper
+      の寿命はプロセスと同じ（close 伝播の副作用なし）
+
+    Args:
+        stream: 対象の書き込み先 stream（通常 sys.stdout / sys.stderr）
+
+    Returns:
+        UTF-8 で安全に書き込める stream
+    """
+    encoding = (getattr(stream, "encoding", None) or "").replace("-", "").lower()
+    if encoding == "utf8":
+        return stream
+
+    buffer = getattr(stream, "buffer", None)
+    if buffer is None:
+        return stream
+
+    try:
+        return io.TextIOWrapper(
+            buffer, encoding="utf-8", errors="backslashreplace", line_buffering=True
+        )
+    except (ValueError, OSError):
+        return stream
+
+
 def setup_logging(level: Optional[int] = None) -> logging.Logger:
     """
     デフォルトのロギング設定をセットアップ
@@ -120,7 +161,7 @@ def setup_logging(level: Optional[int] = None) -> logging.Logger:
     log_format = _get_log_format_from_env()
 
     # stderrハンドラー（WARNING以上）
-    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler = logging.StreamHandler(_utf8_safe_stream(sys.stderr))
     stderr_handler.setLevel(logging.WARNING)
     stderr_handler.setFormatter(logging.Formatter(log_format))
 
@@ -129,7 +170,7 @@ def setup_logging(level: Optional[int] = None) -> logging.Logger:
         def filter(self, record: logging.LogRecord) -> bool:
             return record.levelno == logging.INFO
 
-    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler = logging.StreamHandler(_utf8_safe_stream(sys.stdout))
     stdout_handler.setLevel(logging.INFO)
     stdout_handler.addFilter(StdoutFilter())
     stdout_handler.setFormatter(logging.Formatter(log_format))

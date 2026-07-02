@@ -9,8 +9,10 @@ infrastructure/logging_config.py のユニットテスト
 - 環境変数によるカスタマイズ
 """
 
+import io
 import logging
 import os
+import sys
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
@@ -353,3 +355,125 @@ class TestLogDebug:
             log_debug("Should not appear")
 
         assert "Should not appear" not in caplog.text
+
+
+# =============================================================================
+# Handler エンコーディング安全性テスト（Windows cp932 対応）
+# =============================================================================
+
+
+class TestHandlerEncodingSafety:
+    """cp932 コンソールでも UnicodeEncodeError を出さない handler 構成の検証
+
+    Windows の cmd.exe / PowerShell は既定で cp932 (Shift-JIS) を使う。
+    digest_type に頻出する em-dash「——」(U+2014) は cp932 にマップが存在せず、
+    StreamHandler.emit → stream.write で UnicodeEncodeError となり
+    "--- Logging error ---" を吐く（finalize カスケードで実観測されたバグ）。
+
+    caplog は pytest の capture handler 経由で stream encoding を通らないため、
+    このバグを検出できない。実 stream（cp932 の TextIOWrapper）を handler に
+    踏ませて検証する。
+    """
+
+    EMDASH_MESSAGE = "digest_type: 知性安価化・装置化・基質依存——五段降下"
+
+    @pytest.fixture(autouse=True)
+    def restore_episodic_logger(self):
+        """テスト後に episodic_rag ロガーの handler/propagate を復元する
+
+        注意: sys.stdout/stderr の差し替えは fixture では行わない。
+        pytest の capture マネージャが fixture→call のフェーズ境界で
+        sys.stdout を自分の capture オブジェクトへ再代入するため、
+        fixture 内で差した疑似コンソールは call フェーズで失われる。
+        差し替えは各テスト本体（call フェーズ）で行うこと。
+        """
+        logger = logging.getLogger("episodic_rag")
+        saved_handlers = logger.handlers[:]
+        saved_propagate = logger.propagate
+        yield
+        logger.handlers.clear()
+        logger.handlers.extend(saved_handlers)
+        logger.propagate = saved_propagate
+
+    def _make_console(
+        self, monkeypatch: pytest.MonkeyPatch, encoding: str
+    ) -> "tuple[io.BytesIO, io.BytesIO]":
+        """指定エンコーディングの疑似コンソールを sys.stdout/stderr に差す
+
+        call フェーズ内から呼ぶこと（restore_episodic_logger の注意を参照）。
+        """
+        logging.getLogger("episodic_rag").handlers.clear()
+        out_buf = io.BytesIO()
+        err_buf = io.BytesIO()
+        fake_out = io.TextIOWrapper(out_buf, encoding=encoding, line_buffering=True)
+        fake_err = io.TextIOWrapper(err_buf, encoding=encoding, line_buffering=True)
+        monkeypatch.setattr(sys, "stdout", fake_out)
+        monkeypatch.setattr(sys, "stderr", fake_err)
+        return out_buf, err_buf
+
+    def _emit_and_collect_errors(
+        self, message: str, level: int = logging.INFO
+    ) -> list:
+        """setup_logging → 1メッセージ emit し、handleError 呼び出しを収集"""
+        logger = setup_logging()
+        logger.propagate = False  # caplog への波及を止め、実 handler だけを通す
+        errors: list = []
+        for h in logger.handlers:
+            h.handleError = lambda record, _h=h: errors.append(type(_h).__name__)  # type: ignore[method-assign]
+        logger.log(level, message)
+        for h in logger.handlers:
+            h.flush()
+        return errors
+
+    @pytest.mark.unit
+    def test_emdash_info_does_not_hit_handle_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """em-dash を含む INFO ログが UnicodeEncodeError を起こさない"""
+        self._make_console(monkeypatch, "cp932")
+        errors = self._emit_and_collect_errors(self.EMDASH_MESSAGE)
+        assert errors == [], f"handler がエンコード失敗を報告: {errors}"
+
+    @pytest.mark.unit
+    def test_emdash_warning_does_not_hit_handle_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """em-dash を含む WARNING ログ（stderr handler）も安全"""
+        self._make_console(monkeypatch, "cp932")
+        errors = self._emit_and_collect_errors(self.EMDASH_MESSAGE, level=logging.WARNING)
+        assert errors == [], f"handler がエンコード失敗を報告: {errors}"
+
+    @pytest.mark.unit
+    def test_emdash_message_content_reaches_stdout(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """メッセージ本体が失われず stdout 側バッファへ到達する"""
+        out_buf, _ = self._make_console(monkeypatch, "cp932")
+        self._emit_and_collect_errors(self.EMDASH_MESSAGE)
+        written = out_buf.getvalue().decode("utf-8", errors="replace")
+        assert "五段降下" in written, f"メッセージが書き込まれていない: {written!r}"
+
+    @pytest.mark.unit
+    def test_ascii_format_unchanged(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """従来の ASCII ログ書式（[INFO] ...）が不変（リグレッションガード）"""
+        out_buf, _ = self._make_console(monkeypatch, "cp932")
+        self._emit_and_collect_errors("plain ascii message")
+        written = out_buf.getvalue().decode("utf-8", errors="replace")
+        assert "[INFO] plain ascii message" in written
+
+    @pytest.mark.unit
+    def test_stringio_stream_still_works(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """buffer を持たない stream（StringIO 等）でも setup_logging が壊れない"""
+        logging.getLogger("episodic_rag").handlers.clear()
+        fake_out = StringIO()
+        fake_err = StringIO()
+        monkeypatch.setattr(sys, "stdout", fake_out)
+        monkeypatch.setattr(sys, "stderr", fake_err)
+
+        configured = setup_logging()
+        configured.propagate = False
+        configured.info("stringio safe")
+        for h in configured.handlers:
+            h.flush()
+
+        assert "stringio safe" in fake_out.getvalue()

@@ -244,6 +244,14 @@ def setup_logging(level: Optional[int] = None) -> logging.Logger
 
 デフォルトのロギング設定をセットアップ。
 
+ハンドラーの出力先は UTF-8 で構成される（`_utf8_safe_stream()`）。Windows の
+cmd.exe / PowerShell はリダイレクト・パイプ時に既定で cp932 を使うため、
+em-dash「—」(U+2014) 等 cp932 に存在しない文字が `UnicodeEncodeError`
+（`--- Logging error ---`）を引き起こしていた。バイナリバッファを持つ stream は
+UTF-8 の `TextIOWrapper` で包み直される（handler-local な差し替えで、
+`sys.stdout` 自体は変更しない）。バッファを持たない stream（StringIO 等）は
+そのまま使われる。
+
 ### ユーティリティ関数
 
 ```python

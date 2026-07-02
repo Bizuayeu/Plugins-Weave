@@ -169,6 +169,8 @@ python -m interfaces.digest_entry --output json
 
 **追加形式**: `"L00260_タイトル.txt"` （フルファイル名）
 
+**フォーマット規約**: 配列要素は1行ずつ記述する（インライン形式 `["a.txt", "b.txt"]` は避ける）
+
 **例**:
 ```json
 "source_files": [
@@ -260,31 +262,47 @@ DigestAnalyzerからJSON形式で結果を受け取る。
 
 #### Step 7: SGD統合更新
 
-**対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+**実行ディレクトリ**: `{plugin_root}/scripts`
 
-**更新対象フィールド**:
-
-`metadata`内:
-- `last_updated`: 処理実行日時（ISO 8601形式）
-
-`weekly.overall_digest`内:
+**更新対象フィールド**（`weekly.overall_digest`内）:
 - `digest_type`: 全source_filesを統合したテーマ
 - `keywords`: 統合キーワード5個
 - `abstract`: 統合分析（long版を使用）
 - `impression`: 統合所感（long版を使用）
 
-**操作**: Editツールで各フィールドを更新
+`timestamp` と `metadata.last_updated` はスクリプトが自動更新する。
+`source_files` には触れない。
 
-**source_filesフォーマット規約**:
-配列要素は1行ずつ記述すること（視認性向上のため）：
-```json
-"source_files": [
-  "L00266_ファイル名1.txt",
-  "L00267_ファイル名2.txt"
-]
-```
+**手順**:
 
-インライン形式 `["file1.txt", "file2.txt"]` は避ける。
+1. **Writeツールで一時ファイルに統合結果を書き込み**
+
+   パス: `{digests_path}/temp_overall_digest.json`
+
+   ```json
+   {
+     "digest_type": "統合テーマ",
+     "keywords": ["kw1", "kw2", "kw3", "kw4", "kw5"],
+     "abstract": "統合分析（long版）",
+     "impression": "統合所感（long版）"
+   }
+   ```
+
+2. **スクリプト実行**
+
+   ```bash
+   python -m interfaces.update_shadow_overall weekly {digests_path}/temp_overall_digest.json
+   ```
+
+3. **一時ファイル削除**
+
+   ```bash
+   rm {digests_path}/temp_overall_digest.json
+   ```
+
+**注意**:
+- SGDの直接Edit（exact-match置換）は長文日本語で事故りやすいため使用しないこと
+- abstract/impression は長文のためコマンドライン引数でなく必ずファイル経由で渡すこと
 
 ---
 
@@ -663,24 +681,42 @@ DigestAnalyzerからJSON形式で結果を受け取る。
 
 **前提条件**: Step 4-5で分析結果を取得した場合のみ実行
 
+**実行ディレクトリ**: `{plugin_root}/scripts`
+
 **操作1**: ShadowGrandDigestの5要素を更新
 
-**対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+`<level>.overall_digest` の4要素（digest_type / keywords / abstract / impression）を
+一時ファイル経由でスクリプト更新する。`timestamp` と `metadata.last_updated` は自動更新、
+`source_files` には触れない。
 
-**更新対象フィールド**:
+1. **Writeツールで一時ファイルに統合結果を書き込み**
 
-`metadata`内:
-- `last_updated`: 処理実行日時（ISO 8601形式）
+   パス: `{digests_path}/temp_overall_digest.json`
 
-`<level>.overall_digest`内:
-- `digest_type`: 全source_filesを統合したテーマ
-- `keywords`: 統合キーワード5個
-- `abstract`: 統合分析（long版を使用）
-- `impression`: 統合所感（long版を使用）
+   ```json
+   {
+     "digest_type": "統合テーマ",
+     "keywords": ["kw1", "kw2", "kw3", "kw4", "kw5"],
+     "abstract": "統合分析（long版）",
+     "impression": "統合所感（long版）"
+   }
+   ```
+
+2. **スクリプト実行**
+
+   ```bash
+   python -m interfaces.update_shadow_overall <level> {digests_path}/temp_overall_digest.json
+   ```
+
+3. **一時ファイル削除**
+
+   ```bash
+   rm {digests_path}/temp_overall_digest.json
+   ```
+
+**注意**: SGDの直接Edit（exact-match置換）は長文日本語で事故りやすいため使用しないこと
 
 **操作2**: Provisionalに分析結果を保存
-
-**実行ディレクトリ**: `{plugin_root}/scripts`
 
 **手順**:
 
@@ -800,18 +836,20 @@ python -m interfaces.finalize_from_shadow monthly "理論的深化・実装加�
 
 3. **次階層SGD更新**
 
-   **対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+   `<next_level>.overall_digest` の4要素（digest_type / keywords / abstract /
+   impression、いずれも統合したlong版）を一時ファイル経由でスクリプト更新する。
+   `timestamp` と `metadata.last_updated` は自動更新、`source_files` には触れない。
 
-   **更新対象フィールド**:
+   ```bash
+   # 1. Writeツールで {digests_path}/temp_overall_digest.json に統合結果を書き込み
+   #    形式: {"digest_type": "...", "keywords": [...], "abstract": "...", "impression": "..."}
+   # 2. スクリプト実行
+   python -m interfaces.update_shadow_overall <next_level> {digests_path}/temp_overall_digest.json
+   # 3. 一時ファイル削除
+   rm {digests_path}/temp_overall_digest.json
+   ```
 
-   `metadata`内:
-   - `last_updated`: 処理実行日時（ISO 8601形式）
-
-   `<next_level>.overall_digest`内:
-   - `digest_type`: 全source_filesを統合したテーマ
-   - `keywords`: 統合キーワード5個
-   - `abstract`: 統合分析（long版を使用）
-   - `impression`: 統合所感（long版を使用）
+   **注意**: SGDの直接Edit（exact-match置換）は長文日本語で事故りやすいため使用しないこと
 
 **自動処理済み（プログラム）**:
 - 次階層Shadowのsource_filesに確定ファイル名を追加 ✓

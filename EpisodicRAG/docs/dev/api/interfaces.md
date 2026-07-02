@@ -39,8 +39,9 @@ from interfaces import (
 7. [ヘルパー関数](#ヘルパー関数interfacesinterface_helperspy)
 8. [CLI共通ヘルパー](#cli共通ヘルパーinterfacescli_helperspy) *(v4.1.0+)*
 9. [UpdateDigestTimes CLI](#updatedigesttimes-cliupdate_digest_timespy) *(v5.0.0+)*
-10. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
-11. [DigestReadinessChecker（digest_readiness.py）](#digestreadinesscheckerdigest_readinesspy) *(v5.1.0+)*
+10. [OverallDigestUpdater（update_shadow_overall.py）](#overalldigestupdaterupdate_shadow_overallpy)
+11. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
+12. [DigestReadinessChecker（digest_readiness.py）](#digestreadinesscheckerdigest_readinesspy) *(v5.1.0+)*
 
 ---
 
@@ -520,6 +521,54 @@ python -m interfaces.update_digest_times weekly 51
 **用途**:
 - パターン1フロー（新Loop検出）でloop処理完了を記録
 - `finalize_from_shadow.py`を呼ばないワークフローで使用
+
+---
+
+## OverallDigestUpdater（update_shadow_overall.py）
+
+ShadowGrandDigest の overall_digest 5要素（digest_type / keywords / abstract /
+impression / timestamp）を JSON 入力から更新。`source_files` は変更しない。
+
+> **背景**: overall_digest の abstract は 2400 字級の日本語文字列を含み、
+> Edit ツールの exact-match 置換による手動更新は事故りやすい。
+> `/digest` の SGD 統合更新ステップ（Pattern 1 Step 7 / Pattern 2 Step 6・8.5）は
+> この CLI を使う。
+
+```python
+class OverallDigestUpdater:
+    def __init__(self, config: Optional[DigestConfig] = None): ...
+    def update_overall(self, level: str, payload: Dict[str, Any]) -> Path: ...
+```
+
+| メソッド | 説明 |
+|---------|------|
+| `update_overall(level, payload) -> Path` | 4要素を検証して更新・保存し、SGD のパスを返す。timestamp / metadata.last_updated は自動更新 |
+
+**入力JSON形式**（4要素すべて必須）:
+
+```json
+{
+  "digest_type": "統合テーマ",
+  "keywords": ["kw1", "kw2", "kw3", "kw4", "kw5"],
+  "abstract": "統合分析（long版）",
+  "impression": "統合所感（long版）"
+}
+```
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+
+# JSONファイル経由（長文はファイル経由を推奨）
+python -m interfaces.update_shadow_overall monthly overall_payload.json
+
+# 標準入力経由
+cat payload.json | python -m interfaces.update_shadow_overall monthly --stdin
+```
+
+**バリデーション**: 必須キー欠落・keywords が非リスト・文字列フィールドの型不正は
+`EpisodicRAGError`（CLI では exit 1）。エラー時 SGD は変更されない。
 
 ---
 

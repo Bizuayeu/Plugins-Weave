@@ -11,11 +11,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#560---2026-06-14)
+- [v5.x](#570---2026-07-02)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.7.0] - 2026-07-02
+
+### Added
+
+- **update_shadow_overall CLI（SGD overall_digest 更新の interface 化）** — ShadowGrandDigest の overall_digest 5要素（digest_type / keywords / abstract / impression / timestamp）を JSON 入力から更新する `interfaces/update_shadow_overall.py` を新設
+  - **背景**: overall_digest の abstract は 2400 字級の日本語文字列を含み、Edit ツールの exact-match 置換による手動更新は事故りやすい。ShadowIO 経由の JSON ラウンドトリップで安全に更新する
+  - `source_files` には触れない（不変条件）。`timestamp` / `metadata.last_updated` は自動更新
+  - 入力バリデーション: 必須4キー・型検査。エラー時 SGD は変更されない
+  - 使用法: `python -m interfaces.update_shadow_overall <level> <json_file>`（`--stdin` 対応）
+
+### Changed
+
+- **`/digest` の SGD 統合更新手順を CLI 化** — Pattern 1 Step 7 / Pattern 2 Step 6・Step 8.5 の「Edit ツールで各フィールドを更新」を、一時ファイル + `update_shadow_overall` 実行の手順に変更（`commands/digest.md`）。source_files フォーマット規約（1行ずつ）は Pattern 1 Step 3 へ移設
+
+### Fixed
+
+- **Windows cp932 コンソールでのログクラッシュ** — `logging.StreamHandler` の出力先が cp932（リダイレクト・パイプ時の既定）だと、digest_type に頻出する em-dash「——」(U+2014) が `UnicodeEncodeError`（`--- Logging error ---`）を引き起こしていた。`setup_logging()` がハンドラーの stream を UTF-8 の `TextIOWrapper` で包み直すよう修正（`_utf8_safe_stream()`、handler-local な差し替えで `sys.stdout` 自体は変更しない）
+  - 副次効果: パイプ環境で文字化けしていた日本語ログが可読になった
+  - テスト: `test_logging_config.py::TestHandlerEncodingSafety`（cp932 疑似コンソールで内容到達まで検証）
 
 ---
 

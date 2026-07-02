@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-06-14 -->
+<!-- Last synced: 2026-07-02 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,11 +12,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#560---2026-06-14)
+- [v5.x](#570---2026-07-02)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.7.0] - 2026-07-02
+
+### Added
+
+- **update_shadow_overall CLI (interface for SGD overall_digest updates)** — new `interfaces/update_shadow_overall.py` that updates the 5 overall_digest fields (digest_type / keywords / abstract / impression / timestamp) of ShadowGrandDigest from JSON input
+  - **Background**: overall_digest abstracts contain ~2400-char Japanese strings; manual updates via Edit-tool exact-match replacement are error-prone. A JSON round-trip through ShadowIO updates them safely
+  - Never touches `source_files` (invariant). `timestamp` / `metadata.last_updated` are auto-updated
+  - Input validation: 4 required keys with type checks. SGD is left unchanged on error
+  - Usage: `python -m interfaces.update_shadow_overall <level> <json_file>` (supports `--stdin`)
+
+### Changed
+
+- **`/digest` SGD integration steps now use the CLI** — Pattern 1 Step 7 / Pattern 2 Step 6 & Step 8.5 changed from "update each field with the Edit tool" to a temp-file + `update_shadow_overall` procedure (`commands/digest.md`). The source_files formatting rule (one entry per line) moved to Pattern 1 Step 3
+
+### Fixed
+
+- **Log crash on Windows cp932 consoles** — when `logging.StreamHandler` writes to a cp932 stream (the default under redirect/pipe), the em-dash "——" (U+2014) frequently used in digest_type raised `UnicodeEncodeError` (`--- Logging error ---`). `setup_logging()` now re-wraps handler streams in a UTF-8 `TextIOWrapper` (`_utf8_safe_stream()`, a handler-local swap that leaves `sys.stdout` itself untouched)
+  - Side benefit: Japanese log lines that used to appear garbled under pipes are now readable
+  - Tests: `test_logging_config.py::TestHandlerEncodingSafety` (verifies content delivery through a simulated cp932 console)
 
 ---
 

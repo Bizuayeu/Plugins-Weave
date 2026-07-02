@@ -33,6 +33,7 @@
    - [ShadowGrandDigestが更新されない](#shadowgranddigestが更新されない)
    - [階層的カスケードが動作しない](#階層的カスケードが動作しない)
    - [Digest生成時のJSON形式エラー](#digest生成時のjson形式エラー)
+   - [Windows でログに "--- Logging error ---" が出る（cp932）](#windows-でログに-----logging-error-----が出るcp932)
    - [開発環境とインストール環境の混在](#開発環境とインストール環境の混在)
    - [Loop ID移行（v3.0.0）](#loop-id移行v300)
 4. [システム状態の詳細診断](#システム状態の詳細診断)
@@ -404,6 +405,45 @@ cat {path_to_generated_json}
 # エディタで開いて末尾を修復
 # 例: 欠けている } や ] を追加
 ```
+
+---
+
+### Windows でログに "--- Logging error ---" が出る（cp932）
+
+**症状**: `/digest` 実行中（特に finalize カスケード）に以下が出力される。処理自体は完了している。
+
+```
+--- Logging error ---
+Traceback (most recent call last):
+  ...
+UnicodeEncodeError: 'cp932' codec can't encode character '—' ...
+```
+
+**原因**:
+- Windows の cmd.exe / PowerShell はリダイレクト・パイプ時に既定で cp932 (Shift-JIS) を使う
+- digest_type に頻出する em-dash「——」(U+2014) は cp932 にマップが存在しない
+- ログ出力（`logging.StreamHandler`）が encode に失敗し、logging がエラーを握り潰す
+
+**解決方法**:
+
+本体は修正済み（ログハンドラーが UTF-8 で出力するようになった）。プラグインを最新版へ更新する:
+
+```bash
+/plugin marketplace update plugins-weave
+```
+
+旧バージョンのまま回避する場合は、環境変数で Python 全体を UTF-8 化する:
+
+```bash
+# PowerShell
+$env:PYTHONUTF8 = "1"
+
+# bash
+export PYTHONUTF8=1
+```
+
+**補足**: このエラーは digest の成否に影響しない（ログ表示層のみの問題）。
+ただし本物の logging エラーを覆い隠すノイズになるため、放置は推奨しない。
 
 ---
 

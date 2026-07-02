@@ -428,11 +428,13 @@ tools_tests/
 
 ## Encoding Tests [v4.2.0+]
 
-Windows環境でのstdin UTF-8エンコーディングテスト。
+Windows環境でのUTF-8エンコーディングテスト。stdin 入力とログ出力の2系統。
 
 ```
 interfaces_tests/
 └── test_encoding.py          # stdin日本語入力の文字化け防止テスト
+infrastructure_tests/
+└── test_logging_config.py    # TestHandlerEncodingSafety: ログハンドラのcp932安全性
 ```
 
 ### テスト内容
@@ -441,16 +443,23 @@ interfaces_tests/
 |---------|---------|
 | `test_save_provisional_digest_japanese_input_no_garble` | 日本語JSONの文字化け防止 |
 | `test_source_file_name_preserved` | source_fileフィールドの日本語保持 |
+| `TestHandlerEncodingSafety::test_emdash_*` | cp932疑似コンソールでem-dash「—」ログがUnicodeEncodeErrorにならず内容が到達する |
+| `TestHandlerEncodingSafety::test_stringio_stream_still_works` | bufferを持たないstream（StringIO等）でsetup_loggingが壊れない |
 
 ### 背景
 
-Windows環境でsubprocess経由でstdinに日本語を渡す際、UTF-8エンコーディングが正しく設定されていないと文字化け（`???`パターン）が発生する。このテストは `io.TextIOWrapper` によるstdin UTF-8ラッパーの動作を検証する。
+**stdin 系**: Windows環境でsubprocess経由でstdinに日本語を渡す際、UTF-8エンコーディングが正しく設定されていないと文字化け（`???`パターン）が発生する。このテストは `io.TextIOWrapper` によるstdin UTF-8ラッパーの動作を検証する。
+
+**ログ出力系**: リダイレクト・パイプ環境の sys.stdout は cp932 となり、em-dash (U+2014) 等 cp932 に無い文字のログが `UnicodeEncodeError`（`--- Logging error ---`）になる。`setup_logging()` の `_utf8_safe_stream()` がハンドラーの stream を UTF-8 で包むことを検証する。
+
+**テスト設計の注意**: pytest の capture マネージャは fixture→call のフェーズ境界で `sys.stdout` を自分の capture オブジェクトへ再代入する。疑似コンソール（cp932 stream）の差し替えは **fixture ではなくテスト本体（call フェーズ）** で行うこと。また caplog は stream encoding を通らないため、この種のバグを検出できない。
 
 ### 実行方法
 
 ```bash
 # エンコーディングテストのみ
 pytest scripts/test/interfaces_tests/test_encoding.py -v
+pytest "scripts/test/infrastructure_tests/test_logging_config.py::TestHandlerEncodingSafety" -v
 ```
 
 ---
