@@ -127,6 +127,8 @@ class OverallDigestUpdater:
             raise EpisodicRAGError(f"ShadowGrandDigest にレベルがありません: {level}")
 
         overall = latest[level]["overall_digest"]
+        if overall is None:
+            raise EpisodicRAGError(f"overall_digest が未初期化です: {level}")
         overall["digest_type"] = payload["digest_type"]
         overall["keywords"] = payload["keywords"]
         overall["abstract"] = payload["abstract"]

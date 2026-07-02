@@ -25,7 +25,6 @@ import pytest
 from application.config import DigestConfig
 from interfaces.update_shadow_overall import OverallDigestUpdater
 
-
 EMDASH_TYPE = "診断学→方法論→実装鋳造——三週弧"
 
 UPDATE_PAYLOAD = {
