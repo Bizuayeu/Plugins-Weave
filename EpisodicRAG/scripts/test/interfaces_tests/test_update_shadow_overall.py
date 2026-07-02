@@ -230,9 +230,7 @@ class TestUpdateShadowOverallCLI(UpdateShadowOverallTestBase):
     def test_cli_updates_from_json_file(self) -> None:
         """JSON ファイル経由で CLI 更新が成功する"""
         payload_file = self.plugin_root / "payload.json"
-        payload_file.write_text(
-            json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8"
-        )
+        payload_file.write_text(json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8")
 
         result = self._run_cli("monthly", str(payload_file))
 
@@ -247,9 +245,7 @@ class TestUpdateShadowOverallCLI(UpdateShadowOverallTestBase):
     def test_cli_invalid_level_rejected(self) -> None:
         """不正な level は非0 exit"""
         payload_file = self.plugin_root / "payload.json"
-        payload_file.write_text(
-            json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8"
-        )
+        payload_file.write_text(json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8")
 
         result = self._run_cli("nosuchlevel", str(payload_file))
 

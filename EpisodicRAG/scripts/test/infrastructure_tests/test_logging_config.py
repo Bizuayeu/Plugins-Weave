@@ -411,9 +411,7 @@ class TestHandlerEncodingSafety:
         monkeypatch.setattr(sys, "stderr", fake_err)
         return out_buf, err_buf
 
-    def _emit_and_collect_errors(
-        self, message: str, level: int = logging.INFO
-    ) -> list:
+    def _emit_and_collect_errors(self, message: str, level: int = logging.INFO) -> list:
         """setup_logging → 1メッセージ emit し、handleError 呼び出しを収集"""
         logger = setup_logging()
         logger.propagate = False  # caplog への波及を止め、実 handler だけを通す
@@ -426,9 +424,7 @@ class TestHandlerEncodingSafety:
         return errors
 
     @pytest.mark.unit
-    def test_emdash_info_does_not_hit_handle_error(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_emdash_info_does_not_hit_handle_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """em-dash を含む INFO ログが UnicodeEncodeError を起こさない"""
         self._make_console(monkeypatch, "cp932")
         errors = self._emit_and_collect_errors(self.EMDASH_MESSAGE)
@@ -444,9 +440,7 @@ class TestHandlerEncodingSafety:
         assert errors == [], f"handler がエンコード失敗を報告: {errors}"
 
     @pytest.mark.unit
-    def test_emdash_message_content_reaches_stdout(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_emdash_message_content_reaches_stdout(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """メッセージ本体が失われず stdout 側バッファへ到達する"""
         out_buf, _ = self._make_console(monkeypatch, "cp932")
         self._emit_and_collect_errors(self.EMDASH_MESSAGE)
