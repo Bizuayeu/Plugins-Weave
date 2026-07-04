@@ -2,6 +2,12 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.1.1] - 2026-07-04
+
+### Fixed
+
+- README の旧 `rules/` 表記の残存 2 箇所（§6 の規範参照・FAQ の衝突説明）を skills 表記へ追従
+
 ## [1.1.0] - 2026-07-04
 
 ### Changed

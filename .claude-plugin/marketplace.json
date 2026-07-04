@@ -1,7 +1,7 @@
 {
   "name": "plugins-weave",
   "description": "Claude Code plugins for making autonomous AI with long term episodic memory",
-  "version": "5.9.0",
+  "version": "5.9.1",
   "pluginRoot": ".",
   "owner": {
     "name": "Weave",
@@ -138,7 +138,7 @@
       "name": "ConsiderateCoder",
       "source": "./ConsiderateCoder",
       "description": "Development methodology plugin: Clean Architecture x TDD x three-tier delegation (communicator / orchestrator / worker) with /plan-sdd, /outsource and /dig commands",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "Weave @ ConsiderateCoder"
       },
