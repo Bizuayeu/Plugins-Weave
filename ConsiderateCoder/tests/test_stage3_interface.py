@@ -139,6 +139,36 @@ def test_deletion_policy_branch():
     )
 
 
+def test_plugin_internal_refs_use_plugin_root():
+    """Command bodies must reference plugin-internal files via
+    ${CLAUDE_PLUGIN_ROOT}, never via cwd-relative ../ links — the runtime
+    cwd is the user's project, so ../ links break after installation."""
+    for path in (PLAN_SDD_PATH, OUTSOURCE_PATH, DIG_PATH):
+        text = path.read_text(encoding="utf-8")
+        assert "](../" not in text, (
+            f"{path.name} contains cwd-relative plugin-internal link(s)"
+        )
+    for path in (PLAN_SDD_PATH, OUTSOURCE_PATH):
+        text = path.read_text(encoding="utf-8")
+        assert "${CLAUDE_PLUGIN_ROOT}/" in text, (
+            f"{path.name} must reference bundled files via "
+            "${CLAUDE_PLUGIN_ROOT}"
+        )
+
+
+def test_dig_fork_agent_pair():
+    """dig runs in a forked subagent: context: fork must be present
+    (agent: has no effect without it) and agent must be the canonical
+    lowercase 'general-purpose'."""
+    frontmatter, _, _ = _split_frontmatter(DIG_PATH)
+    assert re.search(r"^context:\s*fork\s*$", frontmatter, re.MULTILINE), (
+        "dig.md missing 'context: fork' (agent: is inert without it)"
+    )
+    assert re.search(r"^agent:\s*general-purpose\s*$", frontmatter, re.MULTILINE), (
+        "dig.md agent must be lowercase 'general-purpose'"
+    )
+
+
 def test_no_forbidden_tokens():
     """None of the three Interface-layer artifacts may carry development-only
     evidence (local paths, dates, proof-count callouts). {{DATE}} is a literal

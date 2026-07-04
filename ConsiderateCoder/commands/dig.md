@@ -11,7 +11,7 @@ allowed-tools:
   - TodoWrite
   - AskUserQuestion
 context: fork
-agent: General-purpose
+agent: general-purpose
 ---
 
 # Deep Dig

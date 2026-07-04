@@ -17,7 +17,7 @@ context: fork
 # Spec-Driven Plan: Clean Architecture × TDD
 
 あなたは **Spec-Driven Development（SDD）** の計画立案者です。
-[`rules/DEV.md`](../rules/DEV.md) の方針に従い、`$ARGUMENTS` で示された機能・対象について、
+`${CLAUDE_PLUGIN_ROOT}/rules/DEV.md`（本プラグイン同梱の開発規範）を Read し、その方針に従い、`$ARGUMENTS` で示された機能・対象について、
 **仕様＋実装ステージ＋ドキュメント整備計画** を統合した `IMPLEMENTATION_PLAN.md` を作成します。
 
 各 Stage の **実装時** には Clean Architecture × TDD のサイクルを回しますが、
@@ -41,9 +41,10 @@ context: fork
 
 ## 前提：必ず参照する規範
 
-1. [`rules/DEV.md`](../rules/DEV.md) — Clean Architecture / TDD Flow / 3-Strike Rule / Completion Checklist / Decision Priority
-2. 対象プロジェクトの `CLAUDE.md` / 関連 `CLAUDE.md`（あれば全て）
-3. 対象プロジェクトの既存コード — 類似パターンを **3つ** 把握する（TDD Flow Step 1 "Understand"）
+1. `${CLAUDE_PLUGIN_ROOT}/rules/DEV.md`（Read する） — Clean Architecture / TDD Flow / 3-Strike Rule / Completion Checklist / Decision Priority
+2. `${CLAUDE_PLUGIN_ROOT}/rules/OPS.md`（Read する） — セキュリティ・コスト・データ設計・性能・障害対応・LLM 統合防御の事前チェック観点（該当する Stage の Success Criteria / Implementation Notes に織り込む）
+3. 対象プロジェクトの `CLAUDE.md` / 関連 `CLAUDE.md`（あれば全て）
+4. 対象プロジェクトの既存コード — 類似パターンを **3つ** 把握する（TDD Flow Step 1 "Understand"）
 
 ---
 

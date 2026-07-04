@@ -38,7 +38,7 @@ def test_agent_frontmatter():
     """Both agents declare name/description/model; orchestrator's tools
     line excludes Edit/Write (structural guarantee: the commander cannot
     touch files directly). Word-boundary matching avoids false positives
-    on legitimate tools like SendMessage / TodoWrite (contains "Write").
+    on legitimate tools like TodoWrite (contains "Write").
     """
     for path in (ORCHESTRATOR_PATH, WORKER_PATH):
         frontmatter, _, _ = _split_frontmatter(path)
@@ -72,6 +72,42 @@ def test_orchestrator_references_namespaced_worker():
     assert not bare_refs, (
         f"bare (non-namespaced) subagent_type: worker reference(s) found: {bare_refs}"
     )
+
+
+def test_structural_tool_guarantees():
+    """Structural guarantees on both sides of the delegation: the
+    orchestrator cannot send async messages (no SendMessage — its own
+    discipline bans round-trips), and the worker cannot re-delegate
+    (Agent is disallowed). Discipline is culture; the tool list is law."""
+    orchestrator_fm, _, _ = _split_frontmatter(ORCHESTRATOR_PATH)
+    tools_line = re.search(
+        r"^tools:\s*(.+)$", orchestrator_fm, re.MULTILINE
+    ).group(1)
+    assert not re.search(r"\bSendMessage\b", tools_line), (
+        f"orchestrator tools must not include SendMessage: {tools_line!r}"
+    )
+
+    worker_fm, _, _ = _split_frontmatter(WORKER_PATH)
+    disallowed_match = re.search(
+        r"^disallowedTools:\s*(.+)$", worker_fm, re.MULTILINE
+    )
+    assert disallowed_match, "worker frontmatter missing disallowedTools line"
+    assert re.search(r"\bAgent\b", disallowed_match.group(1)), (
+        f"worker disallowedTools must include Agent (no re-delegation): "
+        f"{disallowed_match.group(1)!r}"
+    )
+
+
+def test_agents_wired_to_rules():
+    """Both agent bodies must explicitly Read the bundled DEV.md via
+    ${CLAUDE_PLUGIN_ROOT} — the plugin loader does not auto-discover
+    rules/, so an unreferenced rules file is a dead file."""
+    for path in (ORCHESTRATOR_PATH, WORKER_PATH):
+        _, body, _ = _split_frontmatter(path)
+        assert "${CLAUDE_PLUGIN_ROOT}/rules/DEV.md" in body, (
+            f"{path.name} body must reference "
+            "${CLAUDE_PLUGIN_ROOT}/rules/DEV.md"
+        )
 
 
 def test_no_dev_evidence_refs():

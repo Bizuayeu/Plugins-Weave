@@ -19,7 +19,7 @@ allowed-tools:
 
 このコマンド自身は調査も実装も行わない。ワーカーへの采配・成果物の物証レビュー・進捗管理は
 orchestrator の職掌であり、その運用律（ブリーフの4条件・レビューの規律・通信と再投入の規律）は
-[`agents/orchestrator.md`](../agents/orchestrator.md) を単一の正典（SSoT）とする。
+`${CLAUDE_PLUGIN_ROOT}/agents/orchestrator.md` を単一の正典（SSoT）とする。
 以下は、それを起動するまでの communicator 側フロー（5段）と、完了後のレポート生成のみを規定する。
 重複記述はしない——orchestrator の運用律を知りたければ orchestrator.md を読む。
 
@@ -50,7 +50,7 @@ orchestrator の職掌であり、その運用律（ブリーフの4条件・レ
 
 ## Phase 2: ブリーフ結晶化
 
-orchestrator へ渡す最初のブリーフを、[`agents/orchestrator.md`](../agents/orchestrator.md) が
+orchestrator へ渡す最初のブリーフを、`${CLAUDE_PLUGIN_ROOT}/agents/orchestrator.md` が
 ワーカーに要求するのと同じ **4 条件** を満たす形で組む（司令官に対しても同じ規格を適用する）：
 
 1. 関心事は一つに絞る
@@ -90,7 +90,7 @@ orchestrator の報告を鵜呑みにしない。communicator 自身が物証を
 
 ## Phase 5: HTML レポート & 理解度クイズ生成
 
-[`templates/outsource-report.template.html`](../templates/outsource-report.template.html) を器として、
+`${CLAUDE_PLUGIN_ROOT}/templates/outsource-report.template.html` を Read して器とし、
 `outsource-report-<timestamp>.html` を対象プロジェクトの直下へ `Write` する
 （`.gitignore` への追加を推奨する旨を一言添える）。
 

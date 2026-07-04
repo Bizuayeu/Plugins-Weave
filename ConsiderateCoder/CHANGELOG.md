@@ -2,6 +2,18 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.0.2] - 2026-07-04
+
+### Fixed
+
+- **プラグイン内参照を `${CLAUDE_PLUGIN_ROOT}` に統一** — plan-sdd / outsource の `../` 相対リンクは実行時 cwd（利用者プロジェクト）基準で解決されるため、インストール後に壊れていた（レビュー指摘）。dig の `agent:` 値も通例の小文字 `general-purpose` へ修正
+- **rules を配電網に結線** — orchestrator / worker 本文に「作業前に `${CLAUDE_PLUGIN_ROOT}/rules/DEV.md` を Read」を明記、plan-sdd の前提に OPS.md を追加。「三者が同一規範を参照」が思想から実装になった
+- **構造保証の対称化** — worker に `disallowedTools: Agent`（再委任禁止をプロンプトの文化から許可リストの法律へ）、orchestrator の tools から SendMessage を除去（往復禁止の運用律と所持道具を一致）
+
+### Added
+
+- README FAQ 2 件 — rules をセッション常時ロードしたい場合の案内（`.claude/rules/` へのコピー、junction/symlink 透過）と、agents に memory を持たせない設計判断（`memory:` は Read/Write/Edit を自動有効化するため、orchestrator の無筆記構造保証と構造的に排他）
+
 ## [1.0.1] - 2026-07-04
 
 ### Added
