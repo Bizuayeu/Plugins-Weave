@@ -1,11 +1,11 @@
-<!-- Last synced: 2026-07-02 -->
+<!-- Last synced: 2026-07-04 -->
 English | [日本語](README.md)
 
 # Plugins-Weave
 
 Claude Code plugins for autonomous AI with long-term memory, expression, and communication
 
-[![Version](https://img.shields.io/badge/version-5.7.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.8.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -24,6 +24,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | **Text-only, limited expression** | Emotion-based facial expressions | VisualExpression |
 | **Can't see AI's emotional state** | Emotion vector statusline display | EmotionPulse |
 | **Want to reach AI on the go** | Always-on Telegram secretary agent | TelegramSecretary |
+| **Want to delegate development end-to-end** | SDD planning × three-tier delegation with acceptance reports | ConsiderateCoder |
 
 ---
 
@@ -78,6 +79,13 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | 📖 **Command specification** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
 | 🔐 **Security** | [SECURITY](TelegramSecretary/SECURITY.md) |
 
+### ConsiderateCoder
+
+| Your Goal | Reference |
+|-----------|-----------|
+| 🚀 **Getting started** | [README](ConsiderateCoder/README.md) |
+| 📖 **Command specification** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) |
+
 ---
 
 ## Quick Installation
@@ -108,6 +116,9 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 
 # TelegramSecretary (Always-on Telegram Secretary)
 /plugin install TelegramSecretary@plugins-weave
+
+# ConsiderateCoder (Development Methodology / Three-tier Delegation)
+/plugin install ConsiderateCoder@plugins-weave
 ```
 
 ---
@@ -262,6 +273,30 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 | `/telegram-secretary test` | Connectivity test to owner chat |
 
 → [Full README](TelegramSecretary/README.md) / [Setup](TelegramSecretary/SETUP.md) / [Command Spec](TelegramSecretary/commands/telegram-secretary.md) / [Design](TelegramSecretary/DESIGN.md)
+
+---
+
+### ConsiderateCoder
+
+**A development methodology plugin for Clean Architecture × TDD × three-tier delegation**
+
+`/plan-sdd` fixes requirements and completion criteria upfront as SDD, and `/outsource` delegates implementation through a three-tier structure (communicator [main] - orchestrator - worker). On completion, it generates an acceptance report and comprehension quiz so you retain ownership of understanding even after delegating.
+
+#### Key Features
+
+- **SDD Plan Generation**: Fixes Clean Architecture's 4-layer responsibility breakdown and stage division as `IMPLEMENTATION_PLAN.md`
+- **Three-tier Delegation with Evidence-based Review**: orchestrator breaks tasks down for workers and verifies reports against files/test results rather than taking them at face value
+- **Self-contained HTML Report & Quiz**: No external resources; comprehension quiz asks about change intent, scope of impact, and risk
+- **Bundled Development Rules**: Distributes Clean Architecture, TDD Flow, 3-Strike Rule, and Decision Priority as `rules/`
+
+#### Main Commands
+
+| Command | Description |
+|---------|-------------|
+| `/ConsiderateCoder:plan-sdd` | Generates an implementation plan (IMPLEMENTATION_PLAN.md) |
+| `/ConsiderateCoder:outsource` | Executes development via three-tier delegation, generating an acceptance report & quiz |
+
+→ [Full README](ConsiderateCoder/README.md)
 
 ---
 

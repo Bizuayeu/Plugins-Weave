@@ -50,3 +50,6 @@ archive/
 *.token
 **/token.zip
 **/GitHubPAT*
+# ConsiderateCoder - SDD working files (kept locally when developing via /outsource)
+IMPLEMENTATION_PLAN.md
+outsource-report-*.html

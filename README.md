@@ -4,7 +4,7 @@
 
 長期記憶・能動性・感情表現を実現する、自律的AIのためのClaude Codeプラグイン群
 
-[![Version](https://img.shields.io/badge/version-5.7.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.8.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -23,6 +23,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | **テキストのみで表現が乏しい** | 感情に基づく表情表現 | VisualExpression |
 | **AIの感情状態が見えない** | 感情ベクトルのstatusline表示 | EmotionPulse |
 | **外出先からも対話したい** | Telegram常駐の秘書エージェントが即応 | TelegramSecretary |
+| **開発タスクを丸ごと委任したい** | SDD 計画×三層委任による開発アウトソースと検収レポート | ConsiderateCoder |
 
 ---
 
@@ -77,6 +78,13 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | 📖 **コマンド仕様** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
 | 🔐 **セキュリティ** | [SECURITY](TelegramSecretary/SECURITY.md) |
 
+### ConsiderateCoder
+
+| あなたの目的 | 参照先 |
+|-------------|--------|
+| 🚀 **初めて使う** | [README](ConsiderateCoder/README.md) |
+| 📖 **コマンド仕様** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) |
+
 ---
 
 ## クイックインストール
@@ -107,6 +115,9 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 
 # TelegramSecretary（Telegram常駐秘書）
 /plugin install TelegramSecretary@plugins-weave
+
+# ConsiderateCoder（開発方法論・三層委任）
+/plugin install ConsiderateCoder@plugins-weave
 ```
 
 ---
@@ -261,6 +272,30 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 | `/telegram-secretary test` | owner chatへの疎通テスト |
 
 → [詳細README](TelegramSecretary/README.md) / [セットアップ](TelegramSecretary/SETUP.md) / [コマンド仕様](TelegramSecretary/commands/telegram-secretary.md) / [設計](TelegramSecretary/DESIGN.md)
+
+---
+
+### ConsiderateCoder
+
+**Clean Architecture × TDD × 三層委任の開発方法論プラグイン**
+
+`/plan-sdd` で要件と完了条件をSDDとして先に固め、`/outsource` でcommunicator（main）- orchestrator - workerの三層委任により実装をアウトソースします。完了時には検収レポートと理解度クイズを生成し、委任後も発注者としての理解を保ちます。
+
+#### 主な特徴
+
+- **SDD計画書生成**: Clean Architecture 4層の責務分解とStage分割を`IMPLEMENTATION_PLAN.md`として固定
+- **三層委任と物証レビュー**: orchestratorがworkerへタスクを切り出し、報告を鵜呑みにせずファイル・テスト結果で検収
+- **自己完結HTMLレポート&クイズ**: 外部リソース非依存、変更意図・影響範囲・リスクを問う理解度クイズを同梱
+- **開発規範の同梱**: Clean Architecture・TDD Flow・3-Strike Rule・Decision Priorityを`rules/`として配布
+
+#### 主要コマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `/ConsiderateCoder:plan-sdd` | 実装計画書（IMPLEMENTATION_PLAN.md）を生成 |
+| `/ConsiderateCoder:outsource` | 三層委任で開発を実行し、検収レポート&クイズを生成 |
+
+→ [詳細README](ConsiderateCoder/README.md)
 
 ---
 

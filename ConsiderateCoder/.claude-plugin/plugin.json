@@ -1,0 +1,19 @@
+{
+  "name": "ConsiderateCoder",
+  "version": "1.0.0",
+  "description": "Development methodology plugin: Clean Architecture x TDD x three-tier delegation (communicator / orchestrator / worker) with /plan-sdd and /outsource commands",
+  "author": {
+    "name": "Weave @ ConsiderateCoder"
+  },
+  "homepage": "https://note.com/weave_ai",
+  "repository": "https://github.com/Bizuayeu/Plugins-Weave",
+  "license": "MIT",
+  "keywords": [
+    "clean-architecture",
+    "tdd",
+    "spec-driven-development",
+    "orchestrator-worker",
+    "delegation",
+    "methodology"
+  ]
+}
