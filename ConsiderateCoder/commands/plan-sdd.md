@@ -27,6 +27,18 @@ context: fork
 
 ---
 
+## 引数が空の場合
+
+`$ARGUMENTS` が空・空白のみの場合は、計画書を作らず、以下の使い方を簡潔に表示して終了する：
+
+- **インプットは意図**——宣言的な成功像（何が実現されていれば成功か）。手順指示や完全な仕様書は不要
+- 意図には Goal のほか Constraints / Edge cases / Non-goals / Acceptance を含められると計画の質が上がる（全部揃える必要はない）
+- 意図がまだ固まっていなければ、先に `/ConsiderateCoder:dig` で掘り起こす
+- 計画書の生成後は 2 パターン：**ペアプログラミング型**（main セッションで Stage を順に指示、完了後に計画書を削除）／**アウトソース型**（`/ConsiderateCoder:outsource` で三層委任、計画書は保持）
+- 詳細はプラグイン README の「使い始める」章
+
+---
+
 ## 前提：必ず参照する規範
 
 1. [`rules/DEV.md`](../rules/DEV.md) — Clean Architecture / TDD Flow / 3-Strike Rule / Completion Checklist / Decision Priority
@@ -37,13 +49,13 @@ context: fork
 
 ## Phase 1: 主題の把握
 
-`$ARGUMENTS` から以下を抽出する：
+`$ARGUMENTS` は**意図**（宣言的な成功像）として解釈し、以下を抽出する：
 
-- **What**: 何を実装するか（機能名・対象範囲）
+- **What**: 何を実装するか（機能名・対象範囲。意図の Goal / Acceptance に相当）
 - **Why**: なぜ必要か（背景・解決する課題）
-- **Where**: どこに実装するか（プロジェクトルート・対象ディレクトリ）
+- **Where**: どこに実装するか（プロジェクトルート・対象ディレクトリ。Constraints / Non-goals があればここで拾う）
 
-`$ARGUMENTS` が空、または上記3点のうち2点以上が不明な場合は、`AskUserQuestion` で2-3問のみ確認する。
+上記3点のうち2点以上が不明な場合は、`AskUserQuestion` で2-3問のみ確認する。
 **過剰な質問は禁止**。1往復で計画立案に必要な最小情報を取りに行く。
 
 ---

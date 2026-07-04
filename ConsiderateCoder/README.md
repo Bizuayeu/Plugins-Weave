@@ -56,7 +56,8 @@ ConsiderateCoder/
 │   └── worker.md
 ├── commands/
 │   ├── plan-sdd.md
-│   └── outsource.md
+│   ├── outsource.md
+│   └── dig.md
 ├── rules/
 │   ├── DEV.md
 │   └── OPS.md
@@ -71,6 +72,7 @@ ConsiderateCoder/
 - [`agents/worker.md`](agents/worker.md) — スコープ済みタスクの調査・実装・検証を完遂する実働定義
 - [`commands/plan-sdd.md`](commands/plan-sdd.md) — `IMPLEMENTATION_PLAN.md` を生成する SDD 計画コマンド
 - [`commands/outsource.md`](commands/outsource.md) — communicator - orchestrator - worker の三層委任フローの入口コマンド
+- [`commands/dig.md`](commands/dig.md) — 意図が固まる前の深掘りインタビュー（隠れた前提・未検討リスクの掘り起こし）
 - [`rules/DEV.md`](rules/DEV.md) — Clean Architecture・TDD Flow・3-Strike Rule・Decision Priority を定める開発規範
 - [`rules/OPS.md`](rules/OPS.md) — デプロイ・セキュリティ・コスト・LLM 統合防御のチェックリスト
 - [`templates/outsource-report.template.html`](templates/outsource-report.template.html) — 検収レポート & 理解度クイズの自己完結 HTML 雛形
@@ -87,7 +89,68 @@ ConsiderateCoder/
 
 インストール後、コマンドと agent は `ConsiderateCoder:` namespace 配下に配置される（例: `/ConsiderateCoder:plan-sdd`、`subagent_type: ConsiderateCoder:orchestrator`）。
 
-## 5. /plan-sdd の使い方
+## 5. 使い始める — 意図から完成まで
+
+### 全体フロー
+
+```text
+あなたの意図（宣言的な成功像）
+   │  まだ曖昧なら → /ConsiderateCoder:dig で掘り起こし
+   ▼
+/ConsiderateCoder:plan-sdd <意図>
+   │  → IMPLEMENTATION_PLAN.md 生成 → あなたがレビュー・裁可
+   ▼
+実装 —— 2 つのパターンから選ぶ
+   ├─ A. ペアプログラミング型（アドホック開発）
+   │      main セッションで「Stage 1 を実装して」と順に指示し、
+   │      対話しながら方向修正する。完了後に計画書を削除するのが既定
+   └─ B. アウトソース型（委託開発）
+          /ConsiderateCoder:outsource で三層委任。orchestrator/worker が
+          実装を進め、communicator が検収して HTML レポート &
+          理解度クイズを届ける。計画書は保持
+```
+
+### /plan-sdd に何を渡すか — インプットは「意図」
+
+渡すのはプロンプト（手順指示）でも完全な仕様書でもなく、**意図＝宣言的な成功像**。「どうやるか」ではなく「何が実現されていれば成功か」を書く。
+
+弱い例：
+
+```text
+/ConsiderateCoder:plan-sdd ログイン機能を作って
+```
+
+強い例（Goal / Constraints / Edge cases / Non-goals / Acceptance の観点を含む意図）：
+
+```text
+/ConsiderateCoder:plan-sdd 社内ツールにログイン機能が欲しい。
+Goal: 既存の Google Workspace アカウントでシングルサインオンできること。
+Constraints: パスワードは自前で保存しない。既存の Express サーバに載せる。
+Edge cases: Workspace 外のアカウントは拒否してエラー画面を出す。
+Non-goals: 権限管理（ロール）は今回はやらない。
+Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功後に元のページへ戻る。
+```
+
+5 観点をすべて揃える必要はない——曖昧な部分は plan-sdd 側が調査と質問で補う。ただし**意図の解像度が計画の質を決める**。固まっていないと感じたら、先に `/ConsiderateCoder:dig` へ。
+
+### 意図がまだ固まっていないとき — /dig
+
+隠れた前提・未検討のリスク・暗黙の決定を、選択肢付きの深掘り質問で掘り起こすインタビューコマンド。「作りたい気はするが、何が決まっていないのか分からない」段階で最も効く。発見した決定は計画ファイルへ反映される。
+
+### plan-sdd の後 — どちらで実装するか
+
+| | A. ペアプログラミング型 | B. アウトソース型（/outsource） |
+|---|---|---|
+| 向く場面 | 方向修正しながら進めたい／変更が小さい／文脈依存の判断が多い | スコープが固まった／Stage が独立している／完了まで任せたい |
+| あなたの関与 | Stage ごとに指示と確認 | 最初（裁可）と最後（検収レポート & クイズ）のみ |
+| コンテキスト | main セッションに実装文脈が蓄積 | worker は常にフレッシュ、main は対話文脈を保持 |
+| 計画書の扱い | 全 Stage 完了後に削除（既定） | 保持（検収・レポートの照合元） |
+
+どちらの場合も、各 Stage の内部は `rules/DEV.md` の TDD Flow（Red → Green → Refactor → Commit）で進む。
+
+> `/ConsiderateCoder:plan-sdd`・`/ConsiderateCoder:outsource` を引数無しで呼ぶと、この使い方の要約が表示される。
+
+## 6. /plan-sdd リファレンス
 
 ```
 /ConsiderateCoder:plan-sdd <機能名・対象スコープ・背景>
@@ -104,7 +167,7 @@ ConsiderateCoder/
 
 計画作成のみを行い、実装はユーザーが明示的に指示するまで着手しない。
 
-## 6. /outsource の使い方と運用律
+## 7. /outsource リファレンスと運用律
 
 ```
 /ConsiderateCoder:outsource <委任する開発タスクの説明>
@@ -122,7 +185,7 @@ ConsiderateCoder/
 
 運用律（ブリーフの4条件・レビューの規律・通信と再投入の規律）の詳細は [`agents/orchestrator.md`](agents/orchestrator.md) を単一の正典とする。ここでは重複記述しない。
 
-## 7. モデル配分チューニング指針
+## 8. モデル配分チューニング指針
 
 設計思想は「最も高い器が采配し、廉価な器が全力で手を動かす」。
 
@@ -131,7 +194,7 @@ ConsiderateCoder/
 
 利用者は [`agents/orchestrator.md`](agents/orchestrator.md) / [`agents/worker.md`](agents/worker.md) の frontmatter（`model:` / `effort:`）を1行書き換えるだけで上書きできる。本文の運用律は変更不要。このチューニング指針は README にのみ記載し、agent 本文には書かない（単一正典の維持）。
 
-## 8. FAQ
+## 9. FAQ
 
 **Q. 既存の `CLAUDE.md` やローカルの `rules/` と衝突しないか？**
 A. 衝突しない。プラグイン内の `rules/DEV.md`・`rules/OPS.md` は配布向けに一般化した版であり、リポジトリ固有の `CLAUDE.md` や既存のローカル規範を上書きしない。同じ規範を指していれば重複があっても実害はなく、内容が食い違う場合はローカル側を正とする。

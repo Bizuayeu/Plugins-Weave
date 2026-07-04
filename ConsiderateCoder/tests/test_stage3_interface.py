@@ -12,6 +12,7 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 PLAN_SDD_PATH = PLUGIN_ROOT / "commands" / "plan-sdd.md"
 OUTSOURCE_PATH = PLUGIN_ROOT / "commands" / "outsource.md"
+DIG_PATH = PLUGIN_ROOT / "commands" / "dig.md"
 TEMPLATE_PATH = PLUGIN_ROOT / "templates" / "outsource-report.template.html"
 
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.DOTALL)
@@ -53,6 +54,25 @@ def test_command_frontmatter():
             assert re.search(rf"^{key}:", frontmatter, re.MULTILINE), (
                 f"{path.name} missing {key!r} in frontmatter"
             )
+
+
+def test_dig_command_exists():
+    """dig.md is bundled with a description in its frontmatter (it takes no
+    arguments, so argument-hint is not required)."""
+    frontmatter, _, _ = _split_frontmatter(DIG_PATH)
+    assert re.search(r"^description:", frontmatter, re.MULTILINE), (
+        "dig.md missing 'description' in frontmatter"
+    )
+
+
+def test_commands_show_usage_when_called_without_args():
+    """plan-sdd and outsource define a no-argument help branch so a bare
+    invocation explains how to use them instead of guessing at intent."""
+    for path in (PLAN_SDD_PATH, OUTSOURCE_PATH):
+        text = path.read_text(encoding="utf-8")
+        assert "引数が空の場合" in text, (
+            f"{path.name} missing the no-argument help branch"
+        )
 
 
 def test_outsource_references_orchestrator():
@@ -124,7 +144,7 @@ def test_no_forbidden_tokens():
     evidence (local paths, dates, proof-count callouts). {{DATE}} is a literal
     placeholder token, not a YYYY-MM date, so it does not trip DATE_PATTERN.
     """
-    for path in (PLAN_SDD_PATH, OUTSOURCE_PATH, TEMPLATE_PATH):
+    for path in (PLAN_SDD_PATH, OUTSOURCE_PATH, DIG_PATH, TEMPLATE_PATH):
         text = path.read_text(encoding="utf-8")
         for token in LITERAL_FORBIDDEN_TOKENS:
             assert token not in text, f"{path.name} contains forbidden token: {token!r}"
