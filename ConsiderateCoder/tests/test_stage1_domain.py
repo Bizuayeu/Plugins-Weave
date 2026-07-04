@@ -37,20 +37,36 @@ def test_plugin_manifest():
         assert key in data, f"missing key: {key}"
 
 
-def test_rules_exist_and_generic():
-    for name in ("DEV.md", "OPS.md"):
-        rule_path = PLUGIN_ROOT / "rules" / name
-        assert rule_path.exists(), f"missing {rule_path}"
+RULE_SKILLS = (
+    PLUGIN_ROOT / "skills" / "dev-rules" / "SKILL.md",
+    PLUGIN_ROOT / "skills" / "ops-rules" / "SKILL.md",
+)
 
-        text = rule_path.read_text(encoding="utf-8")
+
+def test_rule_skills_exist_and_generic():
+    """Both rule skills exist with skill frontmatter (name/description) and
+    carry no workspace-specific tokens."""
+    for path in RULE_SKILLS:
+        assert path.exists(), f"missing {path}"
+        text = path.read_text(encoding="utf-8")
+        assert text.startswith("---"), f"{path} missing frontmatter"
+        assert re.search(r"^name:", text, re.MULTILINE), f"{path} missing name:"
+        assert re.search(r"^description:", text, re.MULTILINE), (
+            f"{path} missing description:"
+        )
         for token in FORBIDDEN_TOKENS:
-            assert token not in text, f"{name} contains forbidden token: {token!r}"
+            assert token not in text, f"{path.name} contains forbidden token: {token!r}"
 
 
-def test_dev_md_is_latest():
-    dev_md_path = PLUGIN_ROOT / "rules" / "DEV.md"
-    text = dev_md_path.read_text(encoding="utf-8")
+def test_dev_rules_latest_and_self_contained():
+    """dev-rules carries the CI static-check line (stale-copy regression
+    check) and must be self-contained: subagents do not receive the full
+    Claude Code system prompt, so the rules may not defer to it."""
+    text = RULE_SKILLS[0].read_text(encoding="utf-8")
     assert "CI と同じ静的チェック" in text, (
-        "DEV.md missing the push-time CI static-check line "
-        "(stale copy regression check)"
+        "dev-rules missing the push-time CI static-check line"
+    )
+    assert "System Prompt" not in text, (
+        "dev-rules must not defer to the Claude Code system prompt "
+        "(false premise in subagent context)"
     )

@@ -1,7 +1,18 @@
+---
+name: dev-rules
+description: Development methodology rules (Clean Architecture, TDD flow, 3-Strike rule, decision priority) that govern planning, implementation, and review. Load before designing, staging, implementing, or reviewing code changes.
+---
+
 # Development Guidelines
 
-Claude Code System Prompt が既にカバーする汎用原則（過剰な機能追加の禁止、surgical changes、コミットルール等）はここでは繰り返さない。
-本ファイルは **このプロジェクト固有の設計判断と開発プロセス** を明示する。
+本規範は単体で完結する（メイン会話・サブエージェントのどちらで読まれても前提を欠かない）。
+
+## General Principles
+
+- **求められたものを作る** — 頼まれていない機能・抽象化・設定項目を先回りで足さない（YAGNI）
+- **変更は外科的に** — タスクの達成に必要な最小限のファイルだけに触れる
+- **既存の流儀に合わせる** — 命名・コメント密度・イディオムは周囲のコードに揃える
+- **完了はテストが定義する** — テストと静的チェックが通る状態だけを「完了」と呼ぶ
 
 ---
 
@@ -52,7 +63,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 ```
 
 - 進行に応じて Status を更新する
-- 全 Stage 完了後にファイルを削除する
+- 全 Stage 完了後にファイルを削除する（/outsource 経由の実装では削除しない——コマンド側の削除ポリシーに従う）
 
 ### 3-Strike Rule
 
@@ -61,17 +72,16 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 1. **記録** — 何を試し、何が起き、なぜ失敗したか
 2. **調査** — 2-3 の代替アプローチを探す
 3. **再考** — 抽象度は正しいか？ より小さい問題に分割できないか？ もっと単純な方法はないか？
-4. **確認** — AskUserQuestion で候補を提示し、ユーザーに選択を仰ぐ
+4. **確認** — 候補を提示し、ユーザー（または委任元）に選択を仰ぐ
 
 ### Completion Checklist
 
-開発完了時に以下を **ユーザーに確認** する：
+開発完了時に以下を **確認** する：
 
 - **README.md** — 作成または更新が必要か
 - **CHANGELOG.md** — 作成または更新が必要か
 
-System Prompt のデフォルト「ドキュメントを勝手に作らない」は尊重する。
-ただしこれらは重要なので、**確認自体を省略しない**。
+ドキュメントを勝手に乱造しないことと、この確認自体を省略しないことは両立する。
 
 ---
 

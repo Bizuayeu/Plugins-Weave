@@ -98,15 +98,18 @@ def test_structural_tool_guarantees():
     )
 
 
-def test_agents_wired_to_rules():
-    """Both agent bodies must explicitly Read the bundled DEV.md via
-    ${CLAUDE_PLUGIN_ROOT} — the plugin loader does not auto-discover
-    rules/, so an unreferenced rules file is a dead file."""
+def test_agents_preload_dev_rules():
+    """Both agents preload dev-rules via the skills: frontmatter field —
+    the official wiring that injects full rule content into a subagent's
+    context at spawn (subagents don't receive the full Claude Code system
+    prompt, and plugin rule files are not auto-discovered)."""
     for path in (ORCHESTRATOR_PATH, WORKER_PATH):
-        _, body, _ = _split_frontmatter(path)
-        assert "${CLAUDE_PLUGIN_ROOT}/rules/DEV.md" in body, (
-            f"{path.name} body must reference "
-            "${CLAUDE_PLUGIN_ROOT}/rules/DEV.md"
+        frontmatter, _, _ = _split_frontmatter(path)
+        skills_match = re.search(r"^skills:\s*(.+)$", frontmatter, re.MULTILINE)
+        assert skills_match, f"{path.name} missing skills: preload line"
+        assert "dev-rules" in skills_match.group(1), (
+            f"{path.name} skills: must preload dev-rules: "
+            f"{skills_match.group(1)!r}"
         )
 
 

@@ -1,4 +1,6 @@
 ---
+name: ops-rules
+description: Operational readiness checklist (security, cost, legal, data design, performance, incident response, LLM integration defenses) applied when a change touches deployment, infrastructure, external services, secrets, or user data.
 paths:
   - "**/Dockerfile"
   - "**/docker-compose.*"
@@ -16,7 +18,7 @@ paths:
 # Operations Guidelines
 
 デプロイ・インフラ・運用に関わる作業時の確認事項。
-開発方法論は `./DEV.md` を参照。
+開発方法論は同梱の dev-rules（`../dev-rules/SKILL.md`）を参照。
 詳細チェックリストは [エンジニア歴20年の私が、素人バイブコーディング勢に物申す（Qiita）](https://qiita.com/Akira-Isegawa/items/00f23d206c504db2ac3b) を参照。
 
 ---

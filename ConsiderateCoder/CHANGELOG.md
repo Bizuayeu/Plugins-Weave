@@ -2,6 +2,14 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.1.0] - 2026-07-04
+
+### Changed
+
+- **rules/ を skills/ へ一本化（構造変更）** — `rules/DEV.md`・`rules/OPS.md` を `skills/dev-rules/SKILL.md`・`skills/ops-rules/SKILL.md` へ移設。orchestrator / worker は frontmatter の `skills: dev-rules` により起動時に規範**全文**の注入を受ける（公式の正規配線。本文の Read 指示は不要になったため除去）
+- **dev-rules を自己完結版に改稿** — 「System Prompt が既にカバーする汎用原則は繰り返さない」という旧 DEV.md の開幕宣言は、フルシステムプロンプトを受け取らないサブエージェント文脈で偽になるため（レビュー指摘）、General Principles 節（YAGNI・外科的変更・既存流儀への同調・テストが完了を定義）を備えた単体完結の規範へ書き直し
+- plan-sdd の規範参照パスを skills/ へ追従。README の構造図・Why・FAQ（常時ロード案内は `.claude/rules/` → `skills/` への junction/symlink 方式へ）を更新
+
 ## [1.0.3] - 2026-07-04
 
 ### Fixed
