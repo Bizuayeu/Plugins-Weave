@@ -156,6 +156,19 @@ def test_plugin_internal_refs_use_plugin_root():
         )
 
 
+def test_no_stale_rules_filenames():
+    """v1.1.0 moved rules/DEV.md and rules/OPS.md into skills/ as
+    dev-rules / ops-rules; command bodies (including plan-sdd's output
+    template, which propagates into every generated IMPLEMENTATION_PLAN.md)
+    must not reference the pre-move filenames."""
+    for path in (PLAN_SDD_PATH, OUTSOURCE_PATH, DIG_PATH):
+        text = path.read_text(encoding="utf-8")
+        for stale in ("DEV.md", "OPS.md"):
+            assert stale not in text, (
+                f"{path.name} references stale pre-1.1.0 rules filename: {stale!r}"
+            )
+
+
 def test_interactive_commands_not_forked():
     """Commands whose flow depends on AskUserQuestion must run in the main
     conversation: AskUserQuestion depends on the main conversation's UI and

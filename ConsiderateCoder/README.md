@@ -27,7 +27,7 @@ Clean Architecture の 4 層は、収録物とそのまま対応する：
 
 ### ① Rules の役割
 
-`skills/dev-rules`・`skills/ops-rules` は、規範を揮発性コンテキスト（対話の流れ・その場限りの判断）から分離する。communicator はコマンド実行時に `${CLAUDE_PLUGIN_ROOT}` 参照で Read し、orchestrator / worker には起動時に `skills:` preload で**全文が注入される**（サブエージェントは Claude Code のフルシステムプロンプトを受け取らないため、規範は明示配線でのみ届く）。三者が同一の規範を共有するため、役割が変わっても規範がぶれない。
+`skills/dev-rules`・`skills/ops-rules` は、規範を揮発性コンテキスト（対話の流れ・その場限りの判断）から分離する。communicator はコマンド実行時に `${CLAUDE_PLUGIN_ROOT}` 参照で両規範を Read し、orchestrator / worker には起動時に `skills:` preload で **dev-rules の全文が注入される**（サブエージェントは Claude Code のフルシステムプロンプトを受け取らないため、規範は明示配線でのみ届く）。ops-rules は常時注入せず、`/plan-sdd` が該当 Stage の Success Criteria / Implementation Notes へ織り込むことでブリーフ経由で worker に届く——コンテキスト費用を規範の適用場面に応じてだけ払う設計。三者が同一の規範を共有するため、役割が変わっても規範がぶれない。
 
 ### ② なぜ SDD か
 
@@ -210,7 +210,7 @@ A. 衝突しない。プラグイン内の規範（`skills/dev-rules`・`skills/
 A. 動作する。`templates/outsource-report.template.html` は外部リソース読み込みや `<script>` を持たない自己完結 HTML で、プレースホルダの文字列置換だけで生成できる。`tests/` の pytest はプラグイン自体の構造検証用であり、`/plan-sdd` や `/outsource` の実行には依存しない。
 
 **Q. 規範（dev-rules / ops-rules）をメイン会話にも常時ロードできるか？**
-A. 既定では、communicator はコマンド実行時に Read、orchestrator / worker は `skills:` preload で規範を受け取る（メイン会話への常時ロードはされない）。メイン会話にも常時ロードしたい場合は、プロジェクトの `.claude/rules/` を本プラグインの `skills/` ディレクトリへの junction（Windows）/ symlink（macOS/Linux）にする——`.claude/rules/` はサブディレクトリを再帰的に読むため、`dev-rules/SKILL.md`・`ops-rules/SKILL.md` の両方が常時ロードに乗り、コピーが存在しないので反映漏れも構造的に起きない。ops-rules の paths frontmatter によるパススコープ適用も `.claude/rules/` 配下でのみ機能する。
+A. 既定では、communicator はコマンド実行時に Read、orchestrator / worker は `skills:` preload で dev-rules を受け取る（メイン会話への常時ロードはされない）。メイン会話にも常時ロードしたい場合は、プロジェクトの `.claude/rules/` を本プラグインの `skills/` ディレクトリへの junction（Windows）/ symlink（macOS/Linux）にする——`.claude/rules/` はサブディレクトリを再帰的に読むため、`dev-rules/SKILL.md`・`ops-rules/SKILL.md` の両方が常時ロードに乗り、コピーが存在しないので反映漏れも構造的に起きない。ops-rules の paths frontmatter によるパススコープ適用も `.claude/rules/` 配下でのみ機能する。
 
 **Q. agents に memory を持たせられるか？**
 A. 意図的に非搭載（設計判断）。orchestrator は「Edit/Write を持たない」構造保証を採っているが、`memory:` を有効化すると tools 指定に関わらず Read/Write/Edit が自動有効化されるため、無筆記の構造保証と memory は構造的に排他になる。worker 側の非搭載も「常にフレッシュなコンテキストで品質が上がる」という設計そのもの——記憶を持てば前回の枝葉を引きずる。

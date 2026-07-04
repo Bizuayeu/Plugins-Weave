@@ -18,7 +18,7 @@ paths:
 # Operations Guidelines
 
 デプロイ・インフラ・運用に関わる作業時の確認事項。
-開発方法論は同梱の dev-rules（`../dev-rules/SKILL.md`）を参照。
+開発方法論は同梱の dev-rules 規範を参照。
 詳細チェックリストは [エンジニア歴20年の私が、素人バイブコーディング勢に物申す（Qiita）](https://qiita.com/Akira-Isegawa/items/00f23d206c504db2ac3b) を参照。
 
 ---

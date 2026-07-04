@@ -2,6 +2,14 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.1.3] - 2026-07-04
+
+### Fixed
+
+- **plan-sdd の生成テンプレートから旧 `rules/DEV.md` 参照を一掃（第三次レビュー）** — Phase 6 出力テンプレート冒頭の旧パスは、生成される全 `IMPLEMENTATION_PLAN.md` に存在しない参照を刻み続けるため「ConsiderateCoder 同梱の dev-rules 規範」表記へ修正。本文中の旧ファイル名通称「DEV.md の〜」6 箇所も dev-rules 表記へ統一し、旧 rules ファイル名（`DEV.md` / `OPS.md`）の再混入を test_stage3 の禁止トークンで恒久防止
+- dig の allowed-tools から現行 harness に存在しない `TodoRead` を除去（v3.0.0 取り込み時の残骸）
+- **README の preload 記述を実配線へ精密化** — `skills:` preload で注入されるのは dev-rules のみ（ops-rules は常時注入せず、`/plan-sdd` が計画へ織り込みブリーフ経由で届く）。両規範が注入されると読める旧記述を §2 ①と FAQ で書き分け。ops-rules 本文の `../dev-rules/SKILL.md` 相対参照も、preload 注入文脈ではパス基準を持たないため名前参照へ変更
+
 ## [1.1.2] - 2026-07-04
 
 ### Added
