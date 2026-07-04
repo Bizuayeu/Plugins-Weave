@@ -5,7 +5,7 @@ English | [日本語](README.md)
 
 Claude Code plugins for autonomous AI with long-term memory, expression, and communication
 
-[![Version](https://img.shields.io/badge/version-5.8.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.9.3-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -84,7 +84,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | Your Goal | Reference |
 |-----------|-----------|
 | 🚀 **Getting started** | [README](ConsiderateCoder/README.md) |
-| 📖 **Command specification** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) |
+| 📖 **Command specification** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) / [dig](ConsiderateCoder/commands/dig.md) |
 
 ---
 
@@ -166,8 +166,10 @@ A system that hierarchically digests conversation logs (Loop files) and structur
 |---------|-------------|
 | `/digest` | Detect and analyze new Loops |
 | `/digest weekly` | Finalize Weekly Digest |
+| `/dream-defrag` | Cross-cutting cleanup (GC) of auto-memory |
 | `@digest-auto` | Check system status |
 | `@digest-setup` | Initial setup |
+| `@digest-config` | Change settings |
 | `@wakeup` | Session-start engine for claude.ai: loads long-term memory and applies the persona directive |
 
 → [Full README](EpisodicRAG/README.en.md) / [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.en.md) / [Glossary](EpisodicRAG/GLOSSARY.en.md)
@@ -287,7 +289,7 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 - **SDD Plan Generation**: Fixes Clean Architecture's 4-layer responsibility breakdown and stage division as `IMPLEMENTATION_PLAN.md`
 - **Three-tier Delegation with Evidence-based Review**: orchestrator breaks tasks down for workers and verifies reports against files/test results rather than taking them at face value
 - **Self-contained HTML Report & Quiz**: No external resources; comprehension quiz asks about change intent, scope of impact, and risk
-- **Bundled Development Rules**: Distributes Clean Architecture, TDD Flow, 3-Strike Rule, and Decision Priority as `rules/`
+- **Bundled Development Rules**: Distributes Clean Architecture, TDD Flow, 3-Strike Rule, and Decision Priority as `skills/` (dev-rules / ops-rules)
 
 #### Main Commands
 
@@ -295,6 +297,7 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 |---------|-------------|
 | `/ConsiderateCoder:plan-sdd` | Generates an implementation plan (IMPLEMENTATION_PLAN.md) |
 | `/ConsiderateCoder:outsource` | Executes development via three-tier delegation, generating an acceptance report & quiz |
+| `/ConsiderateCoder:dig` | Deep exploratory interview to discover unknowns and strengthen plans |
 
 → [Full README](ConsiderateCoder/README.md)
 

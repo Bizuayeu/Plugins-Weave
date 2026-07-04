@@ -501,7 +501,7 @@ EpisodicRAGドキュメントの多言語対応方針：
 | カテゴリ | 言語 | 理由 |
 |---------|------|------|
 | **全ドキュメント** | 日本語（SSoT） | 主要な情報源 |
-| **英語版提供** | QUICKSTART, CHEATSHEET, README | 導入時の障壁低減 |
+| **英語版提供** | README, QUICKSTART, CHEATSHEET, GLOSSARY, CHANGELOG, CONTRIBUTING, INDEX, CONCEPT | 導入時の障壁低減 |
 | **開発者向け詳細** | 日本語のみ | AI-First - AIが日本語を理解・補完可能 |
 
 **AI-First Documentation の原則**:

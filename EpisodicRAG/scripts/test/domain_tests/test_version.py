@@ -223,16 +223,20 @@ class TestVersionConsistency:
 
     @pytest.mark.unit
     def test_root_readme_version_badges(self) -> None:
-        """ルート README.md/README.en.md のバージョンバッジが plugin.json と一致"""
+        """ルート README.md/README.en.md のバージョンバッジが marketplace.json と一致
+
+        ルートバッジはマーケットプレイス全体のバージョンを表す（SSoT は
+        .claude-plugin/marketplace.json）。EpisodicRAG 単体のバージョン
+        （plugin.json）とは独立に進むため、比較先を取り違えないこと。
+        """
         plugin_root = Path(__file__).parent.parent.parent.parent
-
-        # plugin.json からバージョン取得
-        plugin_json = plugin_root / ".claude-plugin" / "plugin.json"
-        plugin_data = json.loads(plugin_json.read_text(encoding="utf-8"))
-        plugin_version = plugin_data.get("version")
-
-        # ルート README ファイルをチェック
         repo_root = plugin_root.parent  # plugins-weave/
+
+        # marketplace.json からリポ全体のバージョン取得
+        marketplace_json = repo_root / ".claude-plugin" / "marketplace.json"
+        marketplace_data = json.loads(marketplace_json.read_text(encoding="utf-8"))
+        marketplace_version = marketplace_data.get("version")
+
         readme_files = ["README.md", "README.en.md"]
 
         for readme_name in readme_files:
@@ -243,8 +247,9 @@ class TestVersionConsistency:
             badge_match = re.search(r"badge/version-(\d+\.\d+\.\d+)-", content)
             assert badge_match, f"Version badge not found in {readme_name}"
             badge_version = badge_match.group(1)
-            assert plugin_version == badge_version, (
-                f"Version mismatch: plugin.json={plugin_version}, {readme_name}={badge_version}"
+            assert marketplace_version == badge_version, (
+                f"Version mismatch: marketplace.json={marketplace_version}, "
+                f"{readme_name}={badge_version}"
             )
 
     @pytest.mark.unit

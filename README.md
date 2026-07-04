@@ -4,7 +4,7 @@
 
 長期記憶・能動性・感情表現を実現する、自律的AIのためのClaude Codeプラグイン群
 
-[![Version](https://img.shields.io/badge/version-5.8.0-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
+[![Version](https://img.shields.io/badge/version-5.9.3-blue.svg)](https://github.com/Bizuayeu/Plugins-Weave)
 [![CI](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml/badge.svg)](https://github.com/Bizuayeu/Plugins-Weave/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Bizuayeu/Plugins-Weave/branch/main/graph/badge.svg)](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -83,7 +83,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | あなたの目的 | 参照先 |
 |-------------|--------|
 | 🚀 **初めて使う** | [README](ConsiderateCoder/README.md) |
-| 📖 **コマンド仕様** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) |
+| 📖 **コマンド仕様** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) / [dig](ConsiderateCoder/commands/dig.md) |
 
 ---
 
@@ -165,8 +165,10 @@ claude.aiのプロジェクト機能をClaude Codeで再現。SessionStart hook�
 |---------|------|
 | `/digest` | 新規Loop検出と分析 |
 | `/digest weekly` | Weekly Digest確定 |
+| `/dream-defrag` | auto-memory の横断整理（GC） |
 | `@digest-auto` | システム状態確認 |
 | `@digest-setup` | 初期セットアップ |
+| `@digest-config` | 設定変更 |
 | `@wakeup` | claude.ai セッション開始時の記憶ロード＋人格ディレクティブ適用 |
 
 → [詳細README](EpisodicRAG/README.md) / [QUICKSTART](EpisodicRAG/docs/user/QUICKSTART.md) / [用語集](EpisodicRAG/GLOSSARY.md)
@@ -286,7 +288,7 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 - **SDD計画書生成**: Clean Architecture 4層の責務分解とStage分割を`IMPLEMENTATION_PLAN.md`として固定
 - **三層委任と物証レビュー**: orchestratorがworkerへタスクを切り出し、報告を鵜呑みにせずファイル・テスト結果で検収
 - **自己完結HTMLレポート&クイズ**: 外部リソース非依存、変更意図・影響範囲・リスクを問う理解度クイズを同梱
-- **開発規範の同梱**: Clean Architecture・TDD Flow・3-Strike Rule・Decision Priorityを`rules/`として配布
+- **開発規範の同梱**: Clean Architecture・TDD Flow・3-Strike Rule・Decision Priorityを`skills/`（dev-rules / ops-rules）として配布
 
 #### 主要コマンド
 
@@ -294,6 +296,7 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 |---------|------|
 | `/ConsiderateCoder:plan-sdd` | 実装計画書（IMPLEMENTATION_PLAN.md）を生成 |
 | `/ConsiderateCoder:outsource` | 三層委任で開発を実行し、検収レポート&クイズを生成 |
+| `/ConsiderateCoder:dig` | 深掘りインタビューで未知の要件を発見し計画を強化 |
 
 → [詳細README](ConsiderateCoder/README.md)
 
