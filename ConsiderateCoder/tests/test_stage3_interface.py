@@ -156,17 +156,18 @@ def test_plugin_internal_refs_use_plugin_root():
         )
 
 
-def test_dig_fork_agent_pair():
-    """dig runs in a forked subagent: context: fork must be present
-    (agent: has no effect without it) and agent must be the canonical
-    lowercase 'general-purpose'."""
-    frontmatter, _, _ = _split_frontmatter(DIG_PATH)
-    assert re.search(r"^context:\s*fork\s*$", frontmatter, re.MULTILINE), (
-        "dig.md missing 'context: fork' (agent: is inert without it)"
-    )
-    assert re.search(r"^agent:\s*general-purpose\s*$", frontmatter, re.MULTILINE), (
-        "dig.md agent must be lowercase 'general-purpose'"
-    )
+def test_interactive_commands_not_forked():
+    """Commands whose flow depends on AskUserQuestion must run in the main
+    conversation: AskUserQuestion depends on the main conversation's UI and
+    is silently unavailable in subagents (context: fork included, even when
+    listed in tools), so a forked interviewer degrades into guessing
+    instead of asking."""
+    for path in (PLAN_SDD_PATH, OUTSOURCE_PATH, DIG_PATH):
+        frontmatter, _, _ = _split_frontmatter(path)
+        assert not re.search(r"^context:\s*fork\b", frontmatter, re.MULTILINE), (
+            f"{path.name} must not use context: fork "
+            "(its AskUserQuestion flow would silently fail)"
+        )
 
 
 def test_no_forbidden_tokens():

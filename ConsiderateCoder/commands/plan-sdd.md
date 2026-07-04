@@ -11,7 +11,6 @@ allowed-tools:
   - TodoWrite
   - AskUserQuestion
   - Agent
-context: fork
 ---
 
 # Spec-Driven Plan: Clean Architecture × TDD

@@ -10,8 +10,6 @@ allowed-tools:
   - TodoRead
   - TodoWrite
   - AskUserQuestion
-context: fork
-agent: general-purpose
 ---
 
 # Deep Dig

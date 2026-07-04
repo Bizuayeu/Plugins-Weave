@@ -2,6 +2,18 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.0.3] - 2026-07-04
+
+### Fixed
+
+- **dig / plan-sdd から `context: fork` を除去（最重大）** — AskUserQuestion はメイン会話の UI に依存し、サブエージェント（fork 含む）では tools に列挙しても**沈黙して**使えない（公式仕様）。fork のままでは質問フローが静かに推測へ退化する——対話が本体の dig は main 実行が本来の姿、plan-sdd も重い探索を Explore へ委譲済みで main 実行のコストは許容範囲（レビュー指摘）
+- **orchestrator の同期起動規律を環境変化へ追従** — サブエージェントの既定が background 起動に変わったため（v2.1.198）、「run_in_background: false を毎回明示する（省略は不達側に倒れる）」と明文化
+
+### Added
+
+- README §8: `CLAUDE_CODE_SUBAGENT_MODEL` 環境変数が frontmatter の `model:` を黙って上書きする注意
+- README FAQ: プラグイン配布 agent では `hooks` / `mcpServers` / `permissionMode` が無効・`Agent(worker)` 括弧構文はメインスレッド専用という強制力の上限（配布形態が強制力の上限を決める）
+
 ## [1.0.2] - 2026-07-04
 
 ### Fixed
