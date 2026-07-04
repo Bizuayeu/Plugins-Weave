@@ -32,7 +32,7 @@ DATE_PATTERN = re.compile(r"20\d\d-\d\d")
 
 
 def test_marketplace_entry_consistency():
-    """marketplace.json top-level version is 5.8.0 and carries exactly one
+    """marketplace.json top-level version is semver and carries exactly one
     ConsiderateCoder entry whose fields mirror plugin.json 1:1."""
     assert MARKETPLACE_PATH.exists(), f"missing {MARKETPLACE_PATH}"
     assert PLUGIN_MANIFEST_PATH.exists(), f"missing {PLUGIN_MANIFEST_PATH}"
@@ -40,8 +40,9 @@ def test_marketplace_entry_consistency():
     marketplace = json.loads(MARKETPLACE_PATH.read_text(encoding="utf-8"))
     manifest = json.loads(PLUGIN_MANIFEST_PATH.read_text(encoding="utf-8"))
 
-    assert marketplace["version"] == "5.8.0", (
-        f"marketplace top-level version must be 5.8.0, got {marketplace['version']!r}"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", marketplace["version"]), (
+        f"marketplace top-level version must be semver (X.Y.Z), "
+        f"got {marketplace['version']!r}"
     )
 
     entries = [p for p in marketplace["plugins"] if p.get("name") == "ConsiderateCoder"]

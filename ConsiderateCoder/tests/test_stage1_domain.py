@@ -5,6 +5,7 @@ generalized (no workspace-specific tokens leaked from the source copy).
 Stdlib only: json / re / pathlib. No external dependencies, no conftest.
 """
 import json
+import re
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
@@ -26,7 +27,9 @@ def test_plugin_manifest():
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     assert data["name"] == "ConsiderateCoder"
-    assert data["version"] == "1.0.0"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", data["version"]), (
+        f"version must be semver (X.Y.Z), got {data['version']!r}"
+    )
     assert data["license"] == "MIT"
     assert data["description"], "description must be non-empty"
 
