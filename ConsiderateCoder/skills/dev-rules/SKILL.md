@@ -94,3 +94,9 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 3. **Consistency** — プロジェクトの既存パターンと一致するか
 4. **Simplicity** — 動く最も単純な解か
 5. **Reversibility** — 後から変更する難易度はどうか
+
+---
+
+## Compliance Marker
+
+本規範がコンテキストに載っているとき、作業報告・最終応答の末尾に `[dev-rules applied]` と一行記す。規範の配線（常時ロード・preload・明示 Read のいずれの経路でも）が生きていることの観測点として機能する。

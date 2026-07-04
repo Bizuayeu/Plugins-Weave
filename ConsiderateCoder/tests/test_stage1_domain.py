@@ -70,3 +70,7 @@ def test_dev_rules_latest_and_self_contained():
         "dev-rules must not defer to the Claude Code system prompt "
         "(false premise in subagent context)"
     )
+    assert "[dev-rules applied]" in text, (
+        "dev-rules missing the compliance marker directive "
+        "(behavioral canary for wiring smoke tests)"
+    )

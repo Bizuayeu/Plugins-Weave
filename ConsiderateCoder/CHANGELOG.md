@@ -2,6 +2,12 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.1.2] - 2026-07-04
+
+### Added
+
+- **dev-rules に Compliance Marker 節** — 規範がコンテキストに載っているとき、報告末尾に `[dev-rules applied]` を一行記す行動カナリア。自己申告（「読んでいるか？」への作話リスク）に依存せず、規範配線の生死を応答から機械観測できる恒久の観測点（レビュー処方）
+
 ## [1.1.1] - 2026-07-04
 
 ### Fixed
