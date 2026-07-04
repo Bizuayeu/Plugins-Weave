@@ -2,6 +2,12 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.0.1] - 2026-07-04
+
+### Added
+
+- **README「モデル配分チューニング指針」に communicator 項を追加** — Opus 以上（可能なら Fable / Mythos 級）× effort `xhigh` 以上を推奨。orchestrator が `inherit` 既定のため、main セッションの器がそのまま采配の器を兼ねる（communicator のモデル選択が二重に効く）ことを明記。「使い始める」章のアウトソース型の項からも同指針へ誘導
+
 ## [1.0.0] - 2026-07-04 — 初回リリース
 
 ### Added
