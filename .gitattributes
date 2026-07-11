@@ -1,0 +1,2 @@
+# シェルスクリプトは実行環境（bash）が LF を要求するため、checkout 時の CRLF 変換から除外する
+*.sh text eol=lf
