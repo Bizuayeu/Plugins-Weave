@@ -2,6 +2,17 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.2.0] - 2026-07-12
+
+### Added
+
+- **bg 起動＋ファイル watchdog による死活監視（/outsource Phase 3b）** — communicator→orchestrator の一段に限り background 起動を正式化し、同梱の `scripts/watchdog.sh`（対象リポの mtime 沈黙を検知して STALLED を 1 行発報）を Monitor で張る運用を追加。STALLED → TaskOutput 生死実測 → 静観／SendMessage 蘇生の**二段判定**を明文化（奥宮 v0.1 実装で実戦検証：stream stall 600s からの transcript 蘇生 1 回、偽陽性 2 パターン〔監視開始前の古い mtime での即発報／worker 初動の長考〕の是正を焼き込み）
+- **orchestrator に stall 再開耐性の運用律** — TodoWrite 進捗表とファイル物証だけで現在地が復元できる状態を保つ（SendMessage transcript 再開で蘇生されうる前提。蘇生後は再検分を最小化し直ちに采配へ戻る）
+
+### Changed
+
+- outsource Phase 3 を「同期起動のみ」から「既定は同期（3a）、長丁場は bg＋watchdog（3b）」の二方式へ。worker 起動は従来どおり**常に同期のみ**（bg が許されるのは communicator→orchestrator の一段だけ）
+
 ## [1.1.3] - 2026-07-04
 
 ### Fixed

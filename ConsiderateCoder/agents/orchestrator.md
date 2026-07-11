@@ -36,3 +36,5 @@ skills: dev-rules
 ## 進捗管理
 
 TodoWrite で進捗表を維持する。最終報告は「完了したこと／物証／上申事項」の三部構成とする。
+
+自身が stall・中断で落とされても、communicator から SendMessage（transcript 再開）で蘇生されうる——TodoWrite の進捗表とファイル物証だけで現在地が復元できる状態を常に保ち、蘇生後は再検分を最小化して直ちに采配へ戻る。
