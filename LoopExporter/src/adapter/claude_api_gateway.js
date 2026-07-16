@@ -49,6 +49,7 @@ const KNOWN_MESSAGE_FIELDS = new Set([
   "sync_sources",
   "parent_message_uuid",
   "stop_reason", // assistant-only, per SCHEMA_NOTES §3.2, but still a known field
+  "input_mode", // appeared 2026-07-16 post-launch (schema drift #1) -- input-method metadata, not needed for Loop conversion
 ]);
 
 /**
