@@ -176,6 +176,24 @@ A system that hierarchically digests conversation logs (Loop files) and structur
 
 ---
 
+### Fuhito (LoopExporter)
+
+**A companion tool for EpisodicRAG Loop capture (private use)**
+
+A Chrome extension that fetches conversations directly from claude.ai's internal JSON API and saves them locally in Loop-compatible format (alternating `## User` / `## Claude` headings). Because it doesn't read the DOM, it captures long conversations completely even where virtualized scrolling would otherwise cause partial loss.
+
+> ⚠️ **Not listed on the marketplace, not `/plugin install`-able**: distributed separately as a Chrome extension (MV3, unpacked) for private use. Load it via `chrome://extensions` with Developer mode enabled.
+
+#### Key Features
+
+- **Integrity verification (fail-closed)**: if any of the four checks (chain, count, empty content, freshness) fails, no file is written and an error is shown instead
+- **Direct API fetch**: doesn't read the DOM, so partial loss from virtualized scrolling can't happen by construction
+- **Zero external transmission**: only talks to claude.ai same-origin, no telemetry
+
+→ [Full README](LoopExporter/README.md)
+
+---
+
 ### EmailingEssay
 
 **AI-Driven Essay Delivery System**

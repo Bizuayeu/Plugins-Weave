@@ -117,6 +117,32 @@ EpisodicRAGは環境によって異なるパスを使用します：
 
 Loopは EpisodicRAG システムの最小単位であり、すべてのDigest生成の基礎データとなります。
 
+**内容形式（正典）**: メタデータブロック＋ `## User` / `## Claude` 交互見出しの、人間にも LLM にも可読なテキスト。550件超の既存コーパスとの互換規約であり、見出しの交互構造は不可侵：
+
+```text
+# Claude
+
+Source: [Claude Chat](https://claude.ai/chat/{uuid})
+Extracted: {ISO8601}
+Exporter: {採取ツール名} v{x.y.z}
+Messages: human {N} / assistant {M}
+
+---
+
+## User
+
+{本文}
+
+## Claude
+
+{本文}
+```
+
+- タイトル行・メタデータブロック・`---` 区切り・各見出し＋本文は、それぞれ空行1つで区切る
+- `/digest` を含む Digest 生成パイプラインは、この形式を正規表現で厳密パースするのではなく、Claude 自身がファイルを読んで意味的に分析する（LLM可読フォーマット）。Loop ファイルの検出自体はファイル名パターン（上記正規表現）のみに依存し、内容形式には依存しない
+- ヘッダの `Messages: human {N} / assistant {M}` 件数焼き込みと `## User` / `## Claude` 交互構造は、まだら採取（部分欠落）を人間が事後監査できるようにするための規約
+- 採取ツールの一例: [LoopExporter（フヒト）](../LoopExporter/README.md) — claude.ai の内部 API から直接この形式で出力する私用 Chrome 拡張
+
 ### Digest
 **定義**: 複数のLoopまたは下位Digestを要約・統合した階層的記録
 

@@ -175,6 +175,24 @@ claude.aiのプロジェクト機能をClaude Codeで再現。SessionStart hook�
 
 ---
 
+### フヒト（LoopExporter）
+
+**EpisodicRAG 向け Loop 取得ツール（コンパニオン、私用）**
+
+claude.ai の内部 JSON API を直接叩き、会話を Loop 互換形式（`## User` / `## Claude` 交互）でローカル DL する Chrome 拡張です。DOM の仮想スクロールに依存しないため、長い会話でも本文の部分欠落なく採取できます。
+
+> ⚠️ **marketplace 未掲載・`/plugin install` 非対応**: Chrome 拡張（MV3・unpacked）として個別配布される私用ツールです。`chrome://extensions` からデベロッパーモードで読み込みます。
+
+#### 主な特徴
+
+- **完全性検証（fail-closed）**: メッセージ連鎖・件数・空・鮮度の4検証に一つでも失敗したら、ファイルを出力せずエラー表示で停止
+- **API 直取得**: DOM を読まないため、仮想スクロールによる部分欠落が原理的に起きない
+- **外部送信ゼロ**: 通信先は claude.ai same-origin のみ、テレメトリなし
+
+→ [詳細README](LoopExporter/README.md)
+
+---
+
 ### EmailingEssay
 
 **AI駆動エッセイ配信システム**

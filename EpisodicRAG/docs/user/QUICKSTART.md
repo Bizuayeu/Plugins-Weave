@@ -91,7 +91,7 @@ Q5〜Q12: 各階層のthreshold → [1] デフォルト値
 
 ## Step 3: サンプルLoop作成（2分）
 
-> 📖 ファイル命名規則: [用語集](../../GLOSSARY.md#loop)
+> 📖 ファイル命名規則・内容形式: [用語集](../../GLOSSARY.md#loop)
 
 ### 3-1. Loopファイルを作成
 
@@ -106,11 +106,24 @@ Q5〜Q12: 各階層のthreshold → [1] デフォルト値
 ```
 # L00001: テスト会話
 
-User: こんにちは、EpisodicRAGのテストです。
-Assistant: こんにちは！EpisodicRAGのテストですね。何かお手伝いできることはありますか？
-User: 記憶システムについて教えてください。
-Assistant: EpisodicRAGは8階層の長期記憶システムです。会話をLoopファイルとして保存し、階層的にダイジェスト化することで、長期間の記憶を管理します。
+## User
+
+こんにちは、EpisodicRAGのテストです。
+
+## Claude
+
+こんにちは！EpisodicRAGのテストですね。何かお手伝いできることはありますか？
+
+## User
+
+記憶システムについて教えてください。
+
+## Claude
+
+EpisodicRAGは8階層の長期記憶システムです。会話をLoopファイルとして保存し、階層的にダイジェスト化することで、長期間の記憶を管理します。
 ```
+
+> 💡 実際の claude.ai 会話をこの形式で採取したい場合は [フヒト（LoopExporter）](../../../LoopExporter/README.md) が便利です（内部APIから直接取得・完全性検証つきの私用 Chrome 拡張）。
 
 ---
 
