@@ -16,6 +16,10 @@
 
 var Fuhito = globalThis.Fuhito || (globalThis.Fuhito = {});
 
+// IIFE: classic scripts share one global lexical scope -- keep every top-level
+// const/class file-local so files cannot collide (see test/classic_script_load.test.js).
+(function () {
+
 const ILLEGAL_FILENAME_CHARS = /[\/\\<>:"|?*]/g;
 
 /**
@@ -81,3 +85,4 @@ Fuhito.loopFormat = { renderLoopDocument, sanitizeFilename };
 if (typeof module !== "undefined") {
   module.exports = Fuhito.loopFormat;
 }
+})();

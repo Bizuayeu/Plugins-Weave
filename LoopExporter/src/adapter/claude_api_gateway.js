@@ -8,6 +8,10 @@
 
 var Fuhito = globalThis.Fuhito || (globalThis.Fuhito = {});
 
+// IIFE: classic scripts share one global lexical scope -- keep every top-level
+// const/class file-local so files cannot collide (see test/classic_script_load.test.js).
+(function () {
+
 // docs/SCHEMA_NOTES.md §3.1 / §3.2 -- the field sets actually observed on the real
 // endpoint. Anything outside these sets is reported as a warning, never silently
 // dropped (NFR-3). content[]-level unknown block types are already handled by
@@ -211,3 +215,4 @@ Fuhito.claudeApiGateway = { createClaudeApiGateway, SessionExpiredError, ApiDrif
 if (typeof module !== "undefined") {
   module.exports = Fuhito.claudeApiGateway;
 }
+})();

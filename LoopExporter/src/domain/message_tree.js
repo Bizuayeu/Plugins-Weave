@@ -4,6 +4,10 @@
 
 var Fuhito = globalThis.Fuhito || (globalThis.Fuhito = {});
 
+// IIFE: classic scripts share one global lexical scope -- keep every top-level
+// const/class file-local so files cannot collide (see test/classic_script_load.test.js).
+(function () {
+
 // Root sentinel per docs/SCHEMA_NOTES.md §3.2: the root message's own
 // parent_message_uuid is always this constant (confirmed against the real sample,
 // exactly one message matches it).
@@ -73,3 +77,4 @@ Fuhito.messageTree = { ROOT_SENTINEL, buildMessageTree, resolveLeafPath };
 if (typeof module !== "undefined") {
   module.exports = Fuhito.messageTree;
 }
+})();

@@ -5,6 +5,10 @@
 
 var Fuhito = globalThis.Fuhito || (globalThis.Fuhito = {});
 
+// IIFE: classic scripts share one global lexical scope -- keep every top-level
+// const/class file-local so files cannot collide (see test/classic_script_load.test.js).
+(function () {
+
 const loopFormatModule =
   typeof module !== "undefined" ? require("../domain/loop_format.js") : Fuhito.loopFormat;
 
@@ -36,3 +40,4 @@ Fuhito.loopFilePresenter = { presentLoopFile };
 if (typeof module !== "undefined") {
   module.exports = Fuhito.loopFilePresenter;
 }
+})();

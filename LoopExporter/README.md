@@ -47,6 +47,7 @@ Claude Code で編集 → chrome://extensions で ↻ → claude.ai でボタン
 - 変換ロジック（Domain / UseCase / Adapter）の単体テストは `node --test` で完結させる（後述）。
 - ブラウザでの手動確認は結合部（ボタン注入・fetch・DL）に絞る。
 - `content_scripts.js` は `manifest.json` に配列で列挙されたファイルを domain → adapter → usecase → content の順で classic script として順次ロードする（ビルドなし）。ファイルを追加・並べ替えた場合は `manifest.json` の配列も更新すること。
+- **各 src ファイルは必ず IIFE（`(function () { ... })();`）で包む**——classic script は全ファイルが一つのグローバル lexical スコープを共有するため、トップレベルの `const`/`class` がファイル間で衝突すると後続ファイルが SyntaxError で丸ごと死ぬ（Node の `require` 経路では再現しない）。回帰は `test/classic_script_load.test.js`（ブラウザ条件のシミュレーション）が検知する。
 
 ### テスト実行
 
