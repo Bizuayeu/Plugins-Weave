@@ -1,0 +1,253 @@
+{
+  "uuid": "aaaaaaaa-0000-4000-8000-000000000001",
+  "name": "Example placeholder conversation",
+  "summary": "A synthetic conversation used for fixture-driven tests only.",
+  "model": "example-model-placeholder",
+  "created_at": "2026-01-15T09:00:00.000Z",
+  "updated_at": "2026-01-15T09:12:00.000Z",
+  "settings": {
+    "enabled_web_search": true,
+    "enabled_sourdough": false,
+    "enabled_foccacia": false,
+    "enabled_mcp_tools": false,
+    "enabled_monkeys_in_a_barrel": false,
+    "enabled_saffron": false,
+    "tool_search_mode": "auto",
+    "preview_feature_uses_artifacts": false,
+    "enabled_artifacts_attachments": false,
+    "enabled_turmeric": false,
+    "thinking_mode": "auto",
+    "effort_level": "medium"
+  },
+  "is_starred": false,
+  "is_temporary": false,
+  "project_uuid": null,
+  "platform": "web",
+  "is_wiggle_enabled": false,
+  "effective_thinking_mode": "auto",
+  "current_leaf_message_uuid": "bbbbbbbb-0000-4000-8000-000000000008",
+  "chat_messages": [
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000001",
+      "text": "Please summarize the attached status report and list open action items.",
+      "content": [
+        {
+          "type": "text",
+          "text": "Please summarize the attached status report and list open action items.",
+          "citations": [],
+          "start_timestamp": "2026-01-15T09:00:00.000Z",
+          "stop_timestamp": "2026-01-15T09:00:00.000Z"
+        }
+      ],
+      "sender": "human",
+      "index": 0,
+      "created_at": "2026-01-15T09:00:00.000Z",
+      "updated_at": "2026-01-15T09:00:00.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [
+        {
+          "uuid": "cccccccc-0000-4000-8000-000000000001",
+          "file_uuid": "cccccccc-0000-4000-8000-000000000001",
+          "file_name": "example-status-report.docx",
+          "file_kind": "document",
+          "path": "/example/placeholder/path/example-status-report.docx",
+          "size_bytes": 12345,
+          "success": true,
+          "created_at": "2026-01-15T09:00:00.000Z"
+        }
+      ],
+      "sync_sources": [],
+      "parent_message_uuid": "00000000-0000-4000-8000-000000000000"
+    },
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000002",
+      "text": "Sure -- here is a structured summary of the three sections in the report.",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "Considering how to best structure the summary into sections before responding.",
+          "summaries": [],
+          "cut_off": false,
+          "truncated": false,
+          "hidden": false,
+          "thinking_hidden": false,
+          "start_timestamp": "2026-01-15T09:00:05.000Z",
+          "stop_timestamp": "2026-01-15T09:00:07.000Z"
+        },
+        {
+          "type": "text",
+          "text": "Sure -- here is a structured summary of the three sections in the report.",
+          "citations": [],
+          "start_timestamp": "2026-01-15T09:00:07.000Z",
+          "stop_timestamp": "2026-01-15T09:00:09.000Z"
+        }
+      ],
+      "sender": "assistant",
+      "index": 1,
+      "created_at": "2026-01-15T09:00:09.000Z",
+      "updated_at": "2026-01-15T09:00:09.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "bbbbbbbb-0000-4000-8000-000000000001",
+      "stop_reason": "end_turn"
+    },
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000003",
+      "text": "Also check reference-file-01 and search for related background material.",
+      "content": [
+        {
+          "type": "text",
+          "text": "Also check reference-file-01 and search for related background material.",
+          "citations": [],
+          "start_timestamp": "2026-01-15T09:02:00.000Z",
+          "stop_timestamp": "2026-01-15T09:02:00.000Z"
+        }
+      ],
+      "sender": "human",
+      "index": 2,
+      "created_at": "2026-01-15T09:02:00.000Z",
+      "updated_at": "2026-01-15T09:02:00.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "bbbbbbbb-0000-4000-8000-000000000002"
+    },
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000004",
+      "text": "I searched for related background material and found one relevant example source.",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_fake000000000001",
+          "name": "web_search",
+          "input": { "query": "example placeholder search query" },
+          "message": "",
+          "integration_name": "Web Search",
+          "icon_name": "search",
+          "display_content": null,
+          "start_timestamp": "2026-01-15T09:02:05.000Z",
+          "stop_timestamp": "2026-01-15T09:02:06.000Z"
+        },
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_fake000000000001",
+          "name": "web_search",
+          "content": [
+            { "type": "text", "text": "Example placeholder search result snippet." }
+          ],
+          "is_error": false,
+          "meta": null,
+          "display_content": null,
+          "icon_name": "search",
+          "integration_name": "Web Search",
+          "integration_icon_url": null,
+          "start_timestamp": "2026-01-15T09:02:06.000Z",
+          "stop_timestamp": "2026-01-15T09:02:07.000Z"
+        },
+        {
+          "type": "text",
+          "text": "I searched for related background material and found one relevant example source.",
+          "citations": [],
+          "start_timestamp": "2026-01-15T09:02:07.000Z",
+          "stop_timestamp": "2026-01-15T09:02:09.000Z"
+        }
+      ],
+      "sender": "assistant",
+      "index": 3,
+      "created_at": "2026-01-15T09:02:09.000Z",
+      "updated_at": "2026-01-15T09:02:09.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "bbbbbbbb-0000-4000-8000-000000000003",
+      "stop_reason": "end_turn"
+    },
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000005",
+      "text": "Actually, please cancel that -- let's try a different approach instead.",
+      "content": [
+        {
+          "type": "text",
+          "text": "Actually, please cancel that -- let's try a different approach instead.",
+          "citations": [],
+          "start_timestamp": "2026-01-15T09:04:00.000Z",
+          "stop_timestamp": "2026-01-15T09:04:00.000Z"
+        }
+      ],
+      "sender": "human",
+      "index": 4,
+      "created_at": "2026-01-15T09:04:00.000Z",
+      "updated_at": "2026-01-15T09:04:00.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "bbbbbbbb-0000-4000-8000-000000000004"
+    },
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000006",
+      "text": "",
+      "content": [],
+      "sender": "assistant",
+      "index": 5,
+      "created_at": "2026-01-15T09:04:01.000Z",
+      "updated_at": "2026-01-15T09:04:01.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "bbbbbbbb-0000-4000-8000-000000000005",
+      "stop_reason": "user_canceled"
+    },
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000007",
+      "text": "Please continue with the original plan and provide the final answer.",
+      "content": [
+        {
+          "type": "text",
+          "text": "Please continue with the original plan and provide the final answer.",
+          "citations": [],
+          "start_timestamp": "2026-01-15T09:05:00.000Z",
+          "stop_timestamp": "2026-01-15T09:05:00.000Z"
+        }
+      ],
+      "sender": "human",
+      "index": 6,
+      "created_at": "2026-01-15T09:05:00.000Z",
+      "updated_at": "2026-01-15T09:05:00.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "bbbbbbbb-0000-4000-8000-000000000004"
+    },
+    {
+      "uuid": "bbbbbbbb-0000-4000-8000-000000000008",
+      "text": "Here is the final consolidated answer based on the example report and the retrieved background material.",
+      "content": [
+        {
+          "type": "text",
+          "text": "Here is the final consolidated answer based on the example report and the retrieved background material.",
+          "citations": [],
+          "start_timestamp": "2026-01-15T09:05:05.000Z",
+          "stop_timestamp": "2026-01-15T09:05:09.000Z"
+        }
+      ],
+      "sender": "assistant",
+      "index": 7,
+      "created_at": "2026-01-15T09:05:09.000Z",
+      "updated_at": "2026-01-15T09:05:09.000Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "bbbbbbbb-0000-4000-8000-000000000007",
+      "stop_reason": "end_turn"
+    }
+  ]
+}
