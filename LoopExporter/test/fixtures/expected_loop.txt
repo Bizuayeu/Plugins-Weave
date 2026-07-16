@@ -1,0 +1,36 @@
+# Claude
+
+Source: [Claude Chat](https://claude.ai/chat/aaaaaaaa-0000-4000-8000-000000000001)
+Extracted: 2026-07-16T12:00:00.000Z
+Exporter: Fuhito v0.1.0
+Messages: human 3 / assistant 3
+
+---
+
+## User
+
+Please summarize the attached status report and list open action items.
+
+[file: example-status-report.docx]
+
+## Claude
+
+Sure -- here is a structured summary of the three sections in the report.
+
+## User
+
+Also check reference-file-01 and search for related background material.
+
+## Claude
+
+[tool: web_search]
+
+I searched for related background material and found one relevant example source.
+
+## User
+
+Please continue with the original plan and provide the final answer.
+
+## Claude
+
+Here is the final consolidated answer based on the example report and the retrieved background material.
