@@ -65,19 +65,23 @@ function renderLoopDocument(params) {
 }
 
 /**
- * FR-7: `L{番号}_{タイトル}.txt`. loopNumber is used verbatim (never inferred or
- * padded here -- numbering authority stays on the human side, per the L00551
- * renumbering-correction lesson cited in the requirements doc).
+ * FR-7: `L{番号}_{タイトル}.txt`. A leading L/l typed by the user is normalized
+ * away before the prefix is applied -- the prompt suggests "L00553"-style input,
+ * so "L00551" and "00551" must both yield L00551_... (the LL00551 double-prefix
+ * bug). The digits themselves are used verbatim: never inferred or padded here,
+ * numbering authority stays on the human side, per the L00551
+ * renumbering-correction lesson cited in the requirements doc.
  * @param {string|number} loopNumber
  * @param {string} title
  * @returns {string}
  */
 function sanitizeFilename(loopNumber, title) {
+  const numberPart = String(loopNumber).trim().replace(/^[Ll]/, "");
   const safeTitle = String(title == null ? "" : title)
     .replace(ILLEGAL_FILENAME_CHARS, "")
     .trim()
     .replace(/\s+/g, "_");
-  return `L${loopNumber}_${safeTitle}.txt`;
+  return `L${numberPart}_${safeTitle}.txt`;
 }
 
 Fuhito.loopFormat = { renderLoopDocument, sanitizeFilename };

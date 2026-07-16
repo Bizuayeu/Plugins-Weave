@@ -99,3 +99,9 @@ test("sanitizeFilename passes through a synthetic Japanese title unchanged", () 
 test("sanitizeFilename does not crash when the title is entirely illegal characters", () => {
   assert.equal(sanitizeFilename("00100", "???"), "L00100_.txt");
 });
+
+test("sanitizeFilename normalizes a leading L/l on the loop number instead of doubling it (LL00551 bug)", () => {
+  assert.equal(sanitizeFilename("L00551", "タイトル"), "L00551_タイトル.txt");
+  assert.equal(sanitizeFilename("l00551", "タイトル"), "L00551_タイトル.txt");
+  assert.equal(sanitizeFilename(" L00551 ", "タイトル"), "L00551_タイトル.txt");
+});
