@@ -9,9 +9,9 @@ claude.ai の会話を、内部 JSON API から直接取得して EpisodicRAG �
 - **課題**: 現行の DOM スクレイピング手段（Save my Chatbot）は、本番スレッドで仮想スクロールにより本文がまだらに欠落する。EpisodicRAG の Loop は記憶コーパスの正典＝不可逆ドメインであり、まだらな採取物が気づかれず Digest 階層へ流れる「静かな失敗」を構造的に排除する必要がある。
 - **解法**: claude.ai フロントエンドが自身のために叩く内部 JSON API を same-origin fetch で直取得する。DOM のマウント状態と無関係になるため、仮想スクロール問題が原理的に消える。
 - **不可逆ドメインへの態度**: 完全性検証（連鎖・件数・空・鮮度の4検証）に一つでも失敗したら、**ファイルを出力せずエラー表示で停止**する（fail-closed）。まだらなファイルを黙って出さないことが、このツールの存在理由。
-- **スコープ**: 単一会話の current leaf path（UI に表示されている一枝）を Loop 形式へ変換してローカル DL するところまで（Phase 0〜1）。全ツリー出力・thinking 展開・一括エクスポートは非対応（YAGNI 境界。詳細は [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) の Non-goals）。
+- **スコープ**: 単一会話の current leaf path（UI に表示されている一枝）を Loop 形式へ変換してローカル DL するところまで（Phase 0〜1）。全ツリー出力・thinking 展開・一括エクスポートは非対応（YAGNI 境界。詳細は `IMPLEMENTATION_PLAN.md` の Non-goals）。
 
-要求の正典は [要件定義書_Fuhito_LoopExporter_v0.3.md](./要件定義書_Fuhito_LoopExporter_v0.3.md)（v0.3 で凍結。以後の運用手順の更新はこの README 側で行う）。実装計画は [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)。
+要求の正典は [要件定義書_Fuhito_LoopExporter_v0.3.md](./要件定義書_Fuhito_LoopExporter_v0.3.md)（v0.3 で凍結。以後の運用手順の更新はこの README 側で行う）。実装計画は `IMPLEMENTATION_PLAN.md`（ConsiderateCoder の SDD 作業ファイル。リポ共通 .gitignore により track されず、開発機のローカルにのみ存在する）。
 
 ## 導入（初回のみ・ストア不使用）
 
@@ -94,7 +94,7 @@ LoopExporter/
 ## 関連ドキュメント
 
 - [要件定義書_Fuhito_LoopExporter_v0.3.md](./要件定義書_Fuhito_LoopExporter_v0.3.md) — 要求 SSoT（背景・方式選定・FR/NFR/AC、凍結）
-- [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — Clean Architecture の Stage 分割と判断確定履歴
+- `IMPLEMENTATION_PLAN.md` — Clean Architecture の Stage 分割と判断確定履歴（ローカル SDD 作業ファイル・非 track）
 - [docs/SCHEMA_NOTES.md](./docs/SCHEMA_NOTES.md) — API 実測スキーマの SSoT
 - [CHANGELOG.md](./CHANGELOG.md) — バージョン履歴
 - [EpisodicRAG GLOSSARY](../EpisodicRAG/GLOSSARY.md#loop) — Loop 形式仕様の正典
