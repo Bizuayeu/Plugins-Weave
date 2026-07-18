@@ -140,6 +140,19 @@ test("fetchConversation warns on an unknown field inside a chat_messages[] eleme
   assert.ok(warnings.some((w) => /mystery_msg_field/.test(w) && w.includes(conv.chat_messages[0].uuid)));
 });
 
+test("fetchConversation does not warn on ledger-registered drift fields (input_mode, compaction_summary)", async () => {
+  const org = loadFixture("organizations.json");
+  const conv = loadFixture("conversation_tree.json");
+  conv.chat_messages[0].input_mode = "keyboard"; // schema drift #1 (2026-07-16)
+  conv.chat_messages[1].compaction_summary = "summary of compacted context"; // schema drift #2 (2026-07-18)
+  const fetchFn = createDispatchFetch({ orgBody: org, conversationBody: conv });
+  const gateway = createClaudeApiGateway({ fetchFn });
+
+  const { warnings } = await gateway.fetchConversation(conv.uuid);
+
+  assert.deepEqual(warnings, [], "ledger-registered drift fields must not re-trigger the unknown-field warning");
+});
+
 test("fetchConversation does not re-check content[] block types (blocks.js already owns that per NFR-3)", async () => {
   const org = loadFixture("organizations.json");
   const conv = loadFixture("conversation_tree.json");
