@@ -1,6 +1,6 @@
 {
   "name": "loopexporter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Fuhito -- claude.ai conversation to Loop-format exporter (Chrome MV3, unpacked, private use).",
   "scripts": {

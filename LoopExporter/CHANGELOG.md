@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2026-07-18
+
+### Fixed
+
+- **スキーマドリフト第二号 `compaction_summary` の警告ノイズ解消**: claude.ai のコンテキスト圧縮機能由来と推定される `chat_messages[]` の後付けフィールドを既知フィールド台帳に登録。L00556 エクスポートの実測で FR-6 連鎖検証の通過＝全メッセージ保持を確認済みで、Loop の完全性に影響なし。台帳登録済みドリフトフィールドが警告を出さないことの回帰テストを追加（66→67 green）。実測記録と切り分けメモ（併発した no text block 警告は別事象）は `docs/SCHEMA_NOTES.md` §3.2
+
 ## [0.1.0] - 2026-07-16
 
 Phase 0〜1 完成（要件定義書_Fuhito_LoopExporter_v0.3.md の Phase 分割）。claude.ai の内部 JSON API 直取得により、DOM 仮想スクロールに起因するまだら採取を構造的に解消する私用 Chrome 拡張の初版。
