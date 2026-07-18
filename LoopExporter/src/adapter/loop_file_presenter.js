@@ -22,15 +22,22 @@ const loopFormatModule =
  * @param {string|number} params.loopNumber - never inferred; passed through
  *   verbatim to sanitizeFilename (FR-7 -- numbering authority stays on the human
  *   side, per the L00551 renumbering-correction lesson).
+ * @param {string|null} [params.titleOverride] - human-typed filename title from
+ *   the "L{番号}_{タイトル}" prompt form (see loop_format.parseLoopNumberInput);
+ *   when present it outranks conversation.name.
  * @returns {{filename: string, text: string}}
  */
 function presentLoopFile(params) {
-  const { conversation, path, convertedMessages, counts, meta, loopNumber } = params;
+  const { conversation, path, convertedMessages, counts, meta, loopNumber, titleOverride } = params;
 
   const text = loopFormatModule.renderLoopDocument({ conversation, path, convertedMessages, counts, meta });
-  // FR-7: the conversation's own name is the filename title's prefill value --
-  // this tool never invents a title any more than it invents a loop number.
-  const filename = loopFormatModule.sanitizeFilename(loopNumber, conversation.name);
+  // FR-7: the filename title comes from the human's explicit override when one
+  // was typed, else from the conversation's own name -- this tool never invents
+  // a title any more than it invents a loop number.
+  const filename = loopFormatModule.sanitizeFilename(
+    loopNumber,
+    titleOverride != null ? titleOverride : conversation.name
+  );
 
   return { filename, text };
 }

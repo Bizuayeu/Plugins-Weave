@@ -15,7 +15,7 @@
   window.__fuhitoContentLoaded = true;
 
   // Keep in sync with manifest.json "version".
-  const EXPORTER_VERSION = "0.1.0";
+  const EXPORTER_VERSION = "0.2.0";
 
   const CHAT_PATH_RE = /^\/chat\/([0-9a-fA-F-]+)/;
 
@@ -44,11 +44,16 @@
   /**
    * FR-7: manual Loop-number entry, default blank, never inferred. Returning
    * null (dialog dismissed) or "" (blank submit) both mean "cancel" --
-   * export_conversation.js already treats both as cancelled.
+   * export_conversation.js already treats both as cancelled. A full
+   * "L00553_タイトル" input overrides the session-name title (parsing lives in
+   * domain/loop_format.js parseLoopNumberInput, not here).
    * @returns {string|null}
    */
   function promptLoopNumber() {
-    return window.prompt("フヒト: Loop番号を入力してください（例: L00553）。空欄でキャンセル。", "");
+    return window.prompt(
+      "フヒト: Loop番号を入力してください（例: L00553）。L00553_タイトル 形式ならタイトルも上書き（省略時はセッション名）。空欄でキャンセル。",
+      ""
+    );
   }
 
   /**

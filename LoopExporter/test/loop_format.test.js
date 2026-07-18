@@ -13,7 +13,7 @@ const path = require("node:path");
 
 const { buildMessageTree, resolveLeafPath } = require("../src/domain/message_tree.js");
 const { convertMessage } = require("../src/domain/blocks.js");
-const { renderLoopDocument, sanitizeFilename } = require("../src/domain/loop_format.js");
+const { renderLoopDocument, sanitizeFilename, parseLoopNumberInput } = require("../src/domain/loop_format.js");
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures");
 
@@ -104,4 +104,48 @@ test("sanitizeFilename normalizes a leading L/l on the loop number instead of do
   assert.equal(sanitizeFilename("L00551", "タイトル"), "L00551_タイトル.txt");
   assert.equal(sanitizeFilename("l00551", "タイトル"), "L00551_タイトル.txt");
   assert.equal(sanitizeFilename(" L00551 ", "タイトル"), "L00551_タイトル.txt");
+});
+
+test("parseLoopNumberInput: a bare number (with or without leading L) carries no title override", () => {
+  assert.deepEqual(parseLoopNumberInput("L00556"), { loopNumber: "L00556", titleOverride: null });
+  assert.deepEqual(parseLoopNumberInput("00556"), { loopNumber: "00556", titleOverride: null });
+});
+
+test("parseLoopNumberInput: L{number}_{title} splits at the first underscore into number and title override", () => {
+  assert.deepEqual(parseLoopNumberInput("L00556_自作タイトル"), {
+    loopNumber: "L00556",
+    titleOverride: "自作タイトル",
+  });
+  assert.deepEqual(parseLoopNumberInput("00556_タイトル"), {
+    loopNumber: "00556",
+    titleOverride: "タイトル",
+  });
+});
+
+test("parseLoopNumberInput: underscores inside the title are preserved (split at the FIRST underscore only)", () => {
+  assert.deepEqual(parseLoopNumberInput("L00556_A_B"), { loopNumber: "L00556", titleOverride: "A_B" });
+});
+
+test("parseLoopNumberInput: a trailing underscore with no title is NOT an override (typo-safe: falls back to the session name)", () => {
+  assert.deepEqual(parseLoopNumberInput("L00556_"), { loopNumber: "L00556", titleOverride: null });
+  assert.deepEqual(parseLoopNumberInput("L00556_   "), { loopNumber: "L00556", titleOverride: null });
+});
+
+test("parseLoopNumberInput: blank / null input yields a blank loop number (caller treats it as cancel)", () => {
+  assert.deepEqual(parseLoopNumberInput(null), { loopNumber: "", titleOverride: null });
+  assert.deepEqual(parseLoopNumberInput(""), { loopNumber: "", titleOverride: null });
+  assert.deepEqual(parseLoopNumberInput("   "), { loopNumber: "", titleOverride: null });
+});
+
+test("parseLoopNumberInput: a title with no number yields a blank loop number (caller treats it as cancel -- numbering stays human)", () => {
+  assert.deepEqual(parseLoopNumberInput("_タイトルのみ"), { loopNumber: "", titleOverride: "タイトルのみ" });
+});
+
+test("parseLoopNumberInput: surrounding whitespace is trimmed from both parts", () => {
+  assert.deepEqual(parseLoopNumberInput("  L00556_題名  "), { loopNumber: "L00556", titleOverride: "題名" });
+});
+
+test("parseLoopNumberInput composes with sanitizeFilename: the override becomes the filename title verbatim-sanitized", () => {
+  const parsed = parseLoopNumberInput("L00556_自作の題名");
+  assert.equal(sanitizeFilename(parsed.loopNumber, parsed.titleOverride), "L00556_自作の題名.txt");
 });

@@ -73,6 +73,25 @@ test("presentLoopFile derives the filename from conversation.name via sanitizeFi
   assert.equal(filename, "L00553_Example_placeholder_conversation.txt");
 });
 
+test("presentLoopFile: an explicit titleOverride replaces conversation.name in the filename (text untouched)", () => {
+  const data = loadFixture("conversation_tree.json");
+  const { path: leafPath, convertedMessages, counts } = buildLeafPathArgs(data);
+  const meta = { extractedAt: "2026-07-16T12:00:00.000Z", exporterVersion: "0.1.0" };
+
+  const { filename, text } = presentLoopFile({
+    conversation: data,
+    path: leafPath,
+    convertedMessages,
+    counts,
+    meta,
+    loopNumber: "00553",
+    titleOverride: "上書き題名",
+  });
+
+  assert.equal(filename, "L00553_上書き題名.txt");
+  assert.equal(text, renderLoopDocument({ conversation: data, path: leafPath, convertedMessages, counts, meta }));
+});
+
 test("presentLoopFile never invents a loop number -- an unusual verbatim value passes straight through", () => {
   const data = loadFixture("conversation_tree.json");
   const { path: leafPath, convertedMessages, counts } = buildLeafPathArgs(data);

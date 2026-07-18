@@ -56,8 +56,10 @@ function isBlankLoopNumber(value) {
  * Orchestrates one export cycle end to end:
  * gateway.fetchConversation -> buildMessageTree -> verifyIntegrity (fail-closed:
  * throws IntegrityError and never calls saver when ok===false) -> resolveLeafPath
- * -> convertMessage per message -> promptLoopNumber (cancel-safe: returns without
- * calling saver when blank) -> renderLoopDocument + sanitizeFilename -> saver.
+ * -> convertMessage per message -> promptLoopNumber -> parseLoopNumberInput
+ * (cancel-safe: returns without calling saver when the number part is blank;
+ * a "L{番号}_{タイトル}" input's title overrides conversation.name, FR-7)
+ * -> renderLoopDocument + sanitizeFilename -> saver.
  *
  * @param {Object} params
  * @param {{fetchConversation: function(string): Promise<{conversation: Object, warnings: string[]}>}} params.gateway
@@ -91,7 +93,8 @@ async function exportConversation(params) {
   const convertedMessages = converted.map((c) => c.text);
   const blockWarnings = converted.reduce((acc, c) => acc.concat(c.warnings), []);
 
-  const loopNumber = await promptLoopNumber();
+  const rawLoopInput = await promptLoopNumber();
+  const { loopNumber, titleOverride } = loopFormatModule.parseLoopNumberInput(rawLoopInput);
   if (isBlankLoopNumber(loopNumber)) {
     return { cancelled: true };
   }
@@ -103,7 +106,10 @@ async function exportConversation(params) {
     counts: integrityResult.counts,
     meta: { extractedAt: clock(), exporterVersion },
   });
-  const filename = loopFormatModule.sanitizeFilename(loopNumber, conversation.name);
+  const filename = loopFormatModule.sanitizeFilename(
+    loopNumber,
+    titleOverride !== null ? titleOverride : conversation.name
+  );
 
   await saver({ filename, text });
 

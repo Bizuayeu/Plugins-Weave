@@ -84,7 +84,29 @@ function sanitizeFilename(loopNumber, title) {
   return `L${numberPart}_${safeTitle}.txt`;
 }
 
-Fuhito.loopFormat = { renderLoopDocument, sanitizeFilename };
+/**
+ * FR-7: parses the raw prompt input. "L00556" carries a number only; the full
+ * "L00556_自作タイトル" form additionally carries a title override -- a
+ * human-typed title outranks the session name, exactly as the typed digits
+ * outrank any inferred number. The split happens at the FIRST underscore only,
+ * so underscores inside the title survive. A trailing underscore with no title
+ * text is no-override (typo-safe: the session name still applies), and a blank
+ * number part comes back as "" for the caller to treat as cancel.
+ * @param {string|number|null|undefined} rawInput
+ * @returns {{loopNumber: string, titleOverride: string|null}}
+ */
+function parseLoopNumberInput(rawInput) {
+  const raw = String(rawInput == null ? "" : rawInput).trim();
+  const separatorIndex = raw.indexOf("_");
+  if (separatorIndex === -1) {
+    return { loopNumber: raw, titleOverride: null };
+  }
+  const loopNumber = raw.slice(0, separatorIndex).trim();
+  const title = raw.slice(separatorIndex + 1).trim();
+  return { loopNumber, titleOverride: title === "" ? null : title };
+}
+
+Fuhito.loopFormat = { renderLoopDocument, sanitizeFilename, parseLoopNumberInput };
 
 if (typeof module !== "undefined") {
   module.exports = Fuhito.loopFormat;

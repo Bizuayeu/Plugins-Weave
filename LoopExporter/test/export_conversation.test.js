@@ -206,6 +206,87 @@ test("exportConversation: merges the gateway's unknown-field warnings into its o
   assert.ok(result.warnings.some((w) => /mystery_top_level_field/.test(w)));
 });
 
+test("exportConversation: a L{番号}_{タイトル} prompt input overrides the session title in the filename (FR-7 title authority moves to the human)", async () => {
+  const org = loadFixture("organizations.json");
+  const conv = loadFixture("conversation_tree.json");
+  const fetchFn = createDispatchFetch({ orgBody: org, conversationBody: conv });
+  const gateway = createClaudeApiGateway({ fetchFn });
+  const saver = createSaverSpy();
+
+  const result = await exportConversation({
+    gateway,
+    saver,
+    promptLoopNumber: () => "00553_カスタム題名",
+    clock: FIXED_CLOCK,
+    exporterVersion: EXPORTER_VERSION,
+    chatId: conv.uuid,
+  });
+
+  assert.equal(result.cancelled, false);
+  assert.equal(result.filename, "L00553_カスタム題名.txt");
+  assert.equal(saver.calls.length, 1);
+  assert.equal(saver.calls[0].filename, "L00553_カスタム題名.txt");
+  assert.ok(!result.filename.includes("Example_placeholder_conversation"), "session title must not leak into an overridden filename");
+});
+
+test("exportConversation: an overridden title still passes through filename sanitization (spaces -> underscores, illegal chars stripped)", async () => {
+  const org = loadFixture("organizations.json");
+  const conv = loadFixture("conversation_tree.json");
+  const fetchFn = createDispatchFetch({ orgBody: org, conversationBody: conv });
+  const gateway = createClaudeApiGateway({ fetchFn });
+  const saver = createSaverSpy();
+
+  const result = await exportConversation({
+    gateway,
+    saver,
+    promptLoopNumber: () => 'L00553_書きかけ 検収?版',
+    clock: FIXED_CLOCK,
+    exporterVersion: EXPORTER_VERSION,
+    chatId: conv.uuid,
+  });
+
+  assert.equal(result.filename, "L00553_書きかけ_検収版.txt");
+});
+
+test("exportConversation: a trailing-underscore input (no title text) falls back to the session title, not an empty one", async () => {
+  const org = loadFixture("organizations.json");
+  const conv = loadFixture("conversation_tree.json");
+  const fetchFn = createDispatchFetch({ orgBody: org, conversationBody: conv });
+  const gateway = createClaudeApiGateway({ fetchFn });
+  const saver = createSaverSpy();
+
+  const result = await exportConversation({
+    gateway,
+    saver,
+    promptLoopNumber: () => "00553_",
+    clock: FIXED_CLOCK,
+    exporterVersion: EXPORTER_VERSION,
+    chatId: conv.uuid,
+  });
+
+  assert.equal(result.filename, "L00553_Example_placeholder_conversation.txt");
+});
+
+test("exportConversation: cancels cleanly when the input has a title but no loop number (numbering authority stays human)", async () => {
+  const org = loadFixture("organizations.json");
+  const conv = loadFixture("conversation_tree.json");
+  const fetchFn = createDispatchFetch({ orgBody: org, conversationBody: conv });
+  const gateway = createClaudeApiGateway({ fetchFn });
+  const saver = createSaverSpy();
+
+  const result = await exportConversation({
+    gateway,
+    saver,
+    promptLoopNumber: () => "_タイトルだけ",
+    clock: FIXED_CLOCK,
+    exporterVersion: EXPORTER_VERSION,
+    chatId: conv.uuid,
+  });
+
+  assert.deepEqual(result, { cancelled: true });
+  assert.equal(saver.calls.length, 0);
+});
+
 test("exportConversation: merges convertMessage's block-level warnings (unknown content type) into its own returned warnings", async () => {
   const org = loadFixture("organizations.json");
   const conv = loadFixture("conversation_tree.json");
