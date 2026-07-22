@@ -2,6 +2,16 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.2.1] - 2026-07-22
+
+### Added
+
+- **ネストしたサブエージェント生成の動作要件を明記（CLI v2.1.217 追従）** — Claude Code v2.1.217 からサブエージェントは既定でネスト生成不可となり、orchestrator（サブエージェント）→ worker の起動が harness に拒否される。環境変数 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（`"2"`）が必須であることを、README §4（動作要件の正典）・outsource Phase 3（communicator の案内手順）・orchestrator の再投入規律（設定起因の拒否はリトライせず即上申）の三点に配線。なお同バージョンの同時実行サブエージェント数上限（既定 20）は、worker 同期起動運用のため影響なし
+
+### Fixed
+
+- **outsource.md 本文の実測日付の残存 2 箇所を除去** — v1.2.0 の Phase 3b 追記に development-only の日付（YYYY-MM-DD）が残り、構造テストの禁止トークン検査（date-like pattern）が赤のままリリースされていた。配布層の日付除去規律へ追従し、テストを green に復帰
+
 ## [1.2.0] - 2026-07-12
 
 ### Added

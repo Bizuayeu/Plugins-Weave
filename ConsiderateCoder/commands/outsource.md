@@ -66,6 +66,8 @@ orchestrator へ渡す最初のブリーフを、`${CLAUDE_PLUGIN_ROOT}/agents/o
 
 ## Phase 3: orchestrator 起動（既定は同期、長丁場は bg＋死活監視）
 
+> **動作要件（CLI v2.1.217+）**: サブエージェントのネスト生成が既定で無効のため、orchestrator による worker 起動には環境変数 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（`"2"`）の設定が必須（詳細は README §4）。orchestrator から「worker 起動が harness に拒否された」旨の上申が返った場合は、まずこの設定の欠落を疑い、ユーザーへ設定と再起動を案内する。
+
 `Agent` ツールで `subagent_type: ConsiderateCoder:orchestrator` を起動する。起動方式は二択：
 
 ### 3a. 同期起動（既定）
@@ -80,9 +82,9 @@ orchestrator へ渡す最初のブリーフを、`${CLAUDE_PLUGIN_ROOT}/agents/o
 1. `run_in_background: true` で orchestrator を起動する
 2. 同梱の `scripts/watchdog.sh` を Monitor で張る：
    `bash <plugin>/scripts/watchdog.sh <対象リポ> 1200 60`（persistent: true。書き込み沈黙 20 分で STALLED を 1 行発報して exit）
-   - 閾値の既定は 20 分。worker の初動（検分・思考）はファイルを書かないため、15 分では偽陽性が出る（2026-07-11 実測）
+   - 閾値の既定は 20 分。worker の初動（検分・思考）はファイルを書かないため、15 分では偽陽性が出る（実測）
 3. **二段判定**：STALLED はエージェントの死ではない。① watchdog がファイル沈黙を検知 → ② `TaskOutput`（block=false）で生死を実測 → running なら静観して watchdog を張り直す／failed なら ③ `SendMessage` で「物証ベースの現状＋残作業＋直ちに worker を同期起動せよ」を添えて蘇生する（transcript から再開される）
-4. bg でも完了通知・failed 通知は届く（2026-07-11 実測）。ただし通知に依存せず、届かない場合も watchdog → ファイル物証回収で拾える構えを保つ
+4. bg でも完了通知・failed 通知は届く（実測）。ただし通知に依存せず、届かない場合も watchdog → ファイル物証回収で拾える構えを保つ
 5. orchestrator 完了後は Monitor を TaskStop で止める
 
 いずれの方式でも、ワーカーへの采配・物証レビュー・進捗管理は orchestrator が担い、communicator は三部構成の報告（完了したこと／物証／上申事項）を受け取る。orchestrator 配下の **worker 起動は常に同期のみ**（orchestrator.md の運用律）——bg が許されるのは communicator→orchestrator の一段だけである。

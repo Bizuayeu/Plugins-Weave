@@ -91,6 +91,20 @@ ConsiderateCoder/
 
 インストール後、コマンドと agent は `ConsiderateCoder:` namespace 配下に配置される（例: `/ConsiderateCoder:plan-sdd`、`subagent_type: ConsiderateCoder:orchestrator`）。
 
+### 動作要件: ネスト生成の許可（Claude Code v2.1.217 以降は必須）
+
+Claude Code v2.1.217 から、サブエージェントは既定ではネストしたサブエージェントを生成できない。`/outsource` の三層委任は orchestrator（サブエージェント）が worker を起動する——ネスト生成そのもの——ため、`settings.json`（ユーザー設定 `~/.claude/settings.json` など）の `env` に以下を設定する：
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+  }
+}
+```
+
+main（深さ 0）→ orchestrator（1）→ worker（2）までの生成を許可する値。worker は `disallowedTools` で Agent を持たないため、これ以上は構造的に伸びない。反映は次セッション起動から。未設定のまま `/outsource` を実行すると、orchestrator の worker 起動が harness に拒否される。
+
 ## 5. 使い始める — 意図から完成まで
 
 ### 全体フロー
