@@ -1,4 +1,5 @@
 """WAL CLI ハンドラ（run_wal_append/push/redo）のテスト。registry_sync 有効/無効の分岐。"""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -34,6 +35,7 @@ def _config(tmp_path, sync=True):
 
 # --- run_wal_append ---
 
+
 def test_append_noop_when_sync_disabled(tmp_path):
     config = _config(tmp_path, sync=False)
     args = SimpleNamespace(json='{"id": "T0001"}', json_file=None)
@@ -52,14 +54,20 @@ def test_append_writes_pending_when_enabled(tmp_path):
 
 # --- run_wal_push: must-succeed（送信前ゲート） ---
 
+
 def test_push_noop_when_disabled(tmp_path):
-    assert run_wal_push(_config(tmp_path, sync=False), SimpleNamespace(message=None)) == EXIT_OK
+    assert (
+        run_wal_push(_config(tmp_path, sync=False), SimpleNamespace(message=None))
+        == EXIT_OK
+    )
 
 
 def test_push_exit_nonzero_on_failure(tmp_path):
     config = _config(tmp_path, sync=True)
     git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("net down")])
-    assert run_wal_push(config, SimpleNamespace(message="m"), git=git) == EXIT_FETCH_FAILED
+    assert (
+        run_wal_push(config, SimpleNamespace(message="m"), git=git) == EXIT_FETCH_FAILED
+    )
 
 
 def test_push_ok_on_success(tmp_path):
@@ -70,6 +78,7 @@ def test_push_ok_on_success(tmp_path):
 
 # --- run_wal_redo ---
 
+
 def test_redo_noop_when_disabled(tmp_path):
     assert run_wal_redo(_config(tmp_path, sync=False)) == EXIT_OK
 
@@ -79,8 +88,11 @@ def test_redo_reconciles_pending_into_registry(tmp_path):
     # WAL に pending（registry 空）→ redo で registry に upsert され、entry は done 化
     JsonlWalLogStore(config.wal_log_path).append(
         WalEntry(
-            key="T0001", kind="tasks", status="pending",
-            payload={"id": "T0001"}, created_at="2026-06-03T18:00:00+00:00",
+            key="T0001",
+            kind="tasks",
+            status="pending",
+            payload={"id": "T0001"},
+            created_at="2026-06-03T18:00:00+00:00",
         )
     )
     assert run_wal_redo(config, git=FakeGitSync()) == EXIT_OK
@@ -90,6 +102,7 @@ def test_redo_reconciles_pending_into_registry(tmp_path):
 
 
 # --- abilities も WAL 対象（4 表一様、DESIGN §3.8）---
+
 
 def test_append_writes_abilities_pending(tmp_path):
     """abilities の add も能力宣言（対外的約束）を伴うため WAL 先行書込の対象。"""
@@ -107,8 +120,11 @@ def test_redo_reconciles_abilities_pending_into_registry(tmp_path):
     config = _config(tmp_path, sync=True)
     JsonlWalLogStore(config.wal_log_path).append(
         WalEntry(
-            key="A1", kind="abilities", status="pending",
-            payload={"id": "A1"}, created_at="2026-06-04T18:00:00+00:00",
+            key="A1",
+            kind="abilities",
+            status="pending",
+            payload={"id": "A1"},
+            created_at="2026-06-04T18:00:00+00:00",
         )
     )
     assert run_wal_redo(config, git=FakeGitSync()) == EXIT_OK
@@ -118,6 +134,7 @@ def test_redo_reconciles_abilities_pending_into_registry(tmp_path):
 
 
 # --- P/A 軸 3 表も WAL 対象（REGISTRY_SPEC 導出で自動拡張、二重管理なし）---
+
 
 def test_wal_append_accepts_new_kinds(tmp_path):
     """profile/goals/steps の add も WAL 先行書込の対象（_WAL_KINDS は REGISTRY_SPEC 導出）。"""
@@ -134,10 +151,24 @@ def test_wal_redo_upserts_new_kinds(tmp_path):
     """起動時 redo が新3表の pending intent も registry へ反映し done 化する。"""
     config = _config(tmp_path, sync=True)
     log = JsonlWalLogStore(config.wal_log_path)
-    log.append(WalEntry(key="pf1", kind="profile", status="pending",
-                        payload={"id": "pf1"}, created_at="2026-06-12T00:00:00+00:00"))
-    log.append(WalEntry(key="g1", kind="goals", status="pending",
-                        payload={"id": "g1"}, created_at="2026-06-12T00:00:01+00:00"))
+    log.append(
+        WalEntry(
+            key="pf1",
+            kind="profile",
+            status="pending",
+            payload={"id": "pf1"},
+            created_at="2026-06-12T00:00:00+00:00",
+        )
+    )
+    log.append(
+        WalEntry(
+            key="g1",
+            kind="goals",
+            status="pending",
+            payload={"id": "g1"},
+            created_at="2026-06-12T00:00:01+00:00",
+        )
+    )
     assert run_wal_redo(config, git=FakeGitSync()) == EXIT_OK
     assert any(r["id"] == "pf1" for r in JsonRegistryStore(config.profile_path).load())
     assert any(r["id"] == "g1" for r in JsonRegistryStore(config.goals_path).load())
@@ -170,7 +201,9 @@ def test_redo_resends_outbound_via_sink(tmp_path):
     config = _config(tmp_path, sync=True)
     JsonlWalLogStore(config.wal_log_path).append(
         WalEntry(
-            key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
+            key="2026-06-03T18:00:00+00:00",
+            kind="outbound",
+            status="pending",
             payload={"chat_id": 100, "text": "関連トピック"},
             created_at="2026-06-03T18:00:00+00:00",
         )
@@ -179,11 +212,11 @@ def test_redo_resends_outbound_via_sink(tmp_path):
     assert run_wal_redo(config, sink=sink, git=FakeGitSync()) == EXIT_OK
     assert len(sink.sent) == 1
     assert "お届けします" in sink.sent[0].text
-    assert "システムが落ちていた" not in sink.sent[0].text  # 障害断定の除去（偽謝罪の根治）
+    assert (
+        "システムが落ちていた" not in sink.sent[0].text
+    )  # 障害断定の除去（偽謝罪の根治）
     assert "関連トピック" in sink.sent[0].text
-    assert all(
-        e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load()
-    )
+    assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())
 
 
 # --- 回帰: redo の done-marking を固定ブランチへ push（4時間ごと無限再送バグの再発防止）---
@@ -198,7 +231,9 @@ def test_redo_persists_done_marking_to_branch(tmp_path):
     config = _config(tmp_path, sync=True)
     JsonlWalLogStore(config.wal_log_path).append(
         WalEntry(
-            key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
+            key="2026-06-03T18:00:00+00:00",
+            kind="outbound",
+            status="pending",
             payload={"chat_id": 100, "text": "感想"},
             created_at="2026-06-03T18:00:00+00:00",
         )
@@ -214,13 +249,17 @@ def test_redo_persist_is_best_effort_on_push_failure(tmp_path):
     config = _config(tmp_path, sync=True)
     JsonlWalLogStore(config.wal_log_path).append(
         WalEntry(
-            key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
+            key="2026-06-03T18:00:00+00:00",
+            kind="outbound",
+            status="pending",
             payload={"chat_id": 100, "text": "感想"},
             created_at="2026-06-03T18:00:00+00:00",
         )
     )
-    git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("net down"),
-                                                     GitSyncError("still down")])
+    git = FakeGitSync(
+        committed=True,
+        push_outcomes=[GitSyncError("net down"), GitSyncError("still down")],
+    )
     assert run_wal_redo(config, sink=FakeMessageSink(), git=git) == EXIT_OK
 
 
@@ -229,7 +268,9 @@ def test_redo_persist_is_best_effort_on_push_failure(tmp_path):
 
 def test_append_outbound_helper_noop_when_sync_disabled(tmp_path):
     # registry_sync 無効なら WAL スキップ＝(True, "")（送信は続行＝後方互換）
-    ok, key = run_wal_append_outbound(_config(tmp_path, sync=False), 100, "hi", [], None)
+    ok, key = run_wal_append_outbound(
+        _config(tmp_path, sync=False), 100, "hi", [], None
+    )
     assert ok is True and key == ""
 
 
@@ -242,7 +283,9 @@ def test_append_outbound_helper_writes_pending_and_pushes(tmp_path):
     entry = JsonlWalLogStore(config.wal_log_path).load()[0]
     assert entry.kind == "outbound" and entry.status == "pending"
     assert entry.payload["chat_id"] == 100
-    assert entry.payload["attachments"] == ["/tmp/a.png"]  # 添付欠落の解消（再送忠実性）
+    assert entry.payload["attachments"] == [
+        "/tmp/a.png"
+    ]  # 添付欠落の解消（再送忠実性）
     assert entry.payload["reply_to_message_id"] == 42
     assert git.push_calls == 1  # must-succeed push
 
@@ -250,8 +293,10 @@ def test_append_outbound_helper_writes_pending_and_pushes(tmp_path):
 def test_append_outbound_helper_returns_false_on_push_failure(tmp_path):
     # push 失敗（must-succeed）→ ok=False（呼び出し側は送信を中止＝送信前ゲート）
     config = _config(tmp_path, sync=True)
-    git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("net down"),
-                                                     GitSyncError("still down")])
+    git = FakeGitSync(
+        committed=True,
+        push_outcomes=[GitSyncError("net down"), GitSyncError("still down")],
+    )
     ok, key = run_wal_append_outbound(config, 100, "hi", [], None, git=git)
     assert ok is False and key  # append 済み（created_at は返す）
 
@@ -259,9 +304,13 @@ def test_append_outbound_helper_returns_false_on_push_failure(tmp_path):
 def test_settle_outbound_helper_marks_done_and_pushes(tmp_path):
     config = _config(tmp_path, sync=True)
     JsonlWalLogStore(config.wal_log_path).append(
-        WalEntry(key="2026-06-03T18:00:00+00:00", kind="outbound", status="pending",
-                 payload={"chat_id": 100, "text": "hi"},
-                 created_at="2026-06-03T18:00:00+00:00")
+        WalEntry(
+            key="2026-06-03T18:00:00+00:00",
+            kind="outbound",
+            status="pending",
+            payload={"chat_id": 100, "text": "hi"},
+            created_at="2026-06-03T18:00:00+00:00",
+        )
     )
     git = FakeGitSync(committed=True, push_outcomes=[None])
     run_wal_settle_outbound(config, "2026-06-03T18:00:00+00:00", git=git)
@@ -278,9 +327,16 @@ def test_settle_outbound_helper_best_effort_on_push_failure(tmp_path):
     # settle の push 失敗は best-effort（送信は既に成功済み、done はローカルに残り次回 redo で再試行）
     config = _config(tmp_path, sync=True)
     JsonlWalLogStore(config.wal_log_path).append(
-        WalEntry(key="k", kind="outbound", status="pending",
-                 payload={"chat_id": 100, "text": "hi"}, created_at="2026-06-03T18:00:00+00:00")
+        WalEntry(
+            key="k",
+            kind="outbound",
+            status="pending",
+            payload={"chat_id": 100, "text": "hi"},
+            created_at="2026-06-03T18:00:00+00:00",
+        )
     )
-    git = FakeGitSync(committed=True, push_outcomes=[GitSyncError("down"), GitSyncError("down")])
+    git = FakeGitSync(
+        committed=True, push_outcomes=[GitSyncError("down"), GitSyncError("down")]
+    )
     run_wal_settle_outbound(config, "k", git=git)  # 例外を投げない
     assert all(e.status == "done" for e in JsonlWalLogStore(config.wal_log_path).load())

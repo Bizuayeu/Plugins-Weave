@@ -4,6 +4,7 @@
 agent_name / private_dir / registry_*）は config.json（<INSTALL_DIR>/config.json 決め打ち）。
 media_* は env 任意上書き口を持つコード内蔵デフォルト（据え置き）。
 """
+
 from __future__ import annotations
 
 import json
@@ -18,7 +19,9 @@ from domain.session_config import SessionDuration
 DEFAULT_MEDIA_MAX_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB
 DEFAULT_MEDIA_RETENTION_HOURS = 24
 DEFAULT_OUTBOUND_MAX_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB（Telegram bot API 送信上限）
-DEFAULT_PDF_IMAGE_MAX_PAGES = 20  # 画像 PDF 全ページ画像化の安全弁（超多ページの disk/トークン暴走防止）
+DEFAULT_PDF_IMAGE_MAX_PAGES = (
+    20  # 画像 PDF 全ページ画像化の安全弁（超多ページの disk/トークン暴走防止）
+)
 
 
 def _default_config_path() -> Path:
@@ -43,8 +46,12 @@ class Config:
     pdf_image_max_pages: int = DEFAULT_PDF_IMAGE_MAX_PAGES
     agent_name: str | None = None
     private_dir: str | None = None
-    registry_dir: Path | None = None  # 管理表（永続）の根。None なら state_dir にフォールバック（R1）
-    registry_sync_enabled: bool = False  # イベント駆動 git 同期のオプトイン（R2-3、既定無効）
+    registry_dir: Path | None = (
+        None  # 管理表（永続）の根。None なら state_dir にフォールバック（R1）
+    )
+    registry_sync_enabled: bool = (
+        False  # イベント駆動 git 同期のオプトイン（R2-3、既定無効）
+    )
     registry_remote: str = "origin"
     registry_branch: str = "claude/ts-registry"
 
@@ -128,7 +135,9 @@ class Config:
             )
 
         # --- state_dir: env 任意上書き（未設定なら ./state、bootstrap が絶対化）。揮発 state 専用 ---
-        state_dir = Path(os.environ.get("TELEGRAM_SECRETARY_STATE_DIR", "./state")).resolve()
+        state_dir = Path(
+            os.environ.get("TELEGRAM_SECRETARY_STATE_DIR", "./state")
+        ).resolve()
 
         # --- 非秘匿の運用設定: config.json（<INSTALL_DIR>/config.json 決め打ち、必須） ---
         path = config_path or _default_config_path()
@@ -153,7 +162,9 @@ class Config:
         except (TypeError, ValueError) as exc:
             raise EnvironmentError(f"config.json: session_duration_sec invalid: {exc}")
 
-        agent_name = data.get("agent_name")  # Optional（prompt 用、CLI fetch/send では未使用）
+        agent_name = data.get(
+            "agent_name"
+        )  # Optional（prompt 用、CLI fetch/send では未使用）
         if agent_name is not None and not isinstance(agent_name, str):
             raise EnvironmentError("config.json: agent_name must be a string")
         private_dir = data.get("private_dir")  # Optional
@@ -171,9 +182,15 @@ class Config:
         if registry_dir_env:
             registry_dir = Path(registry_dir_env)
         else:
-            registry_dir_raw = data.get("registry_dir")  # 未設定なら None で state_dir フォールバック
-            registry_dir = Path(registry_dir_raw).resolve() if registry_dir_raw else None
-        registry_sync_enabled = bool(data.get("registry_sync", False))  # オプトイン（既定無効）
+            registry_dir_raw = data.get(
+                "registry_dir"
+            )  # 未設定なら None で state_dir フォールバック
+            registry_dir = (
+                Path(registry_dir_raw).resolve() if registry_dir_raw else None
+            )
+        registry_sync_enabled = bool(
+            data.get("registry_sync", False)
+        )  # オプトイン（既定無効）
         registry_remote = data.get("registry_remote") or "origin"
         registry_branch = data.get("registry_branch") or "claude/ts-registry"
 
@@ -225,13 +242,9 @@ class Config:
         try:
             value = int(raw)
         except ValueError as exc:
-            raise EnvironmentError(
-                f"{env_name} must be a positive integer: {exc}"
-            )
+            raise EnvironmentError(f"{env_name} must be a positive integer: {exc}")
         if value <= 0:
-            raise EnvironmentError(
-                f"{env_name} must be > 0 (got {value})"
-            )
+            raise EnvironmentError(f"{env_name} must be > 0 (got {value})")
         return value
 
     @staticmethod
@@ -243,6 +256,4 @@ class Config:
             return True
         if raw in ("false", "0", "no"):
             return False
-        raise EnvironmentError(
-            f"{env_name} must be true/false (got {raw!r})"
-        )
+        raise EnvironmentError(f"{env_name} must be true/false (got {raw!r})")

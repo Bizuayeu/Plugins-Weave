@@ -8,6 +8,7 @@ render/transcribe どちらの兄弟パッケージからも引けるよう adap
 ident は呼び出し側で短縮済み（file_id[:8] / local_path.name[:8]）を渡す契約。
 ここでは追加の切り詰めをしない（呼び出し側が「何を redact 済みとして渡すか」を決める）。
 """
+
 from __future__ import annotations
 
 import sys

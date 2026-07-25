@@ -4,6 +4,7 @@
 バリデーションは __post_init__（不正な enum 値は ValueError）。
 役割（秘書/執事/コーチ/アネゴ）の導出は derive_role 純関数（P×A データ駆動判定）。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

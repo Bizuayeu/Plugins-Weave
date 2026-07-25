@@ -3,6 +3,7 @@
 実 markitdown ライブラリを呼んで md 化を検証する。fixture は python-docx /
 openpyxl / python-pptx で test 内で動的生成（git に大きなバイナリを置かない）。
 """
+
 from __future__ import annotations
 
 from pathlib import Path

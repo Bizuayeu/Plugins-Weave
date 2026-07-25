@@ -2,6 +2,7 @@
 
 commit/push 分離 + non-ff 時の pull_rebase フォールバックを fake GitSync で全分岐検証。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -61,7 +62,8 @@ def test_sync_push_network_failure_keeps_commit():
 def test_sync_rebase_then_push_still_fails_keeps_commit():
     """non-ff → rebase → 再 push も失敗 → commit は残す（rebased=True, pushed=False）。"""
     git = FakeGitSync(
-        committed=True, push_outcomes=[PushRejectedError("non-ff"), GitSyncError("still")]
+        committed=True,
+        push_outcomes=[PushRejectedError("non-ff"), GitSyncError("still")],
     )
     result = RegistrySyncService(git).sync(_PATHS, _MSG)
     assert result.committed is True

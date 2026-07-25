@@ -11,6 +11,7 @@ __post_init__ 検証 + from_dict/to_dict + 純関数）と lease.py（now を引
 - checkpoint: pending は無条件保持（redo ソース）、done は retention で掃除
   （WAL〔整合性〕と短期記憶〔直近 retention の会話文脈〕の二役を一手に引き受ける）
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

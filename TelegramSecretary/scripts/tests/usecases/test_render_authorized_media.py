@@ -37,6 +37,7 @@ def _download_result(
 
 # === passthrough（Read tool が直接対応する形式）===
 
+
 def test_image_jpeg_is_passthrough_without_renderer_call():
     dr = _download_result(1, "image/jpeg")
     renderer = FakeMediaRenderer()
@@ -65,7 +66,9 @@ def test_pdf_calls_pdf_renderer():
     """
     dr = _download_result(1, "application/pdf", file_id="pdf")
     renderer = FakeMediaRenderer()
-    pdf_renderer = FakeMediaRenderer(rendered_text="PDF 本文テキスト", render_status="ok")
+    pdf_renderer = FakeMediaRenderer(
+        rendered_text="PDF 本文テキスト", render_status="ok"
+    )
     uc = RenderAuthorizedMedia(renderer, pdf_renderer=pdf_renderer)
     results = uc.execute([dr])
 
@@ -124,6 +127,7 @@ def test_json_is_passthrough():
 
 # === render（markitdown で md 化）===
 
+
 def test_docx_calls_renderer():
     dr = _download_result(
         1,
@@ -173,6 +177,7 @@ def test_html_calls_renderer():
 
 # === skipped（未対応 mime / audio/video / 未知）===
 
+
 def test_audio_is_skipped():
     dr = _download_result(1, "audio/mpeg")
     renderer = FakeMediaRenderer()
@@ -210,6 +215,7 @@ def test_zip_archive_is_skipped():
 
 # === download skip 継承（size 超過等） ===
 
+
 def test_skip_reason_propagates_to_render_skipped():
     """download 段階で skip された media（size 超過等）は render も skip。"""
     dr = _download_result(
@@ -228,6 +234,7 @@ def test_skip_reason_propagates_to_render_skipped():
 
 
 # === 複数 + 空 ===
+
 
 def test_processes_multiple_download_results_in_one_call():
     drs = [
@@ -258,6 +265,7 @@ def test_empty_download_results_returns_empty():
 
 # === file_name / メタの引き継ぎ ===
 
+
 def test_file_name_is_carried_through_render_result():
     """RenderResult が MediaAttachment の file_name を保持していること。"""
     dr = _download_result(
@@ -274,11 +282,14 @@ def test_file_name_is_carried_through_render_result():
 
 # === Stage 9.4: audio → transcribe（transcriber 注入時のみ）===
 
+
 def test_audio_mpeg_calls_transcriber_when_injected():
     """audio/mpeg は transcriber 注入時 transcribe ルート（markitdown renderer は呼ばない）。"""
     dr = _download_result(1, "audio/mpeg", file_id="aud")
     renderer = FakeMediaRenderer()
-    transcriber = FakeMediaRenderer(rendered_text="文字起こしテキスト", render_status="ok")
+    transcriber = FakeMediaRenderer(
+        rendered_text="文字起こしテキスト", render_status="ok"
+    )
     uc = RenderAuthorizedMedia(renderer, transcriber=transcriber)
     results = uc.execute([dr])
 
@@ -315,7 +326,9 @@ def test_video_calls_transcriber():
     audio/* と同じ transcriber 経路に乗る。key frame Vision は 9.6-ii で別途。
     """
     dr = _download_result(1, "video/mp4", file_id="vid")
-    transcriber = FakeMediaRenderer(rendered_text="動画の音声トラック", render_status="ok")
+    transcriber = FakeMediaRenderer(
+        rendered_text="動画の音声トラック", render_status="ok"
+    )
     uc = RenderAuthorizedMedia(FakeMediaRenderer(), transcriber=transcriber)
     results = uc.execute([dr])
     assert results[0].rendered.render_status == "ok"

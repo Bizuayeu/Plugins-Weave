@@ -6,6 +6,7 @@ Moonshine が食える 16kHz mono float（-1.0〜1.0）に正規化する。
 デコード不能なファイルは AudioDecodeError を送出する（空配列で返して「無音」に化けさせない）。
 デコードできて中身が 0 サンプルだった場合のみ空配列を返す。
 """
+
 from __future__ import annotations
 
 from pathlib import Path

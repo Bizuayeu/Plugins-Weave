@@ -10,6 +10,7 @@ mime-routing は UseCase 側に閉じる:
 
 download 段階で skip された media（size 超過等）は render も skip。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -31,7 +32,9 @@ _PASSTHROUGH_MIME_EXACT = frozenset(
         "application/json",
     }
 )
-_PDF_MIME_EXACT = frozenset({"application/pdf"})  # Stage 10: pdfplumber でテキスト層抽出
+_PDF_MIME_EXACT = frozenset(
+    {"application/pdf"}
+)  # Stage 10: pdfplumber でテキスト層抽出
 _RENDER_MIME_EXACT = frozenset(
     {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # docx
@@ -40,7 +43,10 @@ _RENDER_MIME_EXACT = frozenset(
         "text/html",
     }
 )
-_TRANSCRIBE_MIME_PREFIXES = ("audio/", "video/")  # Stage 9.4/9.6: 音声・動画音声トラックを STT で transcript 化
+_TRANSCRIBE_MIME_PREFIXES = (
+    "audio/",
+    "video/",
+)  # Stage 9.4/9.6: 音声・動画音声トラックを STT で transcript 化
 
 
 @dataclass(frozen=True)

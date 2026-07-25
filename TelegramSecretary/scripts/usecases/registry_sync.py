@@ -5,6 +5,7 @@
 git 操作は GitSyncPort（adapters 実装）越し。固定ブランチ運用・force 不使用の競合設計は
 DESIGN.md §3.6 を参照。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

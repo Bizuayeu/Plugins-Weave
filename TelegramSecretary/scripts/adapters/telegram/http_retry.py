@@ -8,6 +8,7 @@ status 分類 callback 注入式で一本化する。429 の Retry-After 尊重 
 redact 規律: httpx.RequestError には token 込み URL が混入し得るため、`from None` で
 chain を切り、呼び出し側が用意した固定文言（token を含まない）だけを raise する。
 """
+
 from __future__ import annotations
 
 import time

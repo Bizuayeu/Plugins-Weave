@@ -24,5 +24,6 @@ def test_frozen_after_construction():
     chats = AuthorizedChats.from_iterable([100])
     # frozenset なので変更不可、dataclass(frozen=True) で属性も再代入不可
     import pytest
+
     with pytest.raises(AttributeError):
         chats.chat_ids = frozenset([200])  # type: ignore[misc]

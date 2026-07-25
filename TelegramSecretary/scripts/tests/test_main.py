@@ -103,7 +103,9 @@ def test_init_config_refuses_overwrite_without_force(monkeypatch, tmp_path):
     target = tmp_path / "config.json"
     target.write_text("{}", encoding="utf-8")
     monkeypatch.setattr("infrastructure.config._default_config_path", lambda: target)
-    assert main(["init-config", "--session-duration-sec", "3600"]) == EXIT_CONFIG_INVALID
+    assert (
+        main(["init-config", "--session-duration-sec", "3600"]) == EXIT_CONFIG_INVALID
+    )
 
 
 def test_init_config_force_overwrites(monkeypatch, tmp_path):
@@ -112,14 +114,18 @@ def test_init_config_force_overwrites(monkeypatch, tmp_path):
     target.write_text("{}", encoding="utf-8")
     monkeypatch.setattr("infrastructure.config._default_config_path", lambda: target)
     assert main(["init-config", "--session-duration-sec", "3600", "--force"]) == EXIT_OK
-    assert json.loads(target.read_text(encoding="utf-8"))["session_duration_sec"] == 3600
+    assert (
+        json.loads(target.read_text(encoding="utf-8"))["session_duration_sec"] == 3600
+    )
 
 
 def test_init_config_rejects_out_of_range(monkeypatch, tmp_path):
     """範囲外（>86400）は生成前に弾く（ファイルを作らない）。"""
     target = tmp_path / "config.json"
     monkeypatch.setattr("infrastructure.config._default_config_path", lambda: target)
-    assert main(["init-config", "--session-duration-sec", "99999"]) == EXIT_CONFIG_INVALID
+    assert (
+        main(["init-config", "--session-duration-sec", "99999"]) == EXIT_CONFIG_INVALID
+    )
     assert not target.exists()
 
 
@@ -245,6 +251,7 @@ def test_watch_runs_one_iteration_and_exits(env_ready, monkeypatch, capsys):
 
 def test_watch_exits_4_when_no_lease(env_ready, monkeypatch):
     """事前 acquire 無しで watch を回すと、renew 段階で exit 4 を返す（並走奪取の自己治癒経路の入口）。"""
+
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"ok": True, "result": []})
 
@@ -255,6 +262,7 @@ def test_watch_exits_4_when_no_lease(env_ready, monkeypatch):
 
 def test_watch_exits_4_when_lease_stolen(env_ready, monkeypatch):
     """watch 中に lease が他人に奪われていた場合、renew で exit 4。"""
+
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"ok": True, "result": []})
 
@@ -365,7 +373,9 @@ def test_watch_exit_on_message_breaks_after_emit(env_ready, monkeypatch):
         ]
     )
     assert rc == EXIT_OK
-    assert calls["n"] == 1  # 1 サイクル目の emit で break（max-iterations 5 に達しない）
+    assert (
+        calls["n"] == 1
+    )  # 1 サイクル目の emit で break（max-iterations 5 に達しない）
 
 
 def test_watch_exit_on_message_continues_when_no_message(env_ready, monkeypatch):
@@ -760,6 +770,7 @@ def test_send_reply_with_reply_to(env_ready, monkeypatch, tmp_path):
 
 def test_watch_uses_env_owner(env_ready, monkeypatch):
     """env で session_id を export しておけば watch も同じ owner で renew する。"""
+
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"ok": True, "result": []})
 
@@ -1156,7 +1167,9 @@ def test_poll_medium_mode_emits_voice(env_ready, monkeypatch, capsys):
     assert payload["media"][0]["file_id"] == "AwACvoice"
     assert payload["media"][0]["mime_type"] == "audio/ogg"
     assert payload["media"][0]["local_path"] is None  # Medium
-    assert payload["media"][0]["render_status"] is None  # Medium は render/transcribe しない
+    assert (
+        payload["media"][0]["render_status"] is None
+    )  # Medium は render/transcribe しない
 
 
 def test_poll_medium_mode_emits_video(env_ready, monkeypatch, capsys):
@@ -1307,7 +1320,9 @@ def test_render_pdf_invalid_pages_format_exits_config_invalid(
 ):
     """--pages 不正書式（abc）は traceback でなく stderr 1 行＋exit 2（入力不正）。"""
     pdf = tmp_path / "doc.pdf"
-    pdf.write_bytes(b"%PDF-1.4")  # 存在チェック通過用ダミー（parse で弾かれ rasterize 不到達）
+    pdf.write_bytes(
+        b"%PDF-1.4"
+    )  # 存在チェック通過用ダミー（parse で弾かれ rasterize 不到達）
     rc = main(["render-pdf", "--path", str(pdf), "--pages", "abc"])
     assert rc == EXIT_CONFIG_INVALID
     assert "pages" in capsys.readouterr().err
@@ -1358,7 +1373,15 @@ def test_proactive_send_wal_gate_then_send_then_settle(env_ready, monkeypatch):
     text_file = env_ready / "push.txt"
     text_file.write_text("能動メッセージ", encoding="utf-8")
     rc = main(
-        ["proactive-send", "--chat-id", "100", "--text-file", str(text_file), "--owner", "S1"]
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(text_file),
+            "--owner",
+            "S1",
+        ]
     )
     assert rc == EXIT_OK
     # append が先頭・settle が末尾（送信は両者の間）、settle に append の created_at キーが渡る
@@ -1371,7 +1394,9 @@ def test_proactive_send_aborts_when_wal_push_fails(env_ready, monkeypatch):
     """WAL push 失敗（送信前ゲート）→ 送信せず・settle せず exit 非0（push できないなら送らない）。"""
     monkeypatch.setattr("main.run_wal_append_outbound", lambda *a, **k: (False, "K1"))
     settled: list = []
-    monkeypatch.setattr("main.run_wal_settle_outbound", lambda *a, **k: settled.append(1))
+    monkeypatch.setattr(
+        "main.run_wal_settle_outbound", lambda *a, **k: settled.append(1)
+    )
     sent: list = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -1383,7 +1408,15 @@ def test_proactive_send_aborts_when_wal_push_fails(env_ready, monkeypatch):
     text_file = env_ready / "push.txt"
     text_file.write_text("hi", encoding="utf-8")
     rc = main(
-        ["proactive-send", "--chat-id", "100", "--text-file", str(text_file), "--owner", "S1"]
+        [
+            "proactive-send",
+            "--chat-id",
+            "100",
+            "--text-file",
+            str(text_file),
+            "--owner",
+            "S1",
+        ]
     )
     assert rc == EXIT_FETCH_FAILED
     assert sent == []  # 送信されない（送信前ゲートで止まる）

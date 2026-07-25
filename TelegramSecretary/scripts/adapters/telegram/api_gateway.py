@@ -1,4 +1,5 @@
 """Telegram Bot API への HTTP クライアント。getUpdates / sendMessage を提供。"""
+
 from __future__ import annotations
 
 from typing import Any, List, Optional
@@ -56,7 +57,9 @@ class TelegramApiGateway:
     def __exit__(self, *exc_info: Any) -> None:
         self.close()
 
-    def fetch(self, offset: UpdateOffset, timeout_seconds: int = 30) -> List[TelegramUpdate]:
+    def fetch(
+        self, offset: UpdateOffset, timeout_seconds: int = 30
+    ) -> List[TelegramUpdate]:
         url = f"{self._base_url}/bot{self._bot_token}/getUpdates"
         params = {"offset": offset.value, "timeout": timeout_seconds}
         response = self._request_with_retry("GET", url, params=params)
@@ -163,12 +166,12 @@ class TelegramApiGateway:
         result = data.get("result") or {}
         file_path = result.get("file_path")
         if not file_path:
-            raise TelegramSecretaryError(
-                f"getFile response missing file_path: {data}"
-            )
+            raise TelegramSecretaryError(f"getFile response missing file_path: {data}")
         return str(file_path)
 
-    def _request_with_retry(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+    def _request_with_retry(
+        self, method: str, url: str, **kwargs: Any
+    ) -> httpx.Response:
         # network error の固定文言: exc には token 込み URL が混入し得るため、ヘルパ側が
         # from None で chain を切り、この文言だけを raise する（redact）
         return http_retry.request_with_retry(

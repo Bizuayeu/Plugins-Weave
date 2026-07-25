@@ -7,6 +7,7 @@
 本モジュールは決定論的な自動実行（subcommand）を持たず、エージェントが判断した分割の「計算」だけを担う。
 実ファイルの移動・書き出しはエージェントが `JsonRegistryStore` と組み合わせて行う。
 """
+
 from __future__ import annotations
 
 from typing import Callable, Dict, List, Tuple

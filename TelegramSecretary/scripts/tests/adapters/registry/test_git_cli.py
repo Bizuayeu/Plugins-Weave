@@ -3,6 +3,7 @@
 実 git で bare remote + work clone を立て、commit/push/non-ff/rebase/fetch を round-trip 検証。
 git 不在環境では skip。git メッセージは LC_ALL=C で英語固定（non-ff 検出の安定化）。
 """
+
 from __future__ import annotations
 
 import os
@@ -24,7 +25,10 @@ _ENV = {**os.environ, "LC_ALL": "C", "LANG": "C"}
 def _git(repo, *args):
     return subprocess.run(
         ["git", "-C", str(repo), *args],
-        capture_output=True, text=True, check=True, env=_ENV,
+        capture_output=True,
+        text=True,
+        check=True,
+        env=_ENV,
     )
 
 
@@ -32,11 +36,19 @@ def _git(repo, *args):
 def repos(tmp_path):
     """bare remote + work clone（registry ブランチに initial commit を push 済み）。"""
     remote = tmp_path / "remote.git"
-    subprocess.run(["git", "init", "--bare", "-b", "main", str(remote)],
-                   check=True, capture_output=True, env=_ENV)
+    subprocess.run(
+        ["git", "init", "--bare", "-b", "main", str(remote)],
+        check=True,
+        capture_output=True,
+        env=_ENV,
+    )
     work = tmp_path / "work"
-    subprocess.run(["git", "init", "-b", "main", str(work)],
-                   check=True, capture_output=True, env=_ENV)
+    subprocess.run(
+        ["git", "init", "-b", "main", str(work)],
+        check=True,
+        capture_output=True,
+        env=_ENV,
+    )
     _git(work, "config", "user.email", "t@example.com")
     _git(work, "config", "user.name", "Tester")
     _git(work, "remote", "add", "origin", str(remote))
@@ -51,8 +63,12 @@ def repos(tmp_path):
 def _clone_and_advance(remote, tmp_path, name):
     """別 clone が registry ブランチに 1 commit 足して push（外部更新の模擬）。"""
     other = tmp_path / name
-    subprocess.run(["git", "clone", "-b", _BRANCH, str(remote), str(other)],
-                   check=True, capture_output=True, env=_ENV)
+    subprocess.run(
+        ["git", "clone", "-b", _BRANCH, str(remote), str(other)],
+        check=True,
+        capture_output=True,
+        env=_ENV,
+    )
     _git(other, "config", "user.email", "o@example.com")
     _git(other, "config", "user.name", "Other")
     (other / f"{name}.json").write_text("{}", encoding="utf-8")
@@ -87,8 +103,12 @@ def test_push_reflects_to_remote(repos, tmp_path):
     adapter.commit([f], "add k")
     adapter.push()
     verify = tmp_path / "verify"
-    subprocess.run(["git", "clone", "-b", _BRANCH, str(remote), str(verify)],
-                   check=True, capture_output=True, env=_ENV)
+    subprocess.run(
+        ["git", "clone", "-b", _BRANCH, str(remote), str(verify)],
+        check=True,
+        capture_output=True,
+        env=_ENV,
+    )
     assert (verify / "k.json").exists()
 
 
@@ -112,12 +132,16 @@ def test_pull_rebase_resolves_non_ff(repos, tmp_path):
     adapter.commit([f], "work update")
     with pytest.raises(PushRejectedError):
         adapter.push()
-    adapter.pull_rebase()   # 外部更新を取り込む（独立ファイルは自動マージ）
-    adapter.push()          # 今度は成功
+    adapter.pull_rebase()  # 外部更新を取り込む（独立ファイルは自動マージ）
+    adapter.push()  # 今度は成功
     verify = tmp_path / "verify"
-    subprocess.run(["git", "clone", "-b", _BRANCH, str(remote), str(verify)],
-                   check=True, capture_output=True, env=_ENV)
-    assert (verify / "z.json").exists()      # work の更新
+    subprocess.run(
+        ["git", "clone", "-b", _BRANCH, str(remote), str(verify)],
+        check=True,
+        capture_output=True,
+        env=_ENV,
+    )
+    assert (verify / "z.json").exists()  # work の更新
     assert (verify / "other.json").exists()  # 外部更新も保持
 
 
@@ -164,7 +188,9 @@ def test_timeout_expired_translates_to_git_sync_error(tmp_path, monkeypatch):
     assert "timed out" in str(ei.value)
 
 
-def test_pull_rebase_failure_aborts_inprogress_rebase_then_raises(tmp_path, monkeypatch):
+def test_pull_rebase_failure_aborts_inprogress_rebase_then_raises(
+    tmp_path, monkeypatch
+):
     """pull --rebase 失敗時は rebase --abort を best-effort で撃ってから raise する。
 
     rebase-in-progress を放置すると以降の commit/push が全滅し自己復旧不能になる
@@ -175,7 +201,9 @@ def test_pull_rebase_failure_aborts_inprogress_rebase_then_raises(tmp_path, monk
     def fake_run(cmd, **kwargs):
         calls.append(list(cmd))
         if cmd[1] == "pull":
-            return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="CONFLICT (content)")
+            return subprocess.CompletedProcess(
+                cmd, 1, stdout="", stderr="CONFLICT (content)"
+            )
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     monkeypatch.setattr(git_cli.subprocess, "run", fake_run)
@@ -237,7 +265,7 @@ def test_fetch_checkout_rejects_when_toplevel_differs(repos):
     toplevel 一致時の proceeds は test_fetch_checkout_gets_remote_state が担保。"""
     work, _ = repos
     _git(work, "checkout", "-b", "dev-work")  # 親リポは別ブランチで作業中
-    subdir = work / "registry"                # work（独立ツリー）の内側の subdir
+    subdir = work / "registry"  # work（独立ツリー）の内側の subdir
     subdir.mkdir()
     adapter = GitCliAdapter(subdir, branch=_BRANCH)
     with pytest.raises(RegistryWorktreeError):

@@ -11,6 +11,7 @@ WAL JSONL の「破損行スキップ」）も 4 store で同型だったため�
 state/registry/wal の兄弟パッケージどこからも引けるよう、media_failure.py と同じく
 adapters 直下に中立配置。
 """
+
 from __future__ import annotations
 
 import json

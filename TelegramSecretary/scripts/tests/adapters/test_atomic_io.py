@@ -3,6 +3,7 @@
 write_text_atomic の核心は「publish（os.replace）前に失敗しても旧内容が無傷」——
 truncate→write（write_text）の全損経路が存在しないことを monkeypatch で直接検証する。
 """
+
 from __future__ import annotations
 
 import json
@@ -80,7 +81,10 @@ def test_load_missing_file_returns_default(tmp_path):
 def test_load_valid_json_is_parsed(tmp_path):
     p = tmp_path / "v.json"
     p.write_text(json.dumps({"value": 42}), encoding="utf-8")
-    assert load_json_or_default(p, parse=lambda d: int(d["value"]), default=lambda: 0) == 42
+    assert (
+        load_json_or_default(p, parse=lambda d: int(d["value"]), default=lambda: 0)
+        == 42
+    )
 
 
 def test_load_corrupt_json_returns_default(tmp_path):
@@ -93,7 +97,10 @@ def test_load_parse_error_returns_default(tmp_path):
     """parse 中の KeyError/ValueError も default に倒す（既存 store の catch 集合を踏襲）。"""
     p = tmp_path / "missing-key.json"
     p.write_text("{}", encoding="utf-8")
-    assert load_json_or_default(p, parse=lambda d: int(d["value"]), default=lambda: -1) == -1
+    assert (
+        load_json_or_default(p, parse=lambda d: int(d["value"]), default=lambda: -1)
+        == -1
+    )
 
 
 # --- load_jsonl ---

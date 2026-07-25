@@ -1,4 +1,5 @@
 """watch ループの wall-clock 窓。max_duration_seconds 経過で満了判定。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -4,6 +4,7 @@ registry の永続化（`registry_sync.py` の best-effort push）と対照的�
 redo のソースゆえ **must-succeed**（push 失敗は raise で伝播＝秘書は送信前ゲートで止まる）。
 Domain（`domain/wal.py` の reconcile/settle/checkpoint）を Port 越しに駆動する。
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -75,9 +76,7 @@ class PushWalLog:
         return True
 
 
-_OUTBOUND_RESEND_PREFIX = (
-    "[{created_at}] にお送りしようとした内容を、念のためお届けします（既に届いていたらご容赦ください）"
-)
+_OUTBOUND_RESEND_PREFIX = "[{created_at}] にお送りしようとした内容を、念のためお届けします（既に届いていたらご容赦ください）"
 
 
 def _rebuild_outbound(entry: WalEntry) -> OutboundMessage:

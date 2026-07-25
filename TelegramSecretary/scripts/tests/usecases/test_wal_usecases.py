@@ -3,6 +3,7 @@
 PushWalLog の must-succeed（best-effort と異なり push 失敗を握らず raise）と、
 RedoPendingIntents の upsert→settle→checkpoint（冪等・累積防止）を fake で全分岐検証。
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -33,7 +34,9 @@ def _now():
 
 
 def _entry(key, status="pending", kind="tasks", created_at="2026-06-03T18:00:00+00:00"):
-    return WalEntry(key=key, kind=kind, status=status, payload={"id": key}, created_at=created_at)
+    return WalEntry(
+        key=key, kind=kind, status=status, payload={"id": key}, created_at=created_at
+    )
 
 
 def _services(records=None):
@@ -42,10 +45,14 @@ def _services(records=None):
 
 # --- AppendWalIntent ---
 
+
 def test_append_writes_pending_entry():
     log = FakeWalLogStore()
     AppendWalIntent(log).execute(
-        key="T0001", kind="tasks", payload={"id": "T0001"}, created_at="2026-06-03T18:00:00+00:00"
+        key="T0001",
+        kind="tasks",
+        payload={"id": "T0001"},
+        created_at="2026-06-03T18:00:00+00:00",
     )
     assert len(log.append_calls) == 1
     assert log.append_calls[0].status == "pending"
@@ -53,6 +60,7 @@ def test_append_writes_pending_entry():
 
 
 # --- PushWalLog: must-succeed（送信前ゲート） ---
+
 
 def test_push_commits_and_pushes():
     git = FakeGitSync(committed=True, push_outcomes=[None])
@@ -74,7 +82,9 @@ def test_push_non_ff_rebases_then_retries():
 
 
 def test_push_raises_when_retry_still_rejected():
-    git = FakeGitSync(committed=True, push_outcomes=[PushRejectedError("r1"), PushRejectedError("r2")])
+    git = FakeGitSync(
+        committed=True, push_outcomes=[PushRejectedError("r1"), PushRejectedError("r2")]
+    )
     with pytest.raises(PushRejectedError):
         PushWalLog(git, Path("WAL.jsonl")).execute("wal: add T0001")
 
@@ -87,6 +97,7 @@ def test_push_raises_on_network_error_not_swallowed():
 
 
 # --- RedoPendingIntents ---
+
 
 def test_redo_upserts_missing_and_marks_all_done():
     log = FakeWalLogStore(entries=[_entry("T0001"), _entry("T0002")])
@@ -113,7 +124,9 @@ def test_redo_is_idempotent():
 
 def test_redo_checkpoint_drops_old_done():
     # done 化された古い entry は checkpoint で掃除される（pending 累積防止の出口）
-    old_done = _entry("T0001", status="done", created_at="2026-06-01T00:00:00+00:00")  # 3日前
+    old_done = _entry(
+        "T0001", status="done", created_at="2026-06-01T00:00:00+00:00"
+    )  # 3日前
     log = FakeWalLogStore(entries=[old_done])
     result = RedoPendingIntents(log, _services(), now_fn=_now, retention_h=24).execute()
     assert log.load() == []  # 古い done は掃除
@@ -217,7 +230,9 @@ def test_redo_without_sink_leaves_outbound_pending():
 
 def test_settle_outbound_intent_marks_sent_done():
     # 送信成功した outbound（key=created_at）を done 化し rewrite する
-    log = FakeWalLogStore(entries=[_outbound_entry(created_at="2026-06-03T18:00:00+00:00")])
+    log = FakeWalLogStore(
+        entries=[_outbound_entry(created_at="2026-06-03T18:00:00+00:00")]
+    )
     SettleOutboundIntent(log).execute("2026-06-03T18:00:00+00:00")
     assert all(e.status == "done" for e in log.load() if e.kind == "outbound")
 
@@ -242,7 +257,9 @@ def test_settled_outbound_is_not_resent_by_redo():
     # happy-path settle の核心: 送信成功→settle 済みの outbound は次回 redo で再送されない
     # （= 偽謝罪付きの複製が構造的に起きない＝実運用で観測された複製不具合の根治を直接証明）
     sink = FakeMessageSink()
-    log = FakeWalLogStore(entries=[_outbound_entry(created_at="2026-06-03T18:00:00+00:00")])
+    log = FakeWalLogStore(
+        entries=[_outbound_entry(created_at="2026-06-03T18:00:00+00:00")]
+    )
     SettleOutboundIntent(log).execute("2026-06-03T18:00:00+00:00")
     result = RedoPendingIntents(log, _services(), sink=sink, now_fn=_now).execute()
     assert sink.sent == []

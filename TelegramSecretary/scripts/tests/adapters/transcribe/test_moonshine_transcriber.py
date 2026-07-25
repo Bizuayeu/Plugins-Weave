@@ -33,7 +33,9 @@ def _make_silence_wav(path: Path, dur: float = 1.0, rate: int = 16000) -> None:
 
 
 def _voice(file_id: str = "v") -> MediaAttachment:
-    return MediaAttachment(kind="voice", file_id=file_id, mime_type="audio/ogg", size=100)
+    return MediaAttachment(
+        kind="voice", file_id=file_id, mime_type="audio/ogg", size=100
+    )
 
 
 def test_empty_samples_returns_ok_empty_without_model_load():
@@ -51,7 +53,9 @@ def test_failed_on_audio_decode_error():
     """
     from domain.exceptions import AudioDecodeError
 
-    t = MoonshineTranscriber(preprocessor=_FakePreprocessor(exc=AudioDecodeError("boom")))
+    t = MoonshineTranscriber(
+        preprocessor=_FakePreprocessor(exc=AudioDecodeError("boom"))
+    )
     result = t.render(_voice("abcdef1234"), Path("x.ogg"))
     assert result.render_status == "failed"
     assert result.rendered_text is None

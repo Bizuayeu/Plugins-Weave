@@ -6,6 +6,7 @@ main.py の subcommand から呼ばれる。値オブジェクトで入力を検
 `REGISTRY_SPEC` / `read_json_arg` / `registry_service` は wal_cli と共有する公開名
 （旧 private 名の越境 import を解消）。git/sync の DI 組み立ては composition.py に移設済み。
 """
+
 from __future__ import annotations
 
 import json
@@ -63,7 +64,9 @@ def registry_service(config: Config, name: str) -> RegistryService:
     )
 
 
-def run_registry_command(config: Config, name: str, action: str, args: Any, sync=None) -> int:
+def run_registry_command(
+    config: Config, name: str, action: str, args: Any, sync=None
+) -> int:
     spec = REGISTRY_SPEC[name]
     svc = registry_service(config, name)
 
@@ -90,7 +93,9 @@ def run_registry_command(config: Config, name: str, action: str, args: Any, sync
             return EXIT_CONFIG_INVALID
         record = vo.to_dict()
         svc.add_or_update(record)
-        _sync_after_change(config, name, f"registry: add {name} {record[spec.key_field]}", sync)
+        _sync_after_change(
+            config, name, f"registry: add {name} {record[spec.key_field]}", sync
+        )
         print(f"saved {name} {spec.key_field}={record[spec.key_field]}")
         return EXIT_OK
 

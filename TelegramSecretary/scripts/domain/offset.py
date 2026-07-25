@@ -1,4 +1,5 @@
 """Telegram getUpdates の offset 単調増加値オブジェクト。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,4 +1,5 @@
 """リース解放 UseCase。セッション終端で次 cron が拾えるようにする。"""
+
 from __future__ import annotations
 
 from usecases.ports import LeaseStore

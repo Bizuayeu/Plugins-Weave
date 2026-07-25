@@ -1,4 +1,5 @@
 """UseCase テスト用の fake adapter 群。"""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,7 +19,9 @@ class FakeUpdateSource:
         self.batches = list(batches or [])
         self.fetch_calls: List[tuple[UpdateOffset, int]] = []
 
-    def fetch(self, offset: UpdateOffset, timeout_seconds: int = 30) -> List[TelegramUpdate]:
+    def fetch(
+        self, offset: UpdateOffset, timeout_seconds: int = 30
+    ) -> List[TelegramUpdate]:
         self.fetch_calls.append((offset, timeout_seconds))
         if not self.batches:
             return []
@@ -149,14 +152,20 @@ class FakeGitSync:
     - pull_rebase: 呼び出し回数・引数を記録
     """
 
-    def __init__(self, committed: bool = True, push_outcomes=None, fetch_outcomes=None) -> None:
+    def __init__(
+        self, committed: bool = True, push_outcomes=None, fetch_outcomes=None
+    ) -> None:
         self.committed = committed
         self.commit_calls: List[Tuple[List[Path], str]] = []
         self.push_calls = 0
         self.pull_rebase_calls = 0
         self.fetch_calls: List[str] = []
-        self._push_outcomes = list(push_outcomes) if push_outcomes is not None else [None]
-        self._fetch_outcomes = list(fetch_outcomes) if fetch_outcomes is not None else []
+        self._push_outcomes = (
+            list(push_outcomes) if push_outcomes is not None else [None]
+        )
+        self._fetch_outcomes = (
+            list(fetch_outcomes) if fetch_outcomes is not None else []
+        )
 
     def commit(self, paths, message: str) -> bool:
         self.commit_calls.append((list(paths), message))

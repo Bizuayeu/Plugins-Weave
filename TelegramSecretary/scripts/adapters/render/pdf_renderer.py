@@ -21,6 +21,7 @@ file_id 由来プレフィックスに一致する（render と rasterize_pages 
 pdfplumber / pypdfium2 は遅延 import（cloud routine 起動を軽く保つ）。
 mime-routing は UseCase 側（render_authorized_media._route_mime）が担う。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -51,7 +52,9 @@ class PdfRenderer:
             pdf = pypdfium2.PdfDocument(str(local_path))
             try:
                 page_count = len(pdf)
-                derived = self._rasterize_range(pdf, local_path, 0, self._image_max_pages)
+                derived = self._rasterize_range(
+                    pdf, local_path, 0, self._image_max_pages
+                )
             finally:
                 pdf.close()
             return RenderedMedia(
@@ -61,9 +64,7 @@ class PdfRenderer:
                 page_count=page_count,
             )
         except Exception:
-            return failed_render(
-                "pdf-renderer", "render", "file_id", media.file_id[:8]
-            )
+            return failed_render("pdf-renderer", "render", "file_id", media.file_id[:8])
 
     def extract_text(self, local_path: Path) -> RenderedMedia:
         """オンデマンド: 全ページのテキスト層を pdfplumber 抽出（--- page N --- マーカー）。
@@ -114,9 +115,7 @@ class PdfRenderer:
             finally:
                 pdf.close()
         except Exception:
-            log_media_failure(
-                "pdf-renderer", "rasterize", "path", local_path.name[:8]
-            )
+            log_media_failure("pdf-renderer", "rasterize", "path", local_path.name[:8])
             return []
 
     def _rasterize_range(

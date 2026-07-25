@@ -121,6 +121,7 @@ def test_send_raises_when_lease_was_released():
 
 # === Stage 8.2: 添付対応 ===
 
+
 def test_send_with_attachments_passes_them_to_sink(tmp_path):
     # 添付付き OutboundMessage が attachments 込みで sink に渡り、成功で offset/lease 進行
     img = tmp_path / "fig.png"
@@ -183,6 +184,8 @@ def test_lease_check_precedes_attachment_validation(tmp_path):
         attachments=[OutboundAttachment(path=big)],
     )
     with pytest.raises(LeaseConflictError):
-        uc.execute(message=msg, update_id=15, lease=my_lease, now=_t(40), max_bytes=1024)
+        uc.execute(
+            message=msg, update_id=15, lease=my_lease, now=_t(40), max_bytes=1024
+        )
 
     assert sink.sent == []

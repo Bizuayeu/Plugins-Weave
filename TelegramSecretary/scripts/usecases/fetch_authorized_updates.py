@@ -1,4 +1,5 @@
 """getUpdates → 認可フィルタ → 正規化 → injection フラグ → emit する UseCase。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -56,7 +57,9 @@ class FetchAuthorizedUpdates:
             merged = merge_caption_into_text(text, caption)
             flags = flag_injection(merged)
             normalized_list.append(
-                NormalizedUpdate(update=u, normalized_text=merged, injection_flags=flags)
+                NormalizedUpdate(
+                    update=u, normalized_text=merged, injection_flags=flags
+                )
             )
 
         # 認可不問で取得した更新を全て消費したことを記録（offset advance）

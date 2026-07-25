@@ -7,6 +7,7 @@ main.py と registry_cli.py が各々で定義/裸書きしていた終了コー
 main.py は後方互換のためここから re-export する（既存テスト・docs の
 `from main import EXIT_*` を割らない）。
 """
+
 from __future__ import annotations
 
 EXIT_OK = 0  # 正常終了

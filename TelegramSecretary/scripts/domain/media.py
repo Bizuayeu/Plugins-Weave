@@ -4,6 +4,7 @@ Stage 6.1: photo / document / caption を Domain 層の純粋型として表現�
 bytes は持たず file_id 等の identifier のみ保持（Infrastructure 層の local_path に閉じ込め）。
 Stage 7.1: MediaAttachment.file_name 追加、RenderedMedia 値オブジェクト新設。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -21,7 +22,9 @@ class MediaAttachment:
     file_id: str
     mime_type: str
     size: int
-    file_name: Optional[str] = None  # Stage 7.1: document の元ファイル名（エージェントの判断材料）
+    file_name: Optional[str] = (
+        None  # Stage 7.1: document の元ファイル名（エージェントの判断材料）
+    )
 
     @classmethod
     def from_photo_api(

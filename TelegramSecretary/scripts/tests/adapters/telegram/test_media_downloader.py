@@ -138,7 +138,9 @@ def test_download_5xx_on_file_cdn_is_retried(tmp_path: Path):
             return httpx.Response(503, text="bad gateway")
         return httpx.Response(200, content=b"ok")
 
-    _, downloader = _make_gateway_and_downloader(api_handler, file_handler, retry_count=2)
+    _, downloader = _make_gateway_and_downloader(
+        api_handler, file_handler, retry_count=2
+    )
     saved = downloader.download("AgACAg", tmp_path)
     assert saved.read_bytes() == b"ok"
     assert len(attempts) == 2
@@ -172,14 +174,18 @@ def test_download_429_on_file_cdn_respects_retry_after(tmp_path: Path, monkeypat
             return httpx.Response(429, headers={"Retry-After": "2"})
         return httpx.Response(200, content=b"ok")
 
-    _, downloader = _make_gateway_and_downloader(api_handler, file_handler, retry_count=2)
+    _, downloader = _make_gateway_and_downloader(
+        api_handler, file_handler, retry_count=2
+    )
     saved = downloader.download("AgACAg", tmp_path)
     assert saved.read_bytes() == b"ok"
     assert len(attempts) == 2
     assert sleep_calls == [2]  # Retry-After を尊重して sleep してから再試行
 
 
-def test_download_429_exhausted_retries_then_raises_redacted(tmp_path: Path, monkeypatch):
+def test_download_429_exhausted_retries_then_raises_redacted(
+    tmp_path: Path, monkeypatch
+):
     """429 が続く場合も即死せず retry を使い切ってから raise（token は漏らさない）。"""
     import time as time_module
 
@@ -197,7 +203,9 @@ def test_download_429_exhausted_retries_then_raises_redacted(tmp_path: Path, mon
         attempts.append(1)
         return httpx.Response(429, headers={"Retry-After": "1"})
 
-    _, downloader = _make_gateway_and_downloader(api_handler, file_handler, retry_count=1)
+    _, downloader = _make_gateway_and_downloader(
+        api_handler, file_handler, retry_count=1
+    )
     with pytest.raises(TelegramSecretaryError) as excinfo:
         downloader.download("AgACAg", tmp_path)
     assert len(attempts) == 2  # retry_count=1 → 2 試行（429 は transient 扱い）

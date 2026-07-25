@@ -2,6 +2,7 @@
 
 Port は Protocol で定義し、実装は adapters/ 配下に置く。テストは fake 実装で駆動する。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -17,35 +18,31 @@ from domain.wal import WalEntry
 class UpdateSource(Protocol):
     """Telegram getUpdates を抽象化する Port。"""
 
-    def fetch(self, offset: UpdateOffset, timeout_seconds: int = 30) -> List[TelegramUpdate]:
-        ...
+    def fetch(
+        self, offset: UpdateOffset, timeout_seconds: int = 30
+    ) -> List[TelegramUpdate]: ...
 
 
 class MessageSink(Protocol):
     """sendMessage を抽象化する Port。"""
 
-    def send(self, message: OutboundMessage) -> None:
-        ...
+    def send(self, message: OutboundMessage) -> None: ...
 
 
 class OffsetStore(Protocol):
     """update offset の永続化。in-memory + 定期 flush を許容。"""
 
-    def load(self) -> UpdateOffset:
-        ...
+    def load(self) -> UpdateOffset: ...
 
-    def save(self, offset: UpdateOffset) -> None:
-        ...
+    def save(self, offset: UpdateOffset) -> None: ...
 
 
 class LeaseStore(Protocol):
     """セッションリースの永続化。"""
 
-    def load(self) -> Optional[SessionLease]:
-        ...
+    def load(self) -> Optional[SessionLease]: ...
 
-    def save(self, lease: SessionLease) -> None:
-        ...
+    def save(self, lease: SessionLease) -> None: ...
 
     def try_create(self, lease: SessionLease) -> bool:
         """lease 不在時のみ atomic に新規作成する（並走新規取得の排他）。
@@ -56,8 +53,7 @@ class LeaseStore(Protocol):
         """
         ...
 
-    def clear(self) -> None:
-        ...
+    def clear(self) -> None: ...
 
 
 class MediaDownloader(Protocol):
@@ -73,8 +69,7 @@ class MediaDownloader(Protocol):
     のみ UseCase を貫通して伝播する（exit 3 系の決定打）。
     """
 
-    def download(self, file_id: str, target_dir: Path) -> Path:
-        ...
+    def download(self, file_id: str, target_dir: Path) -> Path: ...
 
 
 class MediaRenderer(Protocol):
@@ -86,8 +81,7 @@ class MediaRenderer(Protocol):
     （Stage 6 の skip_reason 同型の「フラグ化、ブロックしない」スタンス）。
     """
 
-    def render(self, media: MediaAttachment, local_path: Path) -> RenderedMedia:
-        ...
+    def render(self, media: MediaAttachment, local_path: Path) -> RenderedMedia: ...
 
 
 class RegistryStore(Protocol):
@@ -97,11 +91,9 @@ class RegistryStore(Protocol):
     （値オブジェクトへの変換は呼び出し側の責務）。
     """
 
-    def load(self) -> List[dict]:
-        ...
+    def load(self) -> List[dict]: ...
 
-    def save(self, records: List[dict]) -> None:
-        ...
+    def save(self, records: List[dict]) -> None: ...
 
 
 class GitSyncPort(Protocol):
@@ -135,11 +127,8 @@ class WalLogStore(Protocol):
     rewrite は checkpoint 後の全書換（done 掃除の反映）。
     """
 
-    def append(self, entry: WalEntry) -> None:
-        ...
+    def append(self, entry: WalEntry) -> None: ...
 
-    def load(self) -> List[WalEntry]:
-        ...
+    def load(self) -> List[WalEntry]: ...
 
-    def rewrite(self, entries: List[WalEntry]) -> None:
-        ...
+    def rewrite(self, entries: List[WalEntry]) -> None: ...

@@ -4,6 +4,7 @@
 するかの判断は エージェント（重要度の世界）、ここは append/push/redo の primitive。
 WAL ログは registry と同じ `registry_root` 配下に置き、同一固定ブランチへ相乗りで push する。
 """
+
 from __future__ import annotations
 
 import sys
@@ -169,7 +170,9 @@ def run_wal_append_outbound(
     if git is None:
         git = build_git(config)
     try:
-        PushWalLog(git, config.wal_log_path).execute(f"wal: outbound intent {created_at}")
+        PushWalLog(git, config.wal_log_path).execute(
+            f"wal: outbound intent {created_at}"
+        )
     except GitSyncError as exc:
         print(f"wal outbound push failed (send aborted): {exc}", file=sys.stderr)
         return False, created_at
@@ -193,4 +196,6 @@ def run_wal_settle_outbound(config: Config, key: str, git=None) -> None:
     try:
         PushWalLog(git, config.wal_log_path).execute(f"wal: settle outbound {key}")
     except GitSyncError as exc:
-        print(f"wal outbound settle persist (best-effort) skipped: {exc}", file=sys.stderr)
+        print(
+            f"wal outbound settle persist (best-effort) skipped: {exc}", file=sys.stderr
+        )

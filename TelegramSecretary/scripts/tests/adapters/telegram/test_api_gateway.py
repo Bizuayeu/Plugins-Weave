@@ -13,7 +13,9 @@ from domain.offset import UpdateOffset
 from domain.outbound import OutboundAttachment
 
 
-def _gateway(handler, retry_count: int = 2, max_retry_after: int = 60) -> TelegramApiGateway:
+def _gateway(
+    handler, retry_count: int = 2, max_retry_after: int = 60
+) -> TelegramApiGateway:
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport, headers={"User-Agent": "test"})
     return TelegramApiGateway(

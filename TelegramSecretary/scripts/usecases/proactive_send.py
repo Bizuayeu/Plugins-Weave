@@ -6,6 +6,7 @@ inbound（受信→返信）に紐づかない outbound（能動 push）を担�
 構造的に封じる（提供する手段が無ければ壊しようがない）。lease 検証→添付検証→送信→renew の
 順序と「送信失敗時は据え置き」不変条件は `SendReply` から継承する。
 """
+
 from __future__ import annotations
 
 from datetime import datetime

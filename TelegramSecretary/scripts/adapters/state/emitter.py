@@ -1,4 +1,5 @@
 """Monitor が消費する JSON Lines 形式で `1 update = 1 行` を stdout 出力。"""
+
 from __future__ import annotations
 
 import json

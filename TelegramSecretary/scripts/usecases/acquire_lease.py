@@ -1,4 +1,5 @@
 """リース取得 UseCase。並走セッションの重複防止。"""
+
 from __future__ import annotations
 
 from datetime import datetime

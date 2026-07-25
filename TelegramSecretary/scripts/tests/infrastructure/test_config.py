@@ -251,7 +251,9 @@ def test_registry_dir_config_separates_registry_from_state(tmp_path, monkeypatch
     state = tmp_path / "volatile"
     reg = tmp_path / "registry"
     monkeypatch.setenv("TELEGRAM_SECRETARY_STATE_DIR", str(state))
-    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_dir": str(reg)})
+    path = _write_config(
+        tmp_path, {"session_duration_sec": 7200, "registry_dir": str(reg)}
+    )
     cfg = Config.from_sources(config_path=path)
     assert cfg.state_dir == state.resolve()
     assert reg.resolve() in cfg.individuals_path.parents
@@ -271,7 +273,9 @@ def test_registry_sync_disabled_by_default(tmp_path):
 
 
 def test_registry_sync_enabled_via_config(tmp_path):
-    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_sync": True})
+    path = _write_config(
+        tmp_path, {"session_duration_sec": 7200, "registry_sync": True}
+    )
     cfg = Config.from_sources(config_path=path)
     assert cfg.registry_sync_enabled is True
 
@@ -284,7 +288,9 @@ def test_registry_remote_and_branch_defaults(tmp_path):
 
 
 def test_registry_branch_from_config(tmp_path):
-    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_branch": "claude/custom-reg"})
+    path = _write_config(
+        tmp_path, {"session_duration_sec": 7200, "registry_branch": "claude/custom-reg"}
+    )
     cfg = Config.from_sources(config_path=path)
     assert cfg.registry_branch == "claude/custom-reg"
 
@@ -303,7 +309,9 @@ def test_registry_dir_env_overrides_config(tmp_path, monkeypatch):
     """
     abs_reg = (tmp_path / "abs_registry").resolve()
     monkeypatch.setenv("TELEGRAM_SECRETARY_REGISTRY_DIR", str(abs_reg))
-    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_dir": "relative/ignored"})
+    path = _write_config(
+        tmp_path, {"session_duration_sec": 7200, "registry_dir": "relative/ignored"}
+    )
     cfg = Config.from_sources(config_path=path)
     assert cfg.registry_dir == abs_reg
     assert cfg.registry_root == abs_reg
@@ -313,6 +321,8 @@ def test_registry_dir_env_overrides_config(tmp_path, monkeypatch):
 def test_registry_dir_falls_back_to_config_when_env_absent(tmp_path):
     """REGISTRY_DIR env が無ければ config.json の registry_dir を従来通り解決（後方互換・ローカル運用）。"""
     reg = tmp_path / "registry"
-    path = _write_config(tmp_path, {"session_duration_sec": 7200, "registry_dir": str(reg)})
+    path = _write_config(
+        tmp_path, {"session_duration_sec": 7200, "registry_dir": str(reg)}
+    )
     cfg = Config.from_sources(config_path=path)
     assert cfg.registry_dir == reg.resolve()

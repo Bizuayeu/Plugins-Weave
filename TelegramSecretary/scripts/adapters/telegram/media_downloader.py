@@ -3,6 +3,7 @@
 bot token 込み URL（`/file/bot<TOKEN>/<file_path>`）を使うため、
 例外メッセージ・ログに URL/token を残さない（redact）。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -92,8 +93,7 @@ class TelegramMediaDownloader:
         """
         if response.status_code == 429:
             return (
-                f"media CDN rate limited after retries "
-                f"(file_id={safe_id}, status=429)"
+                f"media CDN rate limited after retries (file_id={safe_id}, status=429)"
             )
         if response.status_code >= 500:
             return (

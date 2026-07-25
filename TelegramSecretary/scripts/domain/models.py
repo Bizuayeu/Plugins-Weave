@@ -1,4 +1,5 @@
 """Telegram update / outbound message の値オブジェクト。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

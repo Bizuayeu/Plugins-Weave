@@ -3,6 +3,7 @@
 render/transcribe Adapter が共有する「stderr に短縮 id を出す（絶対パス・全文 id は秘匿）→
 RenderedMedia(failed) を返す」定型を 1 箇所に集約したヘルパの契約を pin する。
 """
+
 from __future__ import annotations
 
 from adapters.media_failure import failed_render, log_media_failure

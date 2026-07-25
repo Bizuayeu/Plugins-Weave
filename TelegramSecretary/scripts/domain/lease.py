@@ -1,4 +1,5 @@
 """並走セッション防止用の heartbeat + TTL リースロック。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -28,4 +29,6 @@ class SessionLease:
 
     def renew(self, now: datetime) -> "SessionLease":
         """heartbeat を now に更新した新しいリースを返す（frozen ゆえコピー）。"""
-        return SessionLease(owner=self.owner, heartbeat=now, ttl_seconds=self.ttl_seconds)
+        return SessionLease(
+            owner=self.owner, heartbeat=now, ttl_seconds=self.ttl_seconds
+        )

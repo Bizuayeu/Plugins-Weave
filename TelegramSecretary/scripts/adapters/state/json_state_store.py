@@ -4,6 +4,7 @@ save は `atomic_io.write_text_atomic`（tmp + os.replace）——書込中ク�
 offset/lease を全損させない（破損 offset は initial へ巻き戻り重複再取得、破損 lease は
 排他喪失につながるため、そもそも破損ファイルを作らない側に倒す）。
 """
+
 from __future__ import annotations
 
 import json

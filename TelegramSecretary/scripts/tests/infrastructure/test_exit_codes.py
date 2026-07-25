@@ -3,6 +3,7 @@
 値は外部契約（SKILL.md / ROUTINE_PROMPT.md / SECURITY.md / bootstrap.sh）なので、
 うっかり変えたら赤になるよう各値を固定し、main からの re-export 後方互換も検証する。
 """
+
 from __future__ import annotations
 
 from infrastructure.exit_codes import (

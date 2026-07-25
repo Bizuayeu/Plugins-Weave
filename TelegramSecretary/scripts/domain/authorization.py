@@ -1,4 +1,5 @@
 """認可済み chat_id allowlist。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

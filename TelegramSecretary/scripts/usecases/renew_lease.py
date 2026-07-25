@@ -1,4 +1,5 @@
 """リースの heartbeat 更新 UseCase。watch ループの定期 keep-alive に使う。"""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -21,7 +22,9 @@ class RenewLease:
         if existing is None:
             raise LeaseConflictError("no lease to renew")
         if existing.owner != owner:
-            raise LeaseConflictError(f"lease owned by {existing.owner!r}, not {owner!r}")
+            raise LeaseConflictError(
+                f"lease owned by {existing.owner!r}, not {owner!r}"
+            )
         renewed = existing.renew(now)
         self._store.save(renewed)
         return renewed

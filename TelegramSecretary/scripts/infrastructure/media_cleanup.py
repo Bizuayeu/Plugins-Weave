@@ -3,6 +3,7 @@
 watch ループの cleanup hook（N サイクルに 1 回呼ぶ）と、単独実行 (CLI 起動) の
 両方を意図した、純粋関数寄りの薄いラッパー。
 """
+
 from __future__ import annotations
 
 import time

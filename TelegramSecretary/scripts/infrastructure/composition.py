@@ -12,6 +12,7 @@
 - build_git() / build_sync(): registry_cli / wal_cli が共有する git 同期系の DI 組み立て。
   旧 registry_cli._build_git/_build_sync を移設・公開名化（private 名の越境 import 解消）。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -47,7 +48,9 @@ def build_git(config: Config):
     from adapters.registry.git_cli import GitCliAdapter
 
     return GitCliAdapter(
-        config.registry_root, remote=config.registry_remote, branch=config.registry_branch
+        config.registry_root,
+        remote=config.registry_remote,
+        branch=config.registry_branch,
     )
 
 

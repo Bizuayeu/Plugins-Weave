@@ -196,7 +196,10 @@ def test_rasterize_pages_returns_range(tmp_path):
     for p in paths:
         assert Path(p).exists()
         assert Path(p).suffix == ".png"
-    assert sorted(Path(p).name for p in paths) == ["doc_page-002.png", "doc_page-003.png"]
+    assert sorted(Path(p).name for p in paths) == [
+        "doc_page-002.png",
+        "doc_page-003.png",
+    ]
 
 
 def test_rasterize_pages_clamps_to_total(tmp_path):
@@ -213,7 +216,10 @@ def test_rasterize_pages_beyond_cap(tmp_path):
     _make_multipage_blank_pdf(pdf, 22)
     paths = PdfRenderer(image_max_pages=20).rasterize_pages(pdf, 20, 22)  # page 21, 22
     assert len(paths) == 2
-    assert sorted(Path(p).name for p in paths) == ["doc_page-021.png", "doc_page-022.png"]
+    assert sorted(Path(p).name for p in paths) == [
+        "doc_page-021.png",
+        "doc_page-022.png",
+    ]
 
 
 def test_rasterize_pages_failed_returns_empty(tmp_path):

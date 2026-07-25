@@ -9,6 +9,7 @@ download の通信失敗（CDN 4xx・期限切れ file_id 等）も skip_reason=
 （Stage 1 の flag_injection 同型の「フラグ化して emit、ブロックはしない」原則）
 唯一の例外は AuthFailureError（401）: exit 3 系の決定打なので伝播させる。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

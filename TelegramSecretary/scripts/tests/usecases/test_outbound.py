@@ -5,6 +5,7 @@ validate_attachments のテストは tests/domain/test_outbound.py から追従�
 SendReply / ProactiveSend から切り出した共有ヘルパの単体契約を固定する
 （usecase 経由の結合挙動は test_send_reply.py / test_proactive_send.py が引き続き担保）。
 """
+
 from __future__ import annotations
 
 import pytest
@@ -24,6 +25,7 @@ from tests.usecases.fakes import FakeLeaseStore
 
 # === verify_owned_lease ===
 
+
 def test_verify_owned_lease_returns_current_lease():
     # owner 一致なら store 上の現在 lease を返す（renew の起点に使う）
     lease = SessionLease(owner="me", heartbeat=_t(0), ttl_seconds=120)
@@ -33,7 +35,9 @@ def test_verify_owned_lease_returns_current_lease():
 
 def test_verify_owned_lease_raises_when_stolen():
     # store に他人 lease（=奪取後）→ LeaseConflictError
-    store = FakeLeaseStore(initial=SessionLease(owner="other", heartbeat=_t(0), ttl_seconds=120))
+    store = FakeLeaseStore(
+        initial=SessionLease(owner="other", heartbeat=_t(0), ttl_seconds=120)
+    )
     with pytest.raises(LeaseConflictError):
         verify_owned_lease(store, "me")
 
@@ -46,6 +50,7 @@ def test_verify_owned_lease_raises_when_released():
 
 
 # === validate_attachments ===
+
 
 def test_validate_attachments_passes_for_valid_file(tmp_path):
     f = tmp_path / "ok.png"

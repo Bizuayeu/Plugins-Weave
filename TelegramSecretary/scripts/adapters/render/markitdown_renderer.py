@@ -7,6 +7,7 @@ Adapter 内部で広く Exception を catch して RenderedMedia(render_status="
 mime-routing は UseCase 側（render_authorized_media._route_mime）が担い、
 ここに来た時点で render 対象は確定している。
 """
+
 from __future__ import annotations
 
 from pathlib import Path

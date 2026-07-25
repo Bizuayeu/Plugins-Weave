@@ -7,6 +7,7 @@ from domain.media import MediaAttachment, RenderedMedia, merge_caption_into_text
 
 # === MediaAttachment.from_photo_api ===
 
+
 def test_media_from_photo_api_picks_largest_resolution():
     # Telegram 仕様: photo 配列の末尾が最大解像度
     photo_array = [
@@ -44,6 +45,7 @@ def test_media_from_photo_api_missing_file_size_defaults_to_zero():
 
 # === MediaAttachment.from_document_api ===
 
+
 def test_media_from_document_api_full():
     document = {
         "file_id": "BQACAgIAA",
@@ -72,6 +74,7 @@ def test_media_from_document_api_missing_file_size_defaults_to_zero():
 
 # === merge_caption_into_text ===
 
+
 def test_merge_caption_into_text_both_present():
     assert merge_caption_into_text("hello", "Look at this") == "Look at this\nhello"
 
@@ -95,6 +98,7 @@ def test_merge_caption_into_text_empty_caption_treated_as_none():
 
 # === Immutability ===
 
+
 def test_media_attachment_is_immutable():
     media = MediaAttachment(kind="photo", file_id="x", mime_type="image/jpeg", size=100)
     with pytest.raises(AttributeError):
@@ -102,6 +106,7 @@ def test_media_attachment_is_immutable():
 
 
 # === Stage 7.1: MediaAttachment.file_name ===
+
 
 def test_media_from_document_api_extracts_file_name():
     """document に file_name があれば取り込む（エージェントの判断材料）。"""
@@ -132,13 +137,12 @@ def test_media_from_photo_api_has_no_file_name():
 
 def test_media_attachment_default_file_name_is_none():
     """既存呼び出し（file_name 未指定）が後方互換で動く。"""
-    media = MediaAttachment(
-        kind="photo", file_id="x", mime_type="image/jpeg", size=100
-    )
+    media = MediaAttachment(kind="photo", file_id="x", mime_type="image/jpeg", size=100)
     assert media.file_name is None
 
 
 # === Stage 7.1: RenderedMedia ===
+
 
 def test_rendered_media_holds_text_and_status():
     rendered = RenderedMedia(rendered_text="# 仕様書\n概要", render_status="ok")
@@ -178,6 +182,7 @@ def test_rendered_media_is_immutable():
 
 
 # === Stage 9.1: voice / audio / video / video_note ===
+
 
 def test_media_from_voice_api():
     """Telegram voice（ボイスメモ）は OGG/OPUS。file_name 概念なし。"""

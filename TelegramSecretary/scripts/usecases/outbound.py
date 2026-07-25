@@ -11,6 +11,7 @@
 いずれも offset には一切触れない——`ProactiveSend` が OffsetStore を依存に持たない
 構造保証（test_proactive_send.py が inspect で固定）を、ヘルパ共有後も無傷に保つ。
 """
+
 from __future__ import annotations
 
 from typing import Sequence

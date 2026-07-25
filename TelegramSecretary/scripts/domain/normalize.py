@@ -1,4 +1,5 @@
 """入力正規化と prompt injection フラグ（ブロックせず記録）。"""
+
 from __future__ import annotations
 
 import re
@@ -23,10 +24,18 @@ def normalize_input(text: str) -> str:
 # Injection フラグ用パターン（フラグするだけでブロックしない）。
 # OPS.md §7「フラグのみ・偽陽性回避」に従い、シグナル弱めにとどめる。
 _INJECTION_PATTERNS: List[Tuple[str, re.Pattern[str]]] = [
-    ("role_override", re.compile(r"(?i)\b(ignore|disregard|forget)\s+(previous|prior|all|the\s+above)")),
+    (
+        "role_override",
+        re.compile(
+            r"(?i)\b(ignore|disregard|forget)\s+(previous|prior|all|the\s+above)"
+        ),
+    ),
     ("system_prompt_request", re.compile(r"(?i)\bsystem\s+prompt\b")),
     ("role_assertion", re.compile(r"(?i)\byou\s+are\s+now\b|\b(role|act)\s+as\b")),
-    ("credentials_request", re.compile(r"(?i)\b(api[\s_-]*key|access[\s_-]*token|password|secret)\b")),
+    (
+        "credentials_request",
+        re.compile(r"(?i)\b(api[\s_-]*key|access[\s_-]*token|password|secret)\b"),
+    ),
 ]
 
 

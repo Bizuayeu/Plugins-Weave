@@ -8,6 +8,7 @@ Adapter（送信時の open()）に閉じ込める（Stage 6 の MediaAttachment
 送信前検証（存在 / サイズ）は FS I/O を伴うため UseCase 層
 （usecases/outbound.py の validate_attachments）が担う——Domain は純ロジックのみを保つ。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

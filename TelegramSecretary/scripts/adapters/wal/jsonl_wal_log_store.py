@@ -3,6 +3,7 @@
 `adapters/state/json_state_store.py` の単一ファイル + 親 mkdir + 破損フォールバックを
 JSONL 用に踏襲する。git push は既存 `GitCliAdapter` を再利用（本 Adapter は I/O のみ）。
 """
+
 from __future__ import annotations
 
 import json

@@ -39,14 +39,23 @@ def _ns(**kw) -> argparse.Namespace:
 
 
 _INDIVIDUAL = {
-    "uuid": "u1", "display_name": "yamada", "role": "associate",
-    "status": "active", "created_at": "t", "updated_at": "t",
+    "uuid": "u1",
+    "display_name": "yamada",
+    "role": "associate",
+    "status": "active",
+    "created_at": "t",
+    "updated_at": "t",
 }
 
 
 def test_add_then_get_individual(tmp_path, capsys):
     config = _config(tmp_path)
-    assert run_registry_command(config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))) == 0
+    assert (
+        run_registry_command(
+            config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))
+        )
+        == 0
+    )
     assert run_registry_command(config, "individuals", "get", _ns(key="u1")) == 0
     assert "yamada" in capsys.readouterr().out
 
@@ -54,7 +63,10 @@ def test_add_then_get_individual(tmp_path, capsys):
 def test_add_invalid_role_returns_2(tmp_path):
     config = _config(tmp_path)
     bad = dict(_INDIVIDUAL, role="boss")
-    assert run_registry_command(config, "individuals", "add", _ns(json=json.dumps(bad))) == 2
+    assert (
+        run_registry_command(config, "individuals", "add", _ns(json=json.dumps(bad)))
+        == 2
+    )
 
 
 def test_list_empty_prints_empty_array(tmp_path, capsys):
@@ -70,14 +82,18 @@ def test_get_missing_returns_2(tmp_path):
 
 def test_remove_individual(tmp_path):
     config = _config(tmp_path)
-    run_registry_command(config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL)))
+    run_registry_command(
+        config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))
+    )
     assert run_registry_command(config, "individuals", "remove", _ns(key="u1")) == 0
     assert run_registry_command(config, "individuals", "get", _ns(key="u1")) == 2
 
 
 def test_add_persists_to_correct_path(tmp_path):
     config = _config(tmp_path)
-    run_registry_command(config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL)))
+    run_registry_command(
+        config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))
+    )
     assert config.individuals_path.exists()
 
 
@@ -108,7 +124,9 @@ def test_add_persists_to_registry_dir_when_set(tmp_path):
     state = tmp_path / "volatile"
     reg = tmp_path / "registry"
     config = _config(state, registry_dir=reg)
-    run_registry_command(config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL)))
+    run_registry_command(
+        config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))
+    )
     assert (reg / "individuals" / "INDIVIDUALS.json").exists()
     assert not (state / "individuals").exists()
 
@@ -121,7 +139,10 @@ def test_add_triggers_sync_when_provided(tmp_path):
     config = _config(tmp_path)
     git = FakeGitSync()
     run_registry_command(
-        config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL)),
+        config,
+        "individuals",
+        "add",
+        _ns(json=json.dumps(_INDIVIDUAL)),
         sync=RegistrySyncService(git),
     )
     assert len(git.commit_calls) == 1
@@ -130,10 +151,15 @@ def test_add_triggers_sync_when_provided(tmp_path):
 
 def test_remove_triggers_sync_when_provided(tmp_path):
     config = _config(tmp_path)
-    run_registry_command(config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL)))
+    run_registry_command(
+        config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))
+    )
     git = FakeGitSync()
     run_registry_command(
-        config, "individuals", "remove", _ns(key="u1"),
+        config,
+        "individuals",
+        "remove",
+        _ns(key="u1"),
         sync=RegistrySyncService(git),
     )
     assert len(git.commit_calls) == 1
@@ -143,16 +169,21 @@ def test_list_does_not_trigger_sync(tmp_path):
     """list は読み取りゆえ sync しない。"""
     config = _config(tmp_path)
     git = FakeGitSync()
-    run_registry_command(config, "individuals", "list", _ns(), sync=RegistrySyncService(git))
+    run_registry_command(
+        config, "individuals", "list", _ns(), sync=RegistrySyncService(git)
+    )
     assert git.commit_calls == []
 
 
 def test_no_sync_when_not_provided(tmp_path):
     """sync 未注入なら従来通り（後方互換、git に触れない）。"""
     config = _config(tmp_path)
-    assert run_registry_command(
-        config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))
-    ) == 0
+    assert (
+        run_registry_command(
+            config, "individuals", "add", _ns(json=json.dumps(_INDIVIDUAL))
+        )
+        == 0
+    )
 
 
 # === R2-3c: 起動時 fetch（registry-sync） ===
@@ -214,7 +245,9 @@ def test_registry_fetch_silent_on_success_and_noop(tmp_path, capsys):
     assert run_registry_fetch(enabled, git=FakeGitSync()) == 0  # fetch 成功
     assert "empty" not in capsys.readouterr().err.lower()
 
-    assert run_registry_fetch(_config(tmp_path), git=FakeGitSync()) == 0  # no-op（無効）
+    assert (
+        run_registry_fetch(_config(tmp_path), git=FakeGitSync()) == 0
+    )  # no-op（無効）
     assert "empty" not in capsys.readouterr().err.lower()
 
 
@@ -222,15 +255,23 @@ def test_registry_fetch_silent_on_success_and_noop(tmp_path, capsys):
 
 
 _ABILITY = {
-    "id": "precognitive-viewer", "name": "三位占術鑑定",
-    "created_at": "t", "updated_at": "t",
+    "id": "precognitive-viewer",
+    "name": "三位占術鑑定",
+    "created_at": "t",
+    "updated_at": "t",
 }
 
 
 def test_add_then_get_ability(tmp_path, capsys):
     config = _config(tmp_path)
-    assert run_registry_command(config, "abilities", "add", _ns(json=json.dumps(_ABILITY))) == 0
-    assert run_registry_command(config, "abilities", "get", _ns(key="precognitive-viewer")) == 0
+    assert (
+        run_registry_command(config, "abilities", "add", _ns(json=json.dumps(_ABILITY)))
+        == 0
+    )
+    assert (
+        run_registry_command(config, "abilities", "get", _ns(key="precognitive-viewer"))
+        == 0
+    )
     assert "precognitive-viewer" in capsys.readouterr().out
 
 
@@ -243,29 +284,45 @@ def test_ability_persists_to_abilities_path(tmp_path):
 def test_ability_rejects_empty_name_returns_2(tmp_path):
     config = _config(tmp_path)
     bad = dict(_ABILITY, name="")
-    assert run_registry_command(config, "abilities", "add", _ns(json=json.dumps(bad))) == 2
+    assert (
+        run_registry_command(config, "abilities", "add", _ns(json=json.dumps(bad))) == 2
+    )
 
 
 # === P/A 軸 3 表（PROFILE / GOALS / STEPS、registry 同格・WAL 対象）===
 
 
 _PROFILE = {
-    "id": "pf1", "subject": "principal", "method": "mbti",
-    "content": "INTJ", "created_at": "t", "updated_at": "t",
+    "id": "pf1",
+    "subject": "principal",
+    "method": "mbti",
+    "content": "INTJ",
+    "created_at": "t",
+    "updated_at": "t",
 }
 _GOAL = {
-    "id": "g1", "title": "半年で貯蓄30万円", "category": "money",
-    "status": "active", "created_at": "t", "updated_at": "t",
+    "id": "g1",
+    "title": "半年で貯蓄30万円",
+    "category": "money",
+    "status": "active",
+    "created_at": "t",
+    "updated_at": "t",
 }
 _STEP = {
-    "id": "s1", "goal_id": "g1", "title": "固定費一覧を作る",
-    "created_at": "t", "updated_at": "t",
+    "id": "s1",
+    "goal_id": "g1",
+    "title": "固定費一覧を作る",
+    "created_at": "t",
+    "updated_at": "t",
 }
 
 
 def test_add_then_get_profile(tmp_path, capsys):
     config = _config(tmp_path)
-    assert run_registry_command(config, "profile", "add", _ns(json=json.dumps(_PROFILE))) == 0
+    assert (
+        run_registry_command(config, "profile", "add", _ns(json=json.dumps(_PROFILE)))
+        == 0
+    )
     assert run_registry_command(config, "profile", "get", _ns(key="pf1")) == 0
     assert "principal" in capsys.readouterr().out
 
@@ -279,12 +336,16 @@ def test_profile_persists_to_profile_path(tmp_path):
 def test_profile_rejects_invalid_method_returns_2(tmp_path):
     config = _config(tmp_path)
     bad = dict(_PROFILE, method="palm_reading")
-    assert run_registry_command(config, "profile", "add", _ns(json=json.dumps(bad))) == 2
+    assert (
+        run_registry_command(config, "profile", "add", _ns(json=json.dumps(bad))) == 2
+    )
 
 
 def test_add_then_get_goal(tmp_path, capsys):
     config = _config(tmp_path)
-    assert run_registry_command(config, "goals", "add", _ns(json=json.dumps(_GOAL))) == 0
+    assert (
+        run_registry_command(config, "goals", "add", _ns(json=json.dumps(_GOAL))) == 0
+    )
     assert run_registry_command(config, "goals", "get", _ns(key="g1")) == 0
     assert "money" in capsys.readouterr().out
 
@@ -297,7 +358,9 @@ def test_goal_rejects_invalid_category_returns_2(tmp_path):
 
 def test_add_then_get_step(tmp_path, capsys):
     config = _config(tmp_path)
-    assert run_registry_command(config, "steps", "add", _ns(json=json.dumps(_STEP))) == 0
+    assert (
+        run_registry_command(config, "steps", "add", _ns(json=json.dumps(_STEP))) == 0
+    )
     assert run_registry_command(config, "steps", "get", _ns(key="s1")) == 0
     assert "g1" in capsys.readouterr().out
 

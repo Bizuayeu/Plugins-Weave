@@ -1,4 +1,5 @@
 """管理表の汎用 CRUD UseCase。Store Port 越しに list / get / add_or_update / remove。"""
+
 from __future__ import annotations
 
 from typing import Any, List, Optional

@@ -142,6 +142,7 @@ def test_multiple_updates_each_with_media():
 
 # === Stage 9.2: voice / audio / video が kind 非依存で download される ===
 
+
 def test_downloads_voice_media_kind_agnostic():
     """voice も kind 非依存で download される（コード変更なしの実証）。"""
     voice = MediaAttachment(
@@ -166,8 +167,12 @@ def test_downloads_voice_media_kind_agnostic():
 
 def test_downloads_audio_and_video_kinds():
     """audio / video も同様に download（file_id ベース、kind を見ない）。"""
-    audio = MediaAttachment(kind="audio", file_id="aud", mime_type="audio/mpeg", size=3000)
-    video = MediaAttachment(kind="video", file_id="vid", mime_type="video/mp4", size=1000000)
+    audio = MediaAttachment(
+        kind="audio", file_id="aud", mime_type="audio/mpeg", size=3000
+    )
+    video = MediaAttachment(
+        kind="video", file_id="vid", mime_type="video/mp4", size=1000000
+    )
     nu = _nu(update_id=21, media=[audio, video])
     downloader = FakeMediaDownloader()
     uc = DownloadAuthorizedMedia(downloader)
@@ -203,19 +208,24 @@ def test_skips_oversized_voice():
 
 # === 通信失敗のフラグ化（download_failed）と 401 の伝播 ===
 
+
 def test_download_failure_is_flagged_not_raised():
     """通信失敗は skip_reason="download_failed" にフラグ化し、他 media を妨げない。
 
     fetch が download 前に offset を確定するため、ここで raise すると
     当該バッチの全メッセージが再取得不能になる（watch 即死＝メッセージ消失の根治）。
     """
-    bad = MediaAttachment(kind="photo", file_id="bad", mime_type="image/jpeg", size=1024)
+    bad = MediaAttachment(
+        kind="photo", file_id="bad", mime_type="image/jpeg", size=1024
+    )
     good = MediaAttachment(
         kind="document", file_id="good", mime_type="application/pdf", size=1024
     )
     nu = _nu(update_id=30, media=[bad, good])
     downloader = FakeMediaDownloader(
-        exc_by_file_id={"bad": TelegramSecretaryError("network error during media download")}
+        exc_by_file_id={
+            "bad": TelegramSecretaryError("network error during media download")
+        }
     )
     uc = DownloadAuthorizedMedia(downloader)
 
@@ -236,7 +246,9 @@ def test_download_failure_is_flagged_not_raised():
 
 def test_auth_failure_propagates():
     """401（AuthFailureError）は exit 3 系の決定打なのでフラグ化せず伝播する。"""
-    media = MediaAttachment(kind="photo", file_id="x", mime_type="image/jpeg", size=1024)
+    media = MediaAttachment(
+        kind="photo", file_id="x", mime_type="image/jpeg", size=1024
+    )
     nu = _nu(update_id=31, media=[media])
     downloader = FakeMediaDownloader(
         exc_by_file_id={"x": AuthFailureError("401 unauthorized")}
