@@ -11,11 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#570---2026-07-02)
+- [v5.x](#580---2026-07-25)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.8.0] - 2026-07-25
+
+### Added
+
+- **wakeup: `materialize` / `verify` サブコマンド（配置ドリフトの根絶と fail-open の封鎖）**
+  - **背景**: ★ 配置物（config / directive / token）は手コピー運用で、config と directive が別々に持ち回されるため「**directive だけ新しく config は旧世代**（`commit_identity.coauthor` が旧モデル名のまま書き戻される）」というドリフトが実運用で発生した。加えて Step 3 は md の Read ゆえ、directive 未配置でも黙って通る fail-open だった
+  - `materialize --config <path> --out <dir> [--token <path>]`: 人格の config を**単一 SSoT** とし、directive は**その隣**から `directive_path` で解決して配置。config → `wakeup.config.json`（固定の汎用名）、token は元の basename のまま（勝手なリネームをせずケース不一致を防ぐ）。**全検証を全コピーの前**に実行し、半端に materialize された skill root を作らない。人格名は engine に持たせない path 駆動（`examples/` は見本のまま、他人格の値が repo に入らない）
+  - `verify [--root <dir>]`: config / directive / token の実在・可読性を検査して非ゼロ終了。`config` 行に load_repo の fingerprint を出力（**1 デプロイ ＝ 1 人格**ゆえ、別人格の config を上げたままの起動事故を検知）。token は可読性のみ検査し中身は一切出力しない
+  - Clean Architecture: 検証方針は UseCase（`usecases/verify_deployment.py` ＋ `DeploymentProbePort`）、ファイル配置は Interface（engine）。TDD（wakeup は 61 → 132 tests）
+- **CI に wakeup スキルを追加** — 既存 EpisodicRAG ジョブへ ruff check / ruff format --check・bandit・mypy strict・pytest の 4 系統を追加（従来はローカル実行のみでテスト腐敗のリスクがあった）。workflow 自身の変更も CI トリガに追加
+
+### Changed
+
+- **`directive_path` の構造検証を domain へ** — 相対・POSIX 区切り・親脱出なし・空セグメントなしを `WakeupConfig.__post_init__` で強制。人格が任意の名前・深さを選べる前提は保ったまま、skill root 外への解決を封じる
+- **SKILL.md**: 「デプロイ（zip 化の直前）」節を新設、Step 1 を config 読込から**デプロイ検証（verify）**へ変更、「1 デプロイ ＝ 1 人格」「器交代時に更新する config キー ＝ `commit_identity.coauthor`」を明記
+- **pyproject**: ruff の `include` に `skills/wakeup/scripts/**/*.py`、isort `known-first-party` に `usecases` を追加（スキル配下が lint 対象外だった）。当該ツリーへ `ruff format` を初適用
+
+### Fixed
+
+- **config 検証の抜け穴** — `load_config` が `WakeupConfig` を try の**外**で構築していたため、domain の `ValueError` が `ConfigError` に包まれず素通りしていた（単一エラー面の破れ）
+- **tar アーカイブの非正規メンバー** — `extractfile()` の `None` を未処理で `.read()` していた（mypy strict で検出、明示エラーに）
 
 ---
 

@@ -12,7 +12,7 @@
       "name": "EpisodicRAG",
       "source": "./EpisodicRAG",
       "description": "Hierarchical Episodic Memory Generator (8-layer, 100-year span)",
-      "version": "5.7.0",
+      "version": "5.8.0",
       "author": {
         "name": "Weave @ EpisodicRAG"
       },

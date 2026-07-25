@@ -7,12 +7,14 @@ on:
       - 'EpisodicRAG/**'
       - 'EmailingEssay/**'
       - 'VisualExpression/**'
+      - '.github/workflows/test.yml'
   pull_request:
     branches: [main]
     paths:
       - 'EpisodicRAG/**'
       - 'EmailingEssay/**'
       - 'VisualExpression/**'
+      - '.github/workflows/test.yml'
   workflow_dispatch:  # Manual trigger from GitHub UI
 
 jobs:
@@ -37,6 +39,15 @@ jobs:
         working-directory: EpisodicRAG
         run: ruff format --check scripts/
 
+      # wakeup skill: self-contained stdlib-only tree (scripts/ of the skill itself)
+      - name: Run ruff linter (wakeup skill)
+        working-directory: EpisodicRAG
+        run: ruff check skills/wakeup/scripts/
+
+      - name: Run ruff formatter check (wakeup skill)
+        working-directory: EpisodicRAG
+        run: ruff format --check skills/wakeup/scripts/
+
   security:
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +65,11 @@ jobs:
         working-directory: EpisodicRAG
         run: bandit -r scripts/ --exclude scripts/test --severity-level medium
 
+      # wakeup skill handles PATs (archive extraction, Authorization headers)
+      - name: Run Bandit security scan (wakeup skill)
+        working-directory: EpisodicRAG
+        run: bandit -r skills/wakeup/scripts/ --exclude skills/wakeup/scripts/tests --severity-level medium
+
   type-check:
     runs-on: ubuntu-latest
     steps:
@@ -70,6 +86,11 @@ jobs:
       - name: Run mypy
         working-directory: EpisodicRAG/scripts
         run: mypy --explicit-package-bases .
+
+      # wakeup skill: production layers only (its tests are untyped, like scripts/test)
+      - name: Run mypy (wakeup skill)
+        working-directory: EpisodicRAG/skills/wakeup/scripts
+        run: mypy --strict --ignore-missing-imports --explicit-package-bases domain usecases interfaces
 
   test:
     runs-on: ubuntu-latest
@@ -99,6 +120,12 @@ jobs:
           TEST_COUNT=$(grep -oP '\d+(?= passed)' pytest_output.txt | head -1 || echo "0")
           echo "TEST_COUNT=$TEST_COUNT" >> $GITHUB_ENV
           echo "Detected $TEST_COUNT tests"
+
+      # wakeup skill: own conftest + import root, so it runs as a separate invocation.
+      # addopts/testpaths are overridden because the root config targets scripts/test only.
+      - name: Run wakeup skill tests
+        working-directory: EpisodicRAG/skills/wakeup/scripts
+        run: python -m pytest tests -v --override-ini="addopts=" --override-ini="testpaths="
 
       - name: Generate test badge JSON
         if: matrix.python-version == '3.11'

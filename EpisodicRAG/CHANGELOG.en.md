@@ -12,11 +12,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#570---2026-07-02)
+- [v5.x](#580---2026-07-25)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.8.0] - 2026-07-25
+
+### Added
+
+- **wakeup: `materialize` / `verify` subcommands (kill deployment drift, close the fail-open)**
+  - **Background**: the ★ artifacts (config / directive / token) were hand-copied per zip. Because config and directive travel separately, a real deployment ended up with a **fresh directive and a months-old config** (`commit_identity.coauthor` still naming a previous model generation). Worse, Step 3 is a Markdown read, so a directive that was never placed passed silently
+  - `materialize --config <path> --out <dir> [--token <path>]`: the persona's config is the **single source of truth** and the directive is resolved **beside it** via `directive_path`. The config lands as `wakeup.config.json` (fixed generic name); the token keeps its own basename (no silent renaming, so case mismatches cannot hide). **Everything is validated before the first copy** — never a half-materialized skill root. Path-driven, so no persona name enters the engine (`examples/` stays a sample and other personas' values never enter this repo)
+  - `verify [--root <dir>]`: checks that config / directive / token exist and are readable, exiting non-zero otherwise. The `config` line fingerprints the load repo (**one deployment = one persona**, so booting with another persona's stale config is detectable). The token is only probed for readability — its contents are never printed
+  - Clean Architecture: the verification policy is a UseCase (`usecases/verify_deployment.py` + `DeploymentProbePort`), file placement is Interface (engine). TDD (wakeup: 61 → 132 tests)
+- **wakeup skill added to CI** — ruff check / ruff format --check, bandit, mypy strict and pytest steps added to the existing EpisodicRAG jobs (previously local-only, so the tests could rot). Workflow changes now trigger CI as well
+
+### Changed
+
+- **`directive_path` structural validation moved into the domain** — relative, POSIX separators, no parent escape, no empty segment, enforced in `WakeupConfig.__post_init__`. Personas keep naming their own directive at any depth, but nothing can resolve outside the skill root
+- **SKILL.md**: new "deployment (just before zipping)" section; Step 1 changed from "read config" to **deployment verification (verify)**; documents "one deployment = one persona" and "`commit_identity.coauthor` is the key to update when the model generation changes"
+- **pyproject**: added `skills/wakeup/scripts/**/*.py` to ruff `include` and `usecases` to isort `known-first-party` (the skill tree was outside lint scope); applied `ruff format` to that tree for the first time
+
+### Fixed
+
+- **Hole in config validation** — `load_config` constructed `WakeupConfig` *outside* the try block, so the domain's `ValueError` escaped instead of surfacing as `ConfigError` (breaking the uniform error surface)
+- **Non-regular tar member** — `extractfile()` could return `None` and was dereferenced with `.read()` (caught by mypy strict; now an explicit error)
 
 ---
 
