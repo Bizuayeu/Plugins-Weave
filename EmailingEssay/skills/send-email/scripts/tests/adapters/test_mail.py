@@ -215,3 +215,60 @@ class TestYagmailAdapterWithConfig:
 
         # 複数のエラーが含まれることを確認
         assert "ESSAY_SENDER_EMAIL" in str(exc_info.value)
+
+
+class TestCollapseStyleWhitespace:
+    """collapse_style_whitespace のテスト
+
+    yagmail は本文の改行を <br> へ変換するため、<style> ブロック内に改行が残ると
+    CSS に <br> が混入して premailer のインライン化が壊れる（メールが無スタイルで届く）。
+    """
+
+    def test_collapses_newlines_inside_style(self):
+        """<style> 内の改行が潰れる"""
+        from adapters.mail.yagmail_adapter import collapse_style_whitespace
+
+        html = "<style>\n  body {\n    margin: 0;\n  }\n</style>"
+        result = collapse_style_whitespace(html)
+
+        assert "\n" not in result
+        assert "body { margin: 0; }" in result
+
+    def test_preserves_content_outside_style(self):
+        """<style> の外側の改行は保持する（本文の <br> 変換は正常な挙動）"""
+        from adapters.mail.yagmail_adapter import collapse_style_whitespace
+
+        html = "<style>\na {\ncolor: red;\n}\n</style>\n<p>one</p>\n<p>two</p>"
+        result = collapse_style_whitespace(html)
+
+        assert "<p>one</p>\n<p>two</p>" in result
+
+    def test_no_style_block_is_unchanged(self):
+        """<style> が無ければ何も変えない"""
+        from adapters.mail.yagmail_adapter import collapse_style_whitespace
+
+        html = "<div>\n  hello\n</div>"
+        assert collapse_style_whitespace(html) == html
+
+    def test_handles_multiple_style_blocks(self):
+        """複数の <style> をすべて処理する"""
+        from adapters.mail.yagmail_adapter import collapse_style_whitespace
+
+        html = "<style>\na {\ncolor: red;\n}\n</style><style>\nb {\ncolor: blue;\n}\n</style>"
+        result = collapse_style_whitespace(html)
+
+        assert "\n" not in result
+        assert result.count("<style>") == 2
+
+    def test_real_template_has_no_newlines_in_style(self):
+        """実テンプレートを通しても <style> 内に改行が残らない"""
+        from adapters.mail.yagmail_adapter import (
+            EMAIL_TEMPLATE_NAME,
+            collapse_style_whitespace,
+        )
+        from frameworks.templates import load_template
+
+        result = collapse_style_whitespace(load_template(EMAIL_TEMPLATE_NAME))
+        style = result.split("<style>")[1].split("</style>")[0]
+
+        assert "\n" not in style

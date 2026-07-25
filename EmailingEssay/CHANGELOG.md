@@ -5,6 +5,11 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-07-26
+
+### Fixed
+- Mail HTML: collapse whitespace inside `<style>` before handing the body to yagmail. yagmail converts newlines to `<br>`, which injected `<br>` into the CSS and made premailer's inlining fail wholesale — mail arrived unstyled while the process still exited 0, so nothing surfaced the breakage. `collapse_style_whitespace()` now folds only the `<style>` blocks (body newlines are left alone), keeping the template readable
+
 ## [1.0.1] - 2026-07-25
 
 ### Changed

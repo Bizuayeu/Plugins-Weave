@@ -10,6 +10,7 @@ HTMLテンプレートシステムにより一貫したスタイリングを実�
 from __future__ import annotations
 
 import logging
+import re
 import smtplib
 import time
 
@@ -20,11 +21,34 @@ from domain.exceptions import MailError
 logger = logging.getLogger('emailingessay.mail')
 
 # 後方互換性のため再エクスポート
-__all__ = ["MailError", "YagmailAdapter"]
+__all__ = ["MailError", "YagmailAdapter", "collapse_style_whitespace"]
 
 # HTMLテンプレート名
 EMAIL_TEMPLATE_NAME = "email_base.html.template"
 EMAIL_FALLBACK_TEMPLATE = "email_fallback.html.template"
+
+_STYLE_BLOCK_RE = re.compile(r"(<style[^>]*>)(.*?)(</style>)", re.DOTALL | re.IGNORECASE)
+
+
+def collapse_style_whitespace(html: str) -> str:
+    """<style> ブロック内の空白・改行を単一スペースへ潰す。
+
+    yagmail は本文の改行を `<br>` へ変換するため、`<style>` 内に改行が残ると
+    CSS へ `<br>` が混入し、premailer のインライン化が全滅する（無スタイルで届く）。
+    テンプレートの可読性は保ちたいので、送信直前にここで潰す。
+    `<style>` の外側は触らない（本文の改行→`<br>` 変換は正常な挙動）。
+
+    Args:
+        html: 送信予定の HTML
+
+    Returns:
+        `<style>` 内のみ空白を畳んだ HTML
+    """
+
+    def _collapse(match: re.Match[str]) -> str:
+        return match.group(1) + re.sub(r"\s+", " ", match.group(2)).strip() + match.group(3)
+
+    return _STYLE_BLOCK_RE.sub(_collapse, html)
 
 
 class YagmailAdapter:
@@ -99,6 +123,8 @@ class YagmailAdapter:
         デフォルトリトライ回数をConfigから読み込むよう変更
         """
         recipient = to if to else self._recipient
+        # yagmail が改行を <br> に変換して CSS を壊すため、送信直前に <style> を畳む
+        body = collapse_style_whitespace(body)
         last_error: Exception | None = None
         # Stage 8: Configからのデフォルト値使用
         retries = max_retries if max_retries is not None else self._max_retries
