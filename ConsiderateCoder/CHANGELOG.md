@@ -2,6 +2,16 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.2.2] - 2026-07-25
+
+### Added
+
+- **dev-rules の General Principles に KISS** — 「短く、正確に書く」（同じ内容ならより短い表現を採る／削れる語を削り、意味が落ちる手前で止める）を YAGNI の直後に追加。YAGNI が機能の範囲、外科的変更がファイルの範囲を押さえる一方、「同じ内容をどう書くか」の軸だけが空いていた。`Decision Priority` の `Simplicity`（4位＝競合時の順位）は不変
+
+### Fixed
+
+- **ネスト生成の動作要件を CLI バージョン条件付きへ訂正（v2.1.219 追従）** — 生成深さ上限の既定値（`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` 未設定・配信値なし時のフォールバック）が v2.1.219 で 1 → 3 に変わり、`/outsource` は環境変数なしで動くようになった（実機バイナリ 2.1.217 / 2.1.219 の差分で確認）。v1.2.1 で入れた「v2.1.217 以降は必須」の記述が偽になったため、README §4 をバージョン別の表へ、outsource Phase 3 を条件付き記述へ訂正。環境変数は既定値より優先されるので既存の設定は残して支障なし（worker は Agent を持たず、深さは構造的に 2 で止まる）
+
 ## [1.2.1] - 2026-07-22
 
 ### Added

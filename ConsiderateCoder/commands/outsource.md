@@ -66,7 +66,7 @@ orchestrator へ渡す最初のブリーフを、`${CLAUDE_PLUGIN_ROOT}/agents/o
 
 ## Phase 3: orchestrator 起動（既定は同期、長丁場は bg＋死活監視）
 
-> **動作要件（CLI v2.1.217+）**: サブエージェントのネスト生成が既定で無効のため、orchestrator による worker 起動には環境変数 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（`"2"`）の設定が必須（詳細は README §4）。orchestrator から「worker 起動が harness に拒否された」旨の上申が返った場合は、まずこの設定の欠落を疑い、ユーザーへ設定と再起動を案内する。
+> **動作要件（生成深さ）**: orchestrator による worker 起動はネスト生成であり、上限 2 以上を要する。CLI v2.1.219 以降は既定 3 で設定不要、v2.1.217 – v2.1.218 は環境変数 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（`"2"`）が必須（詳細は README §4）。orchestrator から「worker 起動が harness に拒否された」旨の上申が返った場合は、まずこの上限を疑い、ユーザーへ設定と再起動を案内する。
 
 `Agent` ツールで `subagent_type: ConsiderateCoder:orchestrator` を起動する。起動方式は二択：
 
