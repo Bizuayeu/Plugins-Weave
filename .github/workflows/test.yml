@@ -424,8 +424,12 @@ jobs:
         with:
           python-version: "3.10"
 
+      # 整形結果は ruff のバージョンに依存するため固定する。本プラグインは
+      # Products/ShioriSecretary と同一コードの二重管理であり、両者を同じ版で
+      # 揃えないと差分が出る。更新は「ruff を上げて ruff format を再適用する」commit として
+      # 意図的に行う（自動追随させない）。
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.16.0
 
       - name: Run ruff linter
         working-directory: TelegramSecretary
