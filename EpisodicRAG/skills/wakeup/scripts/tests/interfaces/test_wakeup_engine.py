@@ -6,6 +6,7 @@
   engine supports the whole family and picks by extension).
 - CLI security invariant: on failure the token never reaches stdout/stderr.
 """
+
 import gzip
 import json
 import subprocess
@@ -34,6 +35,7 @@ class TestResolveUrls:
 
 
 # --- archive builders -------------------------------------------------------
+
 
 def _gz(tmp_path, content):
     p = tmp_path / "token.gz"
@@ -87,8 +89,15 @@ class TestCliTokenNeverLeaks:
 
     def test_failure_leaks_nothing(self, tmp_path):
         result = subprocess.run(
-            [sys.executable, str(ENGINE), "extract-token", "--archive", str(tmp_path / "nope.tar.gz")],
-            capture_output=True, text=True,
+            [
+                sys.executable,
+                str(ENGINE),
+                "extract-token",
+                "--archive",
+                str(tmp_path / "nope.tar.gz"),
+            ],
+            capture_output=True,
+            text=True,
         )
         assert result.returncode != 0
         assert result.stdout.strip() == ""
@@ -100,11 +109,100 @@ class TestCliTokenNeverLeaks:
         arc = _tar(tmp_path, "github_pat_TGZ789\n", gz=True)
         result = subprocess.run(
             [sys.executable, str(ENGINE), "extract-token", "--archive", str(arc)],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0
         assert result.stdout.strip() == "github_pat_TGZ789"
         assert result.stderr == ""
+
+
+def _deployment(
+    tmp_path, directive_path="Directive.md", directive_text="# directive\n", token=True
+):
+    """Build a deployed skill root: config + directive + token archive."""
+    root = tmp_path / "wakeup"
+    root.mkdir(exist_ok=True)
+    config = {
+        "public_repo": {"owner": "acme", "name": "memo"},
+        "load_files": [
+            {"path": "Identities/A.txt"},
+            {"path": "Identities/B.md", "required": False},
+        ],
+        "commit_identity": {"author_name": "P", "author_email": "1+u@users.noreply.github.com"},
+        "directive_path": directive_path,
+        "private_repo": {"owner": "acme", "name": "secret", "visibility": "private"},
+    }
+    (root / "wakeup.config.json").write_text(json.dumps(config), encoding="utf-8")
+    if directive_text is not None:
+        target = root / directive_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(directive_text, encoding="utf-8")
+    if token:
+        inner = tmp_path / "token.txt"
+        inner.write_text("github_pat_DEPLOY\n", encoding="utf-8")
+        with tarfile.open(root / "token.tar.gz", "w:gz") as tf:
+            tf.add(inner, arcname="token.txt")
+    return root
+
+
+def _verify(root=None):
+    argv = [sys.executable, str(ENGINE), "verify"]
+    if root is not None:
+        argv += ["--root", str(root)]
+    return subprocess.run(argv, capture_output=True, text=True)
+
+
+class TestVerifyCommand:
+    """Step 1 must fail loudly: a missing directive used to slip through silently."""
+
+    def test_complete_deployment_passes(self, tmp_path):
+        result = _verify(_deployment(tmp_path))
+        assert result.returncode == 0
+        assert "FAIL" not in result.stdout
+
+    def test_reports_every_check(self, tmp_path):
+        out = _verify(_deployment(tmp_path)).stdout
+        assert "config" in out and "directive" in out and "token" in out
+
+    def test_fingerprints_the_persona_being_woken(self, tmp_path):
+        out = _verify(_deployment(tmp_path)).stdout
+        assert "acme/secret" in out  # private repo wins as load_repo
+
+    def test_missing_directive_fails_with_the_expected_path(self, tmp_path):
+        root = _deployment(tmp_path, directive_path="personas/foo/D.md", directive_text=None)
+        result = _verify(root)
+        assert result.returncode != 0
+        assert "personas/foo/D.md" in result.stdout
+        assert "FAIL" in result.stdout
+
+    def test_missing_token_fails(self, tmp_path):
+        result = _verify(_deployment(tmp_path, token=False))
+        assert result.returncode != 0
+
+    def test_broken_config_fails_without_traceback(self, tmp_path):
+        root = _deployment(tmp_path)
+        (root / "wakeup.config.json").write_text("{ not json", encoding="utf-8")
+        result = _verify(root)
+        assert result.returncode != 0
+        assert "Traceback" not in result.stderr
+
+    def test_unsafe_directive_path_in_config_fails(self, tmp_path):
+        root = _deployment(tmp_path)
+        cfg = json.loads((root / "wakeup.config.json").read_text(encoding="utf-8"))
+        cfg["directive_path"] = "../outside.md"
+        (root / "wakeup.config.json").write_text(json.dumps(cfg), encoding="utf-8")
+        assert _verify(root).returncode != 0
+
+    def test_never_prints_token_contents(self, tmp_path):
+        result = _verify(_deployment(tmp_path))
+        assert "github_pat_" not in result.stdout
+        assert "github_pat_" not in result.stderr
+
+    def test_root_defaults_to_the_deployed_skill_root(self, tmp_path):
+        """No --root: fall back to this skill's own root (fixed at /mnt/skills/user/wakeup)."""
+        result = _verify(root=None)
+        assert "wakeup.config.json" in result.stdout
 
 
 class TestResolveUrlsCommand:
@@ -134,7 +232,8 @@ class TestResolveUrlsCommand:
         cfg = self._write_config(tmp_path, with_private=True)
         result = subprocess.run(
             [sys.executable, str(ENGINE), "resolve-urls", "--config", str(cfg), "--sha", "sha123"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0
         assert json.loads(result.stdout) == [
@@ -145,7 +244,8 @@ class TestResolveUrlsCommand:
         cfg = self._write_config(tmp_path, with_private=False)
         result = subprocess.run(
             [sys.executable, str(ENGINE), "resolve-urls", "--config", str(cfg), "--sha", "sha123"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0
         assert json.loads(result.stdout) == [

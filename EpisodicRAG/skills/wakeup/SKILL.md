@@ -12,6 +12,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 ## 目次
 - [前提](#前提)
 - [ディレクトリ構成](#ディレクトリ構成claudeai-展開後)
+- [デプロイ（zip 化の直前）](#デプロイzip-化の直前)
 - [実装時の注意事項](#実装時の注意事項)
 - [実行フロー](#実行フロー)
 - [Private 参照（on-demand）](#private-参照on-demand)
@@ -21,7 +22,7 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 ---
 
 ## 前提
-- **config**（`examples/` のサンプルを見本に**ルート直下へ `wakeup.config.json` として実値化**）に `public_repo` / `load_files` / `commit_identity` / `directive_path`（任意で `private_repo`）を定義。配置は下記 [ディレクトリ構成](#ディレクトリ構成claudeai-展開後) を参照。
+- **config**（`examples/` のサンプルを見本に実値化し、**`materialize` でルート直下へ `wakeup.config.json` として配置**）に `public_repo` / `load_files` / `commit_identity` / `directive_path`（任意で `private_repo`）を定義。配置は下記 [ディレクトリ構成](#ディレクトリ構成claudeai-展開後) と [デプロイ](#デプロイzip-化の直前) を参照。
 - **起動ディレクティブ**（人格ロード方針）は `directive_path` が指す md。
 - **engine**: `scripts/interfaces/wakeup_engine.py`（標準ライブラリのみ。claude.ai の bash で自己完結し、EpisodicRAG 本体パッケージには依存しない）。
 
@@ -45,10 +46,33 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
     └── interfaces/wakeup_engine.py
 ```
 
-- **`examples/` は見本**。運用時は config サンプルを**ルート直下へ `wakeup.config.json` としてコピー**し実値を埋める。directive も同様にルート直下へ置き、その名前を config の `directive_path` に書く（`examples/` 内のファイルは実行時に読まない）。
+- **`examples/` は見本**。実値化した config は自分の staging 場所に置き、そこから **`materialize` でルート直下へ配置**する（[デプロイ](#デプロイzip-化の直前)）。directive の名前は config の `directive_path` に書く（`examples/` 内のファイルは実行時に読まない）。
 - **`directive_path` は config からの相対パス** → config と同じディレクトリ（ルート直下）に directive を置く。ファイル名は任意（汎用例 `directive.md`、Weave サンプルは `WeaveDirective.md`）。
 - 実行時の **config パスは固定で `/mnt/skills/user/wakeup/wakeup.config.json`**（人格名を含めない汎用名。directive 名のみ config 経由で可変）。
 - config・directive・token のファイル名は SKILL.md／config と**厳密一致**させる（Linux はケースセンシティブ）。
+- **1 デプロイ ＝ 1 人格**（config パスが固定名のため）。複数人格を運用する場合はスキル自体を別名で分ける。どの人格が起動するかは後述 `verify` の fingerprint で確認する。
+
+---
+
+## デプロイ（zip 化の直前）
+
+★ の配置は**手でコピーしない**。人格ごとの config（実値。この repo の `examples/` ではなく**自分の staging 場所**にあるもの）と、その隣の directive を、1 コマンドで skill root に流し込む：
+
+```bash
+python scripts/interfaces/wakeup_engine.py materialize \
+  --config <自分の staging>/<persona>.config.json \
+  --token  <自分の staging>/token.tar.gz \
+  --out    /path/to/wakeup            # zip 化するスキルディレクトリ
+```
+
+- config → `<out>/wakeup.config.json`（固定の汎用名）
+- directive → **source config の `directive_path` を、source config と同じディレクトリから解決**して `<out>/<directive_path>` へ（別名・サブディレクトリ可）
+- token → `<out>/<元のファイル名のまま>`（**表示された名前をそのまま curl に書く**——勝手なリネームをしないことでケース不一致を防ぐ）
+- 配置後に自動で `verify` が走り、不備があれば非ゼロ終了（**半端に materialize されたスキルを作らない**——検証は全コピーの前）
+- `--token` を省くと既に `<out>` にある token アーカイブがそのまま使われる（再同期用）
+
+> **手コピーの何が壊れるか**: config と directive は別々に持ち回されるため、**directive だけ新しく config は数ヶ月前**という組み合わせが生じる（`commit_identity.coauthor` が旧世代名のまま書き戻される等）。`materialize` は両者を単一 source から都度コピーするのでドリフトが構造的に起きない。
+> **器の交代時に更新する config キー**: `commit_identity.coauthor`（モデル世代名を含む。記録に残るため世代交代時は必ず更新）。
 
 ---
 
@@ -64,16 +88,33 @@ claude.ai 環境のセッション開始時に、設定（config）に従って�
 **⚠️ 以下を TodoWrite で作成し、順番に実行すること**
 
 ```
-1. config 読込       - wakeup の config を確認
+1. デプロイ検証       - verify で config/directive/token の実在を確認（FAIL なら起動を中断）
 2. 記憶ロード         - Read token で SHA 取得＋認証付き raw を取得（load_repo＝private_repo 優先）
 3. ディレクティブ適用 - directive_path の md を読み、人格方針を反映
 ```
 
 | Step | 内容 | 処理 |
 |------|------|------|
-| 1 | config 読込 | `/mnt/skills/user/wakeup/wakeup.config.json` を `wakeup_engine.py` が解釈 |
+| 1 | デプロイ検証 | `wakeup_engine.py verify` が config（＝`/mnt/skills/user/wakeup/wakeup.config.json`）を解釈し、directive と token の実在も確認 |
 | 2 | 記憶ロード | load_repo（private_repo 優先）の最新 SHA 取得 → raw URL を認証付き curl（Read token） |
 | 3 | ディレクティブ適用 | config と同ディレクトリの `directive_path`（＝ルート直下の md）を読む |
+
+### Step 1: デプロイ検証（verify）
+Step 3 は md の Read なので、**directive が未配置でも黙って通ってしまう**（fail-open）。起動前に検証して落とす：
+
+```bash
+python /mnt/skills/user/wakeup/scripts/interfaces/wakeup_engine.py verify
+```
+
+```text
+config    : ok  (load_repo=<owner>/<name>@main (private), load_files=3 (required 2 / optional 1))
+directive  : ok  (<directive_path>, 826 bytes)
+token      : ok  (token.tar.gz readable)
+```
+
+- **FAIL が出たら記憶ロードへ進まない**（不備を報告し、`materialize` で再配置する）
+- `config` 行の fingerprint は「**今どの人格を起こそうとしているか**」の確認点（別人格の config を上げたままの事故を検知）
+- token は **可読性のみ**を検査（中身は一切出力されない）。`--root` 省略時はこのスキル自身のルートを見る
 
 ### Step 2: 記憶ロード（要 Read token）
 > **なぜトークンが要るか**: claude.ai は共有 IP のため未認証 `api.github.com` の 60 req/h がすぐ枯渇し SHA を取れない。かつ raw の **`main` 参照は CDN キャッシュが長く最新が取れない**ため、SHA 固定での取得が必須。→ SHA 取得（API）に認証が要る。公開・非公開いずれのリポでも Read token を使う（起動時ロード対象 load_files は load_repo＝private_repo があればそこ、なければ public_repo から取得）。

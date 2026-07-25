@@ -3,6 +3,7 @@
 Security invariant under test: a raw URL never embeds a token
 (the engine authenticates via the Authorization header instead).
 """
+
 from domain.models import RepoRef
 from domain.urls import build_pr_branch_name, build_raw_url
 

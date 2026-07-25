@@ -3,6 +3,7 @@
 The required/optional *policy* lives in BootSequence (UseCase); the loader only
 fetches. Exercised with fakes — dummy values only (acme/memo), no persona coupling.
 """
+
 import pytest
 
 from domain.exceptions import WakeupError
@@ -31,9 +32,7 @@ class _RecordingLoader:
 
     def load_public(self, repo, files):
         self.log.append("load_public")
-        return {
-            f.path: f"content-of-{f.path}" for f in files if f.path not in self.missing
-        }
+        return {f.path: f"content-of-{f.path}" for f in files if f.path not in self.missing}
 
 
 class TestBootOrder:

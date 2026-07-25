@@ -4,6 +4,7 @@ Mirrors EmailingEssay's usecases/ports.py style. Verifies the abstract shapes
 the SKILL.md procedure (Infrastructure) will implement, and the key security
 contract: SecretProviderPort hands a token to a callback then drops it.
 """
+
 from usecases.ports import (
     MemoryLoaderPort,
     SecretProviderPort,
@@ -54,7 +55,7 @@ class TestSecretProviderContract:
 
         assert result == "ok"
         assert seen["tok"] == "ghp_dummy_secret"  # callback saw the token
-        assert fake.released is True               # ...and it was released after
+        assert fake.released is True  # ...and it was released after
         assert fake._token is None
 
     def test_fake_secret_satisfies_protocol(self):

@@ -3,6 +3,7 @@
 Mirrors EmailingEssay's skills/<name>/scripts/ layout (scripts dir is the import root),
 combined with ContextPreloader's frozen-dataclass + unittest/pytest conventions.
 """
+
 import os
 import sys
 

@@ -3,6 +3,7 @@
 Persona-agnostic: every value comes from the config; nothing is hardcoded.
 All problems surface as ConfigError for a uniform error surface.
 """
+
 from __future__ import annotations
 
 import json
@@ -46,17 +47,18 @@ def load_config(data: dict[str, Any]) -> WakeupConfig:
             author_email=ci["author_email"],
             coauthor=ci.get("coauthor", ""),
         )
+        # Constructed inside the try so WakeupConfig's own validation
+        # (directive_path) surfaces as ConfigError like every other problem.
+        return WakeupConfig(
+            public_repo=public_repo,
+            load_files=load_files,
+            commit_identity=commit_identity,
+            directive_path=data["directive_path"],
+            private_repo=private_repo,
+        )
     except (KeyError, TypeError, ValueError) as exc:
         # domain raises ValueError (e.g. non-noreply email); wrap uniformly.
         raise ConfigError(f"invalid config: {exc}") from exc
-
-    return WakeupConfig(
-        public_repo=public_repo,
-        load_files=load_files,
-        commit_identity=commit_identity,
-        directive_path=data["directive_path"],
-        private_repo=private_repo,
-    )
 
 
 def load_config_file(path: str) -> WakeupConfig:

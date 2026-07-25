@@ -3,6 +3,7 @@
 Pure data + validation only. The engine hardcodes nothing persona-specific;
 every concrete value (repos, files, commit identity) arrives via config.
 """
+
 from __future__ import annotations
 
 import re
@@ -11,6 +12,29 @@ from dataclasses import dataclass
 # GitHub noreply form: "<numeric-id>+<login>@users.noreply.github.com".
 # Enforced so a raw address (e.g. Gmail) is never committed into a public repo.
 _NOREPLY_RE = re.compile(r"^\d+\+[A-Za-z0-9-]+@users\.noreply\.github\.com$")
+
+# Windows drive prefix ("C:/..."), rejected together with POSIX absolute paths.
+_DRIVE_RE = re.compile(r"^[A-Za-z]:")
+
+
+def _validate_directive_path(path: str) -> None:
+    """Reject a ``directive_path`` that cannot resolve inside the deployed skill root.
+
+    The name is the persona's choice (any name, any depth), so the rule is
+    structural: a relative POSIX path with no parent escape and no empty segment.
+    Deployment is Linux, hence a backslash is a separator typo, not a filename.
+    """
+    if not path.strip():
+        raise ValueError("directive_path must not be empty")
+    if "\\" in path:
+        raise ValueError(f"directive_path must use '/' separators (deployment is Linux): {path!r}")
+    if path.startswith("/") or _DRIVE_RE.match(path):
+        raise ValueError(f"directive_path must be relative to the config, not absolute: {path!r}")
+    segments = path.split("/")
+    if ".." in segments:
+        raise ValueError(f"directive_path must not escape the skill root: {path!r}")
+    if any(not s for s in segments):
+        raise ValueError(f"directive_path must name a file, with no empty segment: {path!r}")
 
 
 @dataclass(frozen=True)
@@ -58,6 +82,9 @@ class WakeupConfig:
     commit_identity: CommitIdentity
     directive_path: str
     private_repo: RepoRef | None = None
+
+    def __post_init__(self) -> None:
+        _validate_directive_path(self.directive_path)
 
     @property
     def load_repo(self) -> RepoRef:

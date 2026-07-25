@@ -3,6 +3,7 @@
 CRITICAL: no persona-specific values here. We use dummy owners/repos (acme/memo)
 so these tests also prove the engine hardcodes nothing Weave-specific.
 """
+
 import pytest
 
 from domain.models import CommitIdentity, LoadFile, RepoRef, WakeupConfig
@@ -47,7 +48,9 @@ class TestCommitIdentity:
         assert c.coauthor == ""
 
     def test_accepts_hyphenated_username(self):
-        c = CommitIdentity(author_name="P", author_email="42+weaving-futurity@users.noreply.github.com")
+        c = CommitIdentity(
+            author_name="P", author_email="42+weaving-futurity@users.noreply.github.com"
+        )
         assert c.author_email.startswith("42+")
 
     def test_rejects_raw_gmail(self):
@@ -118,3 +121,44 @@ class TestWakeupConfig:
             directive_path="dir/Directive.md",
         )
         assert cfg.load_repo == cfg.public_repo
+
+
+class TestDirectivePathValidation:
+    """``directive_path`` is joined onto the deployed skill root, so it must stay inside it.
+
+    Personas name their own directive (any name, any depth), hence the rule is
+    structural — relative, POSIX, no parent escape — never a fixed filename.
+    """
+
+    def _cfg(self, directive_path):
+        return WakeupConfig(
+            public_repo=RepoRef(owner="acme", name="memo"),
+            load_files=(LoadFile(path="dir/A.txt"),),
+            commit_identity=CommitIdentity(
+                author_name="P", author_email="1+u@users.noreply.github.com"
+            ),
+            directive_path=directive_path,
+        )
+
+    @pytest.mark.parametrize("good", ["directive.md", "personas/foo/directive.md", "A.md"])
+    def test_accepts_relative_paths_of_any_depth(self, good):
+        assert self._cfg(good).directive_path == good
+
+    @pytest.mark.parametrize(
+        "bad",
+        [
+            "",  # unset
+            "   ",  # blank
+            "/etc/passwd",  # absolute (POSIX)
+            "C:/dir/d.md",  # absolute (Windows drive)
+            "sub\\d.md",  # backslash separator: breaks on the Linux sandbox
+            "../d.md",  # parent escape
+            "sub/../../d.md",  # parent escape mid-path
+            "..",  # bare parent
+            "sub//d.md",  # empty segment
+            "sub/",  # directory, not a file
+        ],
+    )
+    def test_rejects_unsafe_or_unusable_paths(self, bad):
+        with pytest.raises(ValueError):
+            self._cfg(bad)

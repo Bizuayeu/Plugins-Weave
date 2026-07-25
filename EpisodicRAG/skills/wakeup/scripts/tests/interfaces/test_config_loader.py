@@ -2,6 +2,7 @@
 
 Dummy values only (acme/memo) — the loader must not assume any persona.
 """
+
 import pytest
 
 from domain.exceptions import ConfigError
@@ -62,5 +63,13 @@ class TestLoadConfig:
         # domain raises ValueError; loader wraps it as ConfigError for a uniform surface
         data = _valid_data()
         data["commit_identity"]["author_email"] = "raw@gmail.com"
+        with pytest.raises(ConfigError):
+            load_config(data)
+
+    @pytest.mark.parametrize("bad", ["", "/abs/D.md", "../D.md", "sub\\D.md"])
+    def test_invalid_directive_path_raises_config_error(self, bad):
+        # WakeupConfig validation must surface as ConfigError too, not a bare ValueError
+        data = _valid_data()
+        data["directive_path"] = bad
         with pytest.raises(ConfigError):
             load_config(data)

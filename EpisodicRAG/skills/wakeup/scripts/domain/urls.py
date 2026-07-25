@@ -1,4 +1,5 @@
 """Pure builders for raw-content URLs and PR branch names. No I/O, no secrets."""
+
 from __future__ import annotations
 
 from domain.models import RepoRef

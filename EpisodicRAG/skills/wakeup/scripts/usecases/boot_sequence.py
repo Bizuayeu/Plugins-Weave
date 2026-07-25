@@ -4,6 +4,7 @@ Private reference and write-back are on-demand (handled by the SKILL.md procedur
 so they are deliberately not part of ``run()``. This class is the testable SSoT for
 the load order and the required/optional boot policy only (YAGNI).
 """
+
 from __future__ import annotations
 
 from domain.exceptions import WakeupError

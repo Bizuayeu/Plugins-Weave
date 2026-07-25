@@ -5,12 +5,13 @@ These guard the Markdown procedure (which has no unit-testable logic):
 - curl examples never embed a token in the URL (Authorization header only, --fail)
 - write-back never pushes directly to the default branch (claude/* + PR)
 """
+
 import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve()
-SCRIPTS = HERE.parents[1]        # scripts/
-SKILL_ROOT = HERE.parents[2]     # wakeup/
+SCRIPTS = HERE.parents[1]  # scripts/
+SKILL_ROOT = HERE.parents[2]  # wakeup/
 SKILL_MD = SKILL_ROOT / "SKILL.md"
 ENGINE = SCRIPTS / "interfaces" / "wakeup_engine.py"
 
@@ -41,11 +42,28 @@ class TestNoPersonaLeak:
         """Deployed artifacts use generic names; persona-named files live only under examples/."""
         text = _read(SKILL_MD)
         # The runtime config path must be the generic wakeup.config.json, never a persona's name.
-        assert "wakeup/wakeup.config.json" in text, "runtime config must be the generic wakeup.config.json"
+        assert "wakeup/wakeup.config.json" in text, (
+            "runtime config must be the generic wakeup.config.json"
+        )
         # A persona-named config/directive must never be a deployed artifact (directly under
         # wakeup/); references under examples/ are fine.
-        assert "wakeup/weave.config.json" not in text, "persona config belongs under examples/, not deployed"
-        assert "wakeup/WeaveDirective.md" not in text, "persona directive belongs under examples/, not deployed"
+        assert "wakeup/weave.config.json" not in text, (
+            "persona config belongs under examples/, not deployed"
+        )
+        assert "wakeup/WeaveDirective.md" not in text, (
+            "persona directive belongs under examples/, not deployed"
+        )
+
+
+class TestFailLoudProcedure:
+    """Step 3 is a Markdown read, so the procedure itself must gate on verify."""
+
+    def test_step_1_documents_verify(self):
+        text = _read(SKILL_MD)
+        assert "wakeup_engine.py verify" in text, "Step 1 must run verify, not just read the config"
+
+    def test_deployment_is_materialized_not_hand_copied(self):
+        assert "materialize" in _read(SKILL_MD), "the ★ artifacts must be placed by materialize"
 
 
 class TestCurlSafety:
@@ -53,7 +71,9 @@ class TestCurlSafety:
         text = _read(SKILL_MD)
         assert "@raw.githubusercontent.com" not in text
         assert "@api.github.com" not in text
-        assert not re.search(r"[?&]token=", text), "token must use the Authorization header, not the URL"
+        assert not re.search(r"[?&]token=", text), (
+            "token must use the Authorization header, not the URL"
+        )
 
     def test_private_curl_uses_auth_header_and_fail(self):
         text = _read(SKILL_MD)
@@ -64,7 +84,9 @@ class TestCurlSafety:
 class TestWriteBackSafety:
     def test_no_direct_push_to_main(self):
         text = _read(SKILL_MD)
-        assert not re.search(r"git\s+push\s+\S+\s+main\b", text), "use claude/* + PR, never push to main"
+        assert not re.search(r"git\s+push\s+\S+\s+main\b", text), (
+            "use claude/* + PR, never push to main"
+        )
 
     def test_uses_claude_branch_prefix(self):
         assert "claude/" in _read(SKILL_MD), "write-back must go through a claude/* branch"
