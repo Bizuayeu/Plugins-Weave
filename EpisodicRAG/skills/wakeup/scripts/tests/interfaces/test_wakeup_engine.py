@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from domain.models import LoadFile, RepoRef
-from interfaces.wakeup_engine import extract_token, resolve_urls
+from interfaces.wakeup_engine import SKILL_ROOT, extract_token, resolve_urls
 
 # tests/interfaces/ -> parents[2] == scripts/
 ENGINE = Path(__file__).resolve().parents[2] / "interfaces" / "wakeup_engine.py"
@@ -199,10 +199,22 @@ class TestVerifyCommand:
         assert "github_pat_" not in result.stdout
         assert "github_pat_" not in result.stderr
 
-    def test_root_defaults_to_the_deployed_skill_root(self, tmp_path):
-        """No --root: fall back to this skill's own root (fixed at /mnt/skills/user/wakeup)."""
-        result = _verify(root=None)
-        assert "wakeup.config.json" in result.stdout
+    def test_root_defaults_to_the_deployed_skill_root(self):
+        """No --root: identical report to an explicit --root at the skill's own root.
+
+        Comparing the two runs keeps the assertion true whether or not this tree has
+        been materialized. The earlier version asserted on the *missing config* error
+        message, which silently depended on the dev tree never holding a deployment —
+        an assumption `materialize` turned into the normal state.
+        """
+        default_run = _verify(root=None)
+        explicit_run = _verify(root=SKILL_ROOT)
+        assert default_run.stdout == explicit_run.stdout
+        assert default_run.returncode == explicit_run.returncode
+
+    def test_skill_root_resolves_to_the_directory_holding_skill_md(self):
+        """SKILL_ROOT is derived from the engine's own location, so it travels with the zip."""
+        assert (Path(SKILL_ROOT) / "SKILL.md").is_file()
 
 
 class TestResolveUrlsCommand:

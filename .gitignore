@@ -45,11 +45,19 @@ Identities/
 archive/
 
 # Secrets — tokens/PATs are injected locally, never committed.
-# wakeup skill: place your own token.zip inside the skill before zipping it for claude.ai.
+# wakeup skill: place your own token archive inside the skill before zipping it for claude.ai.
 *.pat
 *.token
 **/token.zip
+**/token.tar.gz
+**/token.tgz
 **/GitHubPAT*
+# wakeup skill: `materialize` output at the skill root (deployment artifacts, not sources).
+# The directive is persona-named, so ignore every md there except the spec itself.
+EpisodicRAG/skills/wakeup/wakeup.config.json
+EpisodicRAG/skills/wakeup/token.*
+EpisodicRAG/skills/wakeup/*.md
+!EpisodicRAG/skills/wakeup/SKILL.md
 # ConsiderateCoder - SDD working files (kept locally when developing via /outsource)
 IMPLEMENTATION_PLAN.md
 outsource-report-*.html

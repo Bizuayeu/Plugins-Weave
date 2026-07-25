@@ -70,6 +70,7 @@ python scripts/interfaces/wakeup_engine.py materialize \
 - token → `<out>/<元のファイル名のまま>`（**表示された名前をそのまま curl に書く**——勝手なリネームをしないことでケース不一致を防ぐ）
 - 配置後に自動で `verify` が走り、不備があれば非ゼロ終了（**半端に materialize されたスキルを作らない**——検証は全コピーの前）
 - `--token` を省くと既に `<out>` にある token アーカイブがそのまま使われる（再同期用）
+- **zip 化の前に開発残骸を除く**: `.coverage` / `__pycache__` / `.pytest_cache` は開発ツリーをそのまま zip すると同梱される（`materialize` は 3 点の配置のみを担い、掃除はしない）
 
 > **手コピーの何が壊れるか**: config と directive は別々に持ち回されるため、**directive だけ新しく config は数ヶ月前**という組み合わせが生じる（`commit_identity.coauthor` が旧世代名のまま書き戻される等）。`materialize` は両者を単一 source から都度コピーするのでドリフトが構造的に起きない。
 > **器の交代時に更新する config キー**: `commit_identity.coauthor`（モデル世代名を含む。記録に残るため世代交代時は必ず更新）。

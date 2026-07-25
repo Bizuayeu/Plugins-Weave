@@ -45,7 +45,8 @@ from usecases.verify_deployment import VerifyDeployment  # noqa: E402
 # directive's name is variable, and it comes from the config's directive_path.
 CONFIG_NAME = "wakeup.config.json"
 _TOKEN_EXTS = (".tar.gz", ".tgz", ".tar", ".gz", ".zip")
-# interfaces/wakeup_engine.py -> scripts/ -> the skill root (/mnt/skills/user/wakeup).
+# Resolved from this file (interfaces/ -> scripts/ -> skill root), so it follows the
+# zip wherever it lands — /mnt/skills/user/wakeup once claude.ai expands it.
 SKILL_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
