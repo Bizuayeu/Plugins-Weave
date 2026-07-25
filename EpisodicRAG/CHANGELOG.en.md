@@ -12,11 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#580---2026-07-25)
+- [v5.x](#581---2026-07-25)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.8.1] - 2026-07-25
+
+### Changed
+
+- **DigestAnalyzer now declares `effort: high`** — analysis depth directly determines digest quality, so the thinking budget is pinned in the frontmatter instead of inheriting the caller's setting (`model: opus` unchanged)
 
 ---
 

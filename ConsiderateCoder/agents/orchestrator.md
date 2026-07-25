@@ -2,7 +2,7 @@
 name: orchestrator
 description: タスクの切り出し・ワーカーへの委任・成果物レビュー・進捗管理を専任する司令官。調査と実装は自分では行わない。複数ワーカーを束ねる大きめのタスクの采配を任せるときに使う。
 model: inherit
-effort: medium
+effort: high
 tools: Read, Glob, Grep, Agent, TodoWrite
 skills: dev-rules
 ---

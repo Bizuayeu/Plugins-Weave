@@ -1,8 +1,8 @@
 ---
 name: worker
 description: スコープ済みタスクの調査・実装・検証を完遂する実働部隊。関心事一つに絞ったブリーフ（十分な文脈・完了定義・報告形式付き）を渡して起動する。
-model: sonnet
-effort: max
+model: opus
+effort: high
 disallowedTools: Agent
 skills: dev-rules
 ---

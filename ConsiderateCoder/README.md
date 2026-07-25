@@ -36,7 +36,7 @@ Clean Architecture の 4 層は、収録物とそのまま対応する：
 ### ③ アウトソース開発の利点
 
 - **開発の全非同期化** — communicator は待機するだけで、調査・実装は orchestrator/worker 側で完結する
-- **適材適所のモデル配分によるトークンコスト最適化** — 采配には高性能なモデル、実働には廉価なモデルを割り当てる
+- **役割に応じた器と effort の配分** — 判断を担う層は思考量を厚く、実働の層は器を落とさず effort で絞る
 - **ブリーフ規格が要件・完了条件を強制的に明確化** — 「関心事は一つ」「文脈」「完了定義」「報告形式」の4条件を満たさないブリーフは委任として成立しない
 - **worker は常にフレッシュなコンテキストで品質が向上** — 前段の対話の枝葉に引きずられず、渡されたブリーフだけに集中できる
 - **communicator は文脈を保持しているためレビュー・全体感の把握・ユーザーへの説明に優れる** — 対話の経緯を知っているのは communicator だけであり、検収と説明はここに集約する
@@ -212,11 +212,11 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 
 ## 8. モデル配分チューニング指針
 
-設計思想は「最も高い器が采配し、廉価な器が全力で手を動かす」。
+設計思想は「三層とも器は落とさず、effort で判断の層だけ上へ振る」。`high` が API 既定で、思考量はターンごとに adaptive thinking が決める。`xhigh` 以上は思考を無効化できなくなる領域——常時思考が効くのは判断の層であり、実装を担う層では effort を上げるほどタスク外の変更（スコープ膨張）が増える。
 
-- **communicator（main セッション）** — **Opus 以上（可能なら Fable / Mythos 級）× effort `xhigh` 以上を推奨**。主題確定・ブリーフ結晶化・検収（報告を鵜呑みにしない物証照合）・上申裁定と、三層で最も高い判断力を要する層。さらに orchestrator が `inherit` 既定のため、**main セッションの器がそのまま采配の器を兼ねる——communicator のモデル選択は二重に効く**。Claude Code では `/model` で切り替えられる
-- **orchestrator** — 既定は `model: inherit`（呼び出し元＝communicator の器を継ぐ）。采配の質が成果物全体の質を左右するため、communicator 側を高い器にするか、frontmatter で明示指定する
-- **worker** — 既定は `model: sonnet` / `effort: max`。実働は数を打つ場面が多く、コストと質のバランスを取った既定値
+- **communicator（main セッション）** — **Opus 以上（可能なら Fable / Mythos 級）× effort `xhigh` 以上を推奨**。主題確定・ブリーフ結晶化・検収・上申裁定と、三層で最も高い判断力を要する層。さらに orchestrator が `inherit` 既定のため、**main セッションの器がそのまま采配の器を兼ねる——communicator のモデル選択は二重に効く**。Claude Code では `/model` で切り替えられる
+- **orchestrator** — `model: inherit`（呼び出し元＝communicator の器を継ぐ）／ `effort: high`。Edit/Write を持たない層ゆえ、采配を厚くしたければ `xhigh` 以上へ上げてよい
+- **worker** — `model: opus` / `effort: high`。実働は数を打つ層だが、世代間の性能差が実装品質に直結するため器は落とさない。effort を上げると規範の YAGNI と衝突する
 
 利用者は [`agents/orchestrator.md`](agents/orchestrator.md) / [`agents/worker.md`](agents/worker.md) の frontmatter（`model:` / `effort:`）を1行書き換えるだけで上書きできる。本文の運用律は変更不要。このチューニング指針は README にのみ記載し、agent 本文には書かない（単一正典の維持）。
 

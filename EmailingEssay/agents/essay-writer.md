@@ -2,6 +2,7 @@
 name: essay-writer
 description: Reflection and essay writing subagent
 model: opus
+effort: high
 ---
 
 # essay-writer - Reflection & Writing Agent

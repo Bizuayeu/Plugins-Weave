@@ -11,11 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#580---2026-07-25)
+- [v5.x](#581---2026-07-25)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.8.1] - 2026-07-25
+
+### Changed
+
+- **DigestAnalyzer に `effort: high` を明示** — 分析の深さが Digest の品質を直接決める層のため、呼び出し元の設定を継ぐのではなく frontmatter で思考量を固定する（`model: opus` は据え置き）
 
 ---
 

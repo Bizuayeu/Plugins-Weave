@@ -5,6 +5,11 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-07-25
+
+### Changed
+- `essay-writer` agent: declare `effort: high` alongside `model: opus`. Reflection quality depends on thinking depth, so the effort level is now pinned in the frontmatter instead of inheriting whatever the caller happens to run with
+
 ## [1.0.0] - 2025-12-31
 
 ### Added
