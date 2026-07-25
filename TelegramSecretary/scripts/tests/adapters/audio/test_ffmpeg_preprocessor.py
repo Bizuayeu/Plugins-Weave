@@ -6,8 +6,10 @@ import wave
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from adapters.audio.ffmpeg_preprocessor import FfmpegAudioPreprocessor
+from domain.exceptions import AudioDecodeError
 
 
 def _make_wav(path: Path, freq: int = 440, dur: float = 0.5, rate: int = 16000) -> None:
@@ -60,15 +62,28 @@ def test_resamples_and_downmixes_44k_stereo_to_16k_mono(tmp_path):
     assert 7000 < len(samples) < 9000
 
 
-def test_returns_empty_for_no_audio_stream(tmp_path):
-    """音声ストリームが無い/壊れたファイルは空配列を返す（クラッシュしない）。
+def test_raises_on_undecodable_file(tmp_path):
+    """デコード不能なファイルは AudioDecodeError（空配列を返して無音に化けさせない）。
 
-    空判定は truthiness でなく len で行う契約（ndarray の bool は ambiguous）。
+    「本当に無音だった」と「読めなかった」を呼び出し側が区別できないと、
+    エージェントは失敗を無音として受け取ってしまう（うるさく失敗させる）。
     """
     broken = tmp_path / "broken.wav"
     broken.write_bytes(b"not a real wav file at all")
     pre = FfmpegAudioPreprocessor()
-    samples, rate = pre.to_float_pcm(broken)
+    with pytest.raises(AudioDecodeError):
+        pre.to_float_pcm(broken)
+
+
+def test_returns_empty_for_valid_but_zero_length_audio(tmp_path):
+    """デコードは成功したが中身が 0 サンプルなら空配列を返す（これは失敗ではない）。
+
+    空判定は truthiness でなく len で行う契約（ndarray の bool は ambiguous）。
+    """
+    empty_wav = tmp_path / "empty.wav"
+    _make_wav(empty_wav, dur=0.0)
+    pre = FfmpegAudioPreprocessor()
+    samples, rate = pre.to_float_pcm(empty_wav)
     assert isinstance(samples, np.ndarray)
     assert len(samples) == 0
     assert rate == 16000

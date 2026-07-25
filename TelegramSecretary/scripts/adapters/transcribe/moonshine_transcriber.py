@@ -53,7 +53,9 @@ class MoonshineTranscriber:
             samples, rate = self._preprocessor.to_float_pcm(local_path)
             # 空判定は len で行う（samples は ndarray、truthiness は ambiguous）
             if len(samples) == 0:
-                # 無音/デコード不可: 失敗ではなく「音声なし」として空 transcript
+                # ここに来るのは「デコードできて中身が 0 サンプル」＝本当に音声が無い場合のみ。
+                # デコード不能は preprocessor が AudioDecodeError を投げ、下の except で
+                # failed になる（S3: 以前は両者が空配列で同じ「無音」に化けていた）。
                 return RenderedMedia(rendered_text="", render_status="ok")
             transcriber_cls, model_path, model_arch = self._ensure_model()
             with transcriber_cls(model_path, model_arch) as tr:

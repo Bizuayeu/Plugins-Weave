@@ -26,6 +26,17 @@ class MediaSizeLimitExceeded(TelegramSecretaryError):
     """
 
 
+class AudioDecodeError(TelegramSecretaryError):
+    """音声のデコードに失敗した（コンテナが開けない/音声ストリームが取れない）。
+
+    「本当に無音だった」と「読めなかった」を呼び出し側が区別できるようにするための例外。
+    以前は前処理が両者とも空配列で返していたため、壊れた音声が transcribe 経路で
+    `render_status="ok"` + 空 transcript となり、エージェントに「無音」として届いていた
+    （静かな失敗）。デコード不能だけを本例外で表し、transcribe Adapter は `failed` に翻訳する。
+    デコードは成功したが 0 サンプルだった場合は失敗ではないので raise しない。
+    """
+
+
 class AttachmentNotFound(TelegramSecretaryError):
     """outbound 添付ファイルのパスが存在しない（送信前検証で弾く、Stage 8.1）。"""
 

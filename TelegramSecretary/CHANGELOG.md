@@ -2,7 +2,11 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
-## [Unreleased]
+## [1.3.1] - 2026-07-26 — 音声デコード失敗の可視化と役割呼称の整理
+
+### Fixed
+
+- **音声のデコード失敗が「無音」に化けていた** — `FfmpegAudioPreprocessor` が壊れた音声・音声ストリーム無しのファイルでも空配列を返していたため、`MoonshineTranscriber` が「本当に無音」と同じ `render_status="ok"` + 空 transcript に丸め、エージェントは読み取り失敗を検知できなかった（静かな失敗）。デコード不能時は新設の `AudioDecodeError` を送出し `failed` へ翻訳する。デコードできて 0 サンプルだった場合（＝本当に無音）は従来どおり `ok`、途中まで取れた場合は部分音声を返す
 
 ### Changed
 

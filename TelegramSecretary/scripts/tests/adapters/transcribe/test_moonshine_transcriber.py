@@ -10,11 +10,14 @@ from adapters.transcribe.moonshine_transcriber import MoonshineTranscriber
 class _FakePreprocessor:
     """to_float_pcm を固定値/例外で駆動する fake（Moonshine 本体を分離テスト）。"""
 
-    def __init__(self, samples=None, raise_exc: bool = False) -> None:
+    def __init__(self, samples=None, raise_exc: bool = False, exc=None) -> None:
         self._samples = list(samples or [])
         self._raise = raise_exc
+        self._exc = exc
 
     def to_float_pcm(self, path: Path):
+        if self._exc is not None:
+            raise self._exc
         if self._raise:
             raise RuntimeError("decode boom")
         return self._samples, 16000
@@ -39,6 +42,19 @@ def test_empty_samples_returns_ok_empty_without_model_load():
     result = t.render(_voice(), Path("x.ogg"))
     assert result.render_status == "ok"
     assert result.rendered_text == ""
+
+
+def test_failed_on_audio_decode_error():
+    """デコード不能（AudioDecodeError）は failed。無音（ok + ""）と区別されること。
+
+    S3: 以前は前処理が空配列を返し、壊れた音声が「無音」として ok で通っていた。
+    """
+    from domain.exceptions import AudioDecodeError
+
+    t = MoonshineTranscriber(preprocessor=_FakePreprocessor(exc=AudioDecodeError("boom")))
+    result = t.render(_voice("abcdef1234"), Path("x.ogg"))
+    assert result.render_status == "failed"
+    assert result.rendered_text is None
 
 
 def test_failed_on_preprocessor_exception():
