@@ -317,7 +317,7 @@ source /tmp/telegram-secretary.env.sh && \
 | Repositories | 本体リポ（人格定義）＋ Private（`<PRIVATE_DIR>`：SecretaryRole / state） |
 | Trigger | Schedule |
 | Cron | `<勤務帯。例 0 9-16 * * 1-5>`（各回の長さは config.json の `session_duration_sec`） |
-| Model | `claude-opus-4-8`（任意） |
+| Model | `claude-opus-5`（任意） |
 | Environment | `<environment_id>`（bot token / authorized chats を注入） |
 | Env vars | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_SECRETARY_AUTHORIZED_CHATS`（＋任意の `TELEGRAM_SECRETARY_*`） |
 | 編集 URL | `https://claude.ai/code/routines/<trigger_id>` |

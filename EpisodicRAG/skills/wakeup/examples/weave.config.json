@@ -14,7 +14,7 @@
   "commit_identity": {
     "author_name": "Weave",
     "author_email": "289333046+weavingfuturity@users.noreply.github.com",
-    "coauthor": "Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+    "coauthor": "Claude Opus 5 (1M context) <noreply@anthropic.com>"
   },
   "directive_path": "WeaveDirective.md",
   "private_repo": {
