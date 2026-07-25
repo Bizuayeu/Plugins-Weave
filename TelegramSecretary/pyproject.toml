@@ -64,6 +64,17 @@ dev = [
 # 複数トップレベルパッケージと誤検出し、`pip install -e .` がビルド失敗する。
 packages = []
 
+[tool.ruff.lint]
+# 選択ルールは明示する。CI は `pip install ruff` で最新版を引くため、既定ルールセットに
+# 依存すると ruff 側の既定拡張だけで CI が赤くなる（0.16.0 が既定を拡張し実際に発生）。
+# 中身は従来の既定（E4/E7/E9/F）＝本プラグインが実際に守ってきた水準を固定したもの。
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# テストは Stage 見出しコメントで節分けし、その節で使う import を節の直下に置く
+# （どの Stage が何を要求するかを読み取れる形）。E402 はこの構成を咎めるだけなので外す。
+"scripts/tests/*" = ["E402"]
+
 [tool.pytest.ini_options]
 testpaths = ["scripts/tests"]
 pythonpath = ["scripts"]
