@@ -33,7 +33,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.16.0
 
       - name: Run ruff linter
         working-directory: EpisodicRAG
@@ -85,7 +85,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install mypy
-        run: pip install mypy
+        run: pip install mypy==2.3.0
 
       - name: Run mypy
         working-directory: EpisodicRAG/scripts
@@ -230,7 +230,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.16.0
 
       - name: Run ruff linter
         working-directory: EmailingEssay
@@ -270,7 +270,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mypy yagmail
+          pip install mypy==2.3.0 yagmail
 
       - name: Run mypy
         working-directory: EmailingEssay/skills/send-email/scripts
@@ -328,7 +328,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.16.0
 
       - name: Run ruff linter
         working-directory: VisualExpression
@@ -368,7 +368,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mypy pillow
+          pip install mypy==2.3.0 pillow
 
       - name: Run mypy
         working-directory: VisualExpression/skills/scripts/MakeExpressionJson
@@ -515,7 +515,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.16.0
 
       # 対象範囲は pyproject の include（scripts/** + hooks/**）が決める。
       - name: Run ruff linter
@@ -554,7 +554,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install mypy
-        run: pip install mypy
+        run: pip install mypy==2.3.0
 
       - name: Run mypy
         working-directory: EmotionPulse
