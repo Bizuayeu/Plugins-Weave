@@ -2,6 +2,16 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.2.4] - 2026-07-26
+
+### Fixed
+
+- **watchdog.sh の find 除外を `-not -path` から `-prune` へ** — `-not -path` は出力から落とすだけで node_modules への降下自体は止めないため、TypeScript リポを含む監視では find 一周が interval を超えて詰まり、watchdog が沈黙検知の用をなさなかった。マルチリポ CI 導入の実戦で顕在化（同一 5 リポで -not-path 版 60 秒超タイムアウト → -prune 版 約 2 秒）
+
+### Added
+
+- **watchdog.sh の複数ディレクトリ対応** — 第一引数をカンマ区切りで複数受け付ける（`watchdog.sh <dir>[,<dir>...]`）。マルチリポ委任では作業が複数リポに散り、単一 dir 監視では Stage の進行とともに監視対象がずれるため。既存の単一 dir 呼び出しは後方互換。outsource.md Phase 3b の使用例も追従
+
 ## [1.2.3] - 2026-07-25
 
 ### Changed

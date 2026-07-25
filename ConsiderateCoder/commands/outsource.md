@@ -81,7 +81,7 @@ orchestrator へ渡す最初のブリーフを、`${CLAUDE_PLUGIN_ROOT}/agents/o
 
 1. `run_in_background: true` で orchestrator を起動する
 2. 同梱の `scripts/watchdog.sh` を Monitor で張る：
-   `bash <plugin>/scripts/watchdog.sh <対象リポ> 1200 60`（persistent: true。書き込み沈黙 20 分で STALLED を 1 行発報して exit）
+   `bash <plugin>/scripts/watchdog.sh <対象リポ>[,<対象リポ2>...] 1200 60`（persistent: true。書き込み沈黙 20 分で STALLED を 1 行発報して exit。マルチリポ委任はカンマ区切りで単一の監視に束ねる）
    - 閾値の既定は 20 分。worker の初動（検分・思考）はファイルを書かないため、15 分では偽陽性が出る（実測）
 3. **二段判定**：STALLED はエージェントの死ではない。① watchdog がファイル沈黙を検知 → ② `TaskOutput`（block=false）で生死を実測 → running なら静観して watchdog を張り直す／failed なら ③ `SendMessage` で「物証ベースの現状＋残作業＋直ちに worker を同期起動せよ」を添えて蘇生する（transcript から再開される）
 4. bg でも完了通知・failed 通知は届く（実測）。ただし通知に依存せず、届かない場合も watchdog → ファイル物証回収で拾える構えを保つ

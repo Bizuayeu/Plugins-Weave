@@ -1,7 +1,8 @@
 #!/bin/bash
 # watchdog.sh — 対象ディレクトリへの書き込み沈黙を検知して STALLED を 1 行発報する
 #
-# usage: watchdog.sh <dir> [threshold_sec=1200] [interval_sec=60]
+# usage: watchdog.sh <dir>[,<dir>...] [threshold_sec=1200] [interval_sec=60]
+#        複数ディレクトリはカンマ区切り（マルチリポ委任で単一の監視を張るため）
 #
 # /outsource の bg 起動（Phase 3b）で Monitor から張る死活監視の決定論部:
 #   Monitor(command: "bash <plugin>/scripts/watchdog.sh <対象リポ> 1200 60", persistent: true)
@@ -14,12 +15,16 @@
 # - STALLED はエージェントの死を意味しない（読み取り・思考中はファイルが動かない）。
 #   受け手は TaskOutput で生死を実測してから静観／蘇生を判断する（二段判定）。
 # - 閾値既定 1200 秒（20 分）: worker の初動（検分・思考）は 15 分を超えうる。
-DIR="${1:?usage: watchdog.sh <dir> [threshold_sec] [interval_sec]}"
+# - 除外は -prune で降下ごと止める。`-not -path` は出力を落とすだけで走査は行うため、
+#   node_modules を持つリポ（TypeScript 等）では find が interval を超えて詰まる
+#   （2026-07-26 マルチリポ CI 導入での実測: 同一 5 リポで -not-path 版 60s 超 → -prune 版 約 2s）。
+DIRS_ARG="${1:?usage: watchdog.sh <dir>[,<dir>...] [threshold_sec] [interval_sec]}"
 THRESH="${2:-1200}"
 INT="${3:-60}"
+IFS=',' read -r -a DIRS <<< "$DIRS_ARG"
 START=$(date +%s)
 while true; do
-  LAST=$(find "$DIR" -type f -not -path "*/node_modules/*" -not -path "*/.git/*" -printf "%T@\n" 2>/dev/null | sort -rn | head -1)
+  LAST=$(find "${DIRS[@]}" \( -name node_modules -o -name .git \) -prune -o -type f -printf "%T@\n" 2>/dev/null | sort -rn | head -1)
   LAST=${LAST%.*}
   NOW=$(date +%s)
   BASE=$START
