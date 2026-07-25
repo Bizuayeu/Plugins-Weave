@@ -79,10 +79,10 @@ test/
 │   ├── grand/               # GrandDigest関連
 │   ├── shadow/              # Shadow関連（cascade_orchestrator含む）
 │   │   ├── test_shadow_io_properties.py
-│   │   ├── test_provisional_appender.py
-│   │   └── test_shadow_components.py  # CascadeComponents [v5.2.0+]
+│   │   └── test_provisional_appender.py
 │   ├── finalize/            # Finalize処理
 │   │   └── validators/      # バリデータ
+│   ├── test_shadow_components.py  # CascadeComponents [v5.2.0+]
 │   ├── test_cascade_properties.py
 │   └── test_template_properties.py
 ├── infrastructure_tests/    # I/O操作 (14 files)
@@ -91,8 +91,7 @@ test/
 │   └── test_json_repository_properties.py
 ├── interfaces_tests/        # エントリポイント (30 files)
 │   ├── provisional/         # Provisional処理
-│   └── digest_auto/         # digest_auto パッケージ [v5.3.0+]
-│       └── (test_auto_*.py がパッケージ内モジュールをテスト)
+│   └── test_auto_*.py       # digest_auto パッケージ内モジュールのテスト [v5.3.0+]（本ディレクトリ直下にフラット配置）
 ├── integration_tests/       # E2Eシナリオ (14 files)
 ├── cli_integration_tests/   # CLI E2E (4 files) [v4.0.0+]
 ├── performance_tests/       # ベンチマーク (1 file)

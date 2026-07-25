@@ -110,7 +110,11 @@ scripts/
 │   │   ├── __init__.py              # CompositeErrorFormatter
 │   │   ├── base.py                  # BaseErrorFormatter
 │   │   ├── registry.py              # FormatterRegistry (v4.1.0+)
-│   │   └── formatters/              # カテゴリ別フォーマッタ
+│   │   ├── config_errors.py         # カテゴリ別: 設定エラー
+│   │   ├── digest_errors.py         # カテゴリ別: Digest エラー
+│   │   ├── file_errors.py           # カテゴリ別: ファイルエラー
+│   │   ├── validation_errors.py     # カテゴリ別: バリデーションエラー
+│   │   └── diagnostic.py            # 診断情報の付加
 │   ├── validators/                  # バリデーション（v4.1.0+統合）
 │   │   ├── __init__.py              # 公開API
 │   │   └── helpers.py               # validate_type, collect_type_error等
@@ -140,8 +144,8 @@ scripts/
 │       └── error_messages.py        # エラーメッセージヘルパー
 │
 ├── application/                     # ユースケース
-│   ├── __init__.py                  # 公開API（全コンポーネント）
-│   ├── validators.py                # バリデーション
+│   ├── __init__.py                  # 公開API（全コンポーネント。バリデーション関数は domain.validators から直接 import する）
+│   ├── auto_dream/                  # dream-defrag のスキャン・分析
 │   ├── tracking/                    # 時間追跡
 │   │   └── digest_times.py          # DigestTimesTracker
 │   ├── shadow/                      # Shadow管理
