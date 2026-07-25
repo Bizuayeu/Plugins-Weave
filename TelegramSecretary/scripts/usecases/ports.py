@@ -6,7 +6,7 @@ Port は Protocol で定義し、実装は adapters/ 配下に置く。テスト
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional, Protocol
+from typing import Protocol
 
 from domain.lease import SessionLease
 from domain.media import MediaAttachment, RenderedMedia
@@ -20,7 +20,7 @@ class UpdateSource(Protocol):
 
     def fetch(
         self, offset: UpdateOffset, timeout_seconds: int = 30
-    ) -> List[TelegramUpdate]: ...
+    ) -> list[TelegramUpdate]: ...
 
 
 class MessageSink(Protocol):
@@ -40,7 +40,7 @@ class OffsetStore(Protocol):
 class LeaseStore(Protocol):
     """セッションリースの永続化。"""
 
-    def load(self) -> Optional[SessionLease]: ...
+    def load(self) -> SessionLease | None: ...
 
     def save(self, lease: SessionLease) -> None: ...
 
@@ -91,9 +91,9 @@ class RegistryStore(Protocol):
     （値オブジェクトへの変換は呼び出し側の責務）。
     """
 
-    def load(self) -> List[dict]: ...
+    def load(self) -> list[dict]: ...
 
-    def save(self, records: List[dict]) -> None: ...
+    def save(self, records: list[dict]) -> None: ...
 
 
 class GitSyncPort(Protocol):
@@ -103,7 +103,7 @@ class GitSyncPort(Protocol):
     commit/push 分離・non-ff rebase フォールバックのロジックをこの Port 越しに駆動する。
     """
 
-    def commit(self, paths: List[Path], message: str) -> bool:
+    def commit(self, paths: list[Path], message: str) -> bool:
         """paths を stage して commit。変更が無ければ False（no-op）、commit したら True。"""
         ...
 
@@ -129,6 +129,6 @@ class WalLogStore(Protocol):
 
     def append(self, entry: WalEntry) -> None: ...
 
-    def load(self) -> List[WalEntry]: ...
+    def load(self) -> list[WalEntry]: ...
 
-    def rewrite(self, entries: List[WalEntry]) -> None: ...
+    def rewrite(self, entries: list[WalEntry]) -> None: ...

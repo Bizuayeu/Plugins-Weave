@@ -7,10 +7,9 @@ bot token 込み URL（`/file/bot<TOKEN>/<file_path>`）を使うため、
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
-
 from adapters.telegram import http_retry
 from adapters.telegram.api_gateway import TelegramApiGateway
 from domain.exceptions import TelegramSecretaryError
@@ -36,7 +35,7 @@ class TelegramMediaDownloader:
         bot_token: str,
         gateway: TelegramApiGateway,
         file_base_url: str = DEFAULT_BASE_URL,
-        file_client: Optional[httpx.Client] = None,
+        file_client: httpx.Client | None = None,
         retry_count: int = 2,
         request_timeout: float = 60.0,
     ) -> None:
@@ -54,7 +53,7 @@ class TelegramMediaDownloader:
     def close(self) -> None:
         self._file_client.close()
 
-    def __enter__(self) -> "TelegramMediaDownloader":
+    def __enter__(self) -> TelegramMediaDownloader:
         return self
 
     def __exit__(self, *exc_info: Any) -> None:
@@ -84,7 +83,7 @@ class TelegramMediaDownloader:
         return self._save_to_target(file_id, file_path, response.content, target_dir)
 
     @staticmethod
-    def _classify_cdn_status(response: httpx.Response, safe_id: str) -> Optional[str]:
+    def _classify_cdn_status(response: httpx.Response, safe_id: str) -> str | None:
         """file CDN 応答の status 分類（http_retry.request_with_retry の callback 契約）。
 
         429 を transient に分類することで Retry-After 尊重の retry を Bot API 経路から

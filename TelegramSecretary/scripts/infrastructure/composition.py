@@ -70,7 +70,7 @@ class MediaStack:
     downloader は httpx.Client を保持するため、使用後に呼び出し側が close() する。
     """
 
-    downloader: "TelegramMediaDownloader"
+    downloader: TelegramMediaDownloader
     download_uc: DownloadAuthorizedMedia
     render_uc: RenderAuthorizedMedia
 

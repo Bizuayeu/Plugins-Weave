@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import Any, Dict, List, Optional, Sequence, TextIO
+from collections.abc import Sequence
+from typing import Any, TextIO
 
 from usecases.download_authorized_media import MediaDownloadResult
 from usecases.fetch_authorized_updates import NormalizedUpdate
@@ -22,19 +23,19 @@ class StdoutEventEmitter:
     どちらもなければメタのみ。
     """
 
-    def __init__(self, stream: Optional[TextIO] = None) -> None:
+    def __init__(self, stream: TextIO | None = None) -> None:
         self._stream = stream if stream is not None else sys.stdout
 
     def emit(
         self,
         update: NormalizedUpdate,
-        download_results: Optional[Sequence[MediaDownloadResult]] = None,
-        render_results: Optional[Sequence[RenderResult]] = None,
+        download_results: Sequence[MediaDownloadResult] | None = None,
+        render_results: Sequence[RenderResult] | None = None,
     ) -> None:
         media_payload = self._build_media_payload(
             update, download_results or [], render_results or []
         )
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "v": PAYLOAD_VERSION,
             "update_id": update.update.update_id,
             "message_id": update.update.message_id,
@@ -53,7 +54,7 @@ class StdoutEventEmitter:
         update: NormalizedUpdate,
         download_results: Sequence[MediaDownloadResult],
         render_results: Sequence[RenderResult],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """update.update.media を JSON 化。
         render_results 優先（あれば local_path / skip_reason もそこから）、
         なければ download_results、どちらもなければメタのみ。"""
@@ -67,7 +68,7 @@ class StdoutEventEmitter:
             for r in render_results
             if r.update_id == update.update.update_id
         }
-        out: List[Dict[str, Any]] = []
+        out: list[dict[str, Any]] = []
         for media in update.update.media:
             rd = render_by_file_id.get(media.file_id)
             dl = download_by_file_id.get(media.file_id)

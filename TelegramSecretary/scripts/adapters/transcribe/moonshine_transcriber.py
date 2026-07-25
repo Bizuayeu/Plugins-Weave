@@ -15,7 +15,6 @@ Enterprise License or kotoba-whisper(Apache-2.0) へ Port 差し替え。
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 from adapters.audio.ffmpeg_preprocessor import FfmpegAudioPreprocessor
 from adapters.media_failure import failed_render
@@ -33,7 +32,7 @@ class MoonshineTranscriber:
     def __init__(
         self,
         language: str = "ja",
-        preprocessor: Optional[FfmpegAudioPreprocessor] = None,
+        preprocessor: FfmpegAudioPreprocessor | None = None,
     ) -> None:
         self._language = language
         self._preprocessor = preprocessor or FfmpegAudioPreprocessor()

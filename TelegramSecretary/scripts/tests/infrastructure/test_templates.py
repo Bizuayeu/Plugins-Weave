@@ -11,7 +11,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from domain.registry import Goal, Profile, Step
 
 TEMPLATES_DIR = Path(__file__).parents[3] / "templates"

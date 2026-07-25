@@ -8,11 +8,9 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 import adapters.atomic_io as atomic_io
+import pytest
 from adapters.atomic_io import load_json_or_default, load_jsonl, write_text_atomic
-
 
 # --- write_text_atomic ---
 

@@ -27,7 +27,7 @@ class SessionLease:
         """他 owner が保持中かつ非 stale ならば True（取得失敗ライン）。"""
         return self.owner != me and not self.is_stale(now)
 
-    def renew(self, now: datetime) -> "SessionLease":
+    def renew(self, now: datetime) -> SessionLease:
         """heartbeat を now に更新した新しいリースを返す（frozen ゆえコピー）。"""
         return SessionLease(
             owner=self.owner, heartbeat=now, ttl_seconds=self.ttl_seconds

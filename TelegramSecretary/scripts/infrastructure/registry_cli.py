@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import Any, NamedTuple, Type
+from typing import Any, NamedTuple
 
 from adapters.registry.json_registry_store import JsonRegistryStore
 from domain.exceptions import GitSyncError
@@ -40,7 +40,7 @@ class RegistrySpec(NamedTuple):
 
     path_attr: str  # Config の path property 名
     key_field: str  # レコードの一意キー
-    record_cls: Type  # 検証に使う値オブジェクトクラス
+    record_cls: type  # 検証に使う値オブジェクトクラス
 
 
 # name -> RegistrySpec。wal_cli の kind -> key_field 導出と main.py の subparser 生成も

@@ -10,9 +10,8 @@ import os
 import shutil
 import subprocess
 
-import pytest
-
 import adapters.registry.git_cli as git_cli
+import pytest
 from adapters.registry.git_cli import GitCliAdapter
 from domain.exceptions import GitSyncError, PushRejectedError, RegistryWorktreeError
 

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, List, Mapping, Optional
+from typing import Any
 
 from domain.media import MediaAttachment
 from domain.outbound import OutboundAttachment
@@ -16,15 +17,15 @@ class TelegramUpdate:
     update_id: int
     chat_id: int
     user_id: int
-    username: Optional[str]
+    username: str | None
     text: str
     raw: Mapping[str, Any] = field(default_factory=dict)
-    media: List[MediaAttachment] = field(default_factory=list)
-    caption: Optional[str] = None
-    message_id: Optional[int] = None
+    media: list[MediaAttachment] = field(default_factory=list)
+    caption: str | None = None
+    message_id: int | None = None
 
     @classmethod
-    def from_api(cls, payload: Mapping[str, Any]) -> "TelegramUpdate":
+    def from_api(cls, payload: Mapping[str, Any]) -> TelegramUpdate:
         """Telegram Bot API の update JSON から構築。最小限のフィールドのみ抽出。
 
         Stage 6.2 拡張: photo / document / caption を抽出する。
@@ -35,7 +36,7 @@ class TelegramUpdate:
         chat = message.get("chat") or {}
         from_user = message.get("from") or {}
 
-        media: List[MediaAttachment] = []
+        media: list[MediaAttachment] = []
         photo_array = message.get("photo")
         if photo_array:
             photo_media = MediaAttachment.from_photo_api(photo_array)
@@ -78,5 +79,5 @@ class OutboundMessage:
 
     chat_id: int
     text: str
-    reply_to_message_id: Optional[int] = None
-    attachments: List[OutboundAttachment] = field(default_factory=list)
+    reply_to_message_id: int | None = None
+    attachments: list[OutboundAttachment] = field(default_factory=list)

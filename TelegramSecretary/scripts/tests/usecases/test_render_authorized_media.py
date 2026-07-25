@@ -1,21 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 from domain.media import MediaAttachment
+from tests.usecases.fakes import FakeMediaRenderer
 from usecases.download_authorized_media import MediaDownloadResult
 from usecases.render_authorized_media import RenderAuthorizedMedia
-
-from tests.usecases.fakes import FakeMediaRenderer
 
 
 def _download_result(
     update_id: int,
     mime_type: str,
     file_id: str = "x",
-    skip_reason: Optional[str] = None,
-    file_name: Optional[str] = None,
+    skip_reason: str | None = None,
+    file_name: str | None = None,
 ) -> MediaDownloadResult:
     """テスト用 helper: kind は mime から推定して MediaDownloadResult を組む。"""
     kind = "photo" if mime_type.startswith("image/") else "document"

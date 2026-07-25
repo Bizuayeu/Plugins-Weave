@@ -11,7 +11,6 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from adapters.atomic_io import load_json_or_default, write_text_atomic
 from domain.lease import SessionLease
@@ -49,7 +48,7 @@ class JsonLeaseStore:
         self._dir = Path(state_dir)
         self._path = self._dir / self.FILENAME
 
-    def load(self) -> Optional[SessionLease]:
+    def load(self) -> SessionLease | None:
         return load_json_or_default(self._path, parse=self._parse, default=lambda: None)
 
     @staticmethod

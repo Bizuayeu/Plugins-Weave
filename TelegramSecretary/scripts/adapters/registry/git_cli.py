@@ -10,8 +10,8 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+from collections.abc import Sequence
 from pathlib import Path
-from typing import List, Sequence
 
 from domain.exceptions import GitSyncError, PushRejectedError, RegistryWorktreeError
 
@@ -87,7 +87,7 @@ class GitCliAdapter:
             )
         return result
 
-    def commit(self, paths: List[Path], message: str) -> bool:
+    def commit(self, paths: list[Path], message: str) -> bool:
         """paths を stage して commit。staged 差分が無ければ False（no-op）。"""
         self._run(["add", "--", *[str(p) for p in paths]])
         staged = self._run(["diff", "--cached", "--quiet"], check=False)

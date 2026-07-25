@@ -4,7 +4,6 @@ import json
 
 import httpx
 import pytest
-
 from adapters.telegram import http_retry
 from adapters.telegram.api_gateway import TelegramApiGateway
 from domain.exceptions import AuthFailureError, TelegramSecretaryError

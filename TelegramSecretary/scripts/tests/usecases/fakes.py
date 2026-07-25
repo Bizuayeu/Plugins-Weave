@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from domain.lease import SessionLease
 from domain.media import MediaAttachment, RenderedMedia
@@ -15,13 +14,13 @@ from domain.wal import WalEntry
 class FakeUpdateSource:
     """fetch をスクリプト化された応答列で駆動する fake。"""
 
-    def __init__(self, batches: Optional[List[List[TelegramUpdate]]] = None) -> None:
+    def __init__(self, batches: list[list[TelegramUpdate]] | None = None) -> None:
         self.batches = list(batches or [])
-        self.fetch_calls: List[tuple[UpdateOffset, int]] = []
+        self.fetch_calls: list[tuple[UpdateOffset, int]] = []
 
     def fetch(
         self, offset: UpdateOffset, timeout_seconds: int = 30
-    ) -> List[TelegramUpdate]:
+    ) -> list[TelegramUpdate]:
         self.fetch_calls.append((offset, timeout_seconds))
         if not self.batches:
             return []
@@ -32,7 +31,7 @@ class FakeMessageSink:
     """send を記録、`fail` フラグで例外を投げる fake。"""
 
     def __init__(self, fail: bool = False) -> None:
-        self.sent: List[OutboundMessage] = []
+        self.sent: list[OutboundMessage] = []
         self.fail = fail
 
     def send(self, message: OutboundMessage) -> None:
@@ -44,9 +43,9 @@ class FakeMessageSink:
 class FakeOffsetStore:
     """in-memory な offset store。"""
 
-    def __init__(self, initial: Optional[UpdateOffset] = None) -> None:
+    def __init__(self, initial: UpdateOffset | None = None) -> None:
         self.offset = initial or UpdateOffset.initial()
-        self.save_calls: List[UpdateOffset] = []
+        self.save_calls: list[UpdateOffset] = []
 
     def load(self) -> UpdateOffset:
         return self.offset
@@ -63,14 +62,14 @@ class FakeLeaseStore:
     その lease を「先に書かれた」状態にする（新規取得 TOCTOU レースのシミュレート）。
     """
 
-    def __init__(self, initial: Optional[SessionLease] = None) -> None:
-        self.lease: Optional[SessionLease] = initial
-        self.save_calls: List[SessionLease] = []
+    def __init__(self, initial: SessionLease | None = None) -> None:
+        self.lease: SessionLease | None = initial
+        self.save_calls: list[SessionLease] = []
         self.clear_calls: int = 0
         self.try_create_calls: int = 0
-        self.create_race_winner: Optional[SessionLease] = None
+        self.create_race_winner: SessionLease | None = None
 
-    def load(self) -> Optional[SessionLease]:
+    def load(self) -> SessionLease | None:
         return self.lease
 
     def save(self, lease: SessionLease) -> None:
@@ -101,7 +100,7 @@ class FakeMediaDownloader:
     """
 
     def __init__(self, fail: bool = False, exc_by_file_id=None) -> None:
-        self.download_calls: List[Tuple[str, Path]] = []
+        self.download_calls: list[tuple[str, Path]] = []
         self.fail = fail
         self.exc_by_file_id = dict(exc_by_file_id or {})
 
@@ -128,7 +127,7 @@ class FakeMediaRenderer:
         render_status: str = "ok",
         fail: bool = False,
     ) -> None:
-        self.render_calls: List[Tuple[MediaAttachment, Path]] = []
+        self.render_calls: list[tuple[MediaAttachment, Path]] = []
         self._rendered_text = rendered_text
         self._render_status = render_status
         self._fail = fail
@@ -156,10 +155,10 @@ class FakeGitSync:
         self, committed: bool = True, push_outcomes=None, fetch_outcomes=None
     ) -> None:
         self.committed = committed
-        self.commit_calls: List[Tuple[List[Path], str]] = []
+        self.commit_calls: list[tuple[list[Path], str]] = []
         self.push_calls = 0
         self.pull_rebase_calls = 0
-        self.fetch_calls: List[str] = []
+        self.fetch_calls: list[str] = []
         self._push_outcomes = (
             list(push_outcomes) if push_outcomes is not None else [None]
         )
@@ -192,18 +191,18 @@ class FakeWalLogStore:
     """in-memory な WAL ログ store（append/load/rewrite）。"""
 
     def __init__(self, entries=None) -> None:
-        self.entries: List[WalEntry] = list(entries or [])
-        self.append_calls: List[WalEntry] = []
-        self.rewrite_calls: List[List[WalEntry]] = []
+        self.entries: list[WalEntry] = list(entries or [])
+        self.append_calls: list[WalEntry] = []
+        self.rewrite_calls: list[list[WalEntry]] = []
 
     def append(self, entry: WalEntry) -> None:
         self.entries.append(entry)
         self.append_calls.append(entry)
 
-    def load(self) -> List[WalEntry]:
+    def load(self) -> list[WalEntry]:
         return list(self.entries)
 
-    def rewrite(self, entries: List[WalEntry]) -> None:
+    def rewrite(self, entries: list[WalEntry]) -> None:
         self.entries = list(entries)
         self.rewrite_calls.append(list(entries))
 
@@ -212,10 +211,10 @@ class FakeRegistryStore:
     """in-memory な RegistryStore（RegistryService に渡して redo の upsert 先にする）。"""
 
     def __init__(self, records=None) -> None:
-        self.records: List[dict] = list(records or [])
+        self.records: list[dict] = list(records or [])
 
-    def load(self) -> List[dict]:
+    def load(self) -> list[dict]:
         return list(self.records)
 
-    def save(self, records: List[dict]) -> None:
+    def save(self, records: list[dict]) -> None:
         self.records = list(records)

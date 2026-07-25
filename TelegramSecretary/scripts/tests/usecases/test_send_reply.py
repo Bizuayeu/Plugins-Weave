@@ -1,18 +1,14 @@
 from __future__ import annotations
 
 import pytest
-
 from domain.exceptions import AttachmentTooLarge, LeaseConflictError
 from domain.lease import SessionLease
 from domain.models import OutboundMessage
 from domain.offset import UpdateOffset
 from domain.outbound import OutboundAttachment
-from usecases.send_reply import SendReply
-
-from tests.usecases.fakes import FakeLeaseStore, FakeMessageSink, FakeOffsetStore
-
-
 from tests.conftest import t_utc as _t
+from tests.usecases.fakes import FakeLeaseStore, FakeMessageSink, FakeOffsetStore
+from usecases.send_reply import SendReply
 
 
 def test_successful_send_advances_offset_and_renews_lease():

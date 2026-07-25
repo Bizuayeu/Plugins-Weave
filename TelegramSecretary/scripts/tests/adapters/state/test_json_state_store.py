@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import pytest
-
 import adapters.atomic_io as atomic_io
+import pytest
 from adapters.state.json_state_store import JsonLeaseStore, JsonOffsetStore
 from domain.lease import SessionLease
 from domain.offset import UpdateOffset
-
-
 from tests.conftest import t_utc as _t
 
 

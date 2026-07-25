@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from domain.exceptions import InvalidOffsetError
 from domain.offset import UpdateOffset
 

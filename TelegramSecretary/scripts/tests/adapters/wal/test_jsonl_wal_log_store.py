@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
-from domain.wal import WalEntry
-
 import adapters.atomic_io as atomic_io
+import pytest
 from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
+from domain.wal import WalEntry
 
 
 def _entry(key, status="pending"):

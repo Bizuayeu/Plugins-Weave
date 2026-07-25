@@ -7,9 +7,9 @@ Domain（`domain/wal.py` の reconcile/settle/checkpoint）を Port 越しに駆
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Mapping, Optional, Set, Tuple
 
 from domain.exceptions import PushRejectedError
 from domain.lease import utc_now
@@ -116,7 +116,7 @@ class RedoPendingIntents:
         self,
         log_store: WalLogStore,
         services: Mapping[str, RegistryService],
-        sink: Optional[MessageSink] = None,
+        sink: MessageSink | None = None,
         now_fn: Callable[[], datetime] = utc_now,
         retention_h: int = 24,
     ) -> None:
@@ -165,8 +165,8 @@ class RedoPendingIntents:
         self._log.rewrite(kept)
         return {"redone": len(todo), "resent": resent, "kept": len(kept)}
 
-    def _collect_keys(self) -> Set[Tuple[str, str]]:
-        keys: Set[Tuple[str, str]] = set()
+    def _collect_keys(self) -> set[tuple[str, str]]:
+        keys: set[tuple[str, str]] = set()
         for kind, svc in self._services.items():
             for rec in svc.list():
                 k = rec.get(svc.key_field)

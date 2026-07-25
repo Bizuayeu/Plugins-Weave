@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List
 
 from adapters.atomic_io import load_jsonl, write_text_atomic
 from domain.wal import WalEntry
@@ -34,10 +33,10 @@ class JsonlWalLogStore:
         with open(self._path, "a", encoding="utf-8") as f:
             f.write(line + "\n")
 
-    def load(self) -> List[WalEntry]:
+    def load(self) -> list[WalEntry]:
         return load_jsonl(self._path, parse_line=WalEntry.from_dict)
 
-    def rewrite(self, entries: List[WalEntry]) -> None:
+    def rewrite(self, entries: list[WalEntry]) -> None:
         text = "".join(
             json.dumps(e.to_dict(), ensure_ascii=False) + "\n" for e in entries
         )

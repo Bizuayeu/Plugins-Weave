@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from domain.watch_window import WatchWindow
-
 from tests.conftest import t_utc as _t
 
 

@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 import pytest
-
 from domain.exceptions import LeaseConflictError
 from domain.lease import SessionLease
+from tests.conftest import t_utc as _t
+from tests.usecases.fakes import FakeLeaseStore
 from usecases.release_lease import ReleaseLease
 from usecases.renew_lease import RenewLease
-
-from tests.usecases.fakes import FakeLeaseStore
-
-
-from tests.conftest import t_utc as _t
 
 
 def test_renew_updates_heartbeat_when_owner_matches():

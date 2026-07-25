@@ -25,7 +25,6 @@ mime-routing は UseCase 側（render_authorized_media._route_mime）が担う�
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 from adapters.media_failure import failed_render, log_media_failure
 from adapters.telegram.media_downloader import FILE_ID_PREFIX_LEN
@@ -75,7 +74,7 @@ class PdfRenderer:
         try:
             import pdfplumber
 
-            page_texts: List[str] = []
+            page_texts: list[str] = []
             with pdfplumber.open(str(local_path)) as pdf:
                 for page in pdf.pages:
                     page_texts.append(page.extract_text() or "")
@@ -99,7 +98,7 @@ class PdfRenderer:
                 "pdf-renderer", "extract_text", "path", local_path.name[:8]
             )
 
-    def rasterize_pages(self, local_path: Path, start: int, end: int) -> List[str]:
+    def rasterize_pages(self, local_path: Path, start: int, end: int) -> list[str]:
         """オンデマンド: [start, end)（0-indexed）ページを画像化しパス list を返す。
 
         render() の cap(image_max_pages) を超える 21 枚目以降を エージェントが「②個別ページ」で
@@ -120,7 +119,7 @@ class PdfRenderer:
 
     def _rasterize_range(
         self, pdf, local_path: Path, start: int, end: int
-    ) -> List[str]:
+    ) -> list[str]:
         """開いた pdf の [start, end) ページを png 化（範囲は実ページ数でクランプ）。
 
         派生画像は local_path.parent フラット直下に local_path.stem プレフィックス命名で保存
@@ -133,7 +132,7 @@ class PdfRenderer:
         total = len(pdf)
         lo = max(0, start)
         hi = min(total, end)
-        paths: List[str] = []
+        paths: list[str] = []
         for i in range(lo, hi):
             bitmap = pdf[i].render(scale=2.0)  # ~144dpi 相当、Vision 可読
             target = target_dir / f"{prefix}_page-{i + 1:03d}.png"

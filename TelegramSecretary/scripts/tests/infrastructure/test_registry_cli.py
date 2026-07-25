@@ -5,14 +5,12 @@ import json
 from pathlib import Path
 
 import pytest
-
 from domain.authorization import AuthorizedChats
 from domain.exceptions import GitSyncError
 from infrastructure.config import Config
 from infrastructure.registry_cli import run_registry_command, run_registry_fetch
-from usecases.registry_sync import RegistrySyncService
-
 from tests.usecases.fakes import FakeGitSync
+from usecases.registry_sync import RegistrySyncService
 
 
 def _config(

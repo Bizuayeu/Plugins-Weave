@@ -3,8 +3,8 @@ from __future__ import annotations
 import wave
 from pathlib import Path
 
-from domain.media import MediaAttachment
 from adapters.transcribe.moonshine_transcriber import MoonshineTranscriber
+from domain.media import MediaAttachment
 
 
 class _FakePreprocessor:

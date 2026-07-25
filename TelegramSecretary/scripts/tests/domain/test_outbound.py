@@ -4,7 +4,6 @@ from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 import pytest
-
 from domain.models import OutboundMessage
 from domain.outbound import OutboundAttachment
 

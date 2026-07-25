@@ -11,7 +11,6 @@ import json
 import sys
 
 import pytest
-
 from domain.authorization import AuthorizedChats
 from infrastructure.composition import MediaStack, build_media_stack, load_config
 from infrastructure.config import Config

@@ -1,18 +1,15 @@
 from __future__ import annotations
 
 import inspect
-import pytest
 
+import pytest
 from domain.exceptions import AttachmentTooLarge, LeaseConflictError
 from domain.lease import SessionLease
 from domain.models import OutboundMessage
 from domain.outbound import OutboundAttachment
-from usecases.proactive_send import ProactiveSend
-
-from tests.usecases.fakes import FakeLeaseStore, FakeMessageSink
-
-
 from tests.conftest import t_utc as _t
+from tests.usecases.fakes import FakeLeaseStore, FakeMessageSink
+from usecases.proactive_send import ProactiveSend
 
 
 def test_proactive_send_does_not_depend_on_offset_store():

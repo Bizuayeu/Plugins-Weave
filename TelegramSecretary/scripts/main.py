@@ -7,9 +7,9 @@ import json
 import os
 import sys
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Sequence
 
 from adapters.state.emitter import StdoutEventEmitter
 from adapters.state.json_state_store import JsonLeaseStore, JsonOffsetStore
@@ -22,9 +22,9 @@ from domain.exceptions import (
     TelegramSecretaryError,
 )
 from domain.lease import utc_now
-from domain.watch_window import WatchWindow
 from domain.models import OutboundMessage
 from domain.outbound import OutboundAttachment
+from domain.watch_window import WatchWindow
 from infrastructure.composition import MediaStack, build_media_stack, load_config
 from infrastructure.config import Config
 from infrastructure.exit_codes import (
@@ -50,9 +50,9 @@ from infrastructure.wal_cli import (
 )
 from usecases.acquire_lease import AcquireLease
 from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
+from usecases.proactive_send import ProactiveSend
 from usecases.release_lease import ReleaseLease
 from usecases.renew_lease import RenewLease
-from usecases.proactive_send import ProactiveSend
 from usecases.send_reply import SendReply
 
 # 終了コードは infrastructure/exit_codes.py が SSoT。後方互換のため re-export
@@ -85,7 +85,7 @@ def _load_config() -> Config:
     """
     try:
         return load_config()
-    except EnvironmentError as exc:
+    except OSError as exc:
         print(f"config error: {exc}", file=sys.stderr)
         raise _ConfigInvalid from None
 
@@ -117,7 +117,7 @@ def cmd_show_config(_: argparse.Namespace) -> int:
     """
     try:
         config = load_config()
-    except EnvironmentError as exc:
+    except OSError as exc:
         print(f"config not ready: {exc}")
         return EXIT_OK
     print(
@@ -238,7 +238,7 @@ def cmd_poll(args: argparse.Namespace) -> int:
 class _CycleOutcome:
     """1 watch サイクルの結果。exit_code 非 None ならループは即その値で return する。"""
 
-    exit_code: Optional[int]
+    exit_code: int | None
     had_messages: bool
 
 
@@ -253,7 +253,7 @@ class _LazyMediaStack:
     def __init__(self, config: Config, gateway) -> None:
         self._config = config
         self._gateway = gateway
-        self._stack: Optional[MediaStack] = None
+        self._stack: MediaStack | None = None
 
     def ensure(self) -> MediaStack:
         if self._stack is None:
@@ -467,7 +467,7 @@ def cmd_render_pdf(args: argparse.Namespace) -> int:
     return EXIT_CONFIG_INVALID
 
 
-def _read_text_file(path_str: str) -> Optional[str]:
+def _read_text_file(path_str: str) -> str | None:
     """--text-file を読む（send-reply / proactive-send 共通）。OK なら本文、NG なら None
     （stderr 出力済み、呼び出し側で EXIT_CONFIG_INVALID）。`_load_owned_lease` と同型。
 

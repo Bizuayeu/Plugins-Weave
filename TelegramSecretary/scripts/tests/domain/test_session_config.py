@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from domain.session_config import MAX_SECONDS, MIN_SECONDS, SessionDuration
 
 

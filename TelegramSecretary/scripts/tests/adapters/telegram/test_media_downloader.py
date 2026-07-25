@@ -4,7 +4,6 @@ from pathlib import Path
 
 import httpx
 import pytest
-
 from adapters.telegram.api_gateway import TelegramApiGateway
 from adapters.telegram.media_downloader import TelegramMediaDownloader
 from domain.exceptions import TelegramSecretaryError

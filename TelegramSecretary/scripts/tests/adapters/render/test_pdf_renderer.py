@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from domain.media import MediaAttachment
 from adapters.render.pdf_renderer import PdfRenderer
+from domain.media import MediaAttachment
 
 
 def _make_pdf(path: Path, lines, font: str = "Helvetica") -> None:

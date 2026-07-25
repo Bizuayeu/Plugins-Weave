@@ -8,7 +8,7 @@ WAL ログは registry と同じ `registry_root` 配下に置き、同一固定�
 from __future__ import annotations
 
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from adapters.telegram.api_gateway import TelegramApiGateway
 from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
@@ -146,7 +146,7 @@ def run_wal_append_outbound(
     chat_id: int,
     text: str,
     attachment_paths: list,
-    reply_to: Optional[int],
+    reply_to: int | None,
     git=None,
 ) -> tuple[bool, str]:
     """outbound intent を WAL に先行書込み + push（proactive-send の送信前ゲート）。

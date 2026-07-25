@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+from adapters.registry.json_registry_store import JsonRegistryStore
+from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
 from domain.authorization import AuthorizedChats
 from domain.exceptions import GitSyncError
 from domain.wal import WalEntry
@@ -16,9 +18,6 @@ from infrastructure.wal_cli import (
     run_wal_redo,
     run_wal_settle_outbound,
 )
-
-from adapters.registry.json_registry_store import JsonRegistryStore
-from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
 from tests.usecases.fakes import FakeGitSync, FakeMessageSink
 
 

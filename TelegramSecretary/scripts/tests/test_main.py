@@ -3,10 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import adapters.telegram.api_gateway as gateway_module
 import httpx
 import pytest
-
-import adapters.telegram.api_gateway as gateway_module
 from infrastructure.exit_codes import EXIT_FETCH_FAILED
 from main import (
     EXIT_AUTH_FAILED,
@@ -1220,8 +1219,8 @@ def test_poll_heavy_passes_pdf_cap_to_renderer(env_ready, monkeypatch):
     monkeypatch.setenv("TELEGRAM_SECRETARY_PDF_IMAGE_MAX_PAGES", "7")
 
     import adapters.render.markitdown_renderer as mr_mod
-    import adapters.transcribe.moonshine_transcriber as mt_mod
     import adapters.render.pdf_renderer as pdf_mod
+    import adapters.transcribe.moonshine_transcriber as mt_mod
 
     monkeypatch.setattr(mr_mod, "MarkitdownRenderer", lambda: object())
     monkeypatch.setattr(mt_mod, "MoonshineTranscriber", lambda: object())

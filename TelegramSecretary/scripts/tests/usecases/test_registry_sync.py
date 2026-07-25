@@ -8,9 +8,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from domain.exceptions import GitSyncError, PushRejectedError
-from usecases.registry_sync import RegistrySyncService
-
 from tests.usecases.fakes import FakeGitSync
+from usecases.registry_sync import RegistrySyncService
 
 _PATHS = [Path("registry/individuals/INDIVIDUALS.json")]
 _MSG = "registry: add individual u1"

@@ -7,8 +7,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, List, Mapping, Optional
+from typing import Any
 
 _ROLES = frozenset({"principal", "associate"})
 _STATUSES = frozenset({"pending", "active", "blocked"})
@@ -39,8 +40,8 @@ class Identity:
     tone: str = "polite"
     context_notes: str = ""
     priority_bias: str = "normal"
-    taboo_topics: List[str] = field(default_factory=list)
-    shared_with: List[str] = field(default_factory=list)
+    taboo_topics: list[str] = field(default_factory=list)
+    shared_with: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if self.tone not in _TONES:
@@ -51,7 +52,7 @@ class Identity:
             raise ValueError(f"invalid priority_bias: {self.priority_bias}")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Identity":
+    def from_dict(cls, d: Mapping[str, Any]) -> Identity:
         return cls(
             category=d.get("category", "other"),
             relationship_label=d.get("relationship_label", ""),
@@ -82,8 +83,8 @@ class Individual:
     display_name: str
     role: str
     status: str
-    telegram_chat_id: Optional[int]
-    line_user_id: Optional[str]
+    telegram_chat_id: int | None
+    line_user_id: str | None
     identity: Identity
     created_at: str
     updated_at: str
@@ -95,7 +96,7 @@ class Individual:
             raise ValueError(f"invalid status: {self.status}")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Individual":
+    def from_dict(cls, d: Mapping[str, Any]) -> Individual:
         return cls(
             uuid=d["uuid"],
             display_name=d["display_name"],
@@ -128,13 +129,13 @@ class Task:
     title: str
     status: str
     priority: str
-    due_date: Optional[str]
+    due_date: str | None
     requester: str
-    related_individuals: List[str]
+    related_individuals: list[str]
     notes: str
     created_at: str
     updated_at: str
-    closed_at: Optional[str]
+    closed_at: str | None
 
     def __post_init__(self) -> None:
         if self.status not in _TASK_STATUSES:
@@ -143,7 +144,7 @@ class Task:
             raise ValueError(f"invalid priority: {self.priority}")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Task":
+    def from_dict(cls, d: Mapping[str, Any]) -> Task:
         return cls(
             id=d["id"],
             title=d["title"],
@@ -180,8 +181,8 @@ class Knowledge:
     topic: str
     category: str
     content: str
-    related: List[str]
-    sources: List[str]
+    related: list[str]
+    sources: list[str]
     created_at: str
     updated_at: str
 
@@ -190,7 +191,7 @@ class Knowledge:
             raise ValueError("knowledge topic must not be empty")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Knowledge":
+    def from_dict(cls, d: Mapping[str, Any]) -> Knowledge:
         return cls(
             id=d["id"],
             topic=d["topic"],
@@ -230,7 +231,7 @@ class Ability:
     trigger: str
     skill_path: str
     guidance: str
-    related: List[str]
+    related: list[str]
     created_at: str
     updated_at: str
 
@@ -239,7 +240,7 @@ class Ability:
             raise ValueError("ability name must not be empty")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Ability":
+    def from_dict(cls, d: Mapping[str, Any]) -> Ability:
         return cls(
             id=d["id"],
             name=d["name"],
@@ -278,8 +279,8 @@ class Profile:
     subject: str
     method: str
     content: str
-    traits: List[str]
-    sources: List[str]
+    traits: list[str]
+    sources: list[str]
     created_at: str
     updated_at: str
 
@@ -290,7 +291,7 @@ class Profile:
             raise ValueError(f"invalid method: {self.method}")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Profile":
+    def from_dict(cls, d: Mapping[str, Any]) -> Profile:
         return cls(
             id=d["id"],
             subject=d["subject"],
@@ -328,12 +329,12 @@ class Goal:
     title: str
     category: str
     status: str
-    target_date: Optional[str]
+    target_date: str | None
     success_criteria: str
     notes: str
     created_at: str
     updated_at: str
-    closed_at: Optional[str]
+    closed_at: str | None
 
     def __post_init__(self) -> None:
         if not self.title:
@@ -344,7 +345,7 @@ class Goal:
             raise ValueError(f"invalid status: {self.status}")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Goal":
+    def from_dict(cls, d: Mapping[str, Any]) -> Goal:
         return cls(
             id=d["id"],
             title=d["title"],
@@ -386,7 +387,7 @@ class Step:
     title: str
     seq: int
     status: str
-    due_date: Optional[str]
+    due_date: str | None
     notes: str
     created_at: str
     updated_at: str
@@ -398,7 +399,7 @@ class Step:
             raise ValueError(f"invalid status: {self.status}")
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "Step":
+    def from_dict(cls, d: Mapping[str, Any]) -> Step:
         return cls(
             id=d["id"],
             goal_id=d["goal_id"],
@@ -444,7 +445,7 @@ class RoleStatus:
         }
 
 
-def derive_role(profiles: List[dict], goals: List[dict]) -> RoleStatus:
+def derive_role(profiles: list[dict], goals: list[dict]) -> RoleStatus:
     """PROFILE / GOALS のレコードから秘書の役割を決定論的に導出する。
 
     P = PROFILE に subject="principal" が1件以上（本人の人物理解を預かっている）
@@ -472,7 +473,7 @@ def derive_role(profiles: List[dict], goals: List[dict]) -> RoleStatus:
 # === コレクション操作（純関数、dict ベース） ===
 
 
-def upsert(records: List[dict], record: dict, key: str) -> List[dict]:
+def upsert(records: list[dict], record: dict, key: str) -> list[dict]:
     """key が一致する既存を同位置で置換、なければ末尾に追加。元 list は変更しない。"""
     out = list(records)
     for i, r in enumerate(out):
@@ -483,7 +484,7 @@ def upsert(records: List[dict], record: dict, key: str) -> List[dict]:
     return out
 
 
-def find_by(records: List[dict], key: str, value: Any) -> Optional[dict]:
+def find_by(records: list[dict], key: str, value: Any) -> dict | None:
     """key == value の最初のレコードを返す。無ければ None。"""
     for r in records:
         if r.get(key) == value:
@@ -491,6 +492,6 @@ def find_by(records: List[dict], key: str, value: Any) -> Optional[dict]:
     return None
 
 
-def remove_by(records: List[dict], key: str, value: Any) -> List[dict]:
+def remove_by(records: list[dict], key: str, value: Any) -> list[dict]:
     """key == value のレコードを除いた新 list を返す。元 list は変更しない（upsert と対称）。"""
     return [r for r in records if r.get(key) != value]

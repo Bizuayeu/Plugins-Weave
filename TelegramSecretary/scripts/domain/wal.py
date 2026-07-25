@@ -14,9 +14,10 @@ __post_init__ 検証 + from_dict/to_dict + 純関数）と lease.py（now を引
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, List, Mapping, Set, Tuple
+from typing import Any
 
 _WAL_STATUSES = frozenset({"pending", "done"})
 
@@ -42,7 +43,7 @@ class WalEntry:
         if self.status not in _WAL_STATUSES:
             raise ValueError(f"invalid wal status: {self.status}")
 
-    def mark_done(self) -> "WalEntry":
+    def mark_done(self) -> WalEntry:
         """status を done にした新しい entry を返す（frozen ゆえコピー）。"""
         return WalEntry(
             key=self.key,
@@ -53,7 +54,7 @@ class WalEntry:
         )
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "WalEntry":
+    def from_dict(cls, d: Mapping[str, Any]) -> WalEntry:
         return cls(
             key=d["key"],
             kind=d["kind"],
@@ -73,8 +74,8 @@ class WalEntry:
 
 
 def reconcile(
-    entries: List[WalEntry], registry_keys: Set[Tuple[str, str]]
-) -> List[WalEntry]:
+    entries: list[WalEntry], registry_keys: set[tuple[str, str]]
+) -> list[WalEntry]:
     """pending のうち (kind, key) が registry に無いもの＝やり残しを返す。
 
     done は対象外（既に処理済み）。registry_keys は (kind, key) のセットで、
@@ -88,14 +89,14 @@ def reconcile(
 
 
 def settle(
-    entries: List[WalEntry], registry_keys: Set[Tuple[str, str]]
-) -> List[WalEntry]:
+    entries: list[WalEntry], registry_keys: set[tuple[str, str]]
+) -> list[WalEntry]:
     """registry に (kind, key) が存在する pending を done 化（reconcile の補集合を畳む）。
 
     既存 done と、registry に無い pending（やり残し）はそのまま返す（順序保持）。
     これを redo 後に適用することで「正常反映済みなのに pending のまま無限累積」を防ぐ。
     """
-    out: List[WalEntry] = []
+    out: list[WalEntry] = []
     for e in entries:
         if e.status == "pending" and (e.kind, e.key) in registry_keys:
             out.append(e.mark_done())
@@ -104,7 +105,7 @@ def settle(
     return out
 
 
-def settle_outbound(entries: List[WalEntry], key: str) -> List[WalEntry]:
+def settle_outbound(entries: list[WalEntry], key: str) -> list[WalEntry]:
     """指定 key の outbound pending を done 化（happy-path settle）。
 
     registry kind の settle が registry_keys 照合で done 化するのに対し、outbound は
@@ -112,7 +113,7 @@ def settle_outbound(entries: List[WalEntry], key: str) -> List[WalEntry]:
     redo（起動時の at-least-once 再送）を待たず即 done にすることで「成功送信が次回起動で
     再送される」のを断つ。kind != "outbound" / key 不一致 / 既 done は不変・順序保持。
     """
-    out: List[WalEntry] = []
+    out: list[WalEntry] = []
     for e in entries:
         if e.kind == "outbound" and e.key == key and e.status == "pending":
             out.append(e.mark_done())
@@ -122,15 +123,15 @@ def settle_outbound(entries: List[WalEntry], key: str) -> List[WalEntry]:
 
 
 def checkpoint(
-    entries: List[WalEntry], now: datetime, retention_h: int = 24
-) -> List[WalEntry]:
+    entries: list[WalEntry], now: datetime, retention_h: int = 24
+) -> list[WalEntry]:
     """pending は無条件保持（redo ソース）、done は created_at が retention より古ければ掃除。
 
     終了処理でなく起動時に呼ぶ（強制終了で終了処理は飛ぶため）。pending を消さないことが
     整合性の要、done を時間で畳むことが短期記憶のローテーション。
     """
     cutoff = now - timedelta(hours=retention_h)
-    out: List[WalEntry] = []
+    out: list[WalEntry] = []
     for e in entries:
         if e.status == "pending":
             out.append(e)

@@ -3,14 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from domain.exceptions import AuthFailureError, TelegramSecretaryError
 from domain.media import MediaAttachment
 from domain.models import TelegramUpdate
+from tests.usecases.fakes import FakeMediaDownloader
 from usecases.download_authorized_media import DownloadAuthorizedMedia
 from usecases.fetch_authorized_updates import NormalizedUpdate
-
-from tests.usecases.fakes import FakeMediaDownloader
 
 
 def _nu(

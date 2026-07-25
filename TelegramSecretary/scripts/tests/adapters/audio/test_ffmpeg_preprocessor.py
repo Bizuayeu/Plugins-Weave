@@ -7,7 +7,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from adapters.audio.ffmpeg_preprocessor import FfmpegAudioPreprocessor
 from domain.exceptions import AudioDecodeError
 

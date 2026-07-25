@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Optional
 
 
 def cleanup_media_dir(
     target_dir: Path,
     retention_seconds: int,
-    now: Optional[float] = None,
+    now: float | None = None,
 ) -> int:
     """target_dir 内の mtime が retention_seconds 超過のファイルを削除。
 

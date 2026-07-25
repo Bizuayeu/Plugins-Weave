@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from usecases.manage_registry import RegistryService
-
 from tests.usecases.fakes import FakeRegistryStore as FakeStore
+from usecases.manage_registry import RegistryService
 
 
 def test_add_or_update_adds_new():

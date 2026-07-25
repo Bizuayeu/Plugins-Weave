@@ -9,8 +9,8 @@ Moonshine が食える 16kHz mono float（-1.0〜1.0）に正規化する。
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence, Tuple
 
 from domain.exceptions import AudioDecodeError
 
@@ -20,7 +20,7 @@ TARGET_RATE = 16000
 class FfmpegAudioPreprocessor:
     """任意音声 → 16kHz mono float PCM（PyAV、ffmpeg-free）。"""
 
-    def to_float_pcm(self, path: Path) -> Tuple[Sequence[float], int]:
+    def to_float_pcm(self, path: Path) -> tuple[Sequence[float], int]:
         """path の音声を 16kHz mono float 配列へ。戻り値 (samples, sample_rate)。
 
         samples は numpy ndarray のまま返す（tolist() しない）——20MB OPUS ≒ 2 時間
@@ -42,7 +42,7 @@ class FfmpegAudioPreprocessor:
             raise AudioDecodeError(f"cannot open audio container: {path.name}") from exc
 
         chunks = []
-        decode_error: "Exception | None" = None
+        decode_error: Exception | None = None
         try:
             resampler = av.audio.resampler.AudioResampler(
                 format="flt", layout="mono", rate=TARGET_RATE

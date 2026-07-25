@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Optional
+import builtins
+from typing import Any
 
 from domain.registry import find_by, remove_by, upsert
 from usecases.ports import RegistryStore
@@ -25,10 +26,10 @@ class RegistryService:
         """この管理表のキー名（uuid / id）。WAL redo の registry_keys 収集に使う。"""
         return self._key
 
-    def list(self) -> List[dict]:
+    def list(self) -> builtins.list[dict]:
         return self._store.load()
 
-    def get(self, key_value: Any) -> Optional[dict]:
+    def get(self, key_value: Any) -> dict | None:
         return find_by(self._store.load(), self._key, key_value)
 
     def add_or_update(self, record: dict) -> dict:

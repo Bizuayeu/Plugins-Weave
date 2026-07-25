@@ -12,10 +12,9 @@ chain を切り、呼び出し側が用意した固定文言（token を含ま�
 from __future__ import annotations
 
 import time
-from typing import Callable, Optional
+from collections.abc import Callable
 
 import httpx
-
 from domain.exceptions import TelegramSecretaryError
 
 DEFAULT_BASE_URL = "https://api.telegram.org"
@@ -25,7 +24,7 @@ DEFAULT_MAX_RETRY_AFTER_SECONDS = 60
 
 def request_with_retry(
     do_request: Callable[[], httpx.Response],
-    classify_status: Callable[[httpx.Response], Optional[str]],
+    classify_status: Callable[[httpx.Response], str | None],
     retry_count: int,
     network_error_message: str,
     max_retry_after_seconds: int = DEFAULT_MAX_RETRY_AFTER_SECONDS,
@@ -69,7 +68,7 @@ def request_with_retry(
 
 
 def _sleep_for_retry_after(
-    header_value: Optional[str], max_retry_after_seconds: int
+    header_value: str | None, max_retry_after_seconds: int
 ) -> None:
     """`Retry-After` ヘッダの秒数だけ sleep（上限 max_retry_after_seconds）。
 

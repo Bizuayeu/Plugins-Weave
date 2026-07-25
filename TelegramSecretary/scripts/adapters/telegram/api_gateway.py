@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any
 
 import httpx
-
 from adapters.telegram import http_retry
 from domain.exceptions import AuthFailureError, TelegramSecretaryError
 from domain.models import OutboundMessage, TelegramUpdate
@@ -31,7 +30,7 @@ class TelegramApiGateway:
         self,
         bot_token: str,
         base_url: str = DEFAULT_BASE_URL,
-        client: Optional[httpx.Client] = None,
+        client: httpx.Client | None = None,
         retry_count: int = 2,
         request_timeout: float = 40.0,
         max_retry_after_seconds: int = DEFAULT_MAX_RETRY_AFTER_SECONDS,
@@ -51,7 +50,7 @@ class TelegramApiGateway:
     def close(self) -> None:
         self._client.close()
 
-    def __enter__(self) -> "TelegramApiGateway":
+    def __enter__(self) -> TelegramApiGateway:
         return self
 
     def __exit__(self, *exc_info: Any) -> None:
@@ -59,7 +58,7 @@ class TelegramApiGateway:
 
     def fetch(
         self, offset: UpdateOffset, timeout_seconds: int = 30
-    ) -> List[TelegramUpdate]:
+    ) -> list[TelegramUpdate]:
         url = f"{self._base_url}/bot{self._bot_token}/getUpdates"
         params = {"offset": offset.value, "timeout": timeout_seconds}
         response = self._request_with_retry("GET", url, params=params)
@@ -79,7 +78,7 @@ class TelegramApiGateway:
         self._send_with_attachments(message)
 
     def _send_text(
-        self, chat_id: int, text: str, reply_to_message_id: Optional[int]
+        self, chat_id: int, text: str, reply_to_message_id: int | None
     ) -> None:
         url = f"{self._base_url}/bot{self._bot_token}/sendMessage"
         payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
@@ -119,8 +118,8 @@ class TelegramApiGateway:
         self,
         chat_id: int,
         attachment: OutboundAttachment,
-        caption: Optional[str],
-        reply_to_message_id: Optional[int],
+        caption: str | None,
+        reply_to_message_id: int | None,
     ) -> None:
         method = "sendPhoto" if attachment.is_photo() else "sendDocument"
         field = "photo" if attachment.is_photo() else "document"
@@ -185,7 +184,7 @@ class TelegramApiGateway:
         )
 
     @staticmethod
-    def _classify_status(response: httpx.Response) -> Optional[str]:
+    def _classify_status(response: httpx.Response) -> str | None:
         """Bot API 応答の status 分類（http_retry.request_with_retry の callback 契約）。
 
         - 401 → AuthFailureError（致命、retry しない）

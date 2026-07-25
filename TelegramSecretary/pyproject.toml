@@ -75,7 +75,12 @@ extend-exclude = ["*.md"]
 # 選択ルールは明示する。CI は `pip install ruff` で最新版を引くため、既定ルールセットに
 # 依存すると ruff 側の既定拡張だけで CI が赤くなる（0.16.0 が既定を拡張し実際に発生）。
 # 中身は従来の既定（E4/E7/E9/F）＝本プラグインが実際に守ってきた水準を固定したもの。
-select = ["E4", "E7", "E9", "F"]
+#
+# I（import 整列）と UP（pyupgrade）を追加する。従来の狭い select では検出されないまま
+# typing.Dict / Optional[X] / os.error 等の旧記法が 300 件規模で残存していた（CI は green のまま）。
+# 一度 `ruff check --fix` で解消したうえでルールとして固定し、再混入を CI で止める。
+# requires-python = ">=3.10" から target-version が推論されるため、PEP 585/604 記法は安全に使える。
+select = ["E4", "E7", "E9", "F", "I", "UP"]
 
 [tool.ruff.lint.per-file-ignores]
 # テストは Stage 見出しコメントで節分けし、その節で使う import を節の直下に置く

@@ -10,22 +10,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-
 from domain.exceptions import GitSyncError, PushRejectedError
 from domain.wal import WalEntry
+from tests.usecases.fakes import (
+    FakeGitSync,
+    FakeMessageSink,
+    FakeRegistryStore,
+    FakeWalLogStore,
+)
 from usecases.manage_registry import RegistryService
 from usecases.wal import (
     AppendWalIntent,
     PushWalLog,
     RedoPendingIntents,
     SettleOutboundIntent,
-)
-
-from tests.usecases.fakes import (
-    FakeGitSync,
-    FakeMessageSink,
-    FakeRegistryStore,
-    FakeWalLogStore,
 )
 
 

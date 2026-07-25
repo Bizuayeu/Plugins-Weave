@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 from domain.exceptions import (
     AuthFailureError,
@@ -32,8 +31,8 @@ class MediaDownloadResult:
 
     update_id: int
     media: MediaAttachment
-    local_path: Optional[Path]
-    skip_reason: Optional[str]
+    local_path: Path | None
+    skip_reason: str | None
 
 
 class DownloadAuthorizedMedia:
@@ -42,10 +41,10 @@ class DownloadAuthorizedMedia:
 
     def execute(
         self,
-        normalized_updates: List[NormalizedUpdate],
+        normalized_updates: list[NormalizedUpdate],
         target_dir: Path,
         max_size_bytes: int,
-    ) -> List[MediaDownloadResult]:
+    ) -> list[MediaDownloadResult]:
         """各認可済み update の media を順に download。size 超過・通信失敗は skip。
 
         - size > max_size_bytes: skip_reason="media_size_exceeded"、downloader 呼ばず
@@ -53,7 +52,7 @@ class DownloadAuthorizedMedia:
         - download 成功: local_path に保存先、skip_reason=None
         - 1 media の skip は他 media の download を妨げない
         """
-        results: List[MediaDownloadResult] = []
+        results: list[MediaDownloadResult] = []
         for nu in normalized_updates:
             for media in nu.update.media:
                 try:

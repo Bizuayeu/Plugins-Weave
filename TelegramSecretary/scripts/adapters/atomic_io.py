@@ -17,8 +17,9 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, List, TypeVar
+from typing import TypeVar
 
 T = TypeVar("T")
 
@@ -67,7 +68,7 @@ def load_json_or_default(
         return default()
 
 
-def load_jsonl(path: Path, parse_line: Callable[[dict], T]) -> List[T]:
+def load_jsonl(path: Path, parse_line: Callable[[dict], T]) -> list[T]:
     """JSONL を 1 行ずつ parse_line(decoded) する。破損行・空行はスキップして読める行だけ返す。
 
     一部の行が壊れていても全損させない（WAL の破損行スキップと同型の安全側）。
@@ -76,7 +77,7 @@ def load_jsonl(path: Path, parse_line: Callable[[dict], T]) -> List[T]:
     target = Path(path)
     if not target.exists():
         return []
-    items: List[T] = []
+    items: list[T] = []
     for raw in target.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
         if not line:

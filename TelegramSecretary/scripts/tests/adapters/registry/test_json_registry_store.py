@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 import adapters.atomic_io as atomic_io
+import pytest
 from adapters.registry.json_registry_store import JsonRegistryStore
 
 

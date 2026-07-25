@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import pytest
-
 from domain.media import MediaAttachment, RenderedMedia, merge_caption_into_text
-
 
 # === MediaAttachment.from_photo_api ===
 

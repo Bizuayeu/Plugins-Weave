@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import pytest
-
 from domain.exceptions import LeaseConflictError
 from domain.lease import SessionLease
-from usecases.acquire_lease import AcquireLease
-
 from tests.conftest import t_utc as _t
 from tests.usecases.fakes import FakeLeaseStore
+from usecases.acquire_lease import AcquireLease
 
 
 def test_acquire_when_no_existing_lease():

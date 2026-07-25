@@ -15,12 +15,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 from domain.media import MediaAttachment, RenderedMedia
 from usecases.download_authorized_media import MediaDownloadResult
 from usecases.ports import MediaRenderer
-
 
 _PASSTHROUGH_MIME_PREFIXES = ("image/",)
 _PASSTHROUGH_MIME_EXACT = frozenset(
@@ -58,8 +56,8 @@ class RenderResult:
 
     update_id: int
     media: MediaAttachment
-    local_path: Optional[Path]
-    skip_reason: Optional[str]
+    local_path: Path | None
+    skip_reason: str | None
     rendered: RenderedMedia
 
 
@@ -82,8 +80,8 @@ class RenderAuthorizedMedia:
     def __init__(
         self,
         renderer: MediaRenderer,
-        transcriber: Optional[MediaRenderer] = None,
-        pdf_renderer: Optional[MediaRenderer] = None,
+        transcriber: MediaRenderer | None = None,
+        pdf_renderer: MediaRenderer | None = None,
     ) -> None:
         self._renderer = renderer
         self._transcriber = transcriber
@@ -91,10 +89,10 @@ class RenderAuthorizedMedia:
 
     def execute(
         self,
-        download_results: List[MediaDownloadResult],
-    ) -> List[RenderResult]:
+        download_results: list[MediaDownloadResult],
+    ) -> list[RenderResult]:
         """各 download_result を mime-routing し、必要なら renderer を呼ぶ。"""
-        results: List[RenderResult] = []
+        results: list[RenderResult] = []
         for dr in download_results:
             rendered = self._render_one(dr)
             results.append(

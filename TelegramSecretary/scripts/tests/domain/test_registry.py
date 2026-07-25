@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import pytest
-
 from domain.registry import Ability, Identity, Individual, Knowledge, Task
-
 
 # === Individual / Identity ===
 

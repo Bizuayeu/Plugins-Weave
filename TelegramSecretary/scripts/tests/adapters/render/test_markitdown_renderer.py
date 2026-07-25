@@ -9,7 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from adapters.render.markitdown_renderer import MarkitdownRenderer
 from domain.media import MediaAttachment
 

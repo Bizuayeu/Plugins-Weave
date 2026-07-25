@@ -9,7 +9,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
-
 from domain.wal import WalEntry, checkpoint, reconcile, settle, settle_outbound
 
 

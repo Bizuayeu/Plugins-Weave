@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from typing import List, Tuple
 
 
 def normalize_input(text: str) -> str:
@@ -23,7 +22,7 @@ def normalize_input(text: str) -> str:
 
 # Injection フラグ用パターン（フラグするだけでブロックしない）。
 # OPS.md §7「フラグのみ・偽陽性回避」に従い、シグナル弱めにとどめる。
-_INJECTION_PATTERNS: List[Tuple[str, re.Pattern[str]]] = [
+_INJECTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     (
         "role_override",
         re.compile(
@@ -39,7 +38,7 @@ _INJECTION_PATTERNS: List[Tuple[str, re.Pattern[str]]] = [
 ]
 
 
-def flag_injection(text: str) -> List[str]:
+def flag_injection(text: str) -> list[str]:
     """検知したパターン名のリストを返す。偽陽性は許容、フラグのみで処理側がブロック判断する。"""
     if not text:
         return []

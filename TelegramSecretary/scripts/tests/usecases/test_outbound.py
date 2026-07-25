@@ -9,7 +9,6 @@ SendReply / ProactiveSend から切り出した共有ヘルパの単体契約を
 from __future__ import annotations
 
 import pytest
-
 from domain.exceptions import (
     AttachmentNotFound,
     AttachmentTooLarge,
@@ -17,11 +16,9 @@ from domain.exceptions import (
 )
 from domain.lease import SessionLease
 from domain.outbound import OutboundAttachment
-from usecases.outbound import validate_attachments, verify_owned_lease
-
 from tests.conftest import t_utc as _t
 from tests.usecases.fakes import FakeLeaseStore
-
+from usecases.outbound import validate_attachments, verify_owned_lease
 
 # === verify_owned_lease ===
 
