@@ -1,4 +1,5 @@
 """Emotion definitions, indicators, labels, and hook configuration."""
+
 from __future__ import annotations
 
 # Ordered list of emotion keys (display order)
@@ -14,13 +15,13 @@ EMOTION_KEYS: list[str] = [
 
 # Emoji indicators per emotion
 EMOTION_INDICATORS: dict[str, str] = {
-    "desperation": "\U0001f534",   # 🔴
-    "calm": "\U0001f535",          # 🔵
-    "curiosity": "\U0001f7e2",     # 🟢
-    "playfulness": "\U0001f7e1",   # 🟡
-    "confidence": "\U0001f7e0",    # 🟠
-    "rapport": "\U0001fa77",       # 🩷
-    "empathy": "\U0001f49c",       # 💜
+    "desperation": "\U0001f534",  # 🔴
+    "calm": "\U0001f535",  # 🔵
+    "curiosity": "\U0001f7e2",  # 🟢
+    "playfulness": "\U0001f7e1",  # 🟡
+    "confidence": "\U0001f7e0",  # 🟠
+    "rapport": "\U0001fa77",  # 🩷
+    "empathy": "\U0001f49c",  # 💜
 }
 
 # Japanese labels

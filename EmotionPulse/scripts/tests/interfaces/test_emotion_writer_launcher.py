@@ -1,4 +1,5 @@
 """Tests for hooks/emotion_writer_launcher.py — sys.path managed CLI entry."""
+
 from __future__ import annotations
 
 import json
@@ -51,9 +52,7 @@ class TestEmotionWriterLauncherIntegration:
             elif state_path.is_file():
                 state_path.unlink()
 
-    def test_launcher_survives_conflicting_scripts_module_in_cwd(
-        self, tmp_path: Path
-    ) -> None:
+    def test_launcher_survives_conflicting_scripts_module_in_cwd(self, tmp_path: Path) -> None:
         """cwd に scripts/__init__.py があっても launcher は動く (import 衝突回避)."""
         conflict_dir = tmp_path / "scripts"
         conflict_dir.mkdir()
@@ -62,10 +61,17 @@ class TestEmotionWriterLauncherIntegration:
             encoding="utf-8",
         )
 
-        payload = json.dumps({
-            "desperation": 1, "calm": 1, "curiosity": 1,
-            "playfulness": 1, "confidence": 1, "rapport": 1, "empathy": 1,
-        })
+        payload = json.dumps(
+            {
+                "desperation": 1,
+                "calm": 1,
+                "curiosity": 1,
+                "playfulness": 1,
+                "confidence": 1,
+                "rapport": 1,
+                "empathy": 1,
+            }
+        )
 
         result_holder: dict[str, subprocess.CompletedProcess[str]] = {}
 
@@ -81,6 +87,5 @@ class TestEmotionWriterLauncherIntegration:
         self._with_backed_up_state(run)
         result = result_holder["r"]
         assert result.returncode == 0, (
-            f"Launcher failed in conflicting cwd: "
-            f"stdout={result.stdout!r} stderr={result.stderr!r}"
+            f"Launcher failed in conflicting cwd: stdout={result.stdout!r} stderr={result.stderr!r}"
         )

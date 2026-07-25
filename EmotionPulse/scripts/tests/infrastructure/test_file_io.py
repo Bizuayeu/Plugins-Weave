@@ -1,4 +1,5 @@
 """Tests for infrastructure/file_io."""
+
 from pathlib import Path
 
 from scripts.infrastructure.file_io import read_json_safe, write_json_atomic

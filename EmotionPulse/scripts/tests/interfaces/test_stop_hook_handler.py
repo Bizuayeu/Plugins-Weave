@@ -1,4 +1,5 @@
 """Tests for interfaces/stop_hook_handler — lock-based block/approve."""
+
 import json
 from datetime import datetime, timedelta, timezone
 from io import StringIO
@@ -9,7 +10,9 @@ from scripts.domain.models import HookLock
 from scripts.interfaces.stop_hook_handler import handle_stop
 
 
-def _capture_output(stdin_payload: dict[str, object], lock: HookLock | None = None) -> dict[str, object]:
+def _capture_output(
+    stdin_payload: dict[str, object], lock: HookLock | None = None
+) -> dict[str, object]:
     """Run handle_stop with mocked stdin and optional lock, capture JSON output."""
     captured: list[str] = []
 

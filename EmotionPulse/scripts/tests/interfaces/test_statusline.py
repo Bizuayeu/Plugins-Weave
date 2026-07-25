@@ -1,4 +1,5 @@
 """Tests for interfaces/statusline."""
+
 from unittest.mock import patch
 
 from scripts.domain.models import DisplayConfig, EmotionVector

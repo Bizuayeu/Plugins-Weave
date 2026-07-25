@@ -1,4 +1,5 @@
 """Format EmotionVector as emoji string for statusline display."""
+
 from __future__ import annotations
 
 from scripts.domain.constants import (

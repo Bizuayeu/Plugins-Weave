@@ -1,4 +1,5 @@
 """Manage emotion_state.json persistence."""
+
 from __future__ import annotations
 
 from pathlib import Path

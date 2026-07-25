@@ -1,4 +1,5 @@
 """Stop hook logic: lock-based block/approve to prevent infinite loops."""
+
 from __future__ import annotations
 
 import json
@@ -32,6 +33,7 @@ def _write_lock(session_id: str) -> None:
 def _delete_lock() -> None:
     """Delete lock file if it exists."""
     import contextlib
+
     with contextlib.suppress(OSError):
         get_lock_file_path().unlink(missing_ok=True)
 
@@ -65,8 +67,12 @@ def handle_stop() -> None:
     _write_lock(payload.session_id)
     system_message = build_system_message()
     fallback_reason = f"EmotionPulse: evaluating emotions.\n\n{system_message}"
-    print(json.dumps({
-        "decision": "block",
-        "reason": fallback_reason,
-        "systemMessage": system_message,
-    }))
+    print(
+        json.dumps(
+            {
+                "decision": "block",
+                "reason": fallback_reason,
+                "systemMessage": system_message,
+            }
+        )
+    )

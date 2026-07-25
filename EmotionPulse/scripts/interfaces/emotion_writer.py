@@ -1,4 +1,5 @@
 """CLI: receive emotion JSON argument, validate, and write emotion_state.json."""
+
 from __future__ import annotations
 
 import json

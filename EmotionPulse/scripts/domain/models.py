@@ -1,7 +1,9 @@
 """Domain models: EmotionVector, StopHookPayload, HookLock, DisplayConfig."""
+
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -28,21 +30,19 @@ class EmotionVector:
         return cls(emotions=emotions, session_id=session_id, timestamp=timestamp)
 
     @classmethod
-    def from_raw_scores(
-        cls, scores: dict[str, int], session_id: str = ""
-    ) -> EmotionVector:
+    def from_raw_scores(cls, scores: dict[str, int], session_id: str = "") -> EmotionVector:
         """Construct from raw scores, clamping to 0-3."""
         emotions = cls._validate_emotions(scores)
         return cls(emotions=emotions, session_id=session_id)
 
     @staticmethod
-    def _validate_emotions(raw: dict[str, object]) -> dict[str, int]:
+    def _validate_emotions(raw: Mapping[str, object]) -> dict[str, int]:
         """Validate and clamp emotion scores to [0, 3]."""
         result: dict[str, int] = {}
         for key in EMOTION_KEYS:
             val = raw.get(key, 0)
             try:
-                int_val = int(val)  # type: ignore[arg-type]
+                int_val = int(val)  # type: ignore[call-overload]
             except (TypeError, ValueError):
                 int_val = 0
             result[key] = max(MIN_INTENSITY, min(MAX_INTENSITY, int_val))

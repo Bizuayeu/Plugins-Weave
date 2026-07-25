@@ -1,19 +1,19 @@
 """Low-level file operations: atomic write, safe JSON read."""
+
 from __future__ import annotations
 
 import contextlib
 import json
 import os
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 
 
-def write_json_atomic(path: Path, data: dict[str, object]) -> None:
+def write_json_atomic(path: Path, data: Mapping[str, object]) -> None:
     """Write JSON atomically via tmp file + os.replace."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_path = tempfile.mkstemp(
-        dir=str(path.parent), suffix=".tmp", prefix=".emotion_"
-    )
+    fd, tmp_path = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp", prefix=".emotion_")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)

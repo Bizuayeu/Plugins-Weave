@@ -1,4 +1,5 @@
 """Tests for domain constants."""
+
 from scripts.domain.constants import (
     EMOTION_INDICATORS,
     EMOTION_KEYS,

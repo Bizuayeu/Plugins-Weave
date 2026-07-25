@@ -1,4 +1,5 @@
 """Tests for interfaces/emotion_writer."""
+
 import json
 from pathlib import Path
 from unittest.mock import patch
@@ -57,6 +58,7 @@ class TestEmotionWriterMain:
 
     def test_all_keys_present(self) -> None:
         from scripts.domain.constants import EMOTION_KEYS
+
         scores = {"calm": 1}
         with (
             patch("sys.argv", ["emotion_writer.py", json.dumps(scores)]),

@@ -6,6 +6,7 @@ module regardless of the caller's cwd, and forwards sys.argv to main().
 
 Pair with hooks/stop_handler.py; both follow the same pattern.
 """
+
 import io
 import os
 import sys

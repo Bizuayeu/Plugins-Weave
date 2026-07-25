@@ -1,4 +1,5 @@
 """Path resolution for EmotionPulse data and config files."""
+
 from __future__ import annotations
 
 import os

@@ -1,4 +1,5 @@
 """Statusline script: read emotion state and output emoji string."""
+
 from __future__ import annotations
 
 from scripts.application.formatter import format_emotion_display

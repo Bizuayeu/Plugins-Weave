@@ -1,4 +1,5 @@
 """Tests for application/hook_config."""
+
 from scripts.application.hook_config import (
     build_stop_hook_entry,
     build_system_message,

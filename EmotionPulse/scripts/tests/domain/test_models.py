@@ -1,4 +1,5 @@
 """Tests for domain models."""
+
 import json
 from datetime import datetime, timedelta, timezone
 

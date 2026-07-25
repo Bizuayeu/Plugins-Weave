@@ -1,4 +1,5 @@
 """Tests for application/state_manager."""
+
 from pathlib import Path
 
 from scripts.application.state_manager import load_state, save_state
@@ -9,9 +10,7 @@ from scripts.domain.models import EmotionVector
 class TestStateManager:
     def test_save_load_roundtrip(self, tmp_path: Path) -> None:
         path = tmp_path / "state.json"
-        vec = EmotionVector.from_raw_scores(
-            {"calm": 2, "curiosity": 3}, session_id="s1"
-        )
+        vec = EmotionVector.from_raw_scores({"calm": 2, "curiosity": 3}, session_id="s1")
         save_state(vec, path=path)
         loaded = load_state(path=path)
         assert loaded is not None

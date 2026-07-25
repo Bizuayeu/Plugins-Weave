@@ -1,4 +1,5 @@
 """Generate Stop hook configuration for settings.json."""
+
 from __future__ import annotations
 
 import os
@@ -39,9 +40,11 @@ def build_system_message() -> str:
 def build_stop_hook_entry() -> dict[str, object]:
     """Build a Stop hook config entry for settings.json (command type)."""
     return {
-        "hooks": [{
-            "type": "command",
-            "command": f'python "{_handler_path()}"',
-            "timeout": 5000,
-        }],
+        "hooks": [
+            {
+                "type": "command",
+                "command": f'python "{_handler_path()}"',
+                "timeout": 5000,
+            }
+        ],
     }

@@ -1,4 +1,5 @@
 """EmotionPulse Stop hook launcher - delegates to installed plugin."""
+
 import io
 import os
 import sys
@@ -20,6 +21,7 @@ for p in _CANDIDATE_PATHS:
 if _plugin_dir is None:
     # Non-fatal: approve to avoid blocking Claude Code
     import json
+
     print(json.dumps({"decision": "approve"}))
     sys.exit(0)
 

@@ -1,4 +1,5 @@
 """Tests for application/formatter."""
+
 from scripts.application.formatter import format_emotion_display
 from scripts.domain.constants import EMOTION_INDICATORS
 from scripts.domain.models import DisplayConfig, EmotionVector

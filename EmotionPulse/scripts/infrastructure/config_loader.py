@@ -1,4 +1,5 @@
 """Load plugin display configuration from config.json."""
+
 from __future__ import annotations
 
 from scripts.domain.models import DisplayConfig
