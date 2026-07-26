@@ -140,14 +140,21 @@ jobs:
           echo "{\"schemaVersion\":1,\"label\":\"tests\",\"message\":\"$TEST_COUNT passed\",\"color\":\"brightgreen\"}" > test_badge.json
           cat test_badge.json
 
+      # exuanbo/actions-deploy-gist は Node20 ランナー固定で後継メジャーが無い（＝版上げでは
+      # deprecation 警告を消せない）ため、gh api の PATCH /gists/:id で置き換える。
+      # Gist 側のファイル名は shields.io の参照先なので basename の test_badge.json を維持する。
+      # shell: bash は pipefail 目的（jq が落ちたら gh を走らせずに job を落とす）。
       - name: Upload test badge to Gist
         if: matrix.python-version == '3.11' && github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: exuanbo/actions-deploy-gist@v1
-        with:
-          token: ${{ secrets.GIST_TOKEN }}
-          gist_id: ${{ vars.TEST_BADGE_GIST_ID }}
-          file_path: EpisodicRAG/test_badge.json
-          file_type: text
+        working-directory: EpisodicRAG
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ vars.TEST_BADGE_GIST_ID }}
+        run: |
+          jq -n --rawfile body test_badge.json \
+            '{files: {"test_badge.json": {content: $body}}}' \
+            | gh api -X PATCH "gists/$GIST_ID" --input - --silent
 
       - name: Upload test results artifact
         if: matrix.python-version == '3.11'
