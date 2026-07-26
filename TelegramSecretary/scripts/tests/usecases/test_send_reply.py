@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from domain.exceptions import AttachmentTooLarge, LeaseConflictError
+from domain.exceptions import AttachmentTooLargeError, LeaseConflictError
 from domain.lease import SessionLease
 from domain.models import OutboundMessage
 from domain.offset import UpdateOffset
@@ -155,7 +155,7 @@ def test_send_rejects_oversize_attachment_before_sending(tmp_path):
         text="big",
         attachments=[OutboundAttachment(path=big)],
     )
-    with pytest.raises(AttachmentTooLarge):
+    with pytest.raises(AttachmentTooLargeError):
         uc.execute(message=msg, update_id=15, lease=lease, now=_t(30), max_bytes=1024)
 
     assert sink.sent == []

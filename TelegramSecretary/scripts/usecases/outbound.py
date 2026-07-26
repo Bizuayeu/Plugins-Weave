@@ -17,8 +17,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from domain.exceptions import (
-    AttachmentNotFound,
-    AttachmentTooLarge,
+    AttachmentNotFoundError,
+    AttachmentTooLargeError,
     LeaseConflictError,
 )
 from domain.lease import SessionLease
@@ -47,13 +47,15 @@ def validate_attachments(
 ) -> None:
     """送信前に全添付の存在とサイズを検証する（決定論的 I/O、LLM 判断ではない）。
 
-    - パスがファイルとして存在しない → AttachmentNotFound
-    - サイズが max_bytes を超える → AttachmentTooLarge
+    - パスがファイルとして存在しない → AttachmentNotFoundError
+    - サイズが max_bytes を超える → AttachmentTooLargeError
     空 list は no-op（text-only 送信の後方互換）。検証は全件に対して行う。
     """
     for attachment in attachments:
         path = attachment.path
         if not path.is_file():
-            raise AttachmentNotFound(f"attachment not found: {path}")
+            raise AttachmentNotFoundError(f"attachment not found: {path}")
         if path.stat().st_size > max_bytes:
-            raise AttachmentTooLarge(f"attachment exceeds {max_bytes} bytes: {path}")
+            raise AttachmentTooLargeError(
+                f"attachment exceeds {max_bytes} bytes: {path}"
+            )

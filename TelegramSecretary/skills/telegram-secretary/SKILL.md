@@ -114,7 +114,7 @@ PDF は **常に全ページ画像化**する（テキスト層の有無を判�
 | `TELEGRAM_SECRETARY_MEDIA_RETENTION_HOURS` | optional | 保存 media の保持期限（既定 24h）。`cleanup_media_dir` が超過ファイル削除 |
 | `TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD` | optional | Heavy（true=既定）/ Medium（false）モード切替 |
 | `TELEGRAM_SECRETARY_BUNDLE_VOICE` | optional | 音声/動画 STT（moonshine+av）を bootstrap で導入するか（既定 true）。`false` で除外＝音声は `skipped` にフォールバック（moonshine Community License 回避・軽量化、大規模向け） |
-| `TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES` | optional | **送信**添付の上限（既定 50MB、Telegram bot API 上限）。超過は送信前に `AttachmentTooLarge` で弾く（exit 2） |
+| `TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES` | optional | **送信**添付の上限（既定 50MB、Telegram bot API 上限）。超過は送信前に `AttachmentTooLargeError` で弾く（exit 2） |
 | `TELEGRAM_SECRETARY_PDF_IMAGE_MAX_PAGES` | optional | PDF 受信時に `render()` が事前画像化する先頭ページ数の上限（既定 20）。超多ページの disk/トークン安全弁。21 枚目以降は `render-pdf --pages` でオンデマンド生成、`page_count` は実総数 |
 
 > **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須・fail-fast）。勤務帯（例 9-17 時）は cloud routine の cron（`0 9-16 * * 1-5`）+ duration で表現（コードに時計を持たせない）。`/goal` deadline 駆動の運用変数（`TS_SESSION_DEADLINE_EPOCH` / `TS_POLL_SET_SEC` / `TS_POLL_BASH_TIMEOUT_MS` / `TS_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export（SSoT。`TS_SESSION_DURATION_SEC` は廃止＝duration 設定値を env に出さない純2層）。`BASH_MAX_TIMEOUT_MS=600000` は `{private_dir}/.claude/settings.json`。詳細は [`ROUTINE_PROMPT.md`](../../ROUTINE_PROMPT.md)。
@@ -139,5 +139,5 @@ PDF は **常に全ページ画像化**する（テキスト層の有無を判�
 - **transcript の出力漏洩スキャン** — 音声内の機密（パスワード読み上げ等）が transcript 経由で emit に乗る可能性、send-reply 前の漏洩スキャン対象に `rendered_text`(transcript) も含める
 - **音声中間ファイルの不在** — PyAV はメモリ内（numpy）で 16kHz mono float へデコードし、**ffmpeg 中間 wav をディスクに書かない**。機密 voice の中間生成物がディスクに残存しない
 - **outbound 添付の漏洩スキャン** — エージェント生成物（md/docx/画像/PDF）に token/env名/system prompt/機密が混入していないか**送信前**にエージェント側で確認。コードはバイナリ中身まで検査しない＝エージェントの判断責務
-- **outbound サイズ上限**（事故防止）— `TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES`（既定 50MB）超過は送信前に `AttachmentTooLarge` で弾く
+- **outbound サイズ上限**（事故防止）— `TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES`（既定 50MB）超過は送信前に `AttachmentTooLargeError` で弾く
 - **送信時 token 込み URL のログ秘匿** — sendPhoto/sendDocument 失敗例外は method/chat_id/file 名のみで URL/token を載せない（受信側 media_downloader と同型、テストで検証）

@@ -15,8 +15,8 @@ from adapters.state.emitter import StdoutEventEmitter
 from adapters.state.json_state_store import JsonLeaseStore, JsonOffsetStore
 from adapters.telegram.api_gateway import TelegramApiGateway
 from domain.exceptions import (
-    AttachmentNotFound,
-    AttachmentTooLarge,
+    AttachmentNotFoundError,
+    AttachmentTooLargeError,
     AuthFailureError,
     LeaseConflictError,
     TelegramSecretaryError,
@@ -67,7 +67,7 @@ __all__ = [
 ]
 
 
-class _ConfigInvalid(Exception):
+class _ConfigInvalidError(Exception):
     """config ロード失敗を CLI 境界へ伝える内部シグナル。
 
     EnvironmentError は Python では OSError の別名であり、ハンドラ全体を
@@ -78,7 +78,7 @@ class _ConfigInvalid(Exception):
 
 
 def _load_config() -> Config:
-    """env から Config を構築（fail-fast）。失敗は stderr に出して _ConfigInvalid を送出。
+    """env から Config を構築（fail-fast）。失敗は stderr に出して _ConfigInvalidError を送出。
 
     旧 union (`Config | int`) を廃止。EnvironmentError の捕捉はこの 1 点に限定し、
     各ハンドラの `if isinstance(config, int): return config` 重複を消す。
@@ -87,7 +87,7 @@ def _load_config() -> Config:
         return load_config()
     except OSError as exc:
         print(f"config error: {exc}", file=sys.stderr)
-        raise _ConfigInvalid from None
+        raise _ConfigInvalidError from None
 
 
 def _session_owner(arg_owner: str | None) -> str:
@@ -501,7 +501,7 @@ def _load_owned_lease(config: Config, owner: str):
 
 def _outbound_exception_to_exit(exc: TelegramSecretaryError) -> int:
     """送信例外を exit code にマップ（send-reply / proactive-send 共通）。"""
-    if isinstance(exc, (AttachmentNotFound, AttachmentTooLarge)):
+    if isinstance(exc, (AttachmentNotFoundError, AttachmentTooLargeError)):
         print(f"attachment error: {exc}", file=sys.stderr)
         return EXIT_CONFIG_INVALID
     if isinstance(exc, AuthFailureError):
@@ -869,7 +869,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     # 旧 handlers dict（subcommand 名との二重管理）は廃止
     try:
         return args.handler(args)
-    except _ConfigInvalid:
+    except _ConfigInvalidError:
         return EXIT_CONFIG_INVALID
 
 

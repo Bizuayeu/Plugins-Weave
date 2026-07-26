@@ -2,6 +2,30 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.4.0] - 2026-07-26 — 例外名を N818 準拠へ改名（破壊的変更）
+
+### Breaking Changes
+
+- **例外クラス 4 件を `Error` 接尾辞へ改名** — v1.3.2 で `ignore` に退避していた N818 を解除し、検出された全件を改名した。互換 alias は置かない（旧名で import している利用側は明示的に壊す＝minor bump で通知する）
+
+| 旧名 | 新名 | 所在 |
+|------|------|------|
+| `MediaSizeLimitExceeded` | `MediaSizeLimitExceededError` | `scripts/domain/exceptions.py` |
+| `AttachmentNotFound` | `AttachmentNotFoundError` | `scripts/domain/exceptions.py` |
+| `AttachmentTooLarge` | `AttachmentTooLargeError` | `scripts/domain/exceptions.py` |
+| `_ConfigInvalid` | `_ConfigInvalidError` | `scripts/main.py`（CLI 境界の内部シグナル、公開 API ではない） |
+
+- 影響は `domain/exceptions.py` を直接 import する利用側に限られる。CLI の終了コード・env 変数名・emit される JSON の形と値（`skip_reason="media_size_exceeded"` 等）はいずれも不変
+
+### Changed
+
+- **pyproject の `ignore = ["N818"]` を削除** — 例外命名は以後 CI が恒久的に検査する。v1.3.2 の ignore コメントが名指ししていたのは 3 件だったが、機械に数えさせた実数は 4 件だった（`scripts/main.py` の内部シグナル `_ConfigInvalid` が手書きの列挙から漏れていた）。「理由付きで ignore する」運用でも対象の列挙は人手で腐る、という一例
+- **SECURITY.md / SKILL.md / devlog の記述を新名へ追従** — 旧名の残存は本 CHANGELOG の履歴記述のみ（`git grep` で確認）
+
+### Notes
+
+- 挙動の変更なし。テスト 602 passed（v1.3.2 から増減なし＝改名が既存契約を保った物証）
+
 ## [1.3.2] - 2026-07-26 — lint ルールの拡張と検査範囲の全体化
 
 ### Changed

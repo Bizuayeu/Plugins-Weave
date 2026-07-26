@@ -51,7 +51,7 @@ TelegramSecretary は **Claude Code Routines（Anthropic のクラウド実行�
 - **render 寛容性の認識** — markitdown は garbage でも何か返す。rendered_text が意味あるテキストかは エージェントが判断（最終防御は エージェント層）
 - **PDF / 音声のローカル完結** — pdfplumber/pypdfium2（PDF）・Moonshine（音声）はいずれもローカル処理で、ファイルが外部に出ない。将来 Whisper API 等の外部送信 STT に切替時は「音声が第三者に渡る」プライバシー判断を別途必須化
 - **音声中間ファイルの不在** — PyAV はメモリ内で 16kHz mono float へデコードし、ffmpeg 中間 wav をディスクに書かない（機密 voice の中間生成物が残存しない）
-- **送信添付の上限** — `OUTBOUND_MAX_SIZE_BYTES`（既定 50MB）超過は送信前に `AttachmentTooLarge` で弾く（誤送信・コスト事故防止）
+- **送信添付の上限** — `OUTBOUND_MAX_SIZE_BYTES`（既定 50MB）超過は送信前に `AttachmentTooLargeError` で弾く（誤送信・コスト事故防止）
 
 ## 6. 並走制御（Lease）✅
 

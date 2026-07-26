@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "telegramsecretary"
-version = "1.3.2"
+version = "1.4.0"
 description = "Telegram Bot API の long-polling を cloud routine 上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（SecretaryRole）が即応する対話チャネル"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -86,14 +86,6 @@ extend-exclude = ["*.md"]
 # 原因例外が traceback から消える）・SIM105（try-except-pass の握り潰し）・PTH（os.path 系の残存）
 # が検出された。挙動を変えずに直せるものは直し、直せないものは下の ignore に理由付きで残す。
 select = ["E4", "E7", "E9", "F", "I", "UP", "N", "B", "SIM", "PTH"]
-
-ignore = [
-    # N818（例外名の Error 接尾辞）。domain/exceptions.py の MediaSizeLimitExceeded /
-    # AttachmentNotFound / AttachmentTooLarge は SECURITY.md・SKILL.md・usecases・tests から
-    # 名指しで参照される公開 API であり、patch リリースで改名すると利用側が壊れる。
-    # 改名は破壊的変更として次の minor にまとめる（それまでは既存名との一貫性を優先する）。
-    "N818",
-]
 
 [tool.ruff.lint.per-file-ignores]
 # テストは Stage 見出しコメントで節分けし、その節で使う import を節の直下に置く

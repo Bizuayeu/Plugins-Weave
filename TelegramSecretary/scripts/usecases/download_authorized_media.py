@@ -1,7 +1,7 @@
 """認可済み update の media を size 制限内で download する UseCase（Stage 6.2）。
 
 実 I/O は Port（MediaDownloader）の向こう側。size 超過は内部で
-MediaSizeLimitExceeded を raise → 同 UseCase 内で catch して
+MediaSizeLimitExceededError を raise → 同 UseCase 内で catch して
 MediaDownloadResult.skip_reason="media_size_exceeded" に変換する。
 download の通信失敗（CDN 4xx・期限切れ file_id 等）も skip_reason="download_failed"
 にフラグ化する——fetch が download 前に offset を確定するため、ここで raise すると
@@ -17,7 +17,7 @@ from pathlib import Path
 
 from domain.exceptions import (
     AuthFailureError,
-    MediaSizeLimitExceeded,
+    MediaSizeLimitExceededError,
     TelegramSecretaryError,
 )
 from domain.media import MediaAttachment
@@ -57,7 +57,7 @@ class DownloadAuthorizedMedia:
             for media in nu.update.media:
                 try:
                     if media.size > max_size_bytes:
-                        raise MediaSizeLimitExceeded(
+                        raise MediaSizeLimitExceededError(
                             f"size {media.size} > limit {max_size_bytes}"
                         )
                     local_path = self._downloader.download(media.file_id, target_dir)
@@ -69,7 +69,7 @@ class DownloadAuthorizedMedia:
                             skip_reason=None,
                         )
                     )
-                except MediaSizeLimitExceeded:
+                except MediaSizeLimitExceededError:
                     results.append(
                         MediaDownloadResult(
                             update_id=nu.update.update_id,

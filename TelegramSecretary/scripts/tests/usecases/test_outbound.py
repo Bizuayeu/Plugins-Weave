@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 from domain.exceptions import (
-    AttachmentNotFound,
-    AttachmentTooLarge,
+    AttachmentNotFoundError,
+    AttachmentTooLargeError,
     LeaseConflictError,
 )
 from domain.lease import SessionLease
@@ -57,7 +57,7 @@ def test_validate_attachments_passes_for_valid_file(tmp_path):
 
 
 def test_validate_attachments_raises_when_missing(tmp_path):
-    with pytest.raises(AttachmentNotFound):
+    with pytest.raises(AttachmentNotFoundError):
         validate_attachments(
             [OutboundAttachment(path=tmp_path / "nope.png")], max_bytes=1024
         )
@@ -66,7 +66,7 @@ def test_validate_attachments_raises_when_missing(tmp_path):
 def test_validate_attachments_raises_when_too_large(tmp_path):
     big = tmp_path / "big.bin"
     big.write_bytes(b"x" * 2048)
-    with pytest.raises(AttachmentTooLarge):
+    with pytest.raises(AttachmentTooLargeError):
         validate_attachments([OutboundAttachment(path=big)], max_bytes=1024)
 
 
@@ -79,7 +79,7 @@ def test_validate_attachments_checks_every_item(tmp_path):
     # 1件目は正常でも、2件目の不正で raise（全件検証）
     good = tmp_path / "good.png"
     good.write_bytes(b"x" * 10)
-    with pytest.raises(AttachmentNotFound):
+    with pytest.raises(AttachmentNotFoundError):
         validate_attachments(
             [
                 OutboundAttachment(path=good),

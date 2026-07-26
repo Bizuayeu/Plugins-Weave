@@ -17,7 +17,7 @@ class AuthFailureError(TelegramSecretaryError):
     """Telegram bot token 認証失敗（401）。"""
 
 
-class MediaSizeLimitExceeded(TelegramSecretaryError):
+class MediaSizeLimitExceededError(TelegramSecretaryError):
     """media のサイズが上限を超えた（download skip 対象、ブロックではなく flag）。
 
     DownloadAuthorizedMedia 内部で raise → 同 UseCase 内で catch して
@@ -37,14 +37,14 @@ class AudioDecodeError(TelegramSecretaryError):
     """
 
 
-class AttachmentNotFound(TelegramSecretaryError):
+class AttachmentNotFoundError(TelegramSecretaryError):
     """outbound 添付ファイルのパスが存在しない（送信前検証で弾く、Stage 8.1）。"""
 
 
-class AttachmentTooLarge(TelegramSecretaryError):
+class AttachmentTooLargeError(TelegramSecretaryError):
     """outbound 添付ファイルのサイズが上限を超えた（送信前検証で弾く、Stage 8.1）。
 
-    受信側の MediaSizeLimitExceeded（download skip = フラグ化）の送信側カウンターパート。
+    受信側の MediaSizeLimitExceededError（download skip = フラグ化）の送信側カウンターパート。
     こちらは送信を中止する（ブロック）: 誤送信・コスト事故防止のため明示的に弾く。
     """
 
