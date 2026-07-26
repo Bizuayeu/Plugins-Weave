@@ -42,7 +42,12 @@ def write_text_atomic(path: Path, text: str) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(text)
-        tmp_path.replace(target)
+        # Path.replace ではなく os.replace のまま置く（PTH105 は per-file-ignores で除外）。
+        # Python 3.10 の pathlib は accessor 経由で import 時に os.replace を束縛するため、
+        # Path.replace にすると monkeypatch.setattr(atomic_io.os, "replace", ...) を素通りし、
+        # 「publish 前クラッシュで旧内容が残る」ことを守るテストが 3.10 で無検査になる
+        # （requires-python は >=3.10、CI も 3.10 を回す）。atomic 性より検査可能性を採る。
+        os.replace(tmp_name, str(target))
     except BaseException:
         with contextlib.suppress(OSError):
             tmp_path.unlink()
