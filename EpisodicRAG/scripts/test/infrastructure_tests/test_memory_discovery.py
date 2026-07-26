@@ -186,21 +186,34 @@ class TestDiscoverMemoryDirs:
 
 
 class TestResolveProjectFromPath:
-    """base_dirからClaude Codeプロジェクトパスを逆引きするテスト"""
+    """base_dirからClaude Codeプロジェクトパスを逆引きするテスト
+
+    resolve_project_from_pathはPath.resolve()で実パスへ正規化してから遡るため、
+    テストのパスもOSネイティブに組み立てる（Windows形式の文字列を直書きすると
+    POSIX上では1コンポーネントに潰れて成立しない）。
+    """
+
+    @staticmethod
+    def _register(fake_base: Path, project_dir: Path) -> None:
+        """project_dirをClaude Codeプロジェクトとしてfake_baseに登録する"""
+        encoded = encode_project_path(str(project_dir.resolve()))
+        memory_dir = fake_base / encoded / "memory"
+        memory_dir.mkdir(parents=True)
+        (memory_dir / "MEMORY.md").write_text("# Memory", encoding="utf-8")
 
     @pytest.mark.unit
     def test_完全一致でプロジェクトを発見(self, tmp_path: Path) -> None:
         """base_dirが直接プロジェクトパスの場合"""
         fake_base = tmp_path / ".claude" / "projects"
-        memory_dir = fake_base / "C--Users-test-DEV" / "memory"
-        memory_dir.mkdir(parents=True)
-        (memory_dir / "MEMORY.md").write_text("# Memory", encoding="utf-8")
+        project_dir = tmp_path / "workspace" / "DEV"
+        project_dir.mkdir(parents=True)
+        self._register(fake_base, project_dir)
 
         with patch(
             "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
             return_value=fake_base,
         ):
-            result = resolve_project_from_path("C:\\Users\\test\\DEV")
+            result = resolve_project_from_path(str(project_dir))
 
         assert result is not None
         assert Path(result).name == "DEV"
@@ -209,15 +222,16 @@ class TestResolveProjectFromPath:
     def test_祖先ディレクトリでプロジェクトを発見(self, tmp_path: Path) -> None:
         """base_dirの祖先にプロジェクトがある場合（本バグの核心ケース）"""
         fake_base = tmp_path / ".claude" / "projects"
-        memory_dir = fake_base / "C--Users-test-DEV" / "memory"
-        memory_dir.mkdir(parents=True)
-        (memory_dir / "MEMORY.md").write_text("# Memory", encoding="utf-8")
+        project_dir = tmp_path / "workspace" / "DEV"
+        deep_dir = project_dir / "sub" / "deep"
+        deep_dir.mkdir(parents=True)
+        self._register(fake_base, project_dir)
 
         with patch(
             "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
             return_value=fake_base,
         ):
-            result = resolve_project_from_path("C:\\Users\\test\\DEV\\sub\\deep")
+            result = resolve_project_from_path(str(deep_dir))
 
         assert result is not None
         assert Path(result).name == "DEV"
@@ -232,7 +246,7 @@ class TestResolveProjectFromPath:
             "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
             return_value=fake_base,
         ):
-            result = resolve_project_from_path("C:\\nonexistent\\path")
+            result = resolve_project_from_path(str(tmp_path / "nonexistent" / "path"))
 
         assert result is None
 
@@ -246,7 +260,7 @@ class TestResolveProjectFromPath:
             "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
             return_value=fake_base,
         ):
-            result = resolve_project_from_path("C:\\")
+            result = resolve_project_from_path(tmp_path.anchor)
 
         assert result is None
 
@@ -259,6 +273,6 @@ class TestResolveProjectFromPath:
             "infrastructure.auto_dream.memory_discovery.get_claude_projects_base",
             return_value=fake_base,
         ):
-            result = resolve_project_from_path("C:\\Users\\test\\DEV")
+            result = resolve_project_from_path(str(tmp_path / "workspace" / "DEV"))
 
         assert result is None

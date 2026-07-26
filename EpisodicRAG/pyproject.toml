@@ -72,6 +72,11 @@ addopts = [
     "--strict-markers",
     "--tb=short",
     "--cov=scripts",
+    # branch=true は下の [tool.coverage.run] にもあるが、そちらは子プロセスへ伝播しない。
+    # pytest-cov が COV_CORE_BRANCH を立てるのは CLI 側の --cov-branch のときだけで、
+    # これが無いと subprocess 経由テストの子が statement-only のデータを書き、
+    # 親の branch データとの combine が DataError で落ちる。
+    "--cov-branch",
     "--cov-report=term-missing",
 ]
 

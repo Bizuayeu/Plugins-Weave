@@ -1,6 +1,19 @@
 """Protocol抽象化のTDDテスト (Task 2: Protocol abstraction)"""
 
+from types import SimpleNamespace
+
 import pytest
+
+# プロトコルが要求するメソッド群。
+# typing の内部属性（__protocol_attrs__ は CPython 3.12+ のみ）ではなく、
+# runtime_checkable な isinstance という公開挙動で検証する。
+SPLITTER_METHODS = ("validate_image", "split", "split_from_file")
+ENCODER_METHODS = ("encode_image", "encode_expressions", "to_json_dict")
+
+
+def _stub(methods):
+    """指定メソッドのみを持つスタブオブジェクトを返す"""
+    return SimpleNamespace(**{name: (lambda *args, **kwargs: None) for name in methods})
 
 
 class TestProtocolModuleExists:
@@ -18,11 +31,11 @@ class TestImageSplitterProtocol:
     """ImageSplitterProtocolのテスト"""
 
     def test_protocol_exists(self):
-        """ImageSplitterProtocolが定義されている"""
+        """ImageSplitterProtocolが定義され、runtime_checkableである"""
         from usecases.protocols import ImageSplitterProtocol
 
-        # runtime_checkable なので __protocol_attrs__ を持つ
-        assert hasattr(ImageSplitterProtocol, "__protocol_attrs__")
+        # runtime_checkable でなければ isinstance が TypeError を投げる
+        assert not isinstance(object(), ImageSplitterProtocol)
 
     def test_image_splitter_implements_protocol(self):
         """ImageSplitterがプロトコルを実装している"""
@@ -32,33 +45,29 @@ class TestImageSplitterProtocol:
         splitter = ImageSplitter()
         assert isinstance(splitter, ImageSplitterProtocol)
 
-    def test_protocol_has_validate_image_method(self):
-        """プロトコルにvalidate_imageメソッドが定義されている"""
+    def test_protocol_accepts_full_stub(self):
+        """3メソッドを揃えたオブジェクトはプロトコルを満たす"""
         from usecases.protocols import ImageSplitterProtocol
 
-        assert "validate_image" in ImageSplitterProtocol.__protocol_attrs__
+        assert isinstance(_stub(SPLITTER_METHODS), ImageSplitterProtocol)
 
-    def test_protocol_has_split_method(self):
-        """プロトコルにsplitメソッドが定義されている"""
+    @pytest.mark.parametrize("missing", SPLITTER_METHODS)
+    def test_protocol_requires_each_method(self, missing):
+        """各メソッドはプロトコルの必須要素（欠けると適合しない）"""
         from usecases.protocols import ImageSplitterProtocol
 
-        assert "split" in ImageSplitterProtocol.__protocol_attrs__
-
-    def test_protocol_has_split_from_file_method(self):
-        """プロトコルにsplit_from_fileメソッドが定義されている"""
-        from usecases.protocols import ImageSplitterProtocol
-
-        assert "split_from_file" in ImageSplitterProtocol.__protocol_attrs__
+        incomplete = _stub([m for m in SPLITTER_METHODS if m != missing])
+        assert not isinstance(incomplete, ImageSplitterProtocol)
 
 
 class TestBase64EncoderProtocol:
     """Base64EncoderProtocolのテスト"""
 
     def test_protocol_exists(self):
-        """Base64EncoderProtocolが定義されている"""
+        """Base64EncoderProtocolが定義され、runtime_checkableである"""
         from usecases.protocols import Base64EncoderProtocol
 
-        assert hasattr(Base64EncoderProtocol, "__protocol_attrs__")
+        assert not isinstance(object(), Base64EncoderProtocol)
 
     def test_base64_encoder_implements_protocol(self):
         """Base64Encoderがプロトコルを実装している"""
@@ -68,23 +77,19 @@ class TestBase64EncoderProtocol:
         encoder = Base64Encoder()
         assert isinstance(encoder, Base64EncoderProtocol)
 
-    def test_protocol_has_encode_image_method(self):
-        """プロトコルにencode_imageメソッドが定義されている"""
+    def test_protocol_accepts_full_stub(self):
+        """3メソッドを揃えたオブジェクトはプロトコルを満たす"""
         from usecases.protocols import Base64EncoderProtocol
 
-        assert "encode_image" in Base64EncoderProtocol.__protocol_attrs__
+        assert isinstance(_stub(ENCODER_METHODS), Base64EncoderProtocol)
 
-    def test_protocol_has_encode_expressions_method(self):
-        """プロトコルにencode_expressionsメソッドが定義されている"""
+    @pytest.mark.parametrize("missing", ENCODER_METHODS)
+    def test_protocol_requires_each_method(self, missing):
+        """各メソッドはプロトコルの必須要素（欠けると適合しない）"""
         from usecases.protocols import Base64EncoderProtocol
 
-        assert "encode_expressions" in Base64EncoderProtocol.__protocol_attrs__
-
-    def test_protocol_has_to_json_dict_method(self):
-        """プロトコルにto_json_dictメソッドが定義されている"""
-        from usecases.protocols import Base64EncoderProtocol
-
-        assert "to_json_dict" in Base64EncoderProtocol.__protocol_attrs__
+        incomplete = _stub([m for m in ENCODER_METHODS if m != missing])
+        assert not isinstance(incomplete, Base64EncoderProtocol)
 
 
 class TestProtocolUsability:
