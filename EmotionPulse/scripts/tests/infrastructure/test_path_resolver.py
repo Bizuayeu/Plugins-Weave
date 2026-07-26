@@ -3,6 +3,7 @@
 from pathlib import Path
 from unittest.mock import patch
 
+from scripts.infrastructure import path_resolver
 from scripts.infrastructure.path_resolver import (
     get_config_path,
     get_data_dir,
@@ -65,8 +66,18 @@ class TestGetPluginRoot:
         assert "marketplaces" in str(root)
         assert root.name == "EmotionPulse"
 
-    def test_returns_none_when_both_missing(self) -> None:
-        """両候補の scripts/ が無い → None."""
+    def test_returns_installed_location_when_named_candidates_missing(self) -> None:
+        """DEV / marketplace のどちらも無い（CI 等）→ 自身の設置場所を返す."""
+        expected = Path(path_resolver.__file__).resolve().parents[2]
+        with patch(
+            "scripts.infrastructure.path_resolver.os.path.isdir",
+            side_effect=lambda p: p.startswith(str(expected)),
+        ):
+            root = get_plugin_root()
+        assert root == expected
+
+    def test_returns_none_when_all_missing(self) -> None:
+        """どの候補にも scripts/ が無い → None."""
         with patch(
             "scripts.infrastructure.path_resolver.os.path.isdir",
             return_value=False,

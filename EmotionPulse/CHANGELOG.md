@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.1] - 2026-07-26
+
+### Fixed
+
+- `infrastructure/path_resolver.py::get_plugin_root()` と `hooks/emotion_writer_launcher.py` の候補探索に「自身の設置場所」を第3候補として追加。`~/DEV` も `~/.claude/plugins/marketplaces` も無い環境（CI runner 等、任意の場所への clone）で plugin root が解決できず launcher 系 4 件が失敗していた問題を解消。
+- `pip install -e .` が flat-layout auto-discovery（`hooks` / `commands` を複数トップレベルパッケージと誤検出）でビルド失敗する問題を解消。`[tool.setuptools] packages = []` を明示（コード解決は `pythonpath = ["."]`、editable install は依存導入専用）。
+- launcher の subprocess integration test が pytest-cov の instrumentation を子プロセスへ継承し、`Can't combine statement coverage data with branch data` で pytest を INTERNALERROR させる問題を解消（子の env から `COV_CORE_*` を除去）。
+
+### Added
+
+- CI に `test-emotionpulse` job を追加（Python 3.10 / 3.11 / 3.12 マトリクス、coverage XML アーティファクト）。
+- `TestGetPluginRoot::test_returns_installed_location_when_named_candidates_missing` — 第3候補（自身の設置場所）へのフォールバックのユニットテスト。
+
 ## [1.3.0] - 2026-04-16
 
 ### Fixed

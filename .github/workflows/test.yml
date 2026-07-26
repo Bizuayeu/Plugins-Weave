@@ -497,11 +497,6 @@ jobs:
 
   # =============================================================================
   # EmotionPulse Jobs
-  #
-  # pytest は未搭載。scripts/infrastructure/path_resolver.py の get_plugin_root() が
-  # ~/DEV と ~/.claude/plugins/marketplaces の 2 箇所しか探さないため、どちらも無い
-  # CI runner では launcher 系 4 件が必ず失敗する（HOME 差し替えでローカル再現済み:
-  # 4 failed / 100 passed）。テスト側でなくプラグインの解決経路の修正が要るため別件。
   # =============================================================================
 
   lint-emotionpulse:
@@ -559,3 +554,39 @@ jobs:
       - name: Run mypy
         working-directory: EmotionPulse
         run: mypy scripts/
+
+  test-emotionpulse:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # editable install は依存導入専用（pyproject の packages = [] を参照）。
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "EmotionPulse[dev]"
+
+      # --cov / --cov-fail-under(90) は pyproject の addopts / coverage 設定側が持つ。
+      # shell: bash は pipefail 目的（tee 越しでも pytest の失敗で job を落とす）。
+      - name: Run tests with coverage
+        working-directory: EmotionPulse
+        shell: bash
+        run: python -m pytest --cov-report=xml -v 2>&1 | tee pytest_output.txt
+
+      - name: Upload test results artifact
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: emotionpulse-test-results
+          path: |
+            EmotionPulse/pytest_output.txt
+            EmotionPulse/coverage.xml

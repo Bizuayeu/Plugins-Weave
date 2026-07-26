@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -11,6 +12,17 @@ from scripts.infrastructure.path_resolver import (
     get_plugin_root,
     get_state_file_path,
 )
+
+
+def _env_without_coverage() -> dict[str, str]:
+    """Child env with pytest-cov's subprocess instrumentation removed.
+
+    The launcher runs with cwd=tmp_path, where the parent's coverage config is
+    not discoverable. An instrumented child would record statement-only data and
+    break the parent's combine ("Can't combine statement coverage data with
+    branch data"). The launcher's own coverage is not what this test measures.
+    """
+    return {k: v for k, v in os.environ.items() if not k.startswith("COV_CORE_")}
 
 
 def _launcher_path() -> Path:
@@ -79,6 +91,7 @@ class TestEmotionWriterLauncherIntegration:
             result_holder["r"] = subprocess.run(
                 [sys.executable, str(_launcher_path()), payload],
                 cwd=str(tmp_path),
+                env=_env_without_coverage(),
                 capture_output=True,
                 text=True,
                 timeout=15,

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emotionpulse"
-version = "1.3.0"
+version = "1.3.1"
 description = "EmotionPulse - Emotion vector display for Claude Code statusline"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -28,6 +28,12 @@ dependencies = []
 [project.urls]
 Homepage = "https://github.com/Bizuayeu/Plugins-Weave"
 Repository = "https://github.com/Bizuayeu/Plugins-Weave"
+
+[tool.setuptools]
+# コードは pythonpath=["."] で解決し、配布パッケージ化はしない（editable install は依存導入専用）。
+# 明示しないと setuptools が flat-layout auto-discovery で hooks/commands を
+# 複数トップレベルパッケージと誤検出し、`pip install -e .` がビルド失敗する。
+packages = []
 
 [project.optional-dependencies]
 dev = [

@@ -17,6 +17,7 @@ if hasattr(sys.stdout, "buffer"):
 _CANDIDATE_PATHS = [
     os.path.expanduser("~/DEV/plugins-weave/EmotionPulse"),
     os.path.expanduser("~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse"),
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
 ]
 
 _plugin_dir = None

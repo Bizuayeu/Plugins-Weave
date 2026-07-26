@@ -36,13 +36,16 @@ def get_lock_file_path() -> Path:
 def get_plugin_root() -> Path | None:
     """Resolve EmotionPulse plugin root directory.
 
-    Searches development (~/DEV/plugins-weave/EmotionPulse) and marketplace
-    (~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse) locations in
-    order. Returns None if neither has a scripts/ subdirectory.
+    Searches development (~/DEV/plugins-weave/EmotionPulse), marketplace
+    (~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse), and finally
+    this module's own installation location (which is the plugin root wherever
+    the tree is checked out, e.g. a CI runner) in order. Returns None if none
+    has a scripts/ subdirectory.
     """
     candidates = [
         os.path.expanduser("~/DEV/plugins-weave/EmotionPulse"),
         os.path.expanduser("~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse"),
+        str(Path(__file__).resolve().parents[2]),
     ]
     for candidate in candidates:
         if os.path.isdir(os.path.join(candidate, "scripts")):
