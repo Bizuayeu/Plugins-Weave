@@ -25,10 +25,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -55,10 +55,10 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -77,10 +77,10 @@ jobs:
   type-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -103,10 +103,10 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -115,8 +115,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e EpisodicRAG[dev]
 
+      # shell: bash は pipefail 目的（tee 越しでも pytest の失敗で job を落とす）。
       - name: Run tests with coverage
         working-directory: EpisodicRAG
+        shell: bash
         run: |
           # Run all tests for coverage calculation
           python -m pytest --cov-report=xml --cov-fail-under=80 -v 2>&1 | tee pytest_output.txt
@@ -149,7 +151,7 @@ jobs:
 
       - name: Upload test results artifact
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: |
@@ -158,7 +160,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: EpisodicRAG/coverage.xml
           fail_ci_if_error: false
@@ -171,10 +173,10 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -183,34 +185,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e EpisodicRAG[dev]
 
+      # shell: bash は pipefail 目的（tee 越しでも pytest の失敗で job を落とす）。
+      # 旧実装は $? が tee の成功を拾ってしまうため、出力を grep して失敗件数を数える
+      # 自前ゲートで代用していた。pipefail が効けばパイプライン自体が非ゼロで落ちるので、
+      # 集計と exit の分岐は到達しない（＝削除）。回帰閾値 10% はテスト側の assert が持つ。
       - name: Run performance tests
         working-directory: EpisodicRAG
+        shell: bash
         run: |
           echo "Running performance and slow tests..."
           python -m pytest -m "slow or performance" --no-cov -v --tb=short 2>&1 | tee perf_output.txt
 
-          # Check for failures (exit code)
-          PERF_RESULT=$?
-
-          # Count passed/failed (use ${VAR:-0} to handle empty grep results)
-          PASSED=$(grep -oP '\d+(?= passed)' perf_output.txt | head -1 || true)
-          PASSED=${PASSED:-0}
-          FAILED=$(grep -oP '\d+(?= failed)' perf_output.txt | head -1 || true)
-          FAILED=${FAILED:-0}
-
-          echo "Performance tests: $PASSED passed, $FAILED failed"
-
-          # Fail if any performance test failed (10% regression threshold is enforced in test assertions)
-          if [ "$FAILED" != "0" ]; then
-            echo "::error::Performance regression detected! $FAILED test(s) failed."
-            exit 1
-          fi
-
-          exit $PERF_RESULT
-
       - name: Upload performance results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: performance-results
           path: EpisodicRAG/perf_output.txt
@@ -222,10 +210,10 @@ jobs:
   lint-emailingessay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -243,10 +231,10 @@ jobs:
   security-emailingessay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -260,10 +248,10 @@ jobs:
   type-check-emailingessay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -284,10 +272,10 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -296,8 +284,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e EmailingEssay[dev]
 
+      # shell: bash は pipefail 目的（tee 越しでも pytest の失敗で job を落とす）。
       - name: Run tests with coverage
         working-directory: EmailingEssay
+        shell: bash
         run: |
           python -m pytest --cov-report=xml --cov-fail-under=70 -v 2>&1 | tee pytest_output.txt
           TEST_COUNT=$(grep -oP '\d+(?= passed)' pytest_output.txt | head -1 || echo "0")
@@ -306,7 +296,7 @@ jobs:
 
       - name: Upload test results artifact
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: emailingessay-test-results
           path: |
@@ -320,10 +310,10 @@ jobs:
   lint-visualexpression:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -341,10 +331,10 @@ jobs:
   security-visualexpression:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -358,10 +348,10 @@ jobs:
   type-check-visualexpression:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -381,10 +371,10 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -393,8 +383,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e VisualExpression[dev]
 
+      # shell: bash は pipefail 目的（tee 越しでも pytest の失敗で job を落とす）。
       - name: Run tests with coverage
         working-directory: VisualExpression
+        shell: bash
         run: |
           python -m pytest --cov-report=xml --cov-fail-under=70 -v 2>&1 | tee pytest_output.txt
           TEST_COUNT=$(grep -oP '\d+(?= passed)' pytest_output.txt | head -1 || echo "0")
@@ -403,7 +395,7 @@ jobs:
 
       - name: Upload test results artifact
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visualexpression-test-results
           path: |
@@ -417,10 +409,10 @@ jobs:
   lint-telegramsecretary:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -445,10 +437,10 @@ jobs:
   security-telegramsecretary:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -466,10 +458,10 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -481,8 +473,10 @@ jobs:
           pip install -e "TelegramSecretary[dev,media,voice]"
 
       # pyproject に addopts が無いため --cov を明示する（他プラグインは addopts 側で指定済み）。
+      # shell: bash は pipefail 目的（tee 越しでも pytest の失敗で job を落とす）。
       - name: Run tests with coverage
         working-directory: TelegramSecretary
+        shell: bash
         run: |
           python -m pytest --cov=scripts --cov-report=xml --cov-fail-under=70 -v 2>&1 | tee pytest_output.txt
           TEST_COUNT=$(grep -oP '\d+(?= passed)' pytest_output.txt | head -1 || echo "0")
@@ -491,7 +485,7 @@ jobs:
 
       - name: Upload test results artifact
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: telegramsecretary-test-results
           path: |
@@ -505,10 +499,10 @@ jobs:
   lint-emotionpulse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -527,10 +521,10 @@ jobs:
   security-emotionpulse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -544,10 +538,10 @@ jobs:
   type-check-emotionpulse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -565,10 +559,10 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -587,7 +581,7 @@ jobs:
 
       - name: Upload test results artifact
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: emotionpulse-test-results
           path: |
