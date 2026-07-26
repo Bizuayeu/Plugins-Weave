@@ -133,8 +133,6 @@ def checkpoint(
     cutoff = now - timedelta(hours=retention_h)
     out: list[WalEntry] = []
     for e in entries:
-        if e.status == "pending":
-            out.append(e)
-        elif datetime.fromisoformat(e.created_at) >= cutoff:
+        if e.status == "pending" or datetime.fromisoformat(e.created_at) >= cutoff:
             out.append(e)
     return out

@@ -2,6 +2,22 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.3.2] - 2026-07-26 — lint ルールの拡張と検査範囲の全体化
+
+### Changed
+
+- **ruff の select に `N` / `B` / `SIM` / `PTH` を追加** — 従来の `E4,E7,E9,F,I,UP` では「CI が green のまま危険記法が溜まる」経路が残っていた。実際に B904 5 件・SIM105 4 件・PTH 4 件・SIM114 1 件を検出し、挙動を変えずに全件解消した。以後の再混入は CI が止める
+- **例外連鎖を復元（B904、5 箇所）** — `config.py` の `raise OSError(...)` を `... from exc` へ。原因例外（`json.JSONDecodeError` / `ValueError`）が traceback から切れており、config 不正の一次原因を追えなかった。メッセージ文字列は不変
+- **握り潰しを `contextlib.suppress` へ（SIM105、4 箇所）** — atomic 書込の tmp 掃除・`rebase --abort`・lease clear・`sendChatAction` の best-effort。「握るのが意図」であることが構文で読める形にした（挙動不変）
+- **パス操作を pathlib へ統一（PTH、4 箇所）** — `os.replace` / `os.unlink` / `open()` を `Path.replace` / `Path.unlink` / `Path.open` へ。`Path.replace` は `os.replace` 実装ゆえ atomic rename の保証は不変
+- **CI の ruff 検査範囲を `scripts/` から `.` へ** — 双子リポ ShioriSecretary と同型化。`scripts/` 限定だと `skills/` 等に置いた `.py` が素通りする。除外は pyproject の `extend-exclude` で明示管理し、workflow 側には書かない
+
+### Notes
+
+- N818（例外名の `Error` 接尾辞、4 件）は `ignore` に理由付きで登録し見送り。`MediaSizeLimitExceeded` / `AttachmentNotFound` / `AttachmentTooLarge` は SECURITY.md・SKILL.md・usecases・tests から名指しで参照される公開 API であり、patch リリースでの改名は利用側を壊す。破壊的変更として次の minor にまとめる
+- v1.3.1 以降に入った lint 基盤（`ruff format` の全体適用・CI ゲート化・ruff 0.16.0 の版固定・`I`/`UP` の恒久ルール化）も本リリースに含む
+- 挙動の変更なし。テスト 602 passed（増減なしが、リファクタが既存契約を保った物証）
+
 ## [1.3.1] - 2026-07-26 — 音声デコード失敗の可視化と役割呼称の整理
 
 ### Fixed

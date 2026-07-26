@@ -14,6 +14,7 @@ adapters 直下に中立配置。
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
@@ -37,15 +38,14 @@ def write_text_atomic(path: Path, text: str) -> None:
     fd, tmp_name = tempfile.mkstemp(
         dir=str(target.parent), prefix=target.name + ".", suffix=".tmp"
     )
+    tmp_path = Path(tmp_name)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(text)
-        os.replace(tmp_name, str(target))
+        tmp_path.replace(target)
     except BaseException:
-        try:
-            os.unlink(tmp_name)
-        except OSError:
-            pass
+        with contextlib.suppress(OSError):
+            tmp_path.unlink()
         raise
 
 

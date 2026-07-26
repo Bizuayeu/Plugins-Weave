@@ -7,6 +7,7 @@ offset/lease を全損させない（破損 offset は initial へ巻き戻り�
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 from datetime import datetime
@@ -91,7 +92,5 @@ class JsonLeaseStore:
 
     def clear(self) -> None:
         if self._path.exists():
-            try:
+            with contextlib.suppress(OSError):
                 self._path.unlink()
-            except OSError:
-                pass

@@ -7,6 +7,7 @@ git メッセージは LC_ALL=C で英語固定し non-fast-forward を確実に
 
 from __future__ import annotations
 
+import contextlib
 import os
 import re
 import subprocess
@@ -117,11 +118,10 @@ class GitCliAdapter:
         try:
             self._run(["pull", "--rebase", self._remote, self._branch])
         except GitSyncError:
-            try:
-                # check=False: rebase 中でない等で abort が非 0 でも元エラーを優先する。
+            # check=False: rebase 中でない等で abort が非 0 でも元エラーを優先する。
+            # suppress: abort 自体の起動失敗（timeout/OSError 翻訳）も best-effort で握る。
+            with contextlib.suppress(GitSyncError):
                 self._run(["rebase", "--abort"], check=False)
-            except GitSyncError:
-                pass  # abort 自体の起動失敗（timeout/OSError 翻訳）も best-effort で握る
             raise
 
     def _assert_independent_worktree(self) -> None:

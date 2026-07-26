@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 from typing import Any, NamedTuple
 
 from adapters.registry.json_registry_store import JsonRegistryStore
@@ -117,7 +118,7 @@ def read_json_arg(args: Any) -> dict:
     （CLI 層の捕捉で EXIT_CONFIG_INVALID に翻訳される）。
     """
     if getattr(args, "json_file", None):
-        with open(args.json_file, encoding="utf-8") as f:
+        with Path(args.json_file).open(encoding="utf-8") as f:
             text = f.read()
     elif getattr(args, "json", None):
         text = args.json

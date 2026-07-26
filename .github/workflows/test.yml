@@ -431,13 +431,16 @@ jobs:
       - name: Install ruff
         run: pip install ruff==0.16.0
 
+      # 検査範囲はプラグイン root（`.`）。scripts/ 限定だと skills/ 等に置いた .py が
+      # 素通りする（双子リポ ShioriSecretary は既に `.`）。除外は pyproject の
+      # extend-exclude で明示管理し、この workflow には書かない。
       - name: Run ruff linter
         working-directory: TelegramSecretary
-        run: ruff check scripts/
+        run: ruff check .
 
       - name: Run ruff formatter check
         working-directory: TelegramSecretary
-        run: ruff format --check scripts/
+        run: ruff format --check .
 
   security-telegramsecretary:
     runs-on: ubuntu-latest

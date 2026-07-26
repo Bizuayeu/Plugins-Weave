@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 
 import httpx
@@ -143,12 +144,10 @@ class TelegramApiGateway:
     def send_chat_action(self, chat_id: int, action: str = "typing") -> None:
         """typing 等のチャットアクションを送る（best-effort、失敗は本応答を妨げない）。"""
         url = f"{self._base_url}/bot{self._bot_token}/sendChatAction"
-        try:
+        with contextlib.suppress(TelegramSecretaryError):  # best-effort
             self._request_with_retry(
                 "POST", url, json={"chat_id": chat_id, "action": action}
             )
-        except TelegramSecretaryError:
-            pass  # best-effort
 
     def get_file(self, file_id: str) -> str:
         """Telegram /getFile で file_id から file_path を取得（Stage 6.3）。
