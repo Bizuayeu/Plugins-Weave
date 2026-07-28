@@ -185,3 +185,49 @@ def test_lease_check_precedes_attachment_validation(tmp_path):
         )
 
     assert sink.sent == []
+
+
+# === 送信本文の漏洩スキャン ===
+
+# 形状のみを模したダミー値（実在の資格情報ではない）
+DUMMY_PAT = "ghp_dummyDUMMYdummyDUMMYdummy1234567890"
+
+
+def test_secret_shaped_text_is_redacted_before_send(capsys):
+    sink = FakeMessageSink()
+    offset_store = FakeOffsetStore(initial=UpdateOffset(value=10))
+    lease = SessionLease(owner="me", heartbeat=_t(0), ttl_seconds=120)
+    lease_store = FakeLeaseStore(initial=lease)
+
+    uc = SendReply(sink, offset_store, lease_store)
+    uc.execute(
+        message=OutboundMessage(chat_id=100, text=f"push には {DUMMY_PAT} を使います"),
+        update_id=15,
+        lease=lease,
+        now=_t(30),
+    )
+
+    # 送信はブロックせず、混入部分だけ伏せる（不可逆な漏洩を先に止める）
+    assert len(sink.sent) == 1
+    assert DUMMY_PAT not in sink.sent[0].text
+    assert "[REDACTED:pat]" in sink.sent[0].text
+    err = capsys.readouterr().err
+    assert "pat" in err
+    assert DUMMY_PAT not in err  # 検出記録に秘匿値そのものを載せない
+
+
+def test_clean_text_is_sent_unchanged_without_log(capsys):
+    sink = FakeMessageSink()
+    offset_store = FakeOffsetStore(initial=UpdateOffset(value=10))
+    lease = SessionLease(owner="me", heartbeat=_t(0), ttl_seconds=120)
+    lease_store = FakeLeaseStore(initial=lease)
+
+    uc = SendReply(sink, offset_store, lease_store)
+    uc.execute(
+        message=OutboundMessage(chat_id=100, text="明日 10 時に伺います"),
+        update_id=15,
+        lease=lease,
+        now=_t(30),
+    )
+    assert sink.sent[0].text == "明日 10 時に伺います"
+    assert capsys.readouterr().err == ""

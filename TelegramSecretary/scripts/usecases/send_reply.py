@@ -6,7 +6,11 @@ from datetime import datetime
 
 from domain.lease import SessionLease
 from domain.models import OutboundMessage
-from usecases.outbound import validate_attachments, verify_owned_lease
+from usecases.outbound import (
+    scrub_outbound_text,
+    validate_attachments,
+    verify_owned_lease,
+)
 from usecases.ports import LeaseStore, MessageSink, OffsetStore
 
 # Telegram bot API の送信ファイル上限（公式 50MB）。CLI は env 値で上書きして渡す。
@@ -38,6 +42,7 @@ class SendReply:
           奪取されていれば LeaseConflictError（並走奪取への防御層）
         - lease 再検証の後・送信の前に添付を検証（存在/サイズ）。不正なら送信前に raise
           → sink は呼ばれず offset/lease 据え置き（冪等・再送可能）。添付なしは no-op
+        - 送信直前に本文を漏洩スキャン（秘匿値の形状を redact + 記録）。ブロックはしない
         - 送信失敗（例外伝播）時は offset/lease を変更しない。なお fetch 段で offset は
           advance 済みのため、ここでの advance は defense-in-depth——失敗分の再処理の実体は
           Telegram サーバ側の unconfirmed 再配送（新コンテナの fresh state_dir での再取得）が担う
@@ -49,15 +54,18 @@ class SendReply:
         # 2. 送信前検証：添付の存在/サイズを決定論的に弾く（lease 再検証の後・送信の前）
         validate_attachments(message.attachments, max_bytes)
 
-        # 3. 送信を試行（失敗したら以降の永続化は走らない）
+        # 3. 出力漏洩スキャン：秘匿値の形状を伏せる（post-generation、送信は止めない）
+        message = scrub_outbound_text(message)
+
+        # 4. 送信を試行（失敗したら以降の永続化は走らない）
         self._sink.send(message)
 
-        # 4. offset advance
+        # 5. offset advance
         offset = self._offset_store.load()
         new_offset = offset.advance(update_id)
         self._offset_store.save(new_offset)
 
-        # 5. lease renew（current を元に renew、引数 lease は古い snapshot の可能性）
+        # 6. lease renew（current を元に renew、引数 lease は古い snapshot の可能性）
         renewed = current.renew(now)
         self._lease_store.save(renewed)
         return renewed

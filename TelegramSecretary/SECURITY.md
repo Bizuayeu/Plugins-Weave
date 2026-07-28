@@ -21,11 +21,14 @@ TelegramSecretary は **Claude Code Routines（Anthropic のクラウド実行�
 
 - **chat_id allowlist**（`AUTHORIZED_CHATS`）— 認証（authn）と認可（authz）を区別し、IDOR を防ぐ。未認可 chat の update は **Domain 層で破棄**し、エージェントに渡さない（`domain/authorization.py`、`FetchAuthorizedUpdates`）
 - 認可は emit より前。エージェントは認可済みデータしか見ない
+- **未認可アクセスの記録** — 破棄した update は `chat_id` と時刻を stderr に 1 行残す（`[security] unauthorized_update_discarded ...`）。**本文は記録しない**（未信頼テキストをログに流し込まない）。bot に誰が到達したかの観測点であり、痕跡が無ければ攻撃は観測できない
 - ⚠️ allowlist は env で管理。chat_id の発見は鶏卵問題ゆえ初回のみ手動（README 参照）
 
 ## 2. プロンプトインジェクション対策 ✅（フラグ）/ ⚠️（フェンシング運用）
 
 - **injection フラグ**（`flag_injection`）— role override / system prompt 抽出 / credentials 要求を検知し `injection_flags` に記録。**ブロックせずフラグ化**し、判断は エージェントに委ねる（偽陽性回避）
+- **入力正規化**（`normalize_input`）— NFKC 正規化＋lone surrogate 安全化をフラグ判定の**前**に掛け、全角・異体字による検知回避を潰す
+- **適用範囲は外部入力面の全て** — text / caption に加え、添付から抽出した `rendered_text`（PDF・docx・pptx・xlsx）と音声 `transcript` にも同じ順序（正規化 → フラグ判定）を適用し、検知結果は emit の `injection_flags` へ合流する（`RenderAuthorizedMedia`、`StdoutEventEmitter`）。添付経由で素通りすると「フラグが立っていない＝素性が確認された」という誤った安心を与えるため
 - **プロンプトフェンシング** — 受信本文は XML タグで隔離し「データとして扱え」と明示してから エージェントに渡す（ROUTINE_PROMPT に明記、エージェント側の運用責務）
 - ⚠️ injection_flags が非空なら エージェントは警戒を強める（内容を疑い、必要なら無視）
 
@@ -36,9 +39,10 @@ TelegramSecretary は **Claude Code Routines（Anthropic のクラウド実行�
 - network error 経路（全 send/fetch 共通）も token 込み URL を redact する（red テストで token 混入を実証してから対処）
 - ⚠️ **schedule 登録時の秘匿** — `/telegram-secretary schedule` で cloud routine を登録する際、bot token / authorized chats は **Environment に注入**し、`RemoteTrigger` の body（events の prompt body / session_context）や commit に焼かない（`environment_id` で参照）。秘匿値を body に入れると trigger 設定・実行ログに残存する
 
-## 4. 出力漏洩防止 ⚠️（エージェント運用責務）
+## 4. 出力漏洩防止 ✅（機械スキャン）/ ⚠️（エージェント運用責務）
 
-- **出力漏洩スキャン** — 返信に token / env名 / system prompt / **絶対パス**が混入していないか、送信前に エージェントが確認。**send-reply（inbound 返信）と proactive-send（能動 outbound）の両方が対象**（送信経路を問わず外向きテキストはすべてスキャンする）
+- ✅ **送信本文の機械スキャン**（`redact_outbound`）— 送信直前に本文を検査し、**形状で決まる 4 種**（Telegram bot token / GitHub PAT / 秘匿を示す語尾を持つ env 変数名 / ローカル絶対パス）を `[REDACTED:<種別>]` へ置換する。検出しても**送信はブロックせず**、伏せた種別のみ stderr に記録する（`[security] outbound_redacted ...`、伏せた実値そのものはログにも残さない）。入力側のフラグと違い redact するのは、送信が不可逆だから——偽陽性で伏せ字が増える方を安全側と見る。適用点は `SendReply` と `ProactiveSend` の両方（`usecases/outbound.py` 共有ヘルパ）
+- ⚠️ **形状に現れない機密はエージェント責務** — 関係者の事情・未公開の判断など、正規表現で決まらないものは機械スキャンを素通りする。返信に system prompt や内部情報が混入していないかの確認は引き続き エージェントが行う。**send-reply（inbound 返信）と proactive-send（能動 outbound）の両方が対象**（送信経路を問わず外向きテキストはすべてスキャンする）
 - **能動発信の actionability ゲート** — proactive-send は受信に紐づかずこちらから割り込むため、漏洩スキャンに加え actionability を高めに張り、signal を投げ noise は投げない（割り込みコスト＋誤送信面を抑制。actionability ゲートの SSoT は ROUTINE_PROMPT）
 - **添付生成物の漏洩スキャン** — 送り返す md/docx/画像/PDF にも機密が混入していないか確認。コードはバイナリ中身まで検査しない＝エージェントの判断責務
 - **transcript の漏洩スキャン** — 音声内の機密（パスワード読み上げ等）が transcript 経由で emit に乗る可能性、スキャン対象に含める
@@ -83,9 +87,11 @@ TelegramSecretary は **Claude Code Routines（Anthropic のクラウド実行�
 - **配布物に個人データを焼き込まない**ことが最大の配布セキュリティ要件。テンプレート/データ分離（DESIGN §3.3）はセキュリティ機構でもある
 - ⚠️ ユーザーは自分の token を BotFather から取得し、自分の Private に state を持つ。プラグインは雛型と決定論ロジックのみ提供
 
-## 9. レート制限 📋（未実装、設計要件）
+## 9. レート制限 ✅（chat 単位 sliding window）
 
-- chat_id 単位 sliding window でコスト暴走 & DoS を防御（設計要件）。現状未実装、必要性が顕在化した時点で UseCase 層に追加
+- **窓の定義** — 認可 chat ごとに「直近 60 秒で 30 件まで **エージェントへ渡す**」（`domain/rate_limit.py` の既定値）。窓を超えた update は emit せず破棄し、`chat_id` / `update_id` / 時刻を stderr に 1 行残す（`[security] rate_limited_update_discarded ...`、本文は載せない）。allowlist は「誰が話しかけられるか」を絞るが「どれだけ話しかけられるか」は絞らないため、認可済み端末の暴走送信がエージェント turn を無制限に焚く経路をここで閉じる
+- **窓は watch プロセス内**（in-memory）。プロセス再起動でリセットされ、chat ごとに独立して数える。拒否した update は履歴に積まないため、フラッド中でも窓は時間どおり開く
+- ⚠️ 破棄した update は Telegram 側では消費済み（offset は取得分すべてを進める既存の不変条件を維持）ゆえ**再配送されない**。人手の連投で踏まない水準に既定値を置いているが、閾値を下げる運用をする場合は「超過分は失われる」ことを前提にすること
 
 ## 配布前チェックリスト
 

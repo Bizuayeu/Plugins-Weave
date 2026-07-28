@@ -13,7 +13,11 @@ from datetime import datetime
 
 from domain.lease import SessionLease
 from domain.models import OutboundMessage
-from usecases.outbound import validate_attachments, verify_owned_lease
+from usecases.outbound import (
+    scrub_outbound_text,
+    validate_attachments,
+    verify_owned_lease,
+)
 from usecases.ports import LeaseStore, MessageSink
 from usecases.send_reply import DEFAULT_OUTBOUND_MAX_BYTES
 
@@ -41,6 +45,7 @@ class ProactiveSend:
           奪取されていれば LeaseConflictError（並走奪取への防御層）
         - lease 再検証の後・送信の前に添付を検証（存在/サイズ）。不正なら送信前に raise
           → sink は呼ばれず lease 据え置き。添付なしは no-op
+        - 送信直前に本文を漏洩スキャン（`SendReply` と同じく、送信経路を問わず外向きテキストを検査）
         - 送信失敗（例外伝播）時は lease を変更しない
         """
         # 1. 並走防止：現在の lease 保持者が自分か確認（usecases.outbound 共有ヘルパ）
@@ -49,10 +54,13 @@ class ProactiveSend:
         # 2. 送信前検証：添付の存在/サイズを決定論的に弾く（lease 再検証の後・送信の前）
         validate_attachments(message.attachments, max_bytes)
 
-        # 3. 送信を試行（失敗したら以降の永続化は走らない）
+        # 3. 出力漏洩スキャン：秘匿値の形状を伏せる（post-generation、送信は止めない）
+        message = scrub_outbound_text(message)
+
+        # 4. 送信を試行（失敗したら以降の永続化は走らない）
         self._sink.send(message)
 
-        # 4. lease renew のみ（offset advance は無い＝inbound 専用の既読台帳に触れない）
+        # 5. lease renew のみ（offset advance は無い＝inbound 専用の既読台帳に触れない）
         renewed = current.renew(now)
         self._lease_store.save(renewed)
         return renewed

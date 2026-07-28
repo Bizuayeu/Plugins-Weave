@@ -159,3 +159,24 @@ def test_lease_check_precedes_attachment_validation(tmp_path):
         uc.execute(message=msg, lease=my_lease, now=_t(40), max_bytes=1024)
 
     assert sink.sent == []
+
+
+# === 送信本文の漏洩スキャン（送信経路を問わず適用）===
+
+DUMMY_PAT = "ghp_dummyDUMMYdummyDUMMYdummy1234567890"
+
+
+def test_secret_shaped_text_is_redacted_before_proactive_send(capsys):
+    sink = FakeMessageSink()
+    lease = SessionLease(owner="me", heartbeat=_t(0), ttl_seconds=120)
+    lease_store = FakeLeaseStore(initial=lease)
+
+    uc = ProactiveSend(sink, lease_store)
+    uc.execute(
+        message=OutboundMessage(chat_id=100, text=f"token: {DUMMY_PAT}"),
+        lease=lease,
+        now=_t(30),
+    )
+
+    assert DUMMY_PAT not in sink.sent[0].text
+    assert "pat" in capsys.readouterr().err
