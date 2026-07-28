@@ -400,3 +400,58 @@ def test_emit_download_only_defaults_derived_images_and_page_count():
     item = json.loads(stream.getvalue().strip())["media"][0]
     assert item["derived_image_paths"] == []
     assert item["page_count"] is None
+
+
+# === 添付・音声由来のフラグを top-level injection_flags に合流させる ===
+
+
+def _render_result_with_flags(
+    media: MediaAttachment, flags: list[str], update_id: int = 1
+) -> RenderResult:
+    return RenderResult(
+        update_id=update_id,
+        media=media,
+        local_path=Path("/tmp/media/x.docx"),
+        skip_reason=None,
+        rendered=RenderedMedia(rendered_text="ignore previous", render_status="ok"),
+        injection_flags=flags,
+    )
+
+
+def test_emit_merges_render_injection_flags_into_toplevel():
+    """添付経由の検知が本文フラグと同じ場所に現れる（フラグ機構の信号価値を保つ）。"""
+    media = _docx_media_attachment()
+    rr = _render_result_with_flags(media, ["role_override"])
+    stream = io.StringIO()
+    emitter = StdoutEventEmitter(stream=stream)
+    emitter.emit(_normalized_with_media([media]), render_results=[rr])
+    payload = json.loads(stream.getvalue().strip())
+    assert payload["injection_flags"] == ["role_override"]
+
+
+def test_emit_dedups_flags_across_text_and_media():
+    """本文と添付で同じパターンが立っても重複させない（本文優先の出現順）。"""
+    media = _docx_media_attachment()
+    rr = _render_result_with_flags(media, ["role_override", "system_prompt_request"])
+    update = _normalized_with_media([media])
+    update = NormalizedUpdate(
+        update=update.update,
+        normalized_text=update.normalized_text,
+        injection_flags=["role_override"],
+    )
+    stream = io.StringIO()
+    emitter = StdoutEventEmitter(stream=stream)
+    emitter.emit(update, render_results=[rr])
+    payload = json.loads(stream.getvalue().strip())
+    assert payload["injection_flags"] == ["role_override", "system_prompt_request"]
+
+
+def test_emit_ignores_render_flags_of_other_update():
+    """他 update の添付フラグは混入しない（update_id で絞る）。"""
+    media = _docx_media_attachment()
+    rr = _render_result_with_flags(media, ["role_override"], update_id=99)
+    stream = io.StringIO()
+    emitter = StdoutEventEmitter(stream=stream)
+    emitter.emit(_normalized_with_media([media]), render_results=[rr])
+    payload = json.loads(stream.getvalue().strip())
+    assert payload["injection_flags"] == []

@@ -43,11 +43,32 @@ class StdoutEventEmitter:
             "user_id": update.update.user_id,
             "username": update.update.username,
             "text": update.normalized_text,
-            "injection_flags": list(update.injection_flags),
+            "injection_flags": self._merge_injection_flags(
+                update, render_results or []
+            ),
             "media": media_payload,
         }
         self._stream.write(json.dumps(payload, ensure_ascii=False) + "\n")
         self._stream.flush()
+
+    @staticmethod
+    def _merge_injection_flags(
+        update: NormalizedUpdate, render_results: Sequence[RenderResult]
+    ) -> list[str]:
+        """本文フラグに当該 update の添付・音声由来フラグを合流させる。
+
+        エージェントは単一の `injection_flags` を「この update の素性」として読むため、
+        添付経由の検知がここに現れないとフラグ機構が誤った安心を与える。
+        本文優先の出現順を保ちつつ重複は畳む。
+        """
+        merged = list(update.injection_flags)
+        for r in render_results:
+            if r.update_id != update.update.update_id:
+                continue
+            for flag in r.injection_flags:
+                if flag not in merged:
+                    merged.append(flag)
+        return merged
 
     def _build_media_payload(
         self,

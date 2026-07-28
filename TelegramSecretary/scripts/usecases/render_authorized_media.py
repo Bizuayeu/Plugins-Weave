@@ -13,10 +13,11 @@ download 段階で skip された media（size 超過等）は render も skip�
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from domain.media import MediaAttachment, RenderedMedia
+from domain.normalize import flag_injection, normalize_input
 from usecases.download_authorized_media import MediaDownloadResult
 from usecases.ports import MediaRenderer
 
@@ -59,6 +60,9 @@ class RenderResult:
     local_path: Path | None
     skip_reason: str | None
     rendered: RenderedMedia
+    # 抽出本文（rendered_text / transcript）に対する injection フラグ。
+    # 本文 text と同じく検知のみでブロックしない。emit 側で top-level へ合流する。
+    injection_flags: list[str] = field(default_factory=list)
 
 
 def _route_mime(mime: str) -> str:
@@ -76,6 +80,19 @@ def _route_mime(mime: str) -> str:
     return "skipped"
 
 
+def _apply_input_defense(rendered: RenderedMedia) -> tuple[RenderedMedia, list[str]]:
+    """抽出本文に本文 text と同じ入力防御を適用する純関数。
+
+    添付（PDF/docx/pptx/xlsx）と音声 transcript は未信頼のバイナリ由来テキストであり、
+    text/caption と同格の外部入力面。fetch 側と同じ順序（正規化 → フラグ判定）で扱い、
+    異体字による回避を正規化が潰した上で検知する。ブロックはしない。
+    """
+    if not rendered.rendered_text:
+        return rendered, []
+    normalized = normalize_input(rendered.rendered_text)
+    return replace(rendered, rendered_text=normalized), flag_injection(normalized)
+
+
 class RenderAuthorizedMedia:
     def __init__(
         self,
@@ -91,10 +108,13 @@ class RenderAuthorizedMedia:
         self,
         download_results: list[MediaDownloadResult],
     ) -> list[RenderResult]:
-        """各 download_result を mime-routing し、必要なら renderer を呼ぶ。"""
+        """各 download_result を mime-routing し、必要なら renderer を呼ぶ。
+
+        抽出できた本文には `_apply_input_defense` で正規化・フラグ判定を掛ける。
+        """
         results: list[RenderResult] = []
         for dr in download_results:
-            rendered = self._render_one(dr)
+            rendered, flags = _apply_input_defense(self._render_one(dr))
             results.append(
                 RenderResult(
                     update_id=dr.update_id,
@@ -102,6 +122,7 @@ class RenderAuthorizedMedia:
                     local_path=dr.local_path,
                     skip_reason=dr.skip_reason,
                     rendered=rendered,
+                    injection_flags=flags,
                 )
             )
         return results
