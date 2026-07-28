@@ -1,2 +1,8 @@
 # シェルスクリプトは実行環境（bash）が LF を要求するため、checkout 時の CRLF 変換から除外する
 *.sh text eol=lf
+
+# Windows のスクリプトは CRLF を要求する（cmd は LF 終端行を解釈できず、
+# PowerShell は LF の try/catch を構文解析に失敗する）
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
