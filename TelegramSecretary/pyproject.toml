@@ -26,11 +26,14 @@ dependencies = [
 #   pdf_renderer が直接 import するため直接依存として明示（pdfplumber が transitive に引くが、
 #   コードが直接使う依存は明示する原則＋再現性のため直接化）。
 # - Pillow: pypdfium2.bitmap.to_pil() が要する（pypdfium2 は Pillow を任意依存にするため明示）。
+#   下限は 12.3 — 9.1〜12.2 に PYSEC 系の既知脆弱性が積み上がっており、本番は受信メディア
+#   （＝外部入力の画像・PDF）を復号する経路なので、脆弱な Pillow の混入を宣言で塞ぐ。
+#   12.3.0 は requires-python >=3.10 で cp310 wheel があり、CI の 3.10 レグを壊さない。
 media = [
     "markitdown[docx,pptx,xlsx]>=0.1.6",
     "pdfplumber>=0.11",
     "pypdfium2>=4.18.0",
-    "Pillow>=9.1",
+    "Pillow>=12.3",
 ]
 # voice extras: 音声 STT（TELEGRAM_SECRETARY_BUNDLE_VOICE!=false で media と併せて導入）。
 # - moonshine-voice: Moonshine 日本語 STT（torch-free・onnxruntime、日本語 base-ja モデルは
