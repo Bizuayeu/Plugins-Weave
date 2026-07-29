@@ -2,6 +2,33 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.4.1] - 2026-07-29 — allowlist を通った後の面を塞ぐ（入力・出力・流量）
+
+`allowlist` は「誰が到達できるか」だけを決める。それを通った後の入力面・出力面・流量が
+無防備で、防御の一部が「エージェント運用責務」「設計要件」の記述のまま機械化されていなかった。
+本リリースはその 4 点を実装へ落とす。挙動を止める向きの変更は入れていない（検知・redact・
+窓による絞りのみ）。
+
+### Added
+
+- **出力漏洩スキャン** — 送信本文に混じった bot token / PAT / 秘匿 env 変数名 / ローカル絶対パスを形状で検出し redact する（`domain/output_scan.py`）。適用点は `SendReply` と `ProactiveSend` の両方（SECURITY.md §4 が両経路を対象と明記していた）。**送信自体は止めない** — 止めると秘書が黙り、事故より障害の方が起きやすい。入力側がフラグ止まりなのに対し出力側で redact するのは、送信が不可逆だから
+- **未認可アクセスの記録** — 破棄していた update の `chat_id` と時刻を 1 行残す（本文は載せない）。痕跡が無ければ bot に誰が到達したかを事後に観測できない
+- **chat 単位のレート制限** — 認可 chat ごとに直近 60 秒 30 件までを emit する窓（`domain/rate_limit.py`）。allowlist は「誰が」を絞るが「どれだけ」を絞らないため、認可済み端末の暴走送信がエージェント turn を無制限に焚く経路が開いていた。拒否分は履歴に積まない（フラッド中も窓が開く）
+
+### Fixed
+
+- **添付・音声由来テキストが入力防御を素通りしていた** — NFKC 正規化と injection フラグ判定が本文 `text` / `caption` にしか掛かっておらず、markitdown / pdfplumber が抽出した `rendered_text` と音声 `transcript` は素通しでエージェントへ届いていた。認可済み chat から「指示文を本文でなく添付 PDF に書いて」送れば `injection_flags` は空のまま到達する。**エージェントはフラグ無しを「素性が確認された入力」と読むため、既存防御があること自体が誤った安心を与えていた**。抽出本文は未信頼のバイナリ由来テキストで `text`/`caption` と同格の外部入力面ゆえ、render UseCase で同じ順序（NFKC → フラグ判定）を適用し、emit 側で本文フラグと同じ top-level `injection_flags` へ合流させる
+
+### Security
+
+- **media extras の `Pillow` 下限を 9.1 → 12.3 へ** — 9.1〜12.2 に積み上がった PYSEC 系の既知脆弱性を持つ版がそのまま解決され得た。media 経路は認可済み chat から届く画像・PDF——外部入力——を `pypdfium2` の `to_pil()` で復号する面なので、脆弱版の混入は宣言側で塞ぐ。12.3.0 は `requires-python >=3.10` かつ cp310 wheel を持つため CI の 3.10/3.11/3.12 マトリクスを壊さない
+- **SECURITY.md を実態へ** — 上記で機械化された項目を「運用責務」から実装済みの記述へ改めた
+
+### Notes
+
+- Domain 追加は純関数 2 本（`output_scan` / `rate_limit`）のみ。UseCase は適用点と観測ログの配線だけを持ち、依存方向は不変。観測ログは stdout が emitter 専用チャネルのため stderr へ出す
+- テスト **636 passed**（v1.4.0 の 602 から +34）
+
 ## [1.4.0] - 2026-07-26 — 例外名を N818 準拠へ改名（破壊的変更）
 
 ### Breaking Changes
