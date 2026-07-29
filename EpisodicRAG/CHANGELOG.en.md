@@ -12,11 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#581---2026-07-25)
+- [v5.x](#582---2026-07-29)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.8.2] - 2026-07-29
+
+### Changed
+
+- **Version badges are now dynamic badges (sync work removed by construction)** — the version badges in README (ja/en) and `docs/README.md` are now shields.io dynamic JSON badges that read the SSoT (`.claude-plugin/plugin.json`; the root badge reads `marketplace.json`) at display time. With no literal number left in the badge, the manual sync step at bump time no longer exists (a permanent fix for the CI failure caused by a missed badge sync during the v5.9.8 bump)
+- **Consistency tests changed from "number match" to "target check"** — the badge tests in `test_version.py` now assert that a dynamic badge's `url=` points at the correct SSoT and its `query=` is `$.version`. They also assert the absence of static badges (`badge/version-x.y.z-`) as a permanent gate, and cover the EpisodicRAG README (ja/en), which had no pytest coverage before
+- **CONTRIBUTING (ja/en) release procedure updated** — badge rows dropped from the version sync table; the release procedure goes from 5 files to 4 (badges follow automatically)
 
 ---
 

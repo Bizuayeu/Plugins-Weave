@@ -552,8 +552,8 @@ python -m pytest test/ -v
 | `pyproject.toml` | `version` | 手動同期 |
 | `../.claude-plugin/marketplace.json` | `plugins[].version` | 手動同期 |
 | `CHANGELOG.md` | `## [x.x.x]` | 手動同期 |
-| `README.md` / `README.en.md` | バージョンバッジ | 手動同期 |
-| `docs/README.md` | バージョンバッジ | 手動同期 |
+| `README.md` / `README.en.md` | バージョンバッジ | **自動**（dynamic badge が SSoT を表示時に読む） |
+| `docs/README.md` | バージョンバッジ | **自動**（dynamic badge が SSoT を表示時に読む） |
 | `scripts/domain/version.py` | `__version__` | **自動**（動的読み込み） |
 
 > 📊 これらの同期は `scripts/test/domain_tests/test_version.py` のテストで検証されます。
@@ -569,13 +569,14 @@ print(__version__)  # plugin.json の version が表示される
 
 ### リリース手順
 
-バージョン更新時は以下の**5ファイル**を更新:
+バージョン更新時は以下の**4ファイル**を更新:
 
 1. `.claude-plugin/plugin.json` - `version` フィールドを更新（SSoT）
 2. `pyproject.toml` - `version` を同じ値に更新
 3. `../.claude-plugin/marketplace.json` - `plugins[0].version` を同じ値に更新
-4. `CHANGELOG.md` - 新しいセクション `## [x.x.x] - YYYY-MM-DD` を追加
-5. `README.md` と `README.en.md` - バージョンバッジを更新
+4. `CHANGELOG.md` - 新しいセクション `## [x.x.x] - YYYY-MM-DD` を追加（英語版 `CHANGELOG.en.md` も同時に）
+
+README・`docs/README.md` のバージョンバッジは dynamic badge（shields.io が表示時に SSoT を読む）のため、更新作業は不要です。
 
 ```bash
 # 動作確認（テストで全ファイルの同期を検証）

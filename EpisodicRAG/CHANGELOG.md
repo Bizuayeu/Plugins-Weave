@@ -11,11 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#581---2026-07-25)
+- [v5.x](#582---2026-07-29)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.8.2] - 2026-07-29
+
+### Changed
+
+- **バージョンバッジを dynamic badge 化（同期作業の構成的排除）** — README 日英・`docs/README.md` のバージョンバッジを shields.io の dynamic JSON バッジへ置換し、SSoT（`.claude-plugin/plugin.json` / ルートは `marketplace.json`）を表示時に読ませる。バッジから実数字が消えたため、bump 時の手動同期そのものが無くなった（v5.9.8 bump で同期漏れにより CI が赤くなった事象への恒久対処）
+- **整合テストを「数字の一致」から「指し先の検査」へ転換** — `test_version.py` のバッジ検査が、dynamic badge の `url=` が正しい SSoT を、`query=` が `$.version` を指すことを検査する形に変更。併せて静的バッジ（`badge/version-x.y.z-`）の不存在を恒久ゲートとして検査し、EpisodicRAG README 日英の検査（従来 pytest 無検査だった箇所）を新設
+- **CONTRIBUTING 日英のリリース手順を更新** — バージョン同期表からバッジの手動同期を削除し、リリース手順を 5 ファイル → 4 ファイルへ（バッジは自動追従）
 
 ---
 

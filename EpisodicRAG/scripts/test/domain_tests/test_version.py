@@ -12,8 +12,45 @@ import re
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import pytest
+
+# shields.io dynamic JSON バッジ（表示時に SSoT を読むため README に実数字を持たない）
+DYNAMIC_BADGE_RE = re.compile(r"https://img\.shields\.io/badge/dynamic/json\?[^)\s]+")
+# 静的バージョンバッジ（直書き再発の検出パターン）
+STATIC_VERSION_BADGE_RE = re.compile(r"badge/version-\d+\.\d+\.\d+-")
+
+
+def extract_dynamic_badge_targets(content: str) -> list[tuple[str, str]]:
+    """dynamic JSON バッジの指し先 (url=, query=) を URL デコードして返す。
+
+    parse_qs が percent-encoding を解くため、`%24.version` は `$.version` に、
+    `url=` は生の raw.githubusercontent.com URL に戻る。
+    """
+    targets: list[tuple[str, str]] = []
+    for badge_url in DYNAMIC_BADGE_RE.findall(content):
+        params = parse_qs(urlparse(badge_url).query)
+        targets.append((params.get("url", [""])[0], params.get("query", [""])[0]))
+    return targets
+
+
+def assert_dynamic_version_badge(content: str, ssot_suffix: str, label: str) -> None:
+    """content に、末尾が ssot_suffix の SSoT を `$.version` で引くバッジが在ることを検査する。"""
+    targets = extract_dynamic_badge_targets(content)
+    assert targets, f"Dynamic version badge not found in {label}"
+    matched = [q for url, q in targets if url.endswith(ssot_suffix)]
+    assert matched, f"No dynamic badge pointing to {ssot_suffix} in {label}: {targets}"
+    for query in matched:
+        assert query == "$.version", (
+            f"Unexpected query in {label}: {query!r} (expected '$.version')"
+        )
+
+
+def assert_no_static_version_badge(content: str, label: str) -> None:
+    """静的バージョンバッジ（数字直書き）が残っていないことを検査する。"""
+    found = STATIC_VERSION_BADGE_RE.search(content)
+    assert not found, f"Static version badge found in {label}: {found.group(0) if found else ''}"
 
 
 class TestVersionLoading:
@@ -223,57 +260,77 @@ class TestVersionConsistency:
 
     @pytest.mark.unit
     def test_root_readme_version_badges(self) -> None:
-        """ルート README.md/README.en.md のバージョンバッジが marketplace.json と一致
+        """ルート README.md/README.en.md のバージョンバッジが marketplace.json を指す
 
         ルートバッジはマーケットプレイス全体のバージョンを表す（SSoT は
-        .claude-plugin/marketplace.json）。EpisodicRAG 単体のバージョン
-        （plugin.json）とは独立に進むため、比較先を取り違えないこと。
+        .claude-plugin/marketplace.json）。dynamic badge は表示時に SSoT を読むため
+        ローカルで数字は照合できない——検査するのは「指し先が正しいか」。
+        EpisodicRAG 単体（plugin.json）とは独立に進むので指し先を取り違えないこと。
         """
-        plugin_root = Path(__file__).parent.parent.parent.parent
-        repo_root = plugin_root.parent  # plugins-weave/
+        repo_root = Path(__file__).parent.parent.parent.parent.parent  # plugins-weave/
 
-        # marketplace.json からリポ全体のバージョン取得
-        marketplace_json = repo_root / ".claude-plugin" / "marketplace.json"
-        marketplace_data = json.loads(marketplace_json.read_text(encoding="utf-8"))
-        marketplace_version = marketplace_data.get("version")
-
-        readme_files = ["README.md", "README.en.md"]
-
-        for readme_name in readme_files:
+        for readme_name in ("README.md", "README.en.md"):
             readme_path = repo_root / readme_name
             if not readme_path.exists():
                 continue
-            content = readme_path.read_text(encoding="utf-8")
-            badge_match = re.search(r"badge/version-(\d+\.\d+\.\d+)-", content)
-            assert badge_match, f"Version badge not found in {readme_name}"
-            badge_version = badge_match.group(1)
-            assert marketplace_version == badge_version, (
-                f"Version mismatch: marketplace.json={marketplace_version}, "
-                f"{readme_name}={badge_version}"
+            assert_dynamic_version_badge(
+                readme_path.read_text(encoding="utf-8"),
+                "Bizuayeu/Plugins-Weave/main/.claude-plugin/marketplace.json",
+                readme_name,
             )
 
     @pytest.mark.unit
+    def test_root_readme_no_static_version_badge(self) -> None:
+        """ルート README 日英に静的バージョンバッジが残っていない（直書き再発の恒久ゲート）"""
+        repo_root = Path(__file__).parent.parent.parent.parent.parent  # plugins-weave/
+
+        for readme_name in ("README.md", "README.en.md"):
+            readme_path = repo_root / readme_name
+            if not readme_path.exists():
+                continue
+            assert_no_static_version_badge(readme_path.read_text(encoding="utf-8"), readme_name)
+
+    @pytest.mark.unit
     def test_docs_readme_version_badge(self) -> None:
-        """docs/README.md のバージョンバッジが plugin.json と一致"""
+        """docs/README.md のバージョンバッジが plugin.json を指す
+
+        dynamic badge は表示時に SSoT を読むためローカルで数字を照合できない——
+        検査するのは「指し先が正しいか」と「静的バッジが再発していないか」。
+        """
         plugin_root = Path(__file__).parent.parent.parent.parent
 
-        # plugin.json からバージョン取得
-        plugin_json = plugin_root / ".claude-plugin" / "plugin.json"
-        plugin_data = json.loads(plugin_json.read_text(encoding="utf-8"))
-        plugin_version = plugin_data.get("version")
-
-        # docs/README.md をチェック
         docs_readme = plugin_root / "docs" / "README.md"
         if not docs_readme.exists():
             pytest.skip("docs/README.md not found")
 
         content = docs_readme.read_text(encoding="utf-8")
-        badge_match = re.search(r"badge/version-(\d+\.\d+\.\d+)-", content)
-        assert badge_match, "Version badge not found in docs/README.md"
-        badge_version = badge_match.group(1)
-        assert plugin_version == badge_version, (
-            f"Version mismatch: plugin.json={plugin_version}, docs/README.md={badge_version}"
+        assert_dynamic_version_badge(
+            content,
+            "Bizuayeu/Plugins-Weave/main/EpisodicRAG/.claude-plugin/plugin.json",
+            "docs/README.md",
         )
+        assert_no_static_version_badge(content, "docs/README.md")
+
+    @pytest.mark.unit
+    def test_plugin_readme_version_badges(self) -> None:
+        """EpisodicRAG README.md/README.en.md のバージョンバッジが plugin.json を指す
+
+        プラグイン単体のバージョン（SSoT は EpisodicRAG/.claude-plugin/plugin.json）。
+        マーケットプレイス全体を指すルート README とは指し先が異なる。
+        """
+        plugin_root = Path(__file__).parent.parent.parent.parent
+
+        for readme_name in ("README.md", "README.en.md"):
+            readme_path = plugin_root / readme_name
+            if not readme_path.exists():
+                continue
+            content = readme_path.read_text(encoding="utf-8")
+            assert_dynamic_version_badge(
+                content,
+                "Bizuayeu/Plugins-Weave/main/EpisodicRAG/.claude-plugin/plugin.json",
+                f"EpisodicRAG/{readme_name}",
+            )
+            assert_no_static_version_badge(content, f"EpisodicRAG/{readme_name}")
 
 
 class TestVersionModule:

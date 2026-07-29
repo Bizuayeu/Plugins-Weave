@@ -553,8 +553,8 @@ Version information's single source of truth is the `version` field in `.claude-
 | `pyproject.toml` | `version` | Manual sync |
 | `../.claude-plugin/marketplace.json` | `plugins[].version` | Manual sync |
 | `CHANGELOG.md` | `## [x.x.x]` | Manual sync |
-| `README.md` / `README.en.md` | Version badge | Manual sync |
-| `docs/README.md` | Version badge | Manual sync |
+| `README.md` / `README.en.md` | Version badge | **Automatic** (dynamic badge reads the SSoT at display time) |
+| `docs/README.md` | Version badge | **Automatic** (dynamic badge reads the SSoT at display time) |
 | `scripts/domain/version.py` | `__version__` | **Automatic** (dynamic loading) |
 
 > 📊 These syncs are verified by tests in `scripts/test/domain_tests/test_version.py`.
@@ -570,13 +570,14 @@ print(__version__)  # Displays version from plugin.json
 
 ### Release Procedure
 
-When updating version, update **5 files**:
+When updating version, update **4 files**:
 
 1. `.claude-plugin/plugin.json` - Update `version` field (SSoT)
 2. `pyproject.toml` - Update `version` to same value
 3. `../.claude-plugin/marketplace.json` - Update `plugins[0].version` to same value
-4. `CHANGELOG.md` - Add new section `## [x.x.x] - YYYY-MM-DD`
-5. `README.md` and `README.en.md` - Update version badges
+4. `CHANGELOG.md` - Add new section `## [x.x.x] - YYYY-MM-DD` (mirror it in `CHANGELOG.en.md`)
+
+The version badges in the READMEs and `docs/README.md` are dynamic badges (shields.io reads the SSoT at display time), so they need no update.
 
 ```bash
 # Verification (tests verify sync across all files)
