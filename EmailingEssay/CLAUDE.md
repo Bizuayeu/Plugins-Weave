@@ -42,6 +42,8 @@ EmailingEssay/
 ├── CLAUDE.md                 # This file (plugin overview)
 ├── CONTRIBUTING.md           # Development workflow & guidelines
 ├── CHANGELOG.md              # Version history
+├── LICENSE                   # MIT license
+├── pyproject.toml            # Package metadata & tool config
 ├── commands/
 │   └── essay.md              # /essay command definition
 ├── agents/
@@ -58,10 +60,12 @@ EmailingEssay/
             ├── adapters/     # Interface implementations
             │   ├── cli/      # CLI handlers & parser
             │   ├── mail/     # yagmail adapter
+            │   ├── process/  # subprocess spawner
             │   ├── scheduler/ # cron/Task Scheduler adapters
             │   └── storage/  # JSON persistence
             ├── frameworks/   # External frameworks (templates)
-            └── tests/        # Comprehensive test suite
+            ├── tests/        # Comprehensive test suite
+            └── archive/      # Retired implementation backup
 ```
 
 The `scripts/` directory follows Clean Architecture (Domain → Use Cases → Adapters → Frameworks).

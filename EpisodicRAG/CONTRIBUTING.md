@@ -55,9 +55,11 @@ EpisodicRAGプラグインの開発に興味を持っていただき、ありが
 plugins-weave/
 ├── .claude-plugin/                     # マーケットプレイス設定
 │   └── marketplace.json
+├── …                                   # 他プラグイン・ルート文書は省略
 └── EpisodicRAG/                        # プラグイン本体
     ├── .claude-plugin/                 # プラグイン設定・テンプレート
     ├── scripts/                        # Clean Architecture（4層）
+    │   ├── README.md                   # Python実装リファレンス
     │   ├── domain/                     # コアビジネスロジック
     │   ├── infrastructure/             # 外部関心事（I/O）
     │   ├── application/                # ユースケース

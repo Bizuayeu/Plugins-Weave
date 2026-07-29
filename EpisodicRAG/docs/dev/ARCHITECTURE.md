@@ -117,7 +117,10 @@ scripts/
 │   │   └── diagnostic.py            # 診断情報の付加
 │   ├── validators/                  # バリデーション（v4.1.0+統合）
 │   │   ├── __init__.py              # 公開API
-│   │   └── helpers.py               # validate_type, collect_type_error等
+│   │   ├── helpers.py               # validate_type, collect_type_error等
+│   │   ├── digest_validators.py     # is_valid_overall_digest（TypeGuard）
+│   │   ├── runtime_checks.py        # ensure_not_none（-O で消えないassert代替）
+│   │   └── type_validators.py       # is_valid_dict/list, get_or_default
 │   └── config/                      # 設定関連定数
 │       ├── __init__.py
 │       └── config_constants.py      # REQUIRED_CONFIG_KEYS, THRESHOLD_KEYS
@@ -157,6 +160,7 @@ scripts/
 │   │   ├── cascade_orchestrator.py  # CascadeOrchestrator (v4.1.0+)
 │   │   ├── components.py            # CascadeComponents (v5.2.0+)
 │   │   ├── file_appender.py         # FileAppender
+│   │   ├── provisional_appender.py  # ProvisionalAppender（確定分を次レベルProvisionalへ追加）
 │   │   └── placeholder_manager.py   # PlaceholderManager
 │   ├── grand/                       # GrandDigest
 │   │   ├── grand_digest.py          # GrandDigestManager
@@ -165,7 +169,8 @@ scripts/
 │   │   ├── shadow_validator.py      # ShadowValidator
 │   │   ├── provisional_loader.py    # ProvisionalLoader
 │   │   ├── digest_builder.py        # RegularDigestBuilder
-│   │   └── persistence.py           # DigestPersistence
+│   │   ├── persistence.py           # DigestPersistence
+│   │   └── validators/              # CollectionValidator, FileNumberValidator
 │   └── config/                      # 設定管理（Facade）
 │       ├── __init__.py              # DigestConfig（Facade）
 │       ├── config_builder.py        # DigestConfigBuilder (v4.1.0+)

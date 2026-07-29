@@ -56,9 +56,11 @@ There are two ways to test a plugin under development.
 plugins-weave/
 ├── .claude-plugin/                     # Marketplace configuration
 │   └── marketplace.json
+├── …                                   # Other plugins & root docs omitted
 └── EpisodicRAG/                        # Plugin main body
     ├── .claude-plugin/                 # Plugin config & templates
     ├── scripts/                        # Clean Architecture (4 layers)
+    │   ├── README.md                   # Python implementation reference
     │   ├── domain/                     # Core business logic
     │   ├── infrastructure/             # External concerns (I/O)
     │   ├── application/                # Use cases

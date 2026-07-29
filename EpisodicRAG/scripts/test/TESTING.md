@@ -74,14 +74,17 @@ test/
 ├── domain_tests/            # 純粋なビジネスロジック (34 files)
 │   └── test_*_properties.py # Property-based (5 files)
 ├── config_tests/            # Config層3層化対応 (14 files) [v4.0.0+]
-│   └── test_config_properties.py
+│   ├── test_config_properties.py
+│   └── …                    # 他は省略（代表例のみ）
 ├── application_tests/       # ユースケース (26 files)
 │   ├── grand/               # GrandDigest関連
 │   ├── shadow/              # Shadow関連（cascade_orchestrator含む）
 │   │   ├── test_shadow_io_properties.py
-│   │   └── test_provisional_appender.py
+│   │   ├── test_provisional_appender.py
+│   │   └── …                # 他は省略（代表例のみ）
 │   ├── finalize/            # Finalize処理
-│   │   └── validators/      # バリデータ
+│   │   ├── validators/      # バリデータ
+│   │   └── …                # 他は省略（代表例のみ）
 │   ├── test_shadow_components.py  # CascadeComponents [v5.2.0+]
 │   ├── test_cascade_properties.py
 │   └── test_template_properties.py
@@ -431,7 +434,8 @@ Windows環境でのUTF-8エンコーディングテスト。stdin 入力とロ�
 
 ```
 interfaces_tests/
-└── test_encoding.py          # stdin日本語入力の文字化け防止テスト
+├── test_encoding.py          # stdin日本語入力の文字化け防止テスト
+└── …                         # 他は省略（本節の対象のみ）
 infrastructure_tests/
 └── test_logging_config.py    # TestHandlerEncodingSafety: ログハンドラのcp932安全性
 ```

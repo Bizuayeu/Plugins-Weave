@@ -41,17 +41,20 @@ Welcome! This guide helps you contribute to EmailingEssay.
 EmailingEssay/
 ├── commands/essay.md       # Command definition
 ├── agents/essay-writer.md  # Agent specification
+├── …                       # Docs & manifests omitted
 └── skills/
     ├── reflect/            # Reflection skill (agent-driven)
     │   └── SKILL.md
     └── send-email/         # Email sending skill
         ├── SKILL.md
         └── scripts/        # Python implementation
+            ├── main.py    # Entry point
             ├── domain/    # Core entities
             ├── usecases/  # Business logic
             ├── adapters/  # External interfaces
             ├── frameworks/# Templates, logging
-            └── tests/     # Test suite
+            ├── tests/     # Test suite
+            └── archive/   # Retired implementation backup
 ```
 
 For detailed architecture, see `CLAUDE.md` → **Clean Architecture Details** section.

@@ -84,9 +84,11 @@ EpisodicRAG/
 ├── agents/                  # AIエージェント仕様
 ├── commands/                # スラッシュコマンド仕様
 ├── docs/                    # ドキュメント
+│   ├── README.md            # AI向け技術仕様ハブ（docs/の入口）
 │   ├── dev/                 # 開発者向け（ARCHITECTURE, API等）
 │   └── user/                # ユーザー向け（GUIDE, FAQ等）
 ├── scripts/                 # Python/Bash実装（Clean Architecture）
+│   ├── README.md            # Python実装リファレンス（層別の索引）
 │   ├── domain/              # コアビジネスロジック
 │   ├── infrastructure/      # 外部関心事
 │   ├── application/         # ユースケース
@@ -94,7 +96,11 @@ EpisodicRAG/
 │   ├── tools/               # 開発ツール (v4.1.0+)
 │   └── test/                # ユニットテスト
 ├── skills/                  # スキル仕様
-│   └── shared/              # 共有コンポーネント（SSoT）
+│   ├── digest-auto/         # @digest-auto（健全性診断・階層推奨）
+│   ├── digest-config/       # @digest-config（設定変更・対話的）
+│   ├── digest-setup/        # @digest-setup（初期セットアップ・対話的）
+│   ├── shared/              # 共有コンポーネント（SSoT）
+│   └── wakeup/              # @wakeup（claude.ai向け記憶ロード）
 ├── CHANGELOG.md             # バージョン履歴
 └── CONTRIBUTING.md          # 開発者ガイド
 ```
