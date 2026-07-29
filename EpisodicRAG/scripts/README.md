@@ -199,6 +199,8 @@ from application.config import ThresholdProvider
 `test/` ディレクトリにユニットテストがあります。
 
 > 📊 最新のテスト数は [CI バッジ](https://github.com/Bizuayeu/Plugins-Weave/actions) を参照してください。
+> バッジの件数は CI メイン job の選択分（`-m "not slow and not performance"`）です——壁時計テストは
+> 専用の performance job で実行されるため、この数には含まれません（→ [TESTING.md](test/TESTING.md#continuous-integration)）。
 
 ### テストディレクトリ構造
 
@@ -222,7 +224,7 @@ test/
 ### テスト実行
 
 ```bash
-# 全テスト実行
+# 全テスト実行（ローカルの既定。壁時計テストも含む）
 cd scripts
 python -m pytest test/ -v
 
@@ -231,8 +233,11 @@ python -m pytest test/domain_tests/ -v
 python -m pytest test/application_tests/ -v
 python -m pytest test/integration_tests/ -v
 
-# パフォーマンステスト
-python -m pytest test/performance_tests/ -v
+# CI メイン job の再現（決定論ゲート。slow / performance を除外）
+python -m pytest test/ -m "not slow and not performance"
+
+# CI performance job の再現（壁時計テストのみ）
+python -m pytest test/ -m "slow or performance" --no-cov
 
 # 層別インポート確認
 python -c "from domain import LEVEL_CONFIG, __version__; print(__version__)"

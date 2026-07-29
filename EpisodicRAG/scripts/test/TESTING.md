@@ -45,11 +45,11 @@ pytest scripts/test/ -m unit
 # 統合テストのみ
 pytest scripts/test/ -m integration
 
-# slowマーカー以外（CI用：1秒超のテストを除外）
-pytest scripts/test/ -m "not slow"
+# CI メイン job と同じ選択（壁時計テストを除外した決定論ゲート）
+pytest scripts/test/ -m "not slow and not performance"
 
-# fastマーカーのみ（純粋ロジック、I/Oなし）
-pytest scripts/test/ -m fast
+# CI performance job と同じ選択（壁時計テストのみ）
+pytest scripts/test/ -m "slow or performance" --no-cov
 
 # Property-based tests のみ
 pytest scripts/test/ -m property
@@ -129,21 +129,27 @@ test/
 |---------|------|------|
 | Domain層 | 90%+ | [Codecov参照](https://codecov.io/gh/Bizuayeu/Plugins-Weave) |
 | Application層 | 80%+ | 同上 |
-| 全体 | 80%+ | ~93% (2025-12 時点) |
+| 全体 | 80%+ | ~92%（CI メイン job = `not slow and not performance` の選択分） |
+
+> CI が計測するのはメイン job の選択分のみ（`slow` / `performance` は別 job で `--no-cov`）。
+> ローカルで全テストを走らせた場合の値はこれより数 pt 高くなる。閾値は `--cov-fail-under=80`。
 
 ### Test Markers
 
 ```python
 @pytest.mark.unit          # 純粋ロジック、<100ms、I/Oなし
 @pytest.mark.integration   # ファイルI/O、複数コンポーネント
-@pytest.mark.slow          # 1秒超（-m "not slow" で除外）
-@pytest.mark.fast          # 高速テスト（純粋ロジック、I/Oなし、明示的に指定）
+@pytest.mark.slow          # 1秒超（CI メイン job から除外）
 @pytest.mark.property      # Hypothesis property-based tests
-@pytest.mark.performance   # ベンチマーク（デフォルトでスキップ）
+@pytest.mark.performance   # ベンチマーク（CI メイン job から除外）
 @pytest.mark.cli           # CLI統合テスト（subprocess経由）[v4.0.0+]
 ```
 
-> **Note**: `slow` は除外用（`-m "not slow"`）、`fast` は選択用（`-m fast`）として使い分けます。
+> **Note**: `slow` / `performance` は**壁時計に依存する検査の隔離マーカー**です。CI のメイン job は
+> `-m "not slow and not performance"` で両者を deselect し、専用の performance job
+> （`-m "slow or performance"`）だけが実行します（→ [Continuous Integration](#continuous-integration)）。
+> マーカーは `pyproject.toml` の `markers` に登録された 6 種のみ有効です（`--strict-markers`）。
+> 未登録のマーカーを付けるとエラーになるため、追加時は `pyproject.toml` への登録が先です。
 
 ---
 
@@ -580,9 +586,16 @@ HYPOTHESIS_PROFILE=ci pytest scripts/test/ -m property
 
 ## Performance Targets
 
+以下は開発機での**参考目標値**であり、**CI が保証する値ではありません**。壁時計の絶対値は
+実行環境（ランナーの負荷・並列度・OS）の関数なので、常設ゲートの合否条件には使いません。
+
 - Unit test suite: <5秒
 - Integration suite: <30秒
 - Full test suite: <2分
+
+> 性能テストが検査するのは「バグ起因の極端な遅延」（上限系 `elapsed < N`）までです。
+> マシン性能そのものを測る絶対スループット下限は v5.8.3 で撤去され、結果の正当性アサート +
+> 数値の `print` に置き換わりました（値は失敗条件ではなく観測情報）。
 
 ---
 
@@ -596,14 +609,33 @@ HYPOTHESIS_PROFILE=ci pytest scripts/test/ -m property
 - **テスト実行**: PR作成時・mainマージ時に自動実行
 - **カバレッジレポート**: [Codecov Dashboard](https://codecov.io/gh/Bizuayeu/Plugins-Weave)
 
+#### 二層運用（v5.8.3〜）
+
+CI は「決定論的に検査できるもの」と「環境に依存するもの」を別 job に分けています。
+
+| job | pytest マーカー | 役割 |
+|-----|----------------|------|
+| `test`（メイン） | `-m "not slow and not performance"`（+ coverage） | **決定論ゲート**。常設の合否判定。壁時計に依存しない検査だけを走らせる |
+| `performance` | `-m "slow or performance"`（`--no-cov`） | **環境依存検査の受け皿**。main push / PR で実行し、結果を artifact に保存 |
+
+- 常設ゲートを決定論に閉じることで、共有ランナーの混雑が「性能回帰」として赤くなる事象を防ぎます
+- 両 job のマーカーは補集合の関係にあり、全テストはどちらか一方でちょうど 1 回実行されます
+- TEST_COUNT バッジの件数は**メイン job の選択分**（`slow` / `performance` を除いた数）です
+
 ### ローカル実行
 
-```bash
-# 最小テストセット（PR用）
-pytest scripts/test/ -m "not performance" --tb=short
+CI と役割が違います——開発機は負荷が安定しているので、ローカルでは**全実行に価値があります**
+（`make test` は全実行のまま）。CI の再現が要るときだけマーカーを指定してください。
 
-# フルテストセット（マージ後）
+```bash
+# 全テスト（ローカルの既定。壁時計テストも含む）
 pytest scripts/test/ -v
+
+# CI メイン job の再現（決定論ゲート）
+pytest scripts/test/ -m "not slow and not performance" --cov-fail-under=80
+
+# CI performance job の再現（壁時計テストのみ）
+pytest scripts/test/ -m "slow or performance" --no-cov
 
 # カバレッジ付き
 pytest scripts/test/ --cov=. --cov-report=term-missing --cov-report=html

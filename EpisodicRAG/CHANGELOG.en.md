@@ -12,11 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#582---2026-07-29)
+- [v5.x](#583---2026-07-29)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.8.3] - 2026-07-29
+
+### Changed
+
+- **CI split into two layers (the standing gate is now deterministic)** — the main coverage job's pytest gained `-m "not slow and not performance"`, so tests carrying wall-clock assertions run only in the pre-existing performance job (`-m "slow or performance" --no-cov`). The standing gate now checks only what can be checked deterministically, structurally removing the failure mode where a busy shared runner turns CI red (observed during the v5.9.8 release). Double execution of the same tests is gone as well. The TEST_COUNT badge now reflects this job's selection (slow / performance deselected)
+- **Absolute throughput assertions downgraded** — the `> 50 files/sec` / `> 100 ops/sec` assertions in `test_scale.py` (the two that measured raw machine speed) were removed in favour of correctness assertions on the merge result and the generated files, with throughput kept as a `print`. What is checked moves from "fast" to "correct"; the numbers remain as information. Upper-bound assertions (`elapsed < N`) are retained as a net for performance regressions
+- **TESTING.md / scripts/README.md follow the two-layer setup** — marker descriptions (`performance` being excluded from the main job is now actually true), the CI section, the local-run division of roles, coverage targets, and the standing of Performance Targets (reference values, not values CI guarantees) were brought in line with reality. The `fast` marker, which was never registered in `pyproject.toml` and therefore unusable under `--strict-markers`, was dropped from the docs
 
 ---
 

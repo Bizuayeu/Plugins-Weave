@@ -126,9 +126,11 @@ jobs:
         working-directory: EpisodicRAG
         shell: bash
         run: |
-          # Run all tests for coverage calculation
-          python -m pytest --cov-report=xml --cov-fail-under=80 -v 2>&1 | tee pytest_output.txt
-          # Extract test count from pytest summary line (e.g., "556 passed")
+          # Deterministic gate for coverage: wall-clock tests (slow / performance) are
+          # excluded here and run in the dedicated performance job below.
+          python -m pytest -m "not slow and not performance" --cov-report=xml --cov-fail-under=80 -v 2>&1 | tee pytest_output.txt
+          # Extract test count from pytest summary line (e.g., "556 passed").
+          # The count is this job's selection only (slow / performance deselected).
           TEST_COUNT=$(grep -oP '\d+(?= passed)' pytest_output.txt | head -1 || echo "0")
           echo "TEST_COUNT=$TEST_COUNT" >> $GITHUB_ENV
           echo "Detected $TEST_COUNT tests"

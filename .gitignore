@@ -61,3 +61,5 @@ EpisodicRAG/skills/wakeup/*.md
 # ConsiderateCoder - SDD working files (kept locally when developing via /outsource)
 IMPLEMENTATION_PLAN.md
 outsource-report-*.html
+# pytest-cov local artifact (CI collects it via upload-artifact, not the repo)
+coverage.xml

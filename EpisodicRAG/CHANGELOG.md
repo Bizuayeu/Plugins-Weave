@@ -11,11 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#582---2026-07-29)
+- [v5.x](#583---2026-07-29)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.8.3] - 2026-07-29
+
+### Changed
+
+- **CI を二層に分離（常設ゲートの決定論化）** — メイン coverage job の pytest に `-m "not slow and not performance"` を追加し、壁時計アサートを持つテスト群を既設の performance 専用 job（`-m "slow or performance" --no-cov`）へ一本化した。常設ゲートは決定論的に検査できるものだけを検査する形になり、共有ランナーの負荷で CI が確率的に赤くなる事象（v5.9.8 リリース時に実発生）が構造的に消える。同じテストの二重実行も解消。TEST_COUNT バッジの件数はメイン job の選択分（slow / performance を除いた分）を表す
+- **絶対スループットアサートを格下げ** — `test_scale.py` の `> 50 files/sec` / `> 100 ops/sec`（マシン性能そのものを検査していた 2 本）を撤去し、merge 結果・生成ファイルの正当性アサート + スループットの `print` に置き換えた。検査対象を「速さ」から「正しさ」へ移し、数値は情報として残す。上限系（`elapsed < N`）は性能回帰の網として温存
+- **TESTING.md / scripts/README.md を二層運用へ追従** — マーカー説明（`performance` はメイン job で除外される、が実態として真になった）・CI 節・ローカル実行の役割分担・カバレッジ目標・Performance Targets の位置付け（CI が保証する値ではない参考目標）を実態化。併せて `pyproject.toml` 未登録で `--strict-markers` 下では使えなかった `fast` マーカーの記述を削除
 
 ---
 
