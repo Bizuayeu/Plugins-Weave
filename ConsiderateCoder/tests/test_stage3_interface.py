@@ -139,6 +139,121 @@ def test_deletion_policy_branch():
     )
 
 
+def test_plan_sdd_final_approval_phase():
+    """plan-sdd closes with an AskUserQuestion approval phase whose *last*
+    question always asks whether to proceed to /outsource. The '最後の設問'
+    rule must sit in close (same or <=3 line) proximity to the /outsource
+    mention, so the ordering reads as one rule rather than two unrelated
+    facts (same proximity pattern as test_deletion_policy_branch).
+    """
+    text = PLAN_SDD_PATH.read_text(encoding="utf-8")
+    assert re.search(r"Phase 7[:：]\s*裁可と接続", text), (
+        "plan-sdd.md missing the 'Phase 7: 裁可と接続' approval phase"
+    )
+    assert "AskUserQuestion" in text, (
+        "plan-sdd.md approval phase must use AskUserQuestion"
+    )
+
+    lines = text.splitlines()
+    outsource_line_idxs = [
+        i for i, line in enumerate(lines) if "outsource" in line.lower()
+    ]
+    last_question_line_idxs = [i for i, line in enumerate(lines) if "最後の設問" in line]
+    assert last_question_line_idxs, "plan-sdd.md has no '最後の設問' rule"
+    assert any(
+        abs(o - q) <= 3
+        for o in outsource_line_idxs
+        for q in last_question_line_idxs
+    ), (
+        "plan-sdd.md's '最後の設問' rule must be within 3 lines of its "
+        "/outsource mention"
+    )
+
+
+def test_plan_sdd_allows_skill_tool():
+    """The approval phase hands off by launching ConsiderateCoder:outsource
+    through the Skill tool, so Skill must be declared in allowed-tools."""
+    frontmatter, _, _ = _split_frontmatter(PLAN_SDD_PATH)
+    assert re.search(r"^\s*-\s*Skill\s*$", frontmatter, re.MULTILINE), (
+        "plan-sdd.md must list 'Skill' in allowed-tools (approval hand-off)"
+    )
+
+
+def test_plan_sdd_wait_clause_replaced():
+    """The old 'wait until told to start' ending is replaced by the approval
+    phase: passive waiting would strand the user in free-form prose exactly
+    where the structured hand-off belongs."""
+    text = PLAN_SDD_PATH.read_text(encoding="utf-8")
+    assert "明示的に指示するまで待機する" not in text, (
+        "plan-sdd.md still carries the pre-1.3.0 passive wait clause"
+    )
+    assert "Phase 7" in text, (
+        "plan-sdd.md must route the post-report step into Phase 7 instead"
+    )
+
+
+def _outsource_phase4_region():
+    """Lines of outsource.md between the 'Phase 4' and 'Phase 5' headings."""
+    lines = OUTSOURCE_PATH.read_text(encoding="utf-8").splitlines()
+    starts = [i for i, line in enumerate(lines) if re.match(r"^##\s*Phase 4\b", line)]
+    ends = [i for i, line in enumerate(lines) if re.match(r"^##\s*Phase 5\b", line)]
+    assert starts, "outsource.md has no 'Phase 4' heading"
+    assert ends, "outsource.md has no 'Phase 5' heading"
+    return lines[starts[0] : ends[0]]
+
+
+def test_outsource_escalation_via_askuserquestion():
+    """Phase 4 turns escalations into a structured approval step: the
+    escalation term and AskUserQuestion must sit in close (same or <=3 line)
+    proximity inside the Phase 4 region, so the flow reads as one rule rather
+    than two unrelated facts (same proximity pattern as
+    test_deletion_policy_branch)."""
+    region = _outsource_phase4_region()
+    escalation_idxs = [i for i, line in enumerate(region) if "上申事項" in line]
+    question_idxs = [i for i, line in enumerate(region) if "AskUserQuestion" in line]
+    assert escalation_idxs, "outsource.md Phase 4 never mentions 上申事項"
+    assert question_idxs, "outsource.md Phase 4 must use AskUserQuestion for approval"
+    assert any(abs(e - q) <= 3 for e in escalation_idxs for q in question_idxs), (
+        "outsource.md Phase 4 must state the AskUserQuestion approval flow "
+        "within 3 lines of its 上申事項 mention"
+    )
+
+
+def test_outsource_no_escalation_no_question():
+    """The approval step is conditional: with zero escalations no question is
+    asked (the '過剰な質問は禁止' principle stays intact, unlike plan-sdd's
+    always-on hand-off question)."""
+    text = OUTSOURCE_PATH.read_text(encoding="utf-8")
+    assert any(
+        "発火しない" in line and re.search(r"上申事項が(ゼロ|なけれ|無けれ)", line)
+        for line in text.splitlines()
+    ), (
+        "outsource.md must state that AskUserQuestion is not fired when there "
+        "are no escalations"
+    )
+
+
+def test_outsource_approval_recorded_in_report():
+    """Approval outcomes (approved / sent back) must land in the Phase 5
+    report's escalation section, so the ESCALATIONS placeholder carries the
+    decision instead of the raw request."""
+    text = OUTSOURCE_PATH.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    assert "ESCALATIONS" in text, (
+        "outsource.md must name the ESCALATIONS placeholder as the record site"
+    )
+    assert "承認" in text and "差し戻し" in text, (
+        "outsource.md must name both approval outcomes (承認 / 差し戻し)"
+    )
+    result_idxs = [i for i, line in enumerate(lines) if "裁可結果" in line]
+    record_idxs = [i for i, line in enumerate(lines) if "ESCALATIONS" in line]
+    assert result_idxs, "outsource.md never mentions 裁可結果"
+    assert any(abs(r - e) <= 3 for r in result_idxs for e in record_idxs), (
+        "outsource.md must record 裁可結果 into the ESCALATIONS section "
+        "(within 3 lines of each other)"
+    )
+
+
 def test_plugin_internal_refs_use_plugin_root():
     """Command bodies must reference plugin-internal files via
     ${CLAUDE_PLUGIN_ROOT}, never via cwd-relative ../ links — the runtime

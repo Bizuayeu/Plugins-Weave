@@ -1,6 +1,6 @@
 # ConsiderateCoder
 
-Clean Architecture × TDD × 三層委任（communicator / orchestrator / worker）を一つの開発方法論として配布するプラグイン。`/plan-sdd` で実装計画を編み、`/outsource` でその計画を委任実行する。
+Clean Architecture × TDD × 三層委任（communicator / orchestrator / worker）を一つの開発方法論として配布するプラグイン。`/plan-sdd` で実装計画を編み、その場の裁可から `/outsource` の委任実行へ途切れずつなぐ。
 
 ## 1. コンセプト
 
@@ -58,6 +58,8 @@ ConsiderateCoder/
 │   ├── plan-sdd.md
 │   ├── outsource.md
 │   └── dig.md
+├── scripts/
+│   └── watchdog.sh
 ├── skills/
 │   ├── dev-rules/
 │   │   └── SKILL.md
@@ -76,6 +78,7 @@ ConsiderateCoder/
 - [`commands/outsource.md`](commands/outsource.md) — communicator - orchestrator - worker の三層委任フローの入口コマンド
 - [`commands/dig.md`](commands/dig.md) — 意図が固まる前の深掘りインタビュー（隠れた前提・未検討リスクの掘り起こし）
 - [`skills/dev-rules/SKILL.md`](skills/dev-rules/SKILL.md) — Clean Architecture・TDD Flow・3-Strike Rule・Decision Priority を定める開発規範（orchestrator / worker へ起動時に全文注入される）
+- [`scripts/watchdog.sh`](scripts/watchdog.sh) — bg 起動時の死活監視スクリプト（対象リポの書き込み沈黙を検知して STALLED を発報）
 - [`skills/ops-rules/SKILL.md`](skills/ops-rules/SKILL.md) — デプロイ・セキュリティ・コスト・LLM 統合防御のチェックリスト
 - [`templates/outsource-report.template.html`](templates/outsource-report.template.html) — 検収レポート & 理解度クイズの自己完結 HTML 雛形
 - [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) — プラグインマニフェスト
@@ -121,16 +124,19 @@ ConsiderateCoder/
    │  まだ曖昧なら → /ConsiderateCoder:dig で掘り起こし
    ▼
 /ConsiderateCoder:plan-sdd <意図>
-   │  → IMPLEMENTATION_PLAN.md 生成 → あなたがレビュー・裁可
+   │  → IMPLEMENTATION_PLAN.md 生成 → 報告
    ▼
-実装 —— 2 つのパターンから選ぶ
-   ├─ A. ペアプログラミング型（アドホック開発）
+裁可 —— 選択肢で問われる
+   │  判断分岐があれば先に、「実装に進むか」は必ず最後
+   ├─ A. ペアプログラミング型で Stage 1 から（アドホック開発）
    │      main セッションで「Stage 1 を実装して」と順に指示し、
    │      対話しながら方向修正する。完了後に計画書を削除するのが既定
-   └─ B. アウトソース型（委託開発）
-          /ConsiderateCoder:outsource で三層委任。orchestrator/worker が
-          実装を進め、communicator が検収して HTML レポート &
-          理解度クイズを届ける。計画書は保持
+   ├─ B. /outsource で実装（委託開発・推奨）
+   │      承認するとその場で三層委任へ接続する。orchestrator/worker が
+   │      実装を進め、communicator が検収して HTML レポート &
+   │      理解度クイズを届ける。計画書は保持
+   ├─ 計画を修正する — 指摘を反映して書き直し、再び裁可へ戻る
+   └─ 今は実装しない — 計画書を残して終了する
 ```
 
 ### /plan-sdd に何を渡すか — インプットは「意図」
@@ -160,12 +166,12 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 
 隠れた前提・未検討のリスク・暗黙の決定を、選択肢付きの深掘り質問で掘り起こすインタビューコマンド。「作りたい気はするが、何が決まっていないのか分からない」段階で最も効く。発見した決定は計画ファイルへ反映される。
 
-### plan-sdd の後 — どちらで実装するか
+### 裁可で分かれる道 — どちらで実装するか
 
 | | A. ペアプログラミング型 | B. アウトソース型（/outsource） |
 |---|---|---|
 | 向く場面 | 方向修正しながら進めたい／変更が小さい／文脈依存の判断が多い | スコープが固まった／Stage が独立している／完了まで任せたい |
-| あなたの関与 | Stage ごとに指示と確認 | 最初（裁可）と最後（検収レポート & クイズ）のみ |
+| あなたの関与 | Stage ごとに指示と確認 | 最初の裁可・上申の裁可（出たときのみ）・最後の検収レポート & クイズ |
 | コンテキスト | main セッションに実装文脈が蓄積 | worker は常にフレッシュ、main は対話文脈を保持 |
 | 計画書の扱い | 全 Stage 完了後に削除（既定） | 保持（検収・レポートの照合元） |
 
@@ -190,7 +196,7 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 - **Decision Priority Notes** — Testability > Readability > Consistency > Simplicity > Reversibility の適用記録
 - **3-Strike Rule** — 詰まりやすい予想ポイントと代替アプローチ、ユーザーに相談する判断ライン
 
-計画作成のみを行い、実装はユーザーが明示的に指示するまで着手しない。
+このフェーズでは実装に着手しない。生成と報告のあと、計画中の判断分岐と「`/outsource` による実装に進むか」を選択肢で裁可に回す（接続の設問は判断分岐がゼロでも必ず問う）。承認された場合はその場で `ConsiderateCoder:outsource` を起動して接続し、起動が harness に拒否される環境では `/ConsiderateCoder:outsource` の手動実行を案内して終了する。
 
 ## 7. /outsource リファレンスと運用律
 
@@ -203,8 +209,8 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 1. **主題確定** — What / Why / Where を抽出し、不明瞭な点のみ1往復で確認する
 2. **ブリーフ結晶化** — orchestrator へ渡す最初のブリーフを、worker への委任と同じ4条件で組む
 3. **orchestrator 起動** — 既定は同期（`run_in_background: false`、報告が直接返る）。長丁場は bg 起動＋同梱 `scripts/watchdog.sh` の死活監視つき（沈黙検知 → TaskOutput 生死実測 → 静観／SendMessage 蘇生の二段判定。詳細は commands/outsource.md Phase 3b）。以降の采配・レビュー・進捗管理を委ねる
-4. **検収** — orchestrator の報告を鵜呑みにせず、communicator 自身が変更ファイル・テスト結果を物証照合する。上申事項はユーザーの明示承認へ回す
-5. **HTML レポート & 理解度クイズ生成** — `templates/outsource-report.template.html` を器に、検収結果を埋めたレポートを生成する
+4. **検収と上申裁可** — orchestrator の報告を鵜呑みにせず、communicator 自身が変更ファイル・テスト結果を物証照合する。残った上申事項は選択肢で一件ずつユーザーの裁可へ回し（上申がゼロなら問わない）、差し戻された分は新しいブリーフで orchestrator を再投入する
+5. **HTML レポート & 理解度クイズ生成** — `templates/outsource-report.template.html` を器に、検収結果を埋めたレポートを生成する。裁可した上申は `✅ 承認済み` / `↩️ 差し戻し` のステータス付きで記録される
 
 `IMPLEMENTATION_PLAN.md` の削除ポリシーはここで分岐する。`/plan-sdd` 単体利用時は全 Stage 完了後に削除するのが既定だが、**`/outsource` 経由では自動削除しない**（レポート & クイズの生成材料、検収の照合元として保持する）。
 
@@ -214,7 +220,7 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 
 設計思想は「三層とも器は落とさず、effort で判断の層だけ上へ振る」。`high` が API 既定で、思考量はターンごとに adaptive thinking が決める。`xhigh` 以上は思考を無効化できなくなる領域——常時思考が効くのは判断の層であり、実装を担う層では effort を上げるほどタスク外の変更（スコープ膨張）が増える。
 
-- **communicator（main セッション）** — **Opus 以上（可能なら Fable / Mythos 級）× effort `xhigh` 以上を推奨**。主題確定・ブリーフ結晶化・検収・上申裁定と、三層で最も高い判断力を要する層。さらに orchestrator が `inherit` 既定のため、**main セッションの器がそのまま采配の器を兼ねる——communicator のモデル選択は二重に効く**。Claude Code では `/model` で切り替えられる
+- **communicator（main セッション）** — **Opus 以上（可能なら Fable / Mythos 級）× effort `xhigh` 以上を推奨**。主題確定・ブリーフ結晶化・検収・裁可設問の構成と、三層で最も高い判断力を要する層。さらに orchestrator が `inherit` 既定のため、**main セッションの器がそのまま采配の器を兼ねる——communicator のモデル選択は二重に効く**。Claude Code では `/model` で切り替えられる
 - **orchestrator** — `model: inherit`（呼び出し元＝communicator の器を継ぐ）／ `effort: high`。Edit/Write を持たない層ゆえ、采配を厚くしたければ `xhigh` 以上へ上げてよい
 - **worker** — `model: opus` / `effort: high`。実働は数を打つ層だが、世代間の性能差が実装品質に直結するため器は落とさない。effort を上げると規範の YAGNI と衝突する
 

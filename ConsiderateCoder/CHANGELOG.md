@@ -2,6 +2,13 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.3.0] - 2026-07-29
+
+### Added
+
+- **plan-sdd に裁可・接続フェーズ（Phase 7）** — 計画の報告を散文で置いて自由文の応答を待つのをやめ、`AskUserQuestion` で裁可を仰ぐ。計画中の判断分岐を 1 分岐 1 設問に変換して先に置き、**最後の設問として「この計画で `/outsource` による実装に進むか」を必ず問う**（判断分岐がゼロでも常設——「過剰な質問の禁止」の唯一の例外）。承認時は `Skill` ツールで `ConsiderateCoder:outsource` を起動し、計画 → 実装をセッションを跨がずに接続する。harness に拒否された場合のフォールバックは「`/ConsiderateCoder:outsource` の手動実行を一行で案内して終了」の一段のみ——`outsource.md` を Read しての代行は重複実行と SSoT 侵食を招くため禁じる
+- **outsource に上申裁可フェーズ（Phase 4 末尾、レポート生成前）** — 検収で残った上申事項を `AskUserQuestion` で一件ずつ裁可に回す（**1 設問 1 上申**、`multiSelect` は使わない——裁可は個別判断でありまとめ承認にしない）。plan-sdd の接続設問と違い**上申事項がゼロなら発火しない**条件付き（過剰な質問の禁止との整合）。裁可結果は Phase 5 レポートの `{{ESCALATIONS}}` へ `✅ 承認済み` / `↩️ 差し戻し` のステータス付きで記録し、差し戻された上申は「物証ベースの現状＋残作業」の新しいブリーフで orchestrator を同期起動し直す。器（HTML テンプレート）は「器は決定論・中身は判断」の既存設計どおり変更しない
+
 ## [1.2.4] - 2026-07-26
 
 ### Fixed
