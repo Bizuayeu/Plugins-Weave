@@ -22,6 +22,8 @@
 
 **運用設定は config.json に集約**: `agent_name` / `private_dir` / `session_duration_sec` / `registry_sync` / `registry_dir` / `registry_branch` は手置換せず `<INSTALL_DIR>/config.json`（`.gitignore` 除外、雛型 `templates/config.template.json`、`init-config` 生成）に置く。ROUTINE_PROMPT は Step 0 でこれを読み、`<INSTALL_DIR>` は bootstrap が env 解決する（運用値の手置換は不要）。秘匿（bot token / authorized chats）＋ `state_dir` は env、非秘匿の運用設定は config.json が単一正典（**純2層**）。
 
+> ⚠️ **config.json に秘匿値を置かない**: 本リポの `.gitignore` 除外は配布境界であって秘匿境界ではない。config.json は cloud routine が読む必要があるため、運用者の基本設定リポ（例: 公開リポ `Homunculus-Weave`）では追跡・公開されうる。秘匿値の置き場は env のみ。
+
 ## 全体像（3区分）
 
 | 区分 | git | 中身 |

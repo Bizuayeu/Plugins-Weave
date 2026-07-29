@@ -13,6 +13,8 @@ LineBridge/
 
 # 運用設定の実体（config.json）。skill root のみ除外（先頭スラッシュ）。
 # 秘匿は含まないが個人/インスタンス固有設定ゆえ配布しない。templates/config.template.json（雛型）は配布対象。
+# ※ この除外は配布境界であって秘匿境界ではない。運用者の基本設定リポ（例: Homunculus-Weave）では
+#   cloud routine に読ませるため本ファイルは追跡・公開されうる。秘匿値は必ず env へ置くこと。
 /config.json
 
 # Python 生成物
