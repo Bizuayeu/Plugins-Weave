@@ -2,6 +2,24 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.4.2] - 2026-07-30 — 手順書の変数名を実測へ戻す（沈黙する 4h 枠の根治）
+
+手順書が指す env 変数名が、`bootstrap.sh` が実際に export する名前と食い違っていた。
+bash の算術展開は未定義変数を警告なく 0 と評価するため、Step 6 の残り窓計算が
+起動直後に「deadline 到達」と判定し、4h 常駐枠が exit 0 の正常終了として沈黙していた
+（5 日で 5 回。壊れずに間違う fail-open ゆえ観測されなかった）。修正方向は
+**実測（export）→ 宣言（手順書）**に固定する。
+
+### Fixed
+
+- **手順書の `TS_` 短縮名を `TELEGRAM_SECRETARY_` 正式名へ復旧（22 箇所）** — `ROUTINE_PROMPT.md`（11）/ `skills/telegram-secretary/SKILL.md`（7）/ `README.md`（4）。変数名は v1.2.3（commit `b4d7735`）の母体還流で `bootstrap.sh` 側だけが正式名へ改名され、手順書が置き去りになっていた。本リリースはそのリネームの **doc 側完遂**。うち `SKILL.md` の `TS_SESSION_DURATION_SEC` 1 件のみ機械置換せず、変数名を出さない表現へ書き換えた（廃止済みの変数を「ある」と読ませないため）。過去エントリ（L155/212/246）の `TS_` 言及は当時の実体を正しく記録しているので触れていない
+- **`POLL_SET_SEC` 既定 580 → 540** — 不変条件 `max_duration + timeout < bash_timeout/1000` を 580+30=610 > 600 で破っており、Telegram 5xx リトライで long-poll が伸びた時にだけ SIGTERM(143) として顕在化していた（2026-07-26 実発生）。540+30=570 < 600 で条件を回復し、差の 30 秒をリトライ吸収代として明示する。既定値の変更のみで env 上書きの余地は不変（後方互換）
+
+### Notes
+
+- `MAX_TURNS` 算出例を新既定へ同期（`bootstrap.sh` コメント / `ROUTINE_PROMPT.md` / `README.md` の三点）: 24h→約 520（160+360）、4h→約 86（26+60）。日次総量キャップが微増するが、停止主軸は従来どおり deadline
+- 検収は宣言でなく実測で行った — `bootstrap.sh` の env snapshot に実在する名前と手順書記載名を突合し、Step 6 の `remaining` が正値になることを確認している
+
 ## [1.4.1] - 2026-07-29 — allowlist を通った後の面を塞ぐ（入力・出力・流量）
 
 `allowlist` は「誰が到達できるか」だけを決める。それを通った後の入力面・出力面・流量が

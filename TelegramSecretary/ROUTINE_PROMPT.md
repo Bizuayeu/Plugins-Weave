@@ -44,7 +44,7 @@ source <INSTALL_DIR>/bootstrap.sh
 source /tmp/telegram-secretary.env.sh && cd "$TELEGRAM_SECRETARY_INSTALL_DIR"
 ```
 
-これにより (a) `lease acquire` / `watch` / `send-reply` / `lease renew` / `lease release` が**同じ owner（session_id）を共有**し（`--owner` 明示不要、緊急時は `--owner <id>` で上書き可）、(b) `TS_SESSION_DEADLINE_EPOCH` 等の deadline 変数が全 call で一貫し、(c) cwd ドリフトが起きても `cd "$TELEGRAM_SECRETARY_INSTALL_DIR"` で**skill root に絶対固定**される。STATE_DIR も bootstrap が絶対パス化済みのため、subshell cd の影響を受けない。
+これにより (a) `lease acquire` / `watch` / `send-reply` / `lease renew` / `lease release` が**同じ owner（session_id）を共有**し（`--owner` 明示不要、緊急時は `--owner <id>` で上書き可）、(b) `TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH` 等の deadline 変数が全 call で一貫し、(c) cwd ドリフトが起きても `cd "$TELEGRAM_SECRETARY_INSTALL_DIR"` で**skill root に絶対固定**される。STATE_DIR も bootstrap が絶対パス化済みのため、subshell cd の影響を受けない。
 
 ## Step 3 — egress 疎通確認
 
@@ -115,17 +115,17 @@ source /tmp/telegram-secretary.env.sh && \
 
 ## Step 6 — /goal による deadline 駆動ロングポーリング（keep-alive + 即応）
 
-12. `/goal` で「`$TS_SESSION_DEADLINE_EPOCH` 到達まで Telegram を監視し続ける」ゴールを駆動する。**各ターン = 1 つの foreground watch call**で、`--exit-on-message` 付きゆえ **メッセージを受けた瞬間に exit→返信→次ターンで再起動**する（即応）。メッセージが来なければ `--max-duration` の窓満了まで long-poll でブロック（待機トークンは getUpdates サーバ側ブロックでほぼゼロ＝コスト最小、かつ foreground call がセッションを warm に保つ＝アイドル閉鎖の回避）。
+12. `/goal` で「`$TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH` 到達まで Telegram を監視し続ける」ゴールを駆動する。**各ターン = 1 つの foreground watch call**で、`--exit-on-message` 付きゆえ **メッセージを受けた瞬間に exit→返信→次ターンで再起動**する（即応）。メッセージが来なければ `--max-duration` の窓満了まで long-poll でブロック（待機トークンは getUpdates サーバ側ブロックでほぼゼロ＝コスト最小、かつ foreground call がセッションを warm に保つ＝アイドル閉鎖の回避）。
 
-**枠とポーリング回数は分離**: 停止主軸は deadline（時刻）。ポーリング回数はメッセージ頻度で可変（数えない）。`$TS_MAX_TURNS` は日次総量レートキャップ（≈15通/h を最低保証、bootstrap が `session_duration_sec` から算出＝24h≈507・4h≈84）。到達時は deadline 前でも停止する意図的上限であり、deadline 判定が壊れた時の暴走保険も兼ねる。
+**枠とポーリング回数は分離**: 停止主軸は deadline（時刻）。ポーリング回数はメッセージ頻度で可変（数えない）。`$TELEGRAM_SECRETARY_MAX_TURNS` は日次総量レートキャップ（≈15通/h を最低保証、bootstrap が `session_duration_sec` から算出＝24h≈520・4h≈86）。到達時は deadline 前でも停止する意図的上限であり、deadline 判定が壊れた時の暴走保険も兼ねる。
 
-`/goal` 起動（**この call も冒頭で `source /tmp/telegram-secretary.env.sh` してから打つ**——自然文中の `$TS_SESSION_DEADLINE_EPOCH` 等を展開するため）：
+`/goal` 起動（**この call も冒頭で `source /tmp/telegram-secretary.env.sh` してから打つ**——自然文中の `$TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH` 等を展開するため）：
 
 ```
 /goal "Telegram を deadline まで監視する。各ターンで下記の watch を1回 foreground 実行し、
        返ってきた JSON Lines の各メッセージに send-reply で返信する。
-       現在時刻が $TS_SESSION_DEADLINE_EPOCH (epoch秒) を過ぎたら lease release して停止。
-       or stop after $TS_MAX_TURNS turns（日次総量上限＝保険兼用）。停止時に未返信メッセージが無いこと。"
+       現在時刻が $TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH (epoch秒) を過ぎたら lease release して停止。
+       or stop after $TELEGRAM_SECRETARY_MAX_TURNS turns（日次総量上限＝保険兼用）。停止時に未返信メッセージが無いこと。"
 ```
 
 各ターンの手順：
@@ -134,12 +134,12 @@ source /tmp/telegram-secretary.env.sh && \
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \
-remaining=$(( TS_SESSION_DEADLINE_EPOCH - $(date +%s) ))
+remaining=$(( TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH - $(date +%s) ))
 if [ "$remaining" -le 0 ]; then echo "DEADLINE_REACHED"; \
-  else echo "window=$(( remaining < TS_POLL_SET_SEC ? remaining : TS_POLL_SET_SEC ))"; fi
+  else echo "window=$(( remaining < TELEGRAM_SECRETARY_POLL_SET_SEC ? remaining : TELEGRAM_SECRETARY_POLL_SET_SEC ))"; fi
 ```
 
-2. **watch を foreground 実行**（`&` を付けない）。この call **だけ** bash tool の `timeout` に `$TS_POLL_BASH_TIMEOUT_MS`（=600000）を明示：
+2. **watch を foreground 実行**（`&` を付けない）。この call **だけ** bash tool の `timeout` に `$TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS`（=600000）を明示：
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \
@@ -271,7 +271,7 @@ source /tmp/telegram-secretary.env.sh && \
 
 ## Step 8 — セッション終端
 
-15. `/goal` が deadline 到達（または `$TS_MAX_TURNS` 日次総量上限）で停止したら、lease release で次 cron が拾えるようにする。deadline → lease release → 次 cron が `lease/offset` 冪等性で継続（cron 間隔の隙間メッセージは次回 getUpdates が offset 起点で回収、Telegram は ~24h 保持）：
+15. `/goal` が deadline 到達（または `$TELEGRAM_SECRETARY_MAX_TURNS` 日次総量上限）で停止したら、lease release で次 cron が拾えるようにする。deadline → lease release → 次 cron が `lease/offset` 冪等性で継続（cron 間隔の隙間メッセージは次回 getUpdates が offset 起点で回収、Telegram は ~24h 保持）：
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \

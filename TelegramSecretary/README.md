@@ -64,7 +64,7 @@ python scripts/main.py poll --timeout 5
 python scripts/main.py lease acquire
 python scripts/main.py watch --exit-on-message --max-duration 30 --timeout 5
 #   → メッセージが来たサイクルで即 exit 0／無ければ 30 秒の窓満了で exit 0
-#   （本番の常駐設定＝4h 枠・580s 窓は ROUTINE_PROMPT.md 参照）
+#   （本番の常駐設定＝4h 枠・540s 窓は ROUTINE_PROMPT.md 参照）
 python scripts/main.py lease release
 ```
 
@@ -85,7 +85,7 @@ python scripts/main.py lease release
 | `TELEGRAM_SECRETARY_SESSION_ID` | optional | リース owner ID（省略時は uuid 自動生成）。`source bootstrap.sh` で自動 export され全コマンドで共有 |
 | media / PDF / 音声 / 送信添付の optional 群 | optional | `*_MEDIA_MAX_SIZE_BYTES`（20MB）/ `*_MEDIA_RETENTION_HOURS`（24h）/ `*_MEDIA_ENABLE_DOWNLOAD`（Heavy/Medium）/ `*_BUNDLE_VOICE`（STT 同梱）/ `*_OUTBOUND_MAX_SIZE_BYTES`（50MB）/ `*_PDF_IMAGE_MAX_PAGES`（20）。各既定値・挙動は [SKILL.md](./skills/telegram-secretary/SKILL.md) の env vars 表（SSoT）参照 |
 
-> **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須）。「9-17 時勤務」のような勤務帯は cloud routine の cron（例 `0 9-16 * * 1-5`）+ duration で表現します（コードに時計を持たせない）。deadline 駆動ループの運用変数（`TS_SESSION_DEADLINE_EPOCH` / `TS_POLL_SET_SEC` / `TS_POLL_BASH_TIMEOUT_MS` / `TS_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export します。詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)。
+> **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須）。「9-17 時勤務」のような勤務帯は cloud routine の cron（例 `0 9-16 * * 1-5`）+ duration で表現します（コードに時計を持たせない）。deadline 駆動ループの運用変数（`TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH` / `TELEGRAM_SECRETARY_POLL_SET_SEC` / `TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS` / `TELEGRAM_SECRETARY_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export します。詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)。
 
 ## Subcommands
 
