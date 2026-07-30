@@ -300,13 +300,13 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 
 **A development methodology plugin for Clean Architecture × TDD × three-tier delegation**
 
-`/plan-sdd` fixes requirements and completion criteria upfront as SDD, and `/outsource` delegates implementation through a three-tier structure (communicator [main] - orchestrator - worker). On completion, it generates an acceptance report and comprehension quiz so you retain ownership of understanding even after delegating.
+`/plan-sdd` fixes requirements and completion criteria upfront as SDD, and `/outsource` delegates implementation through a three-tier structure (communicator [main] - orchestrator - worker). On completion, it generates an acceptance report, a comprehension quiz, and a next-cycle intent (a next plan, or a convergence declaration) so you retain ownership of understanding even after delegating.
 
 #### Key Features
 
 - **SDD Plan Generation**: Fixes Clean Architecture's 4-layer responsibility breakdown and stage division as `IMPLEMENTATION_PLAN.md`
 - **Three-tier Delegation with Evidence-based Review**: orchestrator breaks tasks down for workers and verifies reports against files/test results rather than taking them at face value
-- **Self-contained HTML Report & Quiz**: No external resources; comprehension quiz asks about change intent, scope of impact, and risk
+- **Self-contained HTML Report & Quiz & Next Plan**: No external resources; the comprehension quiz asks about change intent, scope of impact, and risk, and the report closes with the next-cycle intent (or a convergence declaration when there is no meaningful improvement left)
 - **Bundled Development Rules**: Distributes Clean Architecture, TDD Flow, 3-Strike Rule, and Decision Priority as `skills/` (dev-rules / ops-rules)
 
 #### Main Commands
@@ -314,7 +314,7 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 | Command | Description |
 |---------|-------------|
 | `/ConsiderateCoder:plan-sdd` | Generates an implementation plan (IMPLEMENTATION_PLAN.md) |
-| `/ConsiderateCoder:outsource` | Executes development via three-tier delegation, generating an acceptance report & quiz |
+| `/ConsiderateCoder:outsource` | Executes development via three-tier delegation, generating an acceptance report & quiz & next plan |
 | `/ConsiderateCoder:dig` | Deep exploratory interview to discover unknowns and strengthen plans |
 
 → [Full README](ConsiderateCoder/README.md)

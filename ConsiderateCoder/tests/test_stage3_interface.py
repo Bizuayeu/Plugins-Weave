@@ -35,6 +35,7 @@ REQUIRED_PLACEHOLDERS = [
     "{{EVIDENCE}}",
     "{{ESCALATIONS}}",
     "{{QUIZ_ITEMS}}",
+    "{{NEXT_PLAN}}",
 ]
 
 
@@ -251,6 +252,79 @@ def test_outsource_approval_recorded_in_report():
     assert any(abs(r - e) <= 3 for r in result_idxs for e in record_idxs), (
         "outsource.md must record 裁可結果 into the ESCALATIONS section "
         "(within 3 lines of each other)"
+    )
+
+
+def _outsource_phase5_region():
+    """Lines of outsource.md from the 'Phase 5' heading to the next '##' heading."""
+    lines = OUTSOURCE_PATH.read_text(encoding="utf-8").splitlines()
+    starts = [i for i, line in enumerate(lines) if re.match(r"^##\s*Phase 5\b", line)]
+    assert starts, "outsource.md has no 'Phase 5' heading"
+    start = starts[0]
+    ends = [
+        i
+        for i, line in enumerate(lines)
+        if i > start and re.match(r"^##\s", line)
+    ]
+    return lines[start : ends[0] if ends else len(lines)]
+
+
+def test_outsource_next_plan_rules():
+    """Phase 5 must carry the next-plan generation rules: the intent format is
+    plan-sdd's (Acceptance is the stop condition that must not be dropped),
+    convergence is a first-class output, and the command is never launched by
+    the communicator on its own (全問正解 gates the sanctioned hand-off)."""
+    text = OUTSOURCE_PATH.read_text(encoding="utf-8")
+    for token in ("二次計画", "収束", "Acceptance", "自動起動しない", "全問正解"):
+        assert token in text, (
+            f"outsource.md missing next-plan rule token: {token!r}"
+        )
+
+
+def test_outsource_default_to_convergence():
+    """The default-to-convergence tilt ('収束に倒す') depends on generation
+    behaviour rather than machinery, so its rule text must at least exist —
+    and sit in close (same or <=3 line) proximity to the NEXT_PLAN mention
+    inside Phase 5 (same proximity pattern as test_deletion_policy_branch)."""
+    region = _outsource_phase5_region()
+    tilt_idxs = [i for i, line in enumerate(region) if "収束に倒す" in line]
+    plan_idxs = [i for i, line in enumerate(region) if "NEXT_PLAN" in line]
+    assert tilt_idxs, "outsource.md Phase 5 missing the '収束に倒す' tilt rule"
+    assert plan_idxs, "outsource.md Phase 5 never names the NEXT_PLAN placeholder"
+    assert any(abs(t - p) <= 3 for t in tilt_idxs for p in plan_idxs), (
+        "outsource.md's '収束に倒す' rule must sit within 3 lines of a "
+        "NEXT_PLAN mention in Phase 5"
+    )
+
+
+def test_outsource_allows_skill_tool():
+    """The sanctioned hand-off launches ConsiderateCoder:plan-sdd through the
+    Skill tool, so Skill must be declared in allowed-tools."""
+    frontmatter, _, _ = _split_frontmatter(OUTSOURCE_PATH)
+    assert re.search(r"^\s*-\s*Skill\s*$", frontmatter, re.MULTILINE), (
+        "outsource.md must list 'Skill' in allowed-tools (next-plan hand-off)"
+    )
+
+
+def test_outsource_gate_conditions():
+    """Both gate branches are conditional and must be stated as conditions:
+    convergence skips the comprehension gate entirely (same conditional
+    asymmetry as the zero-escalation branch), and a less-than-perfect score
+    stops short of the hand-off question and proposes a re-read instead."""
+    lines = OUTSOURCE_PATH.read_text(encoding="utf-8").splitlines()
+    assert any(
+        "発火しない" in line and re.search(r"収束(の場合|時|であれば|なら)", line)
+        for line in lines
+    ), (
+        "outsource.md must state that the comprehension gate does not fire "
+        "when the next plan converges"
+    )
+    assert any(
+        "全問正解" in line and re.search(r"(でなけれ|不正解)", line) and "再読" in line
+        for line in lines
+    ), (
+        "outsource.md must state that a less-than-perfect score stops before "
+        "the hand-off question and proposes re-reading the report"
     )
 
 

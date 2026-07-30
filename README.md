@@ -299,13 +299,13 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 
 **Clean Architecture × TDD × 三層委任の開発方法論プラグイン**
 
-`/plan-sdd` で要件と完了条件をSDDとして先に固め、`/outsource` でcommunicator（main）- orchestrator - workerの三層委任により実装をアウトソースします。完了時には検収レポートと理解度クイズを生成し、委任後も発注者としての理解を保ちます。
+`/plan-sdd` で要件と完了条件をSDDとして先に固め、`/outsource` でcommunicator（main）- orchestrator - workerの三層委任により実装をアウトソースします。完了時には検収レポート・理解度クイズ・次サイクルの意図（二次計画、または収束宣言）を生成し、委任後も発注者としての理解を保ちます。
 
 #### 主な特徴
 
 - **SDD計画書生成**: Clean Architecture 4層の責務分解とStage分割を`IMPLEMENTATION_PLAN.md`として固定
 - **三層委任と物証レビュー**: orchestratorがworkerへタスクを切り出し、報告を鵜呑みにせずファイル・テスト結果で検収
-- **自己完結HTMLレポート&クイズ**: 外部リソース非依存、変更意図・影響範囲・リスクを問う理解度クイズを同梱
+- **自己完結HTMLレポート&クイズ&二次計画**: 外部リソース非依存、変更意図・影響範囲・リスクを問う理解度クイズと、次サイクルの意図（改善候補がなければ収束宣言）を同梱
 - **開発規範の同梱**: Clean Architecture・TDD Flow・3-Strike Rule・Decision Priorityを`skills/`（dev-rules / ops-rules）として配布
 
 #### 主要コマンド
@@ -313,7 +313,7 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 | コマンド | 説明 |
 |---------|------|
 | `/ConsiderateCoder:plan-sdd` | 実装計画書（IMPLEMENTATION_PLAN.md）を生成 |
-| `/ConsiderateCoder:outsource` | 三層委任で開発を実行し、検収レポート&クイズを生成 |
+| `/ConsiderateCoder:outsource` | 三層委任で開発を実行し、検収レポート&クイズ&二次計画を生成 |
 | `/ConsiderateCoder:dig` | 深掘りインタビューで未知の要件を発見し計画を強化 |
 
 → [詳細README](ConsiderateCoder/README.md)

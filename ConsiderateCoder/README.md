@@ -45,6 +45,10 @@ Clean Architecture の 4 層は、収録物とそのまま対応する：
 
 `/outsource` が生成する HTML レポートには理解度クイズを添える。目的は正解を問うことではなく、**受注能力を持った発注者であり続けること**——委任によって手放されがちな「変更の理解」の所有権を、発注者側に保持し続けるための構造装置である。クイズは変更意図・影響範囲・リスクを問う設問で構成する。
 
+### ⑤ 二次計画と収束宣言
+
+レポートの末尾には、検収所感から合成した次サイクルの意図（二次計画）を置く——**再帰の環はレポートを通って開通する**。ただし環を進めるのは communicator ではなく、理解度ゲート（二次計画の根拠を問う設問）を通った**人間の裁可**である（自発起動の禁止＝枠の保持）。有意差を生む改善候補がなければ「二次計画なし（収束）」を正規の出力とし、迷えば収束に倒す——**止まれる再帰**にするための既定である。生成規則とゲートの作法は [`commands/outsource.md`](commands/outsource.md) の Phase 5 を単一の正典とする。
+
 ## 3. 収録物
 
 ```
@@ -80,7 +84,7 @@ ConsiderateCoder/
 - [`skills/dev-rules/SKILL.md`](skills/dev-rules/SKILL.md) — Clean Architecture・TDD Flow・3-Strike Rule・Decision Priority を定める開発規範（orchestrator / worker へ起動時に全文注入される）
 - [`scripts/watchdog.sh`](scripts/watchdog.sh) — bg 起動時の死活監視スクリプト（対象リポの書き込み沈黙を検知して STALLED を発報）
 - [`skills/ops-rules/SKILL.md`](skills/ops-rules/SKILL.md) — デプロイ・セキュリティ・コスト・LLM 統合防御のチェックリスト
-- [`templates/outsource-report.template.html`](templates/outsource-report.template.html) — 検収レポート & 理解度クイズの自己完結 HTML 雛形
+- [`templates/outsource-report.template.html`](templates/outsource-report.template.html) — 検収レポート & 理解度クイズ & 二次計画の自己完結 HTML 雛形
 - [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) — プラグインマニフェスト
 - [`CHANGELOG.md`](CHANGELOG.md) — 変更履歴
 - `tests/` — 構造テスト（stdlib のみ、pytest）
@@ -134,7 +138,9 @@ ConsiderateCoder/
    ├─ B. /outsource で実装（委託開発・推奨）
    │      承認するとその場で三層委任へ接続する。orchestrator/worker が
    │      実装を進め、communicator が検収して HTML レポート &
-   │      理解度クイズを届ける。計画書は保持
+   │      理解度クイズ & 二次計画を届ける。計画書は保持
+   │      二次計画が出たときのみ、理解度ゲート → 裁可を経て
+   │      次サイクルの /plan-sdd へ接続する（収束なら問われない）
    ├─ 計画を修正する — 指摘を反映して書き直し、再び裁可へ戻る
    └─ 今は実装しない — 計画書を残して終了する
 ```
@@ -171,7 +177,7 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 | | A. ペアプログラミング型 | B. アウトソース型（/outsource） |
 |---|---|---|
 | 向く場面 | 方向修正しながら進めたい／変更が小さい／文脈依存の判断が多い | スコープが固まった／Stage が独立している／完了まで任せたい |
-| あなたの関与 | Stage ごとに指示と確認 | 最初の裁可・上申の裁可（出たときのみ）・最後の検収レポート & クイズ |
+| あなたの関与 | Stage ごとに指示と確認 | 最初の裁可・上申の裁可（出たときのみ）・最後の検収レポート & クイズ・二次計画の理解度ゲートと裁可（出たときのみ） |
 | コンテキスト | main セッションに実装文脈が蓄積 | worker は常にフレッシュ、main は対話文脈を保持 |
 | 計画書の扱い | 全 Stage 完了後に削除（既定） | 保持（検収・レポートの照合元） |
 
@@ -210,7 +216,7 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 2. **ブリーフ結晶化** — orchestrator へ渡す最初のブリーフを、worker への委任と同じ4条件で組む
 3. **orchestrator 起動** — 既定は同期（`run_in_background: false`、報告が直接返る）。長丁場は bg 起動＋同梱 `scripts/watchdog.sh` の死活監視つき（沈黙検知 → TaskOutput 生死実測 → 静観／SendMessage 蘇生の二段判定。詳細は commands/outsource.md Phase 3b）。以降の采配・レビュー・進捗管理を委ねる
 4. **検収と上申裁可** — orchestrator の報告を鵜呑みにせず、communicator 自身が変更ファイル・テスト結果を物証照合する。残った上申事項は選択肢で一件ずつユーザーの裁可へ回し（上申がゼロなら問わない）、差し戻された分は新しいブリーフで orchestrator を再投入する
-5. **HTML レポート & 理解度クイズ生成** — `templates/outsource-report.template.html` を器に、検収結果を埋めたレポートを生成する。裁可した上申は `✅ 承認済み` / `↩️ 差し戻し` のステータス付きで記録される
+5. **HTML レポート & 理解度クイズ & 二次計画生成** — `templates/outsource-report.template.html` を器に、検収結果を埋めたレポートを生成する。裁可した上申は `✅ 承認済み` / `↩️ 差し戻し` のステータス付きで記録される。レポート末尾には二次計画——改善候補がなければ収束宣言——を置き、二次計画が出たときのみ理解度ゲート → 裁可へ進む
 
 `IMPLEMENTATION_PLAN.md` の削除ポリシーはここで分岐する。`/plan-sdd` 単体利用時は全 Stage 完了後に削除するのが既定だが、**`/outsource` 経由では自動削除しない**（レポート & クイズの生成材料、検収の照合元として保持する）。
 

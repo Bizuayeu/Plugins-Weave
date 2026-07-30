@@ -139,7 +139,7 @@ dev-rules の Completion Checklist を **計画段階から織り込む**（実�
 | `CHANGELOG.md` | 変更履歴 | [更新 / 不要] | [エントリのドラフト / 不要なら理由] |
 | `IMPLEMENTATION_PLAN.md` | 本計画書 | 新規 | 全 Stage 完了後に削除 |
 
-> **削除ポリシー分岐**: `IMPLEMENTATION_PLAN.md` は `/plan-sdd` 単体利用時は全 Stage 完了後に削除する（従来どおり）。ただし `/outsource` 経由の実装では**自動削除しない**（HTML レポート & 理解度クイズの生成材料、および communicator 検収の照合元として保持し、削除はユーザーの明示指示があった場合のみ行う）。
+> **削除ポリシー分岐**: `IMPLEMENTATION_PLAN.md` は `/plan-sdd` 単体利用時は全 Stage 完了後に削除する（従来どおり）。ただし `/outsource` 経由の実装では**自動削除しない**（HTML レポート & 理解度クイズ & 二次計画の生成材料、および communicator 検収の照合元として保持し、削除はユーザーの明示指示があった場合のみ行う）。
 
 **「不要」判定でも一行で理由を明示**する（半年後の自分が迷わないため）。
 「確認自体を省略しない」が dev-rules の Completion Checklist の方針。
