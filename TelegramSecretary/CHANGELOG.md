@@ -2,6 +2,23 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.4.3] - 2026-08-02 — registry 書込の詰まりと watch 中断の復帰（運用実測 2 件の恒久反映）
+
+どちらも cloud routine の実運用で観測された事象の恒久化。挙動を止める向きの変更は無い。
+
+### Fixed
+
+- **registry worktree へ `__pycache__/` の clone ローカル ignore を播種（`bootstrap.sh`）** — registry ブランチが誤って `.pyc` を追跡している状態で分析スクリプトを実行すると、再コンパイル差分が unstaged で残り、push 競合時の `pull --rebase` リカバリを塞いで registry 書込が exit 1 で詰まる（remote 先行と `.pyc` 差分の同時発生が発火条件、2026-08-01 実発生）。provisioning 後に clone の `info/exclude` へ `__pycache__/` を冪等追記する——working tree 非接触ゆえ `git status` を汚さず、ブランチ側 `.gitignore` の有無に依らず効く
+
+### Added
+
+- **ROUTINE_PROMPT「Failure modes」へ worker プロセス再起動からの復帰手順** — watch 中のターン切断はセッションの終了ではなく中断（offset・lease・registry・deadline は全て永続側に生存）。復帰は env snapshot re-source → `lease renew`（acquire ではない）→ 残り窓で watch 再開の順で、**bootstrap / lease acquire / オリエンテーションの再実行はしない**（新 session_id への owner 交代や、保持中リースへの acquire conflict（exit 4）で自分を自分で追い出すため。2026-08-02 実発生の手順化）
+
+### Notes
+
+- 既に `.pyc` を追跡してしまっている既存 registry ブランチは、一度だけ `git rm -r --cached <該当ディレクトリ>`（＋任意でブランチ側 `.gitignore`）での掃除を推奨。播種は「以後追跡させない」を保証するもので、追跡済みの掃除は行わない
+- 登録済み routine の body は登録時 snapshot のため、Failure modes 追記の反映には body の再登録が必要
+
 ## [1.4.2] - 2026-07-30 — 手順書の変数名を実測へ戻す（沈黙する 4h 枠の根治）
 
 手順書が指す env 変数名が、`bootstrap.sh` が実際に export する名前と食い違っていた。

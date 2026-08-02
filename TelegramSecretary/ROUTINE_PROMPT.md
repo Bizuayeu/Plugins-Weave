@@ -299,6 +299,7 @@ source /tmp/telegram-secretary.env.sh && \
 - `render_status="skipped"` → zip 等の未対応 mime、download skip、または音声で transcriber 未注入/Medium モード。`mime_type` を見て エージェントが判断
 - 音声の無音／壊れ／デコード不可 → `render_status="ok"` + `rendered_text=""`（失敗でなく「音声なし」として扱う）。空 transcript なら「無音か、音声として読めないファイルの可能性」と両義的に応答。**中間 wav はディスクに書かれない**（PyAV in-memory デコード）
 - `send-reply --file` の `attachment_not_found` / `attachment_too_large` → 送信前に exit 2 で弾かれる。添付パス確認 or サイズ縮小（`TELEGRAM_SECRETARY_OUTBOUND_MAX_SIZE_BYTES` 既定 50MB）。本文 text のみの送信は影響なし
+- **worker プロセス再起動**（watch 中に「worker process was restarted」等でターンが切れた） → セッションの終了ではなく**中断**。揮発したのはシェルの env だけで、offset・lease・registry・deadline（epoch 固定）は全て生きている。復帰は **(1) env snapshot re-source（session_id が同一なことを確認）→ (2) `lease renew`（acquire ではない）→ (3) 残り窓で watch 再開** の順。**bootstrap / lease acquire / オリエンテーション（7表ロード）をやり直さない**——bootstrap 再実行は新 session_id で owner が変わり旧リースが TTL 切れまで邪魔をし、保持中リースへの acquire は conflict（exit 4）で自分を自分で追い出しうる。renew が exit 4 を返したら空白が TTL を超え他セッションに奪取済み＝素直に終了して次 cron に譲る（自己治癒の設計通り）
 
 ---
 

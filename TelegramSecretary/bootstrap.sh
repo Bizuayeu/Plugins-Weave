@@ -152,6 +152,15 @@ if [ -n "$_ts_registry_raw" ]; then
                 # registry_dir 誤設定の疑い（未知の実データが居る）: 黙って消さない。
                 _ts_log "warn: registry_dir has unexpected content; skipping destructive re-provision ($TELEGRAM_SECRETARY_REGISTRY_DIR)"
             fi
+            # __pycache__ を clone ローカルで ignore（追跡 .pyc の再生成差分が pull --rebase を塞ぎ
+            # registry 書込が詰まる）。info/exclude 追記は working tree 非接触＝status を汚さず、
+            # ブランチ側 .gitignore の有無に依らず効く。worktree 不成立時は rev-parse 失敗で skip。
+            _ts_reg_exclude="$(git -C "$TELEGRAM_SECRETARY_REGISTRY_DIR" rev-parse --path-format=absolute --git-path info/exclude 2>/dev/null || true)"
+            if [ -n "$_ts_reg_exclude" ] && ! grep -qx '__pycache__/' "$_ts_reg_exclude" 2>/dev/null; then
+                mkdir -p "${_ts_reg_exclude%/*}" 2>/dev/null
+                echo '__pycache__/' >> "$_ts_reg_exclude" \
+                    && _ts_log "registry exclude seeded (__pycache__/)"
+            fi
         else
             _ts_log "warn: Private repo root not found ($_ts_priv_repo); registry provisioning skipped"
         fi
