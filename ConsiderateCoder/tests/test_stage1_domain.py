@@ -74,3 +74,30 @@ def test_dev_rules_latest_and_self_contained():
         "dev-rules missing the compliance marker directive "
         "(behavioral canary for wiring smoke tests)"
     )
+
+
+def test_dev_rules_deletion_test_and_grounded_numbers():
+    """dev-rules operationalizes YAGNI at both ends: the Deletion Test
+    inspects finished work ("does the completion proof still hold without
+    this?") with a non-negotiable floor (validation / error handling /
+    security are never deleted), and the grounded-numbers rule forbids
+    inventing timeouts / retries / thresholds without a stated origin."""
+    text = RULE_SKILLS[0].read_text(encoding="utf-8")
+    for token in ("Deletion Test", "エラー処理", "根拠なき数値"):
+        assert token in text, f"dev-rules missing rule token: {token!r}"
+
+
+def test_dev_rules_solution_ladder_in_understand():
+    """The solution-search ladder (don't write → reuse → stdlib → existing
+    dependency → minimal new code) must sit inside the Understand step in
+    close (same or <=3 line) proximity, so search-first reads as part of
+    the flow rather than a detached slogan (same proximity pattern as the
+    Stage 3 policy tests)."""
+    lines = RULE_SKILLS[0].read_text(encoding="utf-8").splitlines()
+    ladder_idxs = [i for i, l in enumerate(lines) if "標準ライブラリ" in l]
+    understand_idxs = [i for i, l in enumerate(lines) if "Understand" in l]
+    assert ladder_idxs, "dev-rules missing the solution ladder (標準ライブラリ step)"
+    assert understand_idxs, "dev-rules missing the Understand step"
+    assert any(abs(a - b) <= 3 for a in ladder_idxs for b in understand_idxs), (
+        "the solution ladder must sit within 3 lines of the Understand step"
+    )

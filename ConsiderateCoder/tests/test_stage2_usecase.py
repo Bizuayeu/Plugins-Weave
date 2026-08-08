@@ -113,6 +113,36 @@ def test_agents_preload_dev_rules():
         )
 
 
+STATUS_VOCAB = ("COMPLETED", "PARTIAL", "BLOCKED", "RETURNED")
+
+
+def test_completion_status_vocabulary_symmetric():
+    """The worker report opens with a one-word completion status, and a stop
+    (3-Strike STOP / interruption / unverified work) is never written as
+    COMPLETED; the orchestrator briefs and reviews with the same four-state
+    vocabulary so anything but COMPLETED is never tallied as done. Both
+    sides must name all four states — a one-sided vocabulary silently
+    degrades back into prose reports."""
+    for path in (ORCHESTRATOR_PATH, WORKER_PATH):
+        _, body, _ = _split_frontmatter(path)
+        for token in STATUS_VOCAB:
+            assert token in body, f"{path.name} missing status token: {token!r}"
+    _, worker_body, _ = _split_frontmatter(WORKER_PATH)
+    assert "COMPLETED と書かない" in worker_body, (
+        "worker.md missing the stopped-is-not-done rule (COMPLETED と書かない)"
+    )
+
+
+def test_worker_reports_discovered_issues():
+    """Out-of-scope problems the worker notices must reach the report:
+    staying hands-off is required, staying silent is forbidden (discovering
+    an issue and not reporting it reads as a clean pass to the reviewer)."""
+    _, body, _ = _split_frontmatter(WORKER_PATH)
+    assert "黙過" in body, (
+        "worker.md missing the no-silent-discovery rule (黙過)"
+    )
+
+
 def test_no_dev_evidence_refs():
     """Neither agent may carry development-session evidence: dates,
     proof-count callouts, local model assumptions, or local paths.
