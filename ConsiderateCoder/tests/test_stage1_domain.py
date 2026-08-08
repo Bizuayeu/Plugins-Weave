@@ -81,9 +81,11 @@ def test_dev_rules_deletion_test_and_grounded_numbers():
     inspects finished work ("does the completion proof still hold without
     this?") with a non-negotiable floor (validation / error handling /
     security are never deleted), and the grounded-numbers rule forbids
-    inventing timeouts / retries / thresholds without a stated origin."""
+    inventing timeouts / retries / thresholds without a stated origin.
+    Intentional deferrals must survive past the report as grep-able
+    `cc-defer:` markers carrying both a ceiling and a promotion trigger."""
     text = RULE_SKILLS[0].read_text(encoding="utf-8")
-    for token in ("Deletion Test", "エラー処理", "根拠なき数値"):
+    for token in ("Deletion Test", "エラー処理", "根拠なき数値", "cc-defer:"):
         assert token in text, f"dev-rules missing rule token: {token!r}"
 
 
@@ -100,4 +102,8 @@ def test_dev_rules_solution_ladder_in_understand():
     assert understand_idxs, "dev-rules missing the Understand step"
     assert any(abs(a - b) <= 3 for a in ladder_idxs for b in understand_idxs), (
         "the solution ladder must sit within 3 lines of the Understand step"
+    )
+    assert any("プラットフォーム固有機能" in lines[i] for i in ladder_idxs), (
+        "the ladder's stdlib rung must also name platform-native features "
+        "(merged into step ③ — no extra rung)"
     )
