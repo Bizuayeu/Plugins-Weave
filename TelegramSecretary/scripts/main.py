@@ -852,7 +852,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--notes-tail",
         type=int,
         default=DEFAULT_NOTES_TAIL,
-        help=f"active タスクの notes 末尾から載せる字数 (default {DEFAULT_NOTES_TAIL})",
+        help=f"active タスクの notes 末尾から載せるバイト数 (default {DEFAULT_NOTES_TAIL})",
     )
     p_orientation.add_argument(
         "--topic-width",
@@ -870,12 +870,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--handoff-cap",
         type=int,
         default=DEFAULT_HANDOFF_CAP,
-        help=f"handoff 1 ブロックの上限字数 (default {DEFAULT_HANDOFF_CAP})",
+        help=f"handoff 1 ブロックの上限バイト数 (default {DEFAULT_HANDOFF_CAP})",
     )
     p_orientation.add_argument(
         "--knowledge-category",
         dest="knowledge_category",
         help="knowledge 索引を category 完全一致で絞る（未指定なら全件＝従来出力）",
+    )
+    p_orientation.add_argument(
+        "--knowledge-latest",
+        dest="knowledge_latest",
+        type=int,
+        default=None,
+        help="knowledge 索引を新しい順 N 件に絞る（未指定なら全件＝従来出力）",
     )
 
     # 成果物層（artifacts/、handoff ブロックを含む）の commit & push。

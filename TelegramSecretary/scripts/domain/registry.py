@@ -177,6 +177,7 @@ class Task:
 
 @dataclass(frozen=True)
 class Knowledge:
+    # cc-defer: category 無検証。移行完了報告後に許可集合検証（Identity/Goal 同型）へ昇格
     id: str
     topic: str
     category: str

@@ -196,6 +196,8 @@ def _read_handoff_blocks(config: Config, limit: int) -> list[tuple[str, str]]:
     `pick_latest_handoffs` と共有するので、事前絞りは冪等に重なり出力は変わらない。
     不在・空は `[]`（no-op 完走）。読めない 1 ブロックで起動オリエンテーションを
     止めない（fail-open。結果が limit−1 件になるのは許容、stderr で告知する）。
+    事前スライス後の 1 件不良は次点で繰り上げ補充しない——補充ループは handoff が
+    ほぼ常に 0-3 件の現場に対して過剰（YAGNI）。
     """
     directory = handoff_dir(config)
     try:
@@ -213,6 +215,19 @@ def _read_handoff_blocks(config: Config, limit: int) -> list[tuple[str, str]]:
     return blocks
 
 
+def _option(args: Any, name: str, default: int) -> int:
+    """argparse Namespace から orientation の数値オプションを解決する（未指定のみ既定値）。
+
+    `getattr(...) or default` は falsy な `0` を未指定と同一視するため、最小方向の
+    端点指定が最大側の既定に化けていた（絞るためのオプションが全通しの穴になる）。
+    `is None` で分岐すれば `0` は UseCase の「非正＝全捨て」ゲートへそのまま届く。
+    argparse 側は `default=DEFAULT_*` を持つので CLI 経由では常に値が来る——本ヘルパーは
+    `args=None` 直呼び（テスト・プログラム呼び出し）のためのガード。
+    """
+    value = getattr(args, name, None)
+    return default if value is None else value
+
+
 def run_orientation(config: Config, args: Any = None) -> int:
     """起動時オリエンテーション用の絞り込みダイジェストを stdout に一撃出力する。
 
@@ -223,15 +238,18 @@ def run_orientation(config: Config, args: Any = None) -> int:
     """
     listers = {name: registry_service(config, name) for name in REGISTRY_SPEC}
     sizes = {name: _table_size(config, name) for name in REGISTRY_SPEC}
-    handoff_latest = getattr(args, "handoff_latest", None) or DEFAULT_HANDOFF_LATEST
+    handoff_latest = _option(args, "handoff_latest", DEFAULT_HANDOFF_LATEST)
     print(
         OrientationService(listers, sizes).build(
             handoffs=_read_handoff_blocks(config, handoff_latest),
-            notes_tail=getattr(args, "notes_tail", None) or DEFAULT_NOTES_TAIL,
-            topic_width=getattr(args, "topic_width", None) or DEFAULT_TOPIC_WIDTH,
+            notes_tail=_option(args, "notes_tail", DEFAULT_NOTES_TAIL),
+            topic_width=_option(args, "topic_width", DEFAULT_TOPIC_WIDTH),
             handoff_latest=handoff_latest,
-            handoff_cap=getattr(args, "handoff_cap", None) or DEFAULT_HANDOFF_CAP,
+            handoff_cap=_option(args, "handoff_cap", DEFAULT_HANDOFF_CAP),
             knowledge_category=getattr(args, "knowledge_category", None),
+            # 既定 None（全件）ゆえ `_option` は通さない——0 と未指定の区別は
+            # getattr の default=None がそのまま担う（knowledge_category と同じ流儀）
+            knowledge_latest=getattr(args, "knowledge_latest", None),
         )
     )
     return EXIT_OK

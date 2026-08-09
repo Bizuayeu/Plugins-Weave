@@ -87,19 +87,22 @@ Step 4 の fetch はデータをローカルに降ろすだけで、**あなた�
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \
-  (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && python scripts/main.py orientation)
+  (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && \
+   python scripts/main.py orientation --knowledge-latest 200)
 ```
+
+   （`--knowledge-latest 200` は knowledge 索引を新しい順 200 件で頭打ちにする**仮置き**——現行全量 192 件が許容と実測されたので、その規模を当座のアンカーに置いただけ。見出しの `latest N of M` が母数を開示するので、隠れた件数は毎回読める。並びは id 昇順のままなので、同じ見出しの `newest last` のとおり**末尾が最新**として読む。次の実測で校正する）
 
    ダイジェストが答えるのは「今どうなっているか」であり、表は相互参照する——「tasks をどう扱うか」の方針（自由時間の運用規範・grant 条件・行使してよい能力）は knowledge / abilities 側にあり、伴走の文脈は profile / goals / steps 側にある：
 
    - **individuals（誰と）** — 相手の tone / honorific / taboo、疎遠な相手の鮮度（全文）
-   - **tasks（何を頼まれ）** — `id | status | priority | due_date | title` の一行要約（全件）＋ active（open / in_progress / blocked）の notes 末尾（既定 4000 字）。**done の notes は載らない**
+   - **tasks（何を頼まれ）** — `id | status | priority | due_date | title` の一行要約（全件）＋ active（open / in_progress / blocked）の notes 末尾（既定 4000 バイト）。**done の notes は載らない**
    - **knowledge（どう判断するか）** — `id | topic` の索引のみ（`content` は載らない）。判断方針・運用規範（**自由時間の使い方・actionability ゲート・grant 条件**）の在り処を索引で掴む
    - **abilities（何ができるか）** — 行使できる能力カタログ（`trigger` / `skill_path` / `guidance`、全文）
    - **profile（誰に仕えるか）** — principal の人物理解（特性・励まされ方・決断スタイル、全文）。応答の温度と提案の出し方をここに合わせる（パーソナライズ＝P軸）
    - **goals / steps（何に伴走するか）** — active な目標と期限近接・滞留中のステップ（全文。伴走＝A軸、プロマネの巻き取り）
    - **role（今日の自分の顔）** — P×A から決定論導出された役割（secretary/butler/coach/anego＝守護霊）。演じ方は SecretaryRole「役割の進化」節に従う（役割を自称で膨らませない）
-   - **handoff（前枠からの申し送り）** — 最新ブロックの本文（既定 3 ブロック・各 8000 字上限）
+   - **handoff（前枠からの申し送り）** — 最新ブロックの本文（既定 3 ブロック・各 8000 バイト上限）
 
    knowledge の索引や tasks の要約で当たりを付けたら、**必要になった時にだけ**個別に本文を引く（表ごとの `list` ではなく `get --key`）：
 
@@ -109,7 +112,7 @@ source /tmp/telegram-secretary.env.sh && \
    python scripts/main.py knowledge get --key <id>)
 ```
 
-   ダイジェストが足りない／重すぎる時は `--notes-tail` / `--topic-width` / `--handoff-latest` / `--handoff-cap` で幅を調節する（既定 4000 / 120 / 3 / 8000）。
+   ダイジェストが足りない／重すぎる時は `--notes-tail` / `--topic-width` / `--handoff-latest` / `--handoff-cap` / `--knowledge-latest` で幅を調節する（既定 4000B / 120B / 3 ブロック / 8000B / 全件。`--knowledge-category` で category 完全一致に絞ることもでき、併用すると絞った後の中で新しい順に効く）。
 
 11. **自由時間（autonomous turn）の判断**。オリエンテーションを終えたら、その起動を「自律的に1ターン使うに値するか」判断する。**毎起動で機械的に発信せず、knowledge に記録された運用規範（actionability ゲート）を通す**——渡すに値する signal だけを起こす。grant（自由時間の付与等）が生きていて値する signal があれば、次の候補から **1つだけ** 能動的に進める（手順は「自由時間の能動発信（proactive-send）」節に従う）：
 

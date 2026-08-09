@@ -3,7 +3,9 @@ from __future__ import annotations
 from usecases.orientation import (
     DEFAULT_NOTES_TAIL,
     DEFAULT_TOPIC_WIDTH,
+    TRUNCATION_MARK,
     OrientationService,
+    _truncate,
     index_knowledge,
     pick_latest_handoffs,
     summarize_task,
@@ -162,7 +164,7 @@ def test_tail_notes_returns_whole_text_when_short():
 
 
 def test_tail_notes_marks_truncation():
-    out = tail_notes("abcdef", 3)
+    out = tail_notes("abcdef", 6)  # 幅 6B のうち 3B はマーカーが占める
     assert out.endswith("def")
     assert out != "def"  # 切り取られたことが読み手に分かる
 
@@ -172,6 +174,69 @@ def test_non_positive_widths_drop_text_instead_of_passing_it_through():
     assert "abc" not in tail_notes("abc", 0)
     assert "abc" not in index_knowledge(_knowledge(topic="abc"), topic_width=0)
     assert pick_latest_handoffs([("a.md", "abc")], latest=1, cap=0)[0][1] != "abc"
+
+
+# === 丸めの単位は UTF-8 バイト（v1.7.0 単位是正） ===
+
+_MARK_BYTES = len(TRUNCATION_MARK.encode("utf-8"))  # マーカーも幅の内側に置く（3B）
+
+
+def _utf8_len(text: str) -> int:
+    return len(text.encode("utf-8"))
+
+
+def _char_counted_truncate(text: str, width: int) -> str:
+    """同じ丸め規約を字数（`len()`）で数えた参照実装（1 字＝1 バイトの世界）。"""
+    if width <= 0:
+        return TRUNCATION_MARK
+    if len(text) <= width:
+        return text
+    return text[: max(width - _MARK_BYTES, 0)] + TRUNCATION_MARK
+
+
+def _char_counted_tail(text: str, width: int) -> str:
+    """`tail_notes` の丸め規約を字数で数えた参照実装（末尾を残す側）。"""
+    if width <= 0:
+        return TRUNCATION_MARK
+    if len(text) <= width:
+        return text
+    body = max(width - _MARK_BYTES, 0)
+    return TRUNCATION_MARK + (text[-body:] if body else "")
+
+
+def test_truncate_bounds_japanese_topic_by_utf8_bytes_without_splitting_characters():
+    """日本語 100 字の topic を幅 120 で丸めると 120 バイト以内に収まる。
+
+    字数で数えていた v1.5.0 では日本語 1 字≈2.47 バイトの分だけ実効幅が膨らみ、
+    出力が persisted-output へ退避される沈黙失敗に効いていた。上限（退避閾値）と
+    同じ単位で数えて初めて有界性が言える。丸めは文字境界で止める（字を割らない）。
+    """
+    out = _truncate("あ" * 100, 120)
+    assert _utf8_len(out) <= 120
+    assert out.endswith(TRUNCATION_MARK)
+    assert set(out[: -len(TRUNCATION_MARK)]) == {"あ"}  # 途中で割れた字が無い
+    assert _utf8_len(out + "あ") > 120  # 収まる限りは詰める（切り過ぎない）
+
+
+def test_tail_notes_bounds_japanese_notes_by_utf8_bytes_keeping_the_tail():
+    """日本語混在の長文 notes も末尾側をバイトで数えて残す（申し送りは末尾に堆積する）。"""
+    notes = "捨てられる頭" * 500 + "TAIL_MARKER"
+    out = tail_notes(notes, 4_000)
+    assert _utf8_len(out) <= 4_000
+    assert out.startswith(TRUNCATION_MARK)
+    assert out.endswith("TAIL_MARKER")
+
+
+def test_ascii_rounding_is_identical_whether_counted_in_bytes_or_characters():
+    """ASCII だけの入力では字数＝バイト数——単位是正の前後で結果が変わらない退行錠。
+
+    日本語で縮む一方、英数字主体の運用は従来と同じ丸めを受け続ける（縮小の影響範囲を
+    「1 字が 1 バイトを超える入力」に限定できていることの確認）。
+    """
+    for width in (0, 1, 5, 10, 120):
+        for text in ("", "a", "abcdef", "x" * 300):
+            assert _truncate(text, width) == _char_counted_truncate(text, width)
+            assert tail_notes(text, width) == _char_counted_tail(text, width)
 
 
 # === knowledge: content は出ない・topic は topic_width で切り詰め ===
@@ -238,14 +303,14 @@ def test_handoff_section_respects_latest_and_cap_options():
     blocks = [
         (f"2026080{i}T000000Z_s.md", f"BODY{i}" + "z" * 1_000) for i in range(1, 5)
     ]
-    digest = _service().build(handoffs=blocks, handoff_latest=1, handoff_cap=6)
+    digest = _service().build(handoffs=blocks, handoff_latest=1, handoff_cap=8)
     assert "1 blocks" in digest
-    assert "BODY4" in digest  # 最新 1 件のみ、cap 字で丸めて載る
+    assert "BODY4" in digest  # 最新 1 件のみ、cap 8B（本文 5B＋マーカー 3B）で載る
     assert "BODY3" not in digest
     assert "z" * 100 not in digest
 
 
-# === 後方互換: 既定出力のスナップショット（v1.5.0 と byte 同一） ===
+# === 後方互換: 既定出力のスナップショット（幅内入力は単位変更の影響を受けない） ===
 
 _INDIVIDUAL_RECORD = {
     "uuid": "u1",
@@ -256,10 +321,11 @@ _INDIVIDUAL_RECORD = {
     "updated_at": "t",
 }
 
-# v1.5.0 実装が既定オプションで出力した digest そのもの。以後の内部整形・オプション追加は
+# v1.5.0 実装が既定オプションで出力した digest。以後の内部整形・オプション追加は
 # **この文字列を 1 バイトも動かしてはならない**（起動時オリエンテーションは秘書が毎枠読む
-# 契約面であり、既定出力の変化は配布物 Shiori 側の手順書ごと壊す）。
-_V150_DEFAULT_DIGEST = """# orientation
+# 契約面であり、既定出力の変化は配布物 Shiori 側の手順書ごと壊す）。v1.7.0 の単位是正で
+# 動いたのは見出しの単位表記（chars → bytes）だけ——本文は幅内入力ゆえ v1.5.0 と同一。
+_DEFAULT_DIGEST_SNAPSHOT = """# orientation
 
 ## role
 {"role": "secretary", "personalize": false, "accompany": false}
@@ -289,7 +355,7 @@ steps: 0 records, 0 bytes
 T-001 | open | high | 2026-08-10 | 見積を送る
 T-002 | done | low | - | 請求書
 
-## tasks.notes (active only, last 4000 chars)
+## tasks.notes (active only, last 4000 bytes)
 ### T-001
 NOTE_A
 
@@ -309,7 +375,7 @@ K-002 | 請求の締め
 ## steps (0 records, full)
 []
 
-## handoff (1 blocks, latest 3, cap 8000 chars)
+## handoff (1 blocks, latest 3, cap 8000 bytes)
 ### 20260809T000000Z_s.md
 HANDOFF_BODY
 """
@@ -336,14 +402,18 @@ def _snapshot_digest(**build_kwargs) -> str:
     ).build(handoffs=[("20260809T000000Z_s.md", "HANDOFF_BODY")], **build_kwargs)
 
 
-def test_default_digest_is_byte_identical_to_v150_snapshot():
-    """既定出力の同一性契約。オプション追加は既定を変えない（追加のみ・改変なし）。"""
-    assert _snapshot_digest() == _V150_DEFAULT_DIGEST
+def test_default_digest_keeps_v150_body_for_inputs_within_the_width():
+    """既定出力の同一性契約。幅内に収まる入力は chars → bytes の単位是正を受けない。
+
+    オプション追加も単位是正も既定出力の本文を変えない（動くのは見出しの単位表記のみ）。
+    縮むのは「1 字が 1 バイトを超える入力が幅を超えたとき」に限られる、という境界の宣言。
+    """
+    assert _snapshot_digest() == _DEFAULT_DIGEST_SNAPSHOT
 
 
-def test_knowledge_category_unset_keeps_v150_snapshot():
+def test_knowledge_category_unset_keeps_the_default_snapshot():
     """`knowledge_category` を明示的に None で渡しても既定と同一（後方互換の第二の錠）。"""
-    assert _snapshot_digest(knowledge_category=None) == _V150_DEFAULT_DIGEST
+    assert _snapshot_digest(knowledge_category=None) == _DEFAULT_DIGEST_SNAPSHOT
 
 
 # === knowledge の category 絞り（索引 O(n) を母数側から抑える観測オプション） ===
@@ -402,3 +472,68 @@ def test_knowledge_category_does_not_affect_other_sections():
     )
     assert "knowledge: 5 records, 0 bytes" in digest
     assert "T-001 |" in digest
+
+
+# === knowledge の latest 絞り（索引の行数を新しい順で頭打ちにする、v1.7.0 Stage 3） ===
+
+
+def test_knowledge_latest_keeps_the_newest_ids_and_discloses_the_total():
+    """新しい順 N 件だけを索引に残し、見出しの `latest N of M` で母数を開示する。
+
+    id は日付順に振られるため「id の大きい方が新しい」——選び方は handoff（名前降順）と
+    同じ読み筋。表示順は昇順のまま（絞りは母数を減らす観測であって、索引の読み方は変えない）。
+    """
+    digest = _service(knowledge=_categorized_knowledge()).build(knowledge_latest=2)
+    assert (
+        "## knowledge (latest 2 of 5 records, newest last, index: id | topic)" in digest
+    )
+    assert digest.index("K-004 |") < digest.index("K-005 |")
+    for dropped in ("K-001 |", "K-002 |", "K-003 |"):
+        assert dropped not in digest
+
+
+def test_knowledge_latest_unset_keeps_the_default_snapshot():
+    """`knowledge_latest` を明示的に None で渡しても既定と同一（後方互換の第三の錠）。"""
+    assert _snapshot_digest(knowledge_latest=None) == _DEFAULT_DIGEST_SNAPSHOT
+
+
+def test_zero_knowledge_latest_empties_the_index_instead_of_passing_all_rows():
+    """`0` は「1 件も載せない」端点（Stage 1 の端点規約と同調）。
+
+    `rows[-0:]` は全件に化ける——絞るための指定が全通しの穴になる罠を、`tail_notes` と
+    同じ理由でここでも塞ぐ。見出しは 0 件でも `of M` を残し、隠れた件数を開示する。
+    """
+    digest = _service(knowledge=_categorized_knowledge()).build(knowledge_latest=0)
+    assert (
+        "## knowledge (latest 0 of 5 records, newest last, index: id | topic)" in digest
+    )
+    assert "K-00" not in digest
+
+
+def test_knowledge_latest_applies_after_the_category_filter():
+    """category → latest の順で効き、母数 M は category 絞り後の件数になる。
+
+    順序が逆だと「新しい N 件の中に該当 category が無ければ 0 件」という、絞り込みの
+    意味が壊れた結果になる。
+    """
+    digest = _service(knowledge=_categorized_knowledge()).build(
+        knowledge_category="ops", knowledge_latest=1
+    )
+    assert (
+        "## knowledge (latest 1 of 2 records, newest last, category=ops, "
+        "index: id | topic)" in digest
+    )
+    assert "K-003 |" in digest  # ops のうち新しい方
+    assert "K-001 |" not in digest
+
+
+def test_newest_last_is_disclosed_only_when_latest_is_set():
+    """読み方の開示 `newest last` は latest 指定時だけ載る。
+
+    「選ぶのは新しい順、並びは id 昇順」という捻れを、末尾が最新と読ませて解く注記——
+    絞っていない索引に付けると、全件が新しい順に並んでいるかのような誤読を生む。
+    """
+    rows = _categorized_knowledge()
+    assert "newest last" in _service(knowledge=rows).build(knowledge_latest=2)
+    assert "newest last" not in _service(knowledge=rows).build()
+    assert "newest last" not in _service(knowledge=rows).build(knowledge_category="ops")
