@@ -404,7 +404,11 @@ def test_role_status_coach_ignores_profile_of_others(tmp_path, capsys):
 
 # === orientation（起動時ダイジェスト）と list サイズ警告 ===
 
-from infrastructure.registry_cli import LIST_WARNING_BYTES, run_orientation
+from infrastructure.registry_cli import (
+    LIST_WARNING_BYTES,
+    ORIENTATION_WARNING_BYTES,
+    run_orientation,
+)
 from usecases.orientation import (
     DEFAULT_HANDOFF_CAP,
     DEFAULT_HANDOFF_LATEST,
@@ -616,6 +620,124 @@ def test_list_below_threshold_is_silent(tmp_path, capsys):
     assert run_registry_command(config, "knowledge", "list", _ns()) == 0
     assert "WARNING" not in capsys.readouterr().err
     assert LIST_WARNING_BYTES == 200 * 1024  # 閾値は orientation_report_20260809 指定
+
+
+# === orientation 出力サイズの自己申告（v1.8.0 Stage 2） ===
+
+_SNAPSHOT_TASK = dict(_TASK, notes="NOTE_A")
+
+
+# v1.7.0 の run_orientation が既定オプションで stdout へ出した全文（末尾の改行は print 由来）。
+# 計器（stderr）を足しても **stdout は 1 バイトも動かない** ことを固定する——起動時
+# オリエンテーションは秘書が毎枠読む契約面であり、計器の混入は digest そのものの汚染になる。
+# counts の実バイト数だけは改行変換で OS 依存（Windows は CRLF）なので stat() から差し込む。
+# f-string 内の role 行の波括弧は二重化（表示は 1 重）。
+def _expected_default_stdout(config: Config) -> str:
+    return f"""# orientation
+
+## role
+{{"role": "secretary", "personalize": false, "accompany": false}}
+
+## counts
+individuals: 0 records, 0 bytes
+tasks: 1 records, {config.tasks_path.stat().st_size} bytes
+knowledge: 1 records, {config.knowledge_path.stat().st_size} bytes
+abilities: 0 records, 0 bytes
+profile: 0 records, 0 bytes
+goals: 0 records, 0 bytes
+steps: 0 records, 0 bytes
+
+## individuals (0 records, full)
+[]
+
+## tasks (1 records, summary: id | status | priority | due_date | title)
+T-001 | in_progress | high | - | 見積を送る
+
+## tasks.notes (active only, last 4000 bytes)
+### T-001
+NOTE_A
+
+## knowledge (1 records, index: id | topic)
+K-001 | 申し送りの置き場
+
+## abilities (0 records, full)
+[]
+
+## profile (0 records, full)
+[]
+
+## goals (0 records, full)
+[]
+
+## steps (0 records, full)
+[]
+
+## handoff (0 blocks, latest 3, cap 8000 bytes)
+
+"""
+
+
+def _add_snapshot_records(config: Config) -> None:
+    run_registry_command(config, "tasks", "add", _ns(json=json.dumps(_SNAPSHOT_TASK)))
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
+
+
+def test_orientation_always_reports_its_size_on_stderr(tmp_path, capsys):
+    """digest の総バイトを毎回 stderr へ 1 行申告する（閾値未満でも黙らない）。
+
+    「exit 0 なのにデータがコンテキストに載っていない」は自己観測できないと直せない
+    ——サイズが毎枠見え続けることが、以後の絞り校正の自走材料になる。
+    """
+    config = _config(tmp_path)
+    _add_snapshot_records(config)
+    capsys.readouterr()
+    assert run_orientation(config, _ns()) == 0
+    captured = capsys.readouterr()
+    digest_bytes = len(captured.out.encode("utf-8")) - 1  # print が足す改行を除く
+    assert f"orientation digest: {digest_bytes} bytes" in captured.err
+
+
+def test_orientation_warns_and_names_narrowing_options_when_oversized(tmp_path, capsys):
+    """閾値超は persisted 退避の可能性と、実在する絞りオプションの名指しを添える。"""
+    config = _config(tmp_path)
+    run_registry_command(config, "tasks", "add", _ns(json=json.dumps(_TASK)))
+    capsys.readouterr()
+    assert run_orientation(config, _ns(notes_tail=30_000)) == 0
+    captured = capsys.readouterr()
+    assert len(captured.out.encode("utf-8")) > ORIENTATION_WARNING_BYTES  # 前提の確認
+    assert "WARNING" in captured.err
+    for option in (
+        "--knowledge-latest",
+        "--notes-tail",
+        "--handoff-latest",
+        "--handoff-cap",
+    ):
+        assert option in captured.err
+    assert (
+        "TAIL_MARKER" not in captured.err
+    )  # 警告にレコード内容は載せない（PII 非出力）
+
+
+def test_orientation_below_threshold_reports_size_without_warning(tmp_path, capsys):
+    """小さい出力では常時 1 行だけ——計器は鳴るが警報にはならない。"""
+    config = _config(tmp_path)
+    _add_snapshot_records(config)
+    capsys.readouterr()
+    assert run_orientation(config, _ns()) == 0
+    captured = capsys.readouterr()
+    assert "orientation digest:" in captured.err
+    assert "WARNING" not in captured.err
+    # 閾値は実測境界（20KB 台は載った／45.8KB は落ちた）の安全側下限＝仮置き
+    assert ORIENTATION_WARNING_BYTES == 25 * 1024
+
+
+def test_orientation_stdout_is_byte_identical_to_v170(tmp_path, capsys):
+    """計器は stderr のみ。stdout（digest 本文）は v1.7.0 と byte 同一。"""
+    config = _config(tmp_path)
+    _add_snapshot_records(config)
+    capsys.readouterr()
+    assert run_orientation(config, _ns()) == 0
+    assert capsys.readouterr().out == _expected_default_stdout(config)
 
 
 # === handoff ブロック（申し送りの置き場）と artifacts-sync ===
