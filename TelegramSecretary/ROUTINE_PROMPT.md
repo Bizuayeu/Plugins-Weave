@@ -93,7 +93,7 @@ source /tmp/telegram-secretary.env.sh && \
    ダイジェストが答えるのは「今どうなっているか」であり、表は相互参照する——「tasks をどう扱うか」の方針（自由時間の運用規範・grant 条件・行使してよい能力）は knowledge / abilities 側にあり、伴走の文脈は profile / goals / steps 側にある：
 
    - **individuals（誰と）** — 相手の tone / honorific / taboo、疎遠な相手の鮮度（全文）
-   - **tasks（何を頼まれ）** — `id | status | priority | due_date | title` の一行要約（全件）＋ open/in_progress の notes 末尾（既定 4000 字）。**done の notes は載らない**
+   - **tasks（何を頼まれ）** — `id | status | priority | due_date | title` の一行要約（全件）＋ active（open / in_progress / blocked）の notes 末尾（既定 4000 字）。**done の notes は載らない**
    - **knowledge（どう判断するか）** — `id | topic` の索引のみ（`content` は載らない）。判断方針・運用規範（**自由時間の使い方・actionability ゲート・grant 条件**）の在り処を索引で掴む
    - **abilities（何ができるか）** — 行使できる能力カタログ（`trigger` / `skill_path` / `guidance`、全文）
    - **profile（誰に仕えるか）** — principal の人物理解（特性・励まされ方・決断スタイル、全文）。応答の温度と提案の出し方をここに合わせる（パーソナライズ＝P軸）
