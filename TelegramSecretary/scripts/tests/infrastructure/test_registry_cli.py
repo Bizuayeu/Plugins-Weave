@@ -503,11 +503,16 @@ def test_list_below_threshold_is_silent(tmp_path, capsys):
 
 # === handoff ブロック（申し送りの置き場）と artifacts-sync ===
 
-from infrastructure.registry_cli import artifacts_dir, run_artifacts_sync
+from infrastructure.registry_cli import (
+    REGISTRY_SPEC,
+    registry_service,
+    run_artifacts_sync,
+)
+from usecases.orientation import OrientationService
 
 
 def _write_handoff(config: Config, name: str, body: str) -> Path:
-    path = artifacts_dir(config) / "handoff" / name
+    path = config.artifacts_path / "handoff" / name
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(body, encoding="utf-8", newline="\n")
     return path
@@ -543,9 +548,85 @@ def test_orientation_completes_when_handoff_dir_absent(tmp_path, capsys):
 
 def test_orientation_completes_when_handoff_dir_empty(tmp_path, capsys):
     config = _config(tmp_path)
-    (artifacts_dir(config) / "handoff").mkdir(parents=True)
+    (config.artifacts_path / "handoff").mkdir(parents=True)
     assert run_orientation(config, _ns()) == 0
     assert "0 blocks" in capsys.readouterr().out
+
+
+# === handoff の有界読みと「archive/ は読まれない」契約（v1.6.0 Stage 1） ===
+
+
+def _count_handoff_reads(monkeypatch, config: Config) -> list[str]:
+    """handoff ディレクトリ直下の read_text を記録するカウンタを仕込む（open 回数の観測）。"""
+    opened: list[str] = []
+    original = Path.read_text
+    handoff_dir = config.artifacts_path / "handoff"
+
+    def counting_read_text(self: Path, *args, **kwargs):
+        if self.parent == handoff_dir:
+            opened.append(self.name)
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", counting_read_text)
+    return opened
+
+
+def test_orientation_opens_only_the_latest_handoff_blocks(tmp_path, monkeypatch):
+    """10 ブロック置いても latest=3 なら open は 3 回だけ（読みは表示件数に有界）。
+
+    全件 open は「読んだ末に捨てる」＝ブロックが溜まるほど起動が遅くなる経路だった。
+    選択規則（名前降順）は UseCase と共有し、読み側の事前絞りは冪等に重なる。
+    """
+    config = _config(tmp_path)
+    for i in range(10):
+        _write_handoff(config, f"202608{i:02d}T000000Z_s.md", f"BODY{i}")
+    opened = _count_handoff_reads(monkeypatch, config)
+    assert run_orientation(config, _ns(handoff_latest=3)) == 0
+    assert opened == [
+        "20260809T000000Z_s.md",
+        "20260808T000000Z_s.md",
+        "20260807T000000Z_s.md",
+    ]
+
+
+def test_bounded_handoff_read_yields_same_digest_as_full_read(tmp_path, capsys):
+    """事前絞りを入れても digest は全件読み実装と同一（内部整形＝出力不変）。"""
+    config = _config(tmp_path)
+    for i in range(10):
+        _write_handoff(config, f"202608{i:02d}T000000Z_s.md", f"BODY{i}")
+    assert run_orientation(config, _ns(handoff_latest=3)) == 0
+    bounded = capsys.readouterr().out
+
+    all_blocks = [
+        (path.name, path.read_text(encoding="utf-8"))
+        for path in sorted((config.artifacts_path / "handoff").glob("*.md"))
+    ]
+    full_read = OrientationService(
+        {name: registry_service(config, name) for name in REGISTRY_SPEC},
+        dict.fromkeys(REGISTRY_SPEC, 0),
+    ).build(handoffs=all_blocks, handoff_latest=3)
+    assert bounded == full_read + "\n"  # print が付ける改行のみの差
+
+
+def test_orientation_ignores_archive_subdir_and_non_md_files(tmp_path, capsys):
+    """卒業の受け皿の契約: `handoff/archive/` 配下と非 .md は orientation に載らない。
+
+    非再帰 glob("*.md") の暗黙挙動をテストで契約に昇格させる——ここが崩れると
+    `handoff-archive` で卒業させたブロックが digest に居座り続ける。
+    """
+    config = _config(tmp_path)
+    _write_handoff(config, "20260809T000000Z_s.md", "LIVE_BODY")
+    _write_handoff(config, "memo.txt", "MEMO_BODY")
+    archived = config.artifacts_path / "handoff" / "archive" / "20260801T000000Z_s.md"
+    archived.parent.mkdir(parents=True, exist_ok=True)
+    archived.write_text("ARCHIVED_BODY", encoding="utf-8", newline="\n")
+
+    assert run_orientation(config, _ns()) == 0
+    out = capsys.readouterr().out
+    assert "LIVE_BODY" in out
+    assert "ARCHIVED_BODY" not in out
+    assert "MEMO_BODY" not in out
+    assert "1 blocks" in out
 
 
 def test_artifacts_sync_syncs_artifacts_dir(tmp_path, capsys):
@@ -555,7 +636,7 @@ def test_artifacts_sync_syncs_artifacts_dir(tmp_path, capsys):
     git = FakeGitSync()
     assert run_artifacts_sync(config, sync=RegistrySyncService(git)) == 0
     paths, _message = git.commit_calls[0]
-    assert paths == [artifacts_dir(config)]
+    assert paths == [config.artifacts_path]
     assert git.push_calls == 1
 
 

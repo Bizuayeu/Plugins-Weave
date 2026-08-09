@@ -243,3 +243,99 @@ def test_handoff_section_respects_latest_and_cap_options():
     assert "BODY4" in digest  # 最新 1 件のみ、cap 字で丸めて載る
     assert "BODY3" not in digest
     assert "z" * 100 not in digest
+
+
+# === 後方互換: 既定出力のスナップショット（v1.5.0 と byte 同一） ===
+
+_INDIVIDUAL_RECORD = {
+    "uuid": "u1",
+    "display_name": "yamada",
+    "role": "associate",
+    "status": "active",
+    "created_at": "t",
+    "updated_at": "t",
+}
+
+# v1.5.0 実装が既定オプションで出力した digest そのもの。以後の内部整形・オプション追加は
+# **この文字列を 1 バイトも動かしてはならない**（起動時オリエンテーションは秘書が毎枠読む
+# 契約面であり、既定出力の変化は配布物 Shiori 側の手順書ごと壊す）。
+_V150_DEFAULT_DIGEST = """# orientation
+
+## role
+{"role": "secretary", "personalize": false, "accompany": false}
+
+## counts
+individuals: 1 records, 0 bytes
+tasks: 2 records, 0 bytes
+knowledge: 2 records, 0 bytes
+abilities: 0 records, 0 bytes
+profile: 0 records, 0 bytes
+goals: 0 records, 0 bytes
+steps: 0 records, 0 bytes
+
+## individuals (1 records, full)
+[
+  {
+    "uuid": "u1",
+    "display_name": "yamada",
+    "role": "associate",
+    "status": "active",
+    "created_at": "t",
+    "updated_at": "t"
+  }
+]
+
+## tasks (2 records, summary: id | status | priority | due_date | title)
+T-001 | open | high | 2026-08-10 | 見積を送る
+T-002 | done | low | - | 請求書
+
+## tasks.notes (active only, last 4000 chars)
+### T-001
+NOTE_A
+
+## knowledge (2 records, index: id | topic)
+K-001 | 申し送りの置き場
+K-002 | 請求の締め
+
+## abilities (0 records, full)
+[]
+
+## profile (0 records, full)
+[]
+
+## goals (0 records, full)
+[]
+
+## steps (0 records, full)
+[]
+
+## handoff (1 blocks, latest 3, cap 8000 chars)
+### 20260809T000000Z_s.md
+HANDOFF_BODY
+"""
+
+
+def _snapshot_digest(**build_kwargs) -> str:
+    return _service(
+        individuals=[_INDIVIDUAL_RECORD],
+        tasks=[
+            _task(notes="NOTE_A"),
+            _task(
+                id="T-002",
+                title="請求書",
+                status="done",
+                priority="low",
+                due_date=None,
+                notes="NOTE_B",
+            ),
+        ],
+        knowledge=[
+            _knowledge(id="K-001", topic="申し送りの置き場", category="ops"),
+            _knowledge(id="K-002", topic="請求の締め", category="billing"),
+        ],
+    ).build(handoffs=[("20260809T000000Z_s.md", "HANDOFF_BODY")], **build_kwargs)
+
+
+def test_default_digest_is_byte_identical_to_v150_snapshot():
+    """既定出力の同一性契約。オプション追加は既定を変えない（追加のみ・改変なし）。"""
+    assert _snapshot_digest() == _V150_DEFAULT_DIGEST

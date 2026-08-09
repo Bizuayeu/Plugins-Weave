@@ -182,22 +182,24 @@ def _table_size(config: Config, name: str) -> int:
         return 0
 
 
-def artifacts_dir(config: Config) -> Path:
-    """秘書の成果物層（DESIGN §3.10）。申し送りの handoff ブロックもこの下に住む。"""
-    return config.registry_root / "artifacts"
+def handoff_dir(config: Config) -> Path:
+    """申し送りブロックの置き場。`archive/` サブディレクトリが卒業の受け皿になる。"""
+    return config.artifacts_path / "handoff"
 
 
-def _read_handoff_blocks(config: Config) -> list[tuple[str, str]]:
-    """`artifacts/handoff/*.md` を (ファイル名, 本文) で読む。不在・空は `[]`（no-op 完走）。
+def _read_handoff_blocks(config: Config, limit: int) -> list[tuple[str, str]]:
+    """`artifacts/handoff/*.md` を名前降順 `limit` 件だけ (ファイル名, 本文) で読む。
 
-    中身は解釈しない（スキーマレス、DESIGN §3.10）——標準化するのは置き場と
-    「辞書順ソート可能な命名」だけで、最新 N 件の選択と丸めは UseCase が担う。
-    読めない 1 ブロックで起動オリエンテーションを止めない（fail-open）。
+    非再帰 glob ＝ `handoff/archive/` 配下と非 .md は読まない（**卒業の受け皿の契約**、
+    退行テストで固定）。中身は解釈しない（スキーマレス、DESIGN §3.10）——標準化するのは
+    置き場と「辞書順ソート可能な命名」だけ。選択規則（名前降順）を UseCase の
+    `pick_latest_handoffs` と共有するので、事前絞りは冪等に重なり出力は変わらない。
+    不在・空は `[]`（no-op 完走）。読めない 1 ブロックで起動オリエンテーションを
+    止めない（fail-open。結果が limit−1 件になるのは許容、stderr で告知する）。
     """
-    # cc-defer: handoff は分離のみ（天井）、消化=knowledge 結晶化・卒業は orientation 実測 100KB 超で次段へ
-    directory = artifacts_dir(config) / "handoff"
+    directory = handoff_dir(config)
     try:
-        paths = sorted(directory.glob("*.md"))
+        paths = sorted(directory.glob("*.md"), reverse=True)[: max(limit, 0)]
     except OSError:
         return []
     blocks = []
@@ -221,13 +223,13 @@ def run_orientation(config: Config, args: Any = None) -> int:
     """
     listers = {name: registry_service(config, name) for name in REGISTRY_SPEC}
     sizes = {name: _table_size(config, name) for name in REGISTRY_SPEC}
+    handoff_latest = getattr(args, "handoff_latest", None) or DEFAULT_HANDOFF_LATEST
     print(
         OrientationService(listers, sizes).build(
-            handoffs=_read_handoff_blocks(config),
+            handoffs=_read_handoff_blocks(config, handoff_latest),
             notes_tail=getattr(args, "notes_tail", None) or DEFAULT_NOTES_TAIL,
             topic_width=getattr(args, "topic_width", None) or DEFAULT_TOPIC_WIDTH,
-            handoff_latest=getattr(args, "handoff_latest", None)
-            or DEFAULT_HANDOFF_LATEST,
+            handoff_latest=handoff_latest,
             handoff_cap=getattr(args, "handoff_cap", None) or DEFAULT_HANDOFF_CAP,
         )
     )
@@ -245,7 +247,7 @@ def run_artifacts_sync(config: Config, sync=None) -> int:
     service = sync if sync is not None else build_sync(config)
     if service is None:
         return EXIT_OK
-    directory = artifacts_dir(config)
+    directory = config.artifacts_path
     if not directory.exists():
         print(f"artifacts-sync: nothing to sync ({directory} not found)")
         return EXIT_OK

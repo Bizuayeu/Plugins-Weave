@@ -46,6 +46,13 @@ def test_config_new_table_paths():
     assert cfg.steps_path == cfg.registry_root / "steps" / "STEPS.json"
 
 
+def test_config_artifacts_path_follows_registry_root():
+    """成果物層（artifacts/）も管理表と同じ registry_root 配下——パス解決は Config に一元化する
+    （registry_cli の局所導出をやめ、7表の `*_path` と同じ向きに揃える）。"""
+    cfg = Config.from_sources()
+    assert cfg.artifacts_path == cfg.registry_root / "artifacts"
+
+
 def test_config_parses_max_size_bytes(monkeypatch):
     monkeypatch.setenv("TELEGRAM_SECRETARY_MEDIA_MAX_SIZE_BYTES", "5242880")
     cfg = Config.from_sources()
