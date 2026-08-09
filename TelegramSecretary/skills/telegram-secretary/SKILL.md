@@ -20,14 +20,14 @@ description: Telegram Bot API の long-polling を cloud routine 上で常駐さ
 1. Step 0 で `config.json` を読み `agent_name`/`private_dir` を把握 → `source bootstrap.sh` で依存導入 + validate-config（config.json の session_duration_sec 検証含む）+ `TELEGRAM_SECRETARY_SESSION_ID` を env 共有
 2. egress 疎通確認（curl api.telegram.org/.../getMe を invalid token で叩いて 401/404 が返ることを確認）
 3. lease acquire（他セッション保持中なら exit 4 で即終了＝自己治癒）
-4. 起動時オリエンテーション = `orientation` 一撃（role 判定 + 7表の件数/射影 + handoff 最新ブロック）でコンテキストを立ち上げ、今日の役割（秘書/執事/コーチ/守護霊）を確定。**7表を並べて `list` しない**——肥大した registry では出力上限を超えてコンテキストに載らないまま exit 0 する（沈黙失敗、DESIGN §3.12）。本文が要る個票だけ `get --key` で引く。続けて自由時間（autonomous turn）の actionability 判断（grant 下なら継続型タスクの能動 push・STEPS 期限近接の伴走ナッジ等を1つ、値しなければ inbound 専念）。詳細は ROUTINE_PROMPT Step 5
+4. 起動時オリエンテーション = `orientation` 一撃（role 判定 + 7表の件数/射影 + handoff 最新ブロック）でコンテキストを立ち上げ、今日の役割（秘書/執事/コーチ/守護霊）を確定。**7表を並べて `list` しない**——肥大した registry では出力上限を超えてコンテキストに載らないまま exit 0 する（沈黙失敗、DESIGN §3.12）。本文が要る個票だけ `get --key` で引く。続けて自由時間（autonomous turn）の actionability 判断（grant 下なら継続型タスクの能動 push・STEPS 期限近接の伴走ナッジ・未消化 handoff の消化〔knowledge へ結晶化 → `handoff-archive` で卒業〕等を1つ、値しなければ inbound 専念）。詳細は ROUTINE_PROMPT Step 5
 5. `/goal` で deadline（`$TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH`）まで監視を駆動。各ターン = foreground
    `watch --exit-on-message --max-duration <残り窓> --timeout 30`（この call のみ bash
    `timeout: $TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS`、他は既定 2分）
 6. watch 返却後、stdout の JSON Lines を読み、エージェントが SecretaryRole で応答ドラフト → send-reply
    （メッセージ受信なら即応再起動、無ければ窓満了で再起動）
 7. lease renew は watch がサイクル毎に内蔵実行（手動 renew 不要）
-8. セッション終端で申し送りを `registry_dir/artifacts/handoff/<UTC日時>_<session_id>.md` へ Write → `artifacts-sync`（枠＝ブロック境界。tasks の notes に長文を追記しない）→ lease release（次 cron が拾える）
+8. セッション終端で申し送りを `registry_dir/artifacts/handoff/<UTC日時>_<session_id>.md` へ Write → `artifacts-sync`（枠＝ブロック境界。tasks の notes に長文を追記しない。消化済みブロックは `handoff-archive` で `handoff/archive/` へ卒業＝以後 orientation に載らない）→ lease release（次 cron が拾える）
 ```
 
 各 media item の処理分岐（詳細フローは [`ROUTINE_PROMPT.md`](../../ROUTINE_PROMPT.md)）:
@@ -73,8 +73,9 @@ PDF は **常に全ページ画像化**する（テキスト層の有無を判�
 | `cleanup-media` | `state_dir/media/` 配下で `media_retention_hours` 超過の保存 media を削除（手動 / cron）。`watch` は `--cleanup-interval` で自動発火（既定 120 サイクル≒1h） | 0=OK, 2=設定欠損 |
 | `render-pdf --path <pdf> (--text \| --pages N-M)` | 受信済み PDF のオンデマンド抽出。`--text`=全ページのテキスト層（pdfplumber、`--- page N ---` マーカー）、`--pages N-M`=指定ページ画像化（1-indexed inclusive、cap 超 21 枚目以降用）。結果は JSON 1 行で stdout。`--text`/`--pages` は排他必須 | 0=OK, 2=ファイル不在/引数不正 |
 | `individuals\|tasks\|knowledge\|abilities\|profile\|goals\|steps {list\|get\|add\|remove}` | 管理表（7表: INDIVIDUALS/TASKS/KNOWLEDGE/ABILITIES/PROFILE/GOALS/STEPS）の CRUD。`get`/`remove` は `--key`（uuid/id）、`add` は `--json`/`--json-file`。値オブジェクトで検証。SSoT は Private JSON、操作主体は SecretaryRole、入口は `/telegram-secretary`。`registry_sync` 有効時は add/remove 後に commit&push（イベント駆動） | 0=OK, 2=不正入力 |
-| `orientation [--notes-tail N] [--topic-width N] [--handoff-latest N] [--handoff-cap N]` | **起動時オリエンテーションのダイジェスト**（7表を並べた `list` を置き換える read-only 射影）。role 判定 + 7表の件数/バイト数 + 小表全文 + tasks 一行要約と active の notes 末尾（既定 4000 字）+ knowledge の `id\|topic` 索引（既定幅 120）+ handoff 最新ブロック（既定 3 件・各 8000 字）を stdout に出す。出力サイズは notes 長に依存せず有界。深掘りは個別 `get --key` | 0=OK, 2=設定欠損 |
+| `orientation [--notes-tail N] [--topic-width N] [--handoff-latest N] [--handoff-cap N] [--knowledge-category CAT]` | **起動時オリエンテーションのダイジェスト**（7表を並べた `list` を置き換える read-only 射影）。role 判定 + 7表の件数/バイト数 + 小表全文 + tasks 一行要約と active の notes 末尾（既定 4000 字）+ knowledge の `id\|topic` 索引（既定幅 120）+ handoff 最新ブロック（既定 3 件・各 8000 字）を stdout に出す。出力サイズは notes 長に依存せず有界。`--knowledge-category` は索引を category 完全一致で絞る（見出しに `N of M` が載り、絞って落ちた分も可視。該当 0 件でも exit 0＝絞りは観測であって検証ではない）。深掘りは個別 `get --key` | 0=OK, 2=設定欠損 |
 | `artifacts-sync` | 成果物層 `registry_dir/artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push。**書き込み CLI は持たない**——秘書が `Write` して、この一手で送る（スキーマレス、DESIGN §3.10/§3.12）。`registry_sync` 無効・`artifacts/` 未作成は no-op | 0=OK, 1=push失敗 |
+| `handoff-archive <name>...` | 消化（knowledge への結晶化）を終えた handoff ブロックを `handoff/archive/` へ移し、`artifacts-sync` 経路で送る（卒業）。**orientation は `handoff/` 直下の `*.md` しか読まない契約ゆえ、archive/ へ移したブロックは以後載らない**（消えるのではなく読み筋から外れる）。名前は `handoff/` 直下のファイル名そのもの（複数可）。パス成分を含む名前・不在・archive/ に同名既存は**何も移動せず** exit 2（部分成功を作らない）。どれを卒業させるかは持たない＝消化判断の出力を受ける指名制（DESIGN §3.12） | 0=OK, 1=push失敗, 2=不正/不在 |
 | `role-status` | PROFILE/GOALS から現在の役割（secretary/butler/coach/anego＝守護霊）を決定論導出し JSON 1行で emit（P=principal の PROFILE≥1、A=active な GOALS≥1。役割の自称をしない＝判定はコード、演技は SecretaryRole。DESIGN §3.11）。起動時は `orientation` の `## role` に同一判定が載るため、単独で叩くのは役割だけ確かめたい時 | 0=OK |
 | `registry-sync` | 起動時に固定ブランチから管理表を fetch（`registry_sync` 有効時のみ、無効は no-op）。最新の管理表で起動するため ROUTINE_PROMPT が起動時に1回呼ぶ | 0=OK, 1=fetch失敗 |
 | `wal-append --kind <individuals\|tasks\|knowledge\|abilities\|profile\|goals\|steps\|outbound> (--json \| --json-file)` | WAL に intent を pending 追記（**登録系の返信の前**、言行一致保証の先行書込）。kind は registry 全7表＋outbound（choices は `REGISTRY_SPEC` 導出＝表追加に自動追従）。`outbound` は通常 `proactive-send` が内包するため手動使用は非推奨。`registry_sync` 有効時のみ・無効は no-op | 0=OK, 2=不正 |

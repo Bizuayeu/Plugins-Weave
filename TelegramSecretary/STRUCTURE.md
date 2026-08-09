@@ -145,7 +145,8 @@ TelegramSecretary/
     │   └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
     └── artifacts/                     # 秘書の成果物層（非定型・スキーマレス、§3.10）。蓄積が本質ゆえ永続
         ├── handoff/                   # 申し送りブロック（枠＝境界、§3.12）。標準化は置き場と命名だけ
-        │   └── <UTC日時>_<session_id>.md   # 例 20260809T131500Z_session-xxxxxxxx.md（辞書順降順＝新しい順）
+        │   ├── <UTC日時>_<session_id>.md   # 例 20260809T131500Z_session-xxxxxxxx.md（辞書順降順＝新しい順）
+        │   └── archive/               # 消化を終えたブロックの卒業先（`handoff-archive` が実行時に生成）。orientation の読み筋外
         └── <成果物>.{json,md} …       # 構成・命名・索引は秘書判断（CRUD/WAL/スキーマを持たない＝重要度の世界）
 ```
 

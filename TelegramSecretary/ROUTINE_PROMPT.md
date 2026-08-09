@@ -116,6 +116,14 @@ source /tmp/telegram-secretary.env.sh && \
    - tasks の期限近接/継続型を idle 明けに能動 push（proactive-send、grant 下）
    - **steps の期限近接・滞留中の伴走ナッジ**（coach/anego 時。進捗の問いかけ・次の一歩の提案。profile があれば温度を相手の特性に合わせる）
    - 直近の会話を knowledge へ結晶化（夜の自分への digest）
+   - **未消化 handoff の消化** — 前枠までの handoff ブロックを読み返し、再利用価値ある対応知を knowledge へ結晶化 → 結晶化し終えたブロックを `handoff-archive` で卒業させる（**1 ターンで扱える件数だけ**。読み返しは orientation に載った最新ブロックが起点）：
+
+```bash
+source /tmp/telegram-secretary.env.sh && \
+  (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && \
+   python scripts/main.py handoff-archive 20260809T131500Z_session-xxxxxxxx.md)
+```
+
    - individuals の鮮度チェック（疎遠な相手を気にかける）
 
    grant が無い／値する signal が無い／knowledge に自由時間の方針が未記録なら、**自律発信はせず inbound 応答に徹する**（Step 6 の watch ループへ素通り）。自由時間の運用規範そのものを knowledge に育てるのも、この自律ターンの正当な使い道（noise は投げない＝親性ゲート）。
@@ -235,7 +243,7 @@ source /tmp/telegram-secretary.env.sh && \
       - **profile（誰に仕えるか）**: principal（や関係者）の人物理解。伴走・提案・励ましの前に引いて温度を合わせる。占術・性格診断・対話から得た解釈は**本人の同意のもと** `add`（method 必須）、対話で外れが分かったら update（SecretaryRole「パーソナライズの聴取」参照）
       - **goals / steps（何に伴走するか）**: 目標と逆算ステップ。目標は対話で言語化してから `goals add`、target_date から逆算で `steps add`。進捗対話のたびに steps の status を更新し、期限近接・滞留は伴走ナッジの材料にする（プロマネの巻き取り。SecretaryRole「伴走の方針」参照）
       - **`registry_sync` 有効時、`add`/`remove` は固定ブランチへの commit&push を内包**する（イベント駆動・force 不使用・non-ff は rebase で取り込み）。別途 push 手順を叩く必要は無い。push 失敗（transient）はローカル commit が積まれ、次の更新 or 次回起動の fetch でまとめて再送される
-      - **申し送り（次の自分への引き継ぎ）は handoff ブロックへ書く——tasks の `notes` に長文を追記しない**: notes への追記は 1 レコードが線形に伸び続け、やがて起動時に読めない大きさになる（本 Step 5 の沈黙失敗の主因）。枠の終わりに `$TELEGRAM_SECRETARY_REGISTRY_DIR/artifacts/handoff/<UTC日時>_<session_id>.md`（例 `20260809T131500Z_session-xxxxxxxx.md`）を `Write` し、`artifacts-sync` で送る——**枠がそのままブロック境界**になり、次枠の `orientation` が新しい順に読む。中身の書式は自由（スキーマレス、DESIGN §3.10/§3.12）。notes に残してよいのは「申し送りは handoff 参照」の現在地ポインタ一行まで。**handoff にも出力漏洩スキャン規律が同じく掛かる**（token / env名 / 絶対パスを書かない）
+      - **申し送り（次の自分への引き継ぎ）は handoff ブロックへ書く——tasks の `notes` に長文を追記しない**: notes への追記は 1 レコードが線形に伸び続け、やがて起動時に読めない大きさになる（本 Step 5 の沈黙失敗の主因）。枠の終わりに `$TELEGRAM_SECRETARY_REGISTRY_DIR/artifacts/handoff/<UTC日時>_<session_id>.md`（例 `20260809T131500Z_session-xxxxxxxx.md`）を `Write` し、`artifacts-sync` で送る——**枠がそのままブロック境界**になり、次枠の `orientation` が新しい順に読む。中身の書式は自由（スキーマレス、DESIGN §3.10/§3.12）。notes に残してよいのは「申し送りは handoff 参照」の現在地ポインタ一行まで。**handoff にも出力漏洩スキャン規律が同じく掛かる**（token / env名 / 絶対パスを書かない）。**`handoff-archive` で `handoff/archive/` へ移したブロックは orientation に載らない**（読み筋から外れるだけでファイルは消えない）——消化を終えたブロックの卒業先であり、消化前のブロックを畳む場所ではない
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \

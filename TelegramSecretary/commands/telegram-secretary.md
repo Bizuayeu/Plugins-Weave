@@ -22,6 +22,7 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 | `individuals\|tasks\|knowledge\|abilities\|profile\|goals\|steps {list\|get\|add\|remove}` | 管理表 CRUD（7 表、何を残すか・何を行使するかは SecretaryRole 判断、書き込みは決定論 I/O） | `scripts/main.py` |
 | `orientation` | 起動時オリエンテーションのダイジェスト（role + 7表の件数/射影 + 申し送り handoff）。7表を並べた `list` の代わりに叩く read-only 射影 | `scripts/main.py` |
 | `artifacts-sync` | 成果物層 `artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push | `scripts/main.py` |
+| `handoff-archive <name>...` | 消化済みの申し送りブロックを `handoff/archive/` へ卒業させる（以後 orientation に載らない） | `scripts/main.py` |
 | `role-status` | P×A 役割（秘書/執事/コーチ/守護霊）のデータ駆動判定 | `scripts/main.py` |
 | `test --chat-id` | owner chat への疎通 ping | `scripts/main.py test` |
 
