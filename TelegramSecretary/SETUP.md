@@ -123,6 +123,7 @@ claude.ai の Code → Environments で：
 | 返信が返らない | egress or 認可 | chat_id が `AUTHORIZED_CHATS` に入っているか、`api.telegram.org` egress が通っているか |
 | 管理表が毎回空に戻る | `registry_sync` 無効 or worktree 未 provisioning or git 認証不足 | config の `registry_sync:true` / `registry_dir`（独立 worktree）を確認 → bootstrap の `registry worktree provisioned/refreshed` ログと固定ブランチへの push 認証（git credential）を確認（DESIGN §3.6） |
 | `registry fetch failed`（起動時） | 固定ブランチ未作成 or git 認証不足 | 初回は対象ブランチが空でも継続（前回ローカル状態で起動）。git 認証（PAT 等）が Environment にあるか確認 |
+| 管理表は埋まっているのに、秘書が登録済みのタスク・方針を毎回忘れる | 起動時に管理表を並べて `list` している（肥大した表は出力上限を超え、コンテキストに載らないまま exit 0 する＝沈黙失敗） | 起動時オリエンテーションは `python scripts/main.py orientation` の一撃で行う（bootstrap が `ready` の直前に案内を出す）。単表 `list` が 200KB を超えると stderr に警告が出るので、それを合図に `orientation` / `get --key` へ切り替える（→ DESIGN §3.12） |
 | 管理表が空＝記憶なし稼働（stderr に `WARNING: ... EMPTY tables`） | `registry_dir` が独立 worktree でない（dev ツリー内サブディレクトリ＝旧構成） | `registry_dir` を独立 worktree 値（`ts-registry-wt`）にする。bootstrap の `registry worktree provisioned/refreshed` ログを確認（→ DESIGN §3.6） |
 
 ## 参照

@@ -211,4 +211,9 @@ _ts_env_file="${TELEGRAM_SECRETARY_ENV_FILE:-/tmp/telegram-secretary.env.sh}"
 export TELEGRAM_SECRETARY_ENV_FILE="$_ts_env_file"
 _ts_log "env snapshot -> $_ts_env_file"
 
+# 起動時オリエンテーションの入口を、失敗するステップより上流（ここ）で名指しする。
+# 7表を並べて list すると registry 肥大で出力上限を超え、ハーネスが persisted-output へ
+# 退避して「データがコンテキストに載らないまま exit 0」する沈黙失敗になる（DESIGN §3.12）。
+_ts_log "startup digest: python scripts/main.py orientation  (do NOT list the 7 tables side by side)"
+
 _ts_log "ready"

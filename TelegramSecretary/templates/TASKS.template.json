@@ -8,7 +8,7 @@
     "due_date": "ISO date | null",
     "requester": "uuid | 'principal' — 依頼主（INDIVIDUALS の uuid か principal）",
     "related_individuals": "uuid[] — 関係する人物",
-    "notes": "string — 経緯メモ",
+    "notes": "string — 経緯メモ（短く保つ。長文の申し送りは <registry_dir>/artifacts/handoff/<UTC日時>_<session_id>.md へ書く——notes への追記は 1 レコードを線形に太らせ、起動時オリエンテーションを壊す。DESIGN §3.12）",
     "created_at": "ISO8601",
     "updated_at": "ISO8601",
     "closed_at": "ISO8601 | null — done になった時刻（Archive 判定に使用）"

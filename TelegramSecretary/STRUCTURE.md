@@ -85,6 +85,7 @@ TelegramSecretary/
 │   │   ├── outbound.py       # send-reply / proactive-send 共有の送信前ガード（lease 再検証・添付検証）
 │   │   ├── download_authorized_media.py / render_authorized_media.py
 │   │   ├── manage_registry.py # 管理表 CRUD UseCase
+│   │   ├── orientation.py    # 起動時ダイジェストの射影（一行要約/索引/notes 末尾/handoff 選択、DESIGN §3.12）
 │   │   ├── registry_sync.py  # 管理表の git 永続化（イベント駆動 commit&push、GitSyncPort 越し、DESIGN §3.6）
 │   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents / SettleOutboundIntent）
 │   ├── adapters/
@@ -143,6 +144,8 @@ TelegramSecretary/
     ├── wal/
     │   └── WAL.jsonl                  # WAL（言行一致の intent log＋直近24h短期記憶、registry_sync 有効時）
     └── artifacts/                     # 秘書の成果物層（非定型・スキーマレス、§3.10）。蓄積が本質ゆえ永続
+        ├── handoff/                   # 申し送りブロック（枠＝境界、§3.12）。標準化は置き場と命名だけ
+        │   └── <UTC日時>_<session_id>.md   # 例 20260809T131500Z_session-xxxxxxxx.md（辞書順降順＝新しい順）
         └── <成果物>.{json,md} …       # 構成・命名・索引は秘書判断（CRUD/WAL/スキーマを持たない＝重要度の世界）
 ```
 
@@ -160,6 +163,7 @@ TelegramSecretary/
 | 人物理解 PROFILE.json（P軸） | `<registry_dir>/profile/` | Private（永続・機微 PII） |
 | 目標 GOALS.json / ステップ STEPS.json（A軸） | `<registry_dir>/goals/` `<registry_dir>/steps/` | Private（永続） |
 | 成果物（非定型 md/json） | `<registry_dir>/artifacts/`（ツリー同期・§3.10） | Private（永続・**重要度の世界**） |
+| 申し送り（次枠への引き継ぎ） | `<registry_dir>/artifacts/handoff/<UTC日時>_<session_id>.md`（`artifacts-sync` で push・§3.12） | Private（永続・**重要度の世界**）。tasks の notes に長文を追記しない |
 | 秘書人格 SecretaryRole.md | `<Private>/Identities/` | Private |
 | 各管理表・秘書人格の雛型 | `templates/` | public |
 | 管理表の値オブジェクト | `scripts/domain/registry.py` | public |

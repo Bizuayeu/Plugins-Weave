@@ -2,6 +2,35 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.5.0] - 2026-08-09 — 起動時オリエンテーションの沈黙失敗対策（orientation）と申し送りのブロック化（第一段）
+
+肥大した registry を起動時に読もうとすると、出力がハーネスの上限を超えて退避され、
+**データがコンテキストに載らないまま exit 0 する**——読めていないのに読めたつもりで
+起動する沈黙失敗が 17 枠にわたり再発した（実測 1.6MB: knowledge 943KB/187 件、
+tasks 741KB/8 件、支配項は 1 レコードの notes 165K 字）。7表を並べた `list` を
+絞り込みダイジェストに置き換え、線形に堆積する申し送りをブロックへ分離する。
+
+### Added
+
+- **`orientation` サブコマンド** — role 判定・7表の件数/バイト数・小表（individuals/abilities/profile/goals/steps）全文・tasks の一行要約と active タスクの notes 末尾・knowledge の `id | topic` 索引・handoff 最新ブロックを 1 コマンドで出す read-only 射影。**出力量が notes 総長・knowledge content 総量に依存せず有界**（レコードが太っても出力は太らない）。幅は `--notes-tail`（既定 4000）/ `--topic-width`（既定 120）/ `--handoff-latest`（既定 3）/ `--handoff-cap`（既定 8000）で調節可
+- **申し送りの handoff ブロック（第一段）** — 書き先を tasks の `notes` 追記から `<registry_dir>/artifacts/handoff/<UTC日時>_<session_id>.md` へ移した。**セッション枠がそのままブロック境界**になり、命名の辞書順降順で新しい順に読める。スキーマも CRUD も持たない（置き場と命名だけを標準化＝DESIGN §3.10 の境界を侵さない）
+- **`artifacts-sync` サブコマンド** — 成果物層 `artifacts/` を既存 sync 経路で commit & push（新規 git コードを書かない）。書き込み CLI は持たず、秘書の `Write` → `artifacts-sync` の二手
+- **`list` の 200KB 超警告** — 単表 `list` の出力が 200KB を超えると stderr に一行警告（stdout・exit 0 は不変＝fail-open）。「沈黙」を「声」に変えるだけで、既存経路を退行させない
+- **`bootstrap.sh` の起動時案内** — `ready` の直前に `orientation` を名指しする一行。**手順 X の失敗を防ぐ知識は X より上流に置く**（データ層に書いても、それを読むステップ自体が失敗するため効かない）
+
+### Changed
+
+- **ROUTINE_PROMPT Step 5 / SKILL.md Daily Workflow** — 7表を並べた `list` の手順を `orientation` 一撃＋個別 `get --key` へ置換し、「7表合計でも数千トークン規模」の楽観記述を削除。沈黙失敗の機序を why として明記した（誘導源の根絶）
+- **`DESIGN.md` に §3.12 を新設（起動時オリエンテーションの SSoT）** — 沈黙失敗の機序・上流配置の原則・出力の有界性・handoff のブロック境界。他文書は要約＋ポインタに統一。§3.10 には「規約付き用途を置いてよい範囲」を追記
+- **`SECURITY.md` §7** — handoff の PII 範囲は WAL と同型（Private 分離・commit 先は同一）。ただし自由記述ゆえ出力漏洩スキャン規律を書き込みにも適用する旨を明記
+
+### Notes
+
+- **既存の notes は書き換えない**（append-only 台帳の不可侵）。`orientation` は legacy な堆積も読み続ける（active タスクのみ・末尾 `notes_tail` 字）ため、移行は既存データを壊さず tail が縮む一方の可逆な形になる
+- 申し送りの**消化（knowledge 結晶化）と卒業（archive）は次段**——本版の天井は分離のみで、昇格トリガー（orientation 実測 100KB 超）は `registry_cli._read_handoff_blocks` に `cc-defer` として刻んである
+- `handoff_latest=3` / `handoff_cap=8000` は実測からの外挿による**仮置き**（次枠の実測で校正する）。`notes_tail=4000` / `topic_width=120` / 警告閾値 200KB は運用実測由来
+- 登録済み routine の body は登録時 snapshot のため、Step 5 の置換を本番へ届けるには **body の再登録が必要**（リポ修正だけでは到達しない）
+
 ## [1.4.3] - 2026-08-02 — registry 書込の詰まりと watch 中断の復帰（運用実測 2 件の恒久反映）
 
 どちらも cloud routine の実運用で観測された事象の恒久化。挙動を止める向きの変更は無い。

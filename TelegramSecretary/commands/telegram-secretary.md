@@ -20,6 +20,8 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 | `unschedule` | 停止（`enabled:false`、二度と起動しない） | `RemoteTrigger update` |
 | `init-config` / `show-config` / `validate-config` | 運用設定（config.json）の生成・表示・検証 | `scripts/main.py` |
 | `individuals\|tasks\|knowledge\|abilities\|profile\|goals\|steps {list\|get\|add\|remove}` | 管理表 CRUD（7 表、何を残すか・何を行使するかは SecretaryRole 判断、書き込みは決定論 I/O） | `scripts/main.py` |
+| `orientation` | 起動時オリエンテーションのダイジェスト（role + 7表の件数/射影 + 申し送り handoff）。7表を並べた `list` の代わりに叩く read-only 射影 | `scripts/main.py` |
+| `artifacts-sync` | 成果物層 `artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push | `scripts/main.py` |
 | `role-status` | P×A 役割（秘書/執事/コーチ/守護霊）のデータ駆動判定 | `scripts/main.py` |
 | `test --chat-id` | owner chat への疎通 ping | `scripts/main.py test` |
 
@@ -37,6 +39,9 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 # 運用設定の生成・確認
 /telegram-secretary init-config --session-duration-sec 14400 --agent-name YourSecretary
 /telegram-secretary show-config
+
+# 起動時オリエンテーション（役割 + 7表の件数/射影 + 申し送り）
+/telegram-secretary orientation
 
 # 管理表（関係者・依頼・対応知・能力カタログ・人物理解・目標・逆算ステップ）
 /telegram-secretary individuals list

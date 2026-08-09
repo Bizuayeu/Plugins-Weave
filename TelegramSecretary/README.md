@@ -103,6 +103,8 @@ python scripts/main.py lease release
 | `test --chat-id` | 疎通テスト（owner chat に ping 送信） | 0, 1, 3 |
 | `cleanup-media` | retention 超過の保存 media を削除（`watch` は自動発火、手動/cron 用） | 0, 2 |
 | `individuals\|tasks\|knowledge\|abilities\|profile\|goals\|steps {list\|get\|add\|remove}` | 管理表 CRUD（7 表、値オブジェクトで入力検証、不正は exit 2）。`registry_sync` 有効時は add/remove 後に commit&push | 0, 2 |
+| `orientation [--notes-tail N] [--topic-width N] [--handoff-latest N] [--handoff-cap N]` | 起動時オリエンテーションのダイジェスト（role + 7表の件数/バイト数 + 小表全文 + tasks 一行要約と active の notes 末尾 + knowledge 索引 + handoff 最新ブロック）を emit。出力はレコード長に依存せず有界（DESIGN §3.12） | 0, 2=設定欠損 |
+| `artifacts-sync` | 成果物層 `artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push。`registry_sync` 無効・`artifacts/` 未作成は no-op | 0, 1=push失敗 |
 | `role-status` | PROFILE/GOALS から現在の役割（secretary/butler/coach/anego＝守護霊）をデータ駆動で判定し JSON 1行を emit | 0 |
 | `registry-sync` | 起動時に固定ブランチから管理表を fetch（`registry_sync` 有効時のみ、無効は no-op） | 0, 1 |
 | `wal-append --kind <...> (--json\|--json-file)` / `wal-push` / `wal-redo` | WAL（言行一致）: 登録系返信の前に intent を先行 push（must-succeed）、起動時に未反映分を registry へ redo。`registry_sync` 有効時のみ | 0, 1=push失敗, 2 |
