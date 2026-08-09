@@ -866,6 +866,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_HANDOFF_CAP,
         help=f"handoff 1 ブロックの上限字数 (default {DEFAULT_HANDOFF_CAP})",
     )
+    p_orientation.add_argument(
+        "--knowledge-category",
+        dest="knowledge_category",
+        help="knowledge 索引を category 完全一致で絞る（未指定なら全件＝従来出力）",
+    )
 
     # 成果物層（artifacts/、handoff ブロックを含む）の commit & push。
     # 書き込み CLI は持たない——秘書が Write して、この一手で送る（DESIGN §3.10）

@@ -339,3 +339,66 @@ def _snapshot_digest(**build_kwargs) -> str:
 def test_default_digest_is_byte_identical_to_v150_snapshot():
     """既定出力の同一性契約。オプション追加は既定を変えない（追加のみ・改変なし）。"""
     assert _snapshot_digest() == _V150_DEFAULT_DIGEST
+
+
+def test_knowledge_category_unset_keeps_v150_snapshot():
+    """`knowledge_category` を明示的に None で渡しても既定と同一（後方互換の第二の錠）。"""
+    assert _snapshot_digest(knowledge_category=None) == _V150_DEFAULT_DIGEST
+
+
+# === knowledge の category 絞り（索引 O(n) を母数側から抑える観測オプション） ===
+
+
+def _categorized_knowledge() -> list[dict]:
+    return [
+        _knowledge(id="K-001", topic="申し送りの置き場", category="ops"),
+        _knowledge(id="K-002", topic="請求の締め", category="billing"),
+        _knowledge(id="K-003", topic="定例の段取り", category="ops"),
+        _knowledge(id="K-004", topic="与信の見方", category="billing"),
+        _knowledge(id="K-005", topic="鍵の預かり", category="general"),
+    ]
+
+
+def test_knowledge_category_filters_rows_and_reports_hidden_count():
+    """絞り込み時は該当行だけを出し、見出しの `N of M` で「見えなくなった件数」を残す。"""
+    digest = _service(knowledge=_categorized_knowledge()).build(
+        knowledge_category="ops"
+    )
+    assert "## knowledge (2 of 5 records, category=ops, index: id | topic)" in digest
+    assert "K-001 |" in digest and "K-003 |" in digest
+    for hidden in ("K-002 |", "K-004 |", "K-005 |"):
+        assert hidden not in digest
+
+
+def test_knowledge_category_matches_exactly_not_by_prefix():
+    """完全一致——`op` で `ops` を引っ掛けない（絞りの意味が曖昧になる）。"""
+    digest = _service(knowledge=_categorized_knowledge()).build(knowledge_category="op")
+    assert "## knowledge (0 of 5 records, category=op, index: id | topic)" in digest
+
+
+def test_unknown_knowledge_category_yields_zero_rows_without_error():
+    """存在しない category は 0 行＋見出しのみ。絞りは観測であって検証ではない（エラーにしない）。"""
+    digest = _service(knowledge=_categorized_knowledge()).build(
+        knowledge_category="nonexistent"
+    )
+    assert (
+        "## knowledge (0 of 5 records, category=nonexistent, index: id | topic)"
+        in digest
+    )
+    assert "K-00" not in digest
+
+
+def test_knowledge_category_preserves_id_ascending_order():
+    digest = _service(knowledge=list(reversed(_categorized_knowledge()))).build(
+        knowledge_category="billing"
+    )
+    assert digest.index("K-002 |") < digest.index("K-004 |")
+
+
+def test_knowledge_category_does_not_affect_other_sections():
+    """絞りは knowledge セクション限定（counts は表の実件数のまま＝母数を隠さない）。"""
+    digest = _service(knowledge=_categorized_knowledge(), tasks=[_task()]).build(
+        knowledge_category="ops"
+    )
+    assert "knowledge: 5 records, 0 bytes" in digest
+    assert "T-001 |" in digest

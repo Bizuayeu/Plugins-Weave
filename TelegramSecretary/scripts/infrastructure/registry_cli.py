@@ -231,6 +231,7 @@ def run_orientation(config: Config, args: Any = None) -> int:
             topic_width=getattr(args, "topic_width", None) or DEFAULT_TOPIC_WIDTH,
             handoff_latest=handoff_latest,
             handoff_cap=getattr(args, "handoff_cap", None) or DEFAULT_HANDOFF_CAP,
+            knowledge_category=getattr(args, "knowledge_category", None),
         )
     )
     return EXIT_OK

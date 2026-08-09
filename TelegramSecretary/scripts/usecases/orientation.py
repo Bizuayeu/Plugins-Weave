@@ -77,6 +77,18 @@ def index_knowledge(
     return f"{record.get('id', '')} | {_truncate(str(record.get('topic', '')), topic_width)}"
 
 
+def filter_knowledge_by_category(
+    rows: Sequence[Mapping[str, Any]], category: str
+) -> list[dict]:
+    """knowledge を category **完全一致**で絞る（前方一致にしない——絞りの意味が曖昧になる）。
+
+    索引は O(n) で全件並ぶため、表が育つほど起動時の読み負荷が効いてくる。絞りは母数側から
+    それを抑える観測手段であり、検証ではない（該当 0 件はエラーではなく「その categoryの
+    知見はまだ無い」という観測結果）。隠れた件数は呼び出し側が見出しの `of M` で開示する。
+    """
+    return [dict(row) for row in rows if str(row.get("category", "")) == category]
+
+
 def tail_notes(notes: str, notes_tail: int = DEFAULT_NOTES_TAIL) -> str:
     """notes の末尾 notes_tail 字（申し送りは末尾に堆積するため頭を捨てる）。
 
@@ -120,13 +132,16 @@ class OrientationService:
         topic_width: int = DEFAULT_TOPIC_WIDTH,
         handoff_latest: int = DEFAULT_HANDOFF_LATEST,
         handoff_cap: int = DEFAULT_HANDOFF_CAP,
+        knowledge_category: str | None = None,
     ) -> str:
         records = {name: lister.list() for name, lister in self._listers.items()}
         parts = ["# orientation", ""]
         parts += self._role_section(records)
         parts += self._counts_section(records)
         for name in records:
-            parts += self._table_section(name, records[name], notes_tail, topic_width)
+            parts += self._table_section(
+                name, records[name], notes_tail, topic_width, knowledge_category
+            )
         parts += self._handoff_section(handoffs, handoff_latest, handoff_cap)
         return "\n".join(parts)
 
@@ -150,12 +165,17 @@ class OrientationService:
         return [*lines, ""]
 
     def _table_section(
-        self, name: str, rows: list[dict], notes_tail: int, topic_width: int
+        self,
+        name: str,
+        rows: list[dict],
+        notes_tail: int,
+        topic_width: int,
+        knowledge_category: str | None,
     ) -> list[str]:
         if name == "tasks":
             return self._tasks_section(rows, notes_tail)
         if name == "knowledge":
-            return self._knowledge_section(rows, topic_width)
+            return self._knowledge_section(rows, topic_width, knowledge_category)
         # 既定は全文（小表＝individuals / abilities / profile / goals / steps）。
         # 表が増えても列挙漏れで欠落しない側に倒す（肥大したらここで射影を足す）
         return [
@@ -180,10 +200,19 @@ class OrientationService:
             lines += [f"### {task.get('id', '')}", tail_notes(notes, notes_tail)]
         return [*lines, ""]
 
-    def _knowledge_section(self, rows: list[dict], topic_width: int) -> list[str]:
+    def _knowledge_section(
+        self, rows: list[dict], topic_width: int, category: str | None = None
+    ) -> list[str]:
         ordered = sorted(rows, key=lambda r: str(r.get("id", "")))
-        lines = [f"## knowledge ({len(ordered)} records, index: id | topic)"]
-        lines += [index_knowledge(k, topic_width) for k in ordered]
+        if category is None:
+            header = f"## knowledge ({len(ordered)} records, index: id | topic)"
+        else:
+            ordered = filter_knowledge_by_category(ordered, category)
+            header = (
+                f"## knowledge ({len(ordered)} of {len(rows)} records, "
+                f"category={category}, index: id | topic)"
+            )
+        lines = [header, *[index_knowledge(k, topic_width) for k in ordered]]
         return [*lines, ""]
 
     def _handoff_section(

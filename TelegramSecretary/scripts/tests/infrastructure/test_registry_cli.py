@@ -472,6 +472,40 @@ def test_orientation_options_override_defaults(tmp_path, capsys):
     assert len(out) < 3_000
 
 
+def test_orientation_knowledge_category_option_is_wired_through(tmp_path, capsys):
+    """`--knowledge-category` が CLI から UseCase まで通る（絞りの実配線）。"""
+    config = _config(tmp_path)
+    for kid, category, topic in (
+        ("K-001", "ops", "OPS_TOPIC"),
+        ("K-002", "billing", "BILLING_TOPIC"),
+    ):
+        run_registry_command(
+            config,
+            "knowledge",
+            "add",
+            _ns(
+                json=json.dumps(
+                    dict(_KNOWLEDGE, id=kid, category=category, topic=topic)
+                )
+            ),
+        )
+    capsys.readouterr()
+    assert run_orientation(config, _ns(knowledge_category="ops")) == 0
+    out = capsys.readouterr().out
+    assert "1 of 2 records, category=ops" in out
+    assert "OPS_TOPIC" in out
+    assert "BILLING_TOPIC" not in out
+
+
+def test_orientation_without_category_option_is_unchanged(tmp_path, capsys):
+    """引数未指定（属性そのものが無い呼び出しを含む）は従来出力（後方互換）。"""
+    config = _config(tmp_path)
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
+    capsys.readouterr()
+    assert run_orientation(config, _ns()) == 0
+    assert "## knowledge (1 records, index: id | topic)" in capsys.readouterr().out
+
+
 def test_orientation_does_not_trigger_sync(tmp_path):
     """orientation は読み取り専用（git に触れない）。"""
     config = _config(tmp_path, sync=True)
