@@ -83,7 +83,7 @@ def filter_knowledge_by_category(
     """knowledge を category **完全一致**で絞る（前方一致にしない——絞りの意味が曖昧になる）。
 
     索引は O(n) で全件並ぶため、表が育つほど起動時の読み負荷が効いてくる。絞りは母数側から
-    それを抑える観測手段であり、検証ではない（該当 0 件はエラーではなく「その categoryの
+    それを抑える観測手段であり、検証ではない（該当 0 件はエラーではなく「その category の
     知見はまだ無い」という観測結果）。隠れた件数は呼び出し側が見出しの `of M` で開示する。
     """
     return [dict(row) for row in rows if str(row.get("category", "")) == category]
