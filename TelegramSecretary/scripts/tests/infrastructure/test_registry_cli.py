@@ -499,3 +499,89 @@ def test_list_below_threshold_is_silent(tmp_path, capsys):
     assert run_registry_command(config, "knowledge", "list", _ns()) == 0
     assert "WARNING" not in capsys.readouterr().err
     assert LIST_WARNING_BYTES == 200 * 1024  # 閾値は orientation_report_20260809 指定
+
+
+# === handoff ブロック（申し送りの置き場）と artifacts-sync ===
+
+from infrastructure.registry_cli import artifacts_dir, run_artifacts_sync
+
+
+def _write_handoff(config: Config, name: str, body: str) -> Path:
+    path = artifacts_dir(config) / "handoff" / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8", newline="\n")
+    return path
+
+
+def test_orientation_reads_latest_handoff_blocks(tmp_path, capsys):
+    """置いたブロックの本文が次の orientation に載る（枠をまたぐ申し送りの経路）。"""
+    config = _config(tmp_path)
+    for day, body in (("07", "OLDEST"), ("08", "MIDDLE"), ("09", "NEWEST")):
+        _write_handoff(config, f"202608{day}T000000Z_s.md", f"{body}_BODY")
+    assert run_orientation(config, _ns(handoff_latest=2)) == 0
+    out = capsys.readouterr().out
+    assert "2 blocks" in out
+    assert "NEWEST_BODY" in out and "MIDDLE_BODY" in out
+    assert "OLDEST_BODY" not in out  # 降順 N 件のみ
+
+
+def test_orientation_handoff_body_is_capped(tmp_path, capsys):
+    config = _config(tmp_path)
+    _write_handoff(config, "20260809T000000Z_s.md", "HEAD" + "z" * 20_000)
+    assert run_orientation(config, _ns(handoff_cap=100)) == 0
+    out = capsys.readouterr().out
+    assert "HEAD" in out
+    assert "z" * 200 not in out
+
+
+def test_orientation_completes_when_handoff_dir_absent(tmp_path, capsys):
+    """handoff ディレクトリ不在でも no-op 完走（0 blocks）。"""
+    config = _config(tmp_path)
+    assert run_orientation(config, _ns()) == 0
+    assert "0 blocks" in capsys.readouterr().out
+
+
+def test_orientation_completes_when_handoff_dir_empty(tmp_path, capsys):
+    config = _config(tmp_path)
+    (artifacts_dir(config) / "handoff").mkdir(parents=True)
+    assert run_orientation(config, _ns()) == 0
+    assert "0 blocks" in capsys.readouterr().out
+
+
+def test_artifacts_sync_syncs_artifacts_dir(tmp_path, capsys):
+    """artifacts-sync は既存 sync 経路（RegistrySyncService）へ artifacts/ を渡すだけ。"""
+    config = _config(tmp_path, sync=True)
+    _write_handoff(config, "20260809T000000Z_s.md", "body")
+    git = FakeGitSync()
+    assert run_artifacts_sync(config, sync=RegistrySyncService(git)) == 0
+    paths, _message = git.commit_calls[0]
+    assert paths == [artifacts_dir(config)]
+    assert git.push_calls == 1
+
+
+def test_artifacts_sync_noop_when_registry_sync_disabled(tmp_path):
+    """registry_sync 無効ならローカル運用（git に触れず exit 0、後方互換）。"""
+    config = _config(tmp_path)
+    _write_handoff(config, "20260809T000000Z_s.md", "body")
+    assert run_artifacts_sync(config) == 0
+
+
+def test_artifacts_sync_reports_git_failure_without_traceback(tmp_path, capsys):
+    """git 失敗は transient として返す（申し送りが届かない事実は伝える、クラッシュはしない）。"""
+
+    class _FailingSync:
+        def sync(self, paths, message):
+            raise GitSyncError("simulated commit failure")
+
+    config = _config(tmp_path, sync=True)
+    _write_handoff(config, "20260809T000000Z_s.md", "body")
+    assert run_artifacts_sync(config, sync=_FailingSync()) == 1
+    assert "artifacts sync failed" in capsys.readouterr().err
+
+
+def test_artifacts_sync_noop_when_artifacts_dir_absent(tmp_path):
+    """成果物が 1 つも無い環境で git add の失敗を作らない（no-op exit 0）。"""
+    config = _config(tmp_path, sync=True)
+    git = FakeGitSync()
+    assert run_artifacts_sync(config, sync=RegistrySyncService(git)) == 0
+    assert git.commit_calls == []
