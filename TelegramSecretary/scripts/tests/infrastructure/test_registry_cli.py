@@ -700,3 +700,93 @@ def test_artifacts_sync_noop_when_artifacts_dir_absent(tmp_path):
     git = FakeGitSync()
     assert run_artifacts_sync(config, sync=RegistrySyncService(git)) == 0
     assert git.commit_calls == []
+
+
+# === handoff-archive（卒業の決定論操作、v1.6.0 Stage 3） ===
+
+from infrastructure.registry_cli import run_handoff_archive
+
+
+def test_handoff_archive_moves_named_blocks_out_of_the_digest(tmp_path, capsys):
+    """指名ブロックは archive/ へ移り、次の orientation から消える（残りは従来どおり）。"""
+    config = _config(tmp_path)
+    for day, body in (("07", "OLD"), ("08", "MID"), ("09", "NEW")):
+        _write_handoff(config, f"202608{day}T000000Z_s.md", f"{body}_BODY")
+
+    assert (
+        run_handoff_archive(config, ["20260807T000000Z_s.md", "20260808T000000Z_s.md"])
+        == 0
+    )
+    capsys.readouterr()
+
+    handoff = config.artifacts_path / "handoff"
+    assert sorted(p.name for p in handoff.glob("*.md")) == ["20260809T000000Z_s.md"]
+    assert sorted(p.name for p in (handoff / "archive").glob("*.md")) == [
+        "20260807T000000Z_s.md",
+        "20260808T000000Z_s.md",
+    ]
+
+    assert run_orientation(config, _ns()) == 0
+    out = capsys.readouterr().out
+    assert "NEW_BODY" in out
+    assert "OLD_BODY" not in out and "MID_BODY" not in out
+    assert "1 blocks" in out
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "../secrets.md",
+        "sub/20260809T000000Z_s.md",
+        "sub\\20260809T000000Z_s.md",
+        "/etc/passwd",
+        "C:\\Windows\\system.ini",
+    ],
+)
+def test_handoff_archive_rejects_names_with_path_components(tmp_path, name, capsys):
+    """パス成分を含む名前は exit 2（traversal 封じ＝完全一致主義、ops-rules §1）。"""
+    config = _config(tmp_path)
+    _write_handoff(config, "20260809T000000Z_s.md", "LIVE")
+    assert run_handoff_archive(config, [name]) == 2
+    assert "invalid handoff block name" in capsys.readouterr().err
+    assert not (config.artifacts_path / "handoff" / "archive").exists()
+
+
+def test_handoff_archive_rejects_missing_block_and_moves_nothing(tmp_path, capsys):
+    """1 件でも不在なら何も動かさない（全件検証→全件移動＝部分成功を作らない）。"""
+    config = _config(tmp_path)
+    _write_handoff(config, "20260809T000000Z_s.md", "LIVE")
+    assert (
+        run_handoff_archive(config, ["20260809T000000Z_s.md", "20260801T000000Z_s.md"])
+        == 2
+    )
+    assert "not found" in capsys.readouterr().err
+    handoff = config.artifacts_path / "handoff"
+    assert (handoff / "20260809T000000Z_s.md").exists()
+    assert not (handoff / "archive").exists()
+
+
+def test_handoff_archive_syncs_artifacts_dir(tmp_path, capsys):
+    """mv 後は既存 sync 経路へ artifacts/ を渡すだけ（rename は git add <dir> が拾う）。"""
+    config = _config(tmp_path, sync=True)
+    _write_handoff(config, "20260809T000000Z_s.md", "body")
+    git = FakeGitSync()
+    assert (
+        run_handoff_archive(
+            config, ["20260809T000000Z_s.md"], sync=RegistrySyncService(git)
+        )
+        == 0
+    )
+    paths, _message = git.commit_calls[0]
+    assert paths == [config.artifacts_path]
+    assert git.push_calls == 1
+
+
+def test_handoff_archive_moves_without_git_when_sync_disabled(tmp_path, capsys):
+    """registry_sync 無効なら mv のみで exit 0（`_sync_after_change` と同型の後方互換）。"""
+    config = _config(tmp_path)
+    _write_handoff(config, "20260809T000000Z_s.md", "body")
+    assert run_handoff_archive(config, ["20260809T000000Z_s.md"]) == 0
+    handoff = config.artifacts_path / "handoff"
+    assert (handoff / "archive" / "20260809T000000Z_s.md").exists()
+    assert not (handoff / "20260809T000000Z_s.md").exists()

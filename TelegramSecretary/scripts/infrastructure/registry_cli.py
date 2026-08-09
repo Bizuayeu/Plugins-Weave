@@ -263,6 +263,40 @@ def run_artifacts_sync(config: Config, sync=None) -> int:
     return EXIT_OK
 
 
+def run_handoff_archive(config: Config, names: list[str], sync=None) -> int:
+    """指名された handoff ブロックを `handoff/archive/` へ mv し、既存 sync で送る（卒業）。
+
+    非再帰読みの契約（`_read_handoff_blocks`）が受け皿なので、移した時点で以後の
+    orientation から外れる。**どれを卒業させるかは持たない**——消化（結晶化）を経た
+    指名を受けるだけ（判断は重要度の世界、移動は決定論の世界）。名前は `handoff/` 直下の
+    ファイル名そのもの（パス成分を含む入力は traversal として拒否、ops-rules §1）。
+    全件検証してから全件移動する＝1 件でも落ちれば何も動かない（部分成功を作らない）。
+    """
+    directory = handoff_dir(config)
+    archive = directory / "archive"
+    sources = []
+    # 重複指名は 1 回に畳む（2 度目の rename を FileNotFoundError で落とさない）
+    for name in dict.fromkeys(names):
+        if "/" in name or "\\" in name or Path(name).name != name:
+            print(f"invalid handoff block name: {name!r}", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
+        if not (directory / name).is_file():
+            print(f"handoff block not found: {name}", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
+        if (archive / name).exists():
+            # POSIX の rename は黙って上書きする＝卒業済みブロックの消失。事前に止める
+            print(f"handoff block already archived: {name}", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
+        sources.append(name)
+
+    archive.mkdir(parents=True, exist_ok=True)
+    for name in sources:
+        # 同一 FS 内の mv（git 側は rename として拾う＝履歴が切れない）
+        (directory / name).rename(archive / name)
+    print(f"archived {len(sources)} handoff block(s) to {archive}")
+    return run_artifacts_sync(config, sync)
+
+
 def run_role_status(config: Config) -> int:
     """PROFILE / GOALS から現在の役割（秘書/執事/コーチ/アネゴ）を決定論導出して JSON 1行で emit。
 

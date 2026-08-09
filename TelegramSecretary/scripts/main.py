@@ -38,6 +38,7 @@ from infrastructure.media_cleanup import cleanup_media_dir
 from infrastructure.registry_cli import (
     REGISTRY_SPEC,
     run_artifacts_sync,
+    run_handoff_archive,
     run_orientation,
     run_registry_command,
     run_registry_fetch,
@@ -648,6 +649,11 @@ def cmd_artifacts_sync(args: argparse.Namespace) -> int:
     return run_artifacts_sync(_load_config())
 
 
+def cmd_handoff_archive(args: argparse.Namespace) -> int:
+    """消化済みの handoff ブロックを archive/ へ卒業させる（以後 orientation に載らない）。"""
+    return run_handoff_archive(_load_config(), args.name)
+
+
 def cmd_role_status(args: argparse.Namespace) -> int:
     """P×A 役割（秘書/執事/コーチ/アネゴ）をデータ駆動で判定し JSON 1行で表示。"""
     return run_role_status(_load_config())
@@ -878,6 +884,18 @@ def build_parser() -> argparse.ArgumentParser:
         "artifacts-sync",
         help="artifacts/（handoff ブロック等の成果物層）を固定ブランチへ commit & push",
     ).set_defaults(handler=cmd_artifacts_sync)
+
+    # 消化済み handoff ブロックの卒業（指名制。何を卒業させるかは秘書の消化判断）
+    p_handoff_archive = sub.add_parser(
+        "handoff-archive",
+        help="消化済み handoff ブロックを handoff/archive/ へ移す（以後 orientation に載らない）",
+    )
+    p_handoff_archive.set_defaults(handler=cmd_handoff_archive)
+    p_handoff_archive.add_argument(
+        "name",
+        nargs="+",
+        help="卒業させるブロックのファイル名（handoff/ 直下、複数指定可）",
+    )
 
     # P×A 役割のデータ駆動判定（起動時オリエンテーションが1回叩く）
     sub.add_parser(
