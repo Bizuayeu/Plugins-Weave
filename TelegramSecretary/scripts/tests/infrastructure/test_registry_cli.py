@@ -424,6 +424,8 @@ _TASK = {
 _KNOWLEDGE = {
     "id": "K-001",
     "topic": "申し送りの置き場",
+    # category は許可集合（domain._KNOWLEDGE_CATEGORIES）の値のみ通る（欠落は exit 2）
+    "category": "harness",
     "content": "CONTENT_MARKER" + "c" * 1_000,
     "created_at": "t",
     "updated_at": "t",
@@ -481,8 +483,8 @@ def test_orientation_knowledge_category_option_is_wired_through(tmp_path, capsys
     """`--knowledge-category` が CLI から UseCase まで通る（絞りの実配線）。"""
     config = _config(tmp_path)
     for kid, category, topic in (
-        ("K-001", "ops", "OPS_TOPIC"),
-        ("K-002", "billing", "BILLING_TOPIC"),
+        ("K-001", "harness", "OPS_TOPIC"),
+        ("K-002", "business", "BILLING_TOPIC"),
     ):
         run_registry_command(
             config,
@@ -495,9 +497,9 @@ def test_orientation_knowledge_category_option_is_wired_through(tmp_path, capsys
             ),
         )
     capsys.readouterr()
-    assert run_orientation(config, _ns(knowledge_category="ops")) == 0
+    assert run_orientation(config, _ns(knowledge_category="harness")) == 0
     out = capsys.readouterr().out
-    assert "1 of 2 records, category=ops" in out
+    assert "1 of 2 records, category=harness" in out
     assert "OPS_TOPIC" in out
     assert "BILLING_TOPIC" not in out
 

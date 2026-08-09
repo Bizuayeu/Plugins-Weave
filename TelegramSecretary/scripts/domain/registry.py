@@ -23,6 +23,23 @@ _PRIORITIES = frozenset({"low", "normal", "high"})
 _PROFILE_METHODS = frozenset(
     {"precognitive_viewer", "json_fortune", "mbti", "interview", "observation", "other"}
 )
+# 出所は移行完了報告（handoff 20260809T143056Z §1.5、18 種→10 種の移行後に生き残った集合）。
+# 揺れやすい 4 語の線引きは同 §1.5 の境界メモを引く（harness＝器の運用／
+# domain-insight＝対象ドメイン知／analysis＝データ分析結果／method＝作業の一般則）。
+_KNOWLEDGE_CATEGORIES = frozenset(
+    {
+        "observation",
+        "research",
+        "harness",
+        "domain-insight",
+        "analysis",
+        "design",
+        "method",
+        "philosophy",
+        "business",
+        "decision",
+    }
+)
 _GOAL_CATEGORIES = frozenset({"money", "work", "relationship", "health", "other"})
 _GOAL_STATUSES = frozenset({"active", "paused", "achieved", "abandoned"})
 _STEP_STATUSES = frozenset({"todo", "in_progress", "done", "skipped"})
@@ -177,7 +194,14 @@ class Task:
 
 @dataclass(frozen=True)
 class Knowledge:
-    # cc-defer: category 無検証。移行完了報告後に許可集合検証（Identity/Goal 同型）へ昇格
+    """秘書が蓄積する知見の1レコード。
+
+    category は認識の型の軸（_KNOWLEDGE_CATEGORIES の 10 種）。範囲外は ValueError で
+    弾き、そのメッセージは Identity / Goal（invalid 値のみ）と異なり**許可集合を列挙する**
+    ——弾かれる主体が自走エージェント（cloud routine の秘書）であり、エラー文だけで
+    正しい語を選び直せる情報量が要るため。この非対称は意図的。
+    """
+
     id: str
     topic: str
     category: str
@@ -190,13 +214,16 @@ class Knowledge:
     def __post_init__(self) -> None:
         if not self.topic:
             raise ValueError("knowledge topic must not be empty")
+        if self.category not in _KNOWLEDGE_CATEGORIES:
+            allowed = ", ".join(sorted(_KNOWLEDGE_CATEGORIES))
+            raise ValueError(f"invalid category: {self.category} (allowed: {allowed})")
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> Knowledge:
         return cls(
             id=d["id"],
             topic=d["topic"],
-            category=d.get("category", "general"),
+            category=d["category"],
             content=d.get("content", ""),
             related=list(d.get("related", [])),
             sources=list(d.get("sources", [])),

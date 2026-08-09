@@ -155,7 +155,7 @@ def test_knowledge_round_trip():
     d = {
         "id": "k1",
         "topic": "決済フロー",
-        "category": "projects",
+        "category": "method",
         "content": "判断と理由",
         "related": [],
         "sources": ["t1", "log-ref-1"],
@@ -164,7 +164,7 @@ def test_knowledge_round_trip():
     }
     k = Knowledge.from_dict(d)
     assert k.topic == "決済フロー"
-    assert k.category == "projects"
+    assert k.category == "method"
     assert k.to_dict() == d
 
 
@@ -173,12 +173,74 @@ def test_knowledge_requires_topic():
         Knowledge(
             id="k",
             topic="",
-            category="general",
+            category="observation",
             content="x",
             related=[],
             sources=[],
             created_at="t",
             updated_at="t",
+        )
+
+
+# 許可集合の SSoT は移行完了報告（handoff 20260809T143056Z §1.5）。テスト側は
+# 実装定数を import せず literal で持つ（定数を写すだけの同語反復にしないため）。
+_ALLOWED_KNOWLEDGE_CATEGORIES = [
+    "observation",
+    "research",
+    "harness",
+    "domain-insight",
+    "analysis",
+    "design",
+    "method",
+    "philosophy",
+    "business",
+    "decision",
+]
+
+
+def test_knowledge_rejects_invalid_category():
+    with pytest.raises(ValueError) as exc:
+        Knowledge(
+            id="k",
+            topic="x",
+            category="ops",
+            content="",
+            related=[],
+            sources=[],
+            created_at="t",
+            updated_at="t",
+        )
+    # 弾かれる主体が自走エージェントなので、エラー文だけで選び直せる情報量を持たせる
+    message = str(exc.value)
+    for allowed in _ALLOWED_KNOWLEDGE_CATEGORIES:
+        assert allowed in message
+
+
+@pytest.mark.parametrize("category", _ALLOWED_KNOWLEDGE_CATEGORIES)
+def test_knowledge_accepts_every_allowed_category(category):
+    d = {
+        "id": "k1",
+        "topic": "決済フロー",
+        "category": category,
+        "content": "判断と理由",
+        "related": [],
+        "sources": [],
+        "created_at": "2026-01-01T00:00:00Z",
+        "updated_at": "2026-01-01T00:00:00Z",
+    }
+    assert Knowledge.from_dict(d).to_dict() == d
+
+
+def test_knowledge_from_dict_requires_category():
+    # 暗黙 default（"general"）は許可集合に無い値を沈黙生成する fail-open だった
+    with pytest.raises(KeyError):
+        Knowledge.from_dict(
+            {
+                "id": "k1",
+                "topic": "決済フロー",
+                "created_at": "t",
+                "updated_at": "t",
+            }
         )
 
 
