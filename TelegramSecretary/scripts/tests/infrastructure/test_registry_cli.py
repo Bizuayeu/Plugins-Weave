@@ -400,3 +400,102 @@ def test_role_status_coach_ignores_profile_of_others(tmp_path, capsys):
     capsys.readouterr()
     assert run_role_status(config) == 0
     assert json.loads(capsys.readouterr().out)["role"] == "coach"
+
+
+# === orientation（起動時ダイジェスト）と list サイズ警告 ===
+
+from infrastructure.registry_cli import LIST_WARNING_BYTES, run_orientation
+
+_TASK = {
+    "id": "T-001",
+    "title": "見積を送る",
+    "status": "in_progress",
+    "priority": "high",
+    "requester": "principal",
+    "notes": "HEAD_MARKER" + "x" * 165_000 + "TAIL_MARKER",
+    "created_at": "t",
+    "updated_at": "t",
+}
+_KNOWLEDGE = {
+    "id": "K-001",
+    "topic": "申し送りの置き場",
+    "content": "CONTENT_MARKER" + "c" * 1_000,
+    "created_at": "t",
+    "updated_at": "t",
+}
+
+
+def test_orientation_completes_with_zero_counts_when_tables_absent(tmp_path, capsys):
+    """表ファイルが 1 つも無い初回起動でも 0 件・0 バイトで完走する（fail-open）。"""
+    config = _config(tmp_path)
+    assert run_orientation(config, _ns()) == 0
+    out = capsys.readouterr().out
+    assert "tasks: 0 records, 0 bytes" in out
+    assert "## role" in out
+
+
+def test_orientation_counts_match_actual_file_sizes(tmp_path, capsys):
+    config = _config(tmp_path)
+    run_registry_command(config, "tasks", "add", _ns(json=json.dumps(_TASK)))
+    capsys.readouterr()
+    assert run_orientation(config, _ns()) == 0
+    out = capsys.readouterr().out
+    assert f"tasks: 1 records, {config.tasks_path.stat().st_size} bytes" in out
+
+
+def test_orientation_output_is_bounded_and_drops_bulk_fields(tmp_path, capsys):
+    """実ファイル経由でも digest は notes 長・content 長に引きずられない（沈黙失敗の根治）。"""
+    config = _config(tmp_path)
+    run_registry_command(config, "tasks", "add", _ns(json=json.dumps(_TASK)))
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
+    capsys.readouterr()
+    assert run_orientation(config, _ns()) == 0
+    out = capsys.readouterr().out
+    assert "TAIL_MARKER" in out and "HEAD_MARKER" not in out
+    assert "CONTENT_MARKER" not in out
+    assert len(out) < 10_000
+
+
+def test_orientation_options_override_defaults(tmp_path, capsys):
+    config = _config(tmp_path)
+    run_registry_command(config, "tasks", "add", _ns(json=json.dumps(_TASK)))
+    run_registry_command(
+        config,
+        "knowledge",
+        "add",
+        _ns(json=json.dumps(dict(_KNOWLEDGE, topic="z" * 300))),
+    )
+    capsys.readouterr()
+    assert run_orientation(config, _ns(notes_tail=50, topic_width=10)) == 0
+    out = capsys.readouterr().out
+    assert "z" * 11 not in out
+    assert len(out) < 3_000
+
+
+def test_orientation_does_not_trigger_sync(tmp_path):
+    """orientation は読み取り専用（git に触れない）。"""
+    config = _config(tmp_path, sync=True)
+    assert run_orientation(config, _ns()) == 0
+
+
+def test_list_warns_when_output_exceeds_threshold(tmp_path, capsys):
+    """200KB 超の list は stderr で警告（沈黙→声）。stdout と exit 0 は不変＝fail-open。"""
+    config = _config(tmp_path)
+    bulky = dict(_KNOWLEDGE, content="SECRET_CONTENT" + "c" * 220_000)
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(bulky)))
+    capsys.readouterr()
+    assert run_registry_command(config, "knowledge", "list", _ns()) == 0
+    captured = capsys.readouterr()
+    assert "SECRET_CONTENT" in captured.out  # 出力そのものは削らない
+    assert "WARNING" in captured.err
+    assert "orientation" in captured.err  # どう直すかが分かる
+    assert "SECRET_CONTENT" not in captured.err  # 警告にレコード内容は載せない
+
+
+def test_list_below_threshold_is_silent(tmp_path, capsys):
+    config = _config(tmp_path)
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
+    capsys.readouterr()
+    assert run_registry_command(config, "knowledge", "list", _ns()) == 0
+    assert "WARNING" not in capsys.readouterr().err
+    assert LIST_WARNING_BYTES == 200 * 1024  # 閾値は orientation_report_20260809 指定

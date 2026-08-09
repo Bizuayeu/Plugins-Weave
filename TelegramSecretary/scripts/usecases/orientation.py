@@ -42,8 +42,14 @@ class RecordLister(Protocol):
 
 
 def _truncate(text: str, width: int) -> str:
-    """width 字以内に収める（切ったら末尾にマーカー、返り値は width 字を超えない）。"""
-    if width <= 0 or len(text) <= width:
+    """width 字以内に収める（切ったら末尾にマーカー、返り値は width 字を超えない）。
+
+    width が非正なら全捨て（マーカーのみ）。ここで元テキストを返すと、絞るための
+    オプションが逆に全文を通す穴になる——有界性はこの関数の責務なので閉じる。
+    """
+    if width <= 0:
+        return TRUNCATION_MARK
+    if len(text) <= width:
         return text
     return text[: width - 1] + TRUNCATION_MARK
 
@@ -72,7 +78,12 @@ def index_knowledge(
 
 
 def tail_notes(notes: str, notes_tail: int = DEFAULT_NOTES_TAIL) -> str:
-    """notes の末尾 notes_tail 字（申し送りは末尾に堆積するため頭を捨てる）。"""
+    """notes の末尾 notes_tail 字（申し送りは末尾に堆積するため頭を捨てる）。
+
+    非正の notes_tail は全捨て（`notes[-0:]` が全文になる罠を塞ぐ、_truncate と同じ理由）。
+    """
+    if notes_tail <= 0:
+        return TRUNCATION_MARK
     if len(notes) <= notes_tail:
         return notes
     return TRUNCATION_MARK + notes[-notes_tail:]

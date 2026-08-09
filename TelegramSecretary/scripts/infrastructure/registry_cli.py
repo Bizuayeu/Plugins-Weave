@@ -30,6 +30,16 @@ from infrastructure.composition import build_git, build_sync
 from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
 from usecases.manage_registry import RegistryService
+from usecases.orientation import (
+    DEFAULT_NOTES_TAIL,
+    DEFAULT_TOPIC_WIDTH,
+    OrientationService,
+)
+
+# list 出力がこの大きさを超えたら警告する（orientation_report_20260809 指定）。
+# ハーネスは巨大出力を persisted-output へ退避するため、超過した list は
+# 「exit 0 なのにデータがコンテキストに載っていない」沈黙失敗になる。
+LIST_WARNING_BYTES = 200 * 1024
 
 
 class RegistrySpec(NamedTuple):
@@ -72,7 +82,9 @@ def run_registry_command(
     svc = registry_service(config, name)
 
     if action == "list":
-        print(json.dumps(svc.list(), ensure_ascii=False, indent=2))
+        payload = json.dumps(svc.list(), ensure_ascii=False, indent=2)
+        print(payload)
+        _warn_if_oversized(name, payload)
         return EXIT_OK
 
     if action == "get":
@@ -139,6 +151,52 @@ def _sync_after_change(config: Config, name: str, message: str, sync) -> None:
         return
     path = getattr(config, REGISTRY_SPEC[name].path_attr)
     service.sync([path], message)
+
+
+def _warn_if_oversized(name: str, payload: str) -> None:
+    """list 出力が LIST_WARNING_BYTES 超なら stderr で警告する（fail-open）。
+
+    stdout も exit code も変えない——退行リスクを持ち込まず、「気づけない」だけを潰す
+    （run_registry_fetch の空表警告と同型の層3 可観測性）。警告にレコード内容は載せない
+    （PII 非出力）ので、サイズと対処だけを言う。
+    """
+    size = len(payload.encode("utf-8"))
+    if size <= LIST_WARNING_BYTES:
+        return
+    print(
+        f"WARNING: {name} list output is {size} bytes (> {LIST_WARNING_BYTES}) — "
+        "output this large can be diverted out of the agent's context while the "
+        "command still exits 0. Use `orientation` for the startup digest, or "
+        "`get --key` for a single record.",
+        file=sys.stderr,
+    )
+
+
+def _table_size(config: Config, name: str) -> int:
+    """管理表ファイルの実バイト数（不在は 0＝初回起動でも orientation は完走する）。"""
+    try:
+        return getattr(config, REGISTRY_SPEC[name].path_attr).stat().st_size
+    except OSError:
+        return 0
+
+
+def run_orientation(config: Config, args: Any = None) -> int:
+    """起動時オリエンテーション用の絞り込みダイジェストを stdout に一撃出力する。
+
+    一括 list（7表 1.6MB）はハーネスの出力上限で退避され、データがコンテキストに
+    載らないまま exit 0 する沈黙失敗を起こしていた。射影は UseCase の純ロジック、
+    ここは stores（REGISTRY_SPEC のキー順＝表追加に自動追従）と実ファイルサイズを
+    注入する薄い配線に留める（read-only ゆえ git にも触れない）。
+    """
+    listers = {name: registry_service(config, name) for name in REGISTRY_SPEC}
+    sizes = {name: _table_size(config, name) for name in REGISTRY_SPEC}
+    print(
+        OrientationService(listers, sizes).build(
+            notes_tail=getattr(args, "notes_tail", None) or DEFAULT_NOTES_TAIL,
+            topic_width=getattr(args, "topic_width", None) or DEFAULT_TOPIC_WIDTH,
+        )
+    )
+    return EXIT_OK
 
 
 def run_role_status(config: Config) -> int:

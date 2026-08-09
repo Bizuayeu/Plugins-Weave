@@ -37,6 +37,7 @@ from infrastructure.exit_codes import (
 from infrastructure.media_cleanup import cleanup_media_dir
 from infrastructure.registry_cli import (
     REGISTRY_SPEC,
+    run_orientation,
     run_registry_command,
     run_registry_fetch,
     run_role_status,
@@ -50,6 +51,7 @@ from infrastructure.wal_cli import (
 )
 from usecases.acquire_lease import AcquireLease
 from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
+from usecases.orientation import DEFAULT_NOTES_TAIL, DEFAULT_TOPIC_WIDTH
 from usecases.proactive_send import ProactiveSend
 from usecases.release_lease import ReleaseLease
 from usecases.renew_lease import RenewLease
@@ -630,6 +632,11 @@ def cmd_registry(args: argparse.Namespace) -> int:
     return run_registry_command(config, args.registry_name, args.registry_action, args)
 
 
+def cmd_orientation(args: argparse.Namespace) -> int:
+    """起動時オリエンテーション: 7表の絞り込みダイジェストを一撃出力（一括 list の置換）。"""
+    return run_orientation(_load_config(), args)
+
+
 def cmd_role_status(args: argparse.Namespace) -> int:
     """P×A 役割（秘書/執事/コーチ/アネゴ）をデータ駆動で判定し JSON 1行で表示。"""
     return run_role_status(_load_config())
@@ -817,6 +824,25 @@ def build_parser() -> argparse.ArgumentParser:
         p_reg.add_argument(
             "--json-file", dest="json_file", help="add するレコードの JSON ファイル"
         )
+
+    # 起動時オリエンテーション（7表の一括 list を置換する絞り込みダイジェスト）
+    p_orientation = sub.add_parser(
+        "orientation",
+        help="起動時オリエンテーション用ダイジェスト（role + 7表の件数/射影 + handoff）",
+    )
+    p_orientation.set_defaults(handler=cmd_orientation)
+    p_orientation.add_argument(
+        "--notes-tail",
+        type=int,
+        default=DEFAULT_NOTES_TAIL,
+        help=f"active タスクの notes 末尾から載せる字数 (default {DEFAULT_NOTES_TAIL})",
+    )
+    p_orientation.add_argument(
+        "--topic-width",
+        type=int,
+        default=DEFAULT_TOPIC_WIDTH,
+        help=f"knowledge 索引の topic 切り詰め幅 (default {DEFAULT_TOPIC_WIDTH})",
+    )
 
     # P×A 役割のデータ駆動判定（起動時オリエンテーションが1回叩く）
     sub.add_parser(

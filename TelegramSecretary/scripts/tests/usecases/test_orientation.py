@@ -167,6 +167,13 @@ def test_tail_notes_marks_truncation():
     assert out != "def"  # 切り取られたことが読み手に分かる
 
 
+def test_non_positive_widths_drop_text_instead_of_passing_it_through():
+    """絞るためのオプションが全文を通す穴にならない（`notes[-0:]` は全文になる）。"""
+    assert "abc" not in tail_notes("abc", 0)
+    assert "abc" not in index_knowledge(_knowledge(topic="abc"), topic_width=0)
+    assert pick_latest_handoffs([("a.md", "abc")], latest=1, cap=0)[0][1] != "abc"
+
+
 # === knowledge: content は出ない・topic は topic_width で切り詰め ===
 
 
