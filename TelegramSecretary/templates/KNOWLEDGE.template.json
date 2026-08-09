@@ -3,7 +3,7 @@
   "_record_schema": {
     "id": "string — 一意ID",
     "topic": "string — 知識の主題",
-    "category": "string — 分類（肥大化時のファイル分割単位。例: projects / clients / procedures）",
+    "category": "認識の型（必須・許可集合 10 種のみ）: observation | research | harness | domain-insight | analysis | design | method | philosophy | business | decision。範囲外・欠落は add が exit 2。主題の軸は topic 側の接頭辞（例 `[馬] …`）で持つ",
     "content": "string — ratio decidendi 的散文（判断とその理由）",
     "related": "knowledge_id[] — 関連する知識",
     "sources": "string[] — 出典（task_id / individual uuid / 会話ログ参照 等）",

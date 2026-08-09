@@ -2,6 +2,56 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.8.0] - 2026-08-10 — 許可集合の検証・サイズの自己申告・校正値の実測化
+
+v1.7.0 は幅の単位を是正したが、**校正値そのものは机上の見積り**（55KB 圏）のままだった。
+実測すると既定の orientation は **72,724 バイト**で、`--knowledge-latest 200` を渡した
+稼働 body でも **72,751 バイト**——依然として persisted-output へ退避される圏にいる。
+見積りが外れていたことに気づけなかったのは、**出力サイズを誰も測っていなかった**からである。
+本版は (1) 弾くべき値を Domain で弾き、(2) サイズを毎枠 stderr で申告させ、(3) その計器で
+校正値をローカル実測から決める、の 3 点を入れる——**測る装置を先に置いてから校正する**。
+
+### Added
+
+- **knowledge `category` の許可集合検証（Domain）** — `observation` / `research` / `harness` / `domain-insight` / `analysis` / `design` / `method` / `philosophy` / `business` / `decision` の 10 種のみ通す（出所は移行完了報告 handoff `20260809T143056Z` §1.5＝18 種→10 種の移行後に生き残った集合。揺れやすい 4 語の境界メモも同 §1.5）。v1.7.0 で刻んだ `cc-defer`（移行完了を昇格トリガーとする）の回収。**エラーメッセージは許可集合を列挙する**——Identity / Goal（invalid 値のみ）との非対称は意図的で、弾かれる主体が自走エージェントである以上、エラー文だけで正しい語を選び直せる情報量が要る。移行済み実データ **197 件は全通過**（読み取りのみの smoke で確認、WAL の pending に knowledge kind は 0 件）
+- **orientation 出力サイズの自己申告（Interface）** — 実行のたび stderr へ `orientation digest: N bytes` を**常時 1 行**。`ORIENTATION_WARNING_BYTES = 25 * 1024` 超では、persisted-output 退避の可能性と絞り 4 オプションの名指しを添える。閾値は**仮置き**（実測境界 25〜39KB 圏の安全側下限、`cc-defer` で校正待ちを明示）。`_warn_if_oversized`（list の 200KB 警告）と違い**閾値未満でも黙らない**——安全側で黙る計器は「exit 0 なのに digest が載っていない」を観測させないまま通す。stdout は byte 不変・exit code も不変（fail-open）
+
+### Changed
+
+- **`Knowledge.from_dict` の `category` 必須化（後方非互換）** — 旧実装は `d.get("category", "general")` で欠落を黙って `"general"` に化けさせていた（許可集合に無い値を**沈黙生成する fail-open**）。`d["category"]` へ改め、**category を欠いた `knowledge add` は `KeyError` 経由で exit 2 になる**。既存レコードの読み出しには影響しない（実データ 197 件は全件 category を持つ）が、**category 無しの add を行っていた運用は落ちる**——落ちること自体が目的で、沈黙の `"general"` 生成こそが 18 種への増殖と綴り揺れの温床だった
+- **ROUTINE_PROMPT Step 5 の校正値を「逆算」から「実測」へ** — 呼び出し行を `--knowledge-latest 30 --notes-tail 500 --handoff-latest 2 --handoff-cap 2500` に更新（**実測 24,152 バイト**、目標 25,600 以下）。バックアップ registry の scratchpad 複製（knowledge 197 件・tasks 10 件〔active 4 件が長い notes を持つ〕・handoff 2 ブロック）に対する v1.8.0 コードでの実測表：
+
+  | 組 | digest bytes | ≤ 25,600 |
+  |---|---:|:--:|
+  | 既定（v1.7.0 の全既定: 全件 / 4000 / 3 / 8000 / 120） | 72,724 | × |
+  | 現行 body（`--knowledge-latest 200` のみ） | 72,751 | × |
+  | `--knowledge-latest 60` のみ | 50,746 | × |
+  | `--knowledge-latest 30` のみ | 45,802 | × |
+  | `--notes-tail 1500` のみ | 64,614 | × |
+  | `--handoff-cap 3000` のみ | 64,386 | × |
+  | `--handoff-latest 1` のみ | 66,347 | × |
+  | `--topic-width 60` のみ | 61,014 | × |
+  | 床（`--knowledge-latest 0 --notes-tail 0 --handoff-latest 0`＝絞れない部分） | 11,629 | ○ |
+  | 候補A: 60 / 1500 / 2 / 4000 | 36,301 | × |
+  | 候補B: 40 / 1000 / 1 / 3000 | 25,957 | × |
+  | 候補C: 30 / 1000 / 1 / 3000 | 24,316 | ○ |
+  | 候補D: 40 / 500 / 2 / 2000 | 24,793 | ○ |
+  | 候補E: 30 / 800 / 2 / 2000 | 24,556 | ○ |
+  | **採用: 30 / 500 / 2 / 2500** | **24,152** | ○ |
+
+  **どのノブが効くか**（既定 72,724 の内訳）: knowledge 索引 31,950（44%）／handoff 本文 ≈14,468（20%）／tasks.notes 14,912（20%）／小表全文と要約 11,380（16%、うち profile が 6,417）。**単一ノブでは 25,600 に届かない**——最も効く `--knowledge-latest 30` 単独でも 45,802 で、4 項を同時に絞って初めて成立する。**絞れない床が 11,629（目標の 45%）**を占めるのが本質的な制約で、4 ノブが配れるのは残り 14KB 弱しかない
+  - **採用値の選定理由**: `--notes-tail` を最も強く絞った（4000→500）のは、長い notes が **handoff 分離前の legacy 堆積**であり、申し送りの正規の置き場は既に handoff だから（ROUTINE_PROMPT Step 5・DESIGN §3.12）——全文は `tasks get --key` で引ける。`--handoff-latest` は 3→**2 に留めた**（1 まで絞れば別の組も通るが、未消化ブロックが digest から**名前ごと消える**と消化・卒業のサイクルに載らなくなる＝この版が潰しているのと同じ形の沈黙失敗を作る）。`--knowledge-latest 30` は見出しの `latest 30 of M` が母数を開示し、落ちた分は `--knowledge-category` / `get --key` で辿れる
+  - **`--handoff-cap 2500` の運用影響（明記）**: handoff の丸めは**頭から**なので、指示書級の長文ブロック（実測 13,122 バイト＝168 行）は末尾が切れる——「★次枠がまずやること★」のような**末尾に置かれた最重要節が digest から落ちうる**。cap はあくまで索引的役割であり、切り取りマーカー `…` が出たら見出しのファイル名を `Read` して原本を読む（原本は消えない）。この読み筋を ROUTINE_PROMPT Step 5 に明記した
+  - **`--handoff-latest 3` を採らなかったもう一つの理由**: 実測に使った複製の handoff は 2 ブロックゆえ、`3` を指定しても測定値は `2` と同一になる（＝**測れていない**）。3 ブロック在るときの外挿は 26,824 バイトで目標超過——測れない値を採用しない
+- **`templates/KNOWLEDGE.template.json` の category 記述** — 旧記述の例示（`projects` / `clients` / `procedures`）は**いずれも許可集合の外**で、そのまま従うと add が exit 2 になる。許可集合 10 種の列挙と「主題の軸は topic 接頭辞で持つ」に差し替えた
+- **接点文書の追従** — `skills/telegram-secretary/SKILL.md`（category 制約と topic 接頭辞規約・orientation の stderr 申告）、`DESIGN.md` §3.12（サイズ自己申告の節・絞れない床・校正値の実測化）、`ROUTINE_PROMPT.md` Step 5（呼び出し行・幅説明・深掘りの読み筋）
+
+### Notes
+
+- **topic 接頭辞規約（コード変更ゼロ）** — knowledge の主題軸（馬・建設 等）は `topic` を `[主題] 本文` の形にして持てる（例 `[馬] 一歳セリの下振れ帯`）。category は**認識の型**の軸専用に保ち、二軸を混ぜない。**規約であって強制ではない**——コードもデータも接頭辞を要求せず、運用開始と既存 topic への遡及付与は秘書の裁量。`tags` スキーマ拡張は絞り実装まで要求し始めるため、接頭辞で効かなかったときの昇格先として温存する
+- **Step 5 を変更したため、本番へ届けるには cloud routine の body 再登録が必要**（リポ修正だけでは到達しない）。手順は `RemoteTrigger` の get → modify → update（v1 ネスト・`session_context` は全体を保持）で v1.7.0 と同一
+- 実測は**バックアップ registry の scratchpad 複製に対する read-only 実行**で行った（`registry_dir` を複製へ向けた Config、正典・バックアップとも非接触）。数値はその時点のスナップショットであり、データが育てば動く——**動いたことは stderr の申告で毎枠観測できる**（それが本版の計器の役目）
+
 ## [1.7.0] - 2026-08-09 — orientation を現場データへ噛み合わせる（幅のバイト単位化・0 の端点・件数絞り）
 
 v1.5.0 が塞いだはずの沈黙失敗が、実 registry（knowledge 192 件・日本語主体）で
