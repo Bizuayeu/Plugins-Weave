@@ -37,8 +37,13 @@ _ts_phys_path() { python -c 'import os, sys; print(os.path.realpath(sys.argv[1])
 # registry worktree 再provision前のサニティチェック。
 # config の registry_dir 誤設定（既存の実データディレクトリ等）を黙って rm -rf しないため、
 # 「不在 / 空 / registry 既知エントリのみ」のときだけ破壊的再provisionを許す。
-# 既知エントリ = worktree の .git、registry 4 表 + wal の各ディレクトリ、空ブランチ用 .keep。
+# 既知エントリ = worktree の .git、registry 5 表 + wal の各ディレクトリ、空ブランチ用 .keep。
 # 未知エントリが 1 つでもあれば 1（呼び出し側が warn+skip、graceful 方針は worktree add 失敗時と同じ）。
+# cc-defer: 既知エントリの列挙が全 8 表を網羅していない（profile / goals / steps / artifacts が
+# 未列挙）。天井＝これらを持つ registry では常に「未知エントリあり」となり再provision が
+# warn+skip される（rm -rf しない側へ倒れる＝安全側の不整合）。昇格トリガー＝再provision が
+# skip されて起動できない事象が実際に出たとき、または次回 bootstrap 改修時に REGISTRY_SPEC
+# 由来の列挙へ寄せる。
 _ts_reg_safe_to_wipe() {
     [ ! -e "$1" ] && return 0   # 不在: rm -rf は no-op、worktree add が新規作成する
     [ ! -d "$1" ] && return 1   # ディレクトリ以外（ファイル/リンク）: 触らない
@@ -48,7 +53,7 @@ _ts_reg_safe_to_wipe() {
         case "$_base" in .|..) continue ;; esac
         [ -e "$_entry" ] || continue   # glob 不一致の literal はスキップ
         case "$_base" in
-            .git|.keep|individuals|tasks|knowledge|abilities|wal) continue ;;
+            .git|.keep|individuals|tasks|knowledge|subjects|abilities|wal) continue ;;
             *) return 1 ;;
         esac
     done
@@ -212,8 +217,8 @@ export TELEGRAM_SECRETARY_ENV_FILE="$_ts_env_file"
 _ts_log "env snapshot -> $_ts_env_file"
 
 # 起動時オリエンテーションの入口を、失敗するステップより上流（ここ）で名指しする。
-# 7表を並べて list すると registry 肥大で出力上限を超え、ハーネスが persisted-output へ
+# 8表を並べて list すると registry 肥大で出力上限を超え、ハーネスが persisted-output へ
 # 退避して「データがコンテキストに載らないまま exit 0」する沈黙失敗になる（DESIGN §3.12）。
-_ts_log "startup digest: python scripts/main.py orientation  (do NOT list the 7 tables side by side)"
+_ts_log "startup digest: python scripts/main.py orientation  (do NOT list the 8 tables side by side)"
 
 _ts_log "ready"

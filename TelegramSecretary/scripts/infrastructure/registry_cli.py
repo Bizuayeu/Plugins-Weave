@@ -416,8 +416,8 @@ def _option(args: Any, name: str, default: int) -> int:
 def run_orientation(config: Config, args: Any = None) -> int:
     """起動時オリエンテーション用の絞り込みダイジェストを stdout に一撃出力する。
 
-    一括 list（7表 1.6MB）はハーネスの出力上限で退避され、データがコンテキストに
-    載らないまま exit 0 する沈黙失敗を起こしていた。射影は UseCase の純ロジック、
+    全表を並べた一括 list（当時 7 表で 1.6MB）はハーネスの出力上限で退避され、データが
+    コンテキストに載らないまま exit 0 する沈黙失敗を起こしていた。射影は UseCase の純ロジック、
     ここは stores（REGISTRY_SPEC のキー順＝表追加に自動追従）と実ファイルサイズ・
     handoff ブロックを注入する薄い配線に留める（read-only ゆえ git にも触れない）。
     出来上がった digest のサイズは stderr へ自己申告する——測れるのは組み上がった後だけ

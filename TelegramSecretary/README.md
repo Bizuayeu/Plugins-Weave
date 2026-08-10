@@ -22,7 +22,7 @@ Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、
   - PDF → 全ページ画像化（Vision）＋ オンデマンドの全文テキスト / 個別ページ抽出
   - voice / audio / video → 音声を文字起こし（ローカル STT、音声が外部に出ない）
 - **生成物の送り返し** — 画像・レポート等を返信に添付（reply threading、typing 表示）
-- **管理表** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）／能力カタログ（ABILITIES）を秘書が判断して記録。秘書は応答前に能力カタログを引き、依頼に使えるスキルがあれば行使する。`registry_sync` 有効時は固定ブランチへ git 永続化（揮発 state と分離・イベント駆動 commit&push）。PROFILE / GOALS が蓄積すると秘書の役割が進化する（次節）
+- **管理表** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）／主題語彙（SUBJECTS）／能力カタログ（ABILITIES）を秘書が判断して記録。秘書は応答前に能力カタログを引き、依頼に使えるスキルがあれば行使する。対応知は category（認識の型・許可集合 10 種）と subjects（主題・SUBJECTS 表が語彙を持つ）の二軸で引ける。`registry_sync` 有効時は固定ブランチへ git 永続化（揮発 state と分離・イベント駆動 commit&push）。PROFILE / GOALS が蓄積すると秘書の役割が進化する（次節）
 - **言行一致の保証（WAL）** — `registry_sync` 有効時、「登録しました」等の約束をする返信の前に intent を WAL ログへ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo。push 漏れによる「言ったのに未登録」を構造的に防ぐ
 
 ## 秘書が育つ——役割の進化（P×A、守護霊機能）
@@ -102,8 +102,8 @@ python scripts/main.py lease release
 | `render-pdf --path (--text \| --pages N-M)` | 受信済み PDF のオンデマンド抽出（`--text`=全文テキスト / `--pages`=指定ページ画像化） | 0, 2=不在/引数不正 |
 | `test --chat-id` | 疎通テスト（owner chat に ping 送信） | 0, 1, 3 |
 | `cleanup-media` | retention 超過の保存 media を削除（`watch` は自動発火、手動/cron 用） | 0, 2 |
-| `individuals\|tasks\|knowledge\|abilities\|profile\|goals\|steps {list\|get\|add\|remove}` | 管理表 CRUD（7 表、値オブジェクトで入力検証、不正は exit 2）。`registry_sync` 有効時は add/remove 後に commit&push | 0, 2 |
-| `orientation [--notes-tail N] [--topic-width N] [--handoff-latest N] [--handoff-cap N] [--knowledge-category CAT] [--knowledge-latest N]` | 起動時オリエンテーションのダイジェスト（role + 7表の件数/バイト数 + 小表全文 + tasks 一行要約と active の notes 末尾 + knowledge 索引 + handoff 最新ブロック）を emit。幅の単位は UTF-8 バイトで丸めは文字境界、出力はレコード長に依存せず有界（DESIGN §3.12）。`--knowledge-category` で索引を category 完全一致に絞る（見出しの `N of M` に全件数が残る）、`--knowledge-latest` で新しい順 N 件に頭打ち（併用時は絞ってから latest）。digest の総バイトは毎回 stderr に `orientation digest: N bytes` として出る（25,600 超は警告付き、stdout・exit code は不変） | 0, 2=設定欠損 |
+| `individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps {list\|get\|add\|remove\|import}` | 管理表 CRUD（8 表、値オブジェクトで入力検証、不正は exit 2）。`add` / `import` はトップレベル未知キーを exit 2 で弾く（fail-closed。read 経路は警告どまりで読める）、`import --json-file` は全件置換（全件検証→置換ゆえ 1 件でも不正なら無置換）。`registry_sync` 有効時は add/remove/import 後に commit&push | 0, 2 |
+| `orientation [--notes-tail N] [--topic-width N] [--handoff-latest N] [--handoff-cap N] [--knowledge-category CAT] [--knowledge-latest N] [--knowledge-subject ID] [--profile-cap N] [--individuals-cap N] [--abilities-cap N] [--tasks-latest N]` | 起動時オリエンテーションのダイジェスト（role + 8表の件数/バイト数 + 小表全文 + tasks 一行要約と active の notes 末尾 + knowledge 索引 + handoff 最新ブロック）を emit。幅の単位は UTF-8 バイトで丸めは文字境界、出力はレコード長に依存せず有界（DESIGN §3.12）。`--knowledge-category` で索引を category 完全一致に絞る（見出しの `N of M` に全件数が残る）、`--knowledge-subject` で subjects の要素一致に絞る、`--knowledge-latest` で新しい順 N 件に頭打ち（併用時は category → subject → latest の順）。`--profile-cap` / `--individuals-cap` / `--abilities-cap` は小表の支配的長文フィールド（`content` / `identity.context_notes` / `guidance`）をバイト上限で丸め、`--tasks-latest` は tasks 一行要約を新しい順 N 件に絞る（いずれも未指定＝従来どおり全文・全件）。digest の総バイトは毎回 stderr に `orientation digest: N bytes` として出る（25,600 超は警告付き、stdout・exit code は不変） | 0, 2=設定欠損 |
 | `artifacts-sync` | 成果物層 `artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push。`registry_sync` 無効・`artifacts/` 未作成は no-op | 0, 1=push失敗 |
 | `handoff-archive <name>...` | 消化済みの申し送りブロックを `handoff/archive/` へ移して卒業させる（以後 orientation に載らない）。移動後は `artifacts-sync` 経路で push。不正名・不在・archive 側の同名既存は何も移動せず exit 2 | 0, 1=push失敗, 2=不正/不在 |
 | `role-status` | PROFILE/GOALS から現在の役割（secretary/butler/coach/anego＝守護霊）をデータ駆動で判定し JSON 1行を emit | 0 |

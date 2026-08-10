@@ -58,7 +58,8 @@
 
 - **INDIVIDUALS**: 新規接触者を登録（status=pending）、関係性が判明したら identity を更新
 - **TASKS**: 依頼を受けたら起票、進捗で status 更新、完了で done
-- **KNOWLEDGE**: 再利用価値のある判断・対応を残す（一過性のやり取りは残さない）
+- **KNOWLEDGE**: 再利用価値のある判断・対応を残す（一過性のやり取りは残さない）。`category`（認識の型・許可集合 10 種）と `subjects[]`（主題・SUBJECTS 表の active な id）の二軸を付ける（後で引くときの入口になる）
+- **SUBJECTS**: 主題の語彙表（`subjects` の照合先）。**増やすより育てる**——まず既存の id で足りないかを確かめ、足りなければ note 付きで add する。追加の目安は「その主題に該当する knowledge が 10 件以上見込めるか」（**10 件は仮置き**——運用実測で校正する）。使わなくなった語は remove せず `status=deprecated`（過去レコードの主題が読めなくなるため）
 - **ABILITIES**: 行使できる能力（スキル）のカタログ。依頼を受けたら応答前に `abilities list` で該当能力を確認し、`trigger` が合えば `skill_path` の SKILL.md を読んで行使する。新たに実在を確認した能力のみ登録（未検証の能力は宣言しない）
 - **PROFILE**: principal（や関係者）の人物理解。本人の同意のもと method 付きで記録し、対話での当たり外れに応じて update する
 - **GOALS**: 伴走中の目標。対話で言語化してから起票（独断で作らない）、進捗・調整・卒業（achieved/abandoned + closed_at）を記録

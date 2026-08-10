@@ -44,7 +44,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 ### 3.1 二系統のデータ
 
-- **管理表（7 表）**: `INDIVIDUALS`（関係者）/ `TASKS`（依頼進捗）/ `KNOWLEDGE`（対応知の蓄積、判例DB的）の事実データ3表 + `ABILITIES`（秘書が行使できる能力カタログ、§3.8）+ `PROFILE`（人物理解＝P軸）/ `GOALS`（目標＝A軸）/ `STEPS`（逆算ステップ）の役割進化3表（§3.11）
+- **管理表（8 表）**: `INDIVIDUALS`（関係者）/ `TASKS`（依頼進捗）/ `KNOWLEDGE`（対応知の蓄積、判例DB的）の事実データ3表 + `SUBJECTS`（主題の語彙表＝KNOWLEDGE を引く軸、§3.8）+ `ABILITIES`（秘書が行使できる能力カタログ、§3.8）+ `PROFILE`（人物理解＝P軸）/ `GOALS`（目標＝A軸）/ `STEPS`（逆算ステップ）の役割進化3表（§3.11）
 - **Identities（人格定義）**: `SecretaryRole` — **これが無いとエージェントが人格的に振る舞えない**。cloud routine 型エージェントのロール定義ファイルと同型
 
 ### 3.2 なぜ SSoT = Private JSON か
@@ -75,6 +75,20 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 | **INDIVIDUALS** | 日付 Archive（blocked + 長期非接触） | 離脱者は稀に過去ログ化 |
 | **KNOWLEDGE** | **カテゴリ分割**（Archive せず） | 知識は**蓄積が本質**（判例DBは古いから捨てない）。肥大化は category 単位のシャード分割で解く |
 | **ABILITIES** | **カテゴリ分割**（Archive せず、KNOWLEDGE と同型） | 能力カタログも蓄積が本質（捨てない）。分割の単位・キーは必要時にエージェントが定義（§3.2 の JSON 柔軟性） |
+| **SUBJECTS** | 分割も Archive もしない（`status=deprecated` で廃止） | 語彙表は**件数が増えない設計**（増やすより育てる）。消すと過去レコードの主題が読めなくなるため、退場は削除でなく status |
+
+**蓄積の肥大化と digest の肥大化は別の問題**（上表は前者）。後者——起動時 orientation の出力が育って退避圏に入る——には**表ごとの上限ノブ**で対処する。ノブは「蓋の無い表」に当たる：
+
+| 管理表 | digest 側の絞り | 当たる先 |
+|---|---|---|
+| **KNOWLEDGE** | `--knowledge-latest` / `--knowledge-category` / `--knowledge-subject` | 索引行の件数（`content` は元から載らない） |
+| **TASKS** | `--notes-tail` / `--tasks-latest` | active の notes 末尾 / 一行要約の件数 |
+| **PROFILE** | `--profile-cap` | `content`（v1.9.0） |
+| **ABILITIES** | `--abilities-cap` | `guidance`（v1.9.0） |
+| **INDIVIDUALS** | `--individuals-cap` | `identity.context_notes`（v1.9.0） |
+| **GOALS / STEPS** | なし | 現在 0 件。肥大したら上と同型で足す（先回りしない） |
+
+cap が当たるのは**表の支配的長文フィールド 1 つだけ**で、レコードの JSON 構造は壊さない——丸めても個票は `get --key` で全文が引ける、という読み筋を温存するため。丸めの規約（UTF-8 バイト・文字境界・マーカーは幅の内側・非正は全捨て）は幅ノブと共通（§3.12）。
 
 詳細スキーマ・ディレクトリ配置は [STRUCTURE.md](./STRUCTURE.md)。
 
@@ -103,7 +117,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 - **層2（防御）** `GitCliAdapter.fetch_checkout`: `checkout -B` の**前に** `rev-parse --show-toplevel == registry_dir` を検証、不一致なら `RegistryWorktreeError`（`GitSyncError` サブクラス）で停止＝親リポ誤爆を構造的に禁止
 - **層3（可観測）** `run_registry_fetch`: fetch 失敗時に「EMPTY tables＝記憶なし稼働」を WARNING 出力（exit code 不変、principal 一報は ROUTINE_PROMPT へ委譲）＝沈黙の空表稼働を可視化
 
-固定ブランチ `claude/ts-registry` は **registry 専用 orphan ブランチ**として **root 直下に registry 関連のみ**——4管理表（`individuals/ tasks/ knowledge/ abilities/`）＋ `wal/`（言行一致の機構ログ、§3.7）＋ `artifacts/`（秘書の成果物層、§3.10）——を持つ（旧: Private 全ツリー＋`TelegramSecretary/registry/` ネスト → 新: フラット）。これで第二 worktree が registry だけを最小展開し dev ツリーと干渉しない。**方式B（単一 worktree）**を Stage 1 spike で確定し、本番稼働（post-fix の cloud run が provisioning→fetch→write→push を完走）で実証済み。
+固定ブランチ `claude/ts-registry` は **registry 専用 orphan ブランチ**として **root 直下に registry 関連のみ**——全管理表（`individuals/ tasks/ knowledge/ subjects/ abilities/ profile/ goals/ steps/`）＋ `wal/`（言行一致の機構ログ、§3.7）＋ `artifacts/`（秘書の成果物層、§3.10）——を持つ（旧: Private 全ツリー＋`TelegramSecretary/registry/` ネスト → 新: フラット）。これで第二 worktree が registry だけを最小展開し dev ツリーと干渉しない。**方式B（単一 worktree）**を Stage 1 spike で確定し、本番稼働（post-fix の cloud run が provisioning→fetch→write→push を完走）で実証済み。
 
 > 設計の背骨は §2「決定論コア + エージェント判断の分離」の踏襲: git 操作（commit/push/rebase/fetch）は決定論の世界（コード・テスト可能）、「何を残すか」の判断は重要度の世界（エージェント）。
 
@@ -130,6 +144,16 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **配布可能性（母集団スコープ）**: 配布 template（`ABILITIES.template.json`）には具体能力を焼かず空で配る。運用固有の能力（例: 占術スキル連携）は Private の実 ABILITIES.json に置く——§3.3 のテンプレート/データ分離を能力にも適用
 - **能力の自己追記ガード**: 秘書が能力を `add` するのは**実在を確認したスキルに限る**（不確実・未検証の能力は宣言しない＝存在しない能力をカタログに書くハルシネーションの防止）
 
+#### なぜ subjects を 8 表目に足したか（閉じた語彙はコード、開いた語彙はデータ）
+
+`SUBJECTS` は主題（馬・建設・製造…）の語彙表で、`KNOWLEDGE.subjects[]` の照合先。abilities が「何ができるか」を持つのに対し、subjects が持つのは**知識を引く軸**そのものである。
+
+- **なぜ category（コード）と subjects（データ）を分けるか（設計核）**: `category`（認識の型：observation / research / …）は**閉じた語彙**——増えないことに意味があり、増殖と綴り揺れこそが v1.8.0 で許可集合検証を入れた理由。対して主題は**開いた語彙**——扱う領域が増えれば増える。これをコードの定数に置くと、主題を 1 つ増やすたびに deploy が要る。**閉じた語彙はコード（frozenset）、開いた語彙はデータ（管理表）**、が分岐の判定基準。両者は直交する軸なので、同じ知見が「observation（型）× 馬（主題）」の両方から引ける
+- **なぜ topic の接頭辞規約（`[主題] 本文`）を捨てたか**: v1.8.0 は主題軸を `topic` 文字列の接頭辞で持つ規約（コード変更ゼロ）を提案していたが、規約は**強制されないぶん揺れる**（付け忘れ・表記ゆれ・遡及付与の未完了が混在しても誰も気づかない）。フィールドに分けて語彙表と照合すれば、範囲外は書き込み口で弾ける——検証できない規約より、検証できるデータ構造を採る
+- **なぜ status=deprecated で退場させるか**: 語彙の削除は過去レコードの主題を読めなくする（照合先が消えるだけでなく、その主題で引けなくなる）。`deprecated` は**新規付与だけを止める**——既存レコードの読み出しは壊さない。「消さずに止める」は archive 方針（§3.5）と同じ思想
+- **なぜ照合の純関数を Domain に置き、データ供給を Interface にするか**: 語彙はデータゆえ Domain 定数にできないが、「与えられた語彙集合に対して範囲外を列挙する」判定はビジネスルールである。`invalid_subjects(subjects, active_ids)` を Domain の純関数に置き、SUBJECTS を読んで渡すのは Interface（`registry_cli`）が担う——依存は内向きのまま、判定は引数だけでテストできる
+- **配線コストの実証**: subjects の CRUD・WAL kind・orientation の表順・subparser はすべて `REGISTRY_SPEC` の 1 行と `Config.subjects_path` だけで生えた（`wal_cli` / `main.py` は無改修）。§3.8 が abilities で主張した「テーブル駆動なら 4 表目は 1 行」は、8 表目でも成り立っている
+
 ### 3.9 なぜ outbound（proactive-send）に WAL 再送を足すのか（offset 安全網の無い経路の冪等性）★再送方針 SSoT
 
 秘書は基本 inbound（受信→返信）だが、口頭での権限 grant（例: 自由時間の付与）により **outbound（能動 push＝proactive-send）** も担う（能力境界の SSoT は SecretaryRole）。pull 口（getUpdates）に push を足すことで対話チャネルが双方向化する。この outbound 経路は、§3.7 が前提にした冪等性の安全網（offset）を構造的に持たないため、WAL 再送の扱いが inbound と異なる。本節を **再送方針の SSoT** とし、他ドキュメント（SKILL / ROUTINE_PROMPT / CHANGELOG）は要約 + 本節へのポインタに留める。
@@ -143,13 +167,13 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 
 > 設計の背骨は §2 / §3.7 の踏襲——WAL の純粋ロジック（reconcile/settle/checkpoint と outbound の二分）は Domain・UseCase、push/redo の順序遵守と「親性ゲートで何を能動送信するか」の判断は ROUTINE_PROMPT（従属度の世界）、git 操作と送信は決定論。`registry_sync` 有効時のみ稼働（無効は no-op、後方互換）。
 
-### 3.10 なぜ artifacts を成果物層として持つか（決定論4表と分ける理由）
+### 3.10 なぜ artifacts を成果物層として持つか（決定論の管理表と分ける理由）
 
-管理表（7表、§3.1–3.8/§3.11）は **決定論の世界**——`_REGISTRY_SPEC` 駆動の CRUD・スキーマ検証・WAL 保護を持つ構造化データ。対して `artifacts/` は秘書が生成する**非定型の成果物**（レビュー・章稿・レポート等）を置く層で、**重要度の世界**に属する。同じ `registry_dir` 配下に同居するが、性質が異なるため設計を分ける。
+管理表（8表、§3.1–3.8/§3.11）は **決定論の世界**——`_REGISTRY_SPEC` 駆動の CRUD・スキーマ検証・WAL 保護を持つ構造化データ。対して `artifacts/` は秘書が生成する**非定型の成果物**（レビュー・章稿・レポート等）を置く層で、**重要度の世界**に属する。同じ `registry_dir` 配下に同居するが、性質が異なるため設計を分ける。
 
-- **なぜ CRUD/WAL/スキーマを持たせないか（本質）**: 成果物は「どう構造化するか」自体が秘書の判断（重要度の世界）。固定スキーマや CRUD subcommand を与えると、4表の決定論性に成果物の非定型性が混入する。`artifacts/` は **場所（`registry_dir/artifacts/`）と git 永続対象であること**だけを標準化し、ファイル構成・命名・索引（INDEX 等）は秘書に委ねる——実例として `mba50` は「章別 md ＋ INDEX」→「単一 JSON マスター」と形を変えており、**スキーマレスこそが要件**であることを示す。§3.5「情報の持ち方は情報の主体が決める」・§2 三世界分類の踏襲
-- **なぜ永続か**: 成果物は蓄積が本質（過去の成果物は資産）。§3.6 の git 永続（orphan ブランチ `claude/ts-registry`）に、4管理表・`wal/` と並べて `artifacts/` を載せる。揮発してよい `state_dir` とは永続要件が正反対
-- **なぜ backup はツリー同期か（ファイル固定でない）**: 管理表8点（7表＋WAL）が「単一ファイルの状態 SSoT」ゆえ固定列挙でコピーするのに対し、`artifacts/` はファイルが増減する成果物層ゆえ **ディレクトリ単位のツリー同期**（`/ts-registry-backup` が `ls-tree -r` で全ファイル列挙・`rm -rf` で stale 削除も反映）。配布先に `artifacts/` が無ければ空ループ＝no-op（母集団スコープ安全）
+- **なぜ CRUD/WAL/スキーマを持たせないか（本質）**: 成果物は「どう構造化するか」自体が秘書の判断（重要度の世界）。固定スキーマや CRUD subcommand を与えると、管理表の決定論性に成果物の非定型性が混入する。`artifacts/` は **場所（`registry_dir/artifacts/`）と git 永続対象であること**だけを標準化し、ファイル構成・命名・索引（INDEX 等）は秘書に委ねる——実例として `mba50` は「章別 md ＋ INDEX」→「単一 JSON マスター」と形を変えており、**スキーマレスこそが要件**であることを示す。§3.5「情報の持ち方は情報の主体が決める」・§2 三世界分類の踏襲
+- **なぜ永続か**: 成果物は蓄積が本質（過去の成果物は資産）。§3.6 の git 永続（orphan ブランチ `claude/ts-registry`）に、全管理表・`wal/` と並べて `artifacts/` を載せる。揮発してよい `state_dir` とは永続要件が正反対
+- **なぜ backup はツリー同期か（ファイル固定でない）**: 管理表9点（8表＋WAL）が「単一ファイルの状態 SSoT」ゆえ固定列挙でコピーするのに対し、`artifacts/` はファイルが増減する成果物層ゆえ **ディレクトリ単位のツリー同期**（`/ts-registry-backup` が `ls-tree -r` で全ファイル列挙・`rm -rf` で stale 削除も反映）。配布先に `artifacts/` が無ければ空ループ＝no-op（母集団スコープ安全）
 - **配布可能性（母集団スコープ）**: 配布 template には成果物実体を焼かない（§3.3）。`artifacts/` は実運用で自然に育つ Private 層であり、public（配布物）には「**層が在る**」ことだけを記述する——個人利用の初日から成果物が registry_dir 配下に蓄積される構造を標準化しておく
 
 - **規約付き用途を置いてよい範囲（`handoff/`）**: 申し送りブロック `artifacts/handoff/<UTC日時>_<session_id>.md`（§3.12）は、この層に置く**最初の規約付き用途**である。それでも標準化するのは「置き場（`artifacts/handoff/`）と命名の辞書順ソート可能性」だけで、スキーマも CRUD subcommand も与えない——`orientation` はファイル名で新しい順に選び、頭から cap 字で丸めるだけで、**中身を解釈しない**。書き込みは秘書の `Write`、送出は既存 sync 経路を薄く呼ぶ `artifacts-sync` の二手（新規 git コードを書かない）。「置き場と命名」は決定論に載せてよく、「何を書くか」は重要度の世界に残す——この線が引ける限り、規約付き用途は §3.10 の境界を侵さない
@@ -172,17 +196,18 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 
 ### 3.12 なぜ起動時ロードは orientation ダイジェストか（沈黙失敗と上流配置）★起動時オリエンテーション SSoT
 
-起動時オリエンテーションは `orientation` サブコマンドの**絞り込みダイジェスト一撃**で行う。7表を並べて `list` する旧手順は、registry が育つと必ず壊れる構造だった。
+起動時オリエンテーションは `orientation` サブコマンドの**絞り込みダイジェスト一撃**で行う。表を並べて `list` する旧手順は、registry が育つと必ず壊れる構造だった。
 
 - **沈黙失敗の機序（なぜ「重い」ではなく「壊れる」か）**: 表を並べた出力が肥大すると（実測: knowledge 943KB/187 件・tasks 741KB/8 件——支配項は 1 レコードの notes 165K 字、合計 1.6MB）、ハーネスが出力を persisted-output へ退避する。コマンドは **exit 0 で成功**し、ログにも異常が出ず、しかし**データはコンテキストに載っていない**。エージェントは「思い出した」と誤認したまま稼働し、登録済みのタスク・方針を取りこぼす。失敗が観測面に現れないため自己修正が働かず、17 枠にわたり再発した。**エラーで止まる失敗より、成功を装う失敗の方が高くつく**
 - **なぜ knowledge への記録では直らないか（上流配置の原則）**: 「一括ロードするな」を knowledge に書いても効かない——その knowledge を読むのが、まさに失敗するステップだからである。**手順 X の失敗を防ぐ知識は、X より上流に置かなければならない**。本件で有効な置き場は稼働 body に限られる: `bootstrap.sh` のログ（Step 2）→ `ROUTINE_PROMPT` Step 5 → `orientation` の CLI そのもの。データ層（管理表）は下流ゆえ、この種の防止知識を預けてはならない
 - **出力の有界性（なぜサイズが読めるか）**: ダイジェストは全文でなく**射影**であり、出力量は概ね
 
   ```
-  小表全文（individuals/abilities/profile/goals/steps）
-    + tasks 件数 × 一行要約
+  小表全文（individuals/subjects/abilities/profile/goals/steps）
+      ※ v1.9.0 以降、individuals / abilities / profile は cap で頭打ちにできる
+    + tasks 件数（tasks_latest で頭打ち可）× 一行要約
     + active タスク数 × notes_tail(4000B)
-    + knowledge 件数 × topic_width(120B)
+    + knowledge 件数（category / subject / latest で絞り可）× topic_width(120B)
     + handoff_latest(3 件) × handoff_cap(8000B)
   ```
 
@@ -194,8 +219,10 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **非再帰読み＝archive の契約（暗黙挙動でなく契約）**: orientation が見るのは `handoff/` **直下の `*.md` だけ**——サブディレクトリと非 .md は読まない。これは `glob("*.md")` の偶然ではなく退行テストで固定した契約であり、`handoff/archive/` はこの契約が作る**読み筋の外**として成立する。将来「再帰で読む」改修が入れば卒業の受け皿が静かに壊れるため、テスト側に置いた（文書だけの約束にしない）
 - **卒業（`handoff-archive`）**: 消化を終えたブロックを**指名して** `handoff/archive/` へ mv し、既存 sync 経路で送る（git は rename として拾う＝履歴が切れない）。全件検証→全件移動で部分成功を作らない（不在・パス成分・archive 側の同名既存は何も動かさず exit 2）。**`--before <date>` のような一括掃除は持たない**——消化を経ない機械的 archive は原トレースの意図しない退場を招く。何を卒業させるかは重要度の世界（ROUTINE_PROMPT 手順 11 の自由時間）、移動と読み筋は決定論の世界
 - **カテゴリ絞り（`--knowledge-category`）**: 上式の `knowledge 件数 × topic_width` 項を category 完全一致で絞って落とす。絞って見えなくなった分は見出しの `N of M` に残る（サイレントに減らさない＝沈黙失敗を新しい形で作らない）。絞りのキーが §3.5「KNOWLEDGE はカテゴリ分割（archive せず蓄積）」と同じ category なのは意図的で、物理シャード分割の閾値に達する前から同じ軸で読める
-- **件数絞り（`--knowledge-latest`）**: 同じ項を**新しい順 N 件**で頭打ちにする（id は日付順に振られるため id の大きい方が新しい——`pick_latest_handoffs` の名前降順と同じ読み筋）。母数の開示は category 絞りと同じ規約で、見出しに `latest N of M` が載る。**選ぶのは新しい順、並べるのは id 昇順のまま**——索引の読み方（不変の規約）は変えず、母数だけを減らす。この捻れは並べ替えではなく**読み方の開示**で解き、latest 指定時のみ見出しに `newest last`（末尾が最新）を加える（未指定の見出しは不変＝既定出力の byte 同一互換を保つ）。`--knowledge-category` と併用すると**絞ってから latest**（M は category 絞り後の件数）で、逆順だと「新しい N 件に該当 category が無ければ 0 件」になり絞りの意味が壊れる。既定は未指定＝全件（後方互換）であり、ROUTINE_PROMPT Step 5 の投入値は v1.8.0 で**仮置き（200）から実測校正値へ**替わった（`--knowledge-latest 30 --notes-tail 500 --handoff-latest 2 --handoff-cap 2500`＝実測 24,152 バイト。実測表と選定理由は CHANGELOG v1.8.0）
-- **絞れない床（校正で動かせない部分）**: 全ノブを最小に振っても残る 11,629 バイトは、小表の全文（individuals / abilities / **profile 6,417B** / goals / steps）と tasks の一行要約である。25,600 バイトの目標に対して**床だけで 45%** を占めるため、4 ノブで配れるのは残り 14KB 弱に過ぎない——絞りの余地は knowledge 索引・notes 末尾・handoff 本文の 3 項にしかない、という制約がここから出る。将来 goals / steps が埋まれば床はさらに上がる（現在 0 件）ので、そのときは小表側にも射影（一行要約）が要る
+- **件数絞り（`--knowledge-latest`）**: 同じ項を**新しい順 N 件**で頭打ちにする（id は日付順に振られるため id の大きい方が新しい——`pick_latest_handoffs` の名前降順と同じ読み筋）。母数の開示は category 絞りと同じ規約で、見出しに `latest N of M` が載る。**選ぶのは新しい順、並べるのは id 昇順のまま**——索引の読み方（不変の規約）は変えず、母数だけを減らす。この捻れは並べ替えではなく**読み方の開示**で解き、latest 指定時のみ見出しに `newest last`（末尾が最新）を加える（未指定の見出しは不変＝既定出力の byte 同一互換を保つ）。`--knowledge-category` と併用すると**絞ってから latest**（M は category 絞り後の件数）で、逆順だと「新しい N 件に該当 category が無ければ 0 件」になり絞りの意味が壊れる。既定は未指定＝全件（後方互換）であり、ROUTINE_PROMPT Step 5 の投入値は v1.8.0 で**仮置き（200）から実測校正値へ**替わった（実測表と選定理由は CHANGELOG v1.8.0 / v1.9.0）
+- **主題絞り（`--knowledge-subject`）と索引の主題併記**: 同じ項を subjects の**要素一致**で絞る（category 絞りと同型。母数開示・該当 0 件でも exit 0＝絞りは観測であって検証ではない）。絞りの順は **category → subject → latest**——latest を先に効かせると「新しい N 件に該当主題が無ければ 0 件」になり絞りの意味が壊れる（category との併用理由と同じ）。索引行は `id | subjects | topic` の 3 列で、主題は `/` 連結・未設定は `-`（列が消えると読み手が桁をずらして誤読する）。**併記列は topic_width の外側**に置く——主題を足したせいで topic の丸め幅が縮むと、索引の読める量が主題の付き方で揺れる
+- **蓋の無い表への上限ノブ（案A、v1.9.0）**: 下の「絞れない床」が示すとおり、v1.8.0 の 4 ノブは knowledge 索引・notes 末尾・handoff 本文の 3 項にしか効かず、床（小表全文＋tasks 一行要約）には手が届かなかった。`--profile-cap` / `--individuals-cap` / `--abilities-cap` / `--tasks-latest` は**この床を初めて可動域に入れる**。cap が当たるのは表の支配的長文フィールド 1 つ（`content` / `identity.context_notes` / `guidance`）だけで、丸めの規約は既存 `_truncate` をそのまま使う（新しい丸め処理を書かない＝読み手が表ごとに切れ方を覚えずに済む）。**既定は未指定＝全文**（非破壊）で、見出しに `full, <field path> cap N bytes` として開示する
+- **絞れない床（校正で動かせる部分が増えた）**: v1.8.0 で全ノブを最小に振っても残った **11,629 バイト**は、小表の全文（individuals / abilities / **profile 6,417B** / goals / steps）と tasks の一行要約だった——25,600 の目標に対し床だけで 45%。v1.9.0 は subjects 表が加わって床が **13,847 バイト**へ上がる一方、案A のノブを最小に振ると床は **6,919 バイト**（目標の 27%）まで下がる。**C（主題軸）が床を押し上げ、A（上限ノブ）が床を掘り下げる**——A を C の前提条件として同版に入れたのはこのため（実測は CHANGELOG v1.9.0）。将来 goals / steps が埋まれば床は再び上がるので、そのときは同型のノブを足す（現在 0 件ゆえ先回りしない）
 
 > 消化（handoff → knowledge への結晶化）と卒業（archive）のサイクルは v1.6.0 で載った。分離（第一段）が「読む量を切る」だったのに対し、消化と卒業は**母数そのものを減らす**——選択（何を結晶化し、何を卒業させるか）＝α は秘書の判断に残し、移動と読み筋だけをコードが持つ（§2 の踏襲）。
 

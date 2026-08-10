@@ -2,6 +2,62 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.9.0] - 2026-08-10 — 主題の軸（8 表目）・蓋の無い表への上限ノブ・書き込み口の fail-closed
+
+v1.8.0 は校正値を実測化したが、余裕は **1,448 バイト**（実測 24,152 / 閾値 25,600）しか無く、
+かつ**絞れない床 11,629 バイト**——小表の全文と tasks 一行要約——には手が届く手段が無かった。
+次の破綻は蓋の無い側から来る。もう一つ、knowledge 197 件の引き出し軸が `category`（認識の型）
+しかなく、**主題（馬・建設…）で引く経路が無い**。本版は二本柱で入れる：**案A＝蓋の無い表への
+上限ノブ**（床を可動域へ）と **案C＝主題軸 SUBJECTS**（8 表目）。C は digest を太らせるので、
+**A は C の前提条件**である——実測でも、A 無しで C を入れると 26,655 バイトで退避圏へ戻った。
+
+### Added
+
+- **`SUBJECTS` 管理表（8 表目）** — 主題の語彙表（`id`＝正準 slug / `label` / `aliases[]` / `status` ∈ {active, deprecated} / `note` / `created_at` / `updated_at`）。**閉じた語彙はコード、開いた語彙はデータ**——`category` が frozenset のままなのに対し、主題は管理表に置く（主題を 1 つ増やすたびに deploy を要求しないため。DESIGN §3.8）。`status=deprecated` は削除ではなく廃止で、既存レコードの読み出しを壊さず新規付与だけを止める。**配線コストは `REGISTRY_SPEC` の 1 行＋`Config.subjects_path` だけ**で、CRUD・WAL kind・orientation の表順・subparser がすべて自動追従した（`wal_cli` / `main.py` は無改修＝§3.8 が abilities で主張したテーブル駆動の実証）
+- **`knowledge.subjects[]`（主題の付与）** — `category` と直交する軸。値は SUBJECTS 表の **active な id** と照合し、語彙外・deprecated は**候補列挙付き exit 2**（v1.8.0 の category 検証と同じ UX）。空配列・省略は可（後方互換）。照合の判定は Domain 純関数 `invalid_subjects(subjects, active_ids)`、データ供給は Interface——依存は内向きのまま、判定は引数だけでテストできる
+- **`orientation --knowledge-subject <id>`** — 索引を subjects の要素一致で絞る（`--knowledge-category` の同型。母数は見出しの `N of M` に残り、該当 0 件でも exit 0＝絞りは観測であって検証ではない）。絞りの順は **category → subject → latest**（latest を先に効かせると「新しい N 件に該当主題が無ければ 0 件」になり絞りの意味が壊れる）
+- **`orientation` の上限ノブ 4 種（案A）** — `--profile-cap` / `--individuals-cap` / `--abilities-cap`（各表の**支配的長文フィールド**＝ `content` / `identity.context_notes` / `guidance` のバイト上限）と `--tasks-latest`（一行要約の件数上限、notes も連動）。丸めは既存 `_truncate` の再利用（バイト・文字境界・マーカーは幅の内側・非正は全捨て）で**新しい丸め処理を書いていない**。レコード全体の JSON を丸めず 1 フィールドだけに当てるのは、構造を壊さず「丸めても個票は `get --key` で引ける」読み筋を温存するため。**既定（未指定）は全文＝非破壊**、見出しに `full, <field path> cap N bytes` として開示。goals / steps（現在 0 件）にはノブを付けていない（肥大トリガーで同型追加）
+- **`<表> import --json-file`（全件置換の正面口）** — 全 8 表に生える（`REGISTRY_SPEC` 駆動。knowledge 限定の特別扱いより短い）。**全件検証 → 一括置換**で、1 件でも不正なら exit 2・**無置換**（部分書き込みを作らない）。batch 内のキー重複も exit 2 で弾く——`replace_all` は upsert と違い一意性を畳まないため、通すと「`get` は先頭だけ返し `remove` は両方消す」表ができる。stderr に `imported knowledge: 197 -> 197 records (added: 0, removed: 0)` の差分。置換後の sync は 1 commit（表は 1 ファイル）
+- **主題移行の手順書**（開発記録 `docs/devlog/`、配布対象外） — `subjects_migration_20260810.md`。Phase 3（秘書実施）の 3 手順（語彙 9 主題の投入 → 全件への付与 → `import` 一括書き戻し）と検証 5 項目（語彙外ゼロ / 主題ゼロ件の件数 / 分布 / 1:n 実数 / 未使用語彙）＋ digest サイズ確認。`knowledge_category_migration_20260809.md` と同型
+- **`templates/SUBJECTS.template.json`** — 8 表目のみ雛型欠落は構成の非対称。`records` は他表の規約どおり空配列で、9 主題は `_record_schema` の例示語と `_growth_policy` に置く（実データ投入は秘書の領分）
+
+### Changed
+
+- **`add` / `import` の未知フィールド fail-closed（後方非互換）** — 書き込み口はトップレベルの未知キーを **exit 2** で弾き、キー名を stderr に出す（`unknown field(s): subject`）。従来 `from_dict` は既知キーだけを転記するため、typo（`subjects` → `subject`）は**例外にならず沈黙して消えていた**——「登録したのに無い」を後から探させる形。**未知キーを含む add を行っていた運用は落ちる**（落ちること自体が目的）。検証は書き込み口のみで、**read 経路（`list` / `get` / `orientation`）は警告どまり**——read に検証を入れると未知キーを 1 つ持つだけで list が全滅する（v1.8.0 Stage 1 で警戒した形）。前方互換を read 側に残し、fail-closed は書き込み側に置く
+- **knowledge 索引の 3 列化（`id | topic` → `id | subjects | topic`）** — 主題は `/` 連結、未設定は `-`（列が消えると読み手が桁をずらして誤読する——`summarize_task` の due_date と同じ理由）。**併記列は topic_width の外側**に置く（主題を足したせいで topic の丸め幅が縮むと、索引の読める量が主題の付き方で揺れる）。これにより**既定出力の byte 同一契約は索引行 1 箇所だけ意図的に破れている**（裁可済みの仕様変更）
+- **topic 接頭辞規約（`[主題] 本文`）の廃止** — v1.8.0 が Notes に置いた規約を撤回し、`SKILL.md` / `templates/KNOWLEDGE.template.json` から本文ごと削除して subjects 案内へ置換した。規約は**強制されないぶん揺れる**（付け忘れ・表記ゆれ・遡及付与の未完了が混在しても誰も気づかない）——検証できない規約より、書き込み口で弾ける データ構造を採る
+- **ROUTINE_PROMPT Step 5 の校正値を v1.9.0 実測へ** — 呼び出し行に cap 2 つを追加：`--knowledge-latest 30 --notes-tail 500 --handoff-latest 2 --handoff-cap 2500 --profile-cap 500 --abilities-cap 700`（**実測 24,412 バイト**、目標 25,600 以下）
+
+  実測条件：バックアップ registry の scratchpad 複製に対する v1.9.0 コードでの read-only 実行。**knowledge は 197 件**（計画書 Overview の「201 件」はバックアップ実体との差——実測で 197 に確定）、tasks 10 件（active 4 件が長い notes を持つ）、profile 4 件、individuals 1 件、abilities 1 件、goals / steps 0 件、handoff 2 ブロック。SUBJECTS には 9 主題（馬 / 建設 / 製造 / 経営 / AI業界 / ハーネス / 方法論 / 哲学 / 農）を seed し、**KNOWLEDGE 全 197 件へ機械的に主題を仮付与**した（round-robin。分類の質は不問——サイズ実測が目的）。`1 主題/件` を主測定、`2 主題/件` を併記幅の負荷側として併走させた：
+
+  | 組 | 1 主題/件 | 2 主題/件 | ≤ 25,600 |
+  |---|---:|---:|:--:|
+  | 既定（ノブ全未指定） | 76,828 | 78,320 | × |
+  | **v1.8.0 採用値のまま（C 増分あり）** | **26,655** | **26,877** | **×** |
+  | ＋`--individuals-cap 400` | 26,471 | 26,693 | × |
+  | ＋`--abilities-cap 400` | 25,758 | 25,980 | × |
+  | ＋`--tasks-latest 6` | 25,691 | 25,913 | × |
+  | ＋`--profile-cap 400` | 24,608 | 24,830 | ○ |
+  | ＋`--profile-cap 600 --abilities-cap 800` | 24,859 | 25,081 | ○ |
+  | ＋`--profile-cap 500 --abilities-cap 800` | 24,513 | 24,735 | ○ |
+  | **採用: ＋`--profile-cap 500 --abilities-cap 700`** | **24,412** | **24,634** | ○ |
+  | 床（v1.8.0 定義：latest 0 / notes 0 / handoff 0） | 13,847 | 13,847 | ○ |
+  | 床（案A のノブも 0 まで振る） | 6,919 | 6,919 | ○ |
+
+  - **A が C の前提条件であることの実証**: v1.8.0 の 4 値のままだと **26,655 バイト**（v1.8.0 実測 24,152 に対し **C 増分 +2,503**＝subjects 表の全文掲載 2,174 ＋ 索引併記と counts）で、退避圏へ戻る。計画時の C 増分見積り 2,000〜2,600 バイトは実測で裏付けられた（2 主題/件なら +2,725）
+  - **床が動いた**: v1.8.0 の絞れない床 11,629 は、subjects 表が乗って **13,847**（目標の 54%）へ上がる一方、案A のノブを最小に振ると **6,919**（27%）まで下がる。**C が床を押し上げ、A が床を掘り下げる**——同版に入れた理由がこの 2 行に出ている
+  - **採用値の選定理由**: 回収先を**蓋の無い側の支配二表**に絞った。`profile` は digest の 24%（6,416 バイト / 4 レコード）を占める最大の未蓋項目で、cap 500 は各レコードの頭（≈200 日本語文字）を残す——応答の温度を合わせるには足り、全文は `profile get --key` で引ける。`abilities` の cap 700 は `guidance`（1,321 バイト）だけに当たり、**発動判断に要る `trigger` / `skill_path` は丸めない**。`--individuals-cap` は**採らなかった**——当該表の `context_notes` は 620 バイトで cap 600 を掛けても総量は **+18 バイト**（見出しの開示文が増える分だけ増える）＝効かないノブを body に置かない。`--tasks-latest` も採らなかった：10 件中 4 件が digest から落ちると、**依頼そのものが起動時に見えなくなる**（profile の末尾が切れるのとは損失の質が違う）
+  - **2 主題/件でも成立**: 採用値の負荷側実測は 24,634 で閾値内。主題の付き方が増えても当座の余裕（966 バイト）は残る——ただし digest は毎枠 stderr で自己申告するので、育って越えた枠でそのまま観測できる
+- **`scripts/tests/infrastructure/test_templates.py` の対象拡張** — 従来は PROFILE / GOALS / STEPS の 3 雛型のみを `_record_schema` ↔ `to_dict()` のキー集合一致で検証しており、**未カバーの表は乖離しても誰も気づかなかった**。KNOWLEDGE / SUBJECTS を追加したところ、予告どおり **KNOWLEDGE 雛型の既存乖離（`subjects` 未記載）が露見**したので雛型側を値オブジェクトに揃えた（スキーマの正は VO）。表が増えたらここへ 1 行足す
+- **接点文書の追従** — `README.md`（8 表・orientation 全オプション）、`DESIGN.md`（§3.1 8 表化 / §3.5 digest 側の上限ノブ表 / §3.8「なぜ subjects を 8 表目に」 / §3.10 表数 / §3.12 有界式・主題絞り・床の再計算）、`ROUTINE_PROMPT.md`（Step 5 の呼び出し行・表別読み筋に subjects 行と索引 3 列・8 表・wal-append kind）、`skills/telegram-secretary/SKILL.md`、`commands/telegram-secretary.md`、`STRUCTURE.md`、`SETUP.md`、`templates/{KNOWLEDGE,SUBJECTS,SecretaryRole}`、`bootstrap.sh`
+
+### Notes
+
+- **Step 5 を変更したため、本番へ届けるには cloud routine の body 再登録が必要**（リポ修正だけでは到達しない）。手順は `RemoteTrigger` の get → modify → update（v1 ネスト・`session_context` は全体を保持）で v1.8.0 と同一
+- **既定出力の非破壊性（実測確認）** — 同じ複製（主題 seed 前）に v1.8.0 コードと v1.9.0 コードを食わせた差は **862 バイトのみ**で、diff hunk は 2 つだけ：①subjects 空表セクション **63 バイト**（counts 1 行＋見出し＋`[]`＋空行）②索引 3 列化 **799 バイト**（見出し +11、197 行 × `-` 列 +4）。**他のセクションは byte 同一**。②は裁可済みの仕様変更ゆえ、「ノブ未指定の既定は v1.8.0 出力＋空表セクション＋索引列」が本版の非破壊の定義になる
+- **主題の実データ付与（Phase 3）は本版に含まない** — 語彙の投入も付与も秘書の領分（実データは Private）。手順は `docs/devlog/subjects_migration_20260810.md`。**語彙追加の目安「10 件以上」は仮置き**（運用実績が無い時点で置いた数字）で、校正の一次資料は秘書の運用実測になる
+- **`bootstrap.sh` の registry 既知エントリ列挙**に `subjects` を足した。profile / goals / steps / artifacts が元々未列挙な既存不整合は本版のスコープ外——安全側（rm -rf しない側）に倒れる不整合ゆえ `cc-defer` で台帳化し、昇格トリガー（再provision の skip が実害を出す／次回 bootstrap 改修時）を添えてある
+
 ## [1.8.0] - 2026-08-10 — 許可集合の検証・サイズの自己申告・校正値の実測化
 
 v1.7.0 は幅の単位を是正したが、**校正値そのものは机上の見積り**（55KB 圏）のままだった。

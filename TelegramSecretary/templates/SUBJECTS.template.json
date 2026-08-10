@@ -1,0 +1,17 @@
+{
+  "_template": "SUBJECTS — 主題の軸を張る語彙表の雛型。実体は Private の <registry_dir>/subjects/SUBJECTS.json に置く（本ファイルはコピーされない雛型）。KNOWLEDGE.subjects[] の照合先で、active な id 以外は knowledge の add/import が exit 2 で弾く",
+  "_record_schema": {
+    "id": "string — 正準 slug（照合キー。KNOWLEDGE.subjects[] にはこの値を書く。例: 馬 / 建設 / 製造 / 経営 / AI業界 / ハーネス / 方法論 / 哲学 / 農）",
+    "label": "string — 人間向けの表示名（未指定なら空。id と同じでよい）",
+    "aliases": "string[] — 別名・揺れ（照合はしない。秘書が id を選ぶときの手がかり）",
+    "status": "active | deprecated — 既定 active。deprecated は削除ではなく廃止で、既存レコードの読み出しは壊さず新規付与だけを止める",
+    "note": "string — この主題が何を指すかの一文（境界が曖昧な語ほど効く）",
+    "created_at": "ISO8601",
+    "updated_at": "ISO8601"
+  },
+  "_axis_policy": "category（認識の型）と直交する軸。category は閉じた語彙ゆえコードの許可集合 10 種、主題は開いた語彙ゆえこの表＝データで持つ（主題を1つ増やすたびに deploy を要求しないための分離）。同じ知見が『観察（category）× 馬（subject）』の両方で引ける",
+  "_write_policy": "語彙は増やすより育てる。まず既存の id で足りないかを確かめ、足りなければ note 付きで add する。使わなくなった語は remove せず status=deprecated（過去レコードの主題が読めなくなるため）",
+  "_growth_policy": "初期語彙は 9 主題（馬 / 建設 / 製造 / 経営 / AI業界 / ハーネス / 方法論 / 哲学 / 農）。語彙が細かすぎると付与がぶれ、粗すぎると絞れない——追加の目安は『その主題に該当する knowledge が 10 件以上見込めるか』（10 件は仮置き、運用実測で校正する）",
+  "version": 1,
+  "subjects": []
+}
