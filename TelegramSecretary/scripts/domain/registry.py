@@ -1,4 +1,4 @@
-"""管理表（INDIVIDUALS / TASKS / KNOWLEDGE / ABILITIES / PROFILE / GOALS / STEPS）の Domain 値オブジェクト。
+"""管理表（INDIVIDUALS / TASKS / KNOWLEDGE / SUBJECTS / ABILITIES / PROFILE / GOALS / STEPS）の Domain 値オブジェクト。
 
 外部依存ゼロ。frozen dataclass + from_dict/to_dict で JSON 相互変換。
 バリデーションは __post_init__（不正な enum 値は ValueError）。
@@ -7,8 +7,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from dataclasses import dataclass, field
+from collections.abc import Collection, Mapping
+from dataclasses import dataclass, field, fields
 from typing import Any
 
 _ROLES = frozenset({"principal", "associate"})
@@ -40,6 +40,7 @@ _KNOWLEDGE_CATEGORIES = frozenset(
         "decision",
     }
 )
+_SUBJECT_STATUSES = frozenset({"active", "deprecated"})
 _GOAL_CATEGORIES = frozenset({"money", "work", "relationship", "health", "other"})
 _GOAL_STATUSES = frozenset({"active", "paused", "achieved", "abandoned"})
 _STEP_STATUSES = frozenset({"todo", "in_progress", "done", "skipped"})
@@ -200,11 +201,16 @@ class Knowledge:
     弾き、そのメッセージは Identity / Goal（invalid 値のみ）と異なり**許可集合を列挙する**
     ——弾かれる主体が自走エージェント（cloud routine の秘書）であり、エラー文だけで
     正しい語を選び直せる情報量が要るため。この非対称は意図的。
+
+    subjects は主題の軸（馬・建設…）で、category と直交する引き出し口。語彙は
+    SUBJECTS テーブル（データ）が持つため、ここでは値を検証しない——照合は
+    invalid_subjects 純関数に active な id 集合を渡して行う（データ供給は Interface）。
     """
 
     id: str
     topic: str
     category: str
+    subjects: list[str]
     content: str
     related: list[str]
     sources: list[str]
@@ -224,6 +230,7 @@ class Knowledge:
             id=d["id"],
             topic=d["topic"],
             category=d["category"],
+            subjects=list(d.get("subjects", [])),
             content=d.get("content", ""),
             related=list(d.get("related", [])),
             sources=list(d.get("sources", [])),
@@ -236,9 +243,61 @@ class Knowledge:
             "id": self.id,
             "topic": self.topic,
             "category": self.category,
+            "subjects": list(self.subjects),
             "content": self.content,
             "related": list(self.related),
             "sources": list(self.sources),
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+
+@dataclass(frozen=True)
+class Subject:
+    """主題の軸を張る語彙 1 語（KNOWLEDGE.subjects の照合先）。
+
+    category（認識の型）が frozenset＝コードなのに対し、主題は**開いた語彙＝データ**
+    として管理表に置く——主題を 1 つ増やすたびに deploy を要求しない、というのが
+    この表の存在理由。id が正準 slug（照合キー）、label と aliases は人間側の呼び名。
+    status="deprecated" は削除ではなく廃止で、既存レコードの読み出しを壊さずに
+    新規付与だけを止める。status のエラー文は Knowledge category と同じく許可集合を
+    列挙する（弾かれる主体が自走エージェント）。
+    """
+
+    id: str
+    label: str
+    aliases: list[str]
+    status: str
+    note: str
+    created_at: str
+    updated_at: str
+
+    def __post_init__(self) -> None:
+        if not self.id:
+            raise ValueError("subject id must not be empty")
+        if self.status not in _SUBJECT_STATUSES:
+            allowed = ", ".join(sorted(_SUBJECT_STATUSES))
+            raise ValueError(f"invalid status: {self.status} (allowed: {allowed})")
+
+    @classmethod
+    def from_dict(cls, d: Mapping[str, Any]) -> Subject:
+        return cls(
+            id=d["id"],
+            label=d.get("label", ""),
+            aliases=list(d.get("aliases", [])),
+            status=d.get("status", "active"),
+            note=d.get("note", ""),
+            created_at=d["created_at"],
+            updated_at=d["updated_at"],
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "label": self.label,
+            "aliases": list(self.aliases),
+            "status": self.status,
+            "note": self.note,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -523,3 +582,29 @@ def find_by(records: list[dict], key: str, value: Any) -> dict | None:
 def remove_by(records: list[dict], key: str, value: Any) -> list[dict]:
     """key == value のレコードを除いた新 list を返す。元 list は変更しない（upsert と対称）。"""
     return [r for r in records if r.get(key) != value]
+
+
+# === 入力検証（純関数、データは引数で受ける） ===
+
+
+def unknown_keys(record_cls: type, raw: Mapping[str, Any]) -> set[str]:
+    """raw のトップレベルキーのうち、record_cls のフィールドに無いものを返す。
+
+    from_dict は既知キーだけを転記するため、typo（subjects → subject）は例外にならず
+    沈黙して消える。書き込み口（add / import）はこの差集合で fail-closed にする。
+
+    **トップレベルのみ**を見る（Individual.identity 等のネスト dict 内は対象外）
+    ——沈黙消滅の実害がトップレベルで起きたため。ネストまで広げるのは実害が出てから。
+    キーの不足は検出しない（省略可能フィールドは from_dict が既定値を入れる）。
+    """
+    known = {f.name for f in fields(record_cls)}
+    return set(raw) - known
+
+
+def invalid_subjects(subjects: list[str], active_ids: Collection[str]) -> list[str]:
+    """active_ids に無い主題を、渡された順のまま返す（エラー文にそのまま並べる想定）。
+
+    語彙そのもの（SUBJECTS の active レコード）は引数で受ける——主題は開いた語彙で、
+    Domain の定数にすると追加のたびに deploy が要る。判定だけが Domain の責務。
+    """
+    return [s for s in subjects if s not in active_ids]

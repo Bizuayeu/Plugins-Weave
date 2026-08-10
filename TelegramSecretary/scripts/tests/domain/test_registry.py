@@ -156,6 +156,7 @@ def test_knowledge_round_trip():
         "id": "k1",
         "topic": "決済フロー",
         "category": "method",
+        "subjects": [],
         "content": "判断と理由",
         "related": [],
         "sources": ["t1", "log-ref-1"],
@@ -174,6 +175,7 @@ def test_knowledge_requires_topic():
             id="k",
             topic="",
             category="observation",
+            subjects=[],
             content="x",
             related=[],
             sources=[],
@@ -204,6 +206,7 @@ def test_knowledge_rejects_invalid_category():
             id="k",
             topic="x",
             category="ops",
+            subjects=[],
             content="",
             related=[],
             sources=[],
@@ -222,6 +225,7 @@ def test_knowledge_accepts_every_allowed_category(category):
         "id": "k1",
         "topic": "決済フロー",
         "category": category,
+        "subjects": [],
         "content": "判断と理由",
         "related": [],
         "sources": [],
@@ -229,6 +233,39 @@ def test_knowledge_accepts_every_allowed_category(category):
         "updated_at": "2026-01-01T00:00:00Z",
     }
     assert Knowledge.from_dict(d).to_dict() == d
+
+
+def test_knowledge_carries_subjects_through_round_trip():
+    # 主題軸（category と直交する引き出し軸）。固定キー転記だった頃は
+    # from_dict が subjects を落とし、add が exit 0 のまま沈黙消滅していた
+    d = {
+        "id": "k1",
+        "topic": "厩舎の動線",
+        "category": "domain-insight",
+        "subjects": ["馬", "建設"],
+        "content": "",
+        "related": [],
+        "sources": [],
+        "created_at": "t",
+        "updated_at": "t",
+    }
+    k = Knowledge.from_dict(d)
+    assert k.subjects == ["馬", "建設"]
+    assert k.to_dict()["subjects"] == ["馬", "建設"]
+
+
+def test_knowledge_subjects_default_to_empty():
+    # subjects を持たない既存 201 件の読み出しを壊さない（後方互換）
+    k = Knowledge.from_dict(
+        {
+            "id": "k1",
+            "topic": "x",
+            "category": "method",
+            "created_at": "t",
+            "updated_at": "t",
+        }
+    )
+    assert k.subjects == []
 
 
 def test_knowledge_from_dict_requires_category():
@@ -242,6 +279,89 @@ def test_knowledge_from_dict_requires_category():
                 "updated_at": "t",
             }
         )
+
+
+# === Subject（主題軸の語彙、開いた語彙＝データ側） ===
+
+from domain.registry import Subject
+
+# 主題語彙 v0（9 主題）。実体は SUBJECTS テーブル（データ）なので、テストは
+# seed 語彙としてだけ持つ——コード側の定数ではない（category との対比が設計核）
+_SEED_SUBJECT_IDS = {
+    "馬",
+    "建設",
+    "製造",
+    "経営",
+    "AI業界",
+    "ハーネス",
+    "方法論",
+    "哲学",
+    "農",
+}
+_ALLOWED_SUBJECT_STATUSES = ["active", "deprecated"]
+
+
+def test_subject_round_trip():
+    d = {
+        "id": "馬",
+        "label": "馬",
+        "aliases": ["horse", "馬事"],
+        "status": "active",
+        "note": "厩舎・馬術・馬産の話題",
+        "created_at": "2026-01-01T00:00:00Z",
+        "updated_at": "2026-01-01T00:00:00Z",
+    }
+    s = Subject.from_dict(d)
+    assert s.id == "馬"
+    assert s.aliases == ["horse", "馬事"]
+    assert s.to_dict() == d
+
+
+def test_subject_rejects_invalid_status():
+    with pytest.raises(ValueError) as exc:
+        Subject(
+            id="馬",
+            label="馬",
+            aliases=[],
+            status="retired",
+            note="",
+            created_at="t",
+            updated_at="t",
+        )
+    # Knowledge category と同じ方針——弾かれる主体が自走エージェントなので許可値を列挙する
+    message = str(exc.value)
+    for allowed in _ALLOWED_SUBJECT_STATUSES:
+        assert allowed in message
+
+
+def test_subject_requires_id():
+    # id は照合キー（正準 slug）。空 id は語彙として引けない
+    with pytest.raises(ValueError):
+        Subject(
+            id="",
+            label="馬",
+            aliases=[],
+            status="active",
+            note="",
+            created_at="t",
+            updated_at="t",
+        )
+
+
+def test_subject_defaults_are_safe():
+    s = Subject.from_dict({"id": "農", "created_at": "t", "updated_at": "t"})
+    assert s.label == ""
+    assert s.aliases == []
+    assert s.status == "active"
+    assert s.note == ""
+
+
+def test_subject_accepts_deprecated_status():
+    # 廃止は削除ではない——既存レコードの読み出しを壊さず新規付与だけを止める
+    s = Subject.from_dict(
+        {"id": "旧語", "status": "deprecated", "created_at": "t", "updated_at": "t"}
+    )
+    assert s.status == "deprecated"
 
 
 # === Ability ===
@@ -635,3 +755,78 @@ def test_derive_role_ignores_inactive_goals():
 def test_derive_role_status_round_trip():
     rs = derive_role([_profile()], [])
     assert rs.to_dict() == {"role": "butler", "personalize": True, "accompany": False}
+
+
+# === 未知キー検出・主題語彙照合（純関数） ===
+
+from domain.registry import invalid_subjects, unknown_keys
+
+
+def _knowledge_raw(**extra):
+    d = {
+        "id": "k1",
+        "topic": "x",
+        "category": "method",
+        "subjects": [],
+        "content": "",
+        "related": [],
+        "sources": [],
+        "created_at": "t",
+        "updated_at": "t",
+    }
+    d.update(extra)
+    return d
+
+
+def test_unknown_keys_catches_typo():
+    # 単数形の typo は from_dict では沈黙して消える。ここで拾えることが fail-closed の前提
+    raw = _knowledge_raw(subject=["馬"])
+    del raw["subjects"]
+    assert unknown_keys(Knowledge, raw) == {"subject"}
+
+
+def test_unknown_keys_is_empty_for_known_keys_only():
+    assert unknown_keys(Knowledge, _knowledge_raw()) == set()
+
+
+def test_unknown_keys_allows_omitted_keys():
+    # 「未知」であって「不足」ではない——省略可能フィールドの欠落は検出対象外
+    assert (
+        unknown_keys(Knowledge, {"id": "k1", "topic": "x", "category": "method"})
+        == set()
+    )
+
+
+def test_unknown_keys_does_not_inspect_nested_dicts():
+    # トップレベルのみ（§1.4 の実害はトップレベルで起きた）。ネストは実害が出たら広げる
+    raw = {
+        "uuid": "u1",
+        "display_name": "x",
+        "role": "associate",
+        "status": "active",
+        "identity": {"tone": "polite", "bogus": 1},
+        "created_at": "t",
+        "updated_at": "t",
+    }
+    assert unknown_keys(Individual, raw) == set()
+
+
+def test_invalid_subjects_returns_out_of_vocabulary_terms():
+    assert invalid_subjects(["馬", "宇宙"], _SEED_SUBJECT_IDS) == ["宇宙"]
+
+
+def test_invalid_subjects_is_empty_when_all_in_vocabulary():
+    assert invalid_subjects(["馬", "建設", "農"], _SEED_SUBJECT_IDS) == []
+
+
+def test_invalid_subjects_preserves_input_order():
+    # エラー文にそのまま並べる想定なので、秘書が渡した順で返す
+    assert invalid_subjects(["宇宙", "馬", "深海"], _SEED_SUBJECT_IDS) == [
+        "宇宙",
+        "深海",
+    ]
+
+
+def test_invalid_subjects_rejects_everything_when_vocabulary_is_empty():
+    # SUBJECTS 未投入（active 0 件）の間は主題付与が全て弾かれる＝語彙先行の運用順
+    assert invalid_subjects(["馬"], set()) == ["馬"]
