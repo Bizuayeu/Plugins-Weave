@@ -1607,6 +1607,51 @@ def test_proactive_send_rejects_update_id_flag(env_ready, tmp_path):
 # --- wal-append --kind outbound（proactive-send WAL 配線の parser 入口）---
 
 
+# --- v1.9.0 Stage 4: subjects 表・import アクション・orientation 新ノブの parser 入口 ---
+
+
+def test_registry_parser_exposes_the_subjects_table(env_ready):
+    """8 表目の subparser は REGISTRY_SPEC 生成ループにそのまま乗る（列挙の二重管理なし）。"""
+    subject = json.dumps(
+        {"id": "馬", "label": "馬", "created_at": "t", "updated_at": "t"},
+        ensure_ascii=False,
+    )
+    assert main(["subjects", "add", "--json", subject]) == EXIT_OK
+    assert main(["subjects", "list"]) == EXIT_OK
+
+
+def test_registry_parser_accepts_the_import_action(env_ready, tmp_path):
+    """`import` は registry_action の choices に足すだけで全表に生える。"""
+    payload = tmp_path / "import.json"
+    payload.write_text(
+        json.dumps([{"id": "g1", "title": "x", "created_at": "t", "updated_at": "t"}]),
+        encoding="utf-8",
+    )
+    assert main(["goals", "import", "--json-file", str(payload)]) == EXIT_OK
+
+
+def test_orientation_parser_accepts_the_new_knobs(env_ready):
+    """案A の 3 cap＋tasks-latest＋主題絞りが CLI 入口として立っている。"""
+    assert (
+        main(
+            [
+                "orientation",
+                "--profile-cap",
+                "100",
+                "--individuals-cap",
+                "100",
+                "--abilities-cap",
+                "100",
+                "--tasks-latest",
+                "2",
+                "--knowledge-subject",
+                "馬",
+            ]
+        )
+        == EXIT_OK
+    )
+
+
 def test_wal_append_accepts_outbound_kind(env_ready):
     """parser が --kind outbound を受け付ける（registry_sync 無効ゆえ no-op で exit 0）。
 

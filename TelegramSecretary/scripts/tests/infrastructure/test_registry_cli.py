@@ -635,6 +635,9 @@ _SNAPSHOT_TASK = dict(_TASK, notes="NOTE_A")
 # オリエンテーションは秘書が毎枠読む契約面であり、計器の混入は digest そのものの汚染になる。
 # v1.9.0 Stage 3 で knowledge 索引を `id | subjects | topic` の 3 列へ**意図的に**変えた
 # （大環主裁可 Q5）ため、v1.7.0 との差はこの 1 行だけ——他は当時のまま動かさない。
+# v1.9.0 Stage 4 で 8 表目 subjects が REGISTRY_SPEC に乗り、counts 1 行と空表セクションが
+# 増えた。**既定非破壊の定義はこの「空表セクションの定数増のみ」**（計画 Decision Priority
+# Notes）——空表を隠す特別扱いは置かない（表追加のたびに暗黙挙動が増えるため）。
 # counts の実バイト数だけは改行変換で OS 依存（Windows は CRLF）なので stat() から差し込む。
 # f-string 内の role 行の波括弧は二重化（表示は 1 重）。
 def _expected_default_stdout(config: Config) -> str:
@@ -647,6 +650,7 @@ def _expected_default_stdout(config: Config) -> str:
 individuals: 0 records, 0 bytes
 tasks: 1 records, {config.tasks_path.stat().st_size} bytes
 knowledge: 1 records, {config.knowledge_path.stat().st_size} bytes
+subjects: 0 records, 0 bytes
 abilities: 0 records, 0 bytes
 profile: 0 records, 0 bytes
 goals: 0 records, 0 bytes
@@ -664,6 +668,9 @@ NOTE_A
 
 ## knowledge (1 records, index: id | subjects | topic)
 K-001 | - | 申し送りの置き場
+
+## subjects (0 records, full)
+[]
 
 ## abilities (0 records, full)
 []
@@ -1036,3 +1043,364 @@ def test_handoff_archive_moves_without_git_when_sync_disabled(tmp_path, capsys):
     handoff = config.artifacts_path / "handoff"
     assert (handoff / "archive" / "20260809T000000Z_s.md").exists()
     assert not (handoff / "20260809T000000Z_s.md").exists()
+
+
+# === subjects 表（8 表目）・書き込み口の fail-closed・import（v1.9.0 Stage 4） ===
+
+from adapters.registry.json_registry_store import JsonRegistryStore
+
+_SUBJECT = {
+    "id": "馬",
+    "label": "馬",
+    "aliases": ["horse", "うま"],
+    "status": "active",
+    "note": "",
+    "created_at": "t",
+    "updated_at": "t",
+}
+
+
+def _seed_subjects(config: Config, *subjects: dict) -> None:
+    for subject in subjects:
+        run_registry_command(config, "subjects", "add", _ns(json=json.dumps(subject)))
+
+
+def test_subjects_round_trip_through_the_shared_crud(tmp_path, capsys):
+    """8 表目が add→get→list→remove を素で回す（配線は REGISTRY_SPEC 1 行＋path property）。"""
+    config = _config(tmp_path)
+    assert (
+        run_registry_command(config, "subjects", "add", _ns(json=json.dumps(_SUBJECT)))
+        == 0
+    )
+    assert config.subjects_path.exists()
+    assert run_registry_command(config, "subjects", "get", _ns(key="馬")) == 0
+    assert "horse" in capsys.readouterr().out
+    assert run_registry_command(config, "subjects", "list", _ns()) == 0
+    assert [r["id"] for r in json.loads(capsys.readouterr().out)] == ["馬"]
+    assert run_registry_command(config, "subjects", "remove", _ns(key="馬")) == 0
+    assert run_registry_command(config, "subjects", "get", _ns(key="馬")) == 2
+
+
+def test_subjects_add_rejects_status_outside_the_allowed_set(tmp_path, capsys):
+    """status の許可集合検証は Subject VO 任せ（category と同じく許可値を列挙して弾く）。"""
+    config = _config(tmp_path)
+    bad = dict(_SUBJECT, status="retired")
+    assert (
+        run_registry_command(config, "subjects", "add", _ns(json=json.dumps(bad))) == 2
+    )
+    err = capsys.readouterr().err
+    assert "active" in err and "deprecated" in err
+
+
+def test_subjects_lands_next_to_knowledge_in_the_orientation_table_order(
+    tmp_path, capsys
+):
+    """REGISTRY_SPEC の挿入位置がそのまま digest の表順＝索引と語彙表が隣接する。"""
+    config = _config(tmp_path)
+    assert run_orientation(config, _ns()) == 0
+    out = capsys.readouterr().out
+    assert out.index("## knowledge") < out.index("## subjects")
+    assert out.index("## subjects") < out.index("## abilities")
+
+
+# --- knowledge.subjects の語彙照合（active のみ許可） ---
+
+
+def test_knowledge_add_rejects_subject_outside_the_vocabulary(tmp_path, capsys):
+    """語彙外の主題は exit 2。stderr は弾いた語と **active な id 一覧**を出す。"""
+    config = _config(tmp_path)
+    _seed_subjects(config, _SUBJECT, dict(_SUBJECT, id="建設", label="建設"))
+    capsys.readouterr()
+    bad = dict(_KNOWLEDGE, subjects=["馬", "宇宙"])
+    assert (
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(bad))) == 2
+    )
+    err = capsys.readouterr().err
+    assert "宇宙" in err
+    # 弾かれる主体は自走エージェント——正しい語彙が分からないと自力で直せない
+    candidates = err.split("active:")[1]
+    assert "建設" in candidates and "馬" in candidates
+
+
+def test_knowledge_add_with_invalid_subject_leaves_the_table_untouched(tmp_path):
+    """検証は書き込みの手前——弾いた add はファイルに 1 バイトも触れない。"""
+    config = _config(tmp_path)
+    _seed_subjects(config, _SUBJECT)
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
+    before = config.knowledge_path.read_bytes()
+    bad = dict(_KNOWLEDGE, id="K-002", subjects=["宇宙"])
+    assert (
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(bad))) == 2
+    )
+    assert config.knowledge_path.read_bytes() == before
+
+
+def test_knowledge_add_rejects_a_deprecated_subject(tmp_path, capsys):
+    """deprecated は「読めるが新規付与は止まる」——候補一覧にも出さない。"""
+    config = _config(tmp_path)
+    _seed_subjects(config, _SUBJECT, dict(_SUBJECT, id="製造", status="deprecated"))
+    capsys.readouterr()
+    bad = dict(_KNOWLEDGE, subjects=["製造"])
+    assert (
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(bad))) == 2
+    )
+    err = capsys.readouterr().err
+    assert "製造" in err  # 弾いた語としては出る
+    assert "製造" not in err.split("active:")[1]  # 候補としては出ない
+
+
+def test_knowledge_add_without_subjects_stays_backward_compatible(tmp_path):
+    """subjects 省略／空は SUBJECTS が空の環境でも従来どおり通る（既存レコードの読み書き）。"""
+    config = _config(tmp_path)
+    assert (
+        run_registry_command(
+            config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE))
+        )
+        == 0
+    )
+    empty = dict(_KNOWLEDGE, id="K-002", subjects=[])
+    assert (
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(empty)))
+        == 0
+    )
+
+
+def test_knowledge_add_accepts_subjects_in_the_vocabulary(tmp_path):
+    """語彙内なら通り、値も保存される（Stage 1 の from_dict 往復が CLI まで通る）。"""
+    config = _config(tmp_path)
+    _seed_subjects(config, _SUBJECT)
+    good = dict(_KNOWLEDGE, subjects=["馬"])
+    assert (
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(good)))
+        == 0
+    )
+    assert JsonRegistryStore(config.knowledge_path).load()[0]["subjects"] == ["馬"]
+
+
+# --- 未知トップレベルキーの fail-closed（全表） ---
+
+
+def test_knowledge_add_rejects_an_unknown_top_level_key(tmp_path, capsys):
+    """`subjects` → `subject` の typo は沈黙消滅せず exit 2（固定キー転記の穴を塞ぐ）。"""
+    config = _config(tmp_path)
+    bad = dict(_KNOWLEDGE, subject=["馬"])
+    assert (
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(bad))) == 2
+    )
+    assert "subject" in capsys.readouterr().err
+
+
+def test_unknown_key_is_rejected_on_every_table_not_only_knowledge(tmp_path, capsys):
+    """fail-closed は spec 駆動で全表に効く（既知キーは record_cls の fields から導出）。"""
+    config = _config(tmp_path)
+    bad = dict(_INDIVIDUAL, dsplay_name="typo")
+    assert (
+        run_registry_command(config, "individuals", "add", _ns(json=json.dumps(bad)))
+        == 2
+    )
+    assert "dsplay_name" in capsys.readouterr().err
+
+
+def test_read_paths_stay_readable_when_records_carry_unknown_keys(tmp_path, capsys):
+    """検証は書き込み口だけ——list / get / orientation は未知キーがあっても exit 0 で読める。
+
+    read 側に検証を掛けると既存データの 1 キーで起動時の list が全滅する（v1.8.0
+    Stage 1 で警戒した形）。読めるまま stderr で声だけ出す（fail-open）。
+    """
+    config = _config(tmp_path)
+    JsonRegistryStore(config.knowledge_path).save(
+        [dict(_KNOWLEDGE, legacy_field="x", content="SECRET_CONTENT")]
+    )
+    assert run_registry_command(config, "knowledge", "list", _ns()) == 0
+    captured = capsys.readouterr()
+    assert "legacy_field" in captured.err and "WARNING" in captured.err
+    assert "SECRET_CONTENT" not in captured.err  # 警告に値は載せない（PII 非出力）
+    assert run_registry_command(config, "knowledge", "get", _ns(key="K-001")) == 0
+    assert "legacy_field" in capsys.readouterr().err
+    assert run_orientation(config, _ns()) == 0  # 起動時ダイジェストも止まらない
+
+
+# --- import（全件検証 → 一括置換の正面口） ---
+
+
+def _import_file(tmp_path: Path, records: list[dict]) -> str:
+    path = tmp_path / "import.json"
+    path.write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")
+    return str(path)
+
+
+def test_import_replaces_every_record_and_reports_the_diff(tmp_path, capsys):
+    """全件置換＝消えたレコードも表現できる（add の繰り返しでは削除が書けない）。"""
+    config = _config(tmp_path)
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
+    payload = _import_file(
+        tmp_path, [dict(_KNOWLEDGE, id="K-002"), dict(_KNOWLEDGE, id="K-003")]
+    )
+    capsys.readouterr()
+    assert (
+        run_registry_command(config, "knowledge", "import", _ns(json_file=payload)) == 0
+    )
+    assert (
+        "imported knowledge: 1 -> 2 records (added: 2, removed: 1)"
+        in capsys.readouterr().err
+    )
+    saved = [r["id"] for r in JsonRegistryStore(config.knowledge_path).load()]
+    assert saved == ["K-002", "K-003"]  # K-001 は残らない
+
+
+def test_import_aborts_the_whole_batch_when_one_record_is_invalid(tmp_path, capsys):
+    """1 件でも不正なら exit 2・無置換（部分書き込みは「どこまで入ったか」を数えさせる）。"""
+    config = _config(tmp_path)
+    _seed_subjects(config, _SUBJECT)
+    run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
+    before = config.knowledge_path.read_bytes()
+    payload = _import_file(
+        tmp_path,
+        [
+            dict(_KNOWLEDGE, id="K-002", subjects=["馬"]),
+            dict(_KNOWLEDGE, id="K-003", subjects=["宇宙"]),
+        ],
+    )
+    assert (
+        run_registry_command(config, "knowledge", "import", _ns(json_file=payload)) == 2
+    )
+    assert "宇宙" in capsys.readouterr().err
+    assert config.knowledge_path.read_bytes() == before
+
+
+def test_import_rejects_an_unknown_key_in_any_record(tmp_path, capsys):
+    """import も書き込み口＝未知キー fail-closed（add と同じ検証を通る）。"""
+    config = _config(tmp_path)
+    payload = _import_file(tmp_path, [dict(_KNOWLEDGE, subject=["馬"])])
+    assert (
+        run_registry_command(config, "knowledge", "import", _ns(json_file=payload)) == 2
+    )
+    assert "subject" in capsys.readouterr().err
+    assert not config.knowledge_path.exists()
+
+
+def test_import_rejects_duplicate_keys_within_the_batch(tmp_path, capsys):
+    """重複 id は exit 2・無置換——`replace_all` は upsert と違い一意性を畳んでくれない。
+
+    通れば「`get` は先頭だけ返し `remove` は両方消す」表ができる（読みと書きで見え方が
+    違う状態）。レコード単位では拾えない batch 固有の不正なので置換の手前で見る。
+    """
+    config = _config(tmp_path)
+    payload = _import_file(
+        tmp_path, [dict(_KNOWLEDGE, id="K-002"), dict(_KNOWLEDGE, id="K-002")]
+    )
+    assert (
+        run_registry_command(config, "knowledge", "import", _ns(json_file=payload)) == 2
+    )
+    assert "duplicate id: K-002" in capsys.readouterr().err
+    assert not config.knowledge_path.exists()
+
+
+def test_import_requires_a_json_array(tmp_path, capsys):
+    """1 レコードの dict を渡す事故（add との取り違え）は exit 2 で言語化する。"""
+    config = _config(tmp_path)
+    assert (
+        run_registry_command(
+            config, "knowledge", "import", _ns(json=json.dumps(_KNOWLEDGE))
+        )
+        == 2
+    )
+    assert "array" in capsys.readouterr().err
+
+
+def test_import_is_spec_driven_and_lands_on_every_table(tmp_path):
+    """knowledge 限定の特別扱いにしない（全表に生える方が分岐を足すよりコードが短い）。"""
+    config = _config(tmp_path)
+    payload = _import_file(tmp_path, [_INDIVIDUAL])
+    assert (
+        run_registry_command(config, "individuals", "import", _ns(json_file=payload))
+        == 0
+    )
+    assert [r["uuid"] for r in JsonRegistryStore(config.individuals_path).load()] == [
+        "u1"
+    ]
+
+
+def test_import_syncs_once_for_the_whole_batch(tmp_path):
+    """置換は 1 回、sync も 1 回（表は 1 ファイルゆえ全件書き戻しでも 1 commit）。"""
+    config = _config(tmp_path)
+    git = FakeGitSync()
+    payload = _import_file(
+        tmp_path, [dict(_KNOWLEDGE, id=f"K-{i:03d}") for i in range(1, 6)]
+    )
+    assert (
+        run_registry_command(
+            config,
+            "knowledge",
+            "import",
+            _ns(json_file=payload),
+            sync=RegistrySyncService(git),
+        )
+        == 0
+    )
+    assert len(git.commit_calls) == 1
+    assert git.push_calls == 1
+
+
+# --- orientation CLI の新オプション（Stage 2/3 の build ノブを CLI から回す） ---
+
+
+def test_orientation_caps_are_wired_from_the_cli(tmp_path, capsys):
+    """profile / abilities の cap が build() まで届き、見出しで開示される。"""
+    config = _config(tmp_path)
+    run_registry_command(config, "profile", "add", _ns(json=json.dumps(_PROFILE)))
+    run_registry_command(
+        config,
+        "abilities",
+        "add",
+        _ns(json=json.dumps(dict(_ABILITY, guidance="GUIDE_MARKER"))),
+    )
+    capsys.readouterr()
+    assert run_orientation(config, _ns(profile_cap=0, abilities_cap=4)) == 0
+    out = capsys.readouterr().out
+    assert "## profile (1 records, full, content cap 0 bytes)" in out
+    assert "## abilities (1 records, full, guidance cap 4 bytes)" in out
+    # cap 0 はマーカーのみ（falsy-zero 封じが CLI 経由でも効く）
+    assert "INTJ" not in out and "GUIDE_MARKER" not in out
+
+
+def test_orientation_individuals_cap_is_wired_from_the_cli(tmp_path, capsys):
+    """ネストした支配項（identity.context_notes）にも CLI から蓋が掛かる。"""
+    config = _config(tmp_path)
+    record = dict(_INDIVIDUAL, identity={"context_notes": "CTX_MARKER" + "y" * 1_000})
+    run_registry_command(config, "individuals", "add", _ns(json=json.dumps(record)))
+    capsys.readouterr()
+    assert run_orientation(config, _ns(individuals_cap=6)) == 0
+    out = capsys.readouterr().out
+    assert "identity.context_notes cap 6 bytes" in out
+    assert "CTX_MARKER" not in out
+
+
+def test_orientation_tasks_latest_is_wired_from_the_cli(tmp_path, capsys):
+    """tasks 一行要約の件数上限が CLI から効き、母数は見出しで開示される。"""
+    config = _config(tmp_path)
+    for task_id in ("T-001", "T-002", "T-003"):
+        run_registry_command(
+            config, "tasks", "add", _ns(json=json.dumps(dict(_TASK, id=task_id)))
+        )
+    capsys.readouterr()
+    assert run_orientation(config, _ns(tasks_latest=1)) == 0
+    out = capsys.readouterr().out
+    assert "latest 1 of 3 records, newest last" in out
+    assert "T-003 |" in out and "T-001 |" not in out
+
+
+def test_orientation_knowledge_subject_is_wired_from_the_cli(tmp_path, capsys):
+    """主題絞りが CLI から効く（scope 表示に subject=X）。"""
+    config = _config(tmp_path)
+    _seed_subjects(config, _SUBJECT)
+    for record in (
+        dict(_KNOWLEDGE, id="K-001", subjects=["馬"]),
+        dict(_KNOWLEDGE, id="K-002", topic="無関係"),
+    ):
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(record)))
+    capsys.readouterr()
+    assert run_orientation(config, _ns(knowledge_subject="馬")) == 0
+    out = capsys.readouterr().out
+    assert "subject=馬" in out
+    assert "K-001 | 馬 |" in out and "K-002" not in out

@@ -77,6 +77,10 @@ class Config:
         return self.registry_root / "knowledge" / "KNOWLEDGE.json"
 
     @property
+    def subjects_path(self) -> Path:
+        return self.registry_root / "subjects" / "SUBJECTS.json"
+
+    @property
     def abilities_path(self) -> Path:
         return self.registry_root / "abilities" / "ABILITIES.json"
 
@@ -97,7 +101,7 @@ class Config:
         """秘書の成果物層（DESIGN §3.10）。申し送りの handoff ブロックもこの下に住む。
 
         管理表と同じ registry_root 配下＝同一固定ブランチに相乗りする（git 永続化と一体
-        ゆえ置き場は設定可能にしない）。7表の `*_path` と同じ向きでここに一元化し、
+        ゆえ置き場は設定可能にしない）。各表の `*_path` と同じ向きでここに一元化し、
         Interface 側（registry_cli）は導出を持たない。
         """
         return self.registry_root / "artifacts"

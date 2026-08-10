@@ -146,6 +146,15 @@ def test_wal_append_accepts_new_kinds(tmp_path):
     assert all(e.status == "pending" for e in entries)
 
 
+def test_wal_append_accepts_the_subjects_kind(tmp_path):
+    """8 表目 subjects も WAL 対象（REGISTRY_SPEC への 1 行で choices ごと追従する）。"""
+    config = _config(tmp_path, sync=True)
+    args = SimpleNamespace(json='{"id": "馬"}', json_file=None)
+    assert run_wal_append(config, "subjects", args) == EXIT_OK
+    entries = JsonlWalLogStore(config.wal_log_path).load()
+    assert [(e.kind, e.key) for e in entries] == [("subjects", "馬")]
+
+
 def test_wal_redo_upserts_new_kinds(tmp_path):
     """起動時 redo が新3表の pending intent も registry へ反映し done 化する。"""
     config = _config(tmp_path, sync=True)

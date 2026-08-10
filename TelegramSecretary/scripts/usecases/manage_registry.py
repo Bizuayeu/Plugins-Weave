@@ -39,3 +39,13 @@ class RegistryService:
 
     def remove(self, key_value: Any) -> None:
         self._store.save(remove_by(self._store.load(), self._key, key_value))
+
+    def replace_all(self, records: builtins.list[dict]) -> None:
+        """表の中身を丸ごと差し替える（import の正面口）。
+
+        `add_or_update` の繰り返しでは「消えたレコード」を表現できない——全件を書き戻す
+        操作をひとつの save に畳むことで、部分書き込みの中間状態が原理的に生じない
+        （表は 1 ファイルゆえ何件でも 1 回の atomic write）。検証（値オブジェクト変換・
+        語彙照合）は CRUD と同じく呼び出し側（CLI）の責務。
+        """
+        self._store.save(list(records))

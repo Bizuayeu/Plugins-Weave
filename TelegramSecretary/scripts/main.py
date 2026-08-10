@@ -633,14 +633,14 @@ def cmd_test(args: argparse.Namespace) -> int:
 
 
 def cmd_registry(args: argparse.Namespace) -> int:
-    """管理表（7表）の CRUD。args.registry_name が管理表名
+    """管理表（8表）の CRUD。args.registry_name が管理表名
     （REGISTRY_SPEC のキー、build_parser の set_defaults で注入）。"""
     config = _load_config()
     return run_registry_command(config, args.registry_name, args.registry_action, args)
 
 
 def cmd_orientation(args: argparse.Namespace) -> int:
-    """起動時オリエンテーション: 7表の絞り込みダイジェストを一撃出力（一括 list の置換）。"""
+    """起動時オリエンテーション: 8表の絞り込みダイジェストを一撃出力（一括 list の置換）。"""
     return run_orientation(_load_config(), args)
 
 
@@ -829,23 +829,29 @@ def build_parser() -> argparse.ArgumentParser:
         "--pages", help="画像化するページ範囲 N-M（1-indexed inclusive）"
     )
 
-    # 管理表 CRUD（7表）。/telegram-secretary が全操作をラップする入口。
+    # 管理表 CRUD（8表）。/telegram-secretary が全操作をラップする入口。
     # 表名は REGISTRY_SPEC（SSoT）から生成し、cmd_registry を共有するため
     # registry_name として set_defaults で温存する（表追加時の列挙漏れを構造的に防ぐ）
     for _name in REGISTRY_SPEC:
         p_reg = sub.add_parser(_name, help=f"{_name} 管理表の CRUD")
         p_reg.set_defaults(handler=cmd_registry, registry_name=_name)
-        p_reg.add_argument("registry_action", choices=["list", "get", "add", "remove"])
-        p_reg.add_argument("--key", help="get/remove のキー（uuid または id）")
-        p_reg.add_argument("--json", help="add するレコードの JSON 文字列")
         p_reg.add_argument(
-            "--json-file", dest="json_file", help="add するレコードの JSON ファイル"
+            "registry_action", choices=["list", "get", "add", "remove", "import"]
+        )
+        p_reg.add_argument("--key", help="get/remove のキー（uuid または id）")
+        p_reg.add_argument(
+            "--json", help="add するレコード／import する配列の JSON 文字列"
+        )
+        p_reg.add_argument(
+            "--json-file",
+            dest="json_file",
+            help="add するレコード／import する配列の JSON ファイル",
         )
 
-    # 起動時オリエンテーション（7表の一括 list を置換する絞り込みダイジェスト）
+    # 起動時オリエンテーション（8表の一括 list を置換する絞り込みダイジェスト）
     p_orientation = sub.add_parser(
         "orientation",
-        help="起動時オリエンテーション用ダイジェスト（role + 7表の件数/射影 + handoff）",
+        help="起動時オリエンテーション用ダイジェスト（role + 8表の件数/射影 + handoff）",
     )
     p_orientation.set_defaults(handler=cmd_orientation)
     p_orientation.add_argument(
@@ -883,6 +889,41 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
         help="knowledge 索引を新しい順 N 件に絞る（未指定なら全件＝従来出力）",
+    )
+    p_orientation.add_argument(
+        "--knowledge-subject",
+        dest="knowledge_subject",
+        help="knowledge 索引を subjects の要素一致で絞る（category と併用可）",
+    )
+    # 蓋の無い小表への上限ノブ。cap は各表の支配的長文フィールドに当たる（UseCase の
+    # _CAP_FIELDS が経路の SSoT）。いずれも未指定なら全文＝従来出力（既定は非破壊）
+    p_orientation.add_argument(
+        "--profile-cap",
+        dest="profile_cap",
+        type=int,
+        default=None,
+        help="profile の content を丸めるバイト上限（未指定なら全文）",
+    )
+    p_orientation.add_argument(
+        "--individuals-cap",
+        dest="individuals_cap",
+        type=int,
+        default=None,
+        help="individuals の identity.context_notes を丸めるバイト上限（未指定なら全文）",
+    )
+    p_orientation.add_argument(
+        "--abilities-cap",
+        dest="abilities_cap",
+        type=int,
+        default=None,
+        help="abilities の guidance を丸めるバイト上限（未指定なら全文）",
+    )
+    p_orientation.add_argument(
+        "--tasks-latest",
+        dest="tasks_latest",
+        type=int,
+        default=None,
+        help="tasks 一行要約を新しい順 N 件に絞る（notes も連動、未指定なら全件）",
     )
 
     # 成果物層（artifacts/、handoff ブロックを含む）の commit & push。

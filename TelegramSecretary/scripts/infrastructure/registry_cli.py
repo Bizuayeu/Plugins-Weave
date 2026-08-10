@@ -23,8 +23,11 @@ from domain.registry import (
     Knowledge,
     Profile,
     Step,
+    Subject,
     Task,
     derive_role,
+    invalid_subjects,
+    unknown_keys,
 )
 from infrastructure.composition import build_git, build_sync
 from infrastructure.config import Config
@@ -68,6 +71,8 @@ REGISTRY_SPEC = {
     "individuals": RegistrySpec("individuals_path", "uuid", Individual),
     "tasks": RegistrySpec("tasks_path", "id", Task),
     "knowledge": RegistrySpec("knowledge_path", "id", Knowledge),
+    # knowledge の直後＝orientation の表順でも索引と語彙表が隣接する（dict 順が表順）
+    "subjects": RegistrySpec("subjects_path", "id", Subject),
     "abilities": RegistrySpec("abilities_path", "id", Ability),
     "profile": RegistrySpec("profile_path", "id", Profile),
     "goals": RegistrySpec("goals_path", "id", Goal),
@@ -90,9 +95,11 @@ def run_registry_command(
     svc = registry_service(config, name)
 
     if action == "list":
-        payload = json.dumps(svc.list(), ensure_ascii=False, indent=2)
+        records = svc.list()
+        payload = json.dumps(records, ensure_ascii=False, indent=2)
         print(payload)
         _warn_if_oversized(name, payload)
+        _warn_if_unknown_keys(name, spec, records)
         return EXIT_OK
 
     if action == "get":
@@ -101,11 +108,16 @@ def run_registry_command(
             print(f"not found: {name} {spec.key_field}={args.key}", file=sys.stderr)
             return EXIT_CONFIG_INVALID
         print(json.dumps(rec, ensure_ascii=False, indent=2))
+        _warn_if_unknown_keys(name, spec, [rec])
         return EXIT_OK
+
+    if action == "import":
+        return _import_records(config, name, spec, svc, args, sync)
 
     if action == "add":
         try:
             raw = read_json_arg(args)
+            _reject_invalid_write(config, name, spec, raw)
             vo = spec.record_cls.from_dict(raw)  # 値オブジェクトで検証
         except (ValueError, OSError, TypeError, KeyError) as exc:
             # wal_cli.run_wal_append と同一の捕捉タプル（入力不正は exit 2 に統一）。
@@ -128,6 +140,128 @@ def run_registry_command(
 
     print(f"unknown action: {action}", file=sys.stderr)
     return EXIT_CONFIG_INVALID
+
+
+def _import_records(
+    config: Config,
+    name: str,
+    spec: RegistrySpec,
+    svc: RegistryService,
+    args: Any,
+    sync,
+) -> int:
+    """--json / --json-file の全レコードを**全件検証してから一括置換**する（全件書き戻しの正面口）。
+
+    1 件でも不正なら exit 2・無置換——部分書き込みは「どこまで入ったか」を運用者に数えさせる
+    （`run_handoff_archive` の全件検証→全件移動と同型）。add の繰り返しでは「消えたレコード」
+    を表現できないので、全件を配る側が持っている状態をそのまま反映する口を分けている。
+    置換後の sync は一発（表は 1 ファイルゆえ何件でも 1 commit）。件数と増減は stderr へ
+    ——stdout を汚さず、置換の規模だけは必ず目に入れる。
+    """
+    try:
+        raw = read_json_arg(args)
+        if not isinstance(raw, list):
+            # add との取り違え（1 レコードの dict）を型エラーで転ばせず言語化する
+            raise TypeError(
+                f"import expects a JSON array of records, got {type(raw).__name__}"
+            )
+        # 語彙は batch で 1 回だけ引く（201 件の書き戻しで SUBJECTS を 201 回読まない）
+        active = _active_subject_ids(config) if name == "knowledge" else set()
+        records = []
+        for row in raw:
+            _reject_invalid_write(config, name, spec, row, active)
+            records.append(spec.record_cls.from_dict(row).to_dict())
+        _reject_duplicate_keys(spec, records)
+    except (ValueError, OSError, TypeError, KeyError) as exc:
+        # add と同一の捕捉タプル（入力不正は exit 2 に統一）
+        print(f"invalid {name} import: {exc}", file=sys.stderr)
+        return EXIT_CONFIG_INVALID
+
+    existing = svc.list()
+    before = {str(r.get(spec.key_field)) for r in existing}
+    after = {str(r.get(spec.key_field)) for r in records}
+    svc.replace_all(records)
+    _sync_after_change(
+        config, name, f"registry: import {name} ({len(records)} records)", sync
+    )
+    print(
+        f"imported {name}: {len(existing)} -> {len(records)} records "
+        f"(added: {len(after - before)}, removed: {len(before - after)})",
+        file=sys.stderr,
+    )
+    return EXIT_OK
+
+
+def _reject_invalid_write(
+    config: Config,
+    name: str,
+    spec: RegistrySpec,
+    raw: Any,
+    active_subjects: set[str] | None = None,
+) -> None:
+    """書き込み口（add / import）だけの fail-closed 検証。read 経路には掛けない。
+
+    `from_dict` は既知キーだけを転記するため、typo（`subjects` → `subject`）は例外にならず
+    沈黙して消える。書き込みの手前で差集合を見て弾く——読み手が「登録したのに無い」を
+    後から突き止める羽目にならない側に倒す。knowledge の `subjects` だけは追加で SUBJECTS の
+    **active** な語彙と照合する（deprecated は既存レコードを壊さず新規付与だけ止める）。
+    語彙はデータ（開いた語彙）ゆえ Interface が load し、判定は Domain 純関数に委ねる。
+    `active_subjects` 未指定なら必要になった時だけ引く（add は 1 レコードゆえ遅延で十分、
+    import は batch で 1 回引いた集合を渡す）。例外は呼び出し側の捕捉タプル
+    （ValueError / TypeError）に乗って exit 2 へ翻訳される。
+    """
+    if not isinstance(raw, dict):
+        raise TypeError(f"record must be a JSON object, got {type(raw).__name__}")
+    unknown = unknown_keys(spec.record_cls, raw)
+    if unknown:
+        raise ValueError(f"unknown field(s): {', '.join(sorted(unknown))}")
+    if name != "knowledge":
+        return  # 主題の照合は knowledge 固有（他表は未知キー検証だけを共有する）
+    subjects = [str(s) for s in raw.get("subjects") or []]
+    if not subjects:
+        return  # subjects 省略／空は従来どおり（SUBJECTS が空の環境でも add できる）
+    active = _active_subject_ids(config) if active_subjects is None else active_subjects
+    invalid = invalid_subjects(subjects, active)
+    if invalid:
+        # 弾かれる主体は自走エージェント——正しい語彙を並べないと自力で直せない
+        raise ValueError(
+            f"unknown subject(s): {', '.join(invalid)} "
+            f"(active: {', '.join(sorted(active)) or '<none>'})"
+        )
+
+
+def _reject_duplicate_keys(spec: RegistrySpec, records: list[dict]) -> None:
+    """import batch 内のキー重複を弾く（add 経路の upsert が担っていた一意性の代わり）。
+
+    `replace_all` は渡された配列をそのまま保存するため、重複 id はそのまま表に残る——
+    `get` は先頭だけを返し `remove` は両方消す、という「読みと書きで見え方が違う表」になる。
+    レコード単位の検証では拾えない batch 固有の不正なので、置換の手前でここだけ見る。
+    """
+    seen: set[str] = set()
+    duplicated: set[str] = set()
+    for record in records:
+        key = str(record.get(spec.key_field))
+        if key in seen:
+            duplicated.add(key)
+        seen.add(key)
+    if duplicated:
+        raise ValueError(
+            f"duplicate {spec.key_field}: {', '.join(sorted(duplicated))} "
+            "(import replaces the whole table; each key must appear once)"
+        )
+
+
+def _active_subject_ids(config: Config) -> set[str]:
+    """SUBJECTS の active な id 集合。語彙は**データ**ゆえ Domain 定数にしない。
+
+    status 欠落は active 扱い（`Subject.from_dict` の既定と揃える）。表が無ければ空集合＝
+    subjects 付きの add は全て弾かれるが、subjects を書かない従来の add は影響を受けない。
+    """
+    return {
+        str(row.get("id", ""))
+        for row in registry_service(config, "subjects").list()
+        if str(row.get("status", "active")) == "active"
+    }
 
 
 def read_json_arg(args: Any) -> dict:
@@ -176,6 +310,29 @@ def _warn_if_oversized(name: str, payload: str) -> None:
         "output this large can be diverted out of the agent's context while the "
         "command still exits 0. Use `orientation` for the startup digest, or "
         "`get --key` for a single record.",
+        file=sys.stderr,
+    )
+
+
+def _warn_if_unknown_keys(name: str, spec: RegistrySpec, records: list[dict]) -> None:
+    """未知キーを持つレコードがあれば stderr で告げる（read は fail-open、exit 0 のまま）。
+
+    fail-closed は書き込み口（add / import）だけ——read に検証を掛けると、既存データの
+    1 キーで起動時の list が全滅する（v1.8.0 Stage 1 で警戒した形）。ただし黙ると
+    「import で弾かれるレコードが表に居る」ことに気づけないので、読めるまま声だけ出す
+    （`_warn_if_oversized` と同型の層3 可観測性）。載せるのはキー名だけ——値は PII を
+    含みうるので出さない。
+    """
+    unknown: set[str] = set()
+    for row in records:
+        if isinstance(row, dict):
+            unknown |= unknown_keys(spec.record_cls, row)
+    if not unknown:
+        return
+    print(
+        f"WARNING: {name} has unknown field(s): {', '.join(sorted(unknown))} — "
+        "they are dropped on read and rejected by `add` / `import` (fail-closed). "
+        "Fix the records, or extend the value object if the field should be kept.",
         file=sys.stderr,
     )
 
@@ -276,9 +433,14 @@ def run_orientation(config: Config, args: Any = None) -> int:
         handoff_latest=handoff_latest,
         handoff_cap=_option(args, "handoff_cap", DEFAULT_HANDOFF_CAP),
         knowledge_category=getattr(args, "knowledge_category", None),
-        # 既定 None（全件）ゆえ `_option` は通さない——0 と未指定の区別は
-        # getattr の default=None がそのまま担う（knowledge_category と同じ流儀）
+        # 既定 None（全件／蓋なし）ゆえ `_option` は通さない——0 と未指定の区別は
+        # getattr の default=None がそのまま担う（0 は UseCase 側で「全捨て」に届く）
         knowledge_latest=getattr(args, "knowledge_latest", None),
+        knowledge_subject=getattr(args, "knowledge_subject", None),
+        individuals_cap=getattr(args, "individuals_cap", None),
+        abilities_cap=getattr(args, "abilities_cap", None),
+        profile_cap=getattr(args, "profile_cap", None),
+        tasks_latest=getattr(args, "tasks_latest", None),
     )
     print(digest)
     _report_orientation_size(digest)
