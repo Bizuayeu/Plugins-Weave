@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import json
+
 from usecases.orientation import (
     DEFAULT_NOTES_TAIL,
     DEFAULT_TOPIC_WIDTH,
     TRUNCATION_MARK,
     OrientationService,
     _truncate,
+    cap_record_field,
     index_knowledge,
     pick_latest_handoffs,
     summarize_task,
@@ -537,3 +540,170 @@ def test_newest_last_is_disclosed_only_when_latest_is_set():
     assert "newest last" in _service(knowledge=rows).build(knowledge_latest=2)
     assert "newest last" not in _service(knowledge=rows).build()
     assert "newest last" not in _service(knowledge=rows).build(knowledge_category="ops")
+
+
+# === 蓋の無い表への上限ノブ（小表の支配的長文フィールドと tasks 要約件数、v1.9.0 Stage 2） ===
+
+
+def _profile(**kw) -> dict:
+    base = {
+        "id": "PF-001",
+        "subject": "principal",
+        "method": "interview",
+        "content": "",
+        "traits": [],
+        "sources": [],
+        "created_at": "t",
+        "updated_at": "t",
+    }
+    base.update(kw)
+    return base
+
+
+def _ability(**kw) -> dict:
+    base = {
+        "id": "A-001",
+        "name": "占術鑑定",
+        "trigger": "占い",
+        "skill_path": "skills/precognitive-viewer",
+        "guidance": "",
+        "related": [],
+        "created_at": "t",
+        "updated_at": "t",
+    }
+    base.update(kw)
+    return base
+
+
+def _table_json(digest: str, name: str) -> list[dict]:
+    """全文セクションの JSON 本文を読み戻す（丸めが構造を壊していないことも同時に見る）。"""
+    body = digest.split(f"\n## {name} (", 1)[1].split("\n", 1)[1]
+    return json.loads(body.split("\n## ", 1)[0])
+
+
+def test_profile_cap_bounds_content_and_discloses_the_cap():
+    """支配項 content をバイトで丸め、蓋が掛かっている事実を見出しで開示する。
+
+    丸めの規約（バイト・文字境界・マーカーは幅の内側）は `_truncate` のものがそのまま効く
+    ——新しい丸め方をここで発明しない。
+    """
+    digest = _service(profile=[_profile(content="あ" * 500)]).build(profile_cap=100)
+    assert "## profile (1 records, full, content cap 100 bytes)" in digest
+    content = _table_json(digest, "profile")[0]["content"]
+    assert _utf8_len(content) <= 100
+    assert content.endswith(TRUNCATION_MARK)
+
+
+def test_cap_leaves_the_other_fields_of_the_record_intact():
+    """丸めるのは支配項 1 つだけ——JSON 構造を壊さない（個票は `get --key` で引ける）。"""
+    record = _table_json(
+        _service(profile=[_profile(content="z" * 500, traits=["寡黙"])]).build(
+            profile_cap=50
+        ),
+        "profile",
+    )[0]
+    assert record["id"] == "PF-001"
+    assert record["method"] == "interview"
+    assert record["traits"] == ["寡黙"]
+
+
+def test_abilities_cap_bounds_guidance():
+    digest = _service(abilities=[_ability(guidance="g" * 500)]).build(abilities_cap=40)
+    assert "## abilities (1 records, full, guidance cap 40 bytes)" in digest
+    assert _utf8_len(_table_json(digest, "abilities")[0]["guidance"]) <= 40
+
+
+def test_individuals_cap_bounds_the_nested_context_notes():
+    """individuals の支配項は identity 直下——ネストしていても兄弟キーは不変のまま丸める。"""
+    record = dict(_INDIVIDUAL_RECORD)
+    record["identity"] = {"context_notes": "の" * 300, "taboo_topics": ["政治"]}
+    digest = _service(individuals=[record]).build(individuals_cap=60)
+    assert (
+        "## individuals (1 records, full, identity.context_notes cap 60 bytes)"
+        in digest
+    )
+    identity = _table_json(digest, "individuals")[0]["identity"]
+    assert _utf8_len(identity["context_notes"]) <= 60
+    assert identity["taboo_topics"] == ["政治"]
+
+
+def test_cap_is_a_noop_when_the_dominant_field_is_absent():
+    """支配項を持たないレコードでも cap 指定で落ちない（表は表のまま出る）。"""
+    digest = _service(individuals=[_INDIVIDUAL_RECORD]).build(individuals_cap=10)
+    assert _table_json(digest, "individuals")[0] == _INDIVIDUAL_RECORD
+
+
+def test_zero_profile_cap_leaves_only_the_marker():
+    """`0` はマーカーのみ＝falsy-zero 封じ（判定は `is not None`、丸めは `_truncate` の非正規約）。"""
+    digest = _service(profile=[_profile(content="CONTENT_MARKER")]).build(profile_cap=0)
+    assert "CONTENT_MARKER" not in digest
+    assert _table_json(digest, "profile")[0]["content"] == TRUNCATION_MARK
+    assert "## profile (1 records, full, content cap 0 bytes)" in digest
+
+
+def test_cap_record_field_does_not_mutate_the_input_record():
+    """lister が返した実体を汚さない（同じ dict を後段が読む可能性を潰す）。"""
+    record = _profile(content="x" * 100)
+    capped = cap_record_field(record, ("content",), 10)
+    assert record["content"] == "x" * 100
+    assert _utf8_len(capped["content"]) <= 10
+
+
+def test_cap_record_field_copies_the_nested_dict_before_capping():
+    identity = {"context_notes": "y" * 100}
+    capped = cap_record_field({"identity": identity}, ("identity", "context_notes"), 10)
+    assert identity["context_notes"] == "y" * 100  # 入れ子も共有しない
+    assert _utf8_len(capped["identity"]["context_notes"]) <= 10
+
+
+def test_tasks_latest_keeps_the_newest_ids_and_discloses_the_total():
+    """一行要約を id 昇順の末尾 N 件に絞る（`pick_latest_knowledge` と同じ読み筋）。"""
+    digest = _service(
+        tasks=[_task(id=f"T-00{i}", notes=f"NOTE_{i}") for i in range(1, 5)]
+    ).build(tasks_latest=2)
+    assert (
+        "## tasks (latest 2 of 4 records, newest last, "
+        "summary: id | status | priority | due_date | title)" in digest
+    )
+    assert digest.index("T-003 |") < digest.index("T-004 |")
+    for dropped in ("T-001 |", "T-002 |"):
+        assert dropped not in digest
+
+
+def test_tasks_notes_follow_the_latest_filter():
+    """落ちた task の notes は載せない——要約に無い id の申し送りだけが残ると読み手が迷子になる。"""
+    digest = _service(
+        tasks=[_task(id=f"T-00{i}", notes=f"NOTE_{i}") for i in range(1, 5)]
+    ).build(tasks_latest=1)
+    assert "NOTE_4" in digest
+    assert "### T-004" in digest
+    for dropped in ("NOTE_1", "NOTE_2", "NOTE_3", "### T-001"):
+        assert dropped not in digest
+
+
+def test_zero_tasks_latest_empties_the_summary_instead_of_passing_all_rows():
+    digest = _service(tasks=[_task(id="T-001", notes="NOTE_1")]).build(tasks_latest=0)
+    assert "## tasks (latest 0 of 1 records, newest last, summary:" in digest
+    assert "T-001 |" not in digest
+    assert "NOTE_1" not in digest
+
+
+def test_capped_tables_keep_full_text_when_the_knobs_are_unset():
+    """ノブ未指定の既定は蓋なし＝現行挙動（新オプションは既定出力を動かさない）。"""
+    long_text = "あ" * 300
+    digest = _service(profile=[_profile(content=long_text)]).build()
+    assert "## profile (1 records, full)" in digest
+    assert _table_json(digest, "profile")[0]["content"] == long_text
+
+
+def test_stage2_knobs_unset_keep_the_default_snapshot():
+    """4 ノブを明示的に None で渡しても既定と 1 バイト違わない（後方互換の第四の錠）。"""
+    assert (
+        _snapshot_digest(
+            profile_cap=None,
+            individuals_cap=None,
+            abilities_cap=None,
+            tasks_latest=None,
+        )
+        == _DEFAULT_DIGEST_SNAPSHOT
+    )

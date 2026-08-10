@@ -37,6 +37,15 @@ _MARK_BYTES = len(TRUNCATION_MARK.encode("utf-8"))
 # 一行要約に載せる tasks の status（done は要約行のみで notes を載せない）
 ACTIVE_TASK_STATUSES = frozenset({"open", "in_progress", "blocked"})
 
+# 全文で載る小表の「支配的長文フィールド」への経路（orientation_report_20260810 実測の支配項）。
+# 蓋はここだけに掛ける——レコード全体の JSON を丸めると構造が壊れ、個票を `get --key` で
+# 引き直す読み筋まで死ぬ。goals / steps は現在 0 件なのでノブを付けない（肥大したら同型で 1 行足す）
+_CAP_FIELDS: Mapping[str, tuple[str, ...]] = {
+    "individuals": ("identity", "context_notes"),
+    "abilities": ("guidance",),
+    "profile": ("content",),
+}
+
 
 class RecordLister(Protocol):
     """`RegistryService.list()` の読み取り面だけを要求する（差し替え可能性の確保）。"""
@@ -113,6 +122,29 @@ def index_knowledge(
     return f"{record.get('id', '')} | {_truncate(str(record.get('topic', '')), topic_width)}"
 
 
+def cap_record_field(record: Mapping[str, Any], path: Sequence[str], cap: int) -> dict:
+    """レコードの支配的長文フィールド 1 つだけを cap バイトで丸めた複製を返す。
+
+    丸め方は `_truncate` に委ねる（バイト・文字境界・マーカーは幅の内側・非正は全捨て）——
+    表ごとに丸め規約が分岐すると、読み手が「どこで切れたか」を表ごとに覚える羽目になる。
+    経路上のキーが無いレコードは素通し（表の形はデータ側の都合で欠けうる）。入力は変更せず、
+    経路上の dict だけを複製する——lister が返した実体を汚すと後段の counts / role が
+    丸め後の値を読む。
+    """
+    copied = dict(record)
+    cursor = copied
+    for key in path[:-1]:
+        nested = cursor.get(key)
+        if not isinstance(nested, dict):
+            return copied
+        cursor[key] = dict(nested)
+        cursor = cursor[key]
+    leaf = path[-1]
+    if leaf in cursor:
+        cursor[leaf] = _truncate(str(cursor[leaf]), cap)
+    return copied
+
+
 def filter_knowledge_by_category(
     rows: Sequence[Mapping[str, Any]], category: str
 ) -> list[dict]:
@@ -125,8 +157,8 @@ def filter_knowledge_by_category(
     return [dict(row) for row in rows if str(row.get("category", "")) == category]
 
 
-def pick_latest_knowledge(rows: Sequence[Mapping[str, Any]], latest: int) -> list[dict]:
-    """knowledge を id 昇順の**末尾** latest 件＝新しい順 N 件に絞る。
+def pick_latest_by_id(rows: Sequence[Mapping[str, Any]], latest: int) -> list[dict]:
+    """レコード群を id 昇順の**末尾** latest 件＝新しい順 N 件に絞る（knowledge / tasks 共用）。
 
     id は日付順に振られるため id の大きい方が新しい——「新しい順に選ぶ」は
     `pick_latest_handoffs`（名前降順）と同じ読み筋。並べ替えては返さない（索引の読み方は
@@ -185,7 +217,18 @@ class OrientationService:
         handoff_cap: int = DEFAULT_HANDOFF_CAP,
         knowledge_category: str | None = None,
         knowledge_latest: int | None = None,
+        individuals_cap: int | None = None,
+        abilities_cap: int | None = None,
+        profile_cap: int | None = None,
+        tasks_latest: int | None = None,
     ) -> str:
+        # None は「蓋なし＝現行挙動」。0 は「マーカーのみ／0 件」という指定なので
+        # falsy では分岐しない（判定は is not None）
+        caps = {
+            "individuals": individuals_cap,
+            "abilities": abilities_cap,
+            "profile": profile_cap,
+        }
         records = {name: lister.list() for name, lister in self._listers.items()}
         parts = ["# orientation", ""]
         parts += self._role_section(records)
@@ -198,6 +241,8 @@ class OrientationService:
                 topic_width,
                 knowledge_category,
                 knowledge_latest,
+                caps,
+                tasks_latest,
             )
         parts += self._handoff_section(handoffs, handoff_latest, handoff_cap)
         return "\n".join(parts)
@@ -229,25 +274,47 @@ class OrientationService:
         topic_width: int,
         knowledge_category: str | None,
         knowledge_latest: int | None,
+        caps: Mapping[str, int | None],
+        tasks_latest: int | None,
     ) -> list[str]:
         if name == "tasks":
-            return self._tasks_section(rows, notes_tail)
+            return self._tasks_section(rows, notes_tail, tasks_latest)
         if name == "knowledge":
             return self._knowledge_section(
                 rows, topic_width, knowledge_category, knowledge_latest
             )
         # 既定は全文（小表＝individuals / abilities / profile / goals / steps）。
         # 表が増えても列挙漏れで欠落しない側に倒す（肥大したらここで射影を足す）
+        cap = caps.get(name)
+        path = _CAP_FIELDS.get(name)
+        scope = ""
+        if cap is not None and path is not None:
+            rows = [cap_record_field(row, path, cap) for row in rows]
+            # 蓋の存在と適用先を見出しで開示する（丸めた事実を読み手に隠さない＝`N of M` と同趣旨）
+            scope = f", {'.'.join(path)} cap {cap} bytes"
         return [
-            f"## {name} ({len(rows)} records, full)",
+            f"## {name} ({len(rows)} records, full{scope})",
             json.dumps(rows, ensure_ascii=False, indent=2),
             "",
         ]
 
-    def _tasks_section(self, rows: list[dict], notes_tail: int) -> list[str]:
+    def _tasks_section(
+        self, rows: list[dict], notes_tail: int, latest: int | None = None
+    ) -> list[str]:
+        """一行要約を latest で絞り、notes は**絞った集合に連動**させる。
+
+        落ちた task の notes だけが残ると、要約に無い id の申し送りを読む羽目になる
+        （落ちた分の読み筋は `get --key`）。母数は見出しの `of M` で開示する。
+        """
         ordered = sorted(rows, key=lambda r: str(r.get("id", "")))
+        total = len(ordered)
+        if latest is None:
+            count = f"{total} records"
+        else:
+            ordered = pick_latest_by_id(ordered, latest)
+            count = f"latest {len(ordered)} of {total} records, newest last"
         lines = [
-            f"## tasks ({len(ordered)} records, summary: id | status | priority | due_date | title)"
+            f"## tasks ({count}, summary: id | status | priority | due_date | title)"
         ]
         lines += [summarize_task(t) for t in ordered]
         lines += ["", f"## tasks.notes (active only, last {notes_tail} bytes)"]
@@ -283,7 +350,7 @@ class OrientationService:
                 else f"{total} of {len(rows)} records"
             )
         else:
-            ordered = pick_latest_knowledge(ordered, latest)
+            ordered = pick_latest_by_id(ordered, latest)
             # 選ぶのは新しい順・並びは id 昇順という捻れを、読み方の開示で解く（末尾が最新）
             count = f"latest {len(ordered)} of {total} records, newest last"
         scope = "" if category is None else f", category={category}"
