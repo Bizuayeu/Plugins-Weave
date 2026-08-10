@@ -118,8 +118,15 @@ def summarize_task(task: Mapping[str, Any]) -> str:
 def index_knowledge(
     record: Mapping[str, Any], topic_width: int = DEFAULT_TOPIC_WIDTH
 ) -> str:
-    """knowledge の索引行 `id | topic`。content は**載せない**（943KB の支配項）。"""
-    return f"{record.get('id', '')} | {_truncate(str(record.get('topic', '')), topic_width)}"
+    """knowledge の索引行 `id | subjects | topic`。content は**載せない**（943KB の支配項）。
+
+    主題は `/` 連結の 1 列に併記し、未設定は `-`（列が消えると読み手が桁をずらして誤読する
+    ——`summarize_task` の due_date と同じ理由）。併記列は topic_width の**外側**に置く
+    ——主題を足したせいで topic の丸め幅が縮むと、索引の読める量が主題の付き方で揺れる。
+    """
+    subjects = "/".join(str(s) for s in record.get("subjects", []) or []) or "-"
+    topic = _truncate(str(record.get("topic", "")), topic_width)
+    return f"{record.get('id', '')} | {subjects} | {topic}"
 
 
 def cap_record_field(record: Mapping[str, Any], path: Sequence[str], cap: int) -> dict:
@@ -155,6 +162,22 @@ def filter_knowledge_by_category(
     知見はまだ無い」という観測結果）。隠れた件数は呼び出し側が見出しの `of M` で開示する。
     """
     return [dict(row) for row in rows if str(row.get("category", "")) == category]
+
+
+def filter_knowledge_by_subject(
+    rows: Sequence[Mapping[str, Any]], subject: str
+) -> list[dict]:
+    """knowledge を subjects の**要素の完全一致**で絞る（`filter_knowledge_by_category` の同型）。
+
+    category（認識の型・閉じた語彙）と直交する主題の引き出し口。ここも検証ではなく観測——
+    語彙外の subject は 0 件という観測結果であってエラーではない（語彙の照合は add / import
+    の書き込み口が SUBJECTS テーブルを引いて行う）。subjects を持たないレコードは該当しない。
+    """
+    return [
+        dict(row)
+        for row in rows
+        if subject in [str(s) for s in row.get("subjects", []) or []]
+    ]
 
 
 def pick_latest_by_id(rows: Sequence[Mapping[str, Any]], latest: int) -> list[dict]:
@@ -216,6 +239,7 @@ class OrientationService:
         handoff_latest: int = DEFAULT_HANDOFF_LATEST,
         handoff_cap: int = DEFAULT_HANDOFF_CAP,
         knowledge_category: str | None = None,
+        knowledge_subject: str | None = None,
         knowledge_latest: int | None = None,
         individuals_cap: int | None = None,
         abilities_cap: int | None = None,
@@ -240,6 +264,7 @@ class OrientationService:
                 notes_tail,
                 topic_width,
                 knowledge_category,
+                knowledge_subject,
                 knowledge_latest,
                 caps,
                 tasks_latest,
@@ -273,6 +298,7 @@ class OrientationService:
         notes_tail: int,
         topic_width: int,
         knowledge_category: str | None,
+        knowledge_subject: str | None,
         knowledge_latest: int | None,
         caps: Mapping[str, int | None],
         tasks_latest: int | None,
@@ -281,7 +307,11 @@ class OrientationService:
             return self._tasks_section(rows, notes_tail, tasks_latest)
         if name == "knowledge":
             return self._knowledge_section(
-                rows, topic_width, knowledge_category, knowledge_latest
+                rows,
+                topic_width,
+                knowledge_category,
+                knowledge_subject,
+                knowledge_latest,
             )
         # 既定は全文（小表＝individuals / abilities / profile / goals / steps）。
         # 表が増えても列挙漏れで欠落しない側に倒す（肥大したらここで射影を足す）
@@ -332,30 +362,35 @@ class OrientationService:
         rows: list[dict],
         topic_width: int,
         category: str | None = None,
+        subject: str | None = None,
         latest: int | None = None,
     ) -> list[str]:
-        """索引を category → latest の順で絞る（latest の母数 M は category 絞り後の件数）。
+        """索引を category → subject → latest の順で絞る（latest の母数 M は絞り後の件数）。
 
-        順序が逆だと「新しい N 件に該当 category が無ければ 0 件」になり、絞りの意味が壊れる。
-        どちらの絞りも見出しに `of M` を残す——見えなくなった件数は開示する。
+        latest が先だと「新しい N 件に該当 category / subject が無ければ 0 件」になり、
+        絞りの意味が壊れる。category（認識の型）と subject（主題）は直交する軸なので
+        順序は結果を変えないが、母数 M の意味を「両方を掛けた後の件数」に固定するため
+        並びを決めておく。どの絞りも見出しに `of M` を残す——見えなくなった件数は開示する。
         """
         ordered = sorted(rows, key=lambda r: str(r.get("id", "")))
         if category is not None:
             ordered = filter_knowledge_by_category(ordered, category)
+        if subject is not None:
+            ordered = filter_knowledge_by_subject(ordered, subject)
         total = len(ordered)
+        narrowed = category is not None or subject is not None
         if latest is None:
             count = (
-                f"{total} records"
-                if category is None
-                else f"{total} of {len(rows)} records"
+                f"{total} of {len(rows)} records" if narrowed else f"{total} records"
             )
         else:
             ordered = pick_latest_by_id(ordered, latest)
             # 選ぶのは新しい順・並びは id 昇順という捻れを、読み方の開示で解く（末尾が最新）
             count = f"latest {len(ordered)} of {total} records, newest last"
         scope = "" if category is None else f", category={category}"
+        scope += "" if subject is None else f", subject={subject}"
         lines = [
-            f"## knowledge ({count}{scope}, index: id | topic)",
+            f"## knowledge ({count}{scope}, index: id | subjects | topic)",
             *[index_knowledge(k, topic_width) for k in ordered],
         ]
         return [*lines, ""]

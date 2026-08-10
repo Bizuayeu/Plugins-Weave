@@ -258,7 +258,7 @@ def test_knowledge_content_absent_and_topic_truncated():
 
 def test_index_knowledge_truncates_topic_to_width():
     line = index_knowledge(_knowledge(topic="あ" * 300), topic_width=20)
-    topic = line.split(" | ", 1)[1]
+    topic = line.split(" | ")[2]
     assert len(topic) <= 20
 
 
@@ -328,6 +328,9 @@ _INDIVIDUAL_RECORD = {
 # **この文字列を 1 バイトも動かしてはならない**（起動時オリエンテーションは秘書が毎枠読む
 # 契約面であり、既定出力の変化は配布物 Shiori 側の手順書ごと壊す）。v1.7.0 の単位是正で
 # 動いたのは見出しの単位表記（chars → bytes）だけ——本文は幅内入力ゆえ v1.5.0 と同一。
+# v1.9.0 Stage 3 で knowledge 索引が `id | subjects | topic` の 3 列になり、この契約面を
+# **意図的に**動かした（大環主裁可 Q5「索引併記する」）。オプション追加による非破壊とは別枠の
+# 仕様変更なので、更新したのはこの 1 セクションだけ——他セクションは 1 バイトも動かさない。
 _DEFAULT_DIGEST_SNAPSHOT = """# orientation
 
 ## role
@@ -362,9 +365,9 @@ T-002 | done | low | - | 請求書
 ### T-001
 NOTE_A
 
-## knowledge (2 records, index: id | topic)
-K-001 | 申し送りの置き場
-K-002 | 請求の締め
+## knowledge (2 records, index: id | subjects | topic)
+K-001 | - | 申し送りの置き場
+K-002 | - | 請求の締め
 
 ## abilities (0 records, full)
 []
@@ -437,7 +440,10 @@ def test_knowledge_category_filters_rows_and_reports_hidden_count():
     digest = _service(knowledge=_categorized_knowledge()).build(
         knowledge_category="ops"
     )
-    assert "## knowledge (2 of 5 records, category=ops, index: id | topic)" in digest
+    assert (
+        "## knowledge (2 of 5 records, category=ops, index: id | subjects | topic)"
+        in digest
+    )
     assert "K-001 |" in digest and "K-003 |" in digest
     for hidden in ("K-002 |", "K-004 |", "K-005 |"):
         assert hidden not in digest
@@ -446,7 +452,10 @@ def test_knowledge_category_filters_rows_and_reports_hidden_count():
 def test_knowledge_category_matches_exactly_not_by_prefix():
     """完全一致——`op` で `ops` を引っ掛けない（絞りの意味が曖昧になる）。"""
     digest = _service(knowledge=_categorized_knowledge()).build(knowledge_category="op")
-    assert "## knowledge (0 of 5 records, category=op, index: id | topic)" in digest
+    assert (
+        "## knowledge (0 of 5 records, category=op, index: id | subjects | topic)"
+        in digest
+    )
 
 
 def test_unknown_knowledge_category_yields_zero_rows_without_error():
@@ -455,7 +464,7 @@ def test_unknown_knowledge_category_yields_zero_rows_without_error():
         knowledge_category="nonexistent"
     )
     assert (
-        "## knowledge (0 of 5 records, category=nonexistent, index: id | topic)"
+        "## knowledge (0 of 5 records, category=nonexistent, index: id | subjects | topic)"
         in digest
     )
     assert "K-00" not in digest
@@ -488,7 +497,8 @@ def test_knowledge_latest_keeps_the_newest_ids_and_discloses_the_total():
     """
     digest = _service(knowledge=_categorized_knowledge()).build(knowledge_latest=2)
     assert (
-        "## knowledge (latest 2 of 5 records, newest last, index: id | topic)" in digest
+        "## knowledge (latest 2 of 5 records, newest last, index: id | subjects | topic)"
+        in digest
     )
     assert digest.index("K-004 |") < digest.index("K-005 |")
     for dropped in ("K-001 |", "K-002 |", "K-003 |"):
@@ -508,7 +518,8 @@ def test_zero_knowledge_latest_empties_the_index_instead_of_passing_all_rows():
     """
     digest = _service(knowledge=_categorized_knowledge()).build(knowledge_latest=0)
     assert (
-        "## knowledge (latest 0 of 5 records, newest last, index: id | topic)" in digest
+        "## knowledge (latest 0 of 5 records, newest last, index: id | subjects | topic)"
+        in digest
     )
     assert "K-00" not in digest
 
@@ -524,7 +535,7 @@ def test_knowledge_latest_applies_after_the_category_filter():
     )
     assert (
         "## knowledge (latest 1 of 2 records, newest last, category=ops, "
-        "index: id | topic)" in digest
+        "index: id | subjects | topic)" in digest
     )
     assert "K-003 |" in digest  # ops のうち新しい方
     assert "K-001 |" not in digest
@@ -707,3 +718,133 @@ def test_stage2_knobs_unset_keep_the_default_snapshot():
         )
         == _DEFAULT_DIGEST_SNAPSHOT
     )
+
+
+# === 主題軸: 索引併記と subject 絞り（category と直交する引き出し口、v1.9.0 Stage 3） ===
+
+from usecases.orientation import filter_knowledge_by_subject  # noqa: E402
+
+
+def _subjected_knowledge() -> list[dict]:
+    """category（認識の型）と subjects（主題）が直交している状態の見本。
+
+    K-004 は subjects を持たない既存レコード（201 件の初期状態）を模す。
+    """
+    return [
+        _knowledge(id="K-001", topic="馬房の掃除", category="ops", subjects=["馬"]),
+        _knowledge(
+            id="K-002", topic="請求の締め", category="billing", subjects=["経営"]
+        ),
+        _knowledge(
+            id="K-003", topic="厩舎の見積", category="billing", subjects=["馬", "建設"]
+        ),
+        _knowledge(id="K-004", topic="鍵の預かり", category="ops"),
+        _knowledge(
+            id="K-005", topic="馬の教え方", category="ops", subjects=["馬", "方法論"]
+        ),
+    ]
+
+
+def test_index_knowledge_lists_subjects_between_the_id_and_the_topic():
+    """索引は `id | subjects | topic`——主題は `/` 連結で 1 列に併記する。"""
+    line = index_knowledge(
+        _knowledge(id="K-001", topic="馬房の掃除", subjects=["馬", "方法論"])
+    )
+    assert line == "K-001 | 馬/方法論 | 馬房の掃除"
+
+
+def test_index_knowledge_renders_missing_subjects_as_placeholder():
+    """subjects の無いレコードは `-`——列が消えると読み手が桁をずらして誤読する。
+
+    `summarize_task` の due_date と同じ理由。既存 201 件は subjects 未設定で始まるため、
+    移行期間中は大半がこの形で並ぶ。
+    """
+    assert index_knowledge(_knowledge(id="K-001", topic="鍵の預かり")) == (
+        "K-001 | - | 鍵の預かり"
+    )
+    assert index_knowledge(_knowledge(id="K-001", topic="鍵の預かり", subjects=[])) == (
+        "K-001 | - | 鍵の預かり"
+    )
+
+
+def test_subjects_column_does_not_eat_into_the_topic_width():
+    """併記列は topic_width の外側——主題を足しただけで topic の丸め幅が縮んではならない。"""
+    bare = index_knowledge(_knowledge(topic="あ" * 300), topic_width=40)
+    with_subjects = index_knowledge(
+        _knowledge(topic="あ" * 300, subjects=["馬", "建設"]), topic_width=40
+    )
+    assert bare.split(" | ")[2] == with_subjects.split(" | ")[2]
+    assert _utf8_len(with_subjects.split(" | ")[2]) <= 40
+
+
+def test_filter_knowledge_by_subject_matches_a_single_element_exactly():
+    """完全一致で 1 要素を引く（前方一致にしない——`filter_knowledge_by_category` と同型）。"""
+    rows = _subjected_knowledge()
+    assert [r["id"] for r in filter_knowledge_by_subject(rows, "建設")] == ["K-003"]
+    assert filter_knowledge_by_subject(rows, "建") == []
+
+
+def test_knowledge_subject_filters_rows_and_reports_hidden_count():
+    """subjects に該当する行だけを出し、見出しの `N of M` と `subject=X` で絞りを開示する。"""
+    digest = _service(knowledge=_subjected_knowledge()).build(knowledge_subject="馬")
+    assert (
+        "## knowledge (3 of 5 records, subject=馬, index: id | subjects | topic)"
+        in digest
+    )
+    for shown in ("K-001 |", "K-003 |", "K-005 |"):
+        assert shown in digest
+    for hidden in ("K-002 |", "K-004 |"):
+        assert hidden not in digest
+
+
+def test_unknown_knowledge_subject_yields_zero_rows_without_error():
+    """語彙外の subject は 0 行＋見出しのみ。絞りは観測であって検証ではない（照合は add 側の仕事）。"""
+    digest = _service(knowledge=_subjected_knowledge()).build(knowledge_subject="宇宙")
+    assert (
+        "## knowledge (0 of 5 records, subject=宇宙, index: id | subjects | topic)"
+        in digest
+    )
+    assert "K-00" not in digest
+
+
+def test_knowledge_subject_applies_after_the_category_filter():
+    """category → subject の順（母数 M は両方を掛けた後の件数、開示は元の全件との比）。"""
+    digest = _service(knowledge=_subjected_knowledge()).build(
+        knowledge_category="ops", knowledge_subject="馬"
+    )
+    assert (
+        "## knowledge (2 of 5 records, category=ops, subject=馬, "
+        "index: id | subjects | topic)" in digest
+    )
+    assert "K-001 |" in digest and "K-005 |" in digest
+    assert "K-003 |" not in digest  # 馬だが billing
+
+
+def test_knowledge_latest_applies_after_both_filters():
+    """絞り順序は category → subject → latest に固定する。
+
+    latest を先に効かせると「新しい N 件に該当が無ければ 0 件」になり、絞りの意味が壊れる
+    ——この見本では latest 先行なら K-005 の 1 件しか残らない（K-001 が落ちる）。
+    """
+    digest = _service(knowledge=_subjected_knowledge()).build(
+        knowledge_category="ops", knowledge_subject="馬", knowledge_latest=2
+    )
+    assert (
+        "## knowledge (latest 2 of 2 records, newest last, category=ops, subject=馬, "
+        "index: id | subjects | topic)" in digest
+    )
+    assert "K-001 |" in digest and "K-005 |" in digest
+
+
+def test_knowledge_subject_does_not_affect_other_sections():
+    """絞りは knowledge セクション限定（counts は表の実件数のまま＝母数を隠さない）。"""
+    digest = _service(knowledge=_subjected_knowledge(), tasks=[_task()]).build(
+        knowledge_subject="馬"
+    )
+    assert "knowledge: 5 records, 0 bytes" in digest
+    assert "T-001 |" in digest
+
+
+def test_knowledge_subject_unset_keeps_the_default_snapshot():
+    """`knowledge_subject` を明示的に None で渡しても既定と同一（後方互換の第五の錠）。"""
+    assert _snapshot_digest(knowledge_subject=None) == _DEFAULT_DIGEST_SNAPSHOT

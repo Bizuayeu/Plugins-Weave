@@ -514,7 +514,10 @@ def test_orientation_without_category_option_is_unchanged(tmp_path, capsys):
     run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(_KNOWLEDGE)))
     capsys.readouterr()
     assert run_orientation(config, _ns()) == 0
-    assert "## knowledge (1 records, index: id | topic)" in capsys.readouterr().out
+    assert (
+        "## knowledge (1 records, index: id | subjects | topic)"
+        in capsys.readouterr().out
+    )
 
 
 def test_orientation_knowledge_latest_option_is_wired_through(tmp_path, capsys):
@@ -573,7 +576,7 @@ def test_zero_topic_width_leaves_only_the_marker_in_the_knowledge_index(
     capsys.readouterr()
     assert run_orientation(config, _ns(topic_width=0)) == 0
     out = capsys.readouterr().out
-    assert "K-001 | …" in out
+    assert "K-001 | - | …" in out  # 主題併記列は残る（topic だけが全捨てになる）
     assert "申し送りの置き場" not in out
 
 
@@ -627,9 +630,11 @@ def test_list_below_threshold_is_silent(tmp_path, capsys):
 _SNAPSHOT_TASK = dict(_TASK, notes="NOTE_A")
 
 
-# v1.7.0 の run_orientation が既定オプションで stdout へ出した全文（末尾の改行は print 由来）。
+# run_orientation が既定オプションで stdout へ出す全文（末尾の改行は print 由来）。
 # 計器（stderr）を足しても **stdout は 1 バイトも動かない** ことを固定する——起動時
 # オリエンテーションは秘書が毎枠読む契約面であり、計器の混入は digest そのものの汚染になる。
+# v1.9.0 Stage 3 で knowledge 索引を `id | subjects | topic` の 3 列へ**意図的に**変えた
+# （大環主裁可 Q5）ため、v1.7.0 との差はこの 1 行だけ——他は当時のまま動かさない。
 # counts の実バイト数だけは改行変換で OS 依存（Windows は CRLF）なので stat() から差し込む。
 # f-string 内の role 行の波括弧は二重化（表示は 1 重）。
 def _expected_default_stdout(config: Config) -> str:
@@ -657,8 +662,8 @@ T-001 | in_progress | high | - | 見積を送る
 ### T-001
 NOTE_A
 
-## knowledge (1 records, index: id | topic)
-K-001 | 申し送りの置き場
+## knowledge (1 records, index: id | subjects | topic)
+K-001 | - | 申し送りの置き場
 
 ## abilities (0 records, full)
 []
@@ -731,8 +736,12 @@ def test_orientation_below_threshold_reports_size_without_warning(tmp_path, caps
     assert ORIENTATION_WARNING_BYTES == 25 * 1024
 
 
-def test_orientation_stdout_is_byte_identical_to_v170(tmp_path, capsys):
-    """計器は stderr のみ。stdout（digest 本文）は v1.7.0 と byte 同一。"""
+def test_orientation_stdout_carries_the_digest_and_nothing_else(tmp_path, capsys):
+    """計器は stderr のみ。stdout（digest 本文）は宣言した全文と byte 同一。
+
+    v1.7.0 から動かしたのは索引 3 列化の 1 行だけ（v1.9.0 Stage 3、裁可済みの仕様変更）
+    ——それ以外が 1 バイトでも動いたらこの錠が鳴る。
+    """
     config = _config(tmp_path)
     _add_snapshot_records(config)
     capsys.readouterr()
