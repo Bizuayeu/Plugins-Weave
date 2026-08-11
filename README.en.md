@@ -75,9 +75,9 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | Your Goal | Reference |
 |-----------|-----------|
 | 🚀 **Getting started** | [README](TelegramSecretary/README.md) |
-| ⚙️ **Setup** | [SETUP](TelegramSecretary/SETUP.md) |
+| ⚙️ **Setup** | [SETUP](TelegramSecretary/docs/SETUP.md) |
 | 📖 **Command specification** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
-| 🔐 **Security** | [SECURITY](TelegramSecretary/SECURITY.md) |
+| 🔐 **Security** | [SECURITY](TelegramSecretary/docs/SECURITY.md) |
 
 ### ConsiderateCoder
 
@@ -292,7 +292,7 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 | `/telegram-secretary init-config` | Generate operational config (config.json) |
 | `/telegram-secretary test` | Connectivity test to owner chat |
 
-→ [Full README](TelegramSecretary/README.md) / [Setup](TelegramSecretary/SETUP.md) / [Command Spec](TelegramSecretary/commands/telegram-secretary.md) / [Design](TelegramSecretary/DESIGN.md)
+→ [Full README](TelegramSecretary/README.md) / [Setup](TelegramSecretary/docs/SETUP.md) / [Command Spec](TelegramSecretary/commands/telegram-secretary.md) / [Design](TelegramSecretary/docs/DESIGN.md)
 
 ---
 

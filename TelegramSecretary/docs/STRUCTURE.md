@@ -18,7 +18,7 @@
 | `<state_dir>` | 揮発 state（offset/lease/media）の保存先 | env `TELEGRAM_SECRETARY_STATE_DIR` |
 | `<registry_dir>` | 永続管理表＋成果物の保存先（`claude/ts-registry` の独立 git worktree、root 直下に8管理表＋`wal/`＋`artifacts/`。→ DESIGN §3.6/§3.10/§3.11） | config.json `registry_dir`（推奨 `ts-registry-wt`、未設定なら `<state_dir>`） |
 
-`SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/SecretaryRole.template.md`](./templates/SecretaryRole.template.md)。
+`SecretaryRole` はロール名として汎用使用（置換不要）。人格の実体定義は `<PRIVATE_DIR>/Identities/SecretaryRole.md`、雛型は [`templates/SecretaryRole.template.md`](../templates/SecretaryRole.template.md)。
 
 **運用設定は config.json に集約**: `agent_name` / `private_dir` / `session_duration_sec` / `registry_sync` / `registry_dir` / `registry_branch` は手置換せず `<INSTALL_DIR>/config.json`（`.gitignore` 除外、雛型 `templates/config.template.json`、`init-config` 生成）に置く。ROUTINE_PROMPT は Step 0 でこれを読み、`<INSTALL_DIR>` は bootstrap が env 解決する（運用値の手置換は不要）。秘匿（bot token / authorized chats）＋ `state_dir` は env、非秘匿の運用設定は config.json が単一正典（**純2層**）。
 
@@ -41,14 +41,20 @@ TelegramSecretary/
 ├── .claude-plugin/
 │   └── plugin.json           # marketplace マニフェスト（name/version/keywords）
 ├── README.md                 # 入口インデックス
-├── DESIGN.md                 # 設計正典（why）
-├── STRUCTURE.md              # 本ファイル（where）
-├── SECURITY.md               # 網羅的セキュリティ正典
-├── ROUTINE_PROMPT.md         # cloud routine prompt body
-├── CHANGELOG.md              # 変更履歴
+├── banner.png                # バナー（README.md が参照）
 ├── bootstrap.sh
 ├── pyproject.toml
+├── .gitattributes            # 改行コード方針（junction 共有先と揃える LF 固定）
 ├── .gitignore
+│
+├── docs/                     # ドキュメント（README.md から参照）
+│   ├── DESIGN.md             # 設計正典（why）
+│   ├── STRUCTURE.md          # 本ファイル（where）
+│   ├── SETUP.md              # セットアップガイド（運用開始の順路）
+│   ├── ROUTINE_PROMPT.md     # cloud routine prompt body
+│   ├── SECURITY.md           # 網羅的セキュリティ正典
+│   ├── CHANGELOG.md          # 変更履歴
+│   └── devlog/               # 開発ログ（.gitignore 除外＝開発リポのみ、配布物外）
 │
 ├── commands/
 │   └── telegram-secretary.md # /telegram-secretary 管理パネル入口
@@ -86,7 +92,7 @@ TelegramSecretary/
 │   │   ├── outbound.py       # send-reply / proactive-send 共有の送信前ガード（lease 再検証・添付検証）
 │   │   ├── download_authorized_media.py / render_authorized_media.py
 │   │   ├── manage_registry.py # 管理表 CRUD UseCase
-│   │   ├── orientation.py    # 起動時ダイジェストの射影（一行要約/索引/件数絞り/notes 末尾/handoff 選択、DESIGN §3.12）
+│   │   ├── orientation.py    # 起動時ダイジェストの射影（8 表それぞれに処方＝cap 側 4 表の長文フィールド上限／索引側 4 表の一行索引と件数絞り、category・subject 絞り/notes 末尾/handoff 選択、DESIGN §3.12）
 │   │   ├── registry_sync.py  # 管理表の git 永続化（イベント駆動 commit&push、GitSyncPort 越し、DESIGN §3.6）
 │   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents / SettleOutboundIntent）
 │   ├── adapters/
@@ -163,6 +169,7 @@ TelegramSecretary/
 | 関係者データ INDIVIDUALS.json | `<registry_dir>/individuals/` | Private（永続） |
 | 依頼データ TASKS.json | `<registry_dir>/tasks/` | Private（永続） |
 | 対応知 KNOWLEDGE.json（→category 分割） | `<registry_dir>/knowledge/` | Private（永続） |
+| 主題語彙 SUBJECTS.json（KNOWLEDGE を引く軸） | `<registry_dir>/subjects/` | Private（永続） |
 | 能力カタログ ABILITIES.json | `<registry_dir>/abilities/` | Private（永続） |
 | 人物理解 PROFILE.json（P軸） | `<registry_dir>/profile/` | Private（永続・機微 PII） |
 | 目標 GOALS.json / ステップ STEPS.json（A軸） | `<registry_dir>/goals/` `<registry_dir>/steps/` | Private（永続） |

@@ -1,4 +1,4 @@
-"""雛型とコードの乖離防止テスト（PROFILE/GOALS/STEPS/KNOWLEDGE/SUBJECTS）。
+"""雛型とコードの乖離防止テスト（雛型を持つ 8 表すべて）。
 
 テンプレートは「コピーされない雛型」（説明ドキュメント）だが、_record_schema が
 値オブジェクトの実スキーマから乖離すると、雛型を見て実体ファイルを作る利用者を
@@ -15,26 +15,45 @@ import json
 from pathlib import Path
 
 import pytest
-from domain.registry import Goal, Knowledge, Profile, Step, Subject
+from domain.registry import (
+    Ability,
+    Goal,
+    Individual,
+    Knowledge,
+    Profile,
+    Step,
+    Subject,
+    Task,
+)
 
 TEMPLATES_DIR = Path(__file__).parents[3] / "templates"
 
 # テンプレ名 -> (records キー, 値オブジェクト, 最小有効レコード)
 _TEMPLATES = {
-    "PROFILE.template.json": (
-        "profile",
-        Profile,
-        {"id": "p", "subject": "principal", "created_at": "t", "updated_at": "t"},
+    "INDIVIDUALS.template.json": (
+        "individuals",
+        Individual,
+        {
+            "uuid": "u",
+            "display_name": "x",
+            "role": "associate",
+            "status": "pending",
+            "created_at": "t",
+            "updated_at": "t",
+        },
     ),
-    "GOALS.template.json": (
-        "goals",
-        Goal,
-        {"id": "g", "title": "x", "created_at": "t", "updated_at": "t"},
-    ),
-    "STEPS.template.json": (
-        "steps",
-        Step,
-        {"id": "s", "goal_id": "g", "title": "x", "created_at": "t", "updated_at": "t"},
+    "TASKS.template.json": (
+        "tasks",
+        Task,
+        {
+            "id": "t",
+            "title": "x",
+            "status": "open",
+            "priority": "normal",
+            "requester": "principal",
+            "created_at": "t",
+            "updated_at": "t",
+        },
     ),
     "KNOWLEDGE.template.json": (
         "knowledge",
@@ -51,6 +70,26 @@ _TEMPLATES = {
         "subjects",
         Subject,
         {"id": "馬", "created_at": "t", "updated_at": "t"},
+    ),
+    "ABILITIES.template.json": (
+        "abilities",
+        Ability,
+        {"id": "a", "name": "x", "created_at": "t", "updated_at": "t"},
+    ),
+    "PROFILE.template.json": (
+        "profile",
+        Profile,
+        {"id": "p", "subject": "principal", "created_at": "t", "updated_at": "t"},
+    ),
+    "GOALS.template.json": (
+        "goals",
+        Goal,
+        {"id": "g", "title": "x", "created_at": "t", "updated_at": "t"},
+    ),
+    "STEPS.template.json": (
+        "steps",
+        Step,
+        {"id": "s", "goal_id": "g", "title": "x", "created_at": "t", "updated_at": "t"},
     ),
 }
 

@@ -406,14 +406,14 @@ def test_watch_exit_on_message_continues_when_no_message(env_ready, monkeypatch)
     assert calls["n"] == 2  # メッセージ無しでは exit-on-message 発火せず 2 サイクル回る
 
 
-# --- watch (Heavy モード media stack の遅延構築 / FINDING A) ---
+# --- watch (Heavy モード media stack の遅延構築) ---
 
 
 def test_watch_heavy_mode_no_media_does_not_build_renderer(env_ready, monkeypatch):
     """Heavy モードでも media を受けないサイクルでは renderer/transcriber を構築しない（遅延構築）。
 
     fresh container では bootstrap が httpx しか入れない。watch が起動時に renderer を eager 構築すると
-    markitdown / moonshine を import して ModuleNotFoundError で落ちる（FINDING A、E2E Phase 0 で顕在化）。
+    markitdown / moonshine を import して ModuleNotFoundError で落ちる。
     media を実際に受けるまで構築を遅延すれば、media 無しの常駐は httpx だけで起動できる。
     """
     monkeypatch.setenv("TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD", "true")
@@ -449,7 +449,7 @@ def test_watch_heavy_mode_no_media_does_not_build_renderer(env_ready, monkeypatc
 
 
 def test_watch_heavy_without_moonshine_does_not_crash(env_ready, monkeypatch):
-    """moonshine 未導入（BUNDLE_VOICE=false 相当）でも Heavy watch は落ちない（FINDING B: moonshine opt-out）。
+    """moonshine 未導入（BUNDLE_VOICE=false 相当）でも Heavy watch は落ちない（moonshine opt-out）。
 
     _ensure_media_stack は transcriber(moonshine) を optional に try-import する。未導入なら
     transcriber=None で render stack を構築し、音声だけ skipped にフォールバック（markitdown render は維持）。
@@ -485,14 +485,14 @@ def test_watch_heavy_without_moonshine_does_not_crash(env_ready, monkeypatch):
     assert rc == EXIT_OK
 
 
-# --- watch (FINDING C: 最終サイクルの long-poll を残り窓に丸める) ---
+# --- watch (最終サイクルの long-poll を残り窓に丸める) ---
 
 
 def test_watch_caps_poll_timeout_to_remaining_window(env_ready, monkeypatch):
-    """残り窓 < --timeout の最終サイクルでは long-poll timeout を残り窓に丸める（FINDING C）。
+    """残り窓 < --timeout の最終サイクルでは long-poll timeout を残り窓に丸める。
 
     max_duration + timeout が bash timeout(600s) を超えると、厳密 foreground では window 満了を
-    超えて回り SIGTERM(143) される（Phase 2 で実測 603s）。最終 long-poll を残り窓に丸めることで
+    超えて回り SIGTERM(143) される（実測 603s）。最終 long-poll を残り窓に丸めることで
     満了が max_duration をほぼ超えず、値(580/30)に依存せず max_duration + timeout < bash_timeout を保つ。
     """
     import itertools
@@ -636,7 +636,7 @@ def test_send_reply_uses_env_owner(env_ready, monkeypatch, tmp_path):
     assert rc == EXIT_OK
 
 
-# --- Stage 8.4: send-reply --file / --reply-to ---
+# --- send-reply --file / --reply-to ---
 
 
 def test_send_reply_with_file_uses_sendphoto(env_ready, monkeypatch, tmp_path):
@@ -781,7 +781,7 @@ def test_watch_uses_env_owner(env_ready, monkeypatch):
     assert rc == EXIT_OK
 
 
-# --- Stage 6.4: Medium モード（download 無効）切替 ---
+# --- Medium モード（download 無効）切替 ---
 
 
 def test_poll_medium_mode_emits_media_without_local_path(
@@ -828,7 +828,7 @@ def test_poll_medium_mode_emits_media_without_local_path(
 
 
 def test_poll_medium_mode_text_only_unchanged(env_ready, monkeypatch, capsys):
-    """media なし text-only update でも Medium モードで Stage 5 と同等に動く。"""
+    """media なし text-only update でも Medium モードで従来どおり動く。"""
     monkeypatch.setenv("TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD", "false")
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -872,13 +872,13 @@ def test_watch_medium_mode_does_not_call_getfile(env_ready, monkeypatch):
     assert rc == EXIT_OK
 
 
-# --- Stage 6.5 follow-up: caption が CLI 層を通って emit text に乗る E2E ---
+# --- caption が CLI 層を通って emit text に乗る E2E ---
 
 
 def test_poll_emits_caption_in_text_with_photo(env_ready, monkeypatch, capsys):
     """photo + caption の payload で emit `text` に caption が統合されることを CLI 経由で検証。
 
-    Stage 6.5 follow-up: ユニットテスト（test_caption_is_merged_into_normalized_text）は
+    ユニットテスト（test_caption_is_merged_into_normalized_text）は
     通っていたが、CLI 層を通した end-to-end は欠けていた。Live E2E で "text:\"\"" だった
     報告（caption "見える？" 送信疑い）の切り分け用ベースラインを明示。
     """
@@ -944,7 +944,7 @@ def test_poll_caption_above_text_for_text_message_with_caption(
     assert payload["text"] == "見出し\n本文"
 
 
-# --- Stage 6.5 follow-up: cleanup-media subcommand + watch cleanup hook ---
+# --- cleanup-media subcommand + watch cleanup hook ---
 
 
 def test_cleanup_media_subcommand_removes_expired_files(
@@ -1016,7 +1016,7 @@ def test_watch_runs_cleanup_hook_at_interval(env_ready, monkeypatch, tmp_path):
     assert not old.exists()
 
 
-# --- Stage 7.4: Medium モードで render フィールドが null で出る後方互換 ---
+# --- Medium モードで render フィールドが null で出る後方互換 ---
 
 
 def test_poll_medium_mode_renders_null_for_photo(env_ready, monkeypatch, capsys):
@@ -1049,7 +1049,7 @@ def test_poll_medium_mode_renders_null_for_photo(env_ready, monkeypatch, capsys)
     payload = json.loads(capsys.readouterr().out.strip())
     assert payload["media"][0]["render_status"] is None
     assert payload["media"][0]["rendered_text"] is None
-    # file_name は MediaAttachment から、photo は None（Stage 7.1）
+    # file_name は MediaAttachment から、photo は None
     assert payload["media"][0]["file_name"] is None
 
 
@@ -1120,7 +1120,7 @@ def test_watch_skips_cleanup_when_interval_zero(env_ready, monkeypatch, tmp_path
     assert old.exists()
 
 
-# --- Stage 9.3: 受信基盤 CLI 実証（voice / video が emit に kind 付きで乗る）---
+# --- 受信基盤 CLI 実証（voice / video が emit に kind 付きで乗る）---
 
 
 def test_poll_medium_mode_emits_voice(env_ready, monkeypatch, capsys):
@@ -1206,7 +1206,7 @@ def test_poll_medium_mode_emits_video(env_ready, monkeypatch, capsys):
     assert payload["media"][0]["local_path"] is None
 
 
-# --- Stage 11.4: cmd_poll が PDF cap を PdfRenderer に渡す配線 ---
+# --- cmd_poll が PDF cap を PdfRenderer に渡す配線 ---
 
 
 def test_poll_heavy_passes_pdf_cap_to_renderer(env_ready, monkeypatch):
@@ -1257,7 +1257,7 @@ def test_poll_heavy_passes_pdf_cap_to_renderer(env_ready, monkeypatch):
     assert captured["cap"] == 7
 
 
-# --- Stage 11.5: render-pdf オンデマンドコマンド（--text 全文 / --pages 個別画像）---
+# --- render-pdf オンデマンドコマンド（--text 全文 / --pages 個別画像）---
 
 
 def _write_text_pdf(path: Path, lines) -> None:
@@ -1631,7 +1631,7 @@ def test_registry_parser_accepts_the_import_action(env_ready, tmp_path):
 
 
 def test_orientation_parser_accepts_the_new_knobs(env_ready):
-    """案A の 3 cap＋tasks-latest＋主題絞りが CLI 入口として立っている。"""
+    """3 cap＋tasks-latest＋主題絞りが CLI 入口として立っている。"""
     assert (
         main(
             [

@@ -150,7 +150,7 @@ class TelegramApiGateway:
             )
 
     def get_file(self, file_id: str) -> str:
-        """Telegram /getFile で file_id から file_path を取得（Stage 6.3）。
+        """Telegram /getFile で file_id から file_path を取得。
 
         Bot API の File オブジェクトは `file_path` を含む（例: `photos/file_42.jpg`）。
         この相対パスを `/file/bot<TOKEN>/<file_path>` の組み立てに使う。

@@ -252,7 +252,7 @@ class _CycleOutcome:
 
 
 class _LazyMediaStack:
-    """watch ループ用の media stack 遅延ホルダ（FINDING A）。
+    """watch ループ用の media stack 遅延ホルダ。
 
     media を初めて受けたサイクルで build_media_stack を 1 度だけ呼び、以降使い回す
     （MarkItDown の magika model load が重いので毎サイクル作り直さない）。media を受けない
@@ -293,9 +293,9 @@ def _run_watch_cycle(
     - lease 喪失 → exit_code=EXIT_LEASE_CONFLICT
     - 正常 → exit_code=None, had_messages
     """
-    # 最終サイクルが bash timeout を超えないよう long-poll を残り窓に丸める（FINDING C）。
+    # 最終サイクルが bash timeout を超えないよう long-poll を残り窓に丸める。
     # max_duration + timeout が bash_timeout/1000 を超えると、厳密 foreground では window 満了を
-    # 超えて回り SIGTERM される（Phase 2 実測 603s=580+timeout）。残り窓に丸めれば値(580/30)に
+    # 超えて回り SIGTERM される（実測 603s=580+timeout）。残り窓に丸めれば値(580/30)に
     # 依存せず max_duration + timeout < bash_timeout の不変条件を保つ。
     poll_timeout = args.timeout
     if window.max_duration_seconds > 0:
@@ -376,7 +376,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
                     return outcome.exit_code
 
                 iterations += 1
-                # Stage 6.5 follow-up: N サイクル毎に cleanup hook（0=無効、default 120 ≒ 1h with timeout=30s）
+                # N サイクル毎に cleanup hook（0=無効、default 120 ≒ 1h with timeout=30s）
                 if (
                     args.cleanup_interval > 0
                     and iterations % args.cleanup_interval == 0
@@ -399,7 +399,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
 def cmd_cleanup_media(args: argparse.Namespace) -> int:
     """`state_dir/media/` 配下で `media_retention_hours` 超過のファイルを削除。
 
-    Stage 6.5 follow-up: 単独実行用エンドポイント。cloud routine 外で
+    単独実行用エンドポイント。cloud routine 外で
     cron 起動するか、人手で叩いて掃除する用途。
     """
     config = _load_config()
@@ -660,7 +660,7 @@ def cmd_role_status(args: argparse.Namespace) -> int:
 
 
 def cmd_registry_sync(args: argparse.Namespace) -> int:
-    """起動時に固定ブランチから管理表を fetch（registry_sync 有効時のみ、R2-3）。"""
+    """起動時に固定ブランチから管理表を fetch（registry_sync 有効時のみ）。"""
     config = _load_config()
     return run_registry_fetch(config)
 
@@ -968,7 +968,7 @@ def build_parser() -> argparse.ArgumentParser:
     # 起動時 fetch（registry_sync 有効時、固定ブランチから最新管理表を引く。ROUTINE_PROMPT が起動時に1回叩く）
     sub.add_parser(
         "registry-sync",
-        help="起動時に固定ブランチから管理表を fetch（R2-3、registry_sync 有効時）",
+        help="起動時に固定ブランチから管理表を fetch（registry_sync 有効時）",
     ).set_defaults(handler=cmd_registry_sync)
 
     # WAL（Write-Ahead Log）: 送信前 intent 書込→push→起動時 redo（registry_sync 有効時のみ稼働）

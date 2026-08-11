@@ -49,7 +49,7 @@ def test_empty_samples_returns_ok_empty_without_model_load():
 def test_failed_on_audio_decode_error():
     """デコード不能（AudioDecodeError）は failed。無音（ok + ""）と区別されること。
 
-    S3: 以前は前処理が空配列を返し、壊れた音声が「無音」として ok で通っていた。
+    空配列で返すと、壊れた音声が「無音」として ok で通ってしまう。
     """
     from domain.exceptions import AudioDecodeError
 

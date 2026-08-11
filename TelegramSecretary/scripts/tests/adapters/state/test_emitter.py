@@ -69,7 +69,7 @@ def test_emit_multiple_updates_writes_multiple_lines():
     assert json.loads(lines[1])["text"] == "second"
 
 
-# === Stage 6.3: emit v2 (media + version) ===
+# === emit v2 (media + version) ===
 
 from pathlib import Path
 
@@ -168,7 +168,7 @@ def test_emit_includes_skip_reason_for_size_exceeded():
     assert payload["media"][0]["skip_reason"] == "media_size_exceeded"
 
 
-# === Stage 7.3: rendered_text / render_status / file_name 出力 ===
+# === rendered_text / render_status / file_name 出力 ===
 
 from domain.media import RenderedMedia
 from usecases.render_authorized_media import RenderResult
@@ -309,7 +309,7 @@ def test_emit_message_id_null_when_absent():
     assert payload["message_id"] is None
 
 
-# === Stage 11.2: derived_image_paths / page_count 出力（v2 維持、フィールド追加のみ）===
+# === derived_image_paths / page_count 出力（v2 維持、フィールド追加のみ）===
 
 
 def _pdf_media_attachment(file_name: str = "drawings.pdf") -> MediaAttachment:

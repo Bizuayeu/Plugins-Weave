@@ -64,7 +64,8 @@ TelegramSecretary は **Claude Code Routines（Anthropic のクラウド実行�
 
 ## 7. 管理表・人格データ（PII）の保護 ✅（Private 分離・git/WAL/abilities）/ 📋（複数チャネル時の境界）
 
-- ✅ **Private 分離が第一防御** — INDIVIDUALS（関係者の honorific/context_notes/taboo_topics）・TASKS・KNOWLEDGE・Identities はすべて Private リポ。public（配布物）には実体を置かない
+- ✅ **Private 分離が第一防御** — INDIVIDUALS（関係者の honorific/context_notes/taboo_topics）・TASKS・KNOWLEDGE・SUBJECTS・Identities はすべて Private リポ。public（配布物）には実体を置かない
+- ✅ **SUBJECTS（主題語彙）の機微度は低いが分離対象**（v1.9.0）— 語彙表そのものは `id` / `label` / `note` の短い語で PII を持たない。ただし**語彙の一覧は運用主体が何を扱っているかの輪郭を露出する**ため、他の管理表と同じ Private 分離・git 永続経路に乗せる。配布 template は `records` 空配列＝運用固有の主題を焼かない（母集団スコープ、§8）
 - ⚠️ **context_notes / taboo_topics に PII 前提** — 関係者の自由記述に個人情報が入る前提で、Private リポのアクセス権限を最小化
 - 📋 **shared_with 境界**（複数チャネル併用時、未稼働）— 関係者間の情報共有は `identity.shared_with` の明示許可制。未承認の relay は拒否し、`<OWNER>`（principal）に承認伺い。Telegram 単体では関係者間 relay が無く、LineBridge 等の複数チャネル導入時に発効
 - 📋 **principal / associate の権限分離**（強制は複数チャネル時）— role enum（`principal`/`associate`）は値オブジェクトに実装済みだが、管理系操作（approve/block/edit 等）を principal（`<OWNER>`）起源に限る強制は、承認フローを持つ複数チャネル導入時に発効

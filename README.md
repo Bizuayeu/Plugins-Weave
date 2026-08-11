@@ -74,9 +74,9 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | あなたの目的 | 参照先 |
 |-------------|--------|
 | 🚀 **初めて使う** | [README](TelegramSecretary/README.md) |
-| ⚙️ **セットアップ** | [SETUP](TelegramSecretary/SETUP.md) |
+| ⚙️ **セットアップ** | [SETUP](TelegramSecretary/docs/SETUP.md) |
 | 📖 **コマンド仕様** | [telegram-secretary](TelegramSecretary/commands/telegram-secretary.md) |
-| 🔐 **セキュリティ** | [SECURITY](TelegramSecretary/SECURITY.md) |
+| 🔐 **セキュリティ** | [SECURITY](TelegramSecretary/docs/SECURITY.md) |
 
 ### ConsiderateCoder
 
@@ -291,7 +291,7 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 | `/telegram-secretary init-config` | 運用設定（config.json）生成 |
 | `/telegram-secretary test` | owner chatへの疎通テスト |
 
-→ [詳細README](TelegramSecretary/README.md) / [セットアップ](TelegramSecretary/SETUP.md) / [コマンド仕様](TelegramSecretary/commands/telegram-secretary.md) / [設計](TelegramSecretary/DESIGN.md)
+→ [詳細README](TelegramSecretary/README.md) / [セットアップ](TelegramSecretary/docs/SETUP.md) / [コマンド仕様](TelegramSecretary/commands/telegram-secretary.md) / [設計](TelegramSecretary/docs/DESIGN.md)
 
 ---
 

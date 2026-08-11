@@ -1,8 +1,8 @@
 """メディア添付の Domain 値オブジェクトと caption 統合の純関数。
 
-Stage 6.1: photo / document / caption を Domain 層の純粋型として表現する。
+photo / document / caption を Domain 層の純粋型として表現する。
 bytes は持たず file_id 等の identifier のみ保持（Infrastructure 層の local_path に閉じ込め）。
-Stage 7.1: MediaAttachment.file_name 追加、RenderedMedia 値オブジェクト新設。
+MediaAttachment.file_name と RenderedMedia 値オブジェクトも持つ。
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-# Stage 7.1: render_status の許容値（Domain で構造的に保証）
+# render_status の許容値（Domain で構造的に保証）
 _VALID_RENDER_STATUSES = frozenset({"ok", "passthrough", "skipped", "failed"})
 
 
@@ -23,9 +23,7 @@ class MediaAttachment:
     file_id: str
     mime_type: str
     size: int
-    file_name: str | None = (
-        None  # Stage 7.1: document の元ファイル名（エージェントの判断材料）
-    )
+    file_name: str | None = None  # document の元ファイル名（エージェントの判断材料）
 
     @classmethod
     def from_photo_api(
@@ -51,7 +49,7 @@ class MediaAttachment:
         """Telegram の document から MediaAttachment を構築。
 
         mime_type 欠落時は application/octet-stream にフォールバック。
-        Stage 7.1: file_name も抽出（欠落時 None）。
+        file_name も抽出（欠落時 None）。
         """
         return cls(
             kind="document",
@@ -120,23 +118,23 @@ class MediaAttachment:
 
 @dataclass(frozen=True)
 class RenderedMedia:
-    """MediaRenderer が返す render 結果（Stage 7.1）。
+    """MediaRenderer が返す render 結果。
 
     render_status 四状態:
     - "ok": markitdown 等で md 化成功、rendered_text 非 None
     - "passthrough": image/pdf 等 エージェントが Read で直接読める形式、render 不要
-    - "skipped": 未対応 mime（音声/動画等 Stage 7 射程外）、メタのみ
+    - "skipped": 未対応 mime、メタのみ
     - "failed": render を試みたが内部例外発生、エージェントに正直に伝える
     """
 
     rendered_text: str | None
     render_status: str
-    # Stage 11.1: 画像 PDF の派生ページ画像パス（動画 key frame と相乗りする共通基盤）。
+    # 画像 PDF の派生ページ画像パス（動画 key frame と相乗りする共通基盤）。
     # str パスのみ保持し bytes は持たない（純粋性維持、MediaAttachment の identifier-only 方針と同型）。
     # 非画像 PDF・テキスト PDF・非 PDF は空 list（欠落≠未対応の明示、media:[] と同規律）。
     derived_image_paths: list[str] = field(default_factory=list)
-    # Stage 11.1: PDF の総ページ数（両経路共通メタ）。エージェントが総量を把握して段階 Vision を判断する材料。
-    # PDF 以外 / Stage 10 までの emit は None（後方互換）。
+    # PDF の総ページ数（両経路共通メタ）。エージェントが総量を把握して段階 Vision を判断する材料。
+    # PDF 以外は None（後方互換）。
     page_count: int | None = None
 
     def __post_init__(self) -> None:

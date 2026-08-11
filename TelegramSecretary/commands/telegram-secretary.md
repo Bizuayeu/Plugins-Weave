@@ -5,7 +5,7 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 
 # /telegram-secretary — cloud routine 常駐 Telegram 秘書
 
-**Claude Code Routines**（Anthropic のクラウド実行＝cloud routine）上に常駐する Telegram 秘書の **登録・設定・管理表操作の入口**。仕様の SSoT は [`skills/telegram-secretary/SKILL.md`](../skills/telegram-secretary/SKILL.md)、cloud routine 起動手順は [`ROUTINE_PROMPT.md`](../ROUTINE_PROMPT.md)。
+**Claude Code Routines**（Anthropic のクラウド実行＝cloud routine）上に常駐する Telegram 秘書の **登録・設定・管理表操作の入口**。仕様の SSoT は [`skills/telegram-secretary/SKILL.md`](../skills/telegram-secretary/SKILL.md)、cloud routine 起動手順は [`ROUTINE_PROMPT.md`](../docs/ROUTINE_PROMPT.md)。
 
 ## Architecture
 
@@ -16,7 +16,7 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 
 | Subcommand | 機能 | 実体 |
 |---|---|---|
-| `schedule` | cloud routine への登録 / 有効化 / 設定上書き（upsert） | `RemoteTrigger` 手順（[ROUTINE_PROMPT.md](../ROUTINE_PROMPT.md)「cloud routine ライフサイクル管理」節）＋ `init-config` |
+| `schedule` | cloud routine への登録 / 有効化 / 設定上書き（upsert） | `RemoteTrigger` 手順（[ROUTINE_PROMPT.md](../docs/ROUTINE_PROMPT.md)「cloud routine ライフサイクル管理」節）＋ `init-config` |
 | `unschedule` | 停止（`enabled:false`、二度と起動しない） | `RemoteTrigger update` |
 | `init-config` / `show-config` / `validate-config` | 運用設定（config.json）の生成・表示・検証 | `scripts/main.py` |
 | `individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps {list\|get\|add\|remove\|import}` | 管理表 CRUD（8 表、何を残すか・何を行使するかは SecretaryRole 判断、書き込みは決定論 I/O）。`import --json-file` は全件置換（全件検証→置換、1 件でも不正なら無置換 exit 2） | `scripts/main.py` |
@@ -59,10 +59,10 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 
 ## 参照
 
-- **はじめての方へ（セットアップ手順書）**: [`SETUP.md`](../SETUP.md)
+- **はじめての方へ（セットアップ手順書）**: [`SETUP.md`](../docs/SETUP.md)
 - 仕様 SSoT: [`skills/telegram-secretary/SKILL.md`](../skills/telegram-secretary/SKILL.md)
-- cloud routine 実行手順: [`ROUTINE_PROMPT.md`](../ROUTINE_PROMPT.md)
-- 設計正典: [`DESIGN.md`](../DESIGN.md) / 構造地図: [`STRUCTURE.md`](../STRUCTURE.md) / セキュリティ正典: [`SECURITY.md`](../SECURITY.md)
+- cloud routine 実行手順: [`ROUTINE_PROMPT.md`](../docs/ROUTINE_PROMPT.md)
+- 設計正典: [`DESIGN.md`](../docs/DESIGN.md) / 構造地図: [`STRUCTURE.md`](../docs/STRUCTURE.md) / セキュリティ正典: [`SECURITY.md`](../docs/SECURITY.md)
 
 ---
 

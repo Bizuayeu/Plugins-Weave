@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import struct
+import sys
 import wave
 from pathlib import Path
 
@@ -86,3 +87,93 @@ def test_returns_empty_for_valid_but_zero_length_audio(tmp_path):
     assert isinstance(samples, np.ndarray)
     assert len(samples) == 0
     assert rate == 16000
+
+
+# --- デコード途中で壊れるケース（コンテナは開けるが decode が例外を投げる） ---
+#
+# 壊れた bytes は `av.open` の段で落ちるため、ループ内での失敗は実ファイルでは作れない。
+# 「一片も取れなければうるさく失敗、部分的に取れていれば取れた分を返す」という分岐は
+# 本 Adapter の設計判断そのものなので、fake コンテナで両側を pin する。
+
+
+class _FakeResampledFrame:
+    def __init__(self, array):
+        self._array = array
+
+    def to_ndarray(self):
+        return self._array
+
+
+class _FakeResampler:
+    def __init__(self, **_kwargs):
+        pass
+
+    def resample(self, frame):
+        if frame is None:  # flush
+            return []
+        return [_FakeResampledFrame(np.full((1, 4), 0.25, dtype="float32"))]
+
+
+class _FlushFailingResampler(_FakeResampler):
+    def resample(self, frame):
+        if frame is None:  # flush だけが失敗する
+            raise RuntimeError("flush failed")
+        return super().resample(frame)
+
+
+class _FakeContainer:
+    def __init__(self, frames: int, *, fails: bool = True):
+        self._frames = frames
+        self._fails = fails
+        self.closed = False
+
+    def decode(self, audio=0):
+        for _ in range(self._frames):
+            yield object()
+        if self._fails:
+            raise RuntimeError("stream broke mid-decode")
+
+    def close(self):
+        self.closed = True
+
+
+def _install_fake_av(monkeypatch, container, resampler_cls=_FakeResampler):
+    import types
+
+    fake_av = types.ModuleType("av")
+    fake_av.open = lambda _path: container
+    fake_av.audio = types.SimpleNamespace(
+        resampler=types.SimpleNamespace(AudioResampler=resampler_cls)
+    )
+    monkeypatch.setitem(sys.modules, "av", fake_av)
+
+
+def test_raises_when_decode_fails_before_any_frame(tmp_path, monkeypatch):
+    """一片もデコードできずに失敗したら AudioDecodeError（無音に化けさせない）。"""
+    container = _FakeContainer(frames=0)
+    _install_fake_av(monkeypatch, container)
+
+    with pytest.raises(AudioDecodeError):
+        FfmpegAudioPreprocessor().to_float_pcm(tmp_path / "broken-midway.ogg")
+    assert container.closed, "例外経路でも container は閉じる（finally）"
+
+
+def test_returns_partial_audio_when_decode_fails_midway(tmp_path, monkeypatch):
+    """途中まで取れていれば部分音声を返す（無音化より情報が多い）。"""
+    container = _FakeContainer(frames=3)
+    _install_fake_av(monkeypatch, container)
+
+    samples, rate = FfmpegAudioPreprocessor().to_float_pcm(tmp_path / "partial.ogg")
+    assert rate == 16000
+    assert len(samples) == 12  # 3 フレーム × 4 サンプル
+    assert container.closed
+
+
+def test_flush_failure_does_not_discard_already_decoded_audio(tmp_path, monkeypatch):
+    """flush（最終フレーム回収）が失敗しても、取得済みの音声は失わない。"""
+    container = _FakeContainer(frames=2, fails=False)
+    _install_fake_av(monkeypatch, container, resampler_cls=_FlushFailingResampler)
+
+    samples, rate = FfmpegAudioPreprocessor().to_float_pcm(tmp_path / "flush-fail.ogg")
+    assert rate == 16000
+    assert len(samples) == 8  # 2 フレーム × 4 サンプル（flush 分だけが落ちる）

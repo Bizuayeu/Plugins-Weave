@@ -2,7 +2,7 @@
 
 Telegram で 24-7 即応する秘書を **Claude Code Routines**（Anthropic のクラウド実行スケジュールエージェント基盤。Remote 実行＝cloud routine）上に常駐させるための、**迷わず動かす**ための手順書。claude.ai の GUI と Telegram アプリ内でほぼ完結します。
 
-> 仕様の SSoT は [SKILL.md](./skills/telegram-secretary/SKILL.md)、起動手順の詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)、配置規約は [STRUCTURE.md](./STRUCTURE.md)、ローカル動作確認は [README.md](./README.md)。本書はそれらの上に立つ「運用開始の順路」です。
+> 仕様の SSoT は [SKILL.md](../skills/telegram-secretary/SKILL.md)、起動手順の詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)、配置規約は [STRUCTURE.md](./STRUCTURE.md)、ローカル動作確認は [README.md](../README.md)。本書はそれらの上に立つ「運用開始の順路」です。
 
 ## 全体像
 
@@ -43,7 +43,7 @@ marketplace からインストール、または基本設定リポの `TelegramS
 
 ### ④ 秘書人格を用意（SecretaryRole.md）
 
-雛型 [`templates/SecretaryRole.template.md`](./templates/SecretaryRole.template.md) をコピーし、**非公開リポの `Identities/SecretaryRole.md`** として、秘書の固有名・対応原則・触れない話題などを定義します（人格は個人資産ゆえ非公開リポに置き、配布物には焼き込みません）。
+雛型 [`templates/SecretaryRole.template.md`](../templates/SecretaryRole.template.md) をコピーし、**非公開リポの `Identities/SecretaryRole.md`** として、秘書の固有名・対応原則・触れない話題などを定義します（人格は個人資産ゆえ非公開リポに置き、配布物には焼き込みません）。
 
 ### ⑤ config.json を生成
 
@@ -125,11 +125,12 @@ claude.ai の Code → Environments で：
 | `registry fetch failed`（起動時） | 固定ブランチ未作成 or git 認証不足 | 初回は対象ブランチが空でも継続（前回ローカル状態で起動）。git 認証（PAT 等）が Environment にあるか確認 |
 | 管理表は埋まっているのに、秘書が登録済みのタスク・方針を毎回忘れる | 起動時に管理表を並べて `list` している（肥大した表は出力上限を超え、コンテキストに載らないまま exit 0 する＝沈黙失敗） | 起動時オリエンテーションは `python scripts/main.py orientation` の一撃で行う（bootstrap が `ready` の直前に案内を出す）。単表 `list` が 200KB を超えると stderr に警告が出るので、それを合図に `orientation` / `get --key` へ切り替える（→ DESIGN §3.12） |
 | 管理表が空＝記憶なし稼働（stderr に `WARNING: ... EMPTY tables`） | `registry_dir` が独立 worktree でない（dev ツリー内サブディレクトリ＝旧構成） | `registry_dir` を独立 worktree 値（`ts-registry-wt`）にする。bootstrap の `registry worktree provisioned/refreshed` ログを確認（→ DESIGN §3.6） |
+| `add` / `import` が exit 2 で落ちる（stderr に `unknown field(s): ...` や主題の候補列挙） | v1.9.0 の fail-closed——書き込み口がトップレベルの未知キー・語彙外の subject・許可集合外の category を弾いている | stderr が原因（キー名・候補）を出すので、それを見てレコードを直してから再実行する。typo キーを黙って捨てないための仕様で、read 経路（`list` / `get` / `orientation`）は従来どおり読める（→ DESIGN §3.8/§3.12） |
 
 ## 参照
 
-- 仕様 SSoT: [SKILL.md](./skills/telegram-secretary/SKILL.md)
+- 仕様 SSoT: [SKILL.md](../skills/telegram-secretary/SKILL.md)
 - 起動手順: [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)
 - 構造地図: [STRUCTURE.md](./STRUCTURE.md)
 - セキュリティ正典: [SECURITY.md](./SECURITY.md)
-- ローカル動作確認: [README.md](./README.md)
+- ローカル動作確認: [README.md](../README.md)

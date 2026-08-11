@@ -1,4 +1,4 @@
-"""メディア render/transcribe Adapter 共通の失敗ログ＋redact ヘルパ（Stage 1）。
+"""メディア render/transcribe Adapter 共通の失敗ログ＋redact ヘルパ。
 
 render(markitdown / pdf)・transcribe(moonshine) Adapter が except 節で共通して行う
 「stderr に短縮 id のみ出す（絶対パス・file_id 全文は秘匿）→ RenderedMedia(failed) を返す」

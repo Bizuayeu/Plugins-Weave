@@ -28,8 +28,8 @@ class TelegramUpdate:
     def from_api(cls, payload: Mapping[str, Any]) -> TelegramUpdate:
         """Telegram Bot API の update JSON から構築。最小限のフィールドのみ抽出。
 
-        Stage 6.2 拡張: photo / document / caption を抽出する。
-        Stage 9.2 拡張: voice / audio / video / video_note を抽出する。
+        photo / document / caption を抽出する。
+        voice / audio / video / video_note も抽出する。
         media 配列は photo（最大解像度）→ document → voice → audio → video → video_note の順。
         """
         message = payload.get("message") or payload.get("edited_message") or {}

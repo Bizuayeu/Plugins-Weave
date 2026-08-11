@@ -1,12 +1,12 @@
-"""mime に応じた render 判定 + Port 経由 render 実行の UseCase（Stage 7.2）。
+"""mime に応じた render 判定 + Port 経由 render 実行の UseCase。
 
 mime-routing は UseCase 側に閉じる:
 - image/* → passthrough（Vision native）
 - text/plain, text/csv, text/markdown, application/json → passthrough
-- application/pdf → pdf（pdf_renderer 注入時のみ、Stage 10 でテキスト層抽出に移行。未注入なら skipped）
+- application/pdf → pdf（pdf_renderer 注入時のみテキスト層抽出。未注入なら skipped）
 - docx, pptx, xlsx, text/html → render（markitdown 経由）
-- audio/*, video/* → transcribe（transcriber 注入時のみ、Stage 9.4/9.6 音声 STT。動画は音声トラックを抽出。未注入なら skipped）
-- archive 等その他 → skipped（key frame Vision は Stage 9.6-ii で別途）
+- audio/*, video/* → transcribe（transcriber 注入時のみ音声 STT。動画は音声トラックを抽出。未注入なら skipped）
+- archive 等その他 → skipped（key frame Vision は別途）
 
 download 段階で skip された media（size 超過等）は render も skip。
 """
@@ -24,16 +24,14 @@ from usecases.ports import MediaRenderer
 _PASSTHROUGH_MIME_PREFIXES = ("image/",)
 _PASSTHROUGH_MIME_EXACT = frozenset(
     {
-        # Stage 10: application/pdf は passthrough から外し pdf ルート（テキスト層抽出）へ移行
+        # application/pdf は passthrough から外し pdf ルート（テキスト層抽出）へ回す
         "text/plain",
         "text/csv",
         "text/markdown",
         "application/json",
     }
 )
-_PDF_MIME_EXACT = frozenset(
-    {"application/pdf"}
-)  # Stage 10: pdfplumber でテキスト層抽出
+_PDF_MIME_EXACT = frozenset({"application/pdf"})  # pdfplumber でテキスト層抽出
 _RENDER_MIME_EXACT = frozenset(
     {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # docx
@@ -45,7 +43,7 @@ _RENDER_MIME_EXACT = frozenset(
 _TRANSCRIBE_MIME_PREFIXES = (
     "audio/",
     "video/",
-)  # Stage 9.4/9.6: 音声・動画音声トラックを STT で transcript 化
+)  # 音声・動画音声トラックを STT で transcript 化
 
 
 @dataclass(frozen=True)
@@ -139,7 +137,7 @@ class RenderAuthorizedMedia:
             return RenderedMedia(rendered_text=None, render_status="skipped")
         if routing == "pdf":
             # PDF: pdf_renderer 注入時のみテキスト層抽出、未注入なら skipped にフォールバック
-            # （Stage 10、transcriber 同型の後方互換）
+            # （transcriber 同型の後方互換）
             if self._pdf_renderer is None:
                 return RenderedMedia(rendered_text=None, render_status="skipped")
             return self._pdf_renderer.render(dr.media, dr.local_path)

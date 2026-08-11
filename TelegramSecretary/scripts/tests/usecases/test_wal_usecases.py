@@ -131,7 +131,7 @@ def test_redo_checkpoint_drops_old_done():
     assert result["kept"] == 0
 
 
-# --- RedoPendingIntents: outbound 再送（Stage 3、offset 非依存の at-least-once）---
+# --- RedoPendingIntents: outbound 再送（offset 非依存の at-least-once）---
 
 
 def _outbound_entry(
@@ -223,7 +223,7 @@ def test_redo_without_sink_leaves_outbound_pending():
     assert any(e.status == "pending" and e.kind == "outbound" for e in log.load())
 
 
-# --- SettleOutboundIntent: 送信成功時の happy-path settle（Stage 2） ---
+# --- SettleOutboundIntent: 送信成功時の happy-path settle ---
 
 
 def test_settle_outbound_intent_marks_sent_done():

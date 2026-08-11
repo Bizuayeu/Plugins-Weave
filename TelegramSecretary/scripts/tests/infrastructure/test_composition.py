@@ -1,4 +1,4 @@
-"""Composition Root の単体テスト（Stage 3）。
+"""Composition Root の単体テスト。
 
 load_config の fail-fast（union 廃止）と build_media_stack の配線（pdf cap 注入・
 optional transcriber/pdf の None フォールバック）を pin する。重い renderer 構築は
@@ -12,7 +12,13 @@ import sys
 
 import pytest
 from domain.authorization import AuthorizedChats
-from infrastructure.composition import MediaStack, build_media_stack, load_config
+from infrastructure.composition import (
+    MediaStack,
+    build_git,
+    build_media_stack,
+    build_sync,
+    load_config,
+)
 from infrastructure.config import Config
 from usecases.download_authorized_media import DownloadAuthorizedMedia
 from usecases.render_authorized_media import RenderAuthorizedMedia
@@ -88,3 +94,67 @@ def test_build_media_stack_wires_pdf_cap_and_optional_none(monkeypatch, tmp_path
         assert stack.render_uc._transcriber is None
     finally:
         stack.downloader.close()
+
+
+def test_build_media_stack_falls_back_when_pdf_renderer_is_absent(
+    monkeypatch, tmp_path
+):
+    """pdfplumber/pypdfium2 未導入でも組み上がる（PDF は render usecase 側で skipped）。
+
+    transcriber と同じ optional 契約。片方だけ落ちる導入（media extras 有り・voice 無し等）が
+    あるので、両方それぞれ単独で欠けても stack が立つことを別々に pin する。
+    """
+    import adapters.render.markitdown_renderer as mr_mod
+
+    monkeypatch.setattr(mr_mod, "MarkitdownRenderer", lambda: object())
+    monkeypatch.setitem(sys.modules, "adapters.render.pdf_renderer", None)
+
+    config = Config(
+        bot_token="t",
+        authorized_chats=AuthorizedChats(frozenset({1})),
+        state_dir=tmp_path,
+        session_duration_sec=7200,
+    )
+    stack = build_media_stack(config, gateway=object())
+    try:
+        assert stack.render_uc._pdf_renderer is None
+    finally:
+        stack.downloader.close()
+
+
+# --- git 同期系の DI（registry_cli / wal_cli の共有経路） ---
+
+
+def _sync_config(tmp_path, *, enabled: bool) -> Config:
+    return Config(
+        bot_token="t",
+        authorized_chats=AuthorizedChats(frozenset({1})),
+        state_dir=tmp_path,
+        session_duration_sec=7200,
+        registry_dir=tmp_path / "registry",
+        registry_sync_enabled=enabled,
+        registry_remote="upstream",
+        registry_branch="claude/custom-registry",
+    )
+
+
+def test_build_git_passes_registry_root_remote_and_branch(tmp_path):
+    """config の remote / branch / registry_root が adapter に届く（誤配線は本番で沈黙する）。"""
+    git = build_git(_sync_config(tmp_path, enabled=True))
+    assert git._repo == (tmp_path / "registry").resolve()
+    assert git._remote == "upstream"
+    assert git._branch == "claude/custom-registry"
+
+
+def test_build_sync_returns_none_when_registry_sync_is_disabled(tmp_path):
+    """既定（registry_sync 無効）では None——呼び出し側の「同期しない」分岐がここで決まる。"""
+    assert build_sync(_sync_config(tmp_path, enabled=False)) is None
+
+
+def test_build_sync_builds_service_over_the_same_git_adapter(tmp_path):
+    """有効時は RegistrySyncService が立ち、その git は build_git と同じ設定で組まれる。"""
+    from usecases.registry_sync import RegistrySyncService
+
+    sync = build_sync(_sync_config(tmp_path, enabled=True))
+    assert isinstance(sync, RegistrySyncService)
+    assert sync._git._branch == "claude/custom-registry"

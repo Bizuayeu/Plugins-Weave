@@ -47,11 +47,9 @@ class Config:
     agent_name: str | None = None
     private_dir: str | None = None
     registry_dir: Path | None = (
-        None  # 管理表（永続）の根。None なら state_dir にフォールバック（R1）
+        None  # 管理表（永続）の根。None なら state_dir にフォールバック
     )
-    registry_sync_enabled: bool = (
-        False  # イベント駆動 git 同期のオプトイン（R2-3、既定無効）
-    )
+    registry_sync_enabled: bool = False  # イベント駆動 git 同期のオプトイン（既定無効）
     registry_remote: str = "origin"
     registry_branch: str = "claude/ts-registry"
 
@@ -59,7 +57,7 @@ class Config:
     def registry_root(self) -> Path:
         """管理表（individuals/tasks/knowledge）の根。
 
-        揮発 state（offset/lease/media）は state_dir、永続管理表は registry_dir に分離する（R1）。
+        揮発 state（offset/lease/media）は state_dir、永続管理表は registry_dir に分離する。
         registry_dir 未設定なら state_dir にフォールバック（後方互換）。
         """
         return self.registry_dir if self.registry_dir is not None else self.state_dir
@@ -185,10 +183,10 @@ class Config:
         if private_dir is not None and not isinstance(private_dir, str):
             raise OSError("config.json: private_dir must be a string")
 
-        # --- registry（永続管理表）: config.json が値の正典。ただしパス解決は env 優先（R3）。 ---
+        # --- registry（永続管理表）: config.json が値の正典。ただしパス解決は env 優先。 ---
         # config.json の registry_dir は cwd（=2リポ親）起点の相対だが、registry コマンドは
         # ROUTINE_PROMPT で `cd $INSTALL_DIR`（skill root）してから走るため、ここで .resolve() すると
-        # cwd 基準で二重ネストの幽霊パス化する（state_dir の FINDING 3 同型、R3 物証）。bootstrap が
+        # cwd 基準で二重ネストの幽霊パス化する（state_dir のパス解決と同型）。bootstrap が
         # source 時の cwd（=2リポ親）基準で絶対化して TELEGRAM_SECRETARY_REGISTRY_DIR に注入するので、
         # env があればその絶対パスをそのまま信頼（再 resolve しない）。env 無し（ローカル運用/テスト）は
         # 従来どおり config.json の値を .resolve()。

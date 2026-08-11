@@ -115,7 +115,7 @@ def test_send_raises_when_lease_was_released():
     assert offset_store.save_calls == []
 
 
-# === Stage 8.2: 添付対応 ===
+# === 添付対応 ===
 
 
 def test_send_with_attachments_passes_them_to_sink(tmp_path):

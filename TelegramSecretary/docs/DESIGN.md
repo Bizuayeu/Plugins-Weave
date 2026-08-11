@@ -2,6 +2,28 @@
 
 設計の **why** を集約する。役割分担 — **DESIGN**=なぜこの設計か / **STRUCTURE**=どこに何を置くか。
 
+## 目次
+
+- [1. 設計原則](#1-設計原則)
+- [2. アーキテクチャ（Clean Architecture 4層）](#2-アーキテクチャclean-architecture-4層)
+  - [三世界分類との対応](#三世界分類との対応)
+- [3. データアーキテクチャ（管理表 + Identities）](#3-データアーキテクチャ管理表--identities)
+  - [3.1 二系統のデータ](#31-二系統のデータ)
+  - [3.2 なぜ SSoT = Private JSON か](#32-なぜ-ssot--private-json-か)
+  - [3.3 なぜテンプレート/データ分離か（配布可能性の核心）](#33-なぜテンプレートデータ分離か配布可能性の核心)
+  - [3.4 なぜ CRUD はエージェント主体 + `/telegram-secretary` ラップか](#34-なぜ-crud-はエージェント主体--telegram-secretary-ラップか)
+  - [3.5 なぜ肥大化対策が管理表ごとに違うか（発火判断は重要度の世界）](#35-なぜ肥大化対策が管理表ごとに違うか発火判断は重要度の世界)
+  - [3.6 なぜ管理表を git で永続化するか（揮発/永続分離）](#36-なぜ管理表を-git-で永続化するか揮発永続分離)
+  - [3.7 なぜ WAL（Write-Ahead Log）で言行一致を保証するか（consistency vs durability）](#37-なぜ-walwrite-ahead-logで言行一致を保証するかconsistency-vs-durability)
+  - [3.8 なぜ管理表を足すのが 1 行で済むか（abilities 4 表目・subjects 8 表目）](#38-なぜ管理表を足すのが-1-行で済むかabilities-4-表目subjects-8-表目)
+  - [3.9 なぜ outbound（proactive-send）に WAL 再送を足すのか（offset 安全網の無い経路の冪等性）★再送方針 SSoT](#39-なぜ-outboundproactive-sendに-wal-再送を足すのかoffset-安全網の無い経路の冪等性再送方針-ssot)
+  - [3.10 なぜ artifacts を成果物層として持つか（決定論の管理表と分ける理由）](#310-なぜ-artifacts-を成果物層として持つか決定論の管理表と分ける理由)
+  - [3.11 なぜ P×A 直交2軸で役割が進化するか（PROFILE/GOALS/STEPS・データ駆動判定・占術スキル接続）](#311-なぜ-pa-直交2軸で役割が進化するかprofilegoalsstepsデータ駆動判定占術スキル接続)
+  - [3.12 なぜ起動時ロードは orientation ダイジェストか（沈黙失敗と上流配置）★起動時オリエンテーション SSoT](#312-なぜ起動時ロードは-orientation-ダイジェストか沈黙失敗と上流配置起動時オリエンテーション-ssot)
+- [4. Scope: 公式 plugin（/channels）との差分と採否](#4-scope-公式-pluginchannelsとの差分と採否)
+  - [構造的要約](#構造的要約)
+  - [今後の判断指針](#今後の判断指針)
+
 ## 1. 設計原則
 
 - **秘書＝入力理解優先**: `<OWNER>` の業務入力（voice / 写真 / 文書）の「受信＋中身理解」が一次価値
@@ -77,7 +99,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 | **ABILITIES** | **カテゴリ分割**（Archive せず、KNOWLEDGE と同型） | 能力カタログも蓄積が本質（捨てない）。分割の単位・キーは必要時にエージェントが定義（§3.2 の JSON 柔軟性） |
 | **SUBJECTS** | 分割も Archive もしない（`status=deprecated` で廃止） | 語彙表は**件数が増えない設計**（増やすより育てる）。消すと過去レコードの主題が読めなくなるため、退場は削除でなく status |
 
-**蓄積の肥大化と digest の肥大化は別の問題**（上表は前者）。後者——起動時 orientation の出力が育って退避圏に入る——には**表ごとの上限ノブ**で対処する。ノブは「蓋の無い表」に当たる：
+**蓄積の肥大化と digest の肥大化は別の問題**（上表は前者）。後者——起動時 orientation の出力が育って退避圏に入る——には**表ごとの処方**で対処し、v1.10.0 で 8 表すべてに処方が付いた（**表と処方の対応は §3.12 の 8 行表が SSoT**。下表は蓄積側の表と並べるための対応）：
 
 | 管理表 | digest 側の絞り | 当たる先 |
 |---|---|---|
@@ -86,7 +108,9 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 | **PROFILE** | `--profile-cap` | `content`（v1.9.0） |
 | **ABILITIES** | `--abilities-cap` | `guidance`（v1.9.0） |
 | **INDIVIDUALS** | `--individuals-cap` | `identity.context_notes`（v1.9.0） |
-| **GOALS / STEPS** | なし | 現在 0 件。肥大したら上と同型で足す（先回りしない） |
+| **GOALS** | `--goals-cap` | `notes`（v1.10.0） |
+| **STEPS** | `--steps-latest` | 索引行の件数（v1.10.0。`notes` は元から載らない） |
+| **SUBJECTS** | 件数絞りは持たない（索引化で有界、v1.10.0） | `note` 列の幅（主題を選ぶ一覧ゆえ母数は減らさない） |
 
 cap が当たるのは**表の支配的長文フィールド 1 つだけ**で、レコードの JSON 構造は壊さない——丸めても個票は `get --key` で全文が引ける、という読み筋を温存するため。丸めの規約（UTF-8 バイト・文字境界・マーカーは幅の内側・非正は全捨て）は幅ノブと共通（§3.12）。
 
@@ -134,7 +158,11 @@ cap が当たるのは**表の支配的長文フィールド 1 つだけ**で、
 
 > consistency と durability は別問題: durability の穴は冗長で塞ぐが、ここでの穴は「同一障害ドメイン（同じ git push）に冗長を足しても共倒れ」ゆえ順序で塞ぐ。設計の背骨は §2 の踏襲——WAL の純粋ロジック（reconcile/settle/checkpoint）は Domain、push/redo の順序遵守は ROUTINE_PROMPT（従属度の世界）、git 操作は決定論。`registry_sync` 有効時のみ稼働（無効は no-op、後方互換）。
 
-### 3.8 なぜ abilities を4表目として追加したか（能力カタログ・データ層での能力拡張）
+### 3.8 なぜ管理表を足すのが 1 行で済むか（abilities 4 表目・subjects 8 表目）
+
+表を足す判断は 2 度あり、どちらも同じ骨格で通った——テーブル駆動の `REGISTRY_SPEC` に 1 行、値オブジェクトを 1 つ。以下は各表の追加理由（なぜその表が要るか）と、そこから引き出された一般則（何をコードに置き、何をデータに置くか）。
+
+#### abilities（能力カタログ、4 表目）——データ層での能力拡張
 
 individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ・どう判断したか）であるのに対し、`abilities` は秘書が**行使できる能力（スキル）のカタログ**——「何ができるか」を担う第4の管理表。各レコードは発動シグナル（`trigger`）・スキル実体への相対パス（`skill_path`）・起動ガイダンス（`guidance`）を持ち、秘書は応答前に `abilities list` で「この依頼に使える能力があるか」を引き、該当すれば外部スキル（例: 占術鑑定）を行使する。
 
@@ -144,7 +172,7 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **配布可能性（母集団スコープ）**: 配布 template（`ABILITIES.template.json`）には具体能力を焼かず空で配る。運用固有の能力（例: 占術スキル連携）は Private の実 ABILITIES.json に置く——§3.3 のテンプレート/データ分離を能力にも適用
 - **能力の自己追記ガード**: 秘書が能力を `add` するのは**実在を確認したスキルに限る**（不確実・未検証の能力は宣言しない＝存在しない能力をカタログに書くハルシネーションの防止）
 
-#### なぜ subjects を 8 表目に足したか（閉じた語彙はコード、開いた語彙はデータ）
+#### subjects（主題語彙、8 表目）——閉じた語彙はコード、開いた語彙はデータ
 
 `SUBJECTS` は主題（馬・建設・製造…）の語彙表で、`KNOWLEDGE.subjects[]` の照合先。abilities が「何ができるか」を持つのに対し、subjects が持つのは**知識を引く軸**そのものである。
 
@@ -152,7 +180,8 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **なぜ topic の接頭辞規約（`[主題] 本文`）を捨てたか**: v1.8.0 は主題軸を `topic` 文字列の接頭辞で持つ規約（コード変更ゼロ）を提案していたが、規約は**強制されないぶん揺れる**（付け忘れ・表記ゆれ・遡及付与の未完了が混在しても誰も気づかない）。フィールドに分けて語彙表と照合すれば、範囲外は書き込み口で弾ける——検証できない規約より、検証できるデータ構造を採る
 - **なぜ status=deprecated で退場させるか**: 語彙の削除は過去レコードの主題を読めなくする（照合先が消えるだけでなく、その主題で引けなくなる）。`deprecated` は**新規付与だけを止める**——既存レコードの読み出しは壊さない。「消さずに止める」は archive 方針（§3.5）と同じ思想
 - **なぜ照合の純関数を Domain に置き、データ供給を Interface にするか**: 語彙はデータゆえ Domain 定数にできないが、「与えられた語彙集合に対して範囲外を列挙する」判定はビジネスルールである。`invalid_subjects(subjects, active_ids)` を Domain の純関数に置き、SUBJECTS を読んで渡すのは Interface（`registry_cli`）が担う——依存は内向きのまま、判定は引数だけでテストできる
-- **配線コストの実証**: subjects の CRUD・WAL kind・orientation の表順・subparser はすべて `REGISTRY_SPEC` の 1 行と `Config.subjects_path` だけで生えた（`wal_cli` / `main.py` は無改修）。§3.8 が abilities で主張した「テーブル駆動なら 4 表目は 1 行」は、8 表目でも成り立っている
+- **なぜ書き込み口だけを fail-closed にするか（write / read の非対称）**: `add` / `import` はトップレベルの未知キーを exit 2 で弾く（キー名を stderr に出す）。従来 `from_dict` は既知キーだけを転記するため、typo（`subjects` → `subject`）は**例外にならず沈黙して消えていた**——「登録したのに無い」を後から探させる形。対して read 経路（`list` / `get` / `orientation`）は警告どまりに留める——read に同じ検証を入れると、未知キーを 1 つ持つレコードがあるだけで list が全滅する（v1.8.0 の category 検証が読み取り経路で発火して起きた形）。**前方互換は read に残し、fail-closed は write に置く**
+- **配線コストの実証**: subjects の CRUD・WAL kind・orientation の表順・subparser はすべて `REGISTRY_SPEC` の 1 行と `Config.subjects_path` だけで生えた（表名の列挙は `main.py` / `wal_cli` とも `REGISTRY_SPEC` 導出ゆえ、表を足すための改修はゼロ）。§3.8 が abilities で主張した「テーブル駆動なら 4 表目は 1 行」は、8 表目でも成り立っている
 
 ### 3.9 なぜ outbound（proactive-send）に WAL 再送を足すのか（offset 安全網の無い経路の冪等性）★再送方針 SSoT
 
@@ -239,6 +268,7 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
   | steps | 索引（`id \| goal_id \| seq \| status \| title`）＋`--steps-latest` | 目標からの逆算単位ゆえ設計上 `done` が高速に溜まる＝件数が増える |
 
   実装上、この表は 2 箇所に写っている——`_CAP_FIELDS`（cap 側 4 表への経路の写像）と `_table_section` の分岐（索引側 4 表）。**「既定は全文」の分岐に残るのは cap 側 4 表**（individuals / abilities / profile / goals）で、`_CAP_FIELDS` のキー集合とちょうど一致する。subjects に cap でなく索引を採ったのは、cap が 1 レコードの長さにしか効かず語彙の件数成長に無力だから——全文 JSON は `created_at` / `updated_at` という**この用途で価値ゼロの数十バイト**を毎レコード運ぶ
+- **category の許可集合（なぜ読み取り経路で弾くか）**: `category` は**認識の型**の軸であり、許可集合 10 種（`observation` / `research` / `harness` / `domain-insight` / `analysis` / `design` / `method` / `philosophy` / `business` / `decision`）に閉じる。旧実装の `d.get("category", "general")` は範囲外を**沈黙のうちに生成する fail-open** で、これが分類の増殖と綴り揺れの温床だった——上の「絞り」は category を軸に効くので、軸が揺れれば絞り自体が壊れる。検証は値オブジェクトの `__post_init__` に置く＝**読み取り経路でも発火する**ため、範囲外を含む既存データは `list` / `orientation` ごと exit 2 で落ちる（v1.8.0 の破壊的変更。移行手順は CHANGELOG v1.8.0）。主題（馬・建設 等）の軸は **knowledge の `subjects[]`**（v1.9.0）が担い、二軸を混ぜない——語彙は SUBJECTS 表が持ち、範囲外は書き込み口で弾ける（§3.8。v1.8.0 が置いた `topic` の接頭辞規約は、検証できない規約ゆえ v1.9.0 で廃止した）
 
 > 消化（handoff → knowledge への結晶化）と卒業（archive）のサイクルは v1.6.0 で載った。分離（第一段）が「読む量を切る」だったのに対し、消化と卒業は**母数そのものを減らす**——選択（何を結晶化し、何を卒業させるか）＝α は秘書の判断に残し、移動と読み筋だけをコードが持つ（§2 の踏襲）。
 

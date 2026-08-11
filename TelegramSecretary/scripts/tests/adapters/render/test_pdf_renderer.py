@@ -55,11 +55,11 @@ def _pdf(file_id: str = "p") -> MediaAttachment:
     )
 
 
-# === Stage 11.5: render は PDF を常に画像化（テキスト層判定を撤廃）===
+# === render は PDF を常に画像化（テキスト層判定を撤廃）===
 
 
 def test_render_always_rasterizes_even_with_text_layer(tmp_path):
-    """テキスト層があっても render は画像化する（判定しない＝Stage 11.5 の核心）。"""
+    """テキスト層があっても render は画像化する（判定しない＝この設計の核心）。"""
     pdf = tmp_path / "text.pdf"
     _make_multipage_pdf(pdf, [["First page body"], ["Second page body"]])
     result = PdfRenderer().render(_pdf(), pdf)

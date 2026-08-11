@@ -38,8 +38,3 @@ _pytest_out.txt
 venv/
 .vscode/
 .idea/
-
-# 親（ルート）.gitignore の `Identities/`（EpisodicRAG ユーザーデータ除外）が
-# 配布対象の雛型 templates/Identities/ まで巻き込むのを打ち消す。
-# SecretaryRole.template.md は配布雛型であり、ユーザーデータ Identities/ とは別物。
-!templates/Identities/

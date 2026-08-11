@@ -17,8 +17,8 @@ PAYLOAD_VERSION = 2
 class StdoutEventEmitter:
     """`watch` モード時、認可・正規化済み update を JSON Lines で emit する。
 
-    Stage 6.3: `v: 2` + `media[]` 拡張。download_results を渡せば local_path / skip_reason が乗る。
-    Stage 7.3: `rendered_text` / `render_status` / `file_name` 追加（v2 維持、フィールド追加のみ）。
+    `v: 2` + `media[]` 拡張。download_results を渡せば local_path / skip_reason が乗る。
+    `rendered_text` / `render_status` / `file_name` も乗る（v2 維持、フィールド追加のみ）。
     render_results 優先（あれば local_path / skip_reason もそこから拾う）、なければ download_results、
     どちらもなければメタのみ。
     """
@@ -99,7 +99,7 @@ class StdoutEventEmitter:
                 skip_reason = rd.skip_reason
                 rendered_text = rd.rendered.rendered_text
                 render_status = rd.rendered.render_status
-                # Stage 11.2: 派生ページ画像と総ページ数は rd（render 済み）からのみ非空/非 null
+                # 派生ページ画像と総ページ数は rd（render 済み）からのみ非空/非 null
                 derived_image_paths = list(rd.rendered.derived_image_paths)
                 page_count = rd.rendered.page_count
             elif dl is not None:

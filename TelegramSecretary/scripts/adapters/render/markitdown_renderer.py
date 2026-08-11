@@ -1,7 +1,7 @@
-"""markitdown ライブラリでドキュメント系 mime を md 化する Adapter（Stage 7.3）。
+"""markitdown ライブラリでドキュメント系 mime を md 化する Adapter。
 
 Adapter 内部で広く Exception を catch して RenderedMedia(render_status="failed") を返す
-（Stage 6 の skip_reason と同型の「フラグ化、ブロックしない」スタンス）。
+（skip_reason と同型の「フラグ化、ブロックしない」スタンス）。
 例外メッセージの絶対パス・file_id 全文は秘匿、stderr warning に file_id[:8] のみ短く出す。
 
 mime-routing は UseCase 側（render_authorized_media._route_mime）が担い、

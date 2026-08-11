@@ -255,7 +255,7 @@ def test_knowledge_carries_subjects_through_round_trip():
 
 
 def test_knowledge_subjects_default_to_empty():
-    # subjects を持たない既存 201 件の読み出しを壊さない（後方互換）
+    # subjects を持たない既存レコードの読み出しを壊さない（後方互換）
     k = Knowledge.from_dict(
         {
             "id": "k1",
@@ -285,7 +285,7 @@ def test_knowledge_from_dict_requires_category():
 
 from domain.registry import Subject
 
-# 主題語彙 v0（9 主題）。実体は SUBJECTS テーブル（データ）なので、テストは
+# 主題語彙のサンプル。実体は SUBJECTS テーブル（データ）なので、テストは
 # seed 語彙としてだけ持つ——コード側の定数ではない（category との対比が設計核）
 _SEED_SUBJECT_IDS = {
     "馬",
@@ -798,7 +798,7 @@ def test_unknown_keys_allows_omitted_keys():
 
 
 def test_unknown_keys_does_not_inspect_nested_dicts():
-    # トップレベルのみ（§1.4 の実害はトップレベルで起きた）。ネストは実害が出たら広げる
+    # トップレベルのみ（沈黙消滅の実害はトップレベルで起きた）。ネストは実害が出たら広げる
     raw = {
         "uuid": "u1",
         "display_name": "x",

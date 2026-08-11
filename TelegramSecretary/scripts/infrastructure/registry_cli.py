@@ -165,7 +165,7 @@ def _import_records(
             raise TypeError(
                 f"import expects a JSON array of records, got {type(raw).__name__}"
             )
-        # 語彙は batch で 1 回だけ引く（201 件の書き戻しで SUBJECTS を 201 回読まない）
+        # 語彙は batch で 1 回だけ引く（N 件の書き戻しで SUBJECTS を N 回読まない）
         active = _active_subject_ids(config) if name == "knowledge" else set()
         records = []
         for row in raw:
@@ -282,7 +282,7 @@ def read_json_arg(args: Any) -> dict:
 
 
 def _sync_after_change(config: Config, name: str, message: str, sync) -> None:
-    """管理表の変更後に git 同期（イベント駆動、R2-3）。
+    """管理表の変更後に git 同期（イベント駆動）。
 
     sync 注入を優先（テスト/外部組み立て）、無ければ config から組み立てる
     （registry_sync_enabled 有効時のみ。無効なら no-op＝ローカルは git に触れない）。
@@ -523,7 +523,7 @@ def run_role_status(config: Config) -> int:
 
 
 def run_registry_fetch(config: Config, git=None) -> int:
-    """起動時に固定ブランチから管理表を fetch（R2-3、ROUTINE_PROMPT が起動時に呼ぶ）。
+    """起動時に固定ブランチから管理表を fetch（ROUTINE_PROMPT が起動時に呼ぶ）。
 
     registry_sync 無効なら no-op（exit 0＝ローカル運用は git に触れない）。git 注入は
     テスト用、本番は config から GitCliAdapter を組み立てる。fetch 失敗は

@@ -138,7 +138,7 @@ def test_multiple_updates_each_with_media():
     assert len(downloader.download_calls) == 2
 
 
-# === Stage 9.2: voice / audio / video が kind 非依存で download される ===
+# === voice / audio / video が kind 非依存で download される ===
 
 
 def test_downloads_voice_media_kind_agnostic():

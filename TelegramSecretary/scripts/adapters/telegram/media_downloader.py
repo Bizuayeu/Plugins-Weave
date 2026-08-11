@@ -1,4 +1,4 @@
-"""Telegram の file_id から実ファイルを download する Adapter（Stage 6.3）。
+"""Telegram の file_id から実ファイルを download する Adapter。
 
 bot token 込み URL（`/file/bot<TOKEN>/<file_path>`）を使うため、
 例外メッセージ・ログに URL/token を残さない（redact）。

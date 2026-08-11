@@ -1,4 +1,4 @@
-"""Moonshine で音声を transcript 化する MediaRenderer Port 実装（Stage 9.5b）。
+"""Moonshine で音声を transcript 化する MediaRenderer Port 実装。
 
 FfmpegAudioPreprocessor で 16kHz mono float にした音声を Moonshine 日本語モデルで
 transcribe し、transcript を RenderedMedia.rendered_text に乗せ render_status="ok"。
@@ -57,7 +57,7 @@ class MoonshineTranscriber:
             if len(samples) == 0:
                 # ここに来るのは「デコードできて中身が 0 サンプル」＝本当に音声が無い場合のみ。
                 # デコード不能は preprocessor が AudioDecodeError を投げ、下の except で
-                # failed になる（S3: 以前は両者が空配列で同じ「無音」に化けていた）。
+                # failed になる（無音と読み取り失敗を取り違えない）。
                 return RenderedMedia(rendered_text="", render_status="ok")
             transcriber_cls, model_path, model_arch = self._ensure_model()
             with transcriber_cls(model_path, model_arch) as tr:

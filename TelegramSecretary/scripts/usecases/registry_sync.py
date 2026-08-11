@@ -1,4 +1,4 @@
-"""管理表の git 永続化ロジック（R2-1）。
+"""管理表の git 永続化ロジック。
 
 イベント駆動 commit & push。commit はローカル即時（確実）、push は best-effort
 （non-fast-forward は pull --rebase で取り込んで再 push、ネットワーク失敗はローカル commit を残す）。

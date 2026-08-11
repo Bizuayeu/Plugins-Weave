@@ -103,7 +103,7 @@ def test_media_attachment_is_immutable():
         media.size = 200  # type: ignore[misc]
 
 
-# === Stage 7.1: MediaAttachment.file_name ===
+# === MediaAttachment.file_name ===
 
 
 def test_media_from_document_api_extracts_file_name():
@@ -139,7 +139,7 @@ def test_media_attachment_default_file_name_is_none():
     assert media.file_name is None
 
 
-# === Stage 7.1: RenderedMedia ===
+# === RenderedMedia ===
 
 
 def test_rendered_media_holds_text_and_status():
@@ -179,7 +179,7 @@ def test_rendered_media_is_immutable():
         rendered.render_status = "failed"  # type: ignore[misc]
 
 
-# === Stage 9.1: voice / audio / video / video_note ===
+# === voice / audio / video / video_note ===
 
 
 def test_media_from_voice_api():
@@ -280,7 +280,7 @@ def test_media_voice_is_immutable():
         media.kind = "audio"  # type: ignore[misc]
 
 
-# === Stage 11.1: RenderedMedia derived_image_paths + page_count ===
+# === RenderedMedia derived_image_paths + page_count ===
 
 
 def test_rendered_media_defaults_derived_images_empty_and_page_count_none():

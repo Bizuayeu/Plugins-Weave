@@ -1,4 +1,4 @@
-"""GitSyncPort の subprocess 実装（R2-2）。
+"""GitSyncPort の subprocess 実装。
 
 registry_dir を含む git リポで、管理表の commit/push/pull-rebase/fetch を実行する。
 git メッセージは LC_ALL=C で英語固定し non-fast-forward を確実に検出する。

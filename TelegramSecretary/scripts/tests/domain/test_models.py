@@ -68,7 +68,7 @@ def test_telegram_update_is_immutable():
         update.text = "y"  # type: ignore[misc]
 
 
-# === Stage 6.2: media / caption 抽出 ===
+# === media / caption 抽出 ===
 
 
 def test_telegram_update_from_api_extracts_photo():
@@ -126,7 +126,7 @@ def test_telegram_update_from_api_extracts_caption():
 
 
 def test_telegram_update_from_api_text_only_has_empty_media():
-    """Stage 6.1 までの既存挙動と後方互換: media は空 list、caption は None。"""
+    """既存挙動と後方互換: media は空 list、caption は None。"""
     payload = {
         "update_id": 1,
         "message": {
@@ -161,7 +161,7 @@ def test_telegram_update_from_api_with_both_photo_and_document():
     assert "document" in kinds
 
 
-# === Stage 9.2: voice / audio / video / video_note 抽出 ===
+# === voice / audio / video / video_note 抽出 ===
 
 
 def test_telegram_update_from_api_extracts_voice():

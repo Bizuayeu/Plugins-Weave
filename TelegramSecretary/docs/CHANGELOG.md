@@ -2,6 +2,30 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.10.1] - 2026-08-11 — 双子の同期漏れ回収と、開発痕跡・ドキュメント配置の整理
+
+機能変更なし。ShioriSecretary との二重管理で**片側にしか入っていなかった修正**を双方向に回収し、
+現在のコードを説明しない開発時の番号をコードから外し、ドキュメントを `docs/` へ集約した。
+双子の差分は「名前・語彙・配布版の線引き」だけになり、片側だけ直して忘れる面がその分減る。
+
+### Changed
+
+- **ドキュメント 6 本を `docs/` へ移動**（DESIGN / STRUCTURE / SETUP / SECURITY / ROUTINE_PROMPT / CHANGELOG）——双子と同じ配置に揃え、リポ直下は README と実行資産だけにした。README / commands / SKILL、親リポ `plugins-weave` の README（日英）、Private 側 `SecretaryRole.md` の参照は追従済み（`/doc-check` はリンク・バージョン・構成図の全項目 green）
+- **コードから開発時の実装計画への参照を外した**（`Stage 6.2` / `FINDING A` / `R2-3` / `S3` 等、43 ファイル）——番号は現在のコードを説明せず、経緯は CHANGELOG と git 履歴が持つ。`v1.9.0 Stage 3` のように**バージョンで辿れる**参照は残した
+- **DESIGN に目次を追加し、§3.8 の階層を正した**——abilities（4 表目）の節の配下に subjects（8 表目）がぶら下がっていたのを、両表を並べる節へ改めた（§3.8 という番号は他文書からの参照ごと維持）
+- **DESIGN §3.5 の digest 絞り表を v1.10.0 へ追従**——`GOALS / STEPS` が「絞りなし」のままで §3.12 の 8 行表と矛盾していた。表と処方の対応は §3.12 が SSoT である旨も明記
+- **v1.9.0 の fail-closed を接点文書へ反映**——SECURITY（SUBJECTS の Private 分離と機微度）／DESIGN §3.8（write と read の非対称）・§3.12（category 許可集合）／SETUP（exit 2 のトラブルシューティング）／SKILL（exit code 2 の意味）
+
+### Added
+
+- **雛型乖離検査を 8 表すべてへ**（`test_templates.py`）——5 表しか網に入っておらず、INDIVIDUALS / TASKS / ABILITIES は雛型が値オブジェクトから乖離しても誰も気づかない状態だった（実測では乖離ゼロ＝**穴があったのは検査の側**）
+- **`RegistryService.replace_all` のテスト 2 本**——「消えたレコードが 1 回の save で反映される」「呼び出し側の配列を握らない」
+- **配線と失敗経路のテスト 9 本**——`build_git` / `build_sync`（registry と WAL が共有する DI）、PDF renderer 未導入時のフォールバック、音声デコードが途中で壊れた場合（一片も取れなければ raise・部分的に取れていれば返す・flush 失敗でも取得済みを捨てない）、`Retry-After: 0` と負値、通信エラーからの回復、WAL 書き込み口の入力不正 3 種。カバレッジ 96% → **97%**（`composition` / `http_retry` / `ffmpeg_preprocessor` は 100%）
+
+### Fixed
+
+- `.gitignore` から、実体の無い `templates/Identities/` への打ち消し規則を削除
+
 ## [1.10.0] - 2026-08-11 — 蓋の無い表を残さない（subjects / steps の索引化・goals の cap・最終校正）
 
 v1.9.0 は蓋の無い側から 3 表を可動域に入れたが、**subjects / goals / steps の 3 表には処方が無いまま**

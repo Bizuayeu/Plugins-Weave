@@ -1,4 +1,4 @@
-"""adapters.media_failure の単体テスト（Stage 1: render 失敗定型の集約）。
+"""adapters.media_failure の単体テスト（render 失敗定型の集約）。
 
 render/transcribe Adapter が共有する「stderr に短縮 id を出す（絶対パス・全文 id は秘匿）→
 RenderedMedia(failed) を返す」定型を 1 箇所に集約したヘルパの契約を pin する。

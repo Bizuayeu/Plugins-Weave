@@ -1,4 +1,4 @@
-"""保持期限超過の media を削除する Infrastructure ユーティリティ（Stage 6.4）。
+"""保持期限超過の media を削除する Infrastructure ユーティリティ。
 
 watch ループの cleanup hook（N サイクルに 1 回呼ぶ）と、単独実行 (CLI 起動) の
 両方を意図した、純粋関数寄りの薄いラッパー。

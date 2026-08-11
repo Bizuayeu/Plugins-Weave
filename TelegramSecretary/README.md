@@ -2,7 +2,7 @@
 
 # TelegramSecretary
 
-> 📦 **設定の置き場** — 環境固有の値は `<INSTALL_DIR>/config.json`（`agent_name` / `private_dir` / `session_duration_sec` / `registry_*`、雛型 `templates/config.template.json`、`init-config` で生成）に集約します。秘匿（bot token / authorized chats）は env で注入。**運用値の手置換は不要**——人格名・private_dir は config.json、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決します（`<INSTALL_DIR>`=インストール先 / `<OWNER>`=運用主体 はドキュメント上の読み替え表記）。詳細は [STRUCTURE.md](./STRUCTURE.md)。
+> 📦 **設定の置き場** — 環境固有の値は `<INSTALL_DIR>/config.json`（`agent_name` / `private_dir` / `session_duration_sec` / `registry_*`、雛型 `templates/config.template.json`、`init-config` で生成）に集約します。秘匿（bot token / authorized chats）は env で注入。**運用値の手置換は不要**——人格名・private_dir は config.json、`<INSTALL_DIR>` / `<REPO_ROOT>` は bootstrap が env 解決します（`<INSTALL_DIR>`=インストール先 / `<OWNER>`=運用主体 はドキュメント上の読み替え表記）。詳細は [STRUCTURE.md](./docs/STRUCTURE.md)。
 
 Telegram Bot API の long-polling を **Claude Code Routines**（Anthropic のクラウド実行スケジュールエージェント基盤。Remote 実行＝cloud routine）上で常駐させ、認可済みチャットからのメッセージに秘書エージェント（`SecretaryRole` を被った本体エージェント。人格名は config.json の `agent_name`）が即応する対話チャネル。
 
@@ -10,12 +10,12 @@ Telegram Bot API の long-polling を **Claude Code Routines**（Anthropic の�
 
 ## アーキテクチャ
 
-Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、依存は内向きのみ）。設計の理由は [DESIGN.md](./DESIGN.md)、ディレクトリ構造は [STRUCTURE.md](./STRUCTURE.md) を参照。
+Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、依存は内向きのみ）。設計の理由は [DESIGN.md](./docs/DESIGN.md)、ディレクトリ構造は [STRUCTURE.md](./docs/STRUCTURE.md) を参照。
 
 ## できること
 
 - **テキスト即応** — Gmail より低レイテンシ（数秒）で `<OWNER>` から呼べる 24-7 の対話チャネル
-- **能動 push（proactive-send）** — 受信への返信だけでなく、秘書側から能動的に送る outbound（双方向化）も可能。秘書は基本 inbound（受信→返信）稼働だが、口頭での権限 grant（例: 自由時間の付与）により outbound も担う（能力境界の詳細は SecretaryRole、再送の冪等性設計は [DESIGN.md](./DESIGN.md) §3.9）
+- **能動 push（proactive-send）** — 受信への返信だけでなく、秘書側から能動的に送る outbound（双方向化）も可能。秘書は基本 inbound（受信→返信）稼働だが、口頭での権限 grant（例: 自由時間の付与）により outbound も担う（能力境界の詳細は SecretaryRole、再送の冪等性設計は [DESIGN.md](./docs/DESIGN.md) §3.9）
 - **受信メディアの中身理解** — file 転送で止まらず中身を読む：
   - 画像 → Vision で解釈
   - docx / pptx / xlsx → Markdown 化
@@ -27,7 +27,7 @@ Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、
 
 ## 秘書が育つ——役割の進化（P×A、守護霊機能）
 
-預けたデータで秘書の顔がデータ駆動で進化します——**秘書**（baseline）から始まり、プロファイルを預けると**執事**、目標を預けると**コーチ**、両方そろうと**守護霊**へ。役割はフラグではなく**データの状態**から立ち上がります（判定は `role-status`＝決定論、演じ方は SecretaryRole。設計の理由は [DESIGN.md](./DESIGN.md) §3.11）。
+預けたデータで秘書の顔がデータ駆動で進化します——**秘書**（baseline）から始まり、プロファイルを預けると**執事**、目標を預けると**コーチ**、両方そろうと**守護霊**へ。役割はフラグではなく**データの状態**から立ち上がります（判定は `role-status`＝決定論、演じ方は SecretaryRole。設計の理由は [DESIGN.md](./docs/DESIGN.md) §3.11）。
 
 |  | 目標なし | 目標あり（GOALS / STEPS） |
 |---|---|---|
@@ -85,7 +85,7 @@ python scripts/main.py lease release
 | `TELEGRAM_SECRETARY_SESSION_ID` | optional | リース owner ID（省略時は uuid 自動生成）。`source bootstrap.sh` で自動 export され全コマンドで共有 |
 | media / PDF / 音声 / 送信添付の optional 群 | optional | `*_MEDIA_MAX_SIZE_BYTES`（20MB）/ `*_MEDIA_RETENTION_HOURS`（24h）/ `*_MEDIA_ENABLE_DOWNLOAD`（Heavy/Medium）/ `*_BUNDLE_VOICE`（STT 同梱）/ `*_OUTBOUND_MAX_SIZE_BYTES`（50MB）/ `*_PDF_IMAGE_MAX_PAGES`（20）。各既定値・挙動は [SKILL.md](./skills/telegram-secretary/SKILL.md) の env vars 表（SSoT）参照 |
 
-> **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須）。「9-17 時勤務」のような勤務帯は cloud routine の cron（例 `0 9-16 * * 1-5`）+ duration で表現します（コードに時計を持たせない）。deadline 駆動ループの運用変数（`TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH` / `TELEGRAM_SECRETARY_POLL_SET_SEC` / `TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS` / `TELEGRAM_SECRETARY_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export します。詳細は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md)。
+> **継続時間は config.json の `session_duration_sec`**（範囲 1〜86400 秒、必須）。「9-17 時勤務」のような勤務帯は cloud routine の cron（例 `0 9-16 * * 1-5`）+ duration で表現します（コードに時計を持たせない）。deadline 駆動ループの運用変数（`TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH` / `TELEGRAM_SECRETARY_POLL_SET_SEC` / `TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS` / `TELEGRAM_SECRETARY_MAX_TURNS`）は `bootstrap.sh` が config.json から算出して export します。詳細は [ROUTINE_PROMPT.md](./docs/ROUTINE_PROMPT.md)。
 
 ## Subcommands
 
@@ -103,7 +103,7 @@ python scripts/main.py lease release
 | `test --chat-id` | 疎通テスト（owner chat に ping 送信） | 0, 1, 3 |
 | `cleanup-media` | retention 超過の保存 media を削除（`watch` は自動発火、手動/cron 用） | 0, 2 |
 | `individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps {list\|get\|add\|remove\|import}` | 管理表 CRUD（8 表、値オブジェクトで入力検証、不正は exit 2）。`add` / `import` はトップレベル未知キーを exit 2 で弾く（fail-closed。read 経路は警告どまりで読める）、`import --json-file` は全件置換（全件検証→置換ゆえ 1 件でも不正なら無置換）。`registry_sync` 有効時は add/remove/import 後に commit&push | 0, 2 |
-| `orientation [--notes-tail N] [--topic-width N] [--handoff-latest N] [--handoff-cap N] [--knowledge-category CAT] [--knowledge-latest N] [--knowledge-subject ID] [--profile-cap N] [--individuals-cap N] [--abilities-cap N] [--goals-cap N] [--tasks-latest N] [--steps-latest N]` | 起動時オリエンテーションのダイジェスト（role + 8表の件数/バイト数 + 小表全文 + tasks / subjects / steps の一行索引と active の notes 末尾 + knowledge 索引 + handoff 最新ブロック）を emit。幅の単位は UTF-8 バイトで丸めは文字境界、出力はレコード長に依存せず有界（DESIGN §3.12）。`--knowledge-category` で索引を category 完全一致に絞る（見出しの `N of M` に全件数が残る）、`--knowledge-subject` で subjects の要素一致に絞る、`--knowledge-latest` で新しい順 N 件に頭打ち（併用時は category → subject → latest の順）。`--profile-cap` / `--individuals-cap` / `--abilities-cap` / `--goals-cap` は小表の支配的長文フィールド（`content` / `identity.context_notes` / `guidance` / `notes`）をバイト上限で丸め（`--goals-cap` は goals の notes を丸めるバイト上限、未指定なら全文）、`--tasks-latest` は tasks 一行要約を、`--steps-latest` は steps 索引を新しい順 N 件に絞る（`--steps-latest` は未指定なら全件。いずれも未指定＝従来どおり全文・全件）。digest の総バイトは毎回 stderr に `orientation digest: N bytes` として出る（25,600 超は警告付き、stdout・exit code は不変） | 0, 2=設定欠損 |
+| `orientation [--notes-tail N] [--topic-width N] [--handoff-latest N] [--handoff-cap N] [--knowledge-category CAT] [--knowledge-latest N] [--knowledge-subject ID] [--profile-cap N] [--individuals-cap N] [--abilities-cap N] [--goals-cap N] [--tasks-latest N] [--steps-latest N]` | 起動時オリエンテーションのダイジェスト（role + 8表の件数/バイト数 + 小表全文〔individuals / abilities / profile / goals〕 + tasks / subjects / steps の一行索引と active の notes 末尾 + knowledge 索引 + handoff 最新ブロック）を emit。幅の単位は UTF-8 バイトで丸めは文字境界、出力はレコード長に依存せず有界（DESIGN §3.12）。`--knowledge-category` で索引を category 完全一致に絞る（見出しの `N of M` に全件数が残る）、`--knowledge-subject` で subjects の要素一致に絞る、`--knowledge-latest` で新しい順 N 件に頭打ち（併用時は category → subject → latest の順）。`--profile-cap` / `--individuals-cap` / `--abilities-cap` / `--goals-cap` は小表の支配的長文フィールド（`content` / `identity.context_notes` / `guidance` / `notes`）をバイト上限で丸め（`--goals-cap` は goals の notes を丸めるバイト上限、未指定なら全文）、`--tasks-latest` は tasks 一行要約を、`--steps-latest` は steps 索引を新しい順 N 件に絞る（`--steps-latest` は未指定なら全件。いずれも未指定＝従来どおり全文・全件）。digest の総バイトは毎回 stderr に `orientation digest: N bytes` として出る（25,600 超は警告付き、stdout・exit code は不変） | 0, 2=設定欠損 |
 | `artifacts-sync` | 成果物層 `artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push。`registry_sync` 無効・`artifacts/` 未作成は no-op | 0, 1=push失敗 |
 | `handoff-archive <name>...` | 消化済みの申し送りブロックを `handoff/archive/` へ移して卒業させる（以後 orientation に載らない）。移動後は `artifacts-sync` 経路で push。不正名・不在・archive 側の同名既存は何も移動せず exit 2 | 0, 1=push失敗, 2=不正/不在 |
 | `role-status` | PROFILE/GOALS から現在の役割（secretary/butler/coach/anego＝守護霊）をデータ駆動で判定し JSON 1行を emit | 0 |
@@ -114,7 +114,7 @@ python scripts/main.py lease release
 
 ## cloud routine への登録（schedule / unschedule）
 
-常駐 routine 自体の cloud routine 登録・更新・停止は `/telegram-secretary` の `schedule`（登録 / 有効化 / 設定上書き＝upsert）/ `unschedule`（停止＝`enabled:false`）で行います。**`RemoteTrigger` ツール手順**（CLI ではない）で、手順は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) の「cloud routine ライフサイクル管理」節が SSoT。秘匿は cloud routine の Environment に注入、運用設定（`session_duration_sec` 等）は `init-config`。物理削除（list から消す）のみ claude.ai UI 手動です。
+常駐 routine 自体の cloud routine 登録・更新・停止は `/telegram-secretary` の `schedule`（登録 / 有効化 / 設定上書き＝upsert）/ `unschedule`（停止＝`enabled:false`）で行います。**`RemoteTrigger` ツール手順**（CLI ではない）で、手順は [ROUTINE_PROMPT.md](./docs/ROUTINE_PROMPT.md) の「cloud routine ライフサイクル管理」節が SSoT。秘匿は cloud routine の Environment に注入、運用設定（`session_duration_sec` 等）は `init-config`。物理削除（list から消す）のみ claude.ai UI 手動です。
 
 ## テスト
 
@@ -140,10 +140,10 @@ python -m pytest scripts/tests/ -v
 
 ## 関連ドキュメント
 
-- [SETUP.md](./SETUP.md) — セットアップガイド（cloud routine 運用開始の順路。はじめての方はここから）
+- [SETUP.md](./docs/SETUP.md) — セットアップガイド（cloud routine 運用開始の順路。はじめての方はここから）
 - [SKILL.md](./skills/telegram-secretary/SKILL.md) — スキルマニフェスト（仕様の SSoT）
-- [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) — cloud routine 実行手順
-- [DESIGN.md](./DESIGN.md) — 設計正典（なぜこの設計か）
-- [STRUCTURE.md](./STRUCTURE.md) — 構造地図（どこに何を置くか）
-- [SECURITY.md](./SECURITY.md) — セキュリティ正典（脅威モデル・配布前チェックリスト）
-- [CHANGELOG.md](./CHANGELOG.md) — 変更履歴
+- [ROUTINE_PROMPT.md](./docs/ROUTINE_PROMPT.md) — cloud routine 実行手順
+- [DESIGN.md](./docs/DESIGN.md) — 設計正典（なぜこの設計か）
+- [STRUCTURE.md](./docs/STRUCTURE.md) — 構造地図（どこに何を置くか）
+- [SECURITY.md](./docs/SECURITY.md) — セキュリティ正典（脅威モデル・配布前チェックリスト）
+- [CHANGELOG.md](./docs/CHANGELOG.md) — 変更履歴

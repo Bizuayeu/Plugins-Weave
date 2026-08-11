@@ -1,4 +1,4 @@
-"""exit code SSoT の契約 pin（Stage 2）。
+"""exit code SSoT の契約 pin。
 
 値は外部契約（SKILL.md / ROUTINE_PROMPT.md / SECURITY.md / bootstrap.sh）なので、
 うっかり変えたら赤になるよう各値を固定し、main からの re-export 後方互換も検証する。

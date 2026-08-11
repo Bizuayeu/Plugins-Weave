@@ -736,7 +736,7 @@ from usecases.orientation import filter_knowledge_by_subject  # noqa: E402
 def _subjected_knowledge() -> list[dict]:
     """category（認識の型）と subjects（主題）が直交している状態の見本。
 
-    K-004 は subjects を持たない既存レコード（201 件の初期状態）を模す。
+    K-004 は subjects を持たない既存レコード（移行前の初期状態）を模す。
     """
     return [
         _knowledge(id="K-001", topic="馬房の掃除", category="ops", subjects=["馬"]),
@@ -764,7 +764,7 @@ def test_index_knowledge_lists_subjects_between_the_id_and_the_topic():
 def test_index_knowledge_renders_missing_subjects_as_placeholder():
     """subjects の無いレコードは `-`——列が消えると読み手が桁をずらして誤読する。
 
-    `summarize_task` の due_date と同じ理由。既存 201 件は subjects 未設定で始まるため、
+    `summarize_task` の due_date と同じ理由。既存レコードは subjects 未設定で始まるため、
     移行期間中は大半がこの形で並ぶ。
     """
     assert index_knowledge(_knowledge(id="K-001", topic="鍵の預かり")) == (

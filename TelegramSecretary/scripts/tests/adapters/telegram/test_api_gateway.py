@@ -227,7 +227,45 @@ def test_429_invalid_retry_after_does_not_sleep(monkeypatch):
     assert sleep_calls == []
 
 
-# === Stage 6.3: get_file ===
+@pytest.mark.parametrize("header", ["0", "-5"])
+def test_429_non_positive_retry_after_does_not_sleep(monkeypatch, header):
+    """`Retry-After: 0` / 負値は sleep せず即 retry（負値を sleep に渡すと ValueError）。"""
+    sleep_calls: list[float] = []
+    monkeypatch.setattr(http_retry.time, "sleep", lambda s: sleep_calls.append(s))
+
+    attempts: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        if len(attempts) < 2:
+            return httpx.Response(429, headers={"Retry-After": header})
+        return httpx.Response(200, json={"ok": True, "result": []})
+
+    gw = _gateway(handler, retry_count=2)
+    gw.fetch(UpdateOffset.initial())
+    assert sleep_calls == []
+    assert len(attempts) == 2
+
+
+def test_network_error_recovers_on_retry(monkeypatch):
+    """通信エラーは retry 上限まで再試行し、回復したら成功を返す（1 回の瞬断で落とさない）。
+
+    上限まで尽きた場合の raise は別テストが担当。ここは「尽きる前に回復する」側。
+    """
+    attempts: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        if len(attempts) < 3:
+            raise httpx.ConnectError("boom", request=request)
+        return httpx.Response(200, json={"ok": True, "result": []})
+
+    gw = _gateway(handler, retry_count=3)
+    assert gw.fetch(UpdateOffset.initial()) == []
+    assert len(attempts) == 3
+
+
+# === get_file ===
 
 
 def test_get_file_returns_file_path():
@@ -287,7 +325,7 @@ def test_get_file_raises_when_ok_false():
         gw.get_file("missing")
 
 
-# === Stage 8.3: outbound media（sendPhoto / sendDocument / sendChatAction） ===
+# === outbound media（sendPhoto / sendDocument / sendChatAction） ===
 
 
 def test_send_no_attachment_uses_sendmessage():

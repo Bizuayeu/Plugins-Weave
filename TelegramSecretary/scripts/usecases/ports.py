@@ -57,9 +57,9 @@ class LeaseStore(Protocol):
 
 
 class MediaDownloader(Protocol):
-    """Telegram の file_id から実ファイルを download する Port（Stage 6.2）。
+    """Telegram の file_id から実ファイルを download する Port。
 
-    実装は adapters/telegram/media_downloader.py（Stage 6.3）。
+    実装は adapters/telegram/media_downloader.py。
     target_dir は state_dir/media/ を想定（呼び出し側が用意）。
     戻り値は保存先の絶対 Path。
 
@@ -73,12 +73,12 @@ class MediaDownloader(Protocol):
 
 
 class MediaRenderer(Protocol):
-    """Download 済み media を エージェントが読める形式に変換する Port（Stage 7.2）。
+    """Download 済み media を エージェントが読める形式に変換する Port。
 
-    実装は adapters/render/markitdown_renderer.py（Stage 7.3）。
+    実装は adapters/render/markitdown_renderer.py。
     mime-routing は呼び出し側（UseCase）が担い、ここに来た時点で render 対象は確定。
     Adapter は内部例外を catch して RenderedMedia(render_status="failed") を返す契約
-    （Stage 6 の skip_reason 同型の「フラグ化、ブロックしない」スタンス）。
+    （skip_reason 同型の「フラグ化、ブロックしない」スタンス）。
     """
 
     def render(self, media: MediaAttachment, local_path: Path) -> RenderedMedia: ...
@@ -97,7 +97,7 @@ class RegistryStore(Protocol):
 
 
 class GitSyncPort(Protocol):
-    """管理表ブランチの git 操作を抽象化する Port（R2）。
+    """管理表ブランチの git 操作を抽象化する Port。
 
     実装は adapters/registry/git_cli.py（subprocess）。RegistrySyncService が
     commit/push 分離・non-ff rebase フォールバックのロジックをこの Port 越しに駆動する。

@@ -1,4 +1,4 @@
-"""R2-1: RegistrySyncService（管理表の git 永続化ロジック）のテスト。
+"""RegistrySyncService（管理表の git 永続化ロジック）のテスト。
 
 commit/push 分離 + non-ff 時の pull_rebase フォールバックを fake GitSync で全分岐検証。
 """

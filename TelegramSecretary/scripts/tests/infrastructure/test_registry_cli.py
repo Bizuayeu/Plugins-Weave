@@ -129,7 +129,7 @@ def test_add_persists_to_registry_dir_when_set(tmp_path):
     assert not (state / "individuals").exists()
 
 
-# === R2-3: イベント駆動 sync（DI） ===
+# === イベント駆動 sync（DI） ===
 
 
 def test_add_triggers_sync_when_provided(tmp_path):
@@ -184,7 +184,7 @@ def test_no_sync_when_not_provided(tmp_path):
     )
 
 
-# === R2-3c: 起動時 fetch（registry-sync） ===
+# === 起動時 fetch（registry-sync） ===
 
 
 def test_registry_fetch_calls_fetch_checkout_when_enabled(tmp_path):

@@ -93,7 +93,7 @@ class FakeLeaseStore:
 
 
 class FakeMediaDownloader:
-    """Stage 6.2: download 呼び出しを記録、`fail` フラグ / `exc_by_file_id` で例外を投げる fake。
+    """download 呼び出しを記録、`fail` フラグ / `exc_by_file_id` で例外を投げる fake。
 
     成功時は target_dir / f"{file_id}.bin" を返す（実 I/O はなし）。
     exc_by_file_id は file_id 毎に raise する例外の注入（通信失敗・401 のシミュレート）。
@@ -115,7 +115,7 @@ class FakeMediaDownloader:
 
 
 class FakeMediaRenderer:
-    """Stage 7.2: render 呼び出しを記録、固定値を返す fake。
+    """render 呼び出しを記録、固定値を返す fake。
 
     Adapter 側で内部 catch + flag 化のため、UseCase は raise を期待しない契約。
     fail フラグで raise すれば契約違反を観察できる（テスト用、通常未使用）。
@@ -143,7 +143,7 @@ class FakeMediaRenderer:
 
 
 class FakeGitSync:
-    """git 同期操作を記録する fake（R2）。
+    """git 同期操作を記録する fake。
 
     - commit: `committed` 値を返す（変更有無の擬似）
     - push: `push_outcomes` の先頭を順に消費。None=成功、例外インスタンス=raise

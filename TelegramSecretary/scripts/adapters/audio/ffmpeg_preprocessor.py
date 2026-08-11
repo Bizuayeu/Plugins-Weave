@@ -1,4 +1,4 @@
-"""音声ファイルを 16kHz mono float PCM へデコードする Adapter（Stage 9.5b）。
+"""音声ファイルを 16kHz mono float PCM へデコードする Adapter。
 
 PyAV（`av`）で ffmpeg を wheel 内包で呼ぶ（システム ffmpeg 不要）。
 Telegram voice(OGG/OPUS) / audio(mp3/m4a) / video の音声トラックを、

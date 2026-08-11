@@ -58,7 +58,7 @@ def test_image_png_is_passthrough():
 
 
 def test_pdf_calls_pdf_renderer():
-    """Stage 10: PDF は passthrough をやめ、pdf_renderer でテキスト層抽出（Read tool 非依存）。
+    """PDF は passthrough をやめ、pdf_renderer でテキスト層抽出（Read tool 非依存）。
 
     markitdown renderer（docx 等）には回さず、専用 pdf_renderer ルートに乗る。
     """
@@ -278,7 +278,7 @@ def test_file_name_is_carried_through_render_result():
     assert results[0].media.file_name == "specification.docx"
 
 
-# === Stage 9.4: audio → transcribe（transcriber 注入時のみ）===
+# === audio → transcribe（transcriber 注入時のみ）===
 
 
 def test_audio_mpeg_calls_transcriber_when_injected():
@@ -318,10 +318,10 @@ def test_audio_skipped_without_transcriber():
 
 
 def test_video_calls_transcriber():
-    """Stage 9.6: video/* も transcribe ルート（音声トラックを transcript 化）。
+    """video/* も transcribe ルート（音声トラックを transcript 化）。
 
     FfmpegAudioPreprocessor が動画コンテナの音声ストリームを PyAV で decode するため、
-    audio/* と同じ transcriber 経路に乗る。key frame Vision は 9.6-ii で別途。
+    audio/* と同じ transcriber 経路に乗る。key frame Vision は別途。
     """
     dr = _download_result(1, "video/mp4", file_id="vid")
     transcriber = FakeMediaRenderer(

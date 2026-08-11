@@ -101,7 +101,7 @@ def test_config_enable_download_invalid_value(monkeypatch):
         Config.from_sources()
 
 
-# === Stage 8.4: outbound media size ===
+# === outbound media size ===
 
 
 def test_config_default_outbound_max_size():
@@ -121,7 +121,7 @@ def test_config_rejects_non_positive_outbound_max_size(monkeypatch):
         Config.from_sources()
 
 
-# === Stage 11.4: PDF image max pages (cap) ===
+# === PDF image max pages (cap) ===
 
 
 def test_config_default_pdf_image_max_pages():
@@ -148,7 +148,7 @@ def test_config_rejects_invalid_pdf_image_max_pages(monkeypatch):
         Config.from_sources()
 
 
-# === Stage 2: session_duration_sec（config.json 必須・範囲検証・純2層） ===
+# === session_duration_sec（config.json 必須・範囲検証・純2層） ===
 
 
 def _write_config(tmp_path, data: dict):
@@ -240,7 +240,7 @@ def test_private_dir_non_string_raises(tmp_path):
         Config.from_sources(config_path=path)
 
 
-# === R1: registry_dir（揮発 state と永続管理表のパス分離） ===
+# === registry_dir（揮発 state と永続管理表のパス分離） ===
 
 
 def test_registry_paths_default_to_state_dir_when_registry_unset(tmp_path):
@@ -264,11 +264,11 @@ def test_registry_dir_config_separates_registry_from_state(tmp_path, monkeypatch
     assert cfg.state_dir == state.resolve()
     assert reg.resolve() in cfg.individuals_path.parents
     assert cfg.knowledge_path == reg.resolve() / "knowledge" / "KNOWLEDGE.json"
-    # 揮発 state とは別の根に分離されている（R1 の核心）
+    # 揮発 state とは別の根に分離されている（パス分離の核心）
     assert cfg.state_dir not in cfg.individuals_path.parents
 
 
-# === R2-3: registry_sync 設定（イベント駆動 git 同期のオプトイン） ===
+# === registry_sync 設定（イベント駆動 git 同期のオプトイン） ===
 
 
 def test_registry_sync_disabled_by_default(tmp_path):
@@ -301,7 +301,7 @@ def test_registry_branch_from_config(tmp_path):
     assert cfg.registry_branch == "claude/custom-reg"
 
 
-# === R3: registry_dir の env 優先（bootstrap 絶対化のキャリア、cwd 依存 .resolve() 回避） ===
+# === registry_dir の env 優先（bootstrap 絶対化のキャリア、cwd 依存 .resolve() 回避） ===
 
 
 def test_registry_dir_env_overrides_config(tmp_path, monkeypatch):
@@ -309,7 +309,7 @@ def test_registry_dir_env_overrides_config(tmp_path, monkeypatch):
 
     config.json の registry_dir は cwd（=2リポ親）起点の相対だが、registry コマンドは
     ROUTINE_PROMPT で `cd $INSTALL_DIR`（skill root）してから走るため、config.py の
-    `.resolve()`（cwd 基準）では二重ネストの幽霊パスに解決される（FINDING 3 同型、R3 物証）。
+    `.resolve()`（cwd 基準）では二重ネストの幽霊パスに解決される（state_dir のパス解決と同型）。
     bootstrap が source 時の cwd（=2リポ親）基準で絶対化して env 注入し、config.py は
     その絶対パスをそのまま信頼する（再 resolve しない＝state_dir と同型の Z 案）。
     """
