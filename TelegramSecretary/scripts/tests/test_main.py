@@ -1652,6 +1652,21 @@ def test_orientation_parser_accepts_the_new_knobs(env_ready):
     )
 
 
+# --- v1.10.0 Stage 2: goals cap・steps latest の parser 入口 ---
+
+
+def test_orientation_accepts_the_new_knobs(env_ready, capsys):
+    """`--goals-cap` / `--steps-latest` が main 経由で UseCase まで届く（見出しの開示で確認）。
+
+    cap に 0 を渡すのは、値が届いた事実と「0 が未指定（＝蓋なし）へ逆転しない」ことを
+    一度に固定するため——空表でも見出しの開示だけは受け取った値をそのまま映す。
+    """
+    assert main(["orientation", "--goals-cap", "0", "--steps-latest", "2"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "## goals (0 records, full, notes cap 0 bytes)" in out
+    assert "## steps (latest 0 of 0 records, newest last" in out
+
+
 def test_wal_append_accepts_outbound_kind(env_ready):
     """parser が --kind outbound を受け付ける（registry_sync 無効ゆえ no-op で exit 0）。
 

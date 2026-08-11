@@ -919,11 +919,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="abilities の guidance を丸めるバイト上限（未指定なら全文）",
     )
     p_orientation.add_argument(
+        "--goals-cap",
+        dest="goals_cap",
+        type=int,
+        default=None,
+        help="goals の notes を丸めるバイト上限（未指定なら全文）",
+    )
+    p_orientation.add_argument(
         "--tasks-latest",
         dest="tasks_latest",
         type=int,
         default=None,
         help="tasks 一行要約を新しい順 N 件に絞る（notes も連動、未指定なら全件）",
+    )
+    p_orientation.add_argument(
+        "--steps-latest",
+        dest="steps_latest",
+        type=int,
+        default=None,
+        help="steps 索引を新しい順 N 件に絞る（未指定なら全件）",
     )
 
     # 成果物層（artifacts/、handoff ブロックを含む）の commit & push。

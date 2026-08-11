@@ -440,7 +440,9 @@ def run_orientation(config: Config, args: Any = None) -> int:
         individuals_cap=getattr(args, "individuals_cap", None),
         abilities_cap=getattr(args, "abilities_cap", None),
         profile_cap=getattr(args, "profile_cap", None),
+        goals_cap=getattr(args, "goals_cap", None),
         tasks_latest=getattr(args, "tasks_latest", None),
+        steps_latest=getattr(args, "steps_latest", None),
     )
     print(digest)
     _report_orientation_size(digest)

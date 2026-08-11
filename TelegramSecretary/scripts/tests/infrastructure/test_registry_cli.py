@@ -1390,6 +1390,19 @@ def test_orientation_tasks_latest_is_wired_from_the_cli(tmp_path, capsys):
     assert "T-003 |" in out and "T-001 |" not in out
 
 
+def test_zero_steps_latest_empties_the_index_instead_of_passing_all_rows(
+    tmp_path, capsys
+):
+    """`--steps-latest 0` は未指定（None＝全件）へ逆転せず、0 件として届く。"""
+    config = _config(tmp_path)
+    run_registry_command(config, "steps", "add", _ns(json=json.dumps(_STEP)))
+    capsys.readouterr()
+    assert run_orientation(config, _ns(steps_latest=0)) == 0
+    out = capsys.readouterr().out
+    assert "## steps (latest 0 of 1 records, newest last" in out
+    assert "s1 |" not in out
+
+
 def test_orientation_knowledge_subject_is_wired_from_the_cli(tmp_path, capsys):
     """主題絞りが CLI から効く（scope 表示に subject=X）。"""
     config = _config(tmp_path)
