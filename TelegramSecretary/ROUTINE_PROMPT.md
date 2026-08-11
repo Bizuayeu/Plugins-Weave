@@ -83,29 +83,30 @@ Step 4 の fetch はデータをローカルに降ろすだけで、**あなた�
 
 > **8表を並べて `list` してはならない。** registry は運用で肥大する（knowledge は数百件・MB 級、tasks は 1 レコードの notes が十数万字に達する）。表を並べた出力はハーネスの出力上限を超えて persisted-output へ退避され、**データがコンテキストに載らないまま exit 0** する——読めていないのに読めたつもりで起動する沈黙失敗である（実際に十数枠再発した）。`orientation` は同じ問いに、notes 長に依存しない有界サイズで答える。機序と設計根拠は **DESIGN §3.12 が SSoT**。
 
-10. **orientation ダイジェスト（一撃）**。役割判定・8表の件数/バイト数・小表（individuals / subjects / abilities / profile / goals / steps）の全文・tasks の一行要約と active タスクの notes 末尾・knowledge の `id | subjects | topic` 索引・前枠までの handoff ブロックが、この 1 コマンドで揃う（`role-status` を別途叩く必要はない——同一判定が `## role` に載る）：
+10. **orientation ダイジェスト（一撃）**。役割判定・8表の件数/バイト数・小表（individuals / abilities / profile / goals）の全文・tasks の一行要約と active タスクの notes 末尾・knowledge の `id | subjects | topic` 索引・subjects と steps の一行索引・前枠までの handoff ブロックが、この 1 コマンドで揃う（`role-status` を別途叩く必要はない——同一判定が `## role` に載る）：
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \
   (cd "$TELEGRAM_SECRETARY_INSTALL_DIR" && \
    python scripts/main.py orientation \
      --knowledge-latest 30 --notes-tail 500 --handoff-latest 2 --handoff-cap 2500 \
-     --profile-cap 500 --abilities-cap 700)
+     --profile-cap 500 --abilities-cap 700 --individuals-cap 400 --goals-cap 500 \
+     --tasks-latest 9 --steps-latest 10)
 ```
 
-   （6 つの幅は **ローカル実測で校正した採用値**〔v1.9.0〕——バックアップ registry の複製〔knowledge 197 件〔全件に主題を仮付与〕/ subjects 9 件 / tasks 10 件 / handoff 2 ブロック〕に対する実測で **24,412 バイト**。同じデータに対し、v1.8.0 の 4 値のままだと主題軸の追加分〔subjects 表の全文掲載＋索引への併記＝**+2,503 バイト**〕で **26,655 バイト**となり、退避される圏内へ戻ってしまう——**後ろ 2 つの cap がその増分を蓋の無い側から回収している**。目標は警告閾値 **25,600 バイト**〔`ORIENTATION_WARNING_BYTES`。これ自体が実測境界の安全側下限〕。実測表は CHANGELOG v1.9.0。**digest のサイズは毎回 stderr に `orientation digest: N bytes` として出る**ので、データが育って閾値を越えたらその枠で分かる——越えたら幅を下げるか、この行そのものを校正する）
+   （10 の幅は **ローカル実測で校正した採用値**〔v1.10.0〕——バックアップ registry の複製〔knowledge 211 件 / tasks 11 件〔active 6 / done 5〕/ subjects 9 件 / individuals 1 件 / abilities 1 件 / profile 4 件 / goals 0 件 / steps 0 件 / handoff 4 ブロック〕に対する実測で **23,583 バイト**、目標の警告閾値 **25,600 バイト**〔`ORIENTATION_WARNING_BYTES`。これ自体が実測境界の安全側下限〕に対し**余裕 2,017 バイト**。同じデータ・同じ 6 値で v1.9.0 コードなら **25,267 バイト**〔余裕 333〕だったので、subjects / steps の索引化が **1,387 バイト**を回収し、残りを未投入だった `--individuals-cap` / `--tasks-latest` と新ノブが埋めている。**`--steps-latest 10` だけは仮置き**〔steps 0 件ゆえ実測から導けない。body 再登録が不可逆・一度きりの経路なので、steps が埋まってから 2 度目の登録を要する事態を避けて先に焼いた〕——**昇格トリガー＝steps に実データが入った枠で実測校正する**。実測表は CHANGELOG v1.10.0。**digest のサイズは毎回 stderr に `orientation digest: N bytes` として出る**ので、データが育って閾値を越えたらその枠で分かる——越えたら幅を下げるか、この行そのものを校正する。余裕 2,017 バイトは active タスク約 3 件分〔実測 1 件≈616 バイト、done 1 件≈90 バイト〕）
 
-   （絞った分は**消えるのではなく読み筋が変わる**: knowledge 索引は見出しの `latest 30 of M` が母数を開示し、落ちた分は `--knowledge-category` / `--knowledge-subject` か `knowledge get --key` で引く。cap で丸めた profile / abilities の全文は `profile get --key` / `abilities get --key`（見出しの `cap N bytes` と切り取りマーカー `…` が「ここで切れている」ことを開示する）。tasks の notes 全文は `tasks get --key`。handoff は**頭から**丸められるので末尾〔「★次枠がまずやること★」等〕が切れうる——切れた印 `…` が出たら見出しのファイル名を `Read` で原本ごと読む）
+   （絞った分は**消えるのではなく読み筋が変わる**: knowledge 索引は見出しの `latest 30 of M` が母数を開示し、落ちた分は `--knowledge-category` / `--knowledge-subject` か `knowledge get --key` で引く。cap で丸めた profile / abilities / individuals / goals の全文は `profile get --key` / `abilities get --key` / `individuals get --key` / `goals get --key`（見出しの `cap N bytes` と切り取りマーカー `…` が「ここで切れている」ことを開示する）。tasks の notes 全文は `tasks get --key`（要約から落ちた行も同じ）。subjects と steps は索引なので**行に載らない項目**〔subjects の timestamps、steps の notes〕は `subjects get --key` / `steps get --key` で引き、steps は `latest N of M` が母数を開示する。handoff は**頭から**丸められるので末尾〔「★次枠がまずやること★」等〕が切れうる——切れた印 `…` が出たら見出しのファイル名を `Read` で原本ごと読む）
 
    ダイジェストが答えるのは「今どうなっているか」であり、表は相互参照する——「tasks をどう扱うか」の方針（自由時間の運用規範・grant 条件・行使してよい能力）は knowledge / abilities 側にあり、伴走の文脈は profile / goals / steps 側にある：
 
-   - **individuals（誰と）** — 相手の tone / honorific / taboo、疎遠な相手の鮮度（全文）
-   - **tasks（何を頼まれ）** — `id | status | priority | due_date | title` の一行要約（全件）＋ active（open / in_progress / blocked）の notes 末尾（上記呼び出しでは 500 バイト、既定 4000）。**done の notes は載らない**。長い notes は handoff 分離前の legacy 堆積ゆえ末尾だけを見て、全文が要るときは `tasks get --key`
+   - **individuals（誰と）** — 相手の tone / honorific / taboo、疎遠な相手の鮮度（全文。上記呼び出しでは `identity.context_notes` だけが 400 バイトで丸まる——全文は `individuals get --key`）
+   - **tasks（何を頼まれ）** — `id | status | priority | due_date | title` の一行要約（上記呼び出しでは新しい順 9 件、見出しの `latest 9 of M` が母数を開示。**active が落ちない最大の絞り**として実測で選んだ値ゆえ、落ちるのは古い done の要約行）＋ active（open / in_progress / blocked）の notes 末尾（上記呼び出しでは 500 バイト、既定 4000）。**done の notes は載らない**。長い notes は handoff 分離前の legacy 堆積ゆえ末尾だけを見て、全文が要るときは `tasks get --key`
    - **knowledge（どう判断するか）** — `id | subjects | topic` の索引のみ（`content` は載らない）。判断方針・運用規範（**自由時間の使い方・actionability ゲート・grant 条件**）の在り処を索引で掴む。上記呼び出しでは新しい順 30 件（見出しの `latest 30 of M` が母数を開示）——それ以前の在り処は `--knowledge-category`（認識の型）か `--knowledge-subject`（主題）で軸を指定して引く。主題列が `-` の行は主題未付与（付ける価値があると判断したら `knowledge add`／`import` で足す）
-   - **subjects（どの軸で引けるか）** — 主題の語彙表（`id` / `label` / `aliases` / `status` / `note`、全文）。**`--knowledge-subject` に渡せるのはここの active な id だけ**で、knowledge へ主題を付けるときもこの表の語彙から選ぶ（範囲外は候補列挙付きで exit 2）。足りない語があれば `subjects add` で足す（コード変更は要らない）
+   - **subjects（どの軸で引けるか）** — 主題の語彙表の `id | label | aliases | status | note` 索引（**全件**。件数は絞らない——ここは「どの主題で引くか」を選ぶ一覧なので母数を減らすと選べない語が出る。丸まるのは `note` 列だけ、timestamps は載らない）。**`--knowledge-subject` に渡せるのはここの active な id だけ**で、knowledge へ主題を付けるときもこの表の語彙から選ぶ（範囲外は候補列挙付きで exit 2）。足りない語があれば `subjects add` で足す（コード変更は要らない）
    - **abilities（何ができるか）** — 行使できる能力カタログ（`trigger` / `skill_path` / `guidance`）。上記呼び出しでは `guidance` が 700 バイトで丸まる——発動判断に要る `trigger` / `skill_path` は丸めない。手順の全文は `abilities get --key`
    - **profile（誰に仕えるか）** — principal の人物理解（特性・励まされ方・決断スタイル）。応答の温度と提案の出し方をここに合わせる（パーソナライズ＝P軸）。上記呼び出しでは `content` が 500 バイトで丸まる（各レコードの頭が載る）——全文は `profile get --key`
-   - **goals / steps（何に伴走するか）** — active な目標と期限近接・滞留中のステップ（全文。伴走＝A軸、プロマネの巻き取り）
+   - **goals / steps（何に伴走するか）** — 伴走＝A軸、プロマネの巻き取り。**goals は全文**（上記呼び出しでは `notes` が 500 バイトで丸まる——全文は `goals get --key`）、**steps は `id | goal_id | seq | status | title` の索引**（上記呼び出しでは新しい順 10 件、見出しの `latest 10 of M` が母数を開示。`notes` は載らないので `steps get --key`）
    - **role（今日の自分の顔）** — P×A から決定論導出された役割（secretary/butler/coach/anego＝守護霊）。演じ方は SecretaryRole「役割の進化」節に従う（役割を自称で膨らませない）
    - **handoff（前枠からの申し送り）** — 最新ブロックの本文（上記呼び出しでは 2 ブロック・各先頭 2500 バイト、既定 3 / 8000）。**丸めは頭から**なので長いブロックは末尾が切れる——`…` が出ていたらファイル名を `Read` して原本を読む
 
@@ -117,7 +118,7 @@ source /tmp/telegram-secretary.env.sh && \
    python scripts/main.py knowledge get --key <id>)
 ```
 
-   ダイジェストが足りない／重すぎる時は `--notes-tail` / `--topic-width` / `--handoff-latest` / `--handoff-cap` / `--knowledge-latest` / `--profile-cap` / `--individuals-cap` / `--abilities-cap` / `--tasks-latest` で幅を調節する（**コードの既定**は 4000B / 120B / 3 ブロック / 8000B / 全件、および cap 系は全て蓋なし＝全文・全件で、上記呼び出しはそのうち 6 つを実測校正値で上書きしている。`--knowledge-category`〔認識の型〕/ `--knowledge-subject`〔主題〕で索引を絞ることもでき、併用すると絞った後の中で新しい順に効く）。**広げた時は stderr の `orientation digest: N bytes` を必ず読む**——25,600 バイト超の警告が出た枠は、digest がコンテキストに載っていない可能性がある（exit 0 でも）。
+   ダイジェストが足りない／重すぎる時は `--notes-tail` / `--topic-width` / `--handoff-latest` / `--handoff-cap` / `--knowledge-latest` / `--profile-cap` / `--individuals-cap` / `--abilities-cap` / `--goals-cap` / `--tasks-latest` / `--steps-latest` で幅を調節する（**コードの既定**は 4000B / 120B / 3 ブロック / 8000B / 全件、および cap 系・latest 系は全て蓋なし＝全文・全件で、上記呼び出しはそのうち 10 を実測校正値で上書きしている。`--knowledge-category`〔認識の型〕/ `--knowledge-subject`〔主題〕で索引を絞ることもでき、併用すると絞った後の中で新しい順に効く）。**広げた時は stderr の `orientation digest: N bytes` を必ず読む**——25,600 バイト超の警告が出た枠は、digest がコンテキストに載っていない可能性がある（exit 0 でも）。
 
 11. **自由時間（autonomous turn）の判断**。オリエンテーションを終えたら、その起動を「自律的に1ターン使うに値するか」判断する。**毎起動で機械的に発信せず、knowledge に記録された運用規範（actionability ゲート）を通す**——渡すに値する signal だけを起こす。grant（自由時間の付与等）が生きていて値する signal があれば、次の候補から **1つだけ** 能動的に進める（手順は「自由時間の能動発信（proactive-send）」節に従う）：
 

@@ -2,6 +2,52 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.10.0] - 2026-08-11 — 蓋の無い表を残さない（subjects / steps の索引化・goals の cap・最終校正）
+
+v1.9.0 は蓋の無い側から 3 表を可動域に入れたが、**subjects / goals / steps の 3 表には処方が無いまま**
+残っていた。実データ（knowledge 211 件・全件主題付与済み）での実測は **25,264 バイト**、閾値 25,600 に
+対し余裕 **336 バイト**——タスク 1 件の起票で消える。膨張源は knowledge 索引ではない（`--knowledge-latest 30`
+で既に有界＝197→211 件でも索引は 30 行）。**太ったのは蓋の無い側**である。本版の目標は目先の余裕ではなく
+**「8 表すべてに処方があり、digest のサイズが構造的に有界」**な状態で、これは goals / steps を蓋なしで
+残したままでは証明されない。処方の対応表は **DESIGN §3.12 が SSoT**。
+
+### Added
+
+- **`orientation --goals-cap N`** — goals の `notes` をバイト上限で丸める（`--profile-cap` / `--abilities-cap` と同型、`_CAP_FIELDS` へ 1 行）。既定は未指定＝全文、見出しに `full, notes cap N bytes` として開示。goals は**件数が少なく本文が長い**側なので処方は cap
+- **`orientation --steps-latest N`** — steps 索引を新しい順 N 件に絞る（`--tasks-latest` と同型、`pick_latest_by_id` を再利用）。既定は未指定＝全件、見出しは `latest N of M, newest last`。**0 は「全捨て」**で未指定へ逆転しない（判定は `is not None`、既存 cap ノブと同じ規約）
+
+### Changed
+
+- **subjects の索引化（全文 JSON → `id | label | aliases | status | note` の一行索引）** — 語彙は `subjects add` で育つ＝**件数が増える表**なので、処方は cap ではなく索引にした（cap は 1 レコードの長さにしか効かない）。全文 JSON は `created_at` / `updated_at` という**この用途で価値ゼロの数十バイト**を毎レコード運んでいた。**件数絞りは付けない**——この表は「どの主題で knowledge を引くか」を選ぶ一覧なので母数を減らすと選べない語が出る。絞るのは行あたりの重さだけで、丸まるのは `note` 列（幅は `knowledge` の `topic` 列の既定 `DEFAULT_TOPIC_WIDTH` に揃えた＝**新しい数値を発明していない**）。`aliases` は `/` 連結・空は `-`（列が消えると桁がずれて誤読する、`index_knowledge` と同じ流儀）
+- **steps の索引化（全文 JSON → `id | goal_id | seq | status | title` の一行索引）** — 目標からの逆算単位ゆえ**設計上 `done` が高速に溜まる**＝件数が増える表で、処方は tasks と同じ「一行＋件数絞り」。`notes` は載らない（読み筋は `steps get --key`）。**選ぶのは新しい順・並べるのは id 昇順**の捻れの解き方も tasks / knowledge と同じ（`newest last` は絞ったときだけ載せる）
+- **既定出力の変更（破壊的変更ではない）** — subjects / steps の 2 セクションの描画が変わる（v1.9.0 の索引 3 列化と同じ扱いの**仕様変更**）。**他 6 セクションは byte 同一**を退行テスト `test_unrelated_sections_keep_the_default_snapshot`（v1.9.0 出力から転記した literal と 7 ブロック突合）で固定してある——この錠は production 変更**前**に書いて green を確認した。スキーマ・データには一切触れていない（索引化も cap も表示だけの操作）
+- **ROUTINE_PROMPT Step 5 の校正値を v1.10.0 実測へ（6 値 → 10 値）** — 呼び出し行は `--knowledge-latest 30 --notes-tail 500 --handoff-latest 2 --handoff-cap 2500 --profile-cap 500 --abilities-cap 700 --individuals-cap 400 --goals-cap 500 --tasks-latest 9 --steps-latest 10`（**実測 23,583 バイト**、閾値 25,600 に対し**余裕 2,017 バイト**）
+
+  実測条件：バックアップ registry の scratchpad 複製に対する read-only 実行。**knowledge 211 件**（全件に主題付与済み）、tasks 11 件（**active 6 / done 5**）、subjects 9 件、individuals 1 件、abilities 1 件、profile 4 件、**goals 0 件 / steps 0 件**、handoff 4 ブロック（`--handoff-latest 2` ゆえ 2 使用）。
+
+  | 条件 | ノブ | digest bytes | 余裕 |
+  |---|---|---:|---:|
+  | ①′ v1.9.0 コード＋v1.9.0 採用 6 値（基線） | `--knowledge-latest 30 --notes-tail 500 --handoff-latest 2 --handoff-cap 2500 --profile-cap 500 --abilities-cap 700` | 25,267 | 333 |
+  | ① 現行コード（索引化後）＋同 6 値 | 同上 | 23,880 | 1,720 |
+  | ② ＋本版の cap / 絞り | ①＋`--goals-cap 500 --steps-latest 10` | 23,926 | 1,674 |
+  | ③ ＋未投入 2 ノブ | ②＋`--individuals-cap 400 --tasks-latest 6` | 22,102 | 3,498 |
+  | **採用: ③の `--tasks-latest` を 9 へ** | ②＋`--individuals-cap 400 --tasks-latest 9` | **23,583** | **2,017** |
+
+  - **索引化そのものの回収量は ①′→① の −1,387 バイト**。②が①より **+46 バイト**なのは goals / steps が **0 件**で見出しの開示文（`notes cap 500 bytes` / `latest 0 of 0`）だけが増えるため——**蓋の効果はデータが入ってから出る**。0 件の表にノブを足すのは一般には YAGNI だが、本版の目標（8 表すべてに処方がある＝構造的に有界）の**証明に要る要素は YAGNI の対象外**であり、加えてリリース後に埋まってから直すと TS と ShioriSecretary で 2 サイクルを再度要する
+  - **採用値の出所**（10 値・すべて言える形にする）: v1.9.0 の 6 値は**全据置**（`--knowledge-latest` は「どう判断するか」の在り処ゆえ最後に触る対象で、本版では触っていない＝STOP 条件に抵触せず）。`--individuals-cap 400` は**本実測**（−184 バイト。`context_notes` の 2/3 が残る）。`--tasks-latest 9` も**本実測**——**active 6 件が 1 件も落ちない最大の絞り**で、落ちるのは古い done の要約行だけ（v1.9.0 が `--tasks-latest` を採らなかった理由「依頼そのものが起動時に見えなくなる」を、active を全部残す値を選ぶことで解消した）。`--goals-cap 500` は **`--profile-cap 500` に揃えた**——同じ「1 レコードが長い表の本文フィールド」への同じ処方に別の数字を当てる理由が無い。`--steps-latest 10` は**仮置き**（下記 Notes）
+  - **目標余裕に −883 バイトの未達**: 秘書提案の目安（約 2,900 バイト）に対し採用値は 2,017 バイト。届かせる案（`--handoff-cap` 2500→2000 で 3,021 バイト）は**採らなかった**——handoff の丸めは**頭から**なので、削れるのは末尾＝「★次枠がまずやること★」という**最も行動に効く部分**である。2,900 は閾値ではなく目安であり、閾値 25,600 は 2,017 バイトの余裕で満たしている。**未達は数字のまま残す**（隠して丸めない）
+  - **成長単位（次に閾値へ当たるまでの目安）**: active タスク 1 件 ≈ **+616 バイト**、done 1 件 ≈ **+90 バイト**（実測）。余裕 2,017 バイトは **active 約 3 件分**。越えた枠は stderr の `orientation digest: N bytes` でそのまま観測できる
+- **接点文書の追従** — `README.md` / `skills/telegram-secretary/SKILL.md`（orientation オプション表へ 2 種）、`DESIGN.md` §3.12（**表の性質→処方の 8 行表を SSoT として追加**・有界式・「絞れない床」の現況）、`ROUTINE_PROMPT.md`（Step 5 の呼び出し行・根拠注記・オプション列挙・表別読み筋——**「小表の全文」の列挙が索引化で嘘になっていた**ので、cap 側 4 表〔individuals / abilities / profile / goals〕と索引側〔subjects / steps〕へ書き分けた）
+- **テスト側の追従** — `test_registry_cli.py` の `_expected_default_stdout`（既定 stdout 全文スナップショット）が `## subjects (0 records, full)` / `## steps (0 records, full)` を持っており索引化で必然的に割れるため 2 行を更新。`test_orientation.py` の fixture `_TABLES` が **7 表のまま取り残されていた**（v1.9.0 で `REGISTRY_SPEC` は 8 表化済み）ので 8 表へ是正——subjects が `build()` 経由で描画できない状態だった
+
+### Notes
+
+- **Step 5 を変更したため、本番へ届けるには cloud routine の body 再登録が必要**（リポ修正だけでは到達しない）。手順は `RemoteTrigger` の get → modify → update（v1 ネスト・`session_context` は全体を保持）で v1.9.0 と同一。**不可逆かつ一度きりの経路**ゆえ、本版では実装に含めず裁可後に別手で行う
+- **`--steps-latest 10` は仮置き（唯一、実測から導けなかった値）** — steps が **0 件**のため件数絞りの効果を測れない。それでも body に焼いたのは、上記の body 再登録が不可逆・一度きりの経路であり、**steps が埋まってから 2 度目の登録を要する事態を避ける**ため。**昇格トリガー＝steps に実データが入った枠で実測校正する**（同じ理由で `--goals-cap 500` も goals 0 件だが、こちらは `--profile-cap` と同処方・同数値という出所を持つ）
+- **`cc-defer` を 1 つも積んでいない** — `grep -c "cc-defer" scripts/usecases/orientation.py` は 0。本版の目標が「蓋の無い表を残さない」である以上、蓋の無い表を台帳に積んで先送りすると目標そのものが未達になる
+- **ShioriSecretary への追随は本版に含まない**（別サイクル）。配布版は「値でなく校正方法を配る」（v1.9.0 配布三則(1)）ため、TS が採用値を body に焼くのとは扱いが非対称——同じ機構への扱いが両リポで違うのは仕様
+- 実測は **バックアップ registry の scratchpad 複製に対する read-only 実行**（正典・Private リポ・バックアップ実体とも非接触）。数値はその時点のスナップショットであり、データが育てば動く。**ローカル再現時の注意**: Windows の cp932 環境では digest 出力が `UnicodeEncodeError` になるため `PYTHONIOENCODING=utf-8` が要る（cloud routine / Linux では発生しない）
+
 ## [1.9.0] - 2026-08-10 — 主題の軸（8 表目）・蓋の無い表への上限ノブ・書き込み口の fail-closed
 
 v1.8.0 は校正値を実測化したが、余裕は **1,448 バイト**（実測 24,152 / 閾値 25,600）しか無く、

@@ -203,8 +203,10 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **出力の有界性（なぜサイズが読めるか）**: ダイジェストは全文でなく**射影**であり、出力量は概ね
 
   ```
-  小表全文（individuals/subjects/abilities/profile/goals/steps）
-      ※ v1.9.0 以降、individuals / abilities / profile は cap で頭打ちにできる
+  小表全文（individuals/abilities/profile/goals）
+      ※ v1.9.0 以降 individuals / abilities / profile、v1.10.0 以降 goals も cap で頭打ちにできる
+    + subjects 件数 × 索引行（note は topic_width で丸め、v1.10.0）
+    + steps 件数（steps_latest で頭打ち可、v1.10.0）× 索引行
     + tasks 件数（tasks_latest で頭打ち可）× 一行要約
     + active タスク数 × notes_tail(4000B)
     + knowledge 件数（category / subject / latest で絞り可）× topic_width(120B)
@@ -222,7 +224,21 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **件数絞り（`--knowledge-latest`）**: 同じ項を**新しい順 N 件**で頭打ちにする（id は日付順に振られるため id の大きい方が新しい——`pick_latest_handoffs` の名前降順と同じ読み筋）。母数の開示は category 絞りと同じ規約で、見出しに `latest N of M` が載る。**選ぶのは新しい順、並べるのは id 昇順のまま**——索引の読み方（不変の規約）は変えず、母数だけを減らす。この捻れは並べ替えではなく**読み方の開示**で解き、latest 指定時のみ見出しに `newest last`（末尾が最新）を加える（未指定の見出しは不変＝既定出力の byte 同一互換を保つ）。`--knowledge-category` と併用すると**絞ってから latest**（M は category 絞り後の件数）で、逆順だと「新しい N 件に該当 category が無ければ 0 件」になり絞りの意味が壊れる。既定は未指定＝全件（後方互換）であり、ROUTINE_PROMPT Step 5 の投入値は v1.8.0 で**仮置き（200）から実測校正値へ**替わった（実測表と選定理由は CHANGELOG v1.8.0 / v1.9.0）
 - **主題絞り（`--knowledge-subject`）と索引の主題併記**: 同じ項を subjects の**要素一致**で絞る（category 絞りと同型。母数開示・該当 0 件でも exit 0＝絞りは観測であって検証ではない）。絞りの順は **category → subject → latest**——latest を先に効かせると「新しい N 件に該当主題が無ければ 0 件」になり絞りの意味が壊れる（category との併用理由と同じ）。索引行は `id | subjects | topic` の 3 列で、主題は `/` 連結・未設定は `-`（列が消えると読み手が桁をずらして誤読する）。**併記列は topic_width の外側**に置く——主題を足したせいで topic の丸め幅が縮むと、索引の読める量が主題の付き方で揺れる
 - **蓋の無い表への上限ノブ（案A、v1.9.0）**: 下の「絞れない床」が示すとおり、v1.8.0 の 4 ノブは knowledge 索引・notes 末尾・handoff 本文の 3 項にしか効かず、床（小表全文＋tasks 一行要約）には手が届かなかった。`--profile-cap` / `--individuals-cap` / `--abilities-cap` / `--tasks-latest` は**この床を初めて可動域に入れる**。cap が当たるのは表の支配的長文フィールド 1 つ（`content` / `identity.context_notes` / `guidance`）だけで、丸めの規約は既存 `_truncate` をそのまま使う（新しい丸め処理を書かない＝読み手が表ごとに切れ方を覚えずに済む）。**既定は未指定＝全文**（非破壊）で、見出しに `full, <field path> cap N bytes` として開示する
-- **絞れない床（校正で動かせる部分が増えた）**: v1.8.0 で全ノブを最小に振っても残った **11,629 バイト**は、小表の全文（individuals / abilities / **profile 6,417B** / goals / steps）と tasks の一行要約だった——25,600 の目標に対し床だけで 45%。v1.9.0 は subjects 表が加わって床が **13,847 バイト**へ上がる一方、案A のノブを最小に振ると床は **6,919 バイト**（目標の 27%）まで下がる。**C（主題軸）が床を押し上げ、A（上限ノブ）が床を掘り下げる**——A を C の前提条件として同版に入れたのはこのため（実測は CHANGELOG v1.9.0）。将来 goals / steps が埋まれば床は再び上がるので、そのときは同型のノブを足す（現在 0 件ゆえ先回りしない）
+- **絞れない床（校正で動かせる部分が増えた）**: v1.8.0 で全ノブを最小に振っても残った **11,629 バイト**は、小表の全文（individuals / abilities / **profile 6,417B** / goals / steps）と tasks の一行要約だった——25,600 の目標に対し床だけで 45%。v1.9.0 は subjects 表が加わって床が **13,847 バイト**へ上がる一方、案A のノブを最小に振ると床は **6,919 バイト**（目標の 27%）まで下がる。**C（主題軸）が床を押し上げ、A（上限ノブ）が床を掘り下げる**——A を C の前提条件として同版に入れたのはこのため（実測は CHANGELOG v1.9.0）。**v1.10.0 で「蓋の無い表」は消えた**——subjects / steps を索引化し goals に cap を掛けたので、8 表すべてが可動域に入り、床は「表の件数 × 索引行」まで縮む（実測は CHANGELOG v1.10.0）
+- **表の性質が処方を決める（8 表の処方一覧）★SSoT**: 蓋の掛け方は表ごとの気分ではなく、**1 レコードが長いのか／レコード数が増えるのか**で決まる。前者には cap（支配的長文フィールド 1 つだけを丸める）、後者には索引または件数絞り（行あたりを最小化し、母数は見出しで開示する）。新しい表が生えたら、この二択のどちらかに必ず入れる——どちらでもない表は「蓋の無い表」であり、育ったときに沈黙失敗を再発させる側になる。
+
+  | 表 | 処方 | 根拠 |
+  |---|---|---|
+  | individuals | cap（`identity.context_notes`、`--individuals-cap`） | 1 レコードが長い |
+  | tasks | 一行要約＋`--tasks-latest`（notes は絞った集合に連動） | 件数が増える |
+  | knowledge | `id \| subjects \| topic` 索引＋絞り 3 種（category / subject / latest） | 件数が増える |
+  | subjects | 索引（`id \| label \| aliases \| status \| note`、件数絞りは付けない） | `subjects add` で語彙を育てるのが正規ワークフロー＝件数が増える。ただし「どの主題で引くか」を選ぶ一覧ゆえ母数は減らせない——絞るのは行あたりの重さだけ |
+  | abilities | cap（`guidance`、`--abilities-cap`） | 1 レコードが長い（`trigger` / `skill_path` は発動判断に要るので丸めない） |
+  | profile | cap（`content`、`--profile-cap`） | 1 レコードが長い（principal 1 件） |
+  | goals | cap（`notes`、`--goals-cap`） | 件数は少なく本文が長い |
+  | steps | 索引（`id \| goal_id \| seq \| status \| title`）＋`--steps-latest` | 目標からの逆算単位ゆえ設計上 `done` が高速に溜まる＝件数が増える |
+
+  実装上、この表は 2 箇所に写っている——`_CAP_FIELDS`（cap 側 4 表への経路の写像）と `_table_section` の分岐（索引側 4 表）。**「既定は全文」の分岐に残るのは cap 側 4 表**（individuals / abilities / profile / goals）で、`_CAP_FIELDS` のキー集合とちょうど一致する。subjects に cap でなく索引を採ったのは、cap が 1 レコードの長さにしか効かず語彙の件数成長に無力だから——全文 JSON は `created_at` / `updated_at` という**この用途で価値ゼロの数十バイト**を毎レコード運ぶ
 
 > 消化（handoff → knowledge への結晶化）と卒業（archive）のサイクルは v1.6.0 で載った。分離（第一段）が「読む量を切る」だったのに対し、消化と卒業は**母数そのものを減らす**——選択（何を結晶化し、何を卒業させるか）＝α は秘書の判断に残し、移動と読み筋だけをコードが持つ（§2 の踏襲）。
 
