@@ -39,11 +39,13 @@ ACTIVE_TASK_STATUSES = frozenset({"open", "in_progress", "blocked"})
 
 # 全文で載る小表の「支配的長文フィールド」への経路（orientation_report_20260810 実測の支配項）。
 # 蓋はここだけに掛ける——レコード全体の JSON を丸めると構造が壊れ、個票を `get --key` で
-# 引き直す読み筋まで死ぬ。goals / steps は現在 0 件なのでノブを付けない（肥大したら同型で 1 行足す）
+# 引き直す読み筋まで死ぬ。goals は件数が少なく本文が長い側なのでここに載る。件数が増える側
+# （subjects / steps）は cap では有界にならないので索引で処方する（表の性質が処方を決める）
 _CAP_FIELDS: Mapping[str, tuple[str, ...]] = {
     "individuals": ("identity", "context_notes"),
     "abilities": ("guidance",),
     "profile": ("content",),
+    "goals": ("notes",),
 }
 
 
@@ -127,6 +129,47 @@ def index_knowledge(
     subjects = "/".join(str(s) for s in record.get("subjects", []) or []) or "-"
     topic = _truncate(str(record.get("topic", "")), topic_width)
     return f"{record.get('id', '')} | {subjects} | {topic}"
+
+
+def index_subject(
+    record: Mapping[str, Any], note_width: int = DEFAULT_TOPIC_WIDTH
+) -> str:
+    """subjects の索引行 `id | label | aliases | status | note`。timestamps は**載せない**。
+
+    語彙は `subjects add` で育つ＝件数が増える表なので、処方は cap ではなく索引にする
+    （cap は 1 レコードの長さにしか効かない）。この表は `--knowledge-subject` に渡す語を
+    選ぶための一覧なので、選択に要る 4 列は全量載せ、丸めるのは note だけ。aliases は
+    `/` 連結の 1 列・空は `-`（列が消えると読み手が桁をずらして誤読する——`index_knowledge`
+    の subjects 列と同じ流儀）。
+    """
+    aliases = "/".join(str(a) for a in record.get("aliases", []) or []) or "-"
+    note = _truncate(str(record.get("note", "")), note_width)
+    return " | ".join(
+        [
+            str(record.get("id", "")),
+            str(record.get("label", "")),
+            aliases,
+            str(record.get("status", "")),
+            note,
+        ]
+    )
+
+
+def index_step(record: Mapping[str, Any]) -> str:
+    """steps の索引行 `id | goal_id | seq | status | title`。notes は**載せない**。
+
+    目標からの逆算単位ゆえ設計上 `done` が高速に溜まる＝件数が増える表で、処方は tasks と
+    同じ「一行＋件数絞り」。落ちた行と notes の読み筋は `get --key`（`summarize_task` と同型）。
+    """
+    return " | ".join(
+        [
+            str(record.get("id", "")),
+            str(record.get("goal_id", "")),
+            str(record.get("seq", "")),
+            str(record.get("status", "")),
+            str(record.get("title", "")),
+        ]
+    )
 
 
 def cap_record_field(record: Mapping[str, Any], path: Sequence[str], cap: int) -> dict:
@@ -244,7 +287,9 @@ class OrientationService:
         individuals_cap: int | None = None,
         abilities_cap: int | None = None,
         profile_cap: int | None = None,
+        goals_cap: int | None = None,
         tasks_latest: int | None = None,
+        steps_latest: int | None = None,
     ) -> str:
         # None は「蓋なし＝現行挙動」。0 は「マーカーのみ／0 件」という指定なので
         # falsy では分岐しない（判定は is not None）
@@ -252,6 +297,7 @@ class OrientationService:
             "individuals": individuals_cap,
             "abilities": abilities_cap,
             "profile": profile_cap,
+            "goals": goals_cap,
         }
         records = {name: lister.list() for name, lister in self._listers.items()}
         parts = ["# orientation", ""]
@@ -268,6 +314,7 @@ class OrientationService:
                 knowledge_latest,
                 caps,
                 tasks_latest,
+                steps_latest,
             )
         parts += self._handoff_section(handoffs, handoff_latest, handoff_cap)
         return "\n".join(parts)
@@ -302,6 +349,7 @@ class OrientationService:
         knowledge_latest: int | None,
         caps: Mapping[str, int | None],
         tasks_latest: int | None,
+        steps_latest: int | None,
     ) -> list[str]:
         if name == "tasks":
             return self._tasks_section(rows, notes_tail, tasks_latest)
@@ -313,7 +361,12 @@ class OrientationService:
                 knowledge_subject,
                 knowledge_latest,
             )
-        # 既定は全文（小表＝individuals / abilities / profile / goals / steps）。
+        if name == "subjects":
+            return self._subjects_section(rows)
+        if name == "steps":
+            return self._steps_section(rows, steps_latest)
+        # 既定は全文（小表＝individuals / abilities / profile / goals。いずれも件数が少なく
+        # 1 レコードが長い側なので、蓋は _CAP_FIELDS の cap で掛ける）。
         # 表が増えても列挙漏れで欠落しない側に倒す（肥大したらここで射影を足す）
         cap = caps.get(name)
         path = _CAP_FIELDS.get(name)
@@ -392,6 +445,39 @@ class OrientationService:
         lines = [
             f"## knowledge ({count}{scope}, index: id | subjects | topic)",
             *[index_knowledge(k, topic_width) for k in ordered],
+        ]
+        return [*lines, ""]
+
+    def _subjects_section(self, rows: list[dict]) -> list[str]:
+        """語彙を id 昇順の索引で**全量**並べる（件数絞りは付けない）。
+
+        この表は「どの主題で knowledge を引くか」を選ぶための一覧なので、母数を減らすと
+        選べない語が出る——絞るべきは索引の**行あたりの重さ**であって件数ではない。
+        """
+        ordered = sorted(rows, key=lambda r: str(r.get("id", "")))
+        lines = [
+            f"## subjects ({len(ordered)} records, "
+            "index: id | label | aliases | status | note)",
+            *[index_subject(s) for s in ordered],
+        ]
+        return [*lines, ""]
+
+    def _steps_section(self, rows: list[dict], latest: int | None = None) -> list[str]:
+        """索引を latest で絞る（`_tasks_section` と同型、母数は見出しの `of M` で開示）。
+
+        選ぶのは新しい順・並びは id 昇順という捻れの解き方も tasks / knowledge と同じ
+        （`newest last` は絞ったときだけ載せる——全件に付けると並び順の誤読を生む）。
+        """
+        ordered = sorted(rows, key=lambda r: str(r.get("id", "")))
+        total = len(ordered)
+        if latest is None:
+            count = f"{total} records"
+        else:
+            ordered = pick_latest_by_id(ordered, latest)
+            count = f"latest {len(ordered)} of {total} records, newest last"
+        lines = [
+            f"## steps ({count}, index: id | goal_id | seq | status | title)",
+            *[index_step(s) for s in ordered],
         ]
         return [*lines, ""]
 

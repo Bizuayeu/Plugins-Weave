@@ -638,6 +638,8 @@ _SNAPSHOT_TASK = dict(_TASK, notes="NOTE_A")
 # v1.9.0 Stage 4 で 8 表目 subjects が REGISTRY_SPEC に乗り、counts 1 行と空表セクションが
 # 増えた。**既定非破壊の定義はこの「空表セクションの定数増のみ」**（計画 Decision Priority
 # Notes）——空表を隠す特別扱いは置かない（表追加のたびに暗黙挙動が増えるため）。
+# v1.10.0 Stage 1 で subjects / steps を一行索引へ**意図的に**変えたため、この 2 行の見出しが
+# `full` から `index: ...` になった（UseCase の描画変更がここへそのまま出る＝配線が生きている証）。
 # counts の実バイト数だけは改行変換で OS 依存（Windows は CRLF）なので stat() から差し込む。
 # f-string 内の role 行の波括弧は二重化（表示は 1 重）。
 def _expected_default_stdout(config: Config) -> str:
@@ -669,8 +671,7 @@ NOTE_A
 ## knowledge (1 records, index: id | subjects | topic)
 K-001 | - | 申し送りの置き場
 
-## subjects (0 records, full)
-[]
+## subjects (0 records, index: id | label | aliases | status | note)
 
 ## abilities (0 records, full)
 []
@@ -681,8 +682,7 @@ K-001 | - | 申し送りの置き場
 ## goals (0 records, full)
 []
 
-## steps (0 records, full)
-[]
+## steps (0 records, index: id | goal_id | seq | status | title)
 
 ## handoff (0 blocks, latest 3, cap 8000 bytes)
 

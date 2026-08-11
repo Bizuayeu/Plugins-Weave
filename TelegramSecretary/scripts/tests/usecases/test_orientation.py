@@ -16,10 +16,12 @@ from usecases.orientation import (
 )
 
 # CLI（Interface）が REGISTRY_SPEC 順で渡す表名。UseCase 側はキー順にセクションを回すだけ
+# （並びは REGISTRY_SPEC が SSoT——8 表目 subjects は knowledge の直後）
 _TABLES = (
     "individuals",
     "tasks",
     "knowledge",
+    "subjects",
     "abilities",
     "profile",
     "goals",
@@ -331,6 +333,10 @@ _INDIVIDUAL_RECORD = {
 # v1.9.0 Stage 3 で knowledge 索引が `id | subjects | topic` の 3 列になり、この契約面を
 # **意図的に**動かした（大環主裁可 Q5「索引併記する」）。オプション追加による非破壊とは別枠の
 # 仕様変更なので、更新したのはこの 1 セクションだけ——他セクションは 1 バイトも動かさない。
+# v1.10.0 Stage 1 で subjects / steps を一行索引へ**意図的に**変えた（同じ別枠扱い）。
+# 併せて 8 表目 subjects を `_TABLES` に載せた——REGISTRY_SPEC（SSoT）は v1.9.0 Stage 4 で
+# 既に 8 表で、この fixture だけが 7 表のまま取り残されていた。動いたのは counts の 1 行と
+# subjects / steps の 2 セクションで、他 6 表は `_UNRELATED_SECTIONS_SNAPSHOT` が固定する。
 _DEFAULT_DIGEST_SNAPSHOT = """# orientation
 
 ## role
@@ -340,6 +346,7 @@ _DEFAULT_DIGEST_SNAPSHOT = """# orientation
 individuals: 1 records, 0 bytes
 tasks: 2 records, 0 bytes
 knowledge: 2 records, 0 bytes
+subjects: 0 records, 0 bytes
 abilities: 0 records, 0 bytes
 profile: 0 records, 0 bytes
 goals: 0 records, 0 bytes
@@ -369,6 +376,8 @@ NOTE_A
 K-001 | - | 申し送りの置き場
 K-002 | - | 請求の締め
 
+## subjects (0 records, index: id | label | aliases | status | note)
+
 ## abilities (0 records, full)
 []
 
@@ -378,8 +387,7 @@ K-002 | - | 請求の締め
 ## goals (0 records, full)
 []
 
-## steps (0 records, full)
-[]
+## steps (0 records, index: id | goal_id | seq | status | title)
 
 ## handoff (1 blocks, latest 3, cap 8000 bytes)
 ### 20260809T000000Z_s.md
@@ -848,3 +856,197 @@ def test_knowledge_subject_does_not_affect_other_sections():
 def test_knowledge_subject_unset_keeps_the_default_snapshot():
     """`knowledge_subject` を明示的に None で渡しても既定と同一（後方互換の第五の錠）。"""
     assert _snapshot_digest(knowledge_subject=None) == _DEFAULT_DIGEST_SNAPSHOT
+
+
+# === 三表の処方: subjects / steps の索引化と goals の cap（v1.10.0 Stage 1） ===
+
+# subjects / steps の描画は本サイクルで**意図的に**変える（v1.9.0 の索引 3 列化と同じ扱い）。
+# 変えない側を先に機械で固定するのがこのブロックの錠——**v1.9.0 の出力から転記した
+# 6 表分の literal** で、以後の描画変更がここへ滲み出したら即座に割れる。
+_UNRELATED_SECTIONS = (
+    "individuals",
+    "tasks",
+    "tasks.notes",
+    "knowledge",
+    "abilities",
+    "profile",
+    "goals",
+)
+
+_UNRELATED_SECTIONS_SNAPSHOT = """## individuals (1 records, full)
+[
+  {
+    "uuid": "u1",
+    "display_name": "yamada",
+    "role": "associate",
+    "status": "active",
+    "created_at": "t",
+    "updated_at": "t"
+  }
+]
+
+## tasks (2 records, summary: id | status | priority | due_date | title)
+T-001 | open | high | 2026-08-10 | 見積を送る
+T-002 | done | low | - | 請求書
+
+## tasks.notes (active only, last 4000 bytes)
+### T-001
+NOTE_A
+
+## knowledge (2 records, index: id | subjects | topic)
+K-001 | - | 申し送りの置き場
+K-002 | - | 請求の締め
+
+## abilities (0 records, full)
+[]
+
+## profile (0 records, full)
+[]
+
+## goals (0 records, full)
+[]
+"""
+
+
+def _section(digest: str, name: str) -> str:
+    """`## name (` の見出し行から次の見出し直前までを、見出し込みで切り出す。"""
+    body = digest.split(f"\n## {name} (", 1)[1]
+    return f"## {name} (" + body.split("\n## ", 1)[0]
+
+
+def test_unrelated_sections_keep_the_default_snapshot():
+    """subjects / steps の描画を変えても、他 6 表の既定出力は 1 バイトも動かない。
+
+    契約面（秘書が毎枠読む digest）の変更を「意図した 2 セクション」に閉じ込める錠。
+    tasks は要約と `tasks.notes` の 2 ブロックを持つので両方を突き合わせる。
+    """
+    digest = _snapshot_digest()
+    rendered = "\n".join(_section(digest, name) for name in _UNRELATED_SECTIONS)
+    assert rendered == _UNRELATED_SECTIONS_SNAPSHOT
+
+
+def _subject(**kw) -> dict:
+    base = {
+        "id": "馬",
+        "label": "馬",
+        "aliases": [],
+        "status": "active",
+        "note": "",
+        "created_at": "t",
+        "updated_at": "t",
+    }
+    base.update(kw)
+    return base
+
+
+def _step(**kw) -> dict:
+    base = {
+        "id": "S-001",
+        "goal_id": "G-001",
+        "title": "見積を集める",
+        "seq": 1,
+        "status": "todo",
+        "due_date": None,
+        "notes": "",
+        "created_at": "t",
+        "updated_at": "t",
+    }
+    base.update(kw)
+    return base
+
+
+def _goal(**kw) -> dict:
+    base = {
+        "id": "G-001",
+        "title": "厩舎を建てる",
+        "category": "work",
+        "status": "active",
+        "target_date": None,
+        "success_criteria": "",
+        "notes": "",
+        "created_at": "t",
+        "updated_at": "t",
+        "closed_at": None,
+    }
+    base.update(kw)
+    return base
+
+
+def test_subjects_index_keeps_the_vocabulary_selectable():
+    """語彙は全量載り（id / label / aliases / status）、幅で丸まるのは note だけ。
+
+    subjects は `--knowledge-subject` に渡す語を選ぶための一覧なので、選択に要る 4 列は
+    索引でも欠かさない。cap でなく索引を採るのは `subjects add` で件数が増える表だから
+    ——cap は 1 レコードの長さにしか効かない（DESIGN の表の性質→処方）。
+    """
+    digest = _service(
+        subjects=[
+            _subject(id="馬", aliases=["horse", "馬事"], note="の" * 300),
+            _subject(id="建設", label="建設", status="deprecated"),
+        ]
+    ).build()
+    assert (
+        "## subjects (2 records, index: id | label | aliases | status | note)" in digest
+    )
+    assert "建設 | 建設 | - | deprecated | " in digest  # aliases 空は `-`
+    horse = next(ln for ln in digest.splitlines() if ln.startswith("馬 | "))
+    note = horse.split(" | ")[4]
+    assert _utf8_len(note) <= DEFAULT_TOPIC_WIDTH  # 幅は knowledge の topic 列に揃える
+    assert note.endswith(TRUNCATION_MARK)
+    assert "created_at" not in digest  # 索引は timestamps を運ばない（行あたり最小）
+
+
+def test_subjects_are_sorted_by_id_ascending():
+    digest = _service(
+        subjects=[_subject(id="S-003"), _subject(id="S-001"), _subject(id="S-002")]
+    ).build()
+    assert digest.index("S-001 |") < digest.index("S-002 |") < digest.index("S-003 |")
+
+
+def test_steps_index_drops_the_notes_and_keeps_the_ordering_columns():
+    """索引は `id | goal_id | seq | status | title`——notes は載せない（読み筋は `get --key`）。"""
+    digest = _service(steps=[_step(notes="STEP_NOTES_MARKER")]).build()
+    assert "## steps (1 records, index: id | goal_id | seq | status | title)" in digest
+    assert "S-001 | G-001 | 1 | todo | 見積を集める" in digest
+    assert "STEP_NOTES_MARKER" not in digest
+
+
+def test_steps_latest_keeps_the_newest_and_discloses_the_total():
+    """一行索引を id 昇順の末尾 N 件に絞り、見出しの `latest N of M` で母数を開示する。
+
+    steps は設計上 `done` が高速に溜まる（目標からの逆算単位）——選び方も開示も
+    `_tasks_section` と同型で、新しい並べ替えは持ち込まない（`pick_latest_by_id` の再利用）。
+    """
+    digest = _service(steps=[_step(id=f"S-00{i}", seq=i) for i in range(1, 5)]).build(
+        steps_latest=2
+    )
+    assert (
+        "## steps (latest 2 of 4 records, newest last, "
+        "index: id | goal_id | seq | status | title)" in digest
+    )
+    assert digest.index("S-003 |") < digest.index("S-004 |")
+    for dropped in ("S-001 |", "S-002 |"):
+        assert dropped not in digest
+
+
+def test_goals_cap_bounds_the_notes_and_discloses_the_cap():
+    """goals の支配項 notes に蓋を掛け、掛けた事実を見出しで開示する（profile と同型）。
+
+    goals は件数が少なく本文が長い側なので処方は cap——`_CAP_FIELDS` へ 1 行足すだけで
+    丸め規約・非破壊複製・開示が付く。
+    """
+    record = _goal(notes="あ" * 500, success_criteria="上棟する")
+    digest = _service(goals=[record]).build(goals_cap=100)
+    assert "## goals (1 records, full, notes cap 100 bytes)" in digest
+    capped = _table_json(digest, "goals")[0]
+    assert _utf8_len(capped["notes"]) <= 100
+    assert capped["notes"].endswith(TRUNCATION_MARK)
+    assert capped["success_criteria"] == "上棟する"  # 丸めるのは支配項 1 つだけ
+    assert record["notes"] == "あ" * 500  # 入力レコードは汚さない
+
+
+def test_stage1_knobs_unset_keep_the_default_snapshot():
+    """新ノブ 2 種を明示的に None で渡しても既定と 1 バイト違わない（後方互換の第六の錠）。"""
+    assert (
+        _snapshot_digest(goals_cap=None, steps_latest=None) == _DEFAULT_DIGEST_SNAPSHOT
+    )
