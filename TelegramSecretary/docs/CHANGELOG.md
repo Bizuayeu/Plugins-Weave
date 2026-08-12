@@ -2,6 +2,17 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.10.2] - 2026-08-12 — 起動手順が実在しないパスを指していた（Step 1 の SKILL.md）
+
+### Fixed
+
+- **ROUTINE_PROMPT Step 1 の参照先が実在しなかった**——`<INSTALL_DIR>/SKILL.md` と書かれていたが、SKILL.md はプラグイン構造上 `skills/telegram-secretary/SKILL.md` にあり、**リポ直下には一度も存在したことがない**（v0.11.0 のプラグイン化以降ずっと）。秘書は起動のたびに Step 1 の Read に失敗し、Subcommands / Failure Modes / env vars を仕様書から把握しないまま Step 2 へ進んでいた。**読めなくても手順は止まらない**ため、この失敗は観測されないまま残り続けた（DESIGN §3.12 が扱う沈黙失敗と同型で、こちらは手順書側に出たもの）
+
+### 移行（稼働中の routine には再登録が必要）
+
+1. **登録済みの cloud routine body には旧パスが焼かれている**——本ファイルを直しただけでは稼働中の routine に届かない。`/telegram-secretary` の `schedule`（upsert）で body を再登録する（手順は [ROUTINE_PROMPT.md](./ROUTINE_PROMPT.md) の「cloud routine ライフサイクル管理」節）
+2. 再登録しない場合も**従来どおり動く**——Step 1 が失敗するだけで手順は進む。ただし秘書は仕様書を読まないまま稼働し続ける（Subcommands の把握が起動時オリエンテーションと実地の記憶頼りになる）
+
 ## [1.10.1] - 2026-08-11 — 双子の同期漏れ回収と、開発痕跡・ドキュメント配置の整理
 
 機能変更なし。ShioriSecretary との二重管理で**片側にしか入っていなかった修正**を双方向に回収し、

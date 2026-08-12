@@ -25,7 +25,7 @@ cloud routine は fresh clone で起動するため、設定と人格ファイ�
 
 ## Step 1 — スキル仕様確認
 
-6. `<INSTALL_DIR>/SKILL.md` を読み、Subcommands / Failure Modes / env vars を把握
+6. `<INSTALL_DIR>/skills/telegram-secretary/SKILL.md` を読み、Subcommands / Failure Modes / env vars を把握
 
 ## Step 2 — 環境構築
 
