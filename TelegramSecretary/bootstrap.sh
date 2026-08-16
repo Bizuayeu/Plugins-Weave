@@ -180,7 +180,19 @@ fi
 # env は秘匿のみ)。deadline_epoch は計算"結果"ゆえ env スナップショットに残してよい。
 _ts_duration="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["session_duration_sec"])' "$_ts_script_dir/config.json")" || _ts_die "failed to read session_duration_sec from config.json"
 export TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH="${TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH:-$(( $(date +%s) + _ts_duration ))}"  # 停止主軸: この epoch 秒を過ぎたら /goal 停止
-export TELEGRAM_SECRETARY_POLL_SET_SEC="${TELEGRAM_SECRETARY_POLL_SET_SEC:-540}"                     # メッセージ無し時の 1 窓上限。不変条件 max_duration + timeout(30) < bash_timeout/1000 (=600) を満たす値。残る 30s は 5xx リトライ吸収代
+# POLL_SET_SEC: メッセージ無し時の 1 窓上限。不変条件は「窓 + 1 サイクルの最悪滞留 <= bash_timeout/1000」。
+# 最悪滞留を決めるのは long-poll の --timeout ではなく HTTP 層の再試行予算である——watch は最終サイクルの
+# long-poll だけを残り窓へ丸めるが (main.py の poll_timeout)、その内側で走る api_gateway の再試行
+# (retry_count=2 / request_timeout=40.0、5xx は sleep せず即再試行) は窓を知らない:
+#   450 + (2+1) x 40 + 30(emit/renew の後処理余裕) = 600 = bash_timeout/1000
+# 旧値 540 は最悪滞留を --timeout の 30s と見積もっていたため 540+120=660 > 600 で破れ、502 が続いた枠が
+# SIGTERM (exit 143) した (2026-08-15 実測)。平常時は 502 が出ず 540+30=570 で成立して見える＝障害時にだけ
+# 露出する条件だった。値を動かすときは test_poll_window_invariant.py が bootstrap と gateway 定数を突合する。
+# cc-defer: 429 の Retry-After sleep (最大 60s x retry_count) は上式に入れていない。入れると窓は 360 まで
+#   落ちアイドル枠のターン数が 1.5 倍になる一方、getUpdates は 30s に 1 回しか叩かず flood 制限に触れない。
+#   昇格トリガー = SIGTERM した枠の stderr に 429 が出たら、窓を下げるのでなく fetch の総予算を残り窓へ
+#   丸める (watch ループは WatchWindow.remaining_seconds を既に持っている)。
+export TELEGRAM_SECRETARY_POLL_SET_SEC="${TELEGRAM_SECRETARY_POLL_SET_SEC:-450}"
 export TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS="${TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS:-600000}"  # ポーリング call の bash tool timeout (=BASH_MAX_TIMEOUT_MS)
 # TELEGRAM_SECRETARY_MAX_TURNS: 日次総量レートキャップ (旧: deadline 異常時の暴走保険、役割変更)。
 # 「~15通/h」を最低保証する天井 = アイドル下限(duration/POLL_SET_SEC) + 通数枠(15通/h)。

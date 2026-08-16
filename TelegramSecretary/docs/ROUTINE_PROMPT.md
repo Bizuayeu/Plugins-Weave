@@ -172,7 +172,7 @@ source /tmp/telegram-secretary.env.sh && \
 ```
 
 - **timeout 限定適用の運用規律**: 長い `timeout` を渡すのは **このポーリング call だけ**。lease 操作・send-reply・残り窓計算・git・pytest 等は `timeout` を明示しない（既定 2分=`BASH_DEFAULT_TIMEOUT_MS`）。`{private_dir}/.claude/settings.json` の `BASH_MAX_TIMEOUT_MS=600000` は上限の許可であって既定値は変えない
-- **不変条件 `max_duration + timeout < bash_timeout/1000`**: watch は最終サイクルの long-poll を残り窓に丸めて窓満了を `max_duration` 付近に収め、`timeout` ぶんのオーバーランが bash timeout を超えて SIGTERM するのを防ぐ。プロセス自然終了を timeout 発火より先に起こす
+- **不変条件 `max_duration + (retry_count+1) × request_timeout + 後処理余裕 <= bash_timeout/1000`**: watch は最終サイクルの long-poll を残り窓へ丸めるが、丸まるのは long-poll の `--timeout` **だけ**で、その内側で走る HTTP 層の再試行予算（`api_gateway` の `retry_count=2` / `request_timeout=40.0`、5xx は sleep せず即再試行）は窓を知らない。**オーバーランを決めるのは `--timeout` ではなくこの再試行予算のほう**（`450 + 3×40 + 30 = 600`）。窓の既定値は bootstrap.sh が持ち、値の突合は `test_poll_window_invariant.py` が張る（旧記述は最悪滞留を `--timeout` の 30s と見積もっており、502 が続いた枠が SIGTERM した＝2026-08-15）
 - watch は **(a) 認可済みメッセージを受けたサイクル**（`--exit-on-message`）または **(b) 窓満了**（`--max-duration`）で exit 0 する。**(a) なら即返信→再起動で即応（遅延は long-poll の最大 30秒）、(b) なら素通りで再起動し warm 継続**
 - watch が exit 4（lease 奪取を検出）で返ったら即終了（次 cron が拾い直す、自己治癒）
 
