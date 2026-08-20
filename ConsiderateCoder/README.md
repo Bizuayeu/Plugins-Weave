@@ -119,6 +119,28 @@ ConsiderateCoder/
 
 環境変数は既定値より優先されるため、設定は残しておいても支障はない（worker は `disallowedTools` で Agent を持たず、深さは構造的に 2 で止まる）。反映は次セッション起動から。orchestrator の worker 起動が harness に拒否される場合は、まずこの上限を疑う。
 
+### 動作要件: 進捗表ツールの有効化（CLI × モデル世代依存）
+
+`/plan-sdd`・`/outsource`・`/dig` と orchestrator は、進捗表の維持に `TodoWrite` を宣言している。`TodoWrite` が属する Todo/task-tracking ツール群（`TodoWrite`、`TaskCreate`/`Get`/`Update`/`List`）は、**Claude Code v2.1.233 で新しい世代のモデルでは既定無効**に変更された。有効・無効は CLI とモデルの**両方**で決まる：
+
+| Claude Code | モデル | Todo/task ツール |
+|---|---|---|
+| v2.1.232 以前 | 全世代 | 有効 |
+| v2.1.233 以降 | Opus 4.8 / Sonnet 5 / Fable 5 / Mythos 5 および以降 | **既定で無効** |
+| v2.1.233 以降 | Opus 4.7 など上記より前の世代 | 有効 |
+
+既定無効の組み合わせで進捗表を使うには、`settings.json`（ユーザー設定 `~/.claude/settings.json` など）の `env` に設定する：
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1"
+  }
+}
+```
+
+ゲートの対象はこのツール群に限られ、委任・検分・レポート生成が使う `Agent`・`Read`・`Glob`・`Grep`・`Write` は影響を受けない。無効のまま運用する場合に失われるのは、進捗表の描画と、orchestrator の stall 再開耐性の半分である——[`agents/orchestrator.md`](agents/orchestrator.md) の運用律は「進捗表とファイル物証だけで現在地が復元できる状態を保つ」と定めており、復元の手がかりがファイル物証だけになる。設定が反映されない場合はセッションを再起動する。
+
 ## 5. 使い始める — 意図から完成まで
 
 ### 全体フロー
