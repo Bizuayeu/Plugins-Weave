@@ -466,6 +466,26 @@ jobs:
         working-directory: TelegramSecretary
         run: bandit -r scripts/ --exclude scripts/tests --severity-level medium
 
+  type-check-telegramsecretary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+
+      # ruff と同じ理由で版を固定する。本プラグインは Products/ShioriSecretary と
+      # 同一コードの二重管理であり、両者を同じ版で揃えないと診断が食い違う。
+      - name: Install mypy
+        run: pip install mypy==2.3.0
+
+      # mypy_path / overrides の SSoT は TelegramSecretary/pyproject.toml [tool.mypy]。
+      - name: Run mypy
+        working-directory: TelegramSecretary
+        run: mypy scripts
+
   test-telegramsecretary:
     runs-on: ubuntu-latest
     strategy:

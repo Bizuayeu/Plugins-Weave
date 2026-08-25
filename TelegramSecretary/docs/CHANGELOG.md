@@ -2,6 +2,42 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.12.0] - 2026-08-25 — 型検査を配線する：解決漏れに隠れていた 18 件
+
+CI に lint（`ruff check` / `ruff format --check`）はあったが**型検査が無かった**。`[tool.mypy]` 節も
+持たず、手元で `mypy scripts` を叩くと 330 件出る状態で、それが「診断が多すぎるから入れられない」
+という見え方を作っていた。
+
+### 機序
+
+**330 件のうち 312 件は解決漏れだった。** `mypy_path` / `explicit_package_bases` が無いと、自前
+モジュール（`domain.*` 等）が「インストール済みだがスタブが無い第三者パッケージ」と誤認される。
+設定を置くだけで **330 → 18**。残る 18 件が本物である。
+
+### Added
+
+- `[tool.mypy]`（`pyproject.toml`）— `mypy_path` / `explicit_package_bases`。スタブを持たない
+  サードパーティ（`moonshine_voice` / `openpyxl` / `pypdfium2` / `reportlab`）は**当該モジュールに
+  限定して** `ignore_missing_imports`
+- CI に `type-check-telegramsecretary` ジョブ（`mypy scripts`）。mypy の版は ruff と同じ理由で固定
+
+### Fixed
+
+- `config.py`（`registry_dir` を `Path | None` へ）／`json_state_store.py`（`parse` の `object` 契約に
+  対して添字アクセス前に `dict` へ絞る、2 箇所）／`ffmpeg_preprocessor.py`（`ndarray` は実行時に
+  `Sequence` 相当だが typing 上はそうではない。**契約は変えず** `cast` で意図を書いた）／
+  `registry_cli.py`（`record_cls` を `type[Any]` へ）／`wal_cli.py`（`payload.get()` の `Any | None` を
+  既存ガードの後で `str()` に確定）／`test_orientation.py`（dict リテラルと `**kw` に注釈）
+
+### Notes
+
+- ⚠️ **`strict` は入れていない。** 実測 1314 errors / 69 files で「型検査を配線する」の範囲を超える。
+  strict 化は ShioriSecretary と同時に行う独立した課題として残す
+- **860 passed — 作業前後で完全一致。** ShioriSecretary v1.12.0 と同一の変更（**二重管理の同期**）で、
+  向こうは 914 passed
+
+---
+
 ## [1.11.0] - 2026-08-25 — 書き込み口を一つの検証で揃え、果たせなかった約束を dead に残す
 
 記憶の正典へ書く口は四つあるのに、検証が掛かっていたのは二つだけだった。
