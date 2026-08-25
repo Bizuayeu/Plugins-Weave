@@ -112,11 +112,16 @@ def run_wal_redo(config: Config, sink=None, git=None) -> int:
         return EXIT_OK
     services = {kind: registry_service(config, kind) for kind in _WAL_KINDS}
     log = JsonlWalLogStore(config.wal_log_path)
+    # cc-defer: 恒等 validator、Stage 3 で canonical_record へ差し替え
     if sink is not None:
-        result = RedoPendingIntents(log, services, sink=sink).execute()
+        result = RedoPendingIntents(
+            log, services, lambda kind, p: p, sink=sink
+        ).execute()
     else:
         with TelegramApiGateway(bot_token=config.bot_token) as gateway:
-            result = RedoPendingIntents(log, services, sink=gateway).execute()
+            result = RedoPendingIntents(
+                log, services, lambda kind, p: p, sink=gateway
+            ).execute()
     print(
         f"wal redo: redone={result['redone']} resent={result['resent']} kept={result['kept']}"
     )

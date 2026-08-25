@@ -2,7 +2,7 @@
 
 registry の永続化（`registry_sync.py` の best-effort push）と対照的に、WAL ログ push は
 redo のソースゆえ **must-succeed**（push 失敗は raise で伝播＝秘書は送信前ゲートで止まる）。
-Domain（`domain/wal.py` の reconcile/settle/checkpoint）を Port 越しに駆動する。
+Domain（`domain/wal.py` の reconcile/quarantine/settle/checkpoint）を Port 越しに駆動する。
 """
 
 from __future__ import annotations
@@ -15,7 +15,14 @@ from domain.exceptions import PushRejectedError
 from domain.lease import utc_now
 from domain.models import OutboundMessage
 from domain.outbound import OutboundAttachment
-from domain.wal import WalEntry, checkpoint, reconcile, settle, settle_outbound
+from domain.wal import (
+    WalEntry,
+    checkpoint,
+    quarantine,
+    reconcile,
+    settle,
+    settle_outbound,
+)
 from usecases.manage_registry import RegistryService
 from usecases.ports import GitSyncPort, MessageSink, WalLogStore
 
@@ -50,6 +57,36 @@ class SettleOutboundIntent:
     def execute(self, key: str) -> None:
         entries = self._log.load()
         self._log.rewrite(settle_outbound(entries, key))
+
+
+class DropDeadIntent:
+    """dead 化した intent を操作者の明示指示で WAL から落とす（`wal-drop` の実体）。
+
+    dead の出口は二つだけ——同 key の再登録（`settle` による自己治癒）と、この明示的な
+    drop。**pending は落とせない**（果たされていない約束を黙って捨てる口を作らない）ので、
+    dead 以外は `ValueError` で拒む。同 (kind, key) の dead が重複していれば全て落とし、
+    並んでいる pending / done の行は残す。`SettleOutboundIntent` と同型（load → 判定 → rewrite）。
+    """
+
+    def __init__(self, log_store: WalLogStore) -> None:
+        self._log = log_store
+
+    def execute(self, kind: str, key: str) -> None:
+        entries = self._log.load()
+        matched = [e for e in entries if e.kind == kind and e.key == key]
+        if not matched:
+            raise ValueError(f"wal intent not found: {kind} key={key}")
+        if not any(e.status == "dead" for e in matched):
+            raise ValueError(
+                f"wal intent is not dead: {kind} key={key} status={matched[0].status}"
+            )
+        self._log.rewrite(
+            [
+                e
+                for e in entries
+                if not (e.kind == kind and e.key == key and e.status == "dead")
+            ]
+        )
 
 
 class PushWalLog:
@@ -102,7 +139,11 @@ class RedoPendingIntents:
     """起動時の redo: registry の pending を upsert し、outbound の pending を1回だけ再送する。
 
     **registry kind**（REGISTRY_SPEC の各表）: load → reconcile（やり残し抽出）→
-    registry へ upsert → settle（registry にある pending を done 化）→ checkpoint → rewrite。
+    **validate**（正準化・検証）→ registry へ upsert → quarantine（落ちた分を dead 化）→
+    settle（registry にある pending / dead を done 化）→ checkpoint → rewrite。
+    `validate` は**必須引数**——省略可にすると注入し忘れが素通りし、「WAL 経由なら未検証の
+    レコードが registry へ入る」という穴が UseCase 内に再生する。1 件の不正は dead へ隔離
+    され、他の pending の redo を道連れにしない。
     **返信は再送しない**（WAL redo は送信後の registry 漏れ専任。送信前クラッシュ分の再処理は
     Telegram サーバ側の unconfirmed 再配送＝新コンテナの fresh state_dir での再取得が担う）。
 
@@ -116,12 +157,14 @@ class RedoPendingIntents:
         self,
         log_store: WalLogStore,
         services: Mapping[str, RegistryService],
+        validate: Callable[[str, dict], dict],
         sink: MessageSink | None = None,
         now_fn: Callable[[], datetime] = utc_now,
         retention_h: int = 24,
     ) -> None:
         self._log = log_store
         self._services = services
+        self._validate = validate
         self._sink = sink
         self._now_fn = now_fn
         self._retention_h = retention_h
@@ -131,14 +174,27 @@ class RedoPendingIntents:
         registry_entries = [e for e in entries if e.kind != "outbound"]
         outbound_entries = [e for e in entries if e.kind == "outbound"]
 
-        # registry kind: reconcile（やり残し抽出）→ upsert → settle（done 化）
+        # registry kind: reconcile（やり残し抽出）→ validate → upsert → quarantine → settle
         todo = reconcile(registry_entries, self._collect_keys())
+        failures: dict[tuple[str, str], str] = {}
+        redone = 0
         for e in todo:
             svc = self._services.get(e.kind)
-            if svc is not None:
-                svc.add_or_update(e.payload)
-        # upsert 後の registry_keys で settle（今 redo した分＋既反映分を done 化）
-        settled_registry = settle(registry_entries, self._collect_keys())
+            if svc is None:
+                continue  # 未知の kind は書き込み先が無い（検証しても行き場がない）
+            try:
+                record = self._validate(e.kind, e.payload)
+            except (ValueError, OSError, TypeError, KeyError) as exc:
+                # registry_cli の add と同一の捕捉タプル（入力不正の扱いを一箇所に揃える）。
+                # 切り詰めは validator 組み立て側の責務、UseCase は str(exc) をそのまま残す
+                failures[(e.kind, e.key)] = str(exc)
+                continue
+            svc.add_or_update(record)  # 生 payload ではなく正準 record を書く
+            redone += 1
+        # settle の**前**に quarantine（今回 dead にしたものは registry に無いので done にならない）
+        quarantined = quarantine(registry_entries, failures)
+        # upsert 後の registry_keys で settle（今 redo した分＋既反映分＋治癒した dead を done 化）
+        settled_registry = settle(quarantined, self._collect_keys())
 
         # outbound kind: pending を1回だけ再送 → mark_done（registry_keys 非依存の独立経路）
         settled_outbound = []
@@ -163,7 +219,14 @@ class RedoPendingIntents:
 
         kept = checkpoint(settled, self._now_fn(), self._retention_h)
         self._log.rewrite(kept)
-        return {"redone": len(todo), "resent": resent, "kept": len(kept)}
+        # dead は「今回隔離した件数」でなくログに残る総数——未履行の約束が毎起動で見える
+        dead = sum(1 for e in kept if e.status == "dead")
+        return {
+            "redone": redone,
+            "resent": resent,
+            "kept": len(kept),
+            "dead": dead,
+        }
 
     def _collect_keys(self) -> set[tuple[str, str]]:
         keys: set[tuple[str, str]] = set()
