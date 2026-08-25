@@ -6,6 +6,7 @@ contract (frontmatter, orchestrator delegation, deletion-policy branch,
 template self-containment). Stdlib only: re / pathlib. No external
 dependencies, no conftest.
 """
+
 import re
 from pathlib import Path
 
@@ -39,7 +40,7 @@ REQUIRED_PLACEHOLDERS = [
 ]
 
 
-def _split_frontmatter(path):
+def _split_frontmatter(path: Path) -> tuple[str, str, str]:
     assert path.exists(), f"missing {path}"
     text = path.read_text(encoding="utf-8")
     m = FRONTMATTER_RE.match(text)
@@ -47,7 +48,7 @@ def _split_frontmatter(path):
     return m.group(1), m.group(2), text
 
 
-def test_command_frontmatter():
+def test_command_frontmatter() -> None:
     """Both commands exist and declare description/argument-hint in frontmatter."""
     for path in (PLAN_SDD_PATH, OUTSOURCE_PATH):
         frontmatter, _, _ = _split_frontmatter(path)
@@ -57,7 +58,7 @@ def test_command_frontmatter():
             )
 
 
-def test_dig_command_exists():
+def test_dig_command_exists() -> None:
     """dig.md is bundled with a description in its frontmatter (it takes no
     arguments, so argument-hint is not required)."""
     frontmatter, _, _ = _split_frontmatter(DIG_PATH)
@@ -66,7 +67,7 @@ def test_dig_command_exists():
     )
 
 
-def test_commands_show_usage_when_called_without_args():
+def test_commands_show_usage_when_called_without_args() -> None:
     """plan-sdd and outsource define a no-argument help branch so a bare
     invocation explains how to use them instead of guessing at intent."""
     for path in (PLAN_SDD_PATH, OUTSOURCE_PATH):
@@ -76,7 +77,7 @@ def test_commands_show_usage_when_called_without_args():
         )
 
 
-def test_outsource_references_orchestrator():
+def test_outsource_references_orchestrator() -> None:
     """outsource body must synchronously launch ConsiderateCoder:orchestrator
     (bg launches would silently drop the final report per the orchestrator's
     own communication discipline)."""
@@ -89,7 +90,7 @@ def test_outsource_references_orchestrator():
     )
 
 
-def test_report_template_self_contained():
+def test_report_template_self_contained() -> None:
     """template has zero external resource loads and a JS-free <details> quiz
     structure, with all 7 placeholders present for the interface to fill in."""
     assert TEMPLATE_PATH.exists(), f"missing {TEMPLATE_PATH}"
@@ -109,7 +110,7 @@ def test_report_template_self_contained():
         assert placeholder in text, f"template missing placeholder: {placeholder}"
 
 
-def test_deletion_policy_branch():
+def test_deletion_policy_branch() -> None:
     """Both commands document the IMPLEMENTATION_PLAN.md deletion-policy
     branch: plan-sdd alone deletes it after all Stages complete (unchanged),
     but /outsource does not auto-delete it (kept as the report/quiz source
@@ -140,7 +141,7 @@ def test_deletion_policy_branch():
     )
 
 
-def test_plan_sdd_final_approval_phase():
+def test_plan_sdd_final_approval_phase() -> None:
     """plan-sdd closes with an AskUserQuestion approval phase whose *last*
     question always asks whether to proceed to /outsource. The '最後の設問'
     rule must sit in close (same or <=3 line) proximity to the /outsource
@@ -159,19 +160,19 @@ def test_plan_sdd_final_approval_phase():
     outsource_line_idxs = [
         i for i, line in enumerate(lines) if "outsource" in line.lower()
     ]
-    last_question_line_idxs = [i for i, line in enumerate(lines) if "最後の設問" in line]
+    last_question_line_idxs = [
+        i for i, line in enumerate(lines) if "最後の設問" in line
+    ]
     assert last_question_line_idxs, "plan-sdd.md has no '最後の設問' rule"
     assert any(
-        abs(o - q) <= 3
-        for o in outsource_line_idxs
-        for q in last_question_line_idxs
+        abs(o - q) <= 3 for o in outsource_line_idxs for q in last_question_line_idxs
     ), (
         "plan-sdd.md's '最後の設問' rule must be within 3 lines of its "
         "/outsource mention"
     )
 
 
-def test_plan_sdd_allows_skill_tool():
+def test_plan_sdd_allows_skill_tool() -> None:
     """The approval phase hands off by launching ConsiderateCoder:outsource
     through the Skill tool, so Skill must be declared in allowed-tools."""
     frontmatter, _, _ = _split_frontmatter(PLAN_SDD_PATH)
@@ -180,7 +181,7 @@ def test_plan_sdd_allows_skill_tool():
     )
 
 
-def test_plan_sdd_wait_clause_replaced():
+def test_plan_sdd_wait_clause_replaced() -> None:
     """The old 'wait until told to start' ending is replaced by the approval
     phase: passive waiting would strand the user in free-form prose exactly
     where the structured hand-off belongs."""
@@ -193,7 +194,7 @@ def test_plan_sdd_wait_clause_replaced():
     )
 
 
-def _outsource_phase4_region():
+def _outsource_phase4_region() -> list[str]:
     """Lines of outsource.md between the 'Phase 4' and 'Phase 5' headings."""
     lines = OUTSOURCE_PATH.read_text(encoding="utf-8").splitlines()
     starts = [i for i, line in enumerate(lines) if re.match(r"^##\s*Phase 4\b", line)]
@@ -203,7 +204,7 @@ def _outsource_phase4_region():
     return lines[starts[0] : ends[0]]
 
 
-def test_outsource_escalation_via_askuserquestion():
+def test_outsource_escalation_via_askuserquestion() -> None:
     """Phase 4 turns escalations into a structured approval step: the
     escalation term and AskUserQuestion must sit in close (same or <=3 line)
     proximity inside the Phase 4 region, so the flow reads as one rule rather
@@ -220,7 +221,7 @@ def test_outsource_escalation_via_askuserquestion():
     )
 
 
-def test_outsource_no_escalation_no_question():
+def test_outsource_no_escalation_no_question() -> None:
     """The approval step is conditional: with zero escalations no question is
     asked (the '過剰な質問は禁止' principle stays intact, unlike plan-sdd's
     always-on hand-off question)."""
@@ -234,7 +235,7 @@ def test_outsource_no_escalation_no_question():
     )
 
 
-def test_outsource_approval_recorded_in_report():
+def test_outsource_approval_recorded_in_report() -> None:
     """Approval outcomes (approved / sent back) must land in the Phase 5
     report's escalation section, so the ESCALATIONS placeholder carries the
     decision instead of the raw request."""
@@ -255,33 +256,27 @@ def test_outsource_approval_recorded_in_report():
     )
 
 
-def _outsource_phase5_region():
+def _outsource_phase5_region() -> list[str]:
     """Lines of outsource.md from the 'Phase 5' heading to the next '##' heading."""
     lines = OUTSOURCE_PATH.read_text(encoding="utf-8").splitlines()
     starts = [i for i, line in enumerate(lines) if re.match(r"^##\s*Phase 5\b", line)]
     assert starts, "outsource.md has no 'Phase 5' heading"
     start = starts[0]
-    ends = [
-        i
-        for i, line in enumerate(lines)
-        if i > start and re.match(r"^##\s", line)
-    ]
+    ends = [i for i, line in enumerate(lines) if i > start and re.match(r"^##\s", line)]
     return lines[start : ends[0] if ends else len(lines)]
 
 
-def test_outsource_next_plan_rules():
+def test_outsource_next_plan_rules() -> None:
     """Phase 5 must carry the next-plan generation rules: the intent format is
     plan-sdd's (Acceptance is the stop condition that must not be dropped),
     convergence is a first-class output, and the command is never launched by
     the communicator on its own (全問正解 gates the sanctioned hand-off)."""
     text = OUTSOURCE_PATH.read_text(encoding="utf-8")
     for token in ("二次計画", "収束", "Acceptance", "自動起動しない", "全問正解"):
-        assert token in text, (
-            f"outsource.md missing next-plan rule token: {token!r}"
-        )
+        assert token in text, f"outsource.md missing next-plan rule token: {token!r}"
 
 
-def test_outsource_default_to_convergence():
+def test_outsource_default_to_convergence() -> None:
     """The default-to-convergence tilt ('収束に倒す') depends on generation
     behaviour rather than machinery, so its rule text must at least exist —
     and sit in close (same or <=3 line) proximity to the NEXT_PLAN mention
@@ -297,7 +292,7 @@ def test_outsource_default_to_convergence():
     )
 
 
-def test_outsource_allows_skill_tool():
+def test_outsource_allows_skill_tool() -> None:
     """The sanctioned hand-off launches ConsiderateCoder:plan-sdd through the
     Skill tool, so Skill must be declared in allowed-tools."""
     frontmatter, _, _ = _split_frontmatter(OUTSOURCE_PATH)
@@ -306,7 +301,7 @@ def test_outsource_allows_skill_tool():
     )
 
 
-def test_outsource_gate_conditions():
+def test_outsource_gate_conditions() -> None:
     """Both gate branches are conditional and must be stated as conditions:
     convergence skips the comprehension gate entirely (same conditional
     asymmetry as the zero-escalation branch), and a less-than-perfect score
@@ -328,7 +323,7 @@ def test_outsource_gate_conditions():
     )
 
 
-def test_plugin_internal_refs_use_plugin_root():
+def test_plugin_internal_refs_use_plugin_root() -> None:
     """Command bodies must reference plugin-internal files via
     ${CLAUDE_PLUGIN_ROOT}, never via cwd-relative ../ links — the runtime
     cwd is the user's project, so ../ links break after installation."""
@@ -340,12 +335,11 @@ def test_plugin_internal_refs_use_plugin_root():
     for path in (PLAN_SDD_PATH, OUTSOURCE_PATH):
         text = path.read_text(encoding="utf-8")
         assert "${CLAUDE_PLUGIN_ROOT}/" in text, (
-            f"{path.name} must reference bundled files via "
-            "${CLAUDE_PLUGIN_ROOT}"
+            f"{path.name} must reference bundled files via ${{CLAUDE_PLUGIN_ROOT}}"
         )
 
 
-def test_no_stale_rules_filenames():
+def test_no_stale_rules_filenames() -> None:
     """v1.1.0 moved rules/DEV.md and rules/OPS.md into skills/ as
     dev-rules / ops-rules; command bodies (including plan-sdd's output
     template, which propagates into every generated IMPLEMENTATION_PLAN.md)
@@ -358,7 +352,7 @@ def test_no_stale_rules_filenames():
             )
 
 
-def test_interactive_commands_not_forked():
+def test_interactive_commands_not_forked() -> None:
     """Commands whose flow depends on AskUserQuestion must run in the main
     conversation: AskUserQuestion depends on the main conversation's UI and
     is silently unavailable in subagents (context: fork included, even when
@@ -372,7 +366,7 @@ def test_interactive_commands_not_forked():
         )
 
 
-def test_no_forbidden_tokens():
+def test_no_forbidden_tokens() -> None:
     """None of the three Interface-layer artifacts may carry development-only
     evidence (local paths, dates, proof-count callouts). {{DATE}} is a literal
     placeholder token, not a YYYY-MM date, so it does not trip DATE_PATTERN.

@@ -5,6 +5,7 @@ reference the namespaced worker correctly, and carry no development-only
 evidence references (dates, proof counts, local-environment paths).
 Stdlib only: re / pathlib. No external dependencies, no conftest.
 """
+
 import re
 from pathlib import Path
 
@@ -26,7 +27,7 @@ LITERAL_FORBIDDEN_TOKENS = [
 DATE_PATTERN = re.compile(r"20\d\d-\d\d")
 
 
-def _split_frontmatter(path):
+def _split_frontmatter(path: Path) -> tuple[str, str, str]:
     assert path.exists(), f"missing {path}"
     text = path.read_text(encoding="utf-8")
     m = FRONTMATTER_RE.match(text)
@@ -34,7 +35,7 @@ def _split_frontmatter(path):
     return m.group(1), m.group(2), text
 
 
-def test_agent_frontmatter():
+def test_agent_frontmatter() -> None:
     """Both agents declare name/description/model; orchestrator's tools
     line excludes Edit/Write (structural guarantee: the commander cannot
     touch files directly). Word-boundary matching avoids false positives
@@ -59,7 +60,7 @@ def test_agent_frontmatter():
     )
 
 
-def test_orchestrator_references_namespaced_worker():
+def test_orchestrator_references_namespaced_worker() -> None:
     """orchestrator body must delegate via the namespaced worker
     (ConsiderateCoder:worker); a bare `subagent_type: worker` would not
     resolve once the agent is installed as a plugin.
@@ -74,23 +75,21 @@ def test_orchestrator_references_namespaced_worker():
     )
 
 
-def test_structural_tool_guarantees():
+def test_structural_tool_guarantees() -> None:
     """Structural guarantees on both sides of the delegation: the
     orchestrator cannot send async messages (no SendMessage — its own
     discipline bans round-trips), and the worker cannot re-delegate
     (Agent is disallowed). Discipline is culture; the tool list is law."""
     orchestrator_fm, _, _ = _split_frontmatter(ORCHESTRATOR_PATH)
-    tools_line = re.search(
-        r"^tools:\s*(.+)$", orchestrator_fm, re.MULTILINE
-    ).group(1)
+    tools_match = re.search(r"^tools:\s*(.+)$", orchestrator_fm, re.MULTILINE)
+    assert tools_match, "orchestrator frontmatter has no tools: line"
+    tools_line = tools_match.group(1)
     assert not re.search(r"\bSendMessage\b", tools_line), (
         f"orchestrator tools must not include SendMessage: {tools_line!r}"
     )
 
     worker_fm, _, _ = _split_frontmatter(WORKER_PATH)
-    disallowed_match = re.search(
-        r"^disallowedTools:\s*(.+)$", worker_fm, re.MULTILINE
-    )
+    disallowed_match = re.search(r"^disallowedTools:\s*(.+)$", worker_fm, re.MULTILINE)
     assert disallowed_match, "worker frontmatter missing disallowedTools line"
     assert re.search(r"\bAgent\b", disallowed_match.group(1)), (
         f"worker disallowedTools must include Agent (no re-delegation): "
@@ -98,7 +97,7 @@ def test_structural_tool_guarantees():
     )
 
 
-def test_agents_preload_dev_rules():
+def test_agents_preload_dev_rules() -> None:
     """Both agents preload dev-rules via the skills: frontmatter field —
     the official wiring that injects full rule content into a subagent's
     context at spawn (subagents don't receive the full Claude Code system
@@ -108,15 +107,14 @@ def test_agents_preload_dev_rules():
         skills_match = re.search(r"^skills:\s*(.+)$", frontmatter, re.MULTILINE)
         assert skills_match, f"{path.name} missing skills: preload line"
         assert "dev-rules" in skills_match.group(1), (
-            f"{path.name} skills: must preload dev-rules: "
-            f"{skills_match.group(1)!r}"
+            f"{path.name} skills: must preload dev-rules: {skills_match.group(1)!r}"
         )
 
 
 STATUS_VOCAB = ("COMPLETED", "PARTIAL", "BLOCKED", "RETURNED")
 
 
-def test_completion_status_vocabulary_symmetric():
+def test_completion_status_vocabulary_symmetric() -> None:
     """The worker report opens with a one-word completion status, and a stop
     (3-Strike STOP / interruption / unverified work) is never written as
     COMPLETED; the orchestrator briefs and reviews with the same four-state
@@ -133,17 +131,15 @@ def test_completion_status_vocabulary_symmetric():
     )
 
 
-def test_worker_reports_discovered_issues():
+def test_worker_reports_discovered_issues() -> None:
     """Out-of-scope problems the worker notices must reach the report:
     staying hands-off is required, staying silent is forbidden (discovering
     an issue and not reporting it reads as a clean pass to the reviewer)."""
     _, body, _ = _split_frontmatter(WORKER_PATH)
-    assert "黙過" in body, (
-        "worker.md missing the no-silent-discovery rule (黙過)"
-    )
+    assert "黙過" in body, "worker.md missing the no-silent-discovery rule (黙過)"
 
 
-def test_no_dev_evidence_refs():
+def test_no_dev_evidence_refs() -> None:
     """Neither agent may carry development-session evidence: dates,
     proof-count callouts, local model assumptions, or local paths.
     """

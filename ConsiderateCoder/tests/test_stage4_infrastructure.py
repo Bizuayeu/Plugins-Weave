@@ -8,6 +8,7 @@ pattern check applies to README.md only, since CHANGELOG.md release dates
 are legitimate record-keeping, not development-session leakage).
 Stdlib only: json / re / pathlib. No external dependencies, no conftest.
 """
+
 import json
 import re
 from pathlib import Path
@@ -31,7 +32,7 @@ FORBIDDEN_TOKENS = [
 DATE_PATTERN = re.compile(r"20\d\d-\d\d")
 
 
-def test_marketplace_entry_consistency():
+def test_marketplace_entry_consistency() -> None:
     """marketplace.json top-level version is semver and carries exactly one
     ConsiderateCoder entry whose fields mirror plugin.json 1:1."""
     assert MARKETPLACE_PATH.exists(), f"missing {MARKETPLACE_PATH}"
@@ -65,7 +66,7 @@ def test_marketplace_entry_consistency():
     assert entry["repository"] == manifest["repository"]
 
 
-def test_readme_links_resolve():
+def test_readme_links_resolve() -> None:
     """Every relative (non-http, non-anchor) markdown link in README.md
     resolves to a real file/dir under PLUGIN_ROOT."""
     assert README_PATH.exists(), f"missing {README_PATH}"
@@ -82,7 +83,7 @@ def test_readme_links_resolve():
         assert resolved.exists(), f"README.md link target does not exist: {target!r}"
 
 
-def test_readme_and_changelog_generic():
+def test_readme_and_changelog_generic() -> None:
     """README.md and CHANGELOG.md carry no local-environment/dev-session
     tokens; the YYYY-MM date-pattern check applies to README.md only."""
     assert README_PATH.exists(), f"missing {README_PATH}"

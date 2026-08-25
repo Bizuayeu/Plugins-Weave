@@ -1,0 +1,23 @@
+# ConsiderateCoder の開発ツール設定。
+#
+# `[project]` / `[build-system]` は意図的に置かない —— 本プラグインの実体は
+# skills/ と commands/ の Markdown（開発方法論）で、Python は tests/ の 4 本だけ。
+# それらは「方法論どおりに書いた実装例が実際に通るか」を検める検証コードであり、
+# 配布物ではない。ここが要るのは ruff / mypy / pytest が設定を読む場所としてだけ。
+#
+# 規約はワークスペースの和集合（2026-08-25 確定）: ruff の select は広く取り、
+# mypy は strict。方法論を配る側が自分の検証コードを検めていないのは筋が通らない。
+
+[tool.ruff]
+src = ["tests"]
+
+[tool.ruff.lint]
+# ruff の default 選択は版が上がるたび広がるので明示固定する。集合は
+# BlueberrySprite / NewsCaster / GeneralConstructor / ContextPreloader と同一の 10 個。
+select = ["E4", "E7", "E9", "F", "I", "UP", "N", "B", "SIM", "PTH"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -4,6 +4,7 @@ Verifies the plugin skeleton exists and that the copied rules files are
 generalized (no workspace-specific tokens leaked from the source copy).
 Stdlib only: json / re / pathlib. No external dependencies, no conftest.
 """
+
 import json
 import re
 from pathlib import Path
@@ -20,7 +21,7 @@ FORBIDDEN_TOKENS = [
 ]
 
 
-def test_plugin_manifest():
+def test_plugin_manifest() -> None:
     manifest_path = PLUGIN_ROOT / ".claude-plugin" / "plugin.json"
     assert manifest_path.exists(), f"missing {manifest_path}"
 
@@ -43,7 +44,7 @@ RULE_SKILLS = (
 )
 
 
-def test_rule_skills_exist_and_generic():
+def test_rule_skills_exist_and_generic() -> None:
     """Both rule skills exist with skill frontmatter (name/description) and
     carry no workspace-specific tokens."""
     for path in RULE_SKILLS:
@@ -58,7 +59,7 @@ def test_rule_skills_exist_and_generic():
             assert token not in text, f"{path.name} contains forbidden token: {token!r}"
 
 
-def test_dev_rules_latest_and_self_contained():
+def test_dev_rules_latest_and_self_contained() -> None:
     """dev-rules carries the CI static-check line (stale-copy regression
     check) and must be self-contained: subagents do not receive the full
     Claude Code system prompt, so the rules may not defer to it."""
@@ -76,7 +77,7 @@ def test_dev_rules_latest_and_self_contained():
     )
 
 
-def test_dev_rules_deletion_test_and_grounded_numbers():
+def test_dev_rules_deletion_test_and_grounded_numbers() -> None:
     """dev-rules operationalizes YAGNI at both ends: the Deletion Test
     inspects finished work ("does the completion proof still hold without
     this?") with a non-negotiable floor (validation / error handling /
@@ -89,15 +90,15 @@ def test_dev_rules_deletion_test_and_grounded_numbers():
         assert token in text, f"dev-rules missing rule token: {token!r}"
 
 
-def test_dev_rules_solution_ladder_in_understand():
+def test_dev_rules_solution_ladder_in_understand() -> None:
     """The solution-search ladder (don't write → reuse → stdlib → existing
     dependency → minimal new code) must sit inside the Understand step in
     close (same or <=3 line) proximity, so search-first reads as part of
     the flow rather than a detached slogan (same proximity pattern as the
     Stage 3 policy tests)."""
     lines = RULE_SKILLS[0].read_text(encoding="utf-8").splitlines()
-    ladder_idxs = [i for i, l in enumerate(lines) if "標準ライブラリ" in l]
-    understand_idxs = [i for i, l in enumerate(lines) if "Understand" in l]
+    ladder_idxs = [i for i, line in enumerate(lines) if "標準ライブラリ" in line]
+    understand_idxs = [i for i, line in enumerate(lines) if "Understand" in line]
     assert ladder_idxs, "dev-rules missing the solution ladder (標準ライブラリ step)"
     assert understand_idxs, "dev-rules missing the Understand step"
     assert any(abs(a - b) <= 3 for a in ladder_idxs for b in understand_idxs), (
