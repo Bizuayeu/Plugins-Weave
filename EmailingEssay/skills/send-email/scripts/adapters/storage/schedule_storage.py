@@ -122,7 +122,7 @@ class ScheduleStorageAdapter:
             return False
 
         try:
-            with open(backup, encoding='utf-8') as f:
+            with backup.open(encoding='utf-8') as f:
                 content = f.read()
                 if not content.strip():
                     return False
@@ -150,7 +150,7 @@ class ScheduleStorageAdapter:
             return []
 
         try:
-            with open(schedules_file, encoding="utf-8") as f:
+            with schedules_file.open(encoding="utf-8") as f:
                 content = f.read()
                 # 空または空白のみのファイル
                 if not content.strip():
@@ -184,5 +184,5 @@ class ScheduleStorageAdapter:
         if force_backup or self._should_create_backup(schedules_file):
             self._backup_file(schedules_file)
         # 新しいデータを書き込み
-        with open(schedules_file, "w", encoding="utf-8") as f:
+        with schedules_file.open("w", encoding="utf-8") as f:
             json.dump({"schedules": schedules}, f, indent=2, ensure_ascii=False)

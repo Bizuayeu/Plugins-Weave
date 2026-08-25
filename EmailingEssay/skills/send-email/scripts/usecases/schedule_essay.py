@@ -313,7 +313,7 @@ class ScheduleEssayUseCase:
             command=SafeCodeGenerator.escape_for_python_string(command),
         )
 
-        with open(runner_path, "w", encoding="utf-8") as f:
+        with runner_path.open("w", encoding="utf-8") as f:
             f.write(script_content)
 
         return str(runner_path)

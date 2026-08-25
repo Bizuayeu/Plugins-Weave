@@ -105,22 +105,33 @@ quote-style = "preserve"
 indent-style = "space"
 
 [tool.ruff.lint]
+# ワークスペース共通の 10 集合（E4,E7,E9,F,I,UP,N,B,SIM,PTH）を床にし、
+# 本プラグインが既に持っていた C4 / RUF はそのまま残す（和集合であって置換ではない）。
 select = [
-    "E", "W", "F", "I",     # 基本ルール
-    "B",                     # bugbear（バグの可能性）
-    "C4",                    # comprehension（内包表記）
-    "UP",                    # pyupgrade（Python 3.10+最適化）
-    "SIM",                   # simplify（コード簡素化）
-    "RUF",                   # Ruff固有ルール
+    "E4", "E7", "E9", "F", "I",  # 基本ルール（E501 は選ばない＝行長は formatter の担当）
+    "B",                          # bugbear（バグの可能性）
+    "C4",                         # comprehension（内包表記）
+    "N",                          # naming（命名規約）
+    "PTH",                        # pathlib（os.path 残存の検出）
+    "UP",                         # pyupgrade（Python 3.10+最適化）
+    "SIM",                        # simplify（コード簡素化）
+    "RUF",                        # Ruff固有ルール
 ]
 ignore = [
-    "E501",      # line-too-long
     "RUF002",    # ambiguous-unicode-character-docstring（日本語docstring許可）
     "RUF003",    # ambiguous-unicode-character-comment（日本語コメント許可）
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"skills/send-email/scripts/tests/*" = ["E501", "F401"]
+# tests/ は各ファイル冒頭で `sys.path.insert(0, os.path.dirname(...os.path.abspath(__file__)))`
+# を実行して scripts/ を import 可能にする（19 ファイル）。**sys.path の要素は str でなければ
+# ならず**、Path を入れると import が黙って失敗する（実測: ModuleNotFoundError）。
+# PTH の助言はこの起動行に構造上適用できないので外す。
+"skills/send-email/scripts/tests/*" = ["F401", "PTH"]
+# Win32 API の定数を SDK（winbase.h）の綴りのまま置く箇所。プラットフォーム側の名前に
+# 合わせているので lowercase 化は適用できない。
+"skills/send-email/scripts/adapters/process/spawner.py" = ["N806"]
+"skills/send-email/scripts/adapters/storage/waiter_storage.py" = ["N806"]
 "skills/send-email/scripts/domain/__init__.py" = ["RUF022"]  # カテゴリ別__all__を維持
 
 # =============================================================================

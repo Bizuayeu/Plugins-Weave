@@ -132,7 +132,7 @@ class WaitEssayUseCase:
 
         # スクリプトファイルに書き込み
         script_file = str(persistent_dir / "essay_waiter_temp.py")
-        with open(script_file, "w", encoding="utf-8") as f:
+        with Path(script_file).open("w", encoding="utf-8") as f:
             f.write(script)
 
         # デタッチドプロセスを起動（DIされたスポーナーを使用）

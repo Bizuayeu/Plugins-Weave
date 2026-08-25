@@ -45,7 +45,7 @@ def load_template(name: str, use_cache: bool = True) -> str:
     if not template_path.exists():
         raise TemplateError(f"Template not found: {name}")
 
-    with open(template_path, encoding="utf-8") as f:
+    with template_path.open(encoding="utf-8") as f:
         content = f.read()
 
     # キャッシュに保存

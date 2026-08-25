@@ -113,7 +113,7 @@ class WaiterStorageAdapter:
         waiters: list[dict[str, Any]] = []
         if waiters_file.exists():
             try:
-                with open(waiters_file, encoding="utf-8") as f:
+                with waiters_file.open(encoding="utf-8") as f:
                     content = f.read()
                     if content.strip():
                         data = json.loads(content)
@@ -132,7 +132,7 @@ class WaiterStorageAdapter:
         waiters.append(entry)
 
         # 保存
-        with open(waiters_file, "w", encoding="utf-8") as f:
+        with waiters_file.open("w", encoding="utf-8") as f:
             json.dump({"waiters": waiters}, f, indent=2, ensure_ascii=False)
 
         logger.debug(f"Registered waiter: PID={pid}, target={target_time}")
@@ -153,7 +153,7 @@ class WaiterStorageAdapter:
 
         # 既存データを読み込み
         try:
-            with open(waiters_file, encoding="utf-8") as f:
+            with waiters_file.open(encoding="utf-8") as f:
                 content = f.read()
                 if not content.strip():
                     return []
@@ -177,7 +177,7 @@ class WaiterStorageAdapter:
         if len(active_waiters) != len(waiters):
             removed_count = len(waiters) - len(active_waiters)
             logger.debug(f"Removed {removed_count} dead waiter(s)")
-            with open(waiters_file, "w", encoding="utf-8") as f:
+            with waiters_file.open("w", encoding="utf-8") as f:
                 json.dump({"waiters": active_waiters}, f, indent=2, ensure_ascii=False)
 
         return validate_waiter_entries(active_waiters)
