@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from scripts.domain.exceptions import ConfigError
 from scripts.domain.models import Config, Settings, Source
@@ -14,14 +15,14 @@ from scripts.infrastructure.config_repository import (
 
 
 class TestLoadConfig(unittest.TestCase):
-    def _write_config(self, data: dict) -> str:
+    def _write_config(self, data: dict[str, Any]) -> str:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
         ) as f:
             json.dump(data, f)
         return f.name
 
-    def test_load_valid_config(self):
+    def test_load_valid_config(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "settings": {"encoding": "utf-8"},
@@ -38,11 +39,11 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_load_missing_config(self):
+    def test_load_missing_config(self) -> None:
         with self.assertRaises(ConfigError):
             load_config("/nonexistent/config.json")
 
-    def test_load_invalid_json(self):
+    def test_load_invalid_json(self) -> None:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
         ) as f:
@@ -53,7 +54,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(f.name).unlink()
 
-    def test_load_missing_sources(self):
+    def test_load_missing_sources(self) -> None:
         path = self._write_config({"version": "1.0.0"})
         try:
             with self.assertRaises(ConfigError):
@@ -61,7 +62,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_default_settings(self):
+    def test_default_settings(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "sources": [],
@@ -73,7 +74,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_default_text_extensions(self):
+    def test_default_text_extensions(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "sources": [],
@@ -86,7 +87,7 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
 
-    def test_load_config_with_mode(self):
+    def test_load_config_with_mode(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "settings": {"mode": "reference"},
@@ -98,7 +99,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_load_config_mode_default(self):
+    def test_load_config_mode_default(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "sources": [],
@@ -109,7 +110,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_load_config_with_source_description(self):
+    def test_load_config_with_source_description(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "sources": [{"id": "a", "label": "A", "path": "/a.txt", "description": "memo"}],
@@ -120,7 +121,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_load_config_source_description_default(self):
+    def test_load_config_source_description_default(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "sources": [{"id": "a", "label": "A", "path": "/a.txt"}],
@@ -131,7 +132,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_load_config_with_source_priority(self):
+    def test_load_config_with_source_priority(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "sources": [{"id": "a", "label": "A", "path": "/a.txt", "priority": "critical"}],
@@ -142,7 +143,7 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_load_config_source_priority_default(self):
+    def test_load_config_source_priority_default(self) -> None:
         path = self._write_config({
             "version": "1.0.0",
             "sources": [{"id": "a", "label": "A", "path": "/a.txt"}],
@@ -155,7 +156,7 @@ class TestLoadConfig(unittest.TestCase):
 
 
 class TestSaveConfig(unittest.TestCase):
-    def test_save_config_includes_mode(self):
+    def test_save_config_includes_mode(self) -> None:
         cfg = Config(
             version="1.0.0",
             settings=Settings(mode="reference"),
@@ -174,7 +175,7 @@ class TestSaveConfig(unittest.TestCase):
         finally:
             Path(f.name).unlink()
 
-    def test_save_config_includes_description_priority(self):
+    def test_save_config_includes_description_priority(self) -> None:
         cfg = Config(
             version="1.0.0",
             settings=Settings(),
@@ -194,7 +195,7 @@ class TestSaveConfig(unittest.TestCase):
         finally:
             Path(f.name).unlink()
 
-    def test_save_load_roundtrip(self):
+    def test_save_load_roundtrip(self) -> None:
         original = Config(
             version="1.0.0",
             settings=Settings(mode="reference"),
@@ -219,14 +220,14 @@ class TestSaveConfig(unittest.TestCase):
 
 
 class TestLoadProfileSources(unittest.TestCase):
-    def _write_profile(self, data: dict) -> str:
+    def _write_profile(self, data: dict[str, Any]) -> str:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
         ) as f:
             json.dump(data, f)
         return f.name
 
-    def test_load_profile_with_description_priority(self):
+    def test_load_profile_with_description_priority(self) -> None:
         path = self._write_profile({
             "sources": [
                 {"id": "a", "label": "A", "path": "/a.txt",
@@ -240,7 +241,7 @@ class TestLoadProfileSources(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_load_profile_defaults_description_priority(self):
+    def test_load_profile_defaults_description_priority(self) -> None:
         path = self._write_profile({
             "sources": [
                 {"id": "a", "label": "A", "path": "/a.txt"},

@@ -8,7 +8,7 @@ from scripts.infrastructure.file_reader import read_text_file
 
 
 class TestReadTextFile(unittest.TestCase):
-    def test_read_ascii_text(self):
+    def test_read_ascii_text(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
             f.write("Hello World")
             f.flush()
@@ -19,7 +19,7 @@ class TestReadTextFile(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_read_utf8_japanese(self):
+    def test_read_utf8_japanese(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
             f.write("日本語テスト\n二行目")
             f.flush()
@@ -31,7 +31,7 @@ class TestReadTextFile(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_read_with_max_lines(self):
+    def test_read_with_max_lines(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
             for i in range(100):
                 f.write(f"Line {i}\n")
@@ -45,7 +45,7 @@ class TestReadTextFile(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_read_max_lines_zero(self):
+    def test_read_max_lines_zero(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
             for i in range(100):
                 f.write(f"Line {i}\n")
@@ -58,7 +58,7 @@ class TestReadTextFile(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_read_empty_file(self):
+    def test_read_empty_file(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
             f.flush()
             path = f.name
@@ -68,7 +68,7 @@ class TestReadTextFile(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_read_missing_file(self):
+    def test_read_missing_file(self) -> None:
         with self.assertRaises(SourceError):
             read_text_file("/nonexistent/path/file.txt", "utf-8", 0)
 

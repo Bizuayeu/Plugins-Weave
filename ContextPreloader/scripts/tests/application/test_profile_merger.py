@@ -11,13 +11,13 @@ from scripts.infrastructure.config_repository import load_profile_sources
 
 
 class TestMergeSources(unittest.TestCase):
-    def test_no_profile_global_only(self):
+    def test_no_profile_global_only(self) -> None:
         global_sources = [Source(id="a", label="A", path="/a.txt")]
         result = merge_sources(global_sources, None)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].id, "a")
 
-    def test_profile_merges(self):
+    def test_profile_merges(self) -> None:
         global_sources = [Source(id="a", label="A", path="/a.txt")]
         profile_sources = [Source(id="b", label="B", path="/b.txt")]
         result = merge_sources(global_sources, profile_sources)
@@ -25,7 +25,7 @@ class TestMergeSources(unittest.TestCase):
         ids = {s.id for s in result}
         self.assertEqual(ids, {"a", "b"})
 
-    def test_profile_override_by_id(self):
+    def test_profile_override_by_id(self) -> None:
         global_sources = [Source(id="a", label="Global A", path="/a.txt")]
         profile_sources = [Source(id="a", label="Profile A", path="/a-override.txt")]
         result = merge_sources(global_sources, profile_sources)
@@ -33,7 +33,7 @@ class TestMergeSources(unittest.TestCase):
         self.assertEqual(result[0].label, "Profile A")
         self.assertEqual(result[0].path, "/a-override.txt")
 
-    def test_profile_disable_global(self):
+    def test_profile_disable_global(self) -> None:
         global_sources = [
             Source(id="a", label="A", path="/a.txt"),
             Source(id="b", label="B", path="/b.txt"),
@@ -44,11 +44,11 @@ class TestMergeSources(unittest.TestCase):
         self.assertEqual(len(enabled), 1)
         self.assertEqual(enabled[0].id, "b")
 
-    def test_profile_not_found(self):
+    def test_profile_not_found(self) -> None:
         with self.assertRaises(ConfigError):
             load_profile_sources("/nonexistent/profile.json")
 
-    def test_load_profile_sources(self):
+    def test_load_profile_sources(self) -> None:
         data = {
             "sources": [
                 {"id": "x", "label": "X", "path": "/x.txt"},

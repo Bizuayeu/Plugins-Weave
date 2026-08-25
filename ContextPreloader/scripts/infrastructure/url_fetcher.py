@@ -11,22 +11,22 @@ class HTMLTextExtractor(HTMLParser):
 
     SKIP_TAGS = {"script", "style", "head"}
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._result: list[str] = []
         self._skip_depth = 0
 
-    def handle_starttag(self, tag: str, attrs):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag.lower() in self.SKIP_TAGS:
             self._skip_depth += 1
         elif tag.lower() in ("p", "br", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "tr"):
             self._result.append("\n")
 
-    def handle_endtag(self, tag: str):
+    def handle_endtag(self, tag: str) -> None:
         if tag.lower() in self.SKIP_TAGS:
             self._skip_depth = max(0, self._skip_depth - 1)
 
-    def handle_data(self, data: str):
+    def handle_data(self, data: str) -> None:
         if self._skip_depth == 0:
             self._result.append(data)
 

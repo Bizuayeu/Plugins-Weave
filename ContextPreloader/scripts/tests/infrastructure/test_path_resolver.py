@@ -7,12 +7,12 @@ from scripts.infrastructure.path_resolver import expand_path
 
 
 class TestExpandPath(unittest.TestCase):
-    def test_expand_path_tilde(self):
+    def test_expand_path_tilde(self) -> None:
         result = expand_path("~/docs/file.txt")
         expected = Path("~").expanduser() / "docs" / "file.txt"
         self.assertEqual(result, expected)
 
-    def test_expand_path_absolute(self):
+    def test_expand_path_absolute(self) -> None:
         if os.name == "nt":
             result = expand_path("C:/Users/test/file.txt")
             self.assertEqual(result, Path("C:/Users/test/file.txt"))

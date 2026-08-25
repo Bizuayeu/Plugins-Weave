@@ -1,5 +1,6 @@
 """T6+T7: HTML text extraction and URL fetching tests."""
 import unittest
+from email.message import Message
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
 
@@ -9,37 +10,37 @@ from scripts.infrastructure.url_fetcher import fetch_url, strip_html
 class TestStripHtml(unittest.TestCase):
     """T6: HTML text extraction."""
 
-    def test_strip_simple_tags(self):
+    def test_strip_simple_tags(self) -> None:
         self.assertEqual(strip_html("<p>Hello</p>"), "Hello")
 
-    def test_strip_nested_tags(self):
+    def test_strip_nested_tags(self) -> None:
         result = strip_html("<div><b>Bold</b> text</div>")
         self.assertIn("Bold", result)
         self.assertIn("text", result)
 
-    def test_strip_script_style(self):
+    def test_strip_script_style(self) -> None:
         html = "<script>var x=1;</script><style>.a{}</style><p>Keep</p>"
         result = strip_html(html)
         self.assertIn("Keep", result)
         self.assertNotIn("var x", result)
         self.assertNotIn(".a{}", result)
 
-    def test_decode_entities(self):
+    def test_decode_entities(self) -> None:
         result = strip_html("&amp; &lt; &gt;")
         self.assertIn("&", result)
         self.assertIn("<", result)
         self.assertIn(">", result)
 
-    def test_preserve_whitespace(self):
+    def test_preserve_whitespace(self) -> None:
         result = strip_html("<p>A</p><p>B</p>")
         self.assertIn("A", result)
         self.assertIn("B", result)
 
-    def test_empty_html(self):
+    def test_empty_html(self) -> None:
         self.assertEqual(strip_html(""), "")
 
 
-def _mock_response(data: bytes, content_type: str = "text/html", status: int = 200):
+def _mock_response(data: bytes, content_type: str = "text/html", status: int = 200) -> MagicMock:
     """Create a mock HTTP response."""
     resp = MagicMock()
     resp.read.return_value = data
@@ -54,7 +55,7 @@ class TestFetchUrl(unittest.TestCase):
     """T7: URL fetching with mocked network."""
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
-    def test_fetch_html_page(self, mock_urlopen):
+    def test_fetch_html_page(self, mock_urlopen: MagicMock) -> None:
         mock_urlopen.return_value = _mock_response(
             b"<html><body><p>Hello World</p></body></html>", "text/html"
         )
@@ -63,7 +64,7 @@ class TestFetchUrl(unittest.TestCase):
         self.assertEqual(ctype, "text/html")
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
-    def test_fetch_plain_text(self, mock_urlopen):
+    def test_fetch_plain_text(self, mock_urlopen: MagicMock) -> None:
         mock_urlopen.return_value = _mock_response(
             b"Plain text content", "text/plain"
         )
@@ -72,7 +73,7 @@ class TestFetchUrl(unittest.TestCase):
         self.assertEqual(ctype, "text/plain")
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
-    def test_fetch_non_text(self, mock_urlopen):
+    def test_fetch_non_text(self, mock_urlopen: MagicMock) -> None:
         mock_urlopen.return_value = _mock_response(
             b"%PDF-1.4", "application/pdf"
         )
@@ -81,23 +82,23 @@ class TestFetchUrl(unittest.TestCase):
         self.assertEqual(content, "")
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
-    def test_fetch_404(self, mock_urlopen):
+    def test_fetch_404(self, mock_urlopen: MagicMock) -> None:
         mock_urlopen.side_effect = HTTPError(
-            "https://example.com", 404, "Not Found", {}, None
+            "https://example.com", 404, "Not Found", Message(), None
         )
         content, ctype = fetch_url("https://example.com/missing", 10)
         self.assertIn("404", content)
         self.assertEqual(ctype, "")
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
-    def test_fetch_timeout(self, mock_urlopen):
+    def test_fetch_timeout(self, mock_urlopen: MagicMock) -> None:
         mock_urlopen.side_effect = TimeoutError("Connection timed out")
         content, ctype = fetch_url("https://example.com/slow", 1)
         self.assertIn("timed out", content.lower())
         self.assertEqual(ctype, "")
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
-    def test_fetch_network_error(self, mock_urlopen):
+    def test_fetch_network_error(self, mock_urlopen: MagicMock) -> None:
         mock_urlopen.side_effect = URLError("Connection refused")
         content, ctype = fetch_url("https://unreachable.example.com", 10)
         self.assertIn("error", content.lower())

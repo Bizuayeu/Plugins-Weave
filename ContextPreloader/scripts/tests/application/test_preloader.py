@@ -3,7 +3,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from typing import Any
+from unittest.mock import MagicMock, patch
 
 from scripts.application.preloader import Preloader
 from scripts.domain.models import Config, Settings, Source
@@ -26,7 +27,7 @@ class TestPreloader(unittest.TestCase):
             sources=sources,
         )
 
-    def test_preload_text_only(self):
+    def test_preload_text_only(self) -> None:
         p1 = self._create_temp_file("Content A")
         p2 = self._create_temp_file("Content B")
         try:
@@ -41,7 +42,7 @@ class TestPreloader(unittest.TestCase):
             Path(p1).unlink()
             Path(p2).unlink()
 
-    def test_preload_mixed(self):
+    def test_preload_mixed(self) -> None:
         p1 = self._create_temp_file("Text content")
         try:
             cfg = self._make_config([
@@ -55,7 +56,7 @@ class TestPreloader(unittest.TestCase):
             Path(p1).unlink()
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
-    def test_preload_with_url(self, mock_urlopen):
+    def test_preload_with_url(self, mock_urlopen: MagicMock) -> None:
         from scripts.tests.infrastructure.test_url_fetcher import _mock_response
         mock_urlopen.return_value = _mock_response(
             b"<p>URL content</p>", "text/html"
@@ -72,7 +73,7 @@ class TestPreloader(unittest.TestCase):
         finally:
             Path(p1).unlink()
 
-    def test_preload_disabled_skipped(self):
+    def test_preload_disabled_skipped(self) -> None:
         p1 = self._create_temp_file("Should appear")
         p2 = self._create_temp_file("Should NOT appear")
         try:
@@ -87,7 +88,7 @@ class TestPreloader(unittest.TestCase):
             Path(p1).unlink()
             Path(p2).unlink()
 
-    def test_preload_missing_continues(self):
+    def test_preload_missing_continues(self) -> None:
         p1 = self._create_temp_file("Good content")
         try:
             cfg = self._make_config([
@@ -100,12 +101,12 @@ class TestPreloader(unittest.TestCase):
         finally:
             Path(p1).unlink()
 
-    def test_preload_empty_sources(self):
+    def test_preload_empty_sources(self) -> None:
         cfg = self._make_config([])
         result = Preloader(cfg).run()
         self.assertIn("Summary", result)
 
-    def test_preload_summary_counts(self):
+    def test_preload_summary_counts(self) -> None:
         p1 = self._create_temp_file("A")
         p2 = self._create_temp_file("B")
         try:
@@ -123,7 +124,7 @@ class TestPreloader(unittest.TestCase):
 
 
 class TestPreloaderReferenceMode(unittest.TestCase):
-    def _make_config(self, sources, mode="reference"):
+    def _make_config(self, sources: list[Source], mode: str = "reference") -> Config:
         return Config(
             version="1.0.0",
             settings=Settings(mode=mode),
@@ -131,7 +132,7 @@ class TestPreloaderReferenceMode(unittest.TestCase):
             sources=sources,
         )
 
-    def test_reference_mode_no_file_reading(self):
+    def test_reference_mode_no_file_reading(self) -> None:
         """Reference mode succeeds even with nonexistent files (no I/O)."""
         cfg = self._make_config([
             Source(id="a", label="A", path="/nonexistent/file.txt"),
@@ -142,7 +143,7 @@ class TestPreloaderReferenceMode(unittest.TestCase):
         self.assertIn("/also/missing.md", result)
         self.assertNotIn("ERROR", result)
 
-    def test_reference_mode_contains_paths_and_labels(self):
+    def test_reference_mode_contains_paths_and_labels(self) -> None:
         cfg = self._make_config([
             Source(id="a", label="LabelA", path="C:/path/a.txt"),
             Source(id="b", label="LabelB", path="C:/path/b.md"),
@@ -153,14 +154,14 @@ class TestPreloaderReferenceMode(unittest.TestCase):
         self.assertIn("Path: C:/path/a.txt", result)
         self.assertIn("Path: C:/path/b.md", result)
 
-    def test_reference_mode_contains_header(self):
+    def test_reference_mode_contains_header(self) -> None:
         cfg = self._make_config([
             Source(id="a", label="A", path="/a.txt"),
         ])
         result = Preloader(cfg).run()
         self.assertIn("ContextPreloader: Session Context", result)
 
-    def test_reference_mode_respects_enabled(self):
+    def test_reference_mode_respects_enabled(self) -> None:
         cfg = self._make_config([
             Source(id="a", label="Visible", path="/a.txt"),
             Source(id="b", label="Hidden", path="/b.txt", enabled=False),
@@ -169,21 +170,21 @@ class TestPreloaderReferenceMode(unittest.TestCase):
         self.assertIn("Visible", result)
         self.assertNotIn("Hidden", result)
 
-    def test_reference_mode_includes_description(self):
+    def test_reference_mode_includes_description(self) -> None:
         cfg = self._make_config([
             Source(id="a", label="A", path="/a.txt", description="memo text"),
         ])
         result = Preloader(cfg).run()
         self.assertIn("memo text", result)
 
-    def test_reference_mode_includes_priority(self):
+    def test_reference_mode_includes_priority(self) -> None:
         cfg = self._make_config([
             Source(id="a", label="A", path="/a.txt", priority="critical"),
         ])
         result = Preloader(cfg).run()
         self.assertIn("[CRITICAL]", result)
 
-    def test_reference_mode_no_summary(self):
+    def test_reference_mode_no_summary(self) -> None:
         cfg = self._make_config([
             Source(id="a", label="A", path="/a.txt"),
         ])
@@ -191,7 +192,7 @@ class TestPreloaderReferenceMode(unittest.TestCase):
         self.assertNotIn("Summary", result)
 
     @patch("sys.stderr")
-    def test_reference_mode_warns_over_threshold(self, mock_stderr):
+    def test_reference_mode_warns_over_threshold(self, mock_stderr: MagicMock) -> None:
         """Output exceeding REFERENCE_OUTPUT_WARNING_BYTES triggers stderr warning."""
         long_desc = "A" * 500
         sources = [
@@ -209,7 +210,7 @@ class TestPreloaderReferenceMode(unittest.TestCase):
         self.assertIn("warning", warning_text.lower())
 
     @patch("sys.stderr")
-    def test_reference_mode_no_warning_under_threshold(self, mock_stderr):
+    def test_reference_mode_no_warning_under_threshold(self, mock_stderr: MagicMock) -> None:
         """Output under threshold does not trigger warning."""
         cfg = self._make_config([
             Source(id="a", label="A", path="/a.txt", description="short"),
@@ -221,7 +222,7 @@ class TestPreloaderReferenceMode(unittest.TestCase):
         )
         self.assertNotIn("warning", warning_text.lower())
 
-    def test_inline_mode_unchanged(self):
+    def test_inline_mode_unchanged(self) -> None:
         """Inline mode regression guard: file content appears in output."""
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".txt", delete=False, encoding="utf-8"
@@ -241,14 +242,14 @@ class TestPreloaderReferenceMode(unittest.TestCase):
 class TestPreloaderReferenceIntegration(unittest.TestCase):
     """End-to-end: JSON config -> load_config -> Preloader -> reference output."""
 
-    def _write_json(self, data: dict) -> str:
+    def _write_json(self, data: dict[str, Any]) -> str:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
         ) as f:
             json.dump(data, f)
         return f.name
 
-    def test_reference_e2e_from_config(self):
+    def test_reference_e2e_from_config(self) -> None:
         path = self._write_json({
             "version": "1.0.0",
             "settings": {"mode": "reference"},
@@ -272,7 +273,7 @@ class TestPreloaderReferenceIntegration(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_reference_e2e_with_profile(self):
+    def test_reference_e2e_with_profile(self) -> None:
         config_path = self._write_json({
             "version": "1.0.0",
             "settings": {"mode": "reference"},
@@ -294,7 +295,7 @@ class TestPreloaderReferenceIntegration(unittest.TestCase):
             Path(config_path).unlink()
             Path(profile_path).unlink()
 
-    def test_inline_e2e_regression(self):
+    def test_inline_e2e_regression(self) -> None:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".txt", delete=False, encoding="utf-8"
         ) as content_file:

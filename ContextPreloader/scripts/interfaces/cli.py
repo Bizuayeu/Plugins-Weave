@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 from scripts.domain.exceptions import ConfigError
 from scripts.infrastructure.config_repository import (
@@ -17,7 +18,7 @@ from scripts.infrastructure.path_resolver import (
 )
 
 
-def cmd_list(config_path: str, profile: str | None) -> list[dict]:
+def cmd_list(config_path: str, profile: str | None) -> list[dict[str, Any]]:
     """List all configured sources. Returns list of dicts."""
     cfg = load_config(config_path)
     sources = [
@@ -89,7 +90,7 @@ def cmd_remove(config_path: str, src_id: str, profile: str | None) -> None:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-def cmd_test(config_path: str, profile: str | None) -> list[dict]:
+def cmd_test(config_path: str, profile: str | None) -> list[dict[str, Any]]:
     """Test all sources for accessibility. Returns list of test results."""
     from scripts.domain.detection import is_url
 
@@ -115,7 +116,7 @@ def cmd_test(config_path: str, profile: str | None) -> list[dict]:
     return results
 
 
-def cmd_status() -> dict:
+def cmd_status() -> dict[str, Any]:
     """Check setup state. Returns dict with status of each component."""
 
     config_path = get_default_config_path()
@@ -225,6 +226,10 @@ def main() -> None:
         else:
             from scripts.infrastructure.path_resolver import get_profile_path
             profile_path = str(get_profile_path(args.profile))
+
+    # 分岐ごとに戻り値の型が違う（dict / list[dict] / list[str]）。直後に
+    # json.dumps へ渡すだけなので Any で受ける。
+    result: Any
 
     if args.command == "status":
         result = cmd_status()

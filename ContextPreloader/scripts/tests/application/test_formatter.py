@@ -12,31 +12,31 @@ from scripts.application.formatter import (
 
 
 class TestFormatter(unittest.TestCase):
-    def test_format_text_output(self):
+    def test_format_text_output(self) -> None:
         result = format_text_output("Notes", "hello")
         self.assertTrue(result.startswith("=== Notes ==="))
         self.assertIn("hello", result)
 
-    def test_format_binary_output(self):
+    def test_format_binary_output(self) -> None:
         result = format_binary_output("Spec", "/path/to/spec.pdf", 2097152, ".pdf")
         self.assertIn("=== Spec [PDF document] ===", result)
         self.assertIn("Path:", result)
         self.assertIn("2.0 MB", result)
         self.assertIn("Read tool", result)
 
-    def test_format_url_text_output(self):
+    def test_format_url_text_output(self) -> None:
         result = format_url_text_output("Docs", "https://example.com", "Hello World")
         self.assertIn("=== Docs [URL] ===", result)
         self.assertIn("Source: https://example.com", result)
         self.assertIn("Hello World", result)
 
-    def test_format_url_ref_output(self):
+    def test_format_url_ref_output(self) -> None:
         result = format_url_ref_output("File", "https://example.com/f.pdf", "application/pdf")
         self.assertIn("=== File [URL] ===", result)
         self.assertIn("Content-Type: application/pdf", result)
         self.assertIn("WebFetch", result)
 
-    def test_format_summary(self):
+    def test_format_summary(self) -> None:
         result = format_summary(3, 1, 2, 15.0)
         self.assertIn("3 text", result)
         self.assertIn("1 URL", result)
@@ -44,13 +44,13 @@ class TestFormatter(unittest.TestCase):
 
 
 class TestFormatReferenceOutput(unittest.TestCase):
-    def test_reference_output_header(self):
+    def test_reference_output_header(self) -> None:
         sources = [("C:/path/file.txt", "MyLabel", "A description", "critical")]
         result = format_reference_output(sources)
         self.assertIn("=== ContextPreloader: Session Context ===", result)
         self.assertIn("Read the following files using the Read tool", result)
 
-    def test_reference_output_single_source(self):
+    def test_reference_output_single_source(self) -> None:
         sources = [("C:/path/file.txt", "MyLabel", "A description", "critical")]
         result = format_reference_output(sources)
         self.assertIn("1.", result)
@@ -59,7 +59,7 @@ class TestFormatReferenceOutput(unittest.TestCase):
         self.assertIn("Path: C:/path/file.txt", result)
         self.assertIn("A description", result)
 
-    def test_reference_output_multiple_sources(self):
+    def test_reference_output_multiple_sources(self) -> None:
         sources = [
             ("C:/a.txt", "FileA", "Desc A", "critical"),
             ("C:/b.txt", "FileB", "Desc B", "high"),
@@ -76,7 +76,7 @@ class TestFormatReferenceOutput(unittest.TestCase):
         self.assertLess(a_pos, b_pos)
         self.assertLess(b_pos, c_pos)
 
-    def test_reference_output_empty_description(self):
+    def test_reference_output_empty_description(self) -> None:
         sources = [("C:/a.txt", "FileA", "", "normal")]
         result = format_reference_output(sources)
         self.assertIn("Path: C:/a.txt", result)
@@ -88,7 +88,7 @@ class TestFormatReferenceOutput(unittest.TestCase):
         self.assertEqual(len(lines_without), 1)  # only Path line
         self.assertEqual(len(lines_with), 2)     # Path + description
 
-    def test_reference_output_priority_mapping(self):
+    def test_reference_output_priority_mapping(self) -> None:
         for priority, expected in [
             ("critical", "[CRITICAL]"),
             ("high", "[HIGH]"),
@@ -99,7 +99,7 @@ class TestFormatReferenceOutput(unittest.TestCase):
             result = format_reference_output(sources)
             self.assertIn(expected, result, f"Priority '{priority}' should map to '{expected}'")
 
-    def test_reference_output_size_under_2kb(self):
+    def test_reference_output_size_under_2kb(self) -> None:
         sources = [
             ("/path/to/workspace/Identities/GrandDigest.txt",
              "GrandDigest (Long-term Memory Summary)",

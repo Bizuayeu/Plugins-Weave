@@ -1,3 +1,5 @@
+from typing import Any
+
 """Domain constants for ContextPreloader (Single Source of Truth)."""
 
 DEFAULT_TEXT_EXTENSIONS: list[str] = [
@@ -32,7 +34,7 @@ FILE_TYPE_LABELS: dict[str, str] = {
 
 REFERENCE_OUTPUT_WARNING_BYTES: int = 1536
 
-DEFAULT_SETTINGS: dict = {
+DEFAULT_SETTINGS: dict[str, Any] = {
     "encoding": "utf-8",
     "max_lines_per_file": 0,
     "show_summary": True,

@@ -17,7 +17,7 @@ class Preloader:
         self,
         config: Config,
         profile_sources: list[Source] | None = None,
-    ):
+    ) -> None:
         self._config = config
         self._profile_sources = profile_sources
 
