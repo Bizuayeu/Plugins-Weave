@@ -1,7 +1,9 @@
-"""WAL Domain（WalEntry / reconcile / settle / checkpoint）の純関数テスト。
+"""WAL Domain（WalEntry / reconcile / settle / quarantine / checkpoint）の純関数テスト。
 
 reconcile（やり残し抽出）と settle（done 化）が全 pending を漏れなく二分すること、
 checkpoint が pending を無条件保持しつつ done を retention で掃除することを駆動する。
+dead（隔離）については、quarantine が該当だけを落とすこと、同 key の再登録で settle が
+自己治癒させること、checkpoint が掃除しないことを駆動する。
 """
 
 from __future__ import annotations
@@ -9,12 +11,30 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
-from domain.wal import WalEntry, checkpoint, reconcile, settle, settle_outbound
+from domain.wal import (
+    WalEntry,
+    checkpoint,
+    quarantine,
+    reconcile,
+    settle,
+    settle_outbound,
+)
 
 
-def _entry(key, status="pending", kind="tasks", created_at="2026-06-03T00:00:00+00:00"):
+def _entry(
+    key,
+    status="pending",
+    kind="tasks",
+    created_at="2026-06-03T00:00:00+00:00",
+    reason="",
+):
     return WalEntry(
-        key=key, kind=kind, status=status, payload={"id": key}, created_at=created_at
+        key=key,
+        kind=kind,
+        status=status,
+        payload={"id": key},
+        created_at=created_at,
+        reason=reason,
     )
 
 
@@ -48,6 +68,35 @@ def test_walentry_from_dict_rejects_unknown_status():
                 "created_at": "2026-06-03T00:00:00+00:00",
             }
         )
+
+
+def test_walentry_roundtrip_with_reason():
+    # dead は reason 付きで往復できる（隔離理由が JSONL を跨いで残る）
+    e = _entry("T0001", status="dead", reason="KeyError: created_at")
+    assert WalEntry.from_dict(e.to_dict()) == e
+
+
+def test_walentry_to_dict_omits_empty_reason():
+    # 既存 WAL.jsonl 互換：reason 空の行は従来の 5 キーが同じ順で並ぶ（byte 同一）
+    assert list(_entry("T0001").to_dict()) == [
+        "key",
+        "kind",
+        "status",
+        "payload",
+        "created_at",
+    ]
+    assert _entry("T0001").to_dict() == {
+        "key": "T0001",
+        "kind": "tasks",
+        "status": "pending",
+        "payload": {"id": "T0001"},
+        "created_at": "2026-06-03T00:00:00+00:00",
+    }
+
+
+def test_walentry_mark_dead_sets_status_and_reason():
+    e = _entry("T0001").mark_dead("KeyError: created_at")
+    assert (e.status, e.reason) == ("dead", "KeyError: created_at")
 
 
 # --- reconcile: pending ∖ registry_keys（やり残し抽出） ---
@@ -166,3 +215,69 @@ def test_settle_outbound_preserves_order():
     out = settle_outbound(entries, "c")
     assert [e.key for e in out] == ["a", "b", "c"]
     assert [e.status for e in out] == ["pending", "pending", "done"]
+
+
+# --- quarantine: 検証に落ちた pending を dead へ隔離 ---
+
+
+def test_quarantine_marks_only_failed_pending_dead():
+    entries = [_entry("T0001"), _entry("T0002")]
+    out = quarantine(entries, {("tasks", "T0001"): "KeyError: created_at"})
+    assert [(e.key, e.status, e.reason) for e in out] == [
+        ("T0001", "dead", "KeyError: created_at"),
+        ("T0002", "pending", ""),
+    ]
+
+
+def test_quarantine_is_kind_aware():
+    # 同じ key でも kind が違えば別物（reconcile / settle と同じ規律）
+    entries = [_entry("X1", kind="tasks"), _entry("X1", kind="individuals")]
+    out = quarantine(entries, {("tasks", "X1"): "boom"})
+    assert [(e.kind, e.status) for e in out] == [
+        ("tasks", "dead"),
+        ("individuals", "pending"),
+    ]
+
+
+def test_quarantine_leaves_done_untouched():
+    # 反映済みを後から dead に落とさない（対象は pending のみ）
+    entries = [_entry("T0001", status="done")]
+    out = quarantine(entries, {("tasks", "T0001"): "boom"})
+    assert (out[0].status, out[0].reason) == ("done", "")
+
+
+def test_quarantine_noop_when_no_failures():
+    entries = [_entry("T0001"), _entry("T0002")]
+    assert quarantine(entries, {}) == entries
+
+
+# --- dead の振る舞い: reconcile / settle / checkpoint ---
+
+
+def test_reconcile_excludes_dead():
+    # dead は redo ソースではない（再検証しない）
+    entries = [_entry("T0001", status="dead", reason="boom"), _entry("T0002")]
+    assert [e.key for e in reconcile(entries, set())] == ["T0002"]
+
+
+def test_settle_heals_dead_when_key_appears_in_registry():
+    # 同 key の正しい add が入った＝約束が実体を伴ったので done 化
+    entries = [_entry("T0001", status="dead", reason="boom")]
+    assert settle(entries, {("tasks", "T0001")})[0].status == "done"
+
+
+def test_settle_leaves_dead_without_registry_key():
+    entries = [_entry("T0001", status="dead", reason="boom")]
+    out = settle(entries, set())
+    assert (out[0].status, out[0].reason) == ("dead", "boom")
+
+
+def test_checkpoint_keeps_dead_regardless_of_age():
+    # dead は未履行の約束の記録。出口は settle か wal-drop だけ（時間では消えない）
+    now = datetime(2026, 6, 4, 0, 0, 0, tzinfo=timezone.utc)
+    old_dead = _entry(
+        "T0001", status="dead", created_at="2026-06-01T00:00:00+00:00", reason="boom"
+    )  # 3日前
+    old_done = _entry("T0002", status="done", created_at="2026-06-01T00:00:00+00:00")
+    out = checkpoint([old_dead, old_done], now, retention_h=24)
+    assert [e.key for e in out] == ["T0001"]
