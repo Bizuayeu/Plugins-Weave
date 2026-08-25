@@ -10,7 +10,7 @@ Usage:
 """
 
 import logging
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def level_hierarchy() -> "Dict[str, LevelHierarchyEntry]":
+def level_hierarchy() -> "dict[str, LevelHierarchyEntry]":
     """レベル階層情報"""
     return {
         level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
@@ -53,7 +53,7 @@ def level_hierarchy() -> "Dict[str, LevelHierarchyEntry]":
 @pytest.fixture
 def cascade_processor(
     temp_plugin_env: "TempPluginEnvironment",
-    level_hierarchy: "Dict[str, LevelHierarchyEntry]",
+    level_hierarchy: "dict[str, LevelHierarchyEntry]",
 ) -> CascadeProcessor:
     """CascadeProcessorインスタンスを提供"""
     config = DigestConfig()

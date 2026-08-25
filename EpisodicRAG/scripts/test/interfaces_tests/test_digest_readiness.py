@@ -15,7 +15,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -44,7 +44,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
         self._setup_plugin_structure()
 
         # get_persistent_config_dir()のモックを開始
-        self._patchers: List[Any] = []
+        self._patchers: list[Any] = []
         for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
             patcher = patch(target, return_value=self.persistent_config_dir)
             patcher.start()
@@ -94,7 +94,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 "monthly_threshold": 4,
             },
         }
-        with open(self.persistent_config_dir / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config_dir / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     def _create_shadow_complete(self, level: str = "weekly") -> None:
@@ -133,10 +133,8 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -156,10 +154,8 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -179,10 +175,8 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -244,7 +238,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 / "Q001_Individual.txt"
             )
 
-        with open(provisional_path, "w", encoding="utf-8") as f:
+        with provisional_path.open("w", encoding="utf-8") as f:
             json.dump(provisional_data, f)
 
     def _create_provisional_missing(self, level: str = "monthly") -> None:
@@ -285,7 +279,7 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 / "Provisional"
                 / "M0001_Individual.txt"
             )
-            with open(provisional_path, "w", encoding="utf-8") as f:
+            with provisional_path.open("w", encoding="utf-8") as f:
                 json.dump(provisional_data, f)
 
     # =========================================================================
@@ -480,7 +474,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         self._setup_plugin_structure()
 
         # get_persistent_config_dir()のモックを開始
-        self._patchers: List[Any] = []
+        self._patchers: list[Any] = []
         for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
             patcher = patch(target, return_value=self.persistent_config_dir)
             patcher.start()
@@ -522,7 +516,7 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config_dir / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config_dir / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     def _create_shadow_empty_overall(self) -> None:
@@ -531,10 +525,8 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00"},
             "latest_digests": {"weekly": {"overall_digest": {}}},
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -554,10 +546,8 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
                 }
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -697,7 +687,7 @@ class TestDigestReadinessCLI(unittest.TestCase):
             "levels": {"weekly_threshold": 5},
         }
         # 永続化ディレクトリに設定ファイルを作成
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -714,10 +704,8 @@ class TestDigestReadinessCLI(unittest.TestCase):
                 }
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -794,7 +782,7 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
         self._setup_plugin_structure()
 
         # get_persistent_config_dir()のモックを開始
-        self._patchers: List[Any] = []
+        self._patchers: list[Any] = []
         for target in self._PERSISTENT_CONFIG_PATCH_TARGETS:
             patcher = patch(target, return_value=self.persistent_config_dir)
             patcher.start()
@@ -836,7 +824,7 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config_dir / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config_dir / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -939,7 +927,7 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
             "levels": {"weekly_threshold": 5},
         }
         # 永続化ディレクトリに設定ファイルを作成
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     def _create_shadow_complete(self) -> None:
@@ -958,10 +946,8 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 

@@ -67,7 +67,7 @@ class TestSingletonDocumentation:
             ("domain.file_naming", "reset_registry"),
         ]
 
-        for module_name, reset_func_name in modules_to_check:
+        for module_name, _reset_func_name in modules_to_check:
             module = __import__(module_name, fromlist=[""])
             assert module.__doc__ is not None, f"{module_name}にdocstringがない"
 

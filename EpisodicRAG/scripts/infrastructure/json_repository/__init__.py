@@ -43,8 +43,9 @@ Usage:
 """
 
 import logging
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Any, Callable, Mapping, Optional, TypeVar
+from typing import Any, TypeVar
 
 from infrastructure.json_repository.chained_loader import ChainedLoader
 from infrastructure.json_repository.load_strategy import (
@@ -75,10 +76,10 @@ T = TypeVar("T", bound=Mapping[str, Any])
 
 def load_json_with_template(
     target_file: Path,
-    template_file: Optional[Path] = None,
-    default_factory: Optional[Callable[[], T]] = None,
+    template_file: Path | None = None,
+    default_factory: Callable[[], T] | None = None,
     save_on_create: bool = True,
-    log_message: Optional[str] = None,
+    log_message: str | None = None,
 ) -> T:
     """
     JSONファイルを読み込む。存在しない場合はテンプレートまたはデフォルトから作成。

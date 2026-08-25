@@ -61,7 +61,7 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
                 "monthly_threshold": 5,
             },
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -71,8 +71,8 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
                 "monthly": {"overall_digest": None},
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -80,14 +80,14 @@ class TestDigestAutoCLIOutputFormats(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "GrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'GrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(grand_data, f)
 
         times_data = {"weekly": {"timestamp": "", "last_processed": None}}
-        with open(
-            self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8"
+        with (self.plugin_root / '.claude-plugin' / 'last_digest_times.json').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(times_data, f)
 

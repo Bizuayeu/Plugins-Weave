@@ -6,7 +6,7 @@ EpisodicRAG 設定データ型定義
 設定ファイル用TypedDict定義。
 """
 
-from typing import Dict, List, Optional, TypedDict
+from typing import TypedDict
 
 
 class PathsConfigData(TypedDict, total=False):
@@ -17,7 +17,7 @@ class PathsConfigData(TypedDict, total=False):
     loops_dir: str
     digests_dir: str
     essences_dir: str
-    identity_file_path: Optional[str]
+    identity_file_path: str | None
 
 
 class LevelsConfigData(TypedDict, total=False):
@@ -43,7 +43,7 @@ class ConfigData(TypedDict, total=False):
     base_dir: str
     paths: PathsConfigData
     levels: LevelsConfigData
-    trusted_external_paths: List[str]
+    trusted_external_paths: list[str]
 
 
 # =============================================================================
@@ -57,7 +57,7 @@ class DigestTimeData(TypedDict, total=False):
     """
 
     timestamp: str
-    last_processed: Optional[int]
+    last_processed: int | None
 
 
-DigestTimesData = Dict[str, DigestTimeData]
+DigestTimesData = dict[str, DigestTimeData]

@@ -27,7 +27,6 @@ Usage:
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from domain.file_constants import CONFIG_FILENAME, PERSISTENT_CONFIG_DIR_NAME, PLUGIN_CONFIG_DIR
 
@@ -74,7 +73,7 @@ def get_config_path() -> Path:
     return get_persistent_config_dir() / CONFIG_FILENAME
 
 
-def get_template_dir() -> Optional[Path]:
+def get_template_dir() -> Path | None:
     """
     テンプレートディレクトリ（.claude-plugin/）を取得
 

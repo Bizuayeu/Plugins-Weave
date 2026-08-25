@@ -160,7 +160,7 @@ class TestGetMaxNumberedFile:
     """get_max_numbered_file() 関数のテスト"""
 
     @staticmethod
-    def extract_loop_number(filename: str) -> Optional[int]:
+    def extract_loop_number(filename: str) -> int | None:
         """Loop0001.txt → 1"""
         if filename.startswith("L") and filename.endswith(".txt"):
             try:
@@ -228,7 +228,7 @@ class TestFilterFilesAfterNumber:
     """filter_files_after_number() 関数のテスト"""
 
     @staticmethod
-    def extract_number(filename: str) -> Optional[int]:
+    def extract_number(filename: str) -> int | None:
         """Loop0001.txt → 1"""
         if filename.startswith("Loop"):
             try:

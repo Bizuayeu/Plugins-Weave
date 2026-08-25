@@ -8,8 +8,9 @@ pytest 共通設定
 """
 
 import os
+from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Generator, List, Tuple
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -138,14 +139,14 @@ def shared_plugin_env() -> Generator[TempPluginEnvironment, None, None]:
 @pytest.fixture
 def sample_loop_files(
     temp_plugin_env: TempPluginEnvironment,
-) -> Tuple[TempPluginEnvironment, List[Path]]:
+) -> tuple[TempPluginEnvironment, list[Path]]:
     """
     5つのサンプルLoopファイルを作成済みの環境を提供
 
     Returns:
         (env, loop_files): 環境とLoopファイルパスのリスト
     """
-    loop_files: List[Path] = []
+    loop_files: list[Path] = []
     for i in range(1, 6):
         loop_file = create_test_loop_file(temp_plugin_env.loops_path, i, f"test_loop_{i}")
         loop_files.append(loop_file)
@@ -349,7 +350,7 @@ def grand_digest_manager(config: "DigestConfig") -> "GrandDigestManager":
 
 
 @pytest.fixture
-def valid_digest_long_short() -> Dict[str, Any]:
+def valid_digest_long_short() -> dict[str, Any]:
     """有効な{long, short}形式のdigestデータ"""
     return {
         "source_file": "L00001_test.txt",
@@ -361,7 +362,7 @@ def valid_digest_long_short() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def valid_individual_digests_list() -> List[Dict[str, Any]]:
+def valid_individual_digests_list() -> list[dict[str, Any]]:
     """有効なindividual_digestsリスト"""
     return [
         {

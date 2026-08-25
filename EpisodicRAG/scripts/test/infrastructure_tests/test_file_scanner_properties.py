@@ -153,7 +153,7 @@ class TestFilterFilesAfterNumberProperties:
             for f in files:
                 f.touch()
 
-            def extractor(name: str) -> Optional[int]:
+            def extractor(name: str) -> int | None:
                 if name.startswith("L") and len(name) >= 6:
                     try:
                         return int(name[1:6])
@@ -182,7 +182,7 @@ class TestFilterFilesAfterNumberProperties:
             for f in files:
                 f.touch()
 
-            def extractor(name: str) -> Optional[int]:
+            def extractor(name: str) -> int | None:
                 if name.startswith("L") and len(name) >= 6:
                     try:
                         return int(name[1:6])
@@ -201,7 +201,7 @@ class TestFilterFilesAfterNumberProperties:
     def test_empty_input_returns_empty(self, threshold) -> None:
         """空リスト入力は空リストを返す"""
 
-        def extractor(name: str) -> Optional[int]:
+        def extractor(name: str) -> int | None:
             return None
 
         result = filter_files_after_number([], threshold, extractor)
@@ -276,7 +276,7 @@ class TestGetMaxNumberedFileProperties:
             for n in numbers:
                 (tmp_path / f"L{n:05d}.txt").touch()
 
-            def extractor(name: str) -> Optional[int]:
+            def extractor(name: str) -> int | None:
                 if name.startswith("L") and len(name) >= 6:
                     try:
                         return int(name[1:6])
@@ -293,7 +293,7 @@ class TestGetMaxNumberedFileProperties:
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
 
-            def extractor(name: str) -> Optional[int]:
+            def extractor(name: str) -> int | None:
                 return None
 
             result = get_max_numbered_file(tmp_path, "*.txt", extractor)
@@ -306,7 +306,7 @@ class TestGetMaxNumberedFileProperties:
             tmp_path = Path(tmp_dir)
             nonexistent = tmp_path / "does_not_exist"
 
-            def extractor(name: str) -> Optional[int]:
+            def extractor(name: str) -> int | None:
                 return None
 
             result = get_max_numbered_file(nonexistent, "*.txt", extractor)

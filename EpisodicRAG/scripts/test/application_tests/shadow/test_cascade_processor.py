@@ -13,7 +13,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -59,7 +58,7 @@ def level_hierarchy():
 
 @pytest.fixture
 def cascade_processor(
-    temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "Dict[str, LevelHierarchyEntry]"
+    temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "dict[str, LevelHierarchyEntry]"
 ):
     """CascadeProcessorインスタンスを提供（ProvisionalAppender含む）"""
     config = DigestConfig()
@@ -262,7 +261,7 @@ class TestCascadeUpdateOnDigestFinalize:
                 "impression": "Test",
             }
         }
-        with open(weekly_file, "w", encoding="utf-8") as f:
+        with weekly_file.open("w", encoding="utf-8") as f:
             json.dump(digest_content, f)
 
         # weeklyのカスケードを実行（次はmonthly）
@@ -285,10 +284,10 @@ class TestCascadeProcessorEdgeCases:
 
     @pytest.mark.unit
     def test_all_levels_have_hierarchy_entry(
-        self, cascade_processor, level_hierarchy: "Dict[str, LevelHierarchyEntry]"
+        self, cascade_processor, level_hierarchy: "dict[str, LevelHierarchyEntry]"
     ) -> None:
         """すべてのレベルがhierarchyに存在する"""
-        for level in LEVEL_CONFIG.keys():
+        for level in LEVEL_CONFIG:
             assert level in level_hierarchy
 
     @pytest.mark.integration
@@ -424,7 +423,7 @@ class TestCascadeWithProvisionalAppender:
         # ファイル内容を確認
         import json
 
-        with open(provisional_files[0], "r", encoding="utf-8") as f:
+        with provisional_files[0].open(encoding="utf-8") as f:
             data = json.load(f)
 
         assert "individual_digests" in data
@@ -455,7 +454,7 @@ class TestCascadeWithProvisionalAppender:
                 "impression": "Test",
             }
         }
-        with open(weekly_file, "w", encoding="utf-8") as f:
+        with weekly_file.open("w", encoding="utf-8") as f:
             json.dump(digest_content, f)
 
         # 確定ダイジェストを準備

@@ -42,7 +42,7 @@ Usage:
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from domain.types import LevelHierarchyEntry
 from infrastructure import get_structured_logger
@@ -76,7 +76,7 @@ class CascadeStepResult:
     status: CascadeStepStatus
     message: str
     files_processed: int = 0
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
     # details の内容（ステップ別）:
     #   promote: {"source_files_count": int}
     #   detect:  {"new_files_count": int, "sample_files": str}
@@ -89,9 +89,9 @@ class CascadeResult:
     """カスケード処理全体の結果"""
 
     level: str
-    steps: List[CascadeStepResult]
+    steps: list[CascadeStepResult]
     success: bool
-    next_level: Optional[str] = None
+    next_level: str | None = None
 
     @property
     def total_files_processed(self) -> int:
@@ -99,7 +99,7 @@ class CascadeResult:
         return sum(step.files_processed for step in self.steps)
 
     @property
-    def step_summary(self) -> Dict[str, CascadeStepStatus]:
+    def step_summary(self) -> dict[str, CascadeStepStatus]:
         """ステップ名とステータスのマッピング"""
         return {step.step_name: step.status for step in self.steps}
 
@@ -134,7 +134,7 @@ class CascadeOrchestrator:
         cascade_processor: "CascadeProcessor",
         file_detector: "FileDetector",
         file_appender: "FileAppender",
-        level_hierarchy: Dict[str, LevelHierarchyEntry],
+        level_hierarchy: dict[str, LevelHierarchyEntry],
     ):
         """
         初期化
@@ -193,7 +193,7 @@ class CascadeOrchestrator:
         """
         _logger.info(f"[Orchestrator] カスケード処理を開始: レベル {level}")
 
-        steps: List[CascadeStepResult] = []
+        steps: list[CascadeStepResult] = []
         success = True
         next_level = self.level_hierarchy[level]["next"]
 
@@ -208,7 +208,7 @@ class CascadeOrchestrator:
         steps.append(promote_result)
 
         # Step 2: Detect (次レベルの新規ファイル検出)
-        new_files: List[Path] = []
+        new_files: list[Path] = []
         if next_level:
             detect_result, new_files = self._step_detect(next_level)
             steps.append(detect_result)
@@ -289,7 +289,7 @@ class CascadeOrchestrator:
             details={"source_files_count": file_count},
         )
 
-    def _step_detect(self, next_level: str) -> tuple[CascadeStepResult, List[Path]]:
+    def _step_detect(self, next_level: str) -> tuple[CascadeStepResult, list[Path]]:
         """
         Step 2: 次レベルの新規ファイル検出
 
@@ -332,7 +332,7 @@ class CascadeOrchestrator:
         )
         return result, new_files
 
-    def _step_add(self, next_level: str, new_files: List[Path]) -> CascadeStepResult:
+    def _step_add(self, next_level: str, new_files: list[Path]) -> CascadeStepResult:
         """
         Step 3: 次レベルのShadowにファイル追加
 

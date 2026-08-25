@@ -51,7 +51,6 @@ Usage:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional
 
 __all__ = [
     "ValidationContext",
@@ -69,7 +68,7 @@ class ValidationContext:
 
     resolved_path: Path
     plugin_root: Path
-    trusted_paths: List[Path] = field(default_factory=list)
+    trusted_paths: list[Path] = field(default_factory=list)
     original_setting: str = ""
 
 
@@ -78,9 +77,9 @@ class ValidationResult:
     """パス検証の結果"""
 
     is_valid: bool
-    validated_path: Optional[Path] = None
-    error_message: Optional[str] = None
-    validator_name: Optional[str] = None
+    validated_path: Path | None = None
+    error_message: str | None = None
+    validator_name: str | None = None
 
     @classmethod
     def success(cls, path: Path, validator_name: str) -> "ValidationResult":
@@ -123,7 +122,7 @@ class PathValidator(ABC):
         pass
 
     @abstractmethod
-    def validate(self, context: ValidationContext) -> Optional[ValidationResult]:
+    def validate(self, context: ValidationContext) -> ValidationResult | None:
         """
         パスを検証
 
@@ -148,7 +147,7 @@ class PluginRootValidator(PathValidator):
     def name(self) -> str:
         return "PluginRootValidator"
 
-    def validate(self, context: ValidationContext) -> Optional[ValidationResult]:
+    def validate(self, context: ValidationContext) -> ValidationResult | None:
         """
         パスがplugin_root内にあるかチェック
 
@@ -185,7 +184,7 @@ class TrustedExternalPathValidator(PathValidator):
     def name(self) -> str:
         return "TrustedExternalPathValidator"
 
-    def validate(self, context: ValidationContext) -> Optional[ValidationResult]:
+    def validate(self, context: ValidationContext) -> ValidationResult | None:
         """
         パスがtrusted_external_paths内にあるかチェック
 
@@ -233,7 +232,7 @@ class PathValidatorChain:
         result = chain.validate(context)
     """
 
-    def __init__(self, validators: List[PathValidator]):
+    def __init__(self, validators: list[PathValidator]):
         """
         初期化
 
@@ -243,7 +242,7 @@ class PathValidatorChain:
         self._validators = validators
 
     @property
-    def validators(self) -> List[PathValidator]:
+    def validators(self) -> list[PathValidator]:
         """登録されているValidator一覧"""
         return list(self._validators)
 
@@ -260,7 +259,7 @@ class PathValidatorChain:
         Returns:
             ValidationResult: 検証結果
         """
-        tried_validators: List[str] = []
+        tried_validators: list[str] = []
 
         for validator in self._validators:
             result = validator.validate(context)

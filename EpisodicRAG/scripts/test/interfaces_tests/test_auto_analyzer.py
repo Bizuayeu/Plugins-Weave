@@ -82,7 +82,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         # ShadowGrandDigest.txt
@@ -93,8 +93,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
                 "monthly": {"overall_digest": None},
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -103,14 +103,14 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "GrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'GrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(grand_data, f)
 
         # last_digest_times.json（永続化ディレクトリに）
         times_data = {"weekly": {"timestamp": "", "last_processed": None}}
-        with open(self.persistent_config / "last_digest_times.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'last_digest_times.json').open('w', encoding='utf-8') as f:
             json.dump(times_data, f)
 
     @pytest.mark.unit
@@ -158,8 +158,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -187,8 +187,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -210,8 +210,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
 
         # last_processedを更新して未処理扱いにしない
         times_data = {"weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5}}
-        with open(
-            self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8"
+        with (self.plugin_root / '.claude-plugin' / 'last_digest_times.json').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(times_data, f)
 

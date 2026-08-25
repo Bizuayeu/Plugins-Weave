@@ -11,8 +11,9 @@ ChainedLoaderクラスの動作を検証:
 - 空の戦略リスト、全戦略失敗などのエッジケース
 """
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,15 +26,15 @@ from infrastructure.json_repository.load_strategy import LoadContext, LoadStrate
 # =============================================================================
 
 
-class MockSuccessStrategy(LoadStrategy[Dict[str, Any]]):
+class MockSuccessStrategy(LoadStrategy[dict[str, Any]]):
     """常に成功を返す戦略"""
 
-    def __init__(self, return_value: Dict[str, Any], description: str = "MockSuccess") -> None:
+    def __init__(self, return_value: dict[str, Any], description: str = "MockSuccess") -> None:
         self.return_value = return_value
         self.description = description
         self.load_called = False
 
-    def load(self, context: LoadContext) -> Optional[Dict[str, Any]]:
+    def load(self, context: LoadContext) -> dict[str, Any] | None:
         self.load_called = True
         return self.return_value
 
@@ -41,14 +42,14 @@ class MockSuccessStrategy(LoadStrategy[Dict[str, Any]]):
         return self.description
 
 
-class MockFailureStrategy(LoadStrategy[Dict[str, Any]]):
+class MockFailureStrategy(LoadStrategy[dict[str, Any]]):
     """常にNoneを返す戦略"""
 
     def __init__(self, description: str = "MockFailure") -> None:
         self.description = description
         self.load_called = False
 
-    def load(self, context: LoadContext) -> Optional[Dict[str, Any]]:
+    def load(self, context: LoadContext) -> dict[str, Any] | None:
         self.load_called = True
         return None
 
@@ -130,7 +131,7 @@ class TestChainedLoaderLoad:
     @pytest.mark.unit
     def test_empty_strategy_list_returns_none(self, sample_context) -> None:
         """空の戦略リストはNoneを返す"""
-        loader: ChainedLoader[Dict[str, Any]] = ChainedLoader([])
+        loader: ChainedLoader[dict[str, Any]] = ChainedLoader([])
         result = loader.load(sample_context)
 
         assert result is None
@@ -169,11 +170,11 @@ class TestChainedLoaderStrategyOrder:
         """戦略は追加順に実行される"""
         execution_order = []
 
-        class OrderTrackingStrategy(LoadStrategy[Dict[str, Any]]):
+        class OrderTrackingStrategy(LoadStrategy[dict[str, Any]]):
             def __init__(self, name: str) -> None:
                 self.name = name
 
-            def load(self, context: LoadContext) -> Optional[Dict[str, Any]]:
+            def load(self, context: LoadContext) -> dict[str, Any] | None:
                 execution_order.append(self.name)
                 return None
 
@@ -217,7 +218,7 @@ class TestChainedLoaderAddStrategy:
         """空のリストに戦略を追加"""
         strategy = MockSuccessStrategy(success_data, "success")
 
-        loader: ChainedLoader[Dict[str, Any]] = ChainedLoader([])
+        loader: ChainedLoader[dict[str, Any]] = ChainedLoader([])
         loader.add_strategy(strategy)
 
         result = loader.load(sample_context)
@@ -286,8 +287,8 @@ class TestChainedLoaderContextPassing:
         """コンテキストが各戦略に渡される"""
         received_contexts = []
 
-        class ContextCapturingStrategy(LoadStrategy[Dict[str, Any]]):
-            def load(self, context: LoadContext) -> Optional[Dict[str, Any]]:
+        class ContextCapturingStrategy(LoadStrategy[dict[str, Any]]):
+            def load(self, context: LoadContext) -> dict[str, Any] | None:
                 received_contexts.append(context)
                 return None
 

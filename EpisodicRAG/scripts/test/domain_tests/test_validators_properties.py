@@ -6,7 +6,7 @@ Property-Based Tests for Validators
 Using hypothesis to test type validation invariants.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pytest
 from hypothesis import HealthCheck, given, settings
@@ -27,27 +27,27 @@ from domain.validators import (
 # =============================================================================
 
 
-def validate_dict(data: Any, context: str) -> Dict[str, Any]:
+def validate_dict(data: Any, context: str) -> dict[str, Any]:
     """dictバリデーション（validate_typeのラッパー）"""
     return validate_type(data, dict, context, "dict")
 
 
-def validate_list(data: Any, context: str) -> List[Any]:
+def validate_list(data: Any, context: str) -> list[Any]:
     """listバリデーション（validate_typeのラッパー）"""
     return validate_type(data, list, context, "list")
 
 
-def validate_source_files(files: Any, context: str = "source_files") -> List[str]:
+def validate_source_files(files: Any, context: str = "source_files") -> list[str]:
     """source_filesバリデーション（validate_list_not_emptyのラッパー）"""
     return validate_list_not_empty(files, context)
 
 
-def get_dict_or_default(data: Any, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def get_dict_or_default(data: Any, default: dict[str, Any] | None = None) -> dict[str, Any]:
     """dict取得またはデフォルト値"""
     return get_or_default(data, dict, lambda: default if default is not None else {})
 
 
-def get_list_or_default(data: Any, default: Optional[List[Any]] = None) -> List[Any]:
+def get_list_or_default(data: Any, default: list[Any] | None = None) -> list[Any]:
     """list取得またはデフォルト値"""
     return get_or_default(data, list, lambda: default if default is not None else [])
 

@@ -6,7 +6,7 @@ Handles JSON parsing from files or strings.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ValidationError
@@ -14,14 +14,14 @@ from domain.types import IndividualDigestData
 from interfaces.provisional.validator import validate_input_format
 
 # Type alias for JSON data
-JsonData = Union[Dict[str, Any], List[Any]]
+JsonData = dict[str, Any] | list[Any]
 
 
 class InputLoader:
     """Loads individual digests from various input sources."""
 
     @staticmethod
-    def load(input_data: str, base_path: Optional[Path] = None) -> List[IndividualDigestData]:
+    def load(input_data: str, base_path: Path | None = None) -> list[IndividualDigestData]:
         """
         Load individual_digests from a JSON file path or JSON string.
 
@@ -93,7 +93,7 @@ class InputLoader:
         Returns:
             Parsed JSON data
         """
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with file_path.open(encoding='utf-8') as f:
             result: JsonData = json.load(f)
             return result
 

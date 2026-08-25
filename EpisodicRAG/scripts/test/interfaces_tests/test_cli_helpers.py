@@ -83,9 +83,11 @@ class TestOutputError(unittest.TestCase):
         """status: errorを含む"""
         from interfaces.cli_helpers import output_error
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with pytest.raises(SystemExit) as exc_info:
-                output_error("Test error")
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            output_error("Test error")
 
         output = mock_stdout.getvalue()
         parsed = json.loads(output)
@@ -97,9 +99,11 @@ class TestOutputError(unittest.TestCase):
         """エラーメッセージを含む"""
         from interfaces.cli_helpers import output_error
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with pytest.raises(SystemExit):
-                output_error("Something went wrong")
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            pytest.raises(SystemExit),
+        ):
+            output_error("Something went wrong")
 
         output = mock_stdout.getvalue()
         parsed = json.loads(output)
@@ -112,9 +116,11 @@ class TestOutputError(unittest.TestCase):
 
         details = {"action": "Run setup", "code": 42}
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with pytest.raises(SystemExit):
-                output_error("Error occurred", details=details)
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            pytest.raises(SystemExit),
+        ):
+            output_error("Error occurred", details=details)
 
         output = mock_stdout.getvalue()
         parsed = json.loads(output)
@@ -126,9 +132,11 @@ class TestOutputError(unittest.TestCase):
         """詳細なしでも動作"""
         from interfaces.cli_helpers import output_error
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with pytest.raises(SystemExit):
-                output_error("Simple error")
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            pytest.raises(SystemExit),
+        ):
+            output_error("Simple error")
 
         output = mock_stdout.getvalue()
         parsed = json.loads(output)
@@ -139,9 +147,11 @@ class TestOutputError(unittest.TestCase):
         """終了コード1で終了"""
         from interfaces.cli_helpers import output_error
 
-        with patch("sys.stdout", new_callable=StringIO):
-            with pytest.raises(SystemExit) as exc_info:
-                output_error("Exit test")
+        with (
+            patch("sys.stdout", new_callable=StringIO),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            output_error("Exit test")
 
         self.assertEqual(exc_info.value.code, 1)
 
@@ -150,9 +160,11 @@ class TestOutputError(unittest.TestCase):
         """日本語エラーメッセージを保持"""
         from interfaces.cli_helpers import output_error
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with pytest.raises(SystemExit):
-                output_error("エラーが発生しました")
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            pytest.raises(SystemExit),
+        ):
+            output_error("エラーが発生しました")
 
         output = mock_stdout.getvalue()
         self.assertIn("エラーが発生しました", output)

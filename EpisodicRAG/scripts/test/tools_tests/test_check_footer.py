@@ -8,7 +8,6 @@ tools/check_footer.py の単体テスト。
 """
 
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -479,28 +478,28 @@ class TestMain:
 
         with patch("tools.check_footer.run_check") as mock_run:
             mock_run.return_value = mock_results
-            with patch("tools.check_footer.print_report"):
-                with patch("tools.check_footer.Path") as mock_path_cls:
-                    # パス設定のモック
-                    mock_path = MagicMock()
-                    mock_path.parent.parent = tmp_path
-                    mock_path.parent = tmp_path
-                    mock_footer = tmp_path / "_footer.md"
-                    mock_footer.parent.mkdir(parents=True, exist_ok=True)
-                    mock_footer.write_text("```text\n---\nFooter\n```\n", encoding="utf-8")
-                    mock_path.__truediv__ = lambda s, x: (
-                        tmp_path / x if x == "_footer.md" else tmp_path
-                    )
-                    mock_path_cls.return_value = mock_path
-                    mock_path_cls.__file__ = str(tmp_path / "check_footer.py")
+            with (
+                patch("tools.check_footer.print_report"),
+                patch("tools.check_footer.Path") as mock_path_cls,
+            ):
+                # パス設定のモック
+                mock_path = MagicMock()
+                mock_path.parent.parent = tmp_path
+                mock_path.parent = tmp_path
+                mock_footer = tmp_path / "_footer.md"
+                mock_footer.parent.mkdir(parents=True, exist_ok=True)
+                mock_footer.write_text("```text\n---\nFooter\n```\n", encoding="utf-8")
+                mock_path.__truediv__ = lambda s, x: tmp_path / x if x == "_footer.md" else tmp_path
+                mock_path_cls.return_value = mock_path
+                mock_path_cls.__file__ = str(tmp_path / "check_footer.py")
 
-                    # main()を実行（終了コード0で成功）
-                    with pytest.raises(SystemExit) as exc_info:
-                        main()
+                # main()を実行（終了コード0で成功）
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
 
-                    # 問題がなければ終了コード0
-                    if exc_info.value.code == 0:
-                        assert True
-                    else:
-                        # モックのセットアップが不完全でも最低限の検証
-                        assert exc_info.value.code in (0, 1, 2)
+                # 問題がなければ終了コード0
+                if exc_info.value.code == 0:
+                    assert True
+                else:
+                    # モックのセットアップが不完全でも最低限の検証
+                    assert exc_info.value.code in (0, 1, 2)

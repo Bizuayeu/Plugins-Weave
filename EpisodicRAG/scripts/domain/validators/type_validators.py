@@ -22,7 +22,8 @@ Usage:
     files = get_or_default(data, list, list)
 """
 
-from typing import Any, Callable, Dict, List, Type, TypeGuard, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeGuard, TypeVar
 
 T = TypeVar("T")
 
@@ -32,7 +33,7 @@ T = TypeVar("T")
 # =============================================================================
 
 
-def is_valid_type(data: Any, expected_type: Type[T]) -> bool:
+def is_valid_type(data: Any, expected_type: type[T]) -> bool:
     """
     汎用型チェックヘルパー（例外を投げない）
 
@@ -54,7 +55,7 @@ def is_valid_type(data: Any, expected_type: Type[T]) -> bool:
 
 def get_or_default(
     data: Any,
-    expected_type: Type[T],
+    expected_type: type[T],
     default_factory: Callable[[], T],
 ) -> T:
     """
@@ -84,7 +85,7 @@ def get_or_default(
 # =============================================================================
 
 
-def is_valid_dict(data: Any) -> TypeGuard[Dict[str, Any]]:
+def is_valid_dict(data: Any) -> TypeGuard[dict[str, Any]]:
     """
     データがdictであるかをboolで返す（TypeGuard付き）
 
@@ -105,7 +106,7 @@ def is_valid_dict(data: Any) -> TypeGuard[Dict[str, Any]]:
     return isinstance(data, dict)
 
 
-def is_valid_list(data: Any) -> TypeGuard[List[Any]]:
+def is_valid_list(data: Any) -> TypeGuard[list[Any]]:
     """
     データがlistであるかをboolで返す（TypeGuard付き）
 
@@ -174,7 +175,7 @@ def is_valid_int(data: Any) -> TypeGuard[int]:
 # =============================================================================
 
 
-def get_dict_or_empty(data: Any) -> Dict[str, Any]:
+def get_dict_or_empty(data: Any) -> dict[str, Any]:
     """
     dataがdictならそのまま返し、そうでなければ空のdictを返す
 
@@ -193,7 +194,7 @@ def get_dict_or_empty(data: Any) -> Dict[str, Any]:
     return get_or_default(data, dict, dict)
 
 
-def get_list_or_empty(data: Any) -> List[Any]:
+def get_list_or_empty(data: Any) -> list[Any]:
     """
     dataがlistならそのまま返し、そうでなければ空のlistを返す
 

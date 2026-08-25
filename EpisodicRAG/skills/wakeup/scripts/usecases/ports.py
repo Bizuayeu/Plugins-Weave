@@ -5,7 +5,8 @@ Protocols are runtime_checkable so fakes can be asserted in tests. No persona va
 
 from __future__ import annotations
 
-from typing import Callable, Protocol, TypeVar, runtime_checkable
+from collections.abc import Callable
+from typing import Protocol, TypeVar, runtime_checkable
 
 from domain.models import LoadFile, RepoRef, WakeupConfig
 

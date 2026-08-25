@@ -92,7 +92,7 @@ class TestInputLoaderLoadFromFile(unittest.TestCase):
     def _create_json_file(self, filename: str, data) -> Path:
         """Helper to create JSON file"""
         file_path = Path(self.temp_dir) / filename
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f)
         return file_path
 
@@ -130,7 +130,7 @@ class TestInputLoaderLoadFromFile(unittest.TestCase):
     def test_load_file_with_invalid_json(self) -> None:
         """File with invalid JSON raises JSONDecodeError"""
         file_path = Path(self.temp_dir) / "invalid.json"
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             f.write("{not valid json}")
 
         with self.assertRaises(json.JSONDecodeError):
@@ -163,7 +163,7 @@ class TestInputLoaderLoadFromFilePath(unittest.TestCase):
     def test_load_from_file_returns_list(self) -> None:
         """_load_from_file returns list when file contains list"""
         file_path = Path(self.temp_dir) / "list.json"
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump([1, 2, 3], f)
 
         result = InputLoader._load_from_file(file_path)
@@ -172,7 +172,7 @@ class TestInputLoaderLoadFromFilePath(unittest.TestCase):
     def test_load_from_file_returns_dict(self) -> None:
         """_load_from_file returns dict when file contains dict"""
         file_path = Path(self.temp_dir) / "dict.json"
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump({"key": "value"}, f)
 
         result = InputLoader._load_from_file(file_path)
@@ -263,7 +263,7 @@ class TestInputLoaderBasePathResolution(unittest.TestCase):
     def _create_json_file(self, filename: str, data) -> Path:
         """Helper to create JSON file"""
         file_path = Path(self.temp_dir) / filename
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f)
         return file_path
 

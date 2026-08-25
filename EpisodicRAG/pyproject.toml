@@ -124,11 +124,25 @@ indent-style = "space"
 docstring-code-format = false
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I"]
-ignore = ["E501"]
+# ruff の default 選択は版が上がるたび広がるので明示固定する。集合はワークスペース共通の 10 個。
+# 狭い select では CI が green のまま旧記法・危険記法（B904 の例外連鎖切断、B017 の
+# 例外型を絞らない assertRaises、PTH の os.path 残存）が溜まる。E501 は本集合に
+# 含まれない＝行長は formatter の担当。
+select = ["E4", "E7", "E9", "F", "I", "UP", "N", "B", "SIM", "PTH"]
 
 [tool.ruff.lint.per-file-ignores]
-"scripts/test/*" = ["E501", "F401"]
+# テスト名は日本語で書く（`test_50件ちょうどはover_threshold_false` 等）。日本語には
+# 大文字小文字の区別が無いため N802「lowercase にせよ」は構造上適用できない。
+"scripts/test/*" = ["F401", "N802", "N806"]
+# N806 はテスト内の `patch(...) as MockConfig` 等。unittest.mock の慣習で「クラスの
+# モックはクラス名の形で置く」ため、lowercase 化すると何を差し替えているか読めなくなる。
+#
+# wakeup skill は claude.ai へ zip で配る stdlib のみの独立ツリーで、str のパスを
+# 自前 API の境界（`config_path: str` / `out_dir: str` / `self._root: str`）で受け渡す。
+# 冒頭の `sys.path.insert` は **要素が str でなければ import が黙って失敗する**
+# （実測: ModuleNotFoundError）。一箇所だけ Path 化すると型が混ざるため、
+# **ツリーごと PTH を外す**。昇格トリガー: wakeup の API 契約を Path 化するとき。
+"skills/wakeup/scripts/**" = ["PTH"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["domain", "application", "infrastructure", "interfaces", "config", "usecases"]

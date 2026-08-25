@@ -11,7 +11,8 @@ Design:
     - FileNumberValidator: ファイル番号の検証（SRP分離）
 """
 
-from typing import Any, Callable, List, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 from application.finalize.validators import CollectionValidator, FileNumberValidator
 from application.grand import ShadowGrandDigestManager
@@ -37,10 +38,10 @@ class ShadowValidator:
     def __init__(
         self,
         shadow_manager: ShadowGrandDigestManager,
-        confirm_callback: Optional[Callable[[str], bool]] = None,
-        collection_validator: Optional[CollectionValidator] = None,
-        file_number_validator: Optional[FileNumberValidator] = None,
-        formatter: Optional[CompositeErrorFormatter] = None,
+        confirm_callback: Callable[[str], bool] | None = None,
+        collection_validator: CollectionValidator | None = None,
+        file_number_validator: FileNumberValidator | None = None,
+        formatter: CompositeErrorFormatter | None = None,
     ):
         """
         Args:
@@ -75,8 +76,8 @@ class ShadowValidator:
         return self._file_number_validator
 
     def _collect_validation_errors(
-        self, level: str, source_files: List[str]
-    ) -> Tuple[List[str], List[str], List[int]]:
+        self, level: str, source_files: list[str]
+    ) -> tuple[list[str], list[str], list[int]]:
         """
         検証エラーを1パスで収集
 
@@ -90,9 +91,9 @@ class ShadowValidator:
             - warnings: 警告（ユーザー確認で続行可能）
             - numbers: 抽出されたファイル番号リスト
         """
-        fatal_errors: List[str] = []
-        warnings: List[str] = []
-        numbers: List[int] = []
+        fatal_errors: list[str] = []
+        warnings: list[str] = []
+        numbers: list[int] = []
 
         # 1. 型チェックと空チェック（CollectionValidatorに委譲）
         type_errors = self.collection_validator.validate_list(source_files, "source_files")
@@ -121,7 +122,7 @@ class ShadowValidator:
 
         return fatal_errors, warnings, numbers
 
-    def validate_shadow_content(self, level: str, source_files: List[str]) -> None:
+    def validate_shadow_content(self, level: str, source_files: list[str]) -> None:
         """
         ShadowGrandDigestの内容が妥当かチェック
 

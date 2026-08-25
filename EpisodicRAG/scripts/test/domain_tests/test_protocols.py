@@ -123,7 +123,7 @@ class TestLevelRegistryProtocol:
             def get_behavior(self, level: str) -> LevelBehaviorProtocol:
                 return MockBehavior()
 
-            def get_level_by_prefix(self, prefix: str) -> Optional[str]:
+            def get_level_by_prefix(self, prefix: str) -> str | None:
                 mapping = {"W": "weekly", "M": "monthly"}
                 return mapping.get(prefix)
 

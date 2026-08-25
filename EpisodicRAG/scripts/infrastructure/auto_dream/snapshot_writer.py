@@ -19,7 +19,6 @@ Usage:
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 from infrastructure.config import get_persistent_config_dir
 
@@ -36,8 +35,8 @@ def default_snapshot_root() -> Path:
 
 def create_snapshot(
     memory_dir: Path,
-    snapshot_root: Optional[Path] = None,
-    timestamp: Optional[str] = None,
+    snapshot_root: Path | None = None,
+    timestamp: str | None = None,
 ) -> Path:
     """
     memory dir 全体を timestamp 付きでコピーし、コピー先パスを返す

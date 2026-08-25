@@ -11,7 +11,7 @@ Usage:
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 import pytest
 from test_helpers import create_test_loop_file
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def level_hierarchy() -> "Dict[str, LevelHierarchyEntry]":
+def level_hierarchy() -> "dict[str, LevelHierarchyEntry]":
     """レベル階層情報"""
     return {
         level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
@@ -54,7 +54,7 @@ def level_hierarchy() -> "Dict[str, LevelHierarchyEntry]":
 @pytest.fixture
 def file_appender(
     temp_plugin_env: "TempPluginEnvironment",
-    level_hierarchy: "Dict[str, LevelHierarchyEntry]",
+    level_hierarchy: "dict[str, LevelHierarchyEntry]",
 ) -> FileAppender:
     """FileAppenderインスタンスを提供"""
     config = DigestConfig()
@@ -76,7 +76,7 @@ def file_appender(
 
 
 @pytest.fixture
-def sample_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
+def sample_files(temp_plugin_env: "TempPluginEnvironment") -> list[Path]:
     """サンプルLoopファイルを作成"""
     files = []
     for i in range(1, 4):
@@ -97,7 +97,7 @@ class TestFileAppenderLogging:
     def test_logs_add_files_state(
         self,
         file_appender: FileAppender,
-        sample_files: List[Path],
+        sample_files: list[Path],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
         """add_files_to_shadow呼び出し時にSTATEログ出力"""
@@ -111,7 +111,7 @@ class TestFileAppenderLogging:
     def test_logs_ensure_digest_initialized(
         self,
         file_appender: FileAppender,
-        sample_files: List[Path],
+        sample_files: list[Path],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
         """overall_digest初期化確認時にログ出力"""
@@ -125,7 +125,7 @@ class TestFileAppenderLogging:
     def test_logs_validation(
         self,
         file_appender: FileAppender,
-        sample_files: List[Path],
+        sample_files: list[Path],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
         """検証時にVALIDATEログ出力"""
@@ -138,7 +138,7 @@ class TestFileAppenderLogging:
     def test_logs_files_added_count(
         self,
         file_appender: FileAppender,
-        sample_files: List[Path],
+        sample_files: list[Path],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
         """追加されたファイル数をログ出力"""
@@ -152,7 +152,7 @@ class TestFileAppenderLogging:
     def test_logs_total_files_after_add(
         self,
         file_appender: FileAppender,
-        sample_files: List[Path],
+        sample_files: list[Path],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
         """追加後の合計ファイル数をログ出力"""
@@ -165,7 +165,7 @@ class TestFileAppenderLogging:
     def test_not_shown_at_info_level(
         self,
         file_appender: FileAppender,
-        sample_files: List[Path],
+        sample_files: list[Path],
         caplog: pytest.LogCaptureFixture,
     ) -> None:
         """INFOレベルではDEBUGログは表示されない"""

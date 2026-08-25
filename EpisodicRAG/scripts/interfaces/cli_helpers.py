@@ -15,7 +15,7 @@ Usage:
 
 import json
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 __all__ = ["output_json", "output_error"]
 
@@ -33,7 +33,7 @@ def output_json(data: Any) -> None:
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
 
-def output_error(error: str, details: Optional[Dict[str, Any]] = None) -> None:
+def output_error(error: str, details: dict[str, Any] | None = None) -> None:
     """
     エラーをJSON形式で出力し、終了コード1で終了
 
@@ -44,7 +44,7 @@ def output_error(error: str, details: Optional[Dict[str, Any]] = None) -> None:
     Example:
         output_error("File not found", details={"action": "Run setup"})
     """
-    result: Dict[str, Any] = {"status": "error", "error": error}
+    result: dict[str, Any] = {"status": "error", "error": error}
     if details:
         result["details"] = details
     print(json.dumps(result, ensure_ascii=False, indent=2))

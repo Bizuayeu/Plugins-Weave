@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -252,7 +251,7 @@ class TestFileDetectorFindNewFiles:
         for i in range(1, 4):
             filename = f"W{i:04d}_test.txt"
             filepath = weekly_dir / filename
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with filepath.open('w', encoding='utf-8') as f:
                 json.dump({"test": f"weekly{i}"}, f)
 
         result = detector.find_new_files("monthly")

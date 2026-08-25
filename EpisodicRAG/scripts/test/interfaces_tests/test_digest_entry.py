@@ -9,7 +9,6 @@ digest_entry テスト
 import json
 import os
 from pathlib import Path
-from typing import Dict
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -404,14 +403,16 @@ class TestDigestEntryMain:
                 with patch("interfaces.digest_entry.get_weekly_source_count") as mock_count:
                     mock_count.return_value = 0
 
-                    with patch("sys.argv", ["digest_entry.py"]):
-                        with patch("builtins.print") as mock_print:
-                            main()
+                    with (
+                        patch("sys.argv", ["digest_entry.py"]),
+                        patch("builtins.print") as mock_print,
+                    ):
+                        main()
 
-                            output = mock_print.call_args[0][0]
-                            parsed = json.loads(output)
-                            assert parsed["status"] == "ok"
-                            assert parsed["pattern"] == 1
+                        output = mock_print.call_args[0][0]
+                        parsed = json.loads(output)
+                        assert parsed["status"] == "ok"
+                        assert parsed["pattern"] == 1
 
     def test_error_when_config_not_found(self) -> None:
         """config.json未検出時のエラー"""
@@ -420,12 +421,14 @@ class TestDigestEntryMain:
         with patch("interfaces.digest_entry.get_paths_from_config") as mock_paths:
             mock_paths.side_effect = FileNotFoundError("config.json not found")
 
-            with patch("sys.argv", ["digest_entry.py"]):
-                with patch("builtins.print") as mock_print:
-                    with pytest.raises(SystemExit) as exc_info:
-                        main()
+            with (
+                patch("sys.argv", ["digest_entry.py"]),
+                patch("builtins.print") as mock_print,
+            ):
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
 
-                    assert exc_info.value.code == 1
-                    output = mock_print.call_args[0][0]
-                    parsed = json.loads(output)
-                    assert parsed["status"] == "error"
+                assert exc_info.value.code == 1
+                output = mock_print.call_args[0][0]
+                parsed = json.loads(output)
+                assert parsed["status"] == "error"

@@ -7,7 +7,7 @@ ProvisionalDigestの読み込みまたはソースファイルからの自動生
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from application.config import DigestConfig
 from application.grand import ShadowGrandDigestManager
@@ -74,7 +74,7 @@ class ProvisionalLoader:
         provisional_dir = self.config.get_provisional_dir(level)
         return provisional_dir / f"{level_cfg['prefix']}{digest_num}_Individual.txt"
 
-    def _load_provisional(self, provisional_path: Path) -> Tuple[List[IndividualDigestData], Path]:
+    def _load_provisional(self, provisional_path: Path) -> tuple[list[IndividualDigestData], Path]:
         """
         Provisionalファイルを読み込んで検証
 
@@ -109,7 +109,7 @@ class ProvisionalLoader:
 
     def load_or_generate(
         self, level: str, shadow_digest: OverallDigestData, digest_num: str
-    ) -> Tuple[List[IndividualDigestData], Optional[Path]]:
+    ) -> tuple[list[IndividualDigestData], Path | None]:
         """
         Provisionalの読み込みまたはソースから自動生成
 
@@ -148,7 +148,7 @@ class ProvisionalLoader:
         return individual_digests, None
 
     def _build_individual_entry(
-        self, source_file: str, source_data: Dict[str, Any]
+        self, source_file: str, source_data: dict[str, Any]
     ) -> IndividualDigestData:
         """
         ソースデータから個別ダイジェストエントリを構築
@@ -171,7 +171,7 @@ class ProvisionalLoader:
 
     def _process_single_source(
         self, source_dir: Path, source_file: str
-    ) -> Optional[IndividualDigestData]:
+    ) -> IndividualDigestData | None:
         """
         単一ソースファイルを処理してIndividualDigestDataを生成
 
@@ -195,7 +195,7 @@ class ProvisionalLoader:
 
     def generate_from_source(
         self, level: str, shadow_digest: OverallDigestData
-    ) -> List[IndividualDigestData]:
+    ) -> list[IndividualDigestData]:
         """
         ソースファイルからindividual_digestsを自動生成（まだらボケ回避）
 

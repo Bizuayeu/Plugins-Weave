@@ -17,7 +17,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from domain.exceptions import FileIOError
 from domain.file_constants import CONFIG_FILENAME
@@ -33,11 +33,11 @@ class ConfigEditor:
         """Initialize ConfigEditor"""
         self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """設定ファイルを読み込む"""
         return load_json(self.config_file)
 
-    def _save_config(self, config_data: Dict[str, Any]) -> None:
+    def _save_config(self, config_data: dict[str, Any]) -> None:
         """設定ファイルを保存する"""
         save_json(self.config_file, config_data)
 
@@ -53,7 +53,7 @@ class ConfigEditor:
             path = base_dir / path
         return path.resolve()
 
-    def show(self) -> Dict[str, Any]:
+    def show(self) -> dict[str, Any]:
         """
         現在の設定を取得
 
@@ -91,7 +91,7 @@ class ConfigEditor:
             "resolved_paths": resolved_paths,
         }
 
-    def update(self, new_config: Dict[str, Any]) -> Dict[str, Any]:
+    def update(self, new_config: dict[str, Any]) -> dict[str, Any]:
         """
         設定を完全更新
 
@@ -127,7 +127,7 @@ class ConfigEditor:
             "updated_keys": list(new_config.keys()),
         }
 
-    def set_value(self, key: str, value: Any) -> Dict[str, Any]:
+    def set_value(self, key: str, value: Any) -> dict[str, Any]:
         """
         個別設定を更新（ドット記法サポート）
 
@@ -171,7 +171,7 @@ class ConfigEditor:
             "new_value": value,
         }
 
-    def add_trusted_path(self, path: str) -> Dict[str, Any]:
+    def add_trusted_path(self, path: str) -> dict[str, Any]:
         """
         trusted_external_paths にパスを追加
 
@@ -194,7 +194,7 @@ class ConfigEditor:
         if "trusted_external_paths" not in config_data:
             config_data["trusted_external_paths"] = []
 
-        trusted_paths: List[str] = config_data["trusted_external_paths"]
+        trusted_paths: list[str] = config_data["trusted_external_paths"]
 
         if path in trusted_paths:
             return {
@@ -212,7 +212,7 @@ class ConfigEditor:
             "trusted_external_paths": trusted_paths,
         }
 
-    def remove_trusted_path(self, path: str) -> Dict[str, Any]:
+    def remove_trusted_path(self, path: str) -> dict[str, Any]:
         """
         trusted_external_paths からパスを削除
 
@@ -223,7 +223,7 @@ class ConfigEditor:
             更新結果
         """
         config_data = self._load_config()
-        trusted_paths: List[str] = config_data.get("trusted_external_paths", [])
+        trusted_paths: list[str] = config_data.get("trusted_external_paths", [])
 
         if path not in trusted_paths:
             return {
@@ -241,7 +241,7 @@ class ConfigEditor:
             "trusted_external_paths": trusted_paths,
         }
 
-    def list_trusted_paths(self) -> Dict[str, Any]:
+    def list_trusted_paths(self) -> dict[str, Any]:
         """
         trusted_external_paths を一覧表示
 
@@ -328,7 +328,7 @@ def main() -> None:
         elif args.command == "set":
             # 値の型を推測
             raw_value: str = args.value
-            value: Union[str, int, bool, None]
+            value: str | int | bool | None
             lower_value = raw_value.lower()
             if lower_value == "true":
                 value = True

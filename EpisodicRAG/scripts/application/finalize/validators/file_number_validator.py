@@ -6,7 +6,7 @@ File Number Validator
 ファイル番号の抽出と連番チェックを担当するバリデータ
 """
 
-from typing import List, Optional, Sequence, Tuple
+from collections.abc import Sequence
 
 from domain.error_formatter import CompositeErrorFormatter, get_error_formatter
 from domain.file_naming import extract_file_number
@@ -22,8 +22,8 @@ class FileNumberValidator:
 
     def __init__(
         self,
-        formatter: Optional[CompositeErrorFormatter] = None,
-        registry: Optional[LevelRegistryProtocol] = None,
+        formatter: CompositeErrorFormatter | None = None,
+        registry: LevelRegistryProtocol | None = None,
     ):
         """
         Args:
@@ -42,7 +42,7 @@ class FileNumberValidator:
             self._formatter = get_error_formatter()
         return self._formatter
 
-    def extract_numbers(self, filenames: Sequence[object]) -> Tuple[List[int], List[str]]:
+    def extract_numbers(self, filenames: Sequence[object]) -> tuple[list[int], list[str]]:
         """
         ファイル名リストから番号を抽出
 
@@ -60,8 +60,8 @@ class FileNumberValidator:
             >>> validator.extract_numbers(["L00186.txt", "L00187.txt"])
             ([186, 187], [])
         """
-        numbers: List[int] = []
-        errors: List[str] = []
+        numbers: list[int] = []
+        errors: list[str] = []
 
         for i, filename in enumerate(filenames):
             # 型チェック（防御的プログラミング - ランタイムで非strが渡される可能性）
@@ -82,7 +82,7 @@ class FileNumberValidator:
 
         return numbers, errors
 
-    def check_consecutive(self, numbers: List[int]) -> bool:
+    def check_consecutive(self, numbers: list[int]) -> bool:
         """
         番号リストが連番かをチェック
 
@@ -103,12 +103,9 @@ class FileNumberValidator:
             return True
 
         sorted_nums = sorted(numbers)
-        for i in range(len(sorted_nums) - 1):
-            if sorted_nums[i + 1] != sorted_nums[i] + 1:
-                return False
-        return True
+        return all(sorted_nums[i + 1] == sorted_nums[i] + 1 for i in range(len(sorted_nums) - 1))
 
-    def validate_consecutive(self, numbers: List[int], source_files: List[str]) -> List[str]:
+    def validate_consecutive(self, numbers: list[int], source_files: list[str]) -> list[str]:
         """
         番号が連番かを検証し、連番でない場合は警告メッセージを返す
 

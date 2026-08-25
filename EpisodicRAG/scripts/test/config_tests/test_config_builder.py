@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -108,7 +107,7 @@ class TestDigestConfigBuilderBuild:
         }
         # 永続化ディレクトリにconfig.jsonを配置
         config_file = temp_plugin_env.persistent_config_dir / "config.json"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         return {
@@ -185,7 +184,7 @@ class TestDigestConfigBuilderBuildDefault:
         }
         # 永続化ディレクトリにconfig.jsonを配置
         config_file = temp_plugin_env.persistent_config_dir / "config.json"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         return {
@@ -244,7 +243,7 @@ class TestDigestConfigBuilderEquivalence:
         }
         # 永続化ディレクトリにconfig.jsonを配置
         config_file = temp_plugin_env.persistent_config_dir / "config.json"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         return {

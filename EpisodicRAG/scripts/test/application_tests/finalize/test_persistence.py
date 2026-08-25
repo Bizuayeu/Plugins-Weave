@@ -14,7 +14,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -161,7 +160,7 @@ class TestSaveRegularDigest:
         """Saves valid JSON content"""
         result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
 
-        with open(result, "r", encoding="utf-8") as f:
+        with result.open(encoding="utf-8") as f:
             loaded = json.load(f)
 
         assert loaded["metadata"]["level"] == "weekly"
@@ -201,7 +200,7 @@ class TestSaveRegularDigest:
         sample_regular_digest["overall_digest"]["abstract"] = "Modified"
         result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
 
-        with open(result, "r", encoding="utf-8") as f:
+        with result.open(encoding="utf-8") as f:
             loaded = json.load(f)
 
         assert loaded["overall_digest"]["abstract"] == "Modified"

@@ -11,7 +11,7 @@ Functions:
 """
 
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 __all__ = [
     "resolve_base_dir",
@@ -19,7 +19,7 @@ __all__ = [
 ]
 
 
-def resolve_base_dir(config: Dict[str, Any]) -> Path:
+def resolve_base_dir(config: dict[str, Any]) -> Path:
     """base_dirを解決
 
     Args:
@@ -40,7 +40,7 @@ def resolve_base_dir(config: Dict[str, Any]) -> Path:
     return base_path.resolve()
 
 
-def resolve_paths(config: Dict[str, Any]) -> Tuple[Path, Path, Path]:
+def resolve_paths(config: dict[str, Any]) -> tuple[Path, Path, Path]:
     """設定から各種パスを解決
 
     Args:

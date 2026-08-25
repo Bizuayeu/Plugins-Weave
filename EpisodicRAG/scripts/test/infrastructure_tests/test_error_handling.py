@@ -289,7 +289,7 @@ class TestWithErrorContext:
         invalid_json_file.write_text("{invalid json}")
 
         def operation():
-            with open(invalid_json_file) as f:
+            with invalid_json_file.open() as f:
                 return json.load(f)
 
         with pytest.raises(FileIOError) as exc_info:

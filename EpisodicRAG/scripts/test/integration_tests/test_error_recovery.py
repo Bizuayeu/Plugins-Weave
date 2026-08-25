@@ -87,9 +87,11 @@ class TestDiskSpaceErrors:
         test_file = tmp_path / "test.json"
 
         # OSError 28 = ENOSPC (No space left on device)
-        with patch("builtins.open", side_effect=OSError(28, "No space left on device")):
-            with pytest.raises((FileIOError, OSError)):
-                save_json(test_file, {"large": "data"})
+        with (
+            patch.object(Path, "open", side_effect=OSError(28, "No space left on device")),
+            pytest.raises((FileIOError, OSError)),
+        ):
+            save_json(test_file, {"large": "data"})
 
     @pytest.mark.unit
     def test_save_json_io_error_simulation(self, tmp_path: Path) -> None:
@@ -97,9 +99,11 @@ class TestDiskSpaceErrors:
         test_file = tmp_path / "test.json"
 
         # 一般的なI/Oエラー
-        with patch("builtins.open", side_effect=IOError("Disk I/O error")):
-            with pytest.raises((FileIOError, IOError)):
-                save_json(test_file, {"key": "value"})
+        with (
+            patch.object(Path, "open", side_effect=OSError("Disk I/O error")),
+            pytest.raises((FileIOError, IOError)),
+        ):
+            save_json(test_file, {"key": "value"})
 
 
 # =============================================================================
@@ -244,9 +248,11 @@ class TestConcurrentAccessErrors:
         # Unix: IOError with appropriate errno
         mock_error = OSError(32, "The process cannot access the file")
 
-        with patch("builtins.open", side_effect=mock_error):
-            with pytest.raises((FileIOError, OSError)):
-                save_json(test_file, {"key": "value"})
+        with (
+            patch.object(Path, "open", side_effect=mock_error),
+            pytest.raises((FileIOError, OSError)),
+        ):
+            save_json(test_file, {"key": "value"})
 
 
 # =============================================================================

@@ -4,8 +4,6 @@ Digest merging utilities.
 Handles merging of individual digests with deduplication.
 """
 
-from typing import List
-
 from domain.types import IndividualDigestData
 from infrastructure import get_structured_logger
 from interfaces.provisional.validator import validate_individual_digests_list
@@ -18,9 +16,9 @@ class DigestMerger:
 
     @staticmethod
     def merge(
-        existing_digests: List[IndividualDigestData],
-        new_digests: List[IndividualDigestData],
-    ) -> List[IndividualDigestData]:
+        existing_digests: list[IndividualDigestData],
+        new_digests: list[IndividualDigestData],
+    ) -> list[IndividualDigestData]:
         """
         Merge existing and new individual digests.
 

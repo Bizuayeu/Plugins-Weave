@@ -108,7 +108,7 @@ class TestSaveJson:
         save_json(json_file, test_data)
 
         # 読み込んで検証
-        with open(json_file, 'r', encoding='utf-8') as f:
+        with json_file.open(encoding='utf-8') as f:
             loaded = json.load(f)
         assert loaded == test_data
 

@@ -53,7 +53,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -83,7 +83,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         with patch(
@@ -210,7 +210,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         with patch(
@@ -299,7 +299,7 @@ class TestConfigCLINoCommand(unittest.TestCase):
         self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
         os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
         config_data = {"base_dir": str(self.plugin_root), "levels": {"weekly_threshold": 5}}
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     def tearDown(self) -> None:
@@ -314,27 +314,28 @@ class TestConfigCLINoCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_no_command_exits_with_code_1(self) -> None:
         """コマンドなしで exit code 1"""
-        with patch("sys.argv", ["digest_config.py"]):
-            with patch("sys.stdout"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_config import main
+        with patch("sys.argv", ["digest_config.py"]), patch("sys.stdout"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_config import main
 
-                    main()
-                assert exc_info.value.code == 1
+                main()
+            assert exc_info.value.code == 1
 
     @pytest.mark.unit
     def test_invalid_command_exits_with_error(self) -> None:
         """無効なコマンドでエラー"""
-        with patch(
-            "sys.argv",
-            ["digest_config.py", "invalid_command"],
+        with (
+            patch(
+                "sys.argv",
+                ["digest_config.py", "invalid_command"],
+            ),
+            patch("sys.stderr"),
         ):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_config import main
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_config import main
 
-                    main()
-                assert exc_info.value.code == 2  # argparse error
+                main()
+            assert exc_info.value.code == 2  # argparse error
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ Collection Validator
 コレクション型（リスト、辞書等）の検証を担当するバリデータ
 """
 
-from typing import Any, List, Optional
+from typing import Any
 
 from domain.error_formatter import CompositeErrorFormatter, get_error_formatter
 from domain.validators import is_valid_list
@@ -19,7 +19,7 @@ class CollectionValidator:
     Single Responsibility: コレクションの型チェックと空チェックのみを行う
     """
 
-    def __init__(self, formatter: Optional[CompositeErrorFormatter] = None):
+    def __init__(self, formatter: CompositeErrorFormatter | None = None):
         """
         Args:
             formatter: エラーフォーマッタ（DIによるテスト容易化）
@@ -34,7 +34,7 @@ class CollectionValidator:
             self._formatter = get_error_formatter()
         return self._formatter
 
-    def validate_list(self, data: Any, context: str) -> List[str]:
+    def validate_list(self, data: Any, context: str) -> list[str]:
         """
         データがリスト型かを検証
 
@@ -56,7 +56,7 @@ class CollectionValidator:
             return [self.formatter.validation.invalid_type(context, "list", data)]
         return []
 
-    def validate_non_empty(self, data: List[Any], context: str) -> List[str]:
+    def validate_non_empty(self, data: list[Any], context: str) -> list[str]:
         """
         リストが空でないかを検証
 
@@ -78,7 +78,7 @@ class CollectionValidator:
             return [self.formatter.validation.empty_collection(context)]
         return []
 
-    def validate_list_and_non_empty(self, data: Any, context: str) -> List[str]:
+    def validate_list_and_non_empty(self, data: Any, context: str) -> list[str]:
         """
         データがリスト型かつ空でないかを検証（複合検証）
 

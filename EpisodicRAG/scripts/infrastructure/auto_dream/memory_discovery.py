@@ -11,7 +11,6 @@ Usage:
 """
 
 from pathlib import Path
-from typing import List, Optional
 
 
 def get_claude_projects_base() -> Path:
@@ -56,7 +55,7 @@ def encode_project_path(project_path: str) -> str:
     return encoded
 
 
-def resolve_project_from_path(filesystem_path: str) -> Optional[str]:
+def resolve_project_from_path(filesystem_path: str) -> str | None:
     """
     ファイルシステムパスからClaude Codeプロジェクトパスを逆引き
 
@@ -93,7 +92,7 @@ def resolve_project_from_path(filesystem_path: str) -> Optional[str]:
     return None
 
 
-def discover_memory_dirs(project_path: Optional[str] = None) -> List[Path]:
+def discover_memory_dirs(project_path: str | None = None) -> list[Path]:
     """
     auto-memoryディレクトリを発見
 
@@ -126,7 +125,7 @@ def discover_memory_dirs(project_path: Optional[str] = None) -> List[Path]:
         return []
 
     # 全プロジェクトをglob
-    found: List[Path] = []
+    found: list[Path] = []
     for index_file in sorted(base.glob("*/memory/MEMORY.md")):
         found.append(index_file.parent)
 

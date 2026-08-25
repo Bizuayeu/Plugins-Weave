@@ -17,7 +17,6 @@ Usage:
 import json
 import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import pytest
 
@@ -86,7 +85,7 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         self.monthly_threshold = 5
 
         # 一時ディレクトリ
-        self.temp_dir: Optional[tempfile.TemporaryDirectory] = None
+        self.temp_dir: tempfile.TemporaryDirectory | None = None
 
     @initialize()
     def setup(self) -> None:
@@ -240,8 +239,8 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
         self.corruption_detected = False
         self.recovery_attempted = False
 
-        self.temp_dir: Optional[tempfile.TemporaryDirectory] = None
-        self.test_file: Optional[Path] = None
+        self.temp_dir: tempfile.TemporaryDirectory | None = None
+        self.test_file: Path | None = None
 
     @initialize()
     def setup(self) -> None:
@@ -278,7 +277,7 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
         """破損を検出"""
         if self.file_exists and self.test_file:
             try:
-                with open(self.test_file, "r", encoding="utf-8") as f:
+                with self.test_file.open(encoding="utf-8") as f:
                     json.load(f)
                 self.corruption_detected = False
             except json.JSONDecodeError:
@@ -320,14 +319,14 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
             and self.test_file.exists()
         ):
             try:
-                with open(self.test_file, "r", encoding="utf-8") as f:
+                with self.test_file.open(encoding="utf-8") as f:
                     data = json.load(f)
                 # 回復後のファイルは有効なJSONであるべき
                 assert isinstance(data, dict)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
                 # 回復後に再度破損されていない場合のみ失敗
                 if not self.file_corrupted:
-                    assert False, "File still corrupted after recovery"
+                    raise AssertionError("File still corrupted after recovery") from e
 
 
 # =============================================================================
@@ -471,7 +470,7 @@ class TestErrorRecoveryManual:
             assert sm.recovery_attempted
 
             # ファイルが有効なJSONであることを確認
-            with open(sm.test_file, "r", encoding="utf-8") as f:
+            with sm.test_file.open(encoding="utf-8") as f:
                 data = json.load(f)
             assert data["status"] == "recovered"
         finally:

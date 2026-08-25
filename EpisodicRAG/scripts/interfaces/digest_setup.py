@@ -17,7 +17,7 @@ import shutil
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from domain.constants import LEVEL_CONFIG
 from domain.file_constants import (
@@ -43,10 +43,10 @@ class SetupResult:
     """セットアップ結果"""
 
     status: str  # "ok" | "error" | "already_configured"
-    created: Optional[Dict[str, Any]] = None
-    warnings: List[str] = field(default_factory=list)
-    external_paths_detected: List[str] = field(default_factory=list)
-    error: Optional[str] = None
+    created: dict[str, Any] | None = None
+    warnings: list[str] = field(default_factory=list)
+    external_paths_detected: list[str] = field(default_factory=list)
+    error: str | None = None
 
 
 class SetupManager:
@@ -61,7 +61,7 @@ class SetupManager:
         self.config_file = self.persistent_config_dir / CONFIG_FILENAME
         self.template_dir = get_template_dir()
 
-    def check(self) -> Dict[str, Any]:
+    def check(self) -> dict[str, Any]:
         """
         セットアップ状態を確認
 
@@ -107,7 +107,7 @@ class SetupManager:
                 "message": "Initial setup required",
             }
 
-    def init(self, config_data: Dict[str, Any], force: bool = False) -> SetupResult:
+    def init(self, config_data: dict[str, Any], force: bool = False) -> SetupResult:
         """
         セットアップ実行
 
@@ -133,8 +133,8 @@ class SetupManager:
                     status="error", error=f"Invalid config: {', '.join(validation_errors)}"
                 )
 
-            created: Dict[str, Any] = {"config_file": None, "directories": [], "files": []}
-            warnings: List[str] = []
+            created: dict[str, Any] = {"config_file": None, "directories": [], "files": []}
+            warnings: list[str] = []
 
             # 1. 設定ファイル作成
             config_file_path = self._create_config_file(config_data)
@@ -161,7 +161,7 @@ class SetupManager:
         except Exception as e:
             return SetupResult(status="error", error=str(e))
 
-    def _validate_config_data(self, config_data: Dict[str, Any]) -> List[str]:
+    def _validate_config_data(self, config_data: dict[str, Any]) -> list[str]:
         """設定データのバリデーション"""
         errors = []
 
@@ -202,7 +202,7 @@ class SetupManager:
             raise ValueError(f"base_dir must be an absolute path: {base_dir_str}")
         return base_path.resolve()
 
-    def _create_config_file(self, config_data: Dict[str, Any]) -> Path:
+    def _create_config_file(self, config_data: dict[str, Any]) -> Path:
         """設定ファイル作成"""
         # 永続化ディレクトリは get_persistent_config_dir() で自動作成される
 
@@ -222,7 +222,7 @@ class SetupManager:
 
         return self.config_file
 
-    def _create_directories(self, config_data: Dict[str, Any]) -> List[str]:
+    def _create_directories(self, config_data: dict[str, Any]) -> list[str]:
         """ディレクトリ作成"""
         created_dirs = []
 
@@ -253,9 +253,9 @@ class SetupManager:
 
         return created_dirs
 
-    def _create_initial_files(self, config_data: Dict[str, Any]) -> List[str]:
+    def _create_initial_files(self, config_data: dict[str, Any]) -> list[str]:
         """初期ファイル作成（テンプレートから）"""
-        created_files: List[str] = []
+        created_files: list[str] = []
 
         # テンプレートディレクトリがない場合はスキップ
         if self.template_dir is None:
@@ -280,7 +280,7 @@ class SetupManager:
 
         return created_files
 
-    def _detect_external_paths(self, config_data: Dict[str, Any]) -> List[str]:
+    def _detect_external_paths(self, config_data: dict[str, Any]) -> list[str]:
         """外部パス検出"""
         external_paths = []
 
@@ -296,7 +296,7 @@ class SetupManager:
 
         return external_paths
 
-    def _is_external_path(self, path_str: Optional[str]) -> bool:
+    def _is_external_path(self, path_str: str | None) -> bool:
         """パスが永続化ディレクトリ外を指すか判定"""
         if path_str is None:
             return False

@@ -15,7 +15,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -135,7 +134,7 @@ class TestProvisionalDigestSaver:
         assert "W0001_Individual.txt" in saved_path.name
 
         # 保存内容を検証
-        with open(saved_path, 'r', encoding='utf-8') as f:
+        with saved_path.open(encoding='utf-8') as f:
             data = json.load(f)
 
         assert "metadata" in data
@@ -156,7 +155,7 @@ class TestProvisionalDigestSaver:
         # 同じファイルに追加されている
         assert first_path == second_path
 
-        with open(second_path, 'r', encoding='utf-8') as f:
+        with second_path.open(encoding='utf-8') as f:
             data = json.load(f)
 
         assert len(data["individual_digests"]) == 2

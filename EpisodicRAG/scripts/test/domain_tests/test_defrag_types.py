@@ -41,7 +41,7 @@ class TestDefragKind:
     @pytest.mark.unit
     def test_kindは3種(self) -> None:
         """dedup, upper_dry, graduate の3種別"""
-        assert VALID_DEFRAG_KINDS == {"dedup", "upper_dry", "graduate"}
+        assert {"dedup", "upper_dry", "graduate"} == VALID_DEFRAG_KINDS
 
     @pytest.mark.unit
     def test_VALID_DEFRAG_KINDSはset(self) -> None:

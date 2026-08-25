@@ -28,7 +28,7 @@ JSON操作のプリミティブをこのモジュールに集約し、
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 from domain.constants import DIGEST_FILE_EXTENSION
 from domain.error_formatter import get_error_formatter
@@ -38,7 +38,7 @@ from domain.exceptions import FileIOError
 logger = logging.getLogger("episodic_rag")
 
 
-def safe_read_json(file_path: Path, raise_on_error: bool = True) -> Optional[Dict[str, Any]]:
+def safe_read_json(file_path: Path, raise_on_error: bool = True) -> dict[str, Any] | None:
     """
     JSONファイルを安全に読み込む共通ヘルパー
 
@@ -60,20 +60,20 @@ def safe_read_json(file_path: Path, raise_on_error: bool = True) -> Optional[Dic
     """
     formatter = get_error_formatter()
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            result: Dict[str, Any] = json.load(f)
+        with file_path.open(encoding='utf-8') as f:
+            result: dict[str, Any] = json.load(f)
             return result
     except json.JSONDecodeError as e:
         if raise_on_error:
             raise FileIOError(formatter.file.invalid_json(file_path, e)) from e
         return None
-    except IOError as e:
+    except OSError as e:
         if raise_on_error:
             raise FileIOError(formatter.file.file_io_error("read", file_path, e)) from e
         return None
 
 
-def load_json(file_path: Path) -> Dict[str, Any]:
+def load_json(file_path: Path) -> dict[str, Any]:
     """
     JSONファイルを読み込む
 
@@ -99,10 +99,10 @@ def load_json(file_path: Path) -> Dict[str, Any]:
 
     result = safe_read_json(file_path, raise_on_error=True)
     # safe_read_jsonがraise_on_error=Trueで呼ばれた場合、Noneは返らない
-    return cast(Dict[str, Any], result)
+    return cast(dict[str, Any], result)
 
 
-def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
+def save_json(file_path: Path, data: dict[str, Any], indent: int = 2) -> None:
     """
     dictをJSONファイルに保存（親ディレクトリ自動作成）
 
@@ -121,15 +121,15 @@ def save_json(file_path: Path, data: Dict[str, Any], indent: int = 2) -> None:
     formatter = get_error_formatter()
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with file_path.open('w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=indent)
-    except IOError as e:
+    except OSError as e:
         raise FileIOError(formatter.file.file_io_error("write", file_path, e)) from e
 
 
 def try_load_json(
-    file_path: Path, default: Optional[Dict[str, Any]] = None, log_on_error: bool = True
-) -> Optional[Dict[str, Any]]:
+    file_path: Path, default: dict[str, Any] | None = None, log_on_error: bool = True
+) -> dict[str, Any] | None:
     """
     JSONファイルを安全に読み込む（エラー時はデフォルト値を返す）
 
@@ -162,7 +162,7 @@ def try_load_json(
     return result if result is not None else default
 
 
-def try_read_json_from_file(file_path: Path, log_on_error: bool = True) -> Optional[Dict[str, Any]]:
+def try_read_json_from_file(file_path: Path, log_on_error: bool = True) -> dict[str, Any] | None:
     """
     JSONファイルを安全に読み込む（個別ファイル処理用）
 

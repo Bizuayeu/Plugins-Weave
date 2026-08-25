@@ -57,13 +57,12 @@ class TestSetupCLI(unittest.TestCase):
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
         """--help で exit code 0"""
-        with patch("sys.argv", ["digest_setup.py", "--help"]):
-            with patch("sys.stdout"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_setup import main
+        with patch("sys.argv", ["digest_setup.py", "--help"]), patch("sys.stdout"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_setup import main
 
-                    main()
-                assert exc_info.value.code == 0
+                main()
+            assert exc_info.value.code == 0
 
 
 class TestSetupCLICheckCommandExtended(unittest.TestCase):
@@ -117,7 +116,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
                 "essences_dir": "data/Essences",
             },
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
 
@@ -140,7 +139,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
             "base_dir": str(self.plugin_root),
             "paths": {"loops_dir": "data/Loops"},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         with patch("sys.argv", ["digest_setup.py", "check"]):
@@ -158,7 +157,7 @@ class TestSetupCLICheckCommandExtended(unittest.TestCase):
     def test_check_with_corrupted_config(self) -> None:
         """check で破損した設定ファイルを処理"""
         # 破損したJSONファイルを作成（永続化ディレクトリに）
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             f.write("{ invalid json")
 
         with patch("sys.argv", ["digest_setup.py", "check"]):
@@ -213,35 +212,32 @@ class TestSetupCLINoCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_no_command_exits_with_code_1(self) -> None:
         """コマンドなしで exit code 1"""
-        with patch("sys.argv", ["digest_setup.py"]):
-            with patch("sys.stdout"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_setup import main
+        with patch("sys.argv", ["digest_setup.py"]), patch("sys.stdout"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_setup import main
 
-                    main()
-                assert exc_info.value.code == 1
+                main()
+            assert exc_info.value.code == 1
 
     @pytest.mark.unit
     def test_invalid_command_exits_with_error(self) -> None:
         """無効なコマンドでエラー"""
-        with patch("sys.argv", ["digest_setup.py", "invalid_command"]):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_setup import main
+        with patch("sys.argv", ["digest_setup.py", "invalid_command"]), patch("sys.stderr"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_setup import main
 
-                    main()
-                assert exc_info.value.code == 2  # argparse error
+                main()
+            assert exc_info.value.code == 2  # argparse error
 
     @pytest.mark.unit
     def test_init_missing_config_flag_exits_error(self) -> None:
         """init で --config フラグがない場合にエラー"""
-        with patch("sys.argv", ["digest_setup.py", "init"]):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_setup import main
+        with patch("sys.argv", ["digest_setup.py", "init"]), patch("sys.stderr"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_setup import main
 
-                    main()
-                assert exc_info.value.code == 2  # argparse error
+                main()
+            assert exc_info.value.code == 2  # argparse error
 
 
 if __name__ == "__main__":

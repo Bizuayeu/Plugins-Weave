@@ -10,8 +10,6 @@ Usage:
     from domain.constants import LEVEL_CONFIG, LEVEL_NAMES, PLACEHOLDER_LIMITS
 """
 
-from typing import Dict
-
 from domain.types.level import LevelConfigData, LevelHierarchyEntry
 
 # =============================================================================
@@ -33,7 +31,7 @@ SOURCE_TYPE_RAW = "raw"  # 生データソース（階層の起点、loopレベ�
 # 共通定数: レベル設定（Single Source of Truth）
 # =============================================================================
 
-LEVEL_CONFIG: Dict[str, LevelConfigData] = {
+LEVEL_CONFIG: dict[str, LevelConfigData] = {
     "loop": {
         "prefix": "L",
         "digits": 5,
@@ -120,7 +118,7 @@ DIGEST_LEVEL_NAMES = [level for level in LEVEL_NAMES if level != "loop"]
 # =============================================================================
 
 # プレースホルダー文字数制限（Claudeへのガイドライン）
-PLACEHOLDER_LIMITS: Dict[str, int] = {
+PLACEHOLDER_LIMITS: dict[str, int] = {
     "abstract_chars": 2400,  # abstract（全体統合分析）の文字数
     "impression_chars": 800,  # impression（所感・展望）の文字数
     "keyword_count": 5,  # キーワードの個数
@@ -185,7 +183,7 @@ def create_placeholder_keywords(count: int) -> list:
     return [f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}" for i in range(1, count + 1)]
 
 
-def build_level_hierarchy() -> Dict[str, LevelHierarchyEntry]:
+def build_level_hierarchy() -> dict[str, LevelHierarchyEntry]:
     """
     LEVEL_CONFIGからレベル階層辞書を構築（Single Source of Truth）
 

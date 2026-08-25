@@ -32,7 +32,6 @@ Architecture:
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -66,4 +65,4 @@ class LevelMetadata:
     digits: int
     dir: str
     source: str
-    next_level: Optional[str]
+    next_level: str | None

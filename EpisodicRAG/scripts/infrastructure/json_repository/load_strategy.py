@@ -29,8 +29,9 @@ ChainedLoaderが戦略を順番に試行し、最初に成功したものを返�
 
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Any, Callable, Dict, Generic, Mapping, Optional, TypeVar, cast
+from typing import Any, Generic, TypeVar, cast
 
 # モジュールロガー
 logger = logging.getLogger("episodic_rag")
@@ -49,7 +50,7 @@ class LoadStrategy(ABC, Generic[T]):
     """
 
     @abstractmethod
-    def load(self, context: "LoadContext") -> Optional[T]:
+    def load(self, context: "LoadContext") -> T | None:
         """
         JSON読み込みを試行
 
@@ -90,10 +91,10 @@ class LoadContext:
     def __init__(
         self,
         target_file: Path,
-        template_file: Optional[Path] = None,
-        default_factory: Optional[Callable[[], Any]] = None,
+        template_file: Path | None = None,
+        default_factory: Callable[[], Any] | None = None,
         save_on_create: bool = True,
-        log_message: Optional[str] = None,
+        log_message: str | None = None,
     ) -> None:
         """
         Args:
@@ -117,14 +118,14 @@ class FileLoadStrategy(LoadStrategy[T]):
     最優先で試行される。ファイルが存在すればその内容を返す。
     """
 
-    def __init__(self, read_func: Callable[[Path, bool], Optional[Dict[str, Any]]]) -> None:
+    def __init__(self, read_func: Callable[[Path, bool], dict[str, Any] | None]) -> None:
         """
         Args:
             read_func: JSON読み込み関数（_safe_read_json相当）
         """
         self._read_func = read_func
 
-    def load(self, context: LoadContext) -> Optional[T]:
+    def load(self, context: LoadContext) -> T | None:
         """
         既存ファイルから読み込み
 
@@ -139,7 +140,7 @@ class FileLoadStrategy(LoadStrategy[T]):
         raw_data = self._read_func(context.target_file, True)
         if raw_data:
             logger.debug(f"Loaded {len(raw_data)} keys from {context.target_file.name}")
-        return cast(Optional[T], raw_data)
+        return cast(T | None, raw_data)
 
     def get_description(self) -> str:
         """
@@ -161,8 +162,8 @@ class TemplateLoadStrategy(LoadStrategy[T]):
 
     def __init__(
         self,
-        read_func: Callable[[Path, bool], Optional[Dict[str, Any]]],
-        save_func: Callable[[Path, Dict[str, Any]], None],
+        read_func: Callable[[Path, bool], dict[str, Any] | None],
+        save_func: Callable[[Path, dict[str, Any]], None],
     ) -> None:
         """
         Args:
@@ -172,7 +173,7 @@ class TemplateLoadStrategy(LoadStrategy[T]):
         self._read_func = read_func
         self._save_func = save_func
 
-    def load(self, context: LoadContext) -> Optional[T]:
+    def load(self, context: LoadContext) -> T | None:
         """
         テンプレートから読み込み・保存
 
@@ -196,7 +197,7 @@ class TemplateLoadStrategy(LoadStrategy[T]):
             msg = context.log_message or f"Initialized {context.target_file.name} from template"
             logger.info(msg)
 
-        return cast(Optional[T], raw_template)
+        return cast(T | None, raw_template)
 
     def get_description(self) -> str:
         """
@@ -216,14 +217,14 @@ class FactoryLoadStrategy(LoadStrategy[T]):
     テンプレートも存在しない場合にファクトリ関数でデフォルト値を生成。
     """
 
-    def __init__(self, save_func: Callable[[Path, Dict[str, Any]], None]) -> None:
+    def __init__(self, save_func: Callable[[Path, dict[str, Any]], None]) -> None:
         """
         Args:
             save_func: JSON保存関数
         """
         self._save_func = save_func
 
-    def load(self, context: LoadContext) -> Optional[T]:
+    def load(self, context: LoadContext) -> T | None:
         """
         ファクトリから作成・保存
 
@@ -240,7 +241,7 @@ class FactoryLoadStrategy(LoadStrategy[T]):
         result: T = context.default_factory()
 
         if context.save_on_create:
-            self._save_func(context.target_file, cast(Dict[str, Any], result))
+            self._save_func(context.target_file, cast(dict[str, Any], result))
             logger.debug(f"Saved default template to: {context.target_file}")
 
         msg = context.log_message or f"Created {context.target_file.name} with default template"
@@ -265,7 +266,7 @@ class DefaultLoadStrategy(LoadStrategy[T]):
     他のすべての戦略が失敗した場合に空dictを返す。
     """
 
-    def load(self, context: LoadContext) -> Optional[T]:
+    def load(self, context: LoadContext) -> T | None:
         """
         空dictを返す
 

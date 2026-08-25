@@ -6,7 +6,7 @@ EpisodicRAG レベル設定型定義
 レベル階層設定用TypedDict定義。
 """
 
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 
 class LevelConfigData(TypedDict):
@@ -24,8 +24,8 @@ class LevelConfigData(TypedDict):
     digits: int
     dir: str
     source: str
-    next: Optional[str]
-    threshold: Optional[int]  # loop レベルは None
+    next: str | None
+    threshold: int | None  # loop レベルは None
 
 
 class LevelHierarchyEntry(TypedDict):
@@ -37,4 +37,4 @@ class LevelHierarchyEntry(TypedDict):
     """
 
     source: str
-    next: Optional[str]
+    next: str | None

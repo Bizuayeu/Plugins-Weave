@@ -7,7 +7,7 @@ domain/validators/type_validators.py のユニットテスト。
 型検証ユーティリティ関数の動作を検証。
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 

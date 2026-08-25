@@ -25,7 +25,7 @@ Usage:
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
@@ -54,21 +54,21 @@ class DiagnosticContext:
         'current_level=weekly, file_count=3, threshold=5, last_operation=add_files_to_shadow'
     """
 
-    config_path: Optional[Path] = None
-    current_level: Optional[str] = None
-    file_count: Optional[int] = None
-    threshold: Optional[int] = None
-    last_operation: Optional[str] = None
-    additional_info: Dict[str, Any] = field(default_factory=dict)
+    config_path: Path | None = None
+    current_level: str | None = None
+    file_count: int | None = None
+    threshold: int | None = None
+    last_operation: str | None = None
+    additional_info: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         非None値のみを含む辞書を返す
 
         Returns:
             キー=属性名、値=属性値の辞書（Noneは除外）
         """
-        result: Dict[str, Any] = {}
+        result: dict[str, Any] = {}
         if self.config_path is not None:
             result["config_path"] = str(self.config_path)
         if self.current_level is not None:
@@ -108,7 +108,7 @@ class EpisodicRAGError(Exception):
         'Something failed [Context: current_level=weekly]'
     """
 
-    def __init__(self, message: str, context: Optional[DiagnosticContext] = None) -> None:
+    def __init__(self, message: str, context: DiagnosticContext | None = None) -> None:
         """
         初期化
 

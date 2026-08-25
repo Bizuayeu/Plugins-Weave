@@ -18,7 +18,7 @@ import json
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from domain.constants import DIGEST_LEVEL_NAMES
 from domain.file_constants import CONFIG_FILENAME
@@ -32,27 +32,27 @@ class DigestEntryResult:
 
     status: str  # "ok" | "error"
     pattern: int  # 1 or 2
-    base_dir: Optional[str] = None
-    loops_path: Optional[str] = None
-    digests_path: Optional[str] = None
-    essences_path: Optional[str] = None
+    base_dir: str | None = None
+    loops_path: str | None = None
+    digests_path: str | None = None
+    essences_path: str | None = None
 
     # Pattern 1 専用
-    new_loops: List[str] = field(default_factory=list)
+    new_loops: list[str] = field(default_factory=list)
     new_loops_count: int = 0
 
     # Pattern 2 専用
-    level: Optional[str] = None
-    shadow_state: Optional[Dict[str, Any]] = None
+    level: str | None = None
+    shadow_state: dict[str, Any] | None = None
 
     # 共通
     weekly_source_count: int = 0
     weekly_threshold: int = 5
     message: str = ""
-    error: Optional[str] = None
+    error: str | None = None
 
 
-def get_paths_from_config() -> Dict[str, Any]:
+def get_paths_from_config() -> dict[str, Any]:
     """config.json からパス情報を取得"""
     config_file = get_persistent_config_dir() / CONFIG_FILENAME
     config = load_json(config_file)
@@ -75,7 +75,7 @@ def get_paths_from_config() -> Dict[str, Any]:
     }
 
 
-def get_new_loops() -> List[str]:
+def get_new_loops() -> list[str]:
     """新規Loopファイルを検出（ShadowUpdaterと同じロジック）"""
     from application.config import DigestConfig
     from application.grand import ShadowGrandDigestManager
@@ -97,16 +97,13 @@ def get_weekly_source_count() -> int:
     return result.source_count
 
 
-def run_pattern1(paths: Dict[str, Any]) -> DigestEntryResult:
+def run_pattern1(paths: dict[str, Any]) -> DigestEntryResult:
     """Pattern 1: 新Loop検出"""
     new_loops = get_new_loops()
     weekly_source_count = get_weekly_source_count()
     weekly_threshold = paths["weekly_threshold"]
 
-    if new_loops:
-        message = f"新規Loop {len(new_loops)}個を検出"
-    else:
-        message = "新規Loopなし"
+    message = f"新規Loop {len(new_loops)}個を検出" if new_loops else "新規Loopなし"
 
     return DigestEntryResult(
         status="ok",
@@ -123,7 +120,7 @@ def run_pattern1(paths: Dict[str, Any]) -> DigestEntryResult:
     )
 
 
-def run_pattern2(paths: Dict[str, Any], level: str) -> DigestEntryResult:
+def run_pattern2(paths: dict[str, Any], level: str) -> DigestEntryResult:
     """Pattern 2: 階層確定準備"""
     from interfaces.shadow_state_checker import ShadowStateChecker
 
@@ -257,10 +254,7 @@ Examples:
     try:
         paths = get_paths_from_config()
 
-        if args.level is None:
-            result = run_pattern1(paths)
-        else:
-            result = run_pattern2(paths, args.level)
+        result = run_pattern1(paths) if args.level is None else run_pattern2(paths, args.level)
 
     except Exception as e:
         result = DigestEntryResult(

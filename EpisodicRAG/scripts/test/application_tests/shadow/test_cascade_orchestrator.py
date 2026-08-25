@@ -14,7 +14,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -63,7 +62,7 @@ def level_hierarchy():
 
 @pytest.fixture
 def cascade_components(
-    temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "Dict[str, LevelHierarchyEntry]"
+    temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "dict[str, LevelHierarchyEntry]"
 ):
     """カスケード処理に必要なコンポーネント群"""
     config = DigestConfig()
@@ -93,7 +92,7 @@ def cascade_components(
 
 
 @pytest.fixture
-def cascade_orchestrator(cascade_components, level_hierarchy: "Dict[str, LevelHierarchyEntry]"):
+def cascade_orchestrator(cascade_components, level_hierarchy: "dict[str, LevelHierarchyEntry]"):
     """CascadeOrchestratorインスタンスを提供"""
     return CascadeOrchestrator(
         cascade_processor=cascade_components["cascade_processor"],
@@ -210,7 +209,7 @@ class TestCascadeOrchestratorInit:
 
     @pytest.mark.unit
     def test_init_with_components(
-        self, cascade_components, level_hierarchy: "Dict[str, LevelHierarchyEntry]"
+        self, cascade_components, level_hierarchy: "dict[str, LevelHierarchyEntry]"
     ) -> None:
         """Initialize with all required components"""
         orchestrator = CascadeOrchestrator(

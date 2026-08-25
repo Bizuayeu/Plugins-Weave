@@ -23,7 +23,7 @@ Related Modules:
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from application.config import DigestConfig
 from domain.constants import LEVEL_CONFIG
@@ -50,7 +50,7 @@ class ProvisionalAppender:
     def __init__(
         self,
         config: DigestConfig,
-        level_hierarchy: Dict[str, LevelHierarchyEntry],
+        level_hierarchy: dict[str, LevelHierarchyEntry],
     ):
         """
         初期化
@@ -63,7 +63,7 @@ class ProvisionalAppender:
         self.level_hierarchy = level_hierarchy
         self.level_config = LEVEL_CONFIG
 
-    def _get_next_level(self, level: str) -> Optional[str]:
+    def _get_next_level(self, level: str) -> str | None:
         """
         次のレベルを取得
 
@@ -122,7 +122,7 @@ class ProvisionalAppender:
 
     def _load_or_create_provisional(
         self, provisional_path: Path, next_level: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Provisionalファイルを読み込み、存在しなければ新規作成
 
@@ -155,7 +155,7 @@ class ProvisionalAppender:
             "individual_digests": [],
         }
 
-    def _build_individual_entry(self, finalized_digest: RegularDigestData) -> Dict[str, Any]:
+    def _build_individual_entry(self, finalized_digest: RegularDigestData) -> dict[str, Any]:
         """
         確定ダイジェストから個別エントリを構築
 
@@ -174,7 +174,7 @@ class ProvisionalAppender:
         # ファイル名を構築: overall_digest.name にフル名が格納されている
         # (e.g., "W0053_タイトル" → "W0053_タイトル.txt")
         level = metadata.get("digest_level", "")
-        level_cfg: Union[LevelConfigData, Dict[str, Any]] = self.level_config.get(level, {})
+        level_cfg: LevelConfigData | dict[str, Any] = self.level_config.get(level, {})
         prefix = level_cfg.get("prefix", "X")
         digest_num = metadata.get("digest_number", "0000")
 
@@ -191,7 +191,7 @@ class ProvisionalAppender:
         }
 
     def _is_duplicate(
-        self, individual_digests: List[Dict[str, Any]], new_entry: Dict[str, Any]
+        self, individual_digests: list[dict[str, Any]], new_entry: dict[str, Any]
     ) -> bool:
         """
         重複チェック

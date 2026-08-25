@@ -5,7 +5,7 @@ Handles file I/O operations, numbering, and directory management.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from application.config import DigestConfig
 from domain.constants import LEVEL_CONFIG
@@ -19,7 +19,7 @@ from infrastructure import load_json
 class ProvisionalFileManager:
     """Manages provisional digest file operations."""
 
-    def __init__(self, config: Optional[DigestConfig] = None) -> None:
+    def __init__(self, config: DigestConfig | None = None) -> None:
         """
         Initialize the file manager.
 
@@ -33,7 +33,7 @@ class ProvisionalFileManager:
         self.config = config or DigestConfig()
         self.level_config = LEVEL_CONFIG
 
-    def get_current_digest_number(self, level: str) -> Optional[int]:
+    def get_current_digest_number(self, level: str) -> int | None:
         """
         Get the current provisional digest file number for a level.
 
@@ -63,10 +63,10 @@ class ProvisionalFileManager:
             return None
 
         # Cast to expected type for find_max_number
-        files_for_search: List[Union[Path, str]] = list(existing_files)
+        files_for_search: list[Path | str] = list(existing_files)
         return find_max_number(files_for_search, prefix)
 
-    def load_existing_provisional(self, level: str, digest_num: int) -> Optional[Dict[str, Any]]:
+    def load_existing_provisional(self, level: str, digest_num: int) -> dict[str, Any] | None:
         """
         Load an existing provisional digest file.
 

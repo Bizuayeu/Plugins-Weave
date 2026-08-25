@@ -4,7 +4,7 @@ Provisional digest validation utilities.
 Centralizes all validation logic for provisional digest data structures.
 """
 
-from typing import Any, List, cast
+from typing import Any, cast
 
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ValidationError
@@ -84,7 +84,7 @@ def validate_individual_digest(digest: Any, index: int, context: str = "") -> No
 
 
 def validate_individual_digests_list(
-    digests: List[IndividualDigestData], context: str = ""
+    digests: list[IndividualDigestData], context: str = ""
 ) -> None:
     """
     Validate a list of individual digests.
@@ -104,7 +104,7 @@ def validate_individual_digests_list(
         validate_individual_digest(digest, i, context)
 
 
-def validate_provisional_structure(data: Any) -> List[IndividualDigestData]:
+def validate_provisional_structure(data: Any) -> list[IndividualDigestData]:
     """
     Validate and extract individual_digests from provisional data structure.
 
@@ -137,7 +137,7 @@ def validate_provisional_structure(data: Any) -> List[IndividualDigestData]:
     return individual_digests
 
 
-def validate_input_format(data: Any) -> List[IndividualDigestData]:
+def validate_input_format(data: Any) -> list[IndividualDigestData]:
     """
     Validate parsed input data and extract individual digests.
 
@@ -158,11 +158,11 @@ def validate_input_format(data: Any) -> List[IndividualDigestData]:
     """
     # Data is a list: return directly
     if is_valid_list(data):
-        return cast(List[IndividualDigestData], data)
+        return cast(list[IndividualDigestData], data)
 
     # Data is a dict with "individual_digests" key
     if is_valid_dict(data) and "individual_digests" in data:
-        return cast(List[IndividualDigestData], data["individual_digests"])
+        return cast(list[IndividualDigestData], data["individual_digests"])
 
     # Invalid format
     formatter = get_error_formatter()

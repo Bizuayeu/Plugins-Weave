@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 ProvisionalDigest保存スクリプト
 
@@ -25,7 +24,6 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
 
 # Windows環境でUTF-8入出力を有効化（CLI実行時のみ）
 if sys.platform == 'win32' and __name__ == "__main__":
@@ -63,7 +61,7 @@ _logger = get_structured_logger(__name__)
 class ProvisionalDigestSaver:
     """ProvisionalDigest保存クラス"""
 
-    def __init__(self, config: Optional[DigestConfig] = None):
+    def __init__(self, config: DigestConfig | None = None):
         """
         Initialize the saver.
 
@@ -75,7 +73,7 @@ class ProvisionalDigestSaver:
         self.merger = DigestMerger()
 
     def save_provisional(
-        self, level: str, individual_digests: List[IndividualDigestData], append: bool = False
+        self, level: str, individual_digests: list[IndividualDigestData], append: bool = False
     ) -> Path:
         """
         ProvisionalDigestファイルを保存
@@ -107,9 +105,9 @@ class ProvisionalDigestSaver:
     def _resolve_digest_number_and_data(
         self,
         level: str,
-        individual_digests: List[IndividualDigestData],
+        individual_digests: list[IndividualDigestData],
         append: bool,
-    ) -> tuple[int, List[IndividualDigestData]]:
+    ) -> tuple[int, list[IndividualDigestData]]:
         """
         Resolve digest number and merge data if in append mode.
 
@@ -146,7 +144,7 @@ class ProvisionalDigestSaver:
         level: str,
         digest_num: int,
         digits: int,
-        individual_digests: List[IndividualDigestData],
+        individual_digests: list[IndividualDigestData],
     ) -> dict:
         """Build the provisional digest data structure."""
         return {
@@ -203,10 +201,7 @@ Note: JSONはファイルまたは--stdinで渡してください。
         saver = ProvisionalDigestSaver(config=config)
 
         # Load individual digests using InputLoader
-        if args.stdin:
-            input_data = sys.stdin.read()
-        else:
-            input_data = args.input_data
+        input_data = sys.stdin.read() if args.stdin else args.input_data
         individual_digests = InputLoader.load(input_data, base_path=config.digests_path)
 
         # Empty list warning

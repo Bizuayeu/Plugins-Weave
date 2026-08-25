@@ -15,7 +15,7 @@ Usage:
 
 import logging
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import Literal
 
 from application.config.config_builder import DigestConfigBuilder
 from application.config.config_validator import (
@@ -118,9 +118,9 @@ class DigestConfig:
 
     def __exit__(
         self,
-        exc_type: Optional[type],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[object],
+        exc_type: type | None,
+        exc_val: BaseException | None,
+        exc_tb: object | None,
     ) -> Literal[False]:
         """Context Manager終了"""
         return False
@@ -148,7 +148,7 @@ class DigestConfig:
         """GrandDigest配置先"""
         return self._path_resolver.essences_path
 
-    def get_identity_file_path(self) -> Optional[Path]:
+    def get_identity_file_path(self) -> Path | None:
         """外部identityファイルのパス"""
         return self._path_resolver.get_identity_file_path()
 
@@ -168,7 +168,7 @@ class DigestConfig:
         """指定レベルのソースファイルパターンを取得"""
         return self._source_path_resolver.get_source_pattern(level)
 
-    def validate_directory_structure(self) -> List[str]:
+    def validate_directory_structure(self) -> list[str]:
         """ディレクトリ構造の検証"""
         return self._directory_validator.validate_directory_structure()
 

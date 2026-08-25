@@ -7,7 +7,7 @@ ShadowGrandDigestの更新、カスケード処理を担当（Facade）
 """
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from domain.types import LevelHierarchyEntry, OverallDigestData, RegularDigestData
 from infrastructure import get_structured_logger
@@ -57,7 +57,7 @@ class ShadowUpdater:
         shadow_io: ShadowIO,
         file_detector: FileDetector,
         template: ShadowTemplate,
-        level_hierarchy: Dict[str, LevelHierarchyEntry],
+        level_hierarchy: dict[str, LevelHierarchyEntry],
         config: Optional["DigestConfig"] = None,
     ):
         """
@@ -99,7 +99,7 @@ class ShadowUpdater:
     # パブリックメソッド委譲
     # =========================================================================
 
-    def add_files_to_shadow(self, level: str, new_files: List[Path]) -> None:
+    def add_files_to_shadow(self, level: str, new_files: list[Path]) -> None:
         """
         指定レベルのShadowに新しいファイルを追加（増分更新）
 
@@ -137,7 +137,7 @@ class ShadowUpdater:
         """
         return self._cascade_processor.clear_shadow_level(level)
 
-    def get_shadow_digest_for_level(self, level: str) -> Optional[OverallDigestData]:
+    def get_shadow_digest_for_level(self, level: str) -> OverallDigestData | None:
         """
         指定レベルのShadowダイジェストを取得
 
@@ -208,7 +208,7 @@ class ShadowUpdater:
         self.file_detector.times_tracker.save("loop", file_names)
 
     def cascade_update_on_digest_finalize(
-        self, level: str, finalized_digest: Optional[RegularDigestData] = None
+        self, level: str, finalized_digest: RegularDigestData | None = None
     ) -> None:
         """
         ダイジェスト確定時のカスケード処理

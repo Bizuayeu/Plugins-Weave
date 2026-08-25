@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -70,7 +69,7 @@ class TestProvisionalLoaderLoadOrGenerate:
                 {"filename": "L00002.txt", "content": "Test 2"},
             ]
         }
-        with open(provisional_path, 'w', encoding='utf-8') as f:
+        with provisional_path.open('w', encoding='utf-8') as f:
             json.dump(provisional_data, f)
 
         shadow_digest = {"source_files": ["L00001.txt", "L00002.txt"]}
@@ -104,7 +103,7 @@ class TestProvisionalLoaderLoadOrGenerate:
         provisional_dir = config.get_provisional_dir("weekly")
         provisional_path = provisional_dir / "W0001_Individual.txt"
 
-        with open(provisional_path, 'w', encoding='utf-8') as f:
+        with provisional_path.open('w', encoding='utf-8') as f:
             f.write("{ invalid json }")
 
         shadow_digest = {"source_files": []}
@@ -119,7 +118,7 @@ class TestProvisionalLoaderLoadOrGenerate:
         provisional_dir = config.get_provisional_dir("weekly")
         provisional_path = provisional_dir / "W0001_Individual.txt"
 
-        with open(provisional_path, 'w', encoding='utf-8') as f:
+        with provisional_path.open('w', encoding='utf-8') as f:
             json.dump(["list", "not", "dict"], f)
 
         shadow_digest = {"source_files": []}

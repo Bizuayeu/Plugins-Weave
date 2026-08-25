@@ -15,7 +15,6 @@ from test_helpers import create_test_loop_file
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 

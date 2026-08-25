@@ -63,7 +63,6 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Optional
 
 from domain.error_formatter.base import BaseErrorFormatter
 from domain.error_formatter.config_errors import ConfigErrorFormatter
@@ -255,10 +254,10 @@ class CompositeErrorFormatter:
 # Singleton アクセサ
 # =============================================================================
 
-_default_formatter: Optional[CompositeErrorFormatter] = None
+_default_formatter: CompositeErrorFormatter | None = None
 
 
-def get_error_formatter(project_root: Optional[Path] = None) -> CompositeErrorFormatter:
+def get_error_formatter(project_root: Path | None = None) -> CompositeErrorFormatter:
     """
     CompositeErrorFormatterのインスタンスを取得
 

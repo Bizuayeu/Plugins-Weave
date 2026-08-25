@@ -10,11 +10,10 @@ import json
 import threading
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -45,18 +44,18 @@ class TestConcurrentReads:
         test_file.parent.mkdir(parents=True, exist_ok=True)
 
         test_data = {"shared": True, "items": list(range(100))}
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump(test_data, f)
 
-        results: List[dict] = []
-        errors: List[Exception] = []
+        results: list[dict] = []
+        errors: list[Exception] = []
 
         def reader_task() -> None:
             try:
-                with open(test_file, "r", encoding="utf-8") as f:
+                with test_file.open(encoding="utf-8") as f:
                     data = json.load(f)
                 results.append(data)
-            except (IOError, json.JSONDecodeError, FileNotFoundError) as e:
+            except (OSError, json.JSONDecodeError, FileNotFoundError) as e:
                 errors.append(e)
 
         # Create and start multiple reader threads
@@ -77,14 +76,14 @@ class TestConcurrentReads:
         test_file.parent.mkdir(parents=True, exist_ok=True)
 
         large_data = {"items": list(range(10000))}
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump(large_data, f)
 
-        read_times: List[float] = []
+        read_times: list[float] = []
 
         def timed_reader() -> None:
             start = time.perf_counter()
-            with open(test_file, "r", encoding="utf-8") as f:
+            with test_file.open(encoding="utf-8") as f:
                 json.load(f)
             read_times.append(time.perf_counter() - start)
 
@@ -119,11 +118,11 @@ class TestSequentialWrites:
         # Write sequence of data
         for i in range(5):
             data = {"iteration": i, "timestamp": time.time()}
-            with open(test_file, "w", encoding="utf-8") as f:
+            with test_file.open("w", encoding="utf-8") as f:
                 json.dump(data, f)
 
             # Verify write
-            with open(test_file, "r", encoding="utf-8") as f:
+            with test_file.open(encoding="utf-8") as f:
                 loaded = json.load(f)
             assert loaded["iteration"] == i
 
@@ -132,7 +131,7 @@ class TestSequentialWrites:
         from interfaces.provisional import DigestMerger
 
         # Simulate append-style operations
-        accumulated: List[dict] = []
+        accumulated: list[dict] = []
 
         for i in range(10):
             new_digest = {"source_file": f"Loop{i:04d}.txt", "iteration": i}
@@ -158,23 +157,23 @@ class TestLockContentionSimulation:
         test_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize file
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump({"counter": 0}, f)
 
         # Simulate "atomic" read-modify-write operations
         # In reality, we'd use file locking for true concurrency
         lock = threading.Lock()
-        errors: List[Exception] = []
+        errors: list[Exception] = []
 
         def increment_task() -> None:
             try:
                 with lock:  # Simulate file lock
-                    with open(test_file, "r", encoding="utf-8") as f:
+                    with test_file.open(encoding="utf-8") as f:
                         data = json.load(f)
                     data["counter"] += 1
-                    with open(test_file, "w", encoding="utf-8") as f:
+                    with test_file.open("w", encoding="utf-8") as f:
                         json.dump(data, f)
-            except (IOError, json.JSONDecodeError, KeyError, TypeError, FileNotFoundError) as e:
+            except (OSError, json.JSONDecodeError, KeyError, TypeError, FileNotFoundError) as e:
                 errors.append(e)
 
         threads = [threading.Thread(target=increment_task) for _ in range(10)]
@@ -185,7 +184,7 @@ class TestLockContentionSimulation:
 
         # All increments should have succeeded
         assert len(errors) == 0
-        with open(test_file, "r", encoding="utf-8") as f:
+        with test_file.open(encoding="utf-8") as f:
             final_data = json.load(f)
         assert final_data["counter"] == 10
 
@@ -195,23 +194,22 @@ class TestLockContentionSimulation:
         test_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump({"version": 1}, f)
 
-        read_results: List[dict] = []
+        read_results: list[dict] = []
         write_lock = threading.Lock()
 
         def writer_task() -> None:
             for i in range(5):
-                with write_lock:
-                    with open(test_file, "w", encoding="utf-8") as f:
-                        json.dump({"version": i + 2}, f)
+                with write_lock, test_file.open("w", encoding="utf-8") as f:
+                    json.dump({"version": i + 2}, f)
                 time.sleep(0.01)
 
         def reader_task() -> None:
             for _ in range(10):
                 try:
-                    with open(test_file, "r", encoding="utf-8") as f:
+                    with test_file.open(encoding="utf-8") as f:
                         data = json.load(f)
                     read_results.append(data)
                 except json.JSONDecodeError:
@@ -254,23 +252,23 @@ class TestShadowUpdateConcurrency:
         }
 
         # Write initial state
-        with open(shadow_path, "w", encoding="utf-8") as f:
+        with shadow_path.open("w", encoding="utf-8") as f:
             json.dump(initial_shadow, f)
 
         # Apply same "update" multiple times
         for _ in range(5):
-            with open(shadow_path, "r", encoding="utf-8") as f:
+            with shadow_path.open(encoding="utf-8") as f:
                 data = json.load(f)
 
             # Idempotent update: add L00003.txt if not present
             if "L00003.txt" not in data["pending_sources"]:
                 data["pending_sources"].append("L00003.txt")
 
-            with open(shadow_path, "w", encoding="utf-8") as f:
+            with shadow_path.open("w", encoding="utf-8") as f:
                 json.dump(data, f)
 
         # Final state should have exactly 3 entries
-        with open(shadow_path, "r", encoding="utf-8") as f:
+        with shadow_path.open(encoding="utf-8") as f:
             final_data = json.load(f)
 
         assert len(final_data["pending_sources"]) == 3
@@ -294,7 +292,7 @@ class TestRaceConditions:
 
         # 初期データ
         initial_data = {"counter": 0, "items": list(range(100))}
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump(initial_data, f)
 
         write_lock = threading.Lock()
@@ -306,14 +304,14 @@ class TestRaceConditions:
             for i in range(5):
                 try:
                     with write_lock:
-                        with open(test_file, "r", encoding="utf-8") as f:
+                        with test_file.open(encoding="utf-8") as f:
                             data = json.load(f)
                         data["counter"] += 1
                         data["last_writer"] = writer_id
-                        with open(test_file, "w", encoding="utf-8") as f:
+                        with test_file.open("w", encoding="utf-8") as f:
                             json.dump(data, f, ensure_ascii=False)
                     completed_writes.append((writer_id, i))
-                except (IOError, json.JSONDecodeError) as e:
+                except (OSError, json.JSONDecodeError) as e:
                     partial_write_detected.append(e)
 
         # 複数スレッドで同時書き込み
@@ -330,7 +328,7 @@ class TestRaceConditions:
         assert len(completed_writes) == 25, f"完了した書き込み: {len(completed_writes)}/25"
 
         # ファイルが有効なJSONであることを確認
-        with open(test_file, "r", encoding="utf-8") as f:
+        with test_file.open(encoding="utf-8") as f:
             final_data = json.load(f)
         assert final_data["counter"] == 25
 
@@ -341,18 +339,17 @@ class TestRaceConditions:
 
         # 正常なJSONファイルを作成
         valid_data = {"complete": True, "data": "test"}
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump(valid_data, f)
 
         # 部分的に書き込まれたファイルをシミュレート
         partial_content = '{"incomplete": true, "data": '  # 不完全なJSON
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             f.write(partial_content)
 
         # 不完全なJSONの読み取りはエラーになるべき
-        with pytest.raises(json.JSONDecodeError):
-            with open(test_file, "r", encoding="utf-8") as f:
-                json.load(f)
+        with pytest.raises(json.JSONDecodeError), test_file.open(encoding="utf-8") as f:
+            json.load(f)
 
     def test_read_during_write_tracking(self, temp_plugin_env: "TempPluginEnvironment") -> None:
         """書き込み中の読み取り結果を追跡
@@ -366,11 +363,11 @@ class TestRaceConditions:
         test_file.parent.mkdir(parents=True, exist_ok=True)
 
         # 初期データ
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump({"version": 1}, f)
 
-        read_successes: List[dict] = []
-        read_failures: List[Exception] = []
+        read_successes: list[dict] = []
+        read_failures: list[Exception] = []
         write_lock = threading.Lock()
 
         # Barrierで同時開始を保証
@@ -379,19 +376,18 @@ class TestRaceConditions:
         def writer_task() -> None:
             start_barrier.wait()  # 両スレッドが準備完了を待つ
             for i in range(10):
-                with write_lock:
-                    with open(test_file, "w", encoding="utf-8") as f:
-                        json.dump({"version": i + 2}, f)
+                with write_lock, test_file.open("w", encoding="utf-8") as f:
+                    json.dump({"version": i + 2}, f)
                 time.sleep(0.001)  # 1ms待機して読み取りにチャンスを与える
 
         def reader_task() -> None:
             start_barrier.wait()  # 両スレッドが準備完了を待つ
             for _ in range(50):  # 読み取り試行回数を増加
                 try:
-                    with open(test_file, "r", encoding="utf-8") as f:
+                    with test_file.open(encoding="utf-8") as f:
                         data = json.load(f)
                     read_successes.append(data)
-                except (IOError, json.JSONDecodeError) as e:
+                except (OSError, json.JSONDecodeError) as e:
                     read_failures.append(e)
                 time.sleep(0.0005)  # 0.5ms待機
 
@@ -409,7 +405,7 @@ class TestRaceConditions:
         # 成功した読み取りは全て有効なデータ
         assert all("version" in r for r in read_successes)
         # 最終状態は正しく書き込まれている
-        with open(test_file, "r", encoding="utf-8") as f:
+        with test_file.open(encoding="utf-8") as f:
             final_data = json.load(f)
         assert final_data["version"] == 11  # 1 + 10回の書き込み
 
@@ -420,7 +416,7 @@ class TestRaceConditions:
         test_file = temp_plugin_env.digests_path / "timeout_test.json"
         test_file.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(test_file, "w", encoding="utf-8") as f:
+        with test_file.open("w", encoding="utf-8") as f:
             json.dump({"data": "test"}, f)
 
         long_running_lock = threading.Lock()
@@ -430,7 +426,7 @@ class TestRaceConditions:
             """長時間実行されるタスクをシミュレート"""
             with long_running_lock:
                 time.sleep(0.5)  # 500ms待機
-                with open(test_file, "r", encoding="utf-8") as f:
+                with test_file.open(encoding="utf-8") as f:
                     data = json.load(f)
                 operation_completed.append(True)
                 return data

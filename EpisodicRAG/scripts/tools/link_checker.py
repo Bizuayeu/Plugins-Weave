@@ -33,7 +33,6 @@ import sys
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
 
 class LinkStatus(Enum):
@@ -55,9 +54,9 @@ class LinkCheckResult:
     link_text: str
     link_target: str
     status: str
-    suggestion: Optional[str] = None
+    suggestion: str | None = None
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """辞書形式に変換"""
         return asdict(self)
 
@@ -74,7 +73,7 @@ class CheckSummary:
     external: int = 0
     skipped: int = 0
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """辞書形式に変換"""
         return asdict(self)
 
@@ -99,10 +98,10 @@ class MarkdownLinkChecker:
             docs_root: ドキュメントルートディレクトリ
         """
         self.docs_root = docs_root.resolve()
-        self.results: List[LinkCheckResult] = []
-        self._heading_cache: Dict[Path, Set[str]] = {}
+        self.results: list[LinkCheckResult] = []
+        self._heading_cache: dict[Path, set[str]] = {}
 
-    def check_all(self) -> List[LinkCheckResult]:
+    def check_all(self) -> list[LinkCheckResult]:
         """
         全.mdファイルを検証
 
@@ -119,7 +118,7 @@ class MarkdownLinkChecker:
 
         return self.results
 
-    def check_file(self, file_path: Path) -> List[LinkCheckResult]:
+    def check_file(self, file_path: Path) -> list[LinkCheckResult]:
         """
         単一ファイルを検証
 
@@ -129,7 +128,7 @@ class MarkdownLinkChecker:
         Returns:
             検証結果のリスト
         """
-        file_results: List[LinkCheckResult] = []
+        file_results: list[LinkCheckResult] = []
 
         if not file_path.exists():
             return file_results
@@ -218,7 +217,7 @@ class MarkdownLinkChecker:
                 )
 
         # ファイル参照（アンカー付きの場合もあり）
-        anchor: Optional[str]
+        anchor: str | None
         if "#" in link_target:
             file_part, anchor = link_target.split("#", 1)
         else:
@@ -240,16 +239,15 @@ class MarkdownLinkChecker:
             )
 
         # アンカーの検証（存在する場合）
-        if anchor:
-            if not self._validate_anchor(target_path, anchor):
-                return LinkCheckResult(
-                    file_path=rel_path,
-                    line_number=line_num,
-                    link_text=link_text,
-                    link_target=link_target,
-                    status=LinkStatus.ANCHOR_MISSING.value,
-                    suggestion=f"Anchor '{anchor}' not found in {file_part}",
-                )
+        if anchor and not self._validate_anchor(target_path, anchor):
+            return LinkCheckResult(
+                file_path=rel_path,
+                line_number=line_num,
+                link_text=link_text,
+                link_target=link_target,
+                status=LinkStatus.ANCHOR_MISSING.value,
+                suggestion=f"Anchor '{anchor}' not found in {file_part}",
+            )
 
         return LinkCheckResult(
             file_path=rel_path,
@@ -259,7 +257,7 @@ class MarkdownLinkChecker:
             status=LinkStatus.VALID.value,
         )
 
-    def _resolve_path(self, source_file: Path, target: str) -> Optional[Path]:
+    def _resolve_path(self, source_file: Path, target: str) -> Path | None:
         """
         相対パスを解決
 
@@ -296,7 +294,7 @@ class MarkdownLinkChecker:
         headings = self._get_headings(file_path)
         return anchor.lower() in headings
 
-    def _get_headings(self, file_path: Path) -> Set[str]:
+    def _get_headings(self, file_path: Path) -> set[str]:
         """
         ファイル内の見出しを取得（キャッシュ付き）
 
@@ -309,7 +307,7 @@ class MarkdownLinkChecker:
         if file_path in self._heading_cache:
             return self._heading_cache[file_path]
 
-        headings: Set[str] = set()
+        headings: set[str] = set()
 
         if not file_path.exists():
             return headings
@@ -371,7 +369,7 @@ class MarkdownLinkChecker:
 
         return slug
 
-    def _find_code_spans(self, line: str) -> List[tuple]:
+    def _find_code_spans(self, line: str) -> list[tuple]:
         """
         行内のインラインコードスパン（`...`）の位置を特定
 
@@ -398,7 +396,7 @@ class MarkdownLinkChecker:
 
         return spans
 
-    def _is_in_code_span(self, start: int, end: int, code_spans: List[tuple]) -> bool:
+    def _is_in_code_span(self, start: int, end: int, code_spans: list[tuple]) -> bool:
         """
         指定範囲がコードスパン内にあるかを判定
 
@@ -410,12 +408,9 @@ class MarkdownLinkChecker:
         Returns:
             コードスパン内ならTrue
         """
-        for span_start, span_end in code_spans:
-            if span_start <= start < span_end:
-                return True
-        return False
+        return any(span_start <= start < span_end for span_start, span_end in code_spans)
 
-    def _suggest_correction(self, source_file: Path, broken_target: str) -> Optional[str]:
+    def _suggest_correction(self, source_file: Path, broken_target: str) -> str | None:
         """
         壊れたリンクの修正案を提案
 
@@ -446,7 +441,7 @@ class MarkdownLinkChecker:
         """
         summary = CheckSummary()
 
-        files_seen: Set[str] = set()
+        files_seen: set[str] = set()
 
         for result in self.results:
             files_seen.add(result.file_path)
@@ -466,7 +461,7 @@ class MarkdownLinkChecker:
         summary.total_files = len(files_seen)
         return summary
 
-    def get_broken_links(self) -> List[LinkCheckResult]:
+    def get_broken_links(self) -> list[LinkCheckResult]:
         """
         壊れたリンクのみを取得
 

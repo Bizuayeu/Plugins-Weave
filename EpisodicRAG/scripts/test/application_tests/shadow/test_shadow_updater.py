@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -53,7 +52,7 @@ def updater(
     shadow_io: "ShadowIO",
     file_detector: "FileDetector",
     template: "ShadowTemplate",
-    level_hierarchy: "Dict[str, LevelHierarchyEntry]",
+    level_hierarchy: "dict[str, LevelHierarchyEntry]",
 ):
     """テスト用ShadowUpdater"""
     return ShadowUpdater(shadow_io, file_detector, template, level_hierarchy)
@@ -182,7 +181,7 @@ class TestClearShadowLevel:
         # weekly digestファイルを作成（monthlyのソース）
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_test.txt"
-        with open(weekly_file, 'w', encoding='utf-8') as f:
+        with weekly_file.open('w', encoding='utf-8') as f:
             json.dump({"overall_digest": {"test": "data"}}, f)
 
         updater.add_files_to_shadow("monthly", [weekly_file])
@@ -358,7 +357,7 @@ class TestShadowUpdaterInit:
         shadow_io: "ShadowIO",
         file_detector: "FileDetector",
         template: "ShadowTemplate",
-        level_hierarchy: "Dict[str, LevelHierarchyEntry]",
+        level_hierarchy: "dict[str, LevelHierarchyEntry]",
     ) -> None:
         """依存関係が正しく保存される"""
         updater = ShadowUpdater(shadow_io, file_detector, template, level_hierarchy)

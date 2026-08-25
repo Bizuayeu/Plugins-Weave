@@ -76,11 +76,11 @@ class TestExtractTokenAllFormats:
     def test_unsupported_format_raises(self, tmp_path):
         p = tmp_path / "token.bin"
         p.write_bytes(b"\x00\x01")
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             extract_token(str(p))
 
     def test_missing_file_raises(self, tmp_path):
-        with pytest.raises(Exception):
+        with pytest.raises(FileNotFoundError):
             extract_token(str(tmp_path / "nope.tar.gz"))
 
 

@@ -6,7 +6,7 @@ EpisodicRAG Provisional Digest 型定義
 Provisional Digest用TypedDict定義。
 """
 
-from typing import List, TypedDict
+from typing import TypedDict
 
 from domain.types.digest import IndividualDigestData
 from domain.types.metadata import DigestMetadataComplete
@@ -23,7 +23,7 @@ class ProvisionalDigestEntry(TypedDict):
 
     source_file: str
     digest_type: str
-    keywords: List[str]
+    keywords: list[str]
     abstract: LongShortText
     impression: LongShortText
 
@@ -34,4 +34,4 @@ class ProvisionalDigestFile(TypedDict):
     """
 
     metadata: DigestMetadataComplete
-    individual_digests: List[IndividualDigestData]
+    individual_digests: list[IndividualDigestData]

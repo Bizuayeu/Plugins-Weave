@@ -10,7 +10,7 @@ Usage:
     from domain.auto_dream.types import MemoryFile, AutoDreamScanResult
 """
 
-from typing import Dict, List, Literal, Optional, TypedDict
+from typing import Literal, TypedDict
 
 # =============================================================================
 # 基本型
@@ -69,7 +69,7 @@ class MemoryIndex(TypedDict):
     """
 
     path: str  # 絶対パス
-    sections: Dict[str, List[str]]  # {"User": ["user_profile.md"], ...}
+    sections: dict[str, list[str]]  # {"User": ["user_profile.md"], ...}
 
 
 # =============================================================================
@@ -88,9 +88,9 @@ class AutoDreamScanResult(TypedDict):
     """
 
     status: str  # "ok" | "no_memory" | "error"
-    project_path: Optional[str]  # マッチしたプロジェクトのエンコード名
-    memory_dir: Optional[str]  # memory/ディレクトリの絶対パス
-    memory_index: Optional[MemoryIndex]
-    memory_files: List[MemoryFile]
+    project_path: str | None  # マッチしたプロジェクトのエンコード名
+    memory_dir: str | None  # memory/ディレクトリの絶対パス
+    memory_index: MemoryIndex | None
+    memory_files: list[MemoryFile]
     file_count: int
-    error: Optional[str]
+    error: str | None

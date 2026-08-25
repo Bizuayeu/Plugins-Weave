@@ -19,14 +19,14 @@ Usage:
     value = ensure_not_none(value, "config.base_dir")
 """
 
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 from domain.exceptions import ValidationError
 
 T = TypeVar("T")
 
 
-def ensure_not_none(value: Optional[T], context: str) -> T:
+def ensure_not_none(value: T | None, context: str) -> T:
     """
     値がNoneでないことを保証（型ナローイング付き）
 

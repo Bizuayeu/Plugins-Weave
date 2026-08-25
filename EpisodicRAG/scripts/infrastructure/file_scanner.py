@@ -10,11 +10,11 @@ Usage:
     from infrastructure.file_scanner import scan_files, get_files_by_pattern
 """
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, List, Optional
 
 
-def scan_files(directory: Path, pattern: str = "*.txt", sort: bool = True) -> List[Path]:
+def scan_files(directory: Path, pattern: str = "*.txt", sort: bool = True) -> list[Path]:
     """
     指定ディレクトリ内のファイルをスキャン
 
@@ -42,8 +42,8 @@ def scan_files(directory: Path, pattern: str = "*.txt", sort: bool = True) -> Li
 
 
 def get_files_by_pattern(
-    directory: Path, pattern: str, filter_func: Optional[Callable[[Path], bool]] = None
-) -> List[Path]:
+    directory: Path, pattern: str, filter_func: Callable[[Path], bool] | None = None
+) -> list[Path]:
     """
     パターンとフィルタ関数でファイルを取得
 
@@ -68,8 +68,8 @@ def get_files_by_pattern(
 
 
 def get_max_numbered_file(
-    directory: Path, pattern: str, number_extractor: Callable[[str], Optional[int]]
-) -> Optional[int]:
+    directory: Path, pattern: str, number_extractor: Callable[[str], int | None]
+) -> int | None:
     """
     ディレクトリ内の最大番号を取得
 
@@ -93,16 +93,15 @@ def get_max_numbered_file(
 
     for file in directory.glob(pattern):
         num = number_extractor(file.name)
-        if num is not None:
-            if max_num is None or num > max_num:
-                max_num = num
+        if num is not None and (max_num is None or num > max_num):
+            max_num = num
 
     return max_num
 
 
 def filter_files_after_number(
-    files: List[Path], threshold: int, number_extractor: Callable[[str], Optional[int]]
-) -> List[Path]:
+    files: list[Path], threshold: int, number_extractor: Callable[[str], int | None]
+) -> list[Path]:
     """
     指定番号より大きいファイルのみをフィルタ
 

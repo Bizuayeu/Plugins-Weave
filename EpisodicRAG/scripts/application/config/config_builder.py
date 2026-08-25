@@ -37,7 +37,7 @@ Usage:
 """
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from domain.exceptions import ConfigError
 from infrastructure.config import (
@@ -80,8 +80,8 @@ class DigestConfigBuilder:
 
     def __init__(self) -> None:
         """Initialize builder with no configuration"""
-        self._config_loader: Optional[ConfigLoader] = None
-        self._path_resolver: Optional[PathResolver] = None
+        self._config_loader: ConfigLoader | None = None
+        self._path_resolver: PathResolver | None = None
 
     def with_custom_loader(self, loader: ConfigLoader) -> "DigestConfigBuilder":
         """

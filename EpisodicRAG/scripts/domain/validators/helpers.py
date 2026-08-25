@@ -16,7 +16,8 @@ Usage:
     )
 """
 
-from typing import Any, Dict, List, Sequence, Type, TypeVar
+from collections.abc import Sequence
+from typing import Any, TypeVar
 
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ValidationError
@@ -29,7 +30,7 @@ T = TypeVar("T")
 # =============================================================================
 
 
-def validate_type(data: Any, expected_type: Type[T], context: str, type_name: str) -> T:
+def validate_type(data: Any, expected_type: type[T], context: str, type_name: str) -> T:
     """
     汎用型検証（例外を投げる）
 
@@ -54,7 +55,7 @@ def validate_type(data: Any, expected_type: Type[T], context: str, type_name: st
 def validate_list_not_empty(
     value: Any,
     context: str,
-) -> List[Any]:
+) -> list[Any]:
     """
     リストがNoneでなく空でないことを検証
 
@@ -91,7 +92,7 @@ def validate_list_not_empty(
 
 
 def validate_dict_has_keys(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     required_keys: Sequence[str],
     context: str,
 ) -> None:
@@ -124,9 +125,9 @@ def validate_dict_has_keys(
 
 
 def validate_dict_key_type(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     key: str,
-    expected_type: Type[T],
+    expected_type: type[T],
     context: str,
 ) -> T:
     """
@@ -170,7 +171,7 @@ def validate_dict_key_type(
 # =============================================================================
 
 
-def collect_type_error(value: Any, expected_type: Type[Any], key: str, errors: List[str]) -> None:
+def collect_type_error(value: Any, expected_type: type[Any], key: str, errors: list[str]) -> None:
     """
     設定値の型検証を行い、エラーがあればリストに追加
 
@@ -187,10 +188,10 @@ def collect_type_error(value: Any, expected_type: Type[Any], key: str, errors: L
 
 
 def collect_list_element_errors(
-    lst: List[Any],
-    expected_type: Type[Any],
+    lst: list[Any],
+    expected_type: type[Any],
     context: str,
-    errors: List[str],
+    errors: list[str],
 ) -> None:
     """
     リスト要素の型を検証し、エラーをリストに蓄積

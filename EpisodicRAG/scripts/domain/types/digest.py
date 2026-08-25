@@ -6,7 +6,7 @@ EpisodicRAG ダイジェストデータ型定義
 Digest関連のTypedDict定義。
 """
 
-from typing import Dict, List, Optional, TypedDict
+from typing import TypedDict
 
 from domain.types.metadata import DigestMetadataComplete
 from domain.types.text import LongShortText
@@ -22,9 +22,9 @@ class OverallDigestData(TypedDict, total=False):
 
     name: str
     timestamp: str
-    source_files: List[str]
+    source_files: list[str]
     digest_type: str
-    keywords: List[str]
+    keywords: list[str]
     abstract: str
     impression: str
 
@@ -39,7 +39,7 @@ class IndividualDigestData(TypedDict):
 
     source_file: str
     digest_type: str
-    keywords: List[str]
+    keywords: list[str]
     abstract: LongShortText
     impression: LongShortText
 
@@ -52,9 +52,9 @@ class ShadowLevelData(TypedDict, total=False):
         total=False により、すべてのキーがオプショナル
     """
 
-    overall_digest: Optional[OverallDigestData]
-    individual_digests: List[IndividualDigestData]
-    source_files: List[str]
+    overall_digest: OverallDigestData | None
+    individual_digests: list[IndividualDigestData]
+    source_files: list[str]
 
 
 class ShadowDigestData(TypedDict):
@@ -63,7 +63,7 @@ class ShadowDigestData(TypedDict):
     """
 
     metadata: DigestMetadataComplete
-    latest_digests: Dict[str, ShadowLevelData]
+    latest_digests: dict[str, ShadowLevelData]
 
 
 class GrandDigestLevelData(TypedDict, total=False):
@@ -71,7 +71,7 @@ class GrandDigestLevelData(TypedDict, total=False):
     GrandDigest の各レベルデータ
     """
 
-    overall_digest: Optional[OverallDigestData]
+    overall_digest: OverallDigestData | None
 
 
 class GrandDigestData(TypedDict):
@@ -80,7 +80,7 @@ class GrandDigestData(TypedDict):
     """
 
     metadata: DigestMetadataComplete
-    major_digests: Dict[str, GrandDigestLevelData]
+    major_digests: dict[str, GrandDigestLevelData]
 
 
 class RegularDigestData(TypedDict):
@@ -90,4 +90,4 @@ class RegularDigestData(TypedDict):
 
     metadata: DigestMetadataComplete
     overall_digest: OverallDigestData
-    individual_digests: List[IndividualDigestData]
+    individual_digests: list[IndividualDigestData]

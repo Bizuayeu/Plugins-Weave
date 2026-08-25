@@ -18,7 +18,7 @@ json_repository Strategy Pattern 実装のユニットテスト。
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -88,7 +88,7 @@ class TestFileLoadStrategy:
         target = tmp_path / "target.json"
         target.write_text('{"key": "value"}')
 
-        def mock_read(path: Path, raise_on_error: bool) -> Optional[Dict[str, Any]]:
+        def mock_read(path: Path, raise_on_error: bool) -> dict[str, Any] | None:
             return json.loads(path.read_text())
 
         strategy = FileLoadStrategy(mock_read)
@@ -131,12 +131,12 @@ class TestTemplateLoadStrategy:
         template = tmp_path / "template.json"
         template.write_text('{"source": "template"}')
 
-        def mock_read(path: Path, raise_on_error: bool) -> Optional[Dict[str, Any]]:
+        def mock_read(path: Path, raise_on_error: bool) -> dict[str, Any] | None:
             return json.loads(path.read_text())
 
         save_called = []
 
-        def mock_save(path: Path, data: Dict[str, Any]) -> None:
+        def mock_save(path: Path, data: dict[str, Any]) -> None:
             save_called.append((path, data))
 
         strategy = TemplateLoadStrategy(mock_read, mock_save)
@@ -174,7 +174,7 @@ class TestTemplateLoadStrategy:
         template = tmp_path / "template.json"
         template.write_text('{"source": "template"}')
 
-        def mock_read(path: Path, raise_on_error: bool) -> Optional[Dict[str, Any]]:
+        def mock_read(path: Path, raise_on_error: bool) -> dict[str, Any] | None:
             return json.loads(path.read_text())
 
         mock_save = MagicMock()
@@ -199,12 +199,12 @@ class TestFactoryLoadStrategy:
         """ファクトリ関数から作成"""
         target = tmp_path / "target.json"
 
-        def factory() -> Dict[str, Any]:
+        def factory() -> dict[str, Any]:
             return {"source": "factory", "created": True}
 
         save_called = []
 
-        def mock_save(path: Path, data: Dict[str, Any]) -> None:
+        def mock_save(path: Path, data: dict[str, Any]) -> None:
             save_called.append((path, data))
 
         strategy = FactoryLoadStrategy(mock_save)
@@ -228,7 +228,7 @@ class TestFactoryLoadStrategy:
         """save_on_create=Falseの場合は保存しない"""
         target = tmp_path / "target.json"
 
-        def factory() -> Dict[str, Any]:
+        def factory() -> dict[str, Any]:
             return {"source": "factory"}
 
         mock_save = MagicMock()
@@ -325,7 +325,7 @@ class TestChainedLoader:
 
     def test_empty_chain_returns_none(self, tmp_path: Path) -> None:
         """空のチェーンはNoneを返す"""
-        loader: ChainedLoader[Dict[str, Any]] = ChainedLoader([])
+        loader: ChainedLoader[dict[str, Any]] = ChainedLoader([])
         context = LoadContext(target_file=tmp_path / "any.json")
         result = loader.load(context)
 
@@ -409,7 +409,7 @@ class TestStrategyIntegration:
 
         # DefaultLoadStrategyを最初に、FileLoadStrategyを2番目に
         # → 常に空dictが返る
-        loader: ChainedLoader[Dict[str, Any]] = ChainedLoader(
+        loader: ChainedLoader[dict[str, Any]] = ChainedLoader(
             [
                 DefaultLoadStrategy(),
                 FileLoadStrategy(safe_read_json),

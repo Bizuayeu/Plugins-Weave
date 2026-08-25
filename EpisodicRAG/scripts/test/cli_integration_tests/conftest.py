@@ -10,8 +10,8 @@ import json
 import os
 import shutil
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Dict, Generator
 
 import pytest
 
@@ -100,7 +100,7 @@ LEVEL_DIRS = [
 ]
 
 
-def _create_full_plugin_structure(plugin_root: Path) -> Dict[str, Path]:
+def _create_full_plugin_structure(plugin_root: Path) -> dict[str, Path]:
     """
     本番同等の完全なプラグイン構造を作成
 
@@ -160,7 +160,7 @@ def _create_config_file(config_dir: Path, plugin_root: Path) -> Path:
         },
     }
     config_file = config_dir / "config.json"
-    with open(config_file, "w", encoding="utf-8") as f:
+    with config_file.open("w", encoding="utf-8") as f:
         json.dump(config_data, f, indent=2, ensure_ascii=False)
     return config_file
 
@@ -180,7 +180,7 @@ def _create_template_files(config_dir: Path) -> None:
 
     # last_digest_times.template.json
     times_template = {level: {"timestamp": "", "last_processed": None} for level in levels}
-    with open(config_dir / "last_digest_times.template.json", "w", encoding="utf-8") as f:
+    with (config_dir / 'last_digest_times.template.json').open('w', encoding='utf-8') as f:
         json.dump(times_template, f, indent=2, ensure_ascii=False)
 
     # GrandDigest.template.txt
@@ -188,7 +188,7 @@ def _create_template_files(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "major_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with open(config_dir / "GrandDigest.template.txt", "w", encoding="utf-8") as f:
+    with (config_dir / 'GrandDigest.template.txt').open('w', encoding='utf-8') as f:
         json.dump(grand_template, f, indent=2, ensure_ascii=False)
 
     # ShadowGrandDigest.template.txt
@@ -196,7 +196,7 @@ def _create_template_files(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "latest_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with open(config_dir / "ShadowGrandDigest.template.txt", "w", encoding="utf-8") as f:
+    with (config_dir / 'ShadowGrandDigest.template.txt').open('w', encoding='utf-8') as f:
         json.dump(shadow_template, f, indent=2, ensure_ascii=False)
 
 
@@ -218,7 +218,7 @@ def _create_essence_files(essences_path: Path) -> None:
         "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
         "major_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with open(essences_path / "GrandDigest.txt", "w", encoding="utf-8") as f:
+    with (essences_path / 'GrandDigest.txt').open('w', encoding='utf-8') as f:
         json.dump(grand_data, f, indent=2, ensure_ascii=False)
 
     # ShadowGrandDigest.txt
@@ -226,7 +226,7 @@ def _create_essence_files(essences_path: Path) -> None:
         "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
         "latest_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with open(essences_path / "ShadowGrandDigest.txt", "w", encoding="utf-8") as f:
+    with (essences_path / 'ShadowGrandDigest.txt').open('w', encoding='utf-8') as f:
         json.dump(shadow_data, f, indent=2, ensure_ascii=False)
 
 
@@ -244,13 +244,13 @@ def _create_times_file(config_dir: Path) -> Path:
     ]
     times_data = {level: {"timestamp": "", "last_processed": None} for level in levels}
     times_file = config_dir / "last_digest_times.json"
-    with open(times_file, "w", encoding="utf-8") as f:
+    with times_file.open("w", encoding="utf-8") as f:
         json.dump(times_data, f, indent=2, ensure_ascii=False)
     return times_file
 
 
 @pytest.fixture
-def configured_cli_env(cli_temp_dir: Path) -> Generator[Dict[str, Path], None, None]:
+def configured_cli_env(cli_temp_dir: Path) -> Generator[dict[str, Path], None, None]:
     """
     設定済みのCLI環境を提供
 
@@ -287,7 +287,7 @@ def configured_cli_env(cli_temp_dir: Path) -> Generator[Dict[str, Path], None, N
 
 
 @pytest.fixture
-def configured_cli_runner(configured_cli_env: Dict[str, Path]) -> CLIRunner:
+def configured_cli_runner(configured_cli_env: dict[str, Path]) -> CLIRunner:
     """
     設定済み環境のCLIRunnerを提供
 
@@ -390,7 +390,7 @@ def create_loop_file(loops_path: Path, loop_num: int, title: str = "test") -> Pa
         }
     }
 
-    with open(file_path, "w", encoding="utf-8") as f:
+    with file_path.open("w", encoding="utf-8") as f:
         json.dump(loop_data, f, indent=2, ensure_ascii=False)
 
     return file_path

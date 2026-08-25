@@ -7,7 +7,7 @@ Digestデータ型と型互換性のテスト。
 test_types.py から分割。
 """
 
-from typing import List, get_type_hints
+from typing import get_type_hints
 
 import pytest
 
@@ -40,7 +40,7 @@ class TestOverallDigestData:
         """source_files フィールドを持つ"""
         hints = get_type_hints(OverallDigestData)
         assert "source_files" in hints
-        assert hints["source_files"] == List[str]
+        assert hints["source_files"] == list[str]
 
     @pytest.mark.unit
     def test_has_digest_type_field(self) -> None:
@@ -53,7 +53,7 @@ class TestOverallDigestData:
         """keywords フィールドを持つ"""
         hints = get_type_hints(OverallDigestData)
         assert "keywords" in hints
-        assert hints["keywords"] == List[str]
+        assert hints["keywords"] == list[str]
 
     @pytest.mark.unit
     def test_has_abstract_field(self) -> None:

@@ -13,7 +13,7 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 
 @dataclass
@@ -32,8 +32,8 @@ class CLIResult:
     exit_code: int
     stdout: str
     stderr: str
-    json_output: Optional[Dict[str, Any]] = None
-    command: List[str] = field(default_factory=list)
+    json_output: dict[str, Any] | None = None
+    command: list[str] = field(default_factory=list)
 
     @property
     def success(self) -> bool:
@@ -41,7 +41,7 @@ class CLIResult:
         return self.exit_code == 0
 
     @property
-    def status(self) -> Optional[str]:
+    def status(self) -> str | None:
         """JSON出力のstatusフィールド（存在する場合）"""
         if self.json_output and isinstance(self.json_output, dict):
             return self.json_output.get("status")
@@ -60,7 +60,7 @@ class CLIResult:
             f"stderr: {self.stderr}"
         )
 
-    def assert_failure(self, expected_code: Optional[int] = None) -> None:
+    def assert_failure(self, expected_code: int | None = None) -> None:
         """
         コマンドが失敗したことをアサート
 
@@ -131,8 +131,8 @@ class CLIRunner:
     def __init__(
         self,
         plugin_root: Path,
-        scripts_dir: Optional[Path] = None,
-        python_executable: Optional[str] = None,
+        scripts_dir: Path | None = None,
+        python_executable: str | None = None,
         timeout: int = 30,
     ) -> None:
         """
@@ -161,9 +161,9 @@ class CLIRunner:
 
     def _run_command(
         self,
-        args: List[str],
-        cwd: Optional[Path] = None,
-        env: Optional[Dict[str, str]] = None,
+        args: list[str],
+        cwd: Path | None = None,
+        env: dict[str, str] | None = None,
     ) -> CLIResult:
         """
         サブプロセスでコマンドを実行
@@ -241,9 +241,7 @@ class CLIRunner:
             command=args,
         )
 
-    def _build_module_args(
-        self, module_name: str, *args: str, **kwargs: Union[str, bool]
-    ) -> List[str]:
+    def _build_module_args(self, module_name: str, *args: str, **kwargs: str | bool) -> list[str]:
         """
         モジュール実行用の引数リストを構築
 

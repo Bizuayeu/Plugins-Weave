@@ -23,7 +23,6 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 
 class FooterStatus(Enum):
@@ -40,7 +39,7 @@ class FooterDefinition:
     """フッター定義"""
 
     content: str
-    target_files: List[str] = field(default_factory=list)
+    target_files: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -49,7 +48,7 @@ class CheckResult:
 
     file_path: Path
     status: FooterStatus
-    message: Optional[str] = None
+    message: str | None = None
 
 
 def parse_footer_md(footer_md_path: Path) -> FooterDefinition:
@@ -110,9 +109,7 @@ def parse_footer_md(footer_md_path: Path) -> FooterDefinition:
     return FooterDefinition(content=footer_content, target_files=target_files)
 
 
-def check_footer_in_file(
-    file_path: Path, expected_footer: str
-) -> Tuple[FooterStatus, Optional[str]]:
+def check_footer_in_file(file_path: Path, expected_footer: str) -> tuple[FooterStatus, str | None]:
     """
     ファイル内のフッターをチェック
 
@@ -198,7 +195,7 @@ def fix_footer(file_path: Path, expected_footer: str) -> bool:
 
 def run_check(
     footer_md_path: Path, base_path: Path, fix: bool = False, quiet: bool = False
-) -> List[CheckResult]:
+) -> list[CheckResult]:
     """
     フッターチェックを実行
 
@@ -212,23 +209,26 @@ def run_check(
         チェック結果のリスト
     """
     definition = parse_footer_md(footer_md_path)
-    results: List[CheckResult] = []
+    results: list[CheckResult] = []
 
     for relative_path in definition.target_files:
         file_path = base_path / relative_path
         status, message = check_footer_in_file(file_path, definition.content)
 
-        if fix and status in (FooterStatus.MISSING, FooterStatus.MISMATCH):
-            if fix_footer(file_path, definition.content):
-                message = "Fixed"
-                status = FooterStatus.OK
+        if (
+            fix
+            and status in (FooterStatus.MISSING, FooterStatus.MISMATCH)
+            and fix_footer(file_path, definition.content)
+        ):
+            message = "Fixed"
+            status = FooterStatus.OK
 
         results.append(CheckResult(file_path=file_path, status=status, message=message))
 
     return results
 
 
-def print_report(results: List[CheckResult], quiet: bool = False) -> None:
+def print_report(results: list[CheckResult], quiet: bool = False) -> None:
     """
     レポートを出力
 

@@ -11,7 +11,7 @@
 このクラスは「バリデーションエラーのフォーマット」という単一責務のみを持つ。
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from domain.error_formatter.base import BaseErrorFormatter
 
@@ -47,7 +47,7 @@ class ValidationErrorFormatter(BaseErrorFormatter):
         """
         return f"{context}: expected {expected}, got {type(actual).__name__}"
 
-    def validation_error(self, field: str, reason: str, value: Optional[Any] = None) -> str:
+    def validation_error(self, field: str, reason: str, value: Any | None = None) -> str:
         """
         バリデーションエラーメッセージ
 

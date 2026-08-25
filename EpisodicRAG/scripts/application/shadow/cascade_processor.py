@@ -41,7 +41,7 @@ Note:
     4. 現在レベルのShadowをクリア
 """
 
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 __all__ = ["CascadeProcessor"]
 
@@ -89,7 +89,7 @@ class CascadeProcessor:
         shadow_io: ShadowIO,
         file_detector: FileDetector,
         template: ShadowTemplate,
-        level_hierarchy: Dict[str, LevelHierarchyEntry],
+        level_hierarchy: dict[str, LevelHierarchyEntry],
         file_appender: "FileAppender",
         provisional_appender: Optional["ProvisionalAppender"] = None,
     ):
@@ -111,7 +111,7 @@ class CascadeProcessor:
         self.file_appender = file_appender
         self.provisional_appender = provisional_appender
 
-    def get_shadow_digest_for_level(self, level: str) -> Optional[OverallDigestData]:
+    def get_shadow_digest_for_level(self, level: str) -> OverallDigestData | None:
         """
         指定レベルのShadowダイジェストを取得
 
@@ -189,7 +189,7 @@ class CascadeProcessor:
         _logger.info(f"ShadowGrandDigestクリア完了: レベル {level}")
 
     def _append_to_next_provisional(
-        self, level: str, finalized_digest: Optional[RegularDigestData]
+        self, level: str, finalized_digest: RegularDigestData | None
     ) -> None:
         """
         次レベルのProvisionalにindividual_digestを追加
@@ -208,7 +208,7 @@ class CascadeProcessor:
         self.provisional_appender.append_to_next_provisional(level, finalized_digest)
 
     def cascade_update_on_digest_finalize(
-        self, level: str, finalized_digest: Optional[RegularDigestData] = None
+        self, level: str, finalized_digest: RegularDigestData | None = None
     ) -> None:
         """
         ダイジェスト確定時のカスケード処理（処理3）

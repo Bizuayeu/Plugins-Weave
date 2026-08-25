@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -50,7 +49,7 @@ def file_appender(
     shadow_io: "ShadowIO",
     file_detector: "FileDetector",
     template: "ShadowTemplate",
-    level_hierarchy: "Dict[str, LevelHierarchyEntry]",
+    level_hierarchy: "dict[str, LevelHierarchyEntry]",
     placeholder_manager: "PlaceholderManager",
 ):
     """テスト用FileAppender"""
@@ -144,7 +143,7 @@ class TestLogDigestContent:
                 "impression": "Test impression",
             }
         }
-        with open(weekly_file, 'w', encoding='utf-8') as f:
+        with weekly_file.open('w', encoding='utf-8') as f:
             json.dump(digest_content, f)
 
         # _log_digest_contentを呼び出し（monthlyレベルでweeklyファイルを読む）
@@ -163,7 +162,7 @@ class TestLogDigestContent:
         """無効なJSONファイルの場合、警告を出力"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_invalid.txt"
-        with open(weekly_file, 'w', encoding='utf-8') as f:
+        with weekly_file.open('w', encoding='utf-8') as f:
             f.write("{ invalid json content")
 
         # エラーなく完了すること
@@ -189,7 +188,7 @@ class TestLogDigestContent:
         """非テキストファイル（.json等）は無視される"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         json_file = weekly_dir / "W0001_test.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with json_file.open('w', encoding='utf-8') as f:
             json.dump({"test": "data"}, f)
 
         # .txt以外は無視されるので、エラーなく完了
@@ -205,7 +204,7 @@ class TestLogDigestContent:
         """overall_digestがdict以外の場合、警告を出力"""
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_non_dict.txt"
-        with open(weekly_file, 'w', encoding='utf-8') as f:
+        with weekly_file.open('w', encoding='utf-8') as f:
             json.dump({"overall_digest": "not a dict"}, f)
 
         file_appender._log_digest_content(weekly_file, "monthly")

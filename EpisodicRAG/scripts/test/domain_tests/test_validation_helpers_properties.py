@@ -6,7 +6,7 @@ Property-Based Tests for Validation Helpers
 Using hypothesis to test invariants in domain/validators/helpers.py
 """
 
-from typing import Any, List
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -204,7 +204,7 @@ class TestCollectListElementErrorsProperties:
     @settings(max_examples=200)
     def test_no_errors_when_all_types_match(self, lst) -> None:
         """全要素が期待型なら空のエラーリスト"""
-        errors: List[str] = []
+        errors: list[str] = []
         collect_list_element_errors(lst, int, "items", errors)
         assert errors == []
 
@@ -213,7 +213,7 @@ class TestCollectListElementErrorsProperties:
     @settings(max_examples=200)
     def test_no_errors_when_all_strings(self, lst) -> None:
         """全要素がstrなら空のエラーリスト"""
-        errors: List[str] = []
+        errors: list[str] = []
         collect_list_element_errors(lst, str, "items", errors)
         assert errors == []
 
@@ -225,8 +225,8 @@ class TestCollectListElementErrorsProperties:
     @settings(max_examples=200)
     def test_error_count_matches_invalid_count(self, valid_count, invalid_count) -> None:
         """エラー数 == 型が一致しない要素数"""
-        lst: List[Any] = [1] * valid_count + ["str"] * invalid_count
-        errors: List[str] = []
+        lst: list[Any] = [1] * valid_count + ["str"] * invalid_count
+        errors: list[str] = []
         collect_list_element_errors(lst, int, "items", errors)
         assert len(errors) == invalid_count
 
@@ -262,7 +262,7 @@ class TestCollectTypeErrorProperties:
     @settings(max_examples=100)
     def test_no_error_when_type_matches(self, value) -> None:
         """型が一致すればエラーリストは空のまま"""
-        errors: List[str] = []
+        errors: list[str] = []
         collect_type_error(value, int, "test_key", errors)
         assert errors == []
 
@@ -271,7 +271,7 @@ class TestCollectTypeErrorProperties:
     @settings(max_examples=100)
     def test_adds_error_when_type_mismatch(self, value) -> None:
         """型が不一致ならエラーを追加"""
-        errors: List[str] = []
+        errors: list[str] = []
         collect_type_error(value, int, "test_key", errors)
         assert len(errors) == 1
         assert "test_key" in errors[0]

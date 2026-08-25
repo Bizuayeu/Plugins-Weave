@@ -13,7 +13,6 @@ from unittest.mock import MagicMock
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 

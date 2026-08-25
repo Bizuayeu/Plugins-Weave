@@ -12,8 +12,6 @@ Usage:
     result = scanner.scan()
 """
 
-from typing import List, Optional
-
 from domain.auto_dream.types import AutoDreamScanResult, MemoryFile
 from infrastructure.auto_dream.memory_discovery import discover_memory_dirs
 from infrastructure.auto_dream.memory_reader import read_memory_file, read_memory_index
@@ -27,7 +25,7 @@ class MemoryScanner:
     discover → read index → read files → return result
     """
 
-    def __init__(self, project_path: Optional[str] = None) -> None:
+    def __init__(self, project_path: str | None = None) -> None:
         self._project_path = project_path
 
     def scan(self) -> AutoDreamScanResult:
@@ -79,7 +77,7 @@ class MemoryScanner:
 
         # 3. 全.mdファイルをスキャン（MEMORY.md自体は除外）
         md_files = scan_files(memory_dir, pattern="*.md")
-        memory_files: List[MemoryFile] = []
+        memory_files: list[MemoryFile] = []
 
         for md_path in md_files:
             if md_path.name == "MEMORY.md":

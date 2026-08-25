@@ -83,7 +83,7 @@ class TestSetupWorkflowE2E:
         assert config_file.exists()
 
         # 設定内容を確認
-        with open(config_file, "r", encoding="utf-8") as f:
+        with config_file.open(encoding="utf-8") as f:
             saved_config = json.load(f)
         assert saved_config["base_dir"] == str(cli_plugin_root)
         assert "levels" in saved_config
@@ -186,7 +186,7 @@ class TestDigestInternalWorkflowE2E:
 
         # ShadowGrandDigestを更新（source_filesを追加）
         shadow_file = configured_cli_env["essences"] / "ShadowGrandDigest.txt"
-        with open(shadow_file, "r", encoding="utf-8") as f:
+        with shadow_file.open(encoding="utf-8") as f:
             shadow_data = json.load(f)
 
         shadow_data["latest_digests"]["weekly"] = {
@@ -199,7 +199,7 @@ class TestDigestInternalWorkflowE2E:
             }
         }
 
-        with open(shadow_file, "w", encoding="utf-8") as f:
+        with shadow_file.open("w", encoding="utf-8") as f:
             json.dump(shadow_data, f, indent=2, ensure_ascii=False)
 
         result = configured_cli_runner.run_shadow_state_checker("weekly")

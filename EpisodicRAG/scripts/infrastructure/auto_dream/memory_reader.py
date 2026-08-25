@@ -12,7 +12,6 @@ Usage:
 
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 from domain.auto_dream.types import (
     VALID_MEMORY_TYPES,
@@ -29,7 +28,7 @@ from domain.auto_dream.types import (
 _REQUIRED_FIELDS = {"name", "description", "type"}
 
 
-def parse_frontmatter(content: str) -> Tuple[Optional[MemoryFileFrontmatter], str]:
+def parse_frontmatter(content: str) -> tuple[MemoryFileFrontmatter | None, str]:
     """
     YAML frontmatterを解析（PyYAML不使用）
 
@@ -65,13 +64,10 @@ def parse_frontmatter(content: str) -> Tuple[Optional[MemoryFileFrontmatter], st
     fm_block = content[first_newline + 1 : second_delimiter]
     # body = 2つ目の --- の次の行以降
     body_start = content.find("\n", second_delimiter + 1)
-    if body_start == -1:
-        body = ""
-    else:
-        body = content[body_start + 1 :]
+    body = "" if body_start == -1 else content[body_start + 1 :]
 
     # key: value ペアを抽出
-    fields: Dict[str, str] = {}
+    fields: dict[str, str] = {}
     for line in fm_block.splitlines():
         line = line.strip()
         if not line:
@@ -105,7 +101,7 @@ def parse_frontmatter(content: str) -> Tuple[Optional[MemoryFileFrontmatter], st
 # =============================================================================
 
 
-def read_memory_file(file_path: Path) -> Optional[MemoryFile]:
+def read_memory_file(file_path: Path) -> MemoryFile | None:
     """
     auto-memoryファイルを読み込みパースする
 
@@ -165,8 +161,8 @@ def read_memory_index(index_path: Path) -> MemoryIndex:
             sections={},
         )
 
-    sections: Dict[str, List[str]] = {}
-    current_section: Optional[str] = None
+    sections: dict[str, list[str]] = {}
+    current_section: str | None = None
 
     for line in raw_content.splitlines():
         # セクションヘッダ検出

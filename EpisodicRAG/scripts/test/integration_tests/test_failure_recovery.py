@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -52,7 +51,7 @@ class TestCascadeFailureRecovery:
             "metadata": {"version": "1.0"},
             "pending_sources": ["W0001_テスト.txt"],
         }
-        with open(weekly_shadow_path, "w", encoding="utf-8") as f:
+        with weekly_shadow_path.open("w", encoding="utf-8") as f:
             json.dump(shadow_data, f, ensure_ascii=False)
 
         # DigestConfig should work even without all level directories
@@ -69,7 +68,7 @@ class TestCascadeFailureRecovery:
         weekly_shadow_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write invalid JSON
-        with open(weekly_shadow_path, "w", encoding="utf-8") as f:
+        with weekly_shadow_path.open("w", encoding="utf-8") as f:
             f.write("{ invalid json content")
 
         # Attempt to load should raise appropriate error
@@ -97,7 +96,7 @@ class TestPartialWriteRecovery:
         incomplete_file = temp_plugin_env.digests_path / "incomplete.json"
         incomplete_file.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(incomplete_file, "w", encoding="utf-8") as f:
+        with incomplete_file.open("w", encoding="utf-8") as f:
             f.write('{"metadata": {"version": "1.0"}, "data": [')
             # Truncated - missing closing brackets
 
@@ -114,7 +113,7 @@ class TestPartialWriteRecovery:
 
         # Write initial valid data
         original_data = {"version": "1.0", "items": ["a", "b", "c"]}
-        with open(target_file, "w", encoding="utf-8") as f:
+        with target_file.open("w", encoding="utf-8") as f:
             json.dump(original_data, f)
 
         # Verify original data is readable
@@ -143,19 +142,19 @@ class TestOrphanedFileDetection:
         provisional_dir.mkdir(parents=True, exist_ok=True)
 
         provisional_file = provisional_dir / "W0001_Individual.txt"
-        with open(provisional_file, "w", encoding="utf-8") as f:
+        with provisional_file.open("w", encoding="utf-8") as f:
             json.dump({"individual_digests": []}, f)
 
         # Create Shadow without referencing this provisional
         shadow_path = temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
-        with open(shadow_path, "w", encoding="utf-8") as f:
+        with shadow_path.open("w", encoding="utf-8") as f:
             json.dump({"metadata": {}, "pending_sources": []}, f)
 
         # Check that provisional file exists but isn't referenced
         assert provisional_file.exists()
 
         # Verify Shadow has no pending sources
-        with open(shadow_path, "r", encoding="utf-8") as f:
+        with shadow_path.open(encoding="utf-8") as f:
             shadow_data = json.load(f)
         assert len(shadow_data.get("pending_sources", [])) == 0
 
@@ -173,7 +172,7 @@ class TestOrphanedFileDetection:
             "metadata": {"digest_number": "0001"},
             "individual_digests": [{"source_file": "L00001.txt", "keywords": ["test"]}],
         }
-        with open(provisional_file, "w", encoding="utf-8") as f:
+        with provisional_file.open("w", encoding="utf-8") as f:
             json.dump(provisional_data, f)
 
         assert provisional_file.exists()

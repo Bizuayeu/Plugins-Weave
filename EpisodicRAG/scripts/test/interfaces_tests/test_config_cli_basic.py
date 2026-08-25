@@ -104,7 +104,7 @@ class TestConfigCLI(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -137,20 +137,19 @@ class TestConfigCLI(unittest.TestCase):
                 main()
 
         # 値が更新されていることを確認（永続化ディレクトリから）
-        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
             config = json.load(f)
         assert config["levels"]["weekly_threshold"] == 7
 
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
         """--help で exit code 0"""
-        with patch("sys.argv", ["digest_config.py", "--help"]):
-            with patch("sys.stdout"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_config import main
+        with patch("sys.argv", ["digest_config.py", "--help"]), patch("sys.stdout"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_config import main
 
-                    main()
-                assert exc_info.value.code == 0
+                main()
+            assert exc_info.value.code == 0
 
 
 class TestConfigCLIUpdateCommand(unittest.TestCase):
@@ -190,7 +189,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -280,7 +279,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
                 main()
 
         # levels キーが保持されていることを確認（永続化ディレクトリから）
-        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
             saved_config = json.load(f)
         assert "levels" in saved_config
         assert saved_config["levels"]["weekly_threshold"] == 5
@@ -288,13 +287,12 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     @pytest.mark.unit
     def test_update_missing_config_flag_exits_error(self) -> None:
         """update で --config フラグがない場合にエラー"""
-        with patch("sys.argv", ["digest_config.py", "update"]):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_config import main
+        with patch("sys.argv", ["digest_config.py", "update"]), patch("sys.stderr"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_config import main
 
-                    main()
-                assert exc_info.value.code == 2  # argparse error
+                main()
+            assert exc_info.value.code == 2  # argparse error
 
     @pytest.mark.unit
     def test_update_output_is_valid_json(self) -> None:
@@ -342,7 +340,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
                 assert result["status"] == "ok"
 
         # 更新されていることを確認（永続化ディレクトリから）
-        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
             saved_config = json.load(f)
         assert saved_config["levels"]["weekly_threshold"] == 10
 

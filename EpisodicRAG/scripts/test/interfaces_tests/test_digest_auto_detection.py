@@ -85,7 +85,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         # ShadowGrandDigest.txt
@@ -96,10 +96,8 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
                 "monthly": {"overall_digest": None},
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -108,10 +106,8 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "GrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'GrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(grand_data, f)
 
@@ -143,11 +139,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             "loop": {"timestamp": "2025-01-01T00:00:00", "last_processed": 9},
             "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 2},
         }
-        with open(
-            self.persistent_config / "last_digest_times.json",
-            "w",
-            encoding="utf-8",
-        ) as f:
+        with (self.persistent_config / 'last_digest_times.json').open('w', encoding='utf-8') as f:
             json.dump(times_data, f)
 
         # Act
@@ -156,10 +148,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
 
         # Assert
         unprocessed_issues = [i for i in result.issues if i.type == "unprocessed_loops"]
-        if unprocessed_issues:
-            unprocessed_count = unprocessed_issues[0].count
-        else:
-            unprocessed_count = 0
+        unprocessed_count = unprocessed_issues[0].count if unprocessed_issues else 0
 
         # 期待: L00010 のみ未処理 → 1件
         # バグ: L00003-L00010 が未処理 → 8件
@@ -182,11 +171,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             "loop": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5},
             "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 1},
         }
-        with open(
-            self.persistent_config / "last_digest_times.json",
-            "w",
-            encoding="utf-8",
-        ) as f:
+        with (self.persistent_config / 'last_digest_times.json').open('w', encoding='utf-8') as f:
             json.dump(times_data, f)
 
         # Act

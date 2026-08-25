@@ -19,7 +19,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -160,7 +159,7 @@ class TestE2EDigestPromotion:
             "metadata": {"version": "test"},
             "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
         }
-        with open(grand_file, 'w', encoding='utf-8') as f:
+        with grand_file.open('w', encoding='utf-8') as f:
             json.dump(grand_template, f, ensure_ascii=False, indent=2)
 
         return {
@@ -237,7 +236,7 @@ class TestE2ECascadeProcessing:
         config = DigestConfig()
 
         # 必要なディレクトリを作成
-        for i, name in enumerate(["1_Weekly", "2_Monthly"], start=1):
+        for _i, name in enumerate(["1_Weekly", "2_Monthly"], start=1):
             dir_path = temp_plugin_env.digests_path / name
             dir_path.mkdir(parents=True, exist_ok=True)
 
@@ -261,7 +260,7 @@ class TestE2ECascadeProcessing:
         for i in range(1, 3):
             filename = f"W{i:04d}_test.txt"
             filepath = weekly_dir / filename
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with filepath.open('w', encoding='utf-8') as f:
                 json.dump({"test": f"weekly{i}"}, f)
 
         # ShadowGrandDigestManagerを初期化
@@ -306,7 +305,7 @@ class TestE2EFullWorkflow:
             "metadata": {"version": "test"},
             "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
         }
-        with open(grand_file, 'w', encoding='utf-8') as f:
+        with grand_file.open('w', encoding='utf-8') as f:
             json.dump(grand_template, f, ensure_ascii=False, indent=2)
 
         return {

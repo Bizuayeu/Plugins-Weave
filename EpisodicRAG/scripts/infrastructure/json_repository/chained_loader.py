@@ -25,7 +25,8 @@ result = loader.load(context)
 """
 
 import logging
-from typing import Any, Generic, List, Mapping, Optional, TypeVar
+from collections.abc import Mapping
+from typing import Any, Generic, TypeVar
 
 from infrastructure.json_repository.load_strategy import LoadContext, LoadStrategy
 
@@ -50,14 +51,14 @@ class ChainedLoader(Generic[T]):
     - 戦略の順序を変えることで挙動をカスタマイズ可能
     """
 
-    def __init__(self, strategies: List[LoadStrategy[T]]) -> None:
+    def __init__(self, strategies: list[LoadStrategy[T]]) -> None:
         """
         Args:
             strategies: 試行する戦略のリスト（順番に試行される）
         """
         self._strategies = strategies
 
-    def load(self, context: LoadContext) -> Optional[T]:
+    def load(self, context: LoadContext) -> T | None:
         """
         戦略チェーンを実行
 

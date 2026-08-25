@@ -6,8 +6,9 @@ Digest Persistence
 RegularDigestの保存、GrandDigest更新、カスケード処理を担当
 """
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional, cast
+from typing import cast
 
 from application.config import DigestConfig
 from application.grand import GrandDigestManager, ShadowGrandDigestManager
@@ -43,7 +44,7 @@ class DigestPersistence:
         grand_digest_manager: GrandDigestManager,
         shadow_manager: ShadowGrandDigestManager,
         times_tracker: DigestTimesTracker,
-        confirm_callback: Optional[Callable[[str], bool]] = None,
+        confirm_callback: Callable[[str], bool] | None = None,
     ):
         """
         Args:
@@ -109,9 +110,9 @@ class DigestPersistence:
         try:
             log_debug(f"{LOG_PREFIX_FILE} saving RegularDigest to {final_path}")
             save_json(final_path, as_dict(regular_digest))
-        except IOError as e:
+        except OSError as e:
             formatter = get_error_formatter()
-            raise FileIOError(formatter.file.file_io_error("save", final_path, e))
+            raise FileIOError(formatter.file.file_io_error("save", final_path, e)) from e
 
         _logger.info(f"RegularDigest保存完了: {final_path}")
         return final_path
@@ -149,7 +150,7 @@ class DigestPersistence:
         )
 
     def _update_shadow_cascade(
-        self, level: str, finalized_digest: Optional[RegularDigestData] = None
+        self, level: str, finalized_digest: RegularDigestData | None = None
     ) -> None:
         """
         ShadowGrandDigestのカスケード更新を実行
@@ -183,7 +184,7 @@ class DigestPersistence:
         _logger.info(f"[Step 4] last_digest_times.json更新: {level}")
         self.times_tracker.save_digest_number(level, digest_number)
 
-    def _cleanup_provisional_file(self, provisional_file: Optional[Path]) -> None:
+    def _cleanup_provisional_file(self, provisional_file: Path | None) -> None:
         """
         ProvisionalDigestファイルを削除
 
@@ -204,8 +205,8 @@ class DigestPersistence:
         self,
         level: str,
         digest_number: int,
-        provisional_file_to_delete: Optional[Path],
-        finalized_digest: Optional[RegularDigestData] = None,
+        provisional_file_to_delete: Path | None,
+        finalized_digest: RegularDigestData | None = None,
     ) -> None:
         """
         カスケード処理とProvisional削除（オーケストレーター）

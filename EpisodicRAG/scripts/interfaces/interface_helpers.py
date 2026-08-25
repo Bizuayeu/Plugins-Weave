@@ -11,7 +11,6 @@ Interfaces層で使用するヘルパー関数。
 
 import re
 from pathlib import Path
-from typing import List, Union
 
 from domain.error_formatter import get_error_formatter
 from domain.exceptions import ConfigError, ValidationError
@@ -105,7 +104,7 @@ def get_next_digest_number(digests_path: Path, level: str) -> int:
     pattern = f"{prefix}*_*.txt"
     existing_files = list(level_dir.glob(pattern))
     # Cast to List[Path | str] for find_max_number compatibility
-    files_for_search: List[Union[Path, str]] = list(existing_files)
+    files_for_search: list[Path | str] = list(existing_files)
     max_num = find_max_number(files_for_search, prefix)
 
     return (max_num or 0) + 1

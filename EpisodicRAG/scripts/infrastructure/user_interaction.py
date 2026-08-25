@@ -13,7 +13,7 @@ Usage:
         # 処理続行
 """
 
-from typing import Callable
+from collections.abc import Callable
 
 __all__ = ["get_default_confirm_callback"]
 

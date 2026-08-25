@@ -15,7 +15,7 @@ import argparse
 import json
 import sys
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from application.config import DigestConfig
 from domain.constants import DIGEST_LEVEL_NAMES, PLACEHOLDER_MARKER
@@ -41,13 +41,13 @@ class DigestReadinessResult:
     level_threshold: int = 5
     threshold_met: bool = False
     sgd_ready: bool = False
-    missing_sgd_files: List[str] = field(default_factory=list)
+    missing_sgd_files: list[str] = field(default_factory=list)
     provisional_ready: bool = False
-    missing_provisionals: List[str] = field(default_factory=list)
+    missing_provisionals: list[str] = field(default_factory=list)
     can_finalize: bool = False
-    blockers: List[str] = field(default_factory=list)
+    blockers: list[str] = field(default_factory=list)
     message: str = ""
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class DigestReadinessChecker:
@@ -145,8 +145,8 @@ class DigestReadinessChecker:
             )
 
     def _check_sgd_ready(
-        self, overall_digest: Dict[str, Any], source_files: List[str]
-    ) -> tuple[bool, List[str]]:
+        self, overall_digest: dict[str, Any], source_files: list[str]
+    ) -> tuple[bool, list[str]]:
         """
         SDG完備状態を判定
 
@@ -173,28 +173,23 @@ class DigestReadinessChecker:
 
         return True, []
 
-    def _has_placeholder(self, text: Optional[str]) -> bool:
+    def _has_placeholder(self, text: str | None) -> bool:
         """テキストにPLACEHOLDERが含まれるか判定"""
         if text is None:
             return True
-        if isinstance(text, str) and PLACEHOLDER_MARKER in text:
-            return True
-        return False
+        return bool(isinstance(text, str) and PLACEHOLDER_MARKER in text)
 
-    def _keywords_has_placeholder(self, keywords: Optional[List[str]]) -> bool:
+    def _keywords_has_placeholder(self, keywords: list[str] | None) -> bool:
         """keywordsにPLACEHOLDERが含まれるか判定"""
         if keywords is None:
             return True
         if len(keywords) == 0:
             return True
-        for kw in keywords:
-            if self._has_placeholder(kw):
-                return True
-        return False
+        return any(self._has_placeholder(kw) for kw in keywords)
 
     def _check_provisional_ready(
-        self, level: str, source_files: List[str]
-    ) -> tuple[bool, List[str]]:
+        self, level: str, source_files: list[str]
+    ) -> tuple[bool, list[str]]:
         """
         Provisional完備状態を判定
 
@@ -239,11 +234,11 @@ class DigestReadinessChecker:
         source_count: int,
         level_threshold: int,
         sgd_ready: bool,
-        missing_sgd_files: List[str],
-        overall_digest: Dict[str, Any],
+        missing_sgd_files: list[str],
+        overall_digest: dict[str, Any],
         provisional_ready: bool,
-        missing_provisionals: List[str],
-    ) -> List[str]:
+        missing_provisionals: list[str],
+    ) -> list[str]:
         """未達条件のblockerリストを生成"""
         blockers = []
 

@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -69,7 +68,7 @@ def valid_config_data():
 @pytest.fixture
 def config_loader(config_file, valid_config_data):
     """テスト用ConfigLoaderインスタンス"""
-    with open(config_file, "w", encoding="utf-8") as f:
+    with config_file.open("w", encoding="utf-8") as f:
         json.dump(valid_config_data, f)
     return ConfigLoader(config_file)
 
@@ -139,7 +138,7 @@ class TestConfigLoaderLoad:
     @pytest.mark.unit
     def test_load_invalid_json(self, config_file) -> None:
         """無効なJSONの場合ConfigError"""
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             f.write("{ invalid json }")
 
         loader = ConfigLoader(config_file)
@@ -158,7 +157,7 @@ class TestConfigLoaderLoad:
 
         # ファイルを変更
         valid_config_data["base_dir"] = "new_base"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(valid_config_data, f)
 
         # reloadで新しい値を取得
@@ -256,7 +255,7 @@ class TestConfigLoaderValidation:
             "paths": {},
             # loops_path, digests_path, essences_path が欠けている
         }
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(incomplete_config, f)
 
         loader = ConfigLoader(config_file)
@@ -277,7 +276,7 @@ class TestConfigLoaderValidation:
             "loops_path": "data/Loops",
             # digests_path, essences_path が欠けている
         }
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(partial_config, f)
 
         loader = ConfigLoader(config_file)
@@ -313,7 +312,7 @@ class TestConfigLoaderCaching:
 
         # ファイルを変更（キャッシュには影響しない）
         valid_config_data["base_dir"] = "changed_value"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(valid_config_data, f)
 
         # 2回目のloadはキャッシュを返す
@@ -329,7 +328,7 @@ class TestConfigLoaderCaching:
 
         # ファイルを変更
         valid_config_data["base_dir"] = "reloaded_value"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(valid_config_data, f)
 
         # reloadで新しい値を取得
@@ -363,7 +362,7 @@ class TestConfigLoaderEdgeCases:
     @pytest.mark.unit
     def test_empty_config_file(self, config_file) -> None:
         """空のJSON設定ファイル"""
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump({}, f)
 
         loader = ConfigLoader(config_file)
@@ -379,7 +378,7 @@ class TestConfigLoaderEdgeCases:
             "title": "日本語タイトル",
             "description": "説明文 with émojis 🎉",
         }
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(unicode_config, f, ensure_ascii=False)
 
         loader = ConfigLoader(config_file)
@@ -392,7 +391,7 @@ class TestConfigLoaderEdgeCases:
     def test_config_with_deeply_nested_structure(self, config_file) -> None:
         """深くネストされた設定"""
         nested_config = {"level1": {"level2": {"level3": {"value": "deep_value"}}}}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(nested_config, f)
 
         loader = ConfigLoader(config_file)
@@ -407,7 +406,7 @@ class TestConfigLoaderEdgeCases:
             "items": ["item1", "item2", "item3"],
             "numbers": [1, 2, 3],
         }
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(array_config, f)
 
         loader = ConfigLoader(config_file)
@@ -424,7 +423,7 @@ class TestConfigLoaderEdgeCases:
             "empty_string": "",
             "zero": 0,
         }
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(null_config, f)
 
         loader = ConfigLoader(config_file)
@@ -440,7 +439,7 @@ class TestConfigLoaderEdgeCases:
         config_data = {
             "stored_none": None,
         }
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         loader = ConfigLoader(config_file)
@@ -467,7 +466,7 @@ class TestConfigLoaderStructureValidation:
     def test_load_invalid_paths_structure_raises_config_error(self, config_file) -> None:
         """pathsが無効な構造の場合ConfigError"""
         invalid_config = {"paths": "not_a_dict"}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(invalid_config, f)
 
         loader = ConfigLoader(config_file)
@@ -481,7 +480,7 @@ class TestConfigLoaderStructureValidation:
     def test_load_invalid_levels_structure_raises_config_error(self, config_file) -> None:
         """levelsが無効な構造の場合ConfigError"""
         invalid_config = {"levels": [1, 2, 3]}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(invalid_config, f)
 
         loader = ConfigLoader(config_file)
@@ -495,7 +494,7 @@ class TestConfigLoaderStructureValidation:
     def test_load_valid_paths_and_levels_succeeds(self, config_file) -> None:
         """有効なpathsとlevelsの場合は成功"""
         valid_config = {"paths": {"loops_dir": "data"}, "levels": {"threshold": 5}}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(valid_config, f)
 
         loader = ConfigLoader(config_file)
@@ -508,7 +507,7 @@ class TestConfigLoaderStructureValidation:
     def test_error_message_includes_file_path(self, config_file) -> None:
         """エラーメッセージにファイルパスが含まれる"""
         invalid_config = {"paths": "invalid"}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(invalid_config, f)
 
         loader = ConfigLoader(config_file)
@@ -523,7 +522,7 @@ class TestConfigLoaderStructureValidation:
     def test_error_message_includes_structure_hint(self, config_file) -> None:
         """エラーメッセージに構造ヒントが含まれる"""
         invalid_config = {"levels": None}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(invalid_config, f)
 
         loader = ConfigLoader(config_file)
@@ -538,7 +537,7 @@ class TestConfigLoaderStructureValidation:
     def test_load_paths_none_raises_config_error(self, config_file) -> None:
         """pathsがNoneの場合ConfigError"""
         invalid_config = {"paths": None}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(invalid_config, f)
 
         loader = ConfigLoader(config_file)
@@ -552,7 +551,7 @@ class TestConfigLoaderStructureValidation:
     def test_load_both_invalid_raises_config_error(self, config_file) -> None:
         """pathsとlevels両方が無効な場合ConfigError"""
         invalid_config = {"paths": "string", "levels": [1, 2, 3]}
-        with open(config_file, "w", encoding="utf-8") as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(invalid_config, f)
 
         loader = ConfigLoader(config_file)

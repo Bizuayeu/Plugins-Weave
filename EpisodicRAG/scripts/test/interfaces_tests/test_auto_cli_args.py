@@ -57,15 +57,15 @@ class TestDigestAutoCLI(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         shadow_data = {
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "latest_digests": {"weekly": {"overall_digest": None}},
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -102,13 +102,12 @@ class TestDigestAutoCLI(unittest.TestCase):
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
         """--help で exit code 0"""
-        with patch("sys.argv", ["digest_auto.py", "--help"]):
-            with patch("sys.stdout"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_auto import main
+        with patch("sys.argv", ["digest_auto.py", "--help"]), patch("sys.stdout"):
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_auto import main
 
-                    main()
-                assert exc_info.value.code == 0
+                main()
+            assert exc_info.value.code == 0
 
 
 class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
@@ -150,35 +149,37 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         shadow_data = {
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "latest_digests": {"weekly": {"overall_digest": None}},
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
     @pytest.mark.unit
     def test_invalid_output_format_exits_with_error(self) -> None:
         """無効な --output 形式でエラー終了"""
-        with patch(
-            "sys.argv",
-            [
-                "digest_auto.py",
-                "--output",
-                "invalid_format",
-            ],
+        with (
+            patch(
+                "sys.argv",
+                [
+                    "digest_auto.py",
+                    "--output",
+                    "invalid_format",
+                ],
+            ),
+            patch("sys.stderr"),
         ):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_auto import main
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_auto import main
 
-                    main()
-                assert exc_info.value.code == 2  # argparse error
+                main()
+            assert exc_info.value.code == 2  # argparse error
 
     @pytest.mark.unit
     def test_default_output_is_json(self) -> None:
@@ -240,36 +241,40 @@ class TestDigestAutoCLIArgumentValidation(unittest.TestCase):
     @pytest.mark.unit
     def test_unknown_option_exits_with_error(self) -> None:
         """未知のオプションでエラー終了"""
-        with patch(
-            "sys.argv",
-            ["digest_auto.py", "--unknown-option"],
+        with (
+            patch(
+                "sys.argv",
+                ["digest_auto.py", "--unknown-option"],
+            ),
+            patch("sys.stderr"),
         ):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_auto import main
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_auto import main
 
-                    main()
-                assert exc_info.value.code == 2
+                main()
+            assert exc_info.value.code == 2
 
     @pytest.mark.unit
     def test_positional_args_rejected(self) -> None:
         """位置引数はargparseで定義されていないためエラー"""
 
         # argparseの設定によっては位置引数がエラーになる
-        with patch(
-            "sys.argv",
-            ["digest_auto.py", "unexpected_positional"],
+        with (
+            patch(
+                "sys.argv",
+                ["digest_auto.py", "unexpected_positional"],
+            ),
+            patch("sys.stderr"),
         ):
-            with patch("sys.stderr"):
-                # 位置引数がエラーになるかどうかを確認
-                try:
-                    from interfaces.digest_auto import main
+            # 位置引数がエラーになるかどうかを確認
+            try:
+                from interfaces.digest_auto import main
 
-                    with patch("builtins.print"):
-                        main()
-                except SystemExit as e:
-                    # argparseがエラーを返す場合
-                    assert e.code == 2
+                with patch("builtins.print"):
+                    main()
+            except SystemExit as e:
+                # argparseがエラーを返す場合
+                assert e.code == 2
 
 
 if __name__ == "__main__":

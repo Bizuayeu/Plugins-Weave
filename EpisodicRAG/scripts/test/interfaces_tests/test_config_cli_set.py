@@ -55,41 +55,45 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5, "monthly_threshold": 5},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
     def test_set_missing_key_exits_error(self) -> None:
         """set で --key がない場合にエラー"""
-        with patch(
-            "sys.argv",
-            ["digest_config.py", "set", "--value", "7"],
+        with (
+            patch(
+                "sys.argv",
+                ["digest_config.py", "set", "--value", "7"],
+            ),
+            patch("sys.stderr"),
         ):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_config import main
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_config import main
 
-                    main()
-                assert exc_info.value.code == 2
+                main()
+            assert exc_info.value.code == 2
 
     @pytest.mark.unit
     def test_set_missing_value_exits_error(self) -> None:
         """set で --value がない場合にエラー"""
-        with patch(
-            "sys.argv",
-            [
-                "digest_config.py",
-                "set",
-                "--key",
-                "levels.weekly_threshold",
-            ],
+        with (
+            patch(
+                "sys.argv",
+                [
+                    "digest_config.py",
+                    "set",
+                    "--key",
+                    "levels.weekly_threshold",
+                ],
+            ),
+            patch("sys.stderr"),
         ):
-            with patch("sys.stderr"):
-                with pytest.raises(SystemExit) as exc_info:
-                    from interfaces.digest_config import main
+            with pytest.raises(SystemExit) as exc_info:
+                from interfaces.digest_config import main
 
-                    main()
-                assert exc_info.value.code == 2
+                main()
+            assert exc_info.value.code == 2
 
     @pytest.mark.unit
     def test_set_deeply_nested_key(self) -> None:
@@ -137,7 +141,7 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert result["status"] == "ok"
 
         # ファイルを確認（永続化ディレクトリから）
-        with open(self.persistent_config / "config.json", "r", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
             saved_config = json.load(f)
         assert saved_config["new_section"]["new_key"] == "new_value"
 

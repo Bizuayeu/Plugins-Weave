@@ -134,7 +134,7 @@ class TestLoadExistingProvisional(unittest.TestCase):
         """Loads and parses existing JSON file"""
         file_path = self.provisional_dir / "W0001_Individual.txt"
         data = {"individual_digests": [{"source_file": "a.txt"}]}
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f)
 
         result = self.manager.load_existing_provisional("weekly", 1)

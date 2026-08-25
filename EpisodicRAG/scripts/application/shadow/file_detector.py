@@ -7,7 +7,6 @@ GrandDigest更新後に作成された新しいファイルを検出
 """
 
 from pathlib import Path
-from typing import List, Optional
 
 from application.config import DigestConfig
 from application.tracking import DigestTimesTracker
@@ -72,7 +71,7 @@ class FileDetector:
         # sourceがNoneの場合は自身のレベルを返す（フォールバック）
         return source if source is not None else level
 
-    def get_max_file_number(self, level: str) -> Optional[int]:
+    def get_max_file_number(self, level: str) -> int | None:
         """
         指定レベルの最大ファイル番号を取得
 
@@ -113,7 +112,7 @@ class FileDetector:
         # 統一メソッドを使用
         return self.config.get_source_dir(level)
 
-    def find_new_files(self, level: str) -> List[Path]:
+    def find_new_files(self, level: str) -> list[Path]:
         """
         GrandDigest更新後に作成された新しいファイルを検出
 

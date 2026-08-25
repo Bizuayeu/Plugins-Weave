@@ -16,8 +16,6 @@ Usage:
     result = scanner.scan()
 """
 
-from typing import Optional
-
 from application.auto_dream.memory_scanner import MemoryScanner
 from domain.auto_dream.defrag_types import DEFRAG_THRESHOLD, DefragScanResult
 
@@ -30,7 +28,7 @@ class DefragScanner:
     threshold 超過のみを返す。剪定候補の検出はしない。
     """
 
-    def __init__(self, project_path: Optional[str] = None) -> None:
+    def __init__(self, project_path: str | None = None) -> None:
         self._project_path = project_path
 
     def scan(self) -> DefragScanResult:

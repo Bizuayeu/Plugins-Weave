@@ -12,11 +12,10 @@ To run: pytest scripts/test/performance_tests/ -v --no-cov
 import json
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -38,7 +37,7 @@ from domain.constants import LEVEL_CONFIG
 
 
 @pytest.fixture
-def large_loop_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
+def large_loop_files(temp_plugin_env: "TempPluginEnvironment") -> list[Path]:
     """Create a large number of Loop files for performance testing."""
     loops_path = temp_plugin_env.loops_path
     files = []
@@ -58,7 +57,7 @@ def large_loop_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
                 "keywords": [f"keyword{j}" for j in range(10)],
             },
         }
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(content, f, ensure_ascii=False, indent=2)
         files.append(file_path)
 
@@ -66,7 +65,7 @@ def large_loop_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
 
 
 @pytest.fixture
-def large_individual_digests() -> List[dict]:
+def large_individual_digests() -> list[dict]:
     """Create a large list of individual digests for performance testing."""
     return [
         {
@@ -93,7 +92,7 @@ class TestJsonIOPerformance:
         start = time.perf_counter()
 
         for file_path in large_loop_files:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 json.load(f)
 
         elapsed = time.perf_counter() - start
@@ -114,7 +113,7 @@ class TestJsonIOPerformance:
             "metadata": {"version": "1.0"},
             "individual_digests": large_individual_digests,
         }
-        with open(output_path, "w", encoding="utf-8") as f:
+        with output_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
         elapsed = time.perf_counter() - start
@@ -301,7 +300,7 @@ class TestMemoryEstimation:
 
 
 @pytest.fixture
-def large_digest_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
+def large_digest_files(temp_plugin_env: "TempPluginEnvironment") -> list[Path]:
     """Create a large number of Digest files for performance testing."""
     weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
     weekly_dir.mkdir(parents=True, exist_ok=True)
@@ -315,7 +314,7 @@ def large_digest_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
             "metadata": {"digest_number": f"{i:04d}", "level": "weekly"},
             "overall_digest": {"keywords": ["test"]},
         }
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(content, f)
         files.append(file_path)
 

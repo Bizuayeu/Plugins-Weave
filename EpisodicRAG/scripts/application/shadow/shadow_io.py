@@ -41,9 +41,9 @@ Note:
     これにより循環参照を回避しつつ、必要時にのみテンプレートを生成。
 """
 
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
 
 from domain.constants import LOG_PREFIX_FILE, LOG_PREFIX_STATE, LOG_PREFIX_VALIDATE
 from domain.types import ShadowDigestData, as_dict

@@ -13,7 +13,6 @@ from unittest.mock import MagicMock, patch
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -83,7 +82,7 @@ class TestShadowGrandDigestManager:
             "metadata": {"version": "test"},
             "latest_digests": {"weekly": {"overall_digest": {"test": True}}},
         }
-        with open(shadow_manager.shadow_digest_file, 'w', encoding='utf-8') as f:
+        with shadow_manager.shadow_digest_file.open('w', encoding='utf-8') as f:
             json.dump(test_data, f)
 
         data = shadow_manager._io.load_or_create()

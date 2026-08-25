@@ -22,7 +22,7 @@ import sys
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class JSONStatus(Enum):
@@ -64,7 +64,7 @@ class JSONValidator:
             )
 
         try:
-            with open(file_path, encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 json.load(f)
             return ValidationResult(
                 status=JSONStatus.VALID,
@@ -78,9 +78,9 @@ class JSONValidator:
                 message=f"JSON syntax error: {e}",
             )
 
-    def _load_json(self, file_path: Path) -> Dict[str, Any]:
+    def _load_json(self, file_path: Path) -> dict[str, Any]:
         """JSONファイルを読み込んで辞書として返す"""
-        with open(file_path, encoding="utf-8") as f:
+        with file_path.open(encoding="utf-8") as f:
             return json.load(f)  # type: ignore[no-any-return]
 
     def validate_against_template(self, config_path: Path, template_path: Path) -> ValidationResult:
@@ -136,7 +136,7 @@ class JSONValidator:
         )
 
     def _find_missing_keys(
-        self, template: Dict[str, Any], config: Dict[str, Any], prefix: str = ""
+        self, template: dict[str, Any], config: dict[str, Any], prefix: str = ""
     ) -> list[str]:
         """templateに存在するがconfigに存在しないキーを再帰的に検索"""
         missing: list[str] = []
@@ -228,13 +228,10 @@ class JSONValidator:
             return True
 
         # Windows絶対パス（C:/, D:\, etc.）
-        if len(path) >= 2 and path[1] == ":":
-            return True
-
-        return False
+        return bool(len(path) >= 2 and path[1] == ":")
 
 
-def main(args: Optional[List[str]] = None) -> int:
+def main(args: list[str] | None = None) -> int:
     """
     CLIエントリーポイント
 

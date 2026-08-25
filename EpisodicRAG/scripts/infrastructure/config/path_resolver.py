@@ -7,7 +7,6 @@ base_dir基準のパス解決
 """
 
 from pathlib import Path
-from typing import List, Optional
 
 from domain.exceptions import ConfigError
 from domain.types import ConfigData, as_dict
@@ -37,7 +36,7 @@ class PathResolver:
         self._trusted_external_paths = self._parse_trusted_paths()
         self.base_dir = self._resolve_base_dir()
 
-    def _parse_trusted_paths(self) -> List[Path]:
+    def _parse_trusted_paths(self) -> list[Path]:
         """
         trusted_external_paths設定をパースして正規化
 
@@ -53,7 +52,7 @@ class PathResolver:
             - 相対パスは禁止（絶対パスのみ）
         """
         raw_paths = self.config.get("trusted_external_paths", [])
-        trusted: List[Path] = []
+        trusted: list[Path] = []
 
         for path_str in raw_paths:
             # チルダ展開
@@ -184,7 +183,7 @@ class PathResolver:
         """GrandDigest配置先"""
         return self.resolve_path("essences_dir")
 
-    def get_identity_file_path(self) -> Optional[Path]:
+    def get_identity_file_path(self) -> Path | None:
         """
         外部identityファイルのパス（設定されている場合のみ）
 

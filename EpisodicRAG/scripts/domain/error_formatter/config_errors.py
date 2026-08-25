@@ -12,7 +12,7 @@
 ファイルI/Oエラーやバリデーションエラーは別クラスが担当。
 """
 
-from typing import Any, List, Optional
+from typing import Any
 
 from domain.error_formatter.base import BaseErrorFormatter
 
@@ -30,7 +30,7 @@ class ConfigErrorFormatter(BaseErrorFormatter):
         # -> "Invalid level: 'xyz'. Valid levels: weekly, monthly"
     """
 
-    def invalid_level(self, level: str, valid_levels: Optional[List[str]] = None) -> str:
+    def invalid_level(self, level: str, valid_levels: list[str] | None = None) -> str:
         """
         無効なレベルエラーメッセージ
 

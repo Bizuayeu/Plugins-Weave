@@ -15,7 +15,8 @@ Usage:
     safe_file_operation(cleanup, "cleanup provisional file", on_error=lambda e: log_warning(str(e)))
 """
 
-from typing import Callable, Optional, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from domain.exceptions import FileIOError
 from infrastructure.logging_config import log_warning
@@ -26,10 +27,10 @@ T = TypeVar("T")
 def safe_file_operation(
     operation: Callable[[], T],
     context: str,
-    on_error: Optional[Callable[[Exception], T]] = None,
+    on_error: Callable[[Exception], T] | None = None,
     *,
     reraise: bool = False,
-) -> Optional[T]:
+) -> T | None:
     """
     ファイル操作を安全に実行するラッパー
 

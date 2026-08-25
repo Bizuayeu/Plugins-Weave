@@ -83,7 +83,7 @@ class TestLevelNames:
     @pytest.mark.unit
     def test_LEVEL_CONFIGのキーと一致する(self) -> None:
         """LEVEL_NAMESはLEVEL_CONFIGのキーリスト"""
-        assert LEVEL_NAMES == list(LEVEL_CONFIG.keys())
+        assert list(LEVEL_CONFIG.keys()) == LEVEL_NAMES
 
     @pytest.mark.unit
     def test_9要素のリスト(self) -> None:
@@ -102,7 +102,7 @@ class TestPlaceholderConstants:
     @pytest.mark.unit
     def test_PLACEHOLDER_SIMPLEはマーカーとエンドで構成(self) -> None:
         """PLACEHOLDER_SIMPLEはMARKERとENDの結合"""
-        assert PLACEHOLDER_SIMPLE == f"{PLACEHOLDER_MARKER}{PLACEHOLDER_END}"
+        assert f"{PLACEHOLDER_MARKER}{PLACEHOLDER_END}" == PLACEHOLDER_SIMPLE
 
     @pytest.mark.unit
     def test_PLACEHOLDER_MARKERはHTMLコメント開始(self) -> None:

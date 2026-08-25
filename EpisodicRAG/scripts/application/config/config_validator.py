@@ -15,7 +15,6 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from application.config.level_path_service import LevelPathService
 from domain.config.config_constants import REQUIRED_CONFIG_KEYS, THRESHOLD_KEYS
@@ -43,7 +42,7 @@ class ConfigValidator:
     REQUIRED_KEYS = REQUIRED_CONFIG_KEYS
 
     # オプションの設定キー（型チェック用）
-    OPTIONAL_KEYS_WITH_TYPES: Dict[str, type] = {
+    OPTIONAL_KEYS_WITH_TYPES: dict[str, type] = {
         "base_dir": str,
         "identity_file": str,
         "trusted_external_paths": list,
@@ -55,7 +54,7 @@ class ConfigValidator:
         loops_path: Path,
         digests_path: Path,
         essences_path: Path,
-        level_path_service: Optional[LevelPathService] = None,
+        level_path_service: LevelPathService | None = None,
     ):
         """
         初期化
@@ -73,7 +72,7 @@ class ConfigValidator:
         self.essences_path = essences_path
         self.level_path_service = level_path_service
 
-    def validate_all(self) -> List[str]:
+    def validate_all(self) -> list[str]:
         """
         全ての検証を実行
 
@@ -85,7 +84,7 @@ class ConfigValidator:
             >>> len(errors) == 0  # True if all validations pass
             True
         """
-        errors: List[str] = []
+        errors: list[str] = []
         errors.extend(self.validate_required_keys())
         errors.extend(self.validate_paths())
         errors.extend(self.validate_thresholds())
@@ -93,7 +92,7 @@ class ConfigValidator:
         errors.extend(self.validate_directory_structure())
         return errors
 
-    def validate_required_keys(self) -> List[str]:
+    def validate_required_keys(self) -> list[str]:
         """
         必須キーの存在を検証
 
@@ -105,13 +104,13 @@ class ConfigValidator:
             >>> len(errors)  # 全ての必須キーがあれば0
             0
         """
-        errors: List[str] = []
+        errors: list[str] = []
         for key in self.REQUIRED_KEYS:
             if key not in self.config:
                 errors.append(f"Required configuration key missing: '{key}'")
         return errors
 
-    def validate_paths(self) -> List[str]:
+    def validate_paths(self) -> list[str]:
         """
         パス設定の検証
 
@@ -123,7 +122,7 @@ class ConfigValidator:
             >>> len(errors)  # パス設定が正しければ0
             0
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         # パス値が文字列であることを検証
         # Use dict view for dynamic key access
@@ -135,7 +134,7 @@ class ConfigValidator:
 
         return errors
 
-    def validate_thresholds(self) -> List[str]:
+    def validate_thresholds(self) -> list[str]:
         """
         閾値設定の検証
 
@@ -147,7 +146,7 @@ class ConfigValidator:
             >>> len(errors)  # 閾値が正の整数であれば0
             0
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         # Use dict view for dynamic key access
         config_dict = as_dict(self.config)
@@ -165,7 +164,7 @@ class ConfigValidator:
 
         return errors
 
-    def validate_trusted_external_paths(self) -> List[str]:
+    def validate_trusted_external_paths(self) -> list[str]:
         """
         trusted_external_paths設定の検証
 
@@ -177,7 +176,7 @@ class ConfigValidator:
             >>> len(errors)  # リスト形式で各要素が文字列なら0
             0
         """
-        errors: List[str] = []
+        errors: list[str] = []
         config_dict = as_dict(self.config)
 
         if "trusted_external_paths" not in config_dict:
@@ -203,7 +202,7 @@ class ConfigValidator:
 
         return errors
 
-    def validate_directory_structure(self) -> List[str]:
+    def validate_directory_structure(self) -> list[str]:
         """
         ディレクトリ構造の検証
 
@@ -222,7 +221,7 @@ class ConfigValidator:
             >>> "Loops directory missing" in errors[0] if errors else False
             False
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         # 基本ディレクトリのチェック
         for path, name in [
@@ -248,7 +247,7 @@ class ConfigValidator:
 
         return errors
 
-    def validate_level_config(self, level: str) -> List[str]:
+    def validate_level_config(self, level: str) -> list[str]:
         """
         特定レベルの設定を検証
 
@@ -264,7 +263,7 @@ class ConfigValidator:
             >>> validator.validate_level_config("unknown")
             ["Unknown level: 'unknown'"]
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         if level not in LEVEL_CONFIG:
             errors.append(f"Unknown level: '{level}'")

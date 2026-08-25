@@ -23,6 +23,7 @@ from pathlib import Path
 import pytest
 
 from application.config import DigestConfig
+from domain.exceptions import EpisodicRAGError
 from interfaces.update_shadow_overall import OverallDigestUpdater
 
 EMDASH_TYPE = "診断学→方法論→実装鋳造——三週弧"
@@ -79,7 +80,7 @@ class UpdateShadowOverallTestBase(unittest.TestCase):
                 "monthly_threshold": 4,
             },
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     def _create_shadow(self) -> None:
@@ -114,11 +115,11 @@ class UpdateShadowOverallTestBase(unittest.TestCase):
                 },
             },
         }
-        with open(self.shadow_path, "w", encoding="utf-8") as f:
+        with self.shadow_path.open("w", encoding="utf-8") as f:
             json.dump(self.original_shadow, f, ensure_ascii=False, indent=2)
 
     def _load_shadow(self) -> dict:
-        with open(self.shadow_path, encoding="utf-8") as f:
+        with self.shadow_path.open(encoding="utf-8") as f:
             return json.load(f)
 
 
@@ -197,7 +198,7 @@ class TestOverallDigestUpdater(UpdateShadowOverallTestBase):
     def test_missing_key_rejected(self) -> None:
         """必須キー欠落（abstract なし）はエラーになり SGD 不変"""
         broken = {k: v for k, v in UPDATE_PAYLOAD.items() if k != "abstract"}
-        with self.assertRaises(Exception):
+        with self.assertRaises(EpisodicRAGError):
             self._updater().update_overall("monthly", broken)
 
         self.assertEqual(self._load_shadow(), self.original_shadow)
@@ -206,7 +207,7 @@ class TestOverallDigestUpdater(UpdateShadowOverallTestBase):
     def test_keywords_must_be_list(self) -> None:
         """keywords が文字列（リストでない）はエラー"""
         broken = dict(UPDATE_PAYLOAD, keywords="not-a-list")
-        with self.assertRaises(Exception):
+        with self.assertRaises(EpisodicRAGError):
             self._updater().update_overall("monthly", broken)
 
 

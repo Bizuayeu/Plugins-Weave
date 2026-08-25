@@ -122,7 +122,7 @@ class TestLevelConfigData:
     def test_next_is_optional_string(self) -> None:
         """next はOptional[str]型"""
         hints = get_type_hints(LevelConfigData)
-        assert get_origin(hints["next"]) is type(None) or hints["next"] == Optional[str]
+        assert get_origin(hints["next"]) is type(None) or hints["next"] == (str | None)
 
 
 class TestLevelHierarchyEntry:

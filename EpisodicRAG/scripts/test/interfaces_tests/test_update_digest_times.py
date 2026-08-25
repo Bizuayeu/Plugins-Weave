@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 update_digest_times.py CLI統合テスト
 
@@ -34,16 +33,18 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """loopレベルのlast_processedを更新"""
         from interfaces.update_digest_times import main
 
-        with patch(
-            "sys.argv",
-            ["update_digest_times.py", "loop", "259"],
+        with (
+            patch(
+                "sys.argv",
+                ["update_digest_times.py", "loop", "259"],
+            ),
+            patch("builtins.print") as mock_print,
         ):
-            with patch("builtins.print") as mock_print:
-                main()
-                # 出力確認
-                mock_print.assert_called()
-                output = str(mock_print.call_args)
-                assert "259" in output or "更新完了" in output
+            main()
+            # 出力確認
+            mock_print.assert_called()
+            output = str(mock_print.call_args)
+            assert "259" in output or "更新完了" in output
 
         # ファイル内容確認（永続化ディレクトリに保存される）
         times_file = self.persistent_dir / "last_digest_times.json"
@@ -56,12 +57,14 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """weeklyレベルのlast_processedを更新"""
         from interfaces.update_digest_times import main
 
-        with patch(
-            "sys.argv",
-            ["update_digest_times.py", "weekly", "51"],
+        with (
+            patch(
+                "sys.argv",
+                ["update_digest_times.py", "weekly", "51"],
+            ),
+            patch("builtins.print"),
         ):
-            with patch("builtins.print"):
-                main()
+            main()
 
         # 永続化ディレクトリをチェック
         times_file = self.persistent_dir / "last_digest_times.json"
@@ -111,12 +114,14 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
 
         from interfaces.update_digest_times import main
 
-        with patch(
-            "sys.argv",
-            ["update_digest_times.py", "loop", "259"],
+        with (
+            patch(
+                "sys.argv",
+                ["update_digest_times.py", "loop", "259"],
+            ),
+            patch("builtins.print"),
         ):
-            with patch("builtins.print"):
-                main()
+            main()
 
         data = json.loads(times_file.read_text(encoding="utf-8"))
         assert data["loop"]["last_processed"] == 259
@@ -143,38 +148,42 @@ class TestUpdateDigestTimesErrorHandling(unittest.TestCase):
         from domain.exceptions import EpisodicRAGError
         from interfaces.update_digest_times import main
 
-        with patch(
-            "sys.argv",
-            ["update_digest_times.py", "loop", "259"],
-        ):
-            with patch(
+        with (
+            patch(
+                "sys.argv",
+                ["update_digest_times.py", "loop", "259"],
+            ),
+            patch(
                 "interfaces.update_digest_times.DigestTimesTracker.update_direct",
                 side_effect=EpisodicRAGError("Test error"),
-            ):
-                with patch("interfaces.update_digest_times.log_error") as mock_log:
-                    main()
-                    mock_log.assert_called_once()
-                    call_args = mock_log.call_args
-                    assert "Test error" in str(call_args)
+            ),
+            patch("interfaces.update_digest_times.log_error") as mock_log,
+        ):
+            main()
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert "Test error" in str(call_args)
 
     @pytest.mark.integration
     def test_os_error_handling(self) -> None:
         """OSErrorが発生した場合のエラーハンドリング"""
         from interfaces.update_digest_times import main
 
-        with patch(
-            "sys.argv",
-            ["update_digest_times.py", "loop", "259"],
-        ):
-            with patch(
+        with (
+            patch(
+                "sys.argv",
+                ["update_digest_times.py", "loop", "259"],
+            ),
+            patch(
                 "interfaces.update_digest_times.DigestTimesTracker.update_direct",
                 side_effect=OSError("Permission denied"),
-            ):
-                with patch("interfaces.update_digest_times.log_error") as mock_log:
-                    main()
-                    mock_log.assert_called_once()
-                    call_args = mock_log.call_args
-                    assert "File I/O error" in str(call_args)
+            ),
+            patch("interfaces.update_digest_times.log_error") as mock_log,
+        ):
+            main()
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert "File I/O error" in str(call_args)
 
 
 if __name__ == "__main__":

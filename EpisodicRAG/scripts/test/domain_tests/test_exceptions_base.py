@@ -214,7 +214,7 @@ class TestFileIOError:
         # 組み込みの IOError/OSError とは異なる
         try:
             raise FileIOError("Test")
-        except IOError:
+        except OSError:
             pytest.fail("Should not be caught as IOError")
         except EpisodicRAGError:
             pass  # Expected

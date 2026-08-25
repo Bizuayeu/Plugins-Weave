@@ -7,7 +7,6 @@ ShadowGrandDigestのテンプレートとプレースホルダー生成を担当
 """
 
 from datetime import datetime
-from typing import List
 
 from domain.constants import (
     PLACEHOLDER_LIMITS,
@@ -22,7 +21,7 @@ from domain.version import DIGEST_FORMAT_VERSION
 class ShadowTemplate:
     """ShadowGrandDigestテンプレート生成クラス"""
 
-    def __init__(self, levels: List[str]):
+    def __init__(self, levels: list[str]):
         """
         初期化
 

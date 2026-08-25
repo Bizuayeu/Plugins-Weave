@@ -34,7 +34,6 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Dict, Optional
 
 from domain.error_formatter.base import BaseErrorFormatter
 
@@ -66,7 +65,7 @@ class FormatterRegistry:
             project_root: プロジェクトルートパス
         """
         self._project_root = project_root
-        self._formatters: Dict[str, BaseErrorFormatter] = {}
+        self._formatters: dict[str, BaseErrorFormatter] = {}
 
     @property
     def project_root(self) -> Path:
@@ -119,7 +118,7 @@ class FormatterRegistry:
             )
         return self._formatters[category]
 
-    def get_or_none(self, category: str) -> Optional[BaseErrorFormatter]:
+    def get_or_none(self, category: str) -> BaseErrorFormatter | None:
         """
         フォーマッタを取得（未登録時はNone）
 

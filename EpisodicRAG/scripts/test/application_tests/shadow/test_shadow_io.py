@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -81,7 +80,7 @@ class TestShadowIOLoadOrCreate:
             "metadata": {"last_updated": "2024-01-01T00:00:00", "version": "1.0.0"},
             "latest_digests": {"weekly": {"overall_digest": {"custom": "data"}}},
         }
-        with open(shadow_file, 'w', encoding='utf-8') as f:
+        with shadow_file.open('w', encoding='utf-8') as f:
             json.dump(existing_data, f)
 
         io = ShadowIO(shadow_file, template_factory)
@@ -117,7 +116,7 @@ class TestShadowIOLoadOrCreate:
 
         # 既存ファイルを作成
         existing_data = {"metadata": {"version": "1.0.0"}, "latest_digests": {}}
-        with open(shadow_file, 'w', encoding='utf-8') as f:
+        with shadow_file.open('w', encoding='utf-8') as f:
             json.dump(existing_data, f)
 
         call_count = 0
@@ -163,7 +162,7 @@ class TestShadowIOSave:
         io.save(data)
 
         assert shadow_file.exists()
-        with open(shadow_file, 'r', encoding='utf-8') as f:
+        with shadow_file.open(encoding='utf-8') as f:
             saved_data = json.load(f)
         assert saved_data["latest_digests"]["weekly"]["test"] == "data"
 
@@ -184,7 +183,7 @@ class TestShadowIOSave:
         after_save = datetime.now()
 
         # 保存後のデータを読み込んで確認
-        with open(shadow_file, 'r', encoding='utf-8') as f:
+        with shadow_file.open(encoding='utf-8') as f:
             saved_data = json.load(f)
 
         last_updated = datetime.fromisoformat(saved_data["metadata"]["last_updated"])
@@ -198,14 +197,14 @@ class TestShadowIOSave:
         shadow_file = temp_plugin_env.plugin_root / "ShadowGrandDigest.txt"
 
         # 既存ファイルを作成
-        with open(shadow_file, 'w', encoding='utf-8') as f:
+        with shadow_file.open('w', encoding='utf-8') as f:
             json.dump({"old": "data", "metadata": {}}, f)
 
         io = ShadowIO(shadow_file, template_factory)
         new_data = {"metadata": {"version": "2.0.0"}, "latest_digests": {"new": "content"}}
         io.save(new_data)
 
-        with open(shadow_file, 'r', encoding='utf-8') as f:
+        with shadow_file.open(encoding='utf-8') as f:
             saved_data = json.load(f)
         assert "old" not in saved_data
         assert saved_data["latest_digests"]["new"] == "content"
@@ -228,7 +227,7 @@ class TestShadowIOSave:
         }
         io.save(data)
 
-        with open(shadow_file, 'r', encoding='utf-8') as f:
+        with shadow_file.open(encoding='utf-8') as f:
             saved_data = json.load(f)
 
         assert saved_data["metadata"]["version"] == "1.0.0"

@@ -92,7 +92,7 @@ class TestEnsureNotNone:
         """型ナローイングが正しく機能する"""
         from typing import Optional
 
-        value: Optional[str] = "hello"
+        value: str | None = "hello"
         # ensure_not_none の戻り値は str 型（Optional が外れる）
         result: str = ensure_not_none(value, "test")
         assert result == "hello"
@@ -101,10 +101,10 @@ class TestEnsureNotNone:
         """型を保持する"""
         from typing import Optional
 
-        int_value: Optional[int] = 42
+        int_value: int | None = 42
         int_result: int = ensure_not_none(int_value, "int")
         assert int_result == 42
 
-        list_value: Optional[list[str]] = ["a", "b"]
+        list_value: list[str] | None = ["a", "b"]
         list_result: list[str] = ensure_not_none(list_value, "list")
         assert list_result == ["a", "b"]

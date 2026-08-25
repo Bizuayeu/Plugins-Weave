@@ -15,10 +15,10 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 
-def invalid_level_message(level: str, valid_levels: Optional[List[str]] = None) -> str:
+def invalid_level_message(level: str, valid_levels: list[str] | None = None) -> str:
     """
     無効なレベルエラーメッセージ
 

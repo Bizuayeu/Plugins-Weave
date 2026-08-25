@@ -745,12 +745,14 @@ class TestLinkCheckerMainDirect:
         file1 = temp_docs_dir / "index.md"
         file1.write_text("[Valid](index.md)", encoding="utf-8")
 
-        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir)]):
-            with patch("builtins.print"):
-                try:
-                    main()
-                except SystemExit as e:
-                    assert e.code == 0
+        with (
+            patch("sys.argv", ["link_checker.py", str(temp_docs_dir)]),
+            patch("builtins.print"),
+        ):
+            try:
+                main()
+            except SystemExit as e:
+                assert e.code == 0
 
     def test_main_direct_with_broken_links(self, temp_docs_dir) -> None:
         """壊れたリンクがある場合のmain()直接呼び出し"""
@@ -761,12 +763,14 @@ class TestLinkCheckerMainDirect:
         file1 = temp_docs_dir / "index.md"
         file1.write_text("[Broken](missing.md)", encoding="utf-8")
 
-        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir)]):
-            with patch("builtins.print"):
-                try:
-                    main()
-                except SystemExit as e:
-                    assert e.code == 1
+        with (
+            patch("sys.argv", ["link_checker.py", str(temp_docs_dir)]),
+            patch("builtins.print"),
+        ):
+            try:
+                main()
+            except SystemExit as e:
+                assert e.code == 1
 
     def test_main_direct_nonexistent_dir(self, tmp_path) -> None:
         """存在しないディレクトリでのmain()直接呼び出し"""
@@ -776,12 +780,14 @@ class TestLinkCheckerMainDirect:
 
         nonexistent = tmp_path / "nonexistent"
 
-        with patch("sys.argv", ["link_checker.py", str(nonexistent)]):
-            with patch("builtins.print"):
-                try:
-                    main()
-                except SystemExit as e:
-                    assert e.code == 1
+        with (
+            patch("sys.argv", ["link_checker.py", str(nonexistent)]),
+            patch("builtins.print"),
+        ):
+            try:
+                main()
+            except SystemExit as e:
+                assert e.code == 1
 
     def test_main_direct_json_output(self, temp_docs_dir) -> None:
         """--json オプションでのmain()直接呼び出し"""
@@ -792,14 +798,16 @@ class TestLinkCheckerMainDirect:
         file1 = temp_docs_dir / "index.md"
         file1.write_text("[Valid](index.md)", encoding="utf-8")
 
-        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--json"]):
-            with patch("builtins.print") as mock_print:
-                try:
-                    main()
-                except SystemExit as e:
-                    assert e.code == 0
-                output = mock_print.call_args[0][0]
-                assert "summary" in output
+        with (
+            patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--json"]),
+            patch("builtins.print") as mock_print,
+        ):
+            try:
+                main()
+            except SystemExit as e:
+                assert e.code == 0
+            output = mock_print.call_args[0][0]
+            assert "summary" in output
 
     def test_main_direct_verbose(self, temp_docs_dir) -> None:
         """--verbose オプションでのmain()直接呼び出し"""
@@ -810,12 +818,14 @@ class TestLinkCheckerMainDirect:
         file1 = temp_docs_dir / "index.md"
         file1.write_text("[Valid](index.md)\n[Ext](https://example.com)", encoding="utf-8")
 
-        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--verbose"]):
-            with patch("builtins.print"):
-                try:
-                    main()
-                except SystemExit as e:
-                    assert e.code == 0
+        with (
+            patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--verbose"]),
+            patch("builtins.print"),
+        ):
+            try:
+                main()
+            except SystemExit as e:
+                assert e.code == 0
 
     def test_main_direct_errors_only(self, temp_docs_dir) -> None:
         """--errors-only オプションでのmain()直接呼び出し"""
@@ -826,12 +836,14 @@ class TestLinkCheckerMainDirect:
         file1 = temp_docs_dir / "index.md"
         file1.write_text("[Valid](index.md)\n[Broken](missing.md)", encoding="utf-8")
 
-        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--errors-only"]):
-            with patch("builtins.print"):
-                try:
-                    main()
-                except SystemExit as e:
-                    assert e.code == 1
+        with (
+            patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--errors-only"]),
+            patch("builtins.print"),
+        ):
+            try:
+                main()
+            except SystemExit as e:
+                assert e.code == 1
 
     def test_main_direct_json_verbose(self, temp_docs_dir) -> None:
         """--json --verbose でall_linksを含む"""
@@ -842,14 +854,16 @@ class TestLinkCheckerMainDirect:
         file1 = temp_docs_dir / "index.md"
         file1.write_text("[Valid](index.md)", encoding="utf-8")
 
-        with patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--json", "--verbose"]):
-            with patch("builtins.print") as mock_print:
-                try:
-                    main()
-                except SystemExit as e:
-                    assert e.code == 0
-                output = mock_print.call_args[0][0]
-                assert "all_links" in output
+        with (
+            patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--json", "--verbose"]),
+            patch("builtins.print") as mock_print,
+        ):
+            try:
+                main()
+            except SystemExit as e:
+                assert e.code == 0
+            output = mock_print.call_args[0][0]
+            assert "all_links" in output
 
 
 class TestLinkCheckerUnicodeErrors:

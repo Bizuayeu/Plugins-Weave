@@ -16,7 +16,7 @@ import json
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from domain.exceptions import FileIOError
 from domain.file_constants import CONFIG_FILENAME, SHADOW_GRAND_DIGEST_FILENAME
@@ -43,11 +43,11 @@ class ShadowStateResult:
     status: str  # "ok" | "error"
     level: str
     analyzed: bool  # True: 分析済み, False: プレースホルダーあり
-    source_files: List[str] = field(default_factory=list)
+    source_files: list[str] = field(default_factory=list)
     source_count: int = 0
-    placeholder_fields: List[str] = field(default_factory=list)
+    placeholder_fields: list[str] = field(default_factory=list)
     message: str = ""
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class ShadowStateChecker:
@@ -67,13 +67,13 @@ class ShadowStateChecker:
     def __init__(self) -> None:
         """Initialize ShadowStateChecker"""
         self.config_file = get_persistent_config_dir() / CONFIG_FILENAME
-        self.shadow_file: Optional[Path] = None
+        self.shadow_file: Path | None = None
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """設定ファイルを読み込む"""
         return load_json(self.config_file)
 
-    def _get_essences_path(self, config: Dict[str, Any]) -> Path:
+    def _get_essences_path(self, config: dict[str, Any]) -> Path:
         """Essencesパスを取得"""
         base_dir = config.get("base_dir", "")
         if not base_dir:
@@ -84,14 +84,14 @@ class ShadowStateChecker:
         essences_dir = str(paths.get("essences_dir", "data/Essences"))
         return base_path / essences_dir
 
-    def _load_shadow(self) -> Dict[str, Any]:
+    def _load_shadow(self) -> dict[str, Any]:
         """ShadowGrandDigest.txtを読み込む"""
         if self.shadow_file is None:
             raise ValueError("Shadow file path not set")
 
         return load_json(self.shadow_file)
 
-    def _has_placeholder(self, text: Optional[str]) -> bool:
+    def _has_placeholder(self, text: str | None) -> bool:
         """プレースホルダー有無を判定"""
         if text is None:
             return True  # null もプレースホルダー扱い

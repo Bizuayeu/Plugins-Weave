@@ -44,10 +44,9 @@ def is_config_data(data: Any) -> TypeGuard[ConfigData]:
         return False
 
     # trusted_external_pathsキーが存在する場合、listであることを確認
-    if "trusted_external_paths" in data and not isinstance(data["trusted_external_paths"], list):
-        return False
-
-    return True
+    return not (
+        "trusted_external_paths" in data and not isinstance(data["trusted_external_paths"], list)
+    )
 
 
 def is_level_config_data(data: Any) -> TypeGuard[LevelConfigData]:

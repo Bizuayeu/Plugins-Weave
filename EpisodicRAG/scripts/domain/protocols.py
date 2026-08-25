@@ -14,7 +14,7 @@ Usage:
         formatted = behavior.format_number(42)
 """
 
-from typing import Optional, Protocol
+from typing import Protocol
 
 
 class LevelBehaviorProtocol(Protocol):
@@ -77,7 +77,7 @@ class LevelRegistryProtocol(Protocol):
         """
         ...
 
-    def get_level_by_prefix(self, prefix: str) -> Optional[str]:
+    def get_level_by_prefix(self, prefix: str) -> str | None:
         """
         プレフィックスからレベル名を逆引き
 

@@ -67,7 +67,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -77,8 +77,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
                 "monthly": {"overall_digest": None},
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -86,14 +86,14 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "GrandDigest.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Essences' / 'GrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(grand_data, f)
 
         times_data = {"weekly": {"timestamp": "", "last_processed": None}}
-        with open(
-            self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8"
+        with (self.plugin_root / '.claude-plugin' / 'last_digest_times.json').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(times_data, f)
 
@@ -118,8 +118,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
         # Loopファイルを作成
         for i in range(1, 3):
             loop_data = {"overall_digest": {"abstract": f"Test loop {i}"}}
-            with open(
-                self.plugin_root / "data" / "Loops" / f"L{i:05d}_test.txt", "w", encoding="utf-8"
+            with (self.plugin_root / 'data' / 'Loops' / f'L{i:05d}_test.txt').open(
+                'w', encoding='utf-8'
             ) as f:
                 json.dump(loop_data, f)
 
@@ -163,7 +163,7 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
         """破損した設定ファイルでエラーを返す"""
 
         # 設定ファイルを破損させる（永続化ディレクトリ）
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             f.write("{ invalid json")
 
         with patch(
@@ -191,15 +191,15 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
         # 5つのLoopファイルを作成（thresholdを満たす）
         for i in range(1, 6):
             loop_data = {"overall_digest": {"abstract": f"Test loop {i}"}}
-            with open(
-                self.plugin_root / "data" / "Loops" / f"L{i:05d}_test.txt", "w", encoding="utf-8"
+            with (self.plugin_root / 'data' / 'Loops' / f'L{i:05d}_test.txt').open(
+                'w', encoding='utf-8'
             ) as f:
                 json.dump(loop_data, f)
 
         # last_processedを更新して未処理扱いにしない
         times_data = {"weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5}}
-        with open(
-            self.plugin_root / ".claude-plugin" / "last_digest_times.json", "w", encoding="utf-8"
+        with (self.plugin_root / '.claude-plugin' / 'last_digest_times.json').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(times_data, f)
 
@@ -222,8 +222,8 @@ class TestDigestAutoCLIScenarios(unittest.TestCase):
         """問題がある場合に推奨アクションが含まれる"""
         # 未処理Loopを作成
         loop_data = {"overall_digest": {"abstract": "Test loop"}}
-        with open(
-            self.plugin_root / "data" / "Loops" / "L00001_test.txt", "w", encoding="utf-8"
+        with (self.plugin_root / 'data' / 'Loops' / 'L00001_test.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(loop_data, f)
 

@@ -10,7 +10,7 @@ Classes:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from domain.constants import DIGEST_LEVEL_NAMES, LEVEL_CONFIG
 from domain.exceptions import FileIOError
@@ -47,11 +47,11 @@ class DigestAutoAnalyzer:
         self.config_file = persistent_config_dir / CONFIG_FILENAME
         self.last_digest_file = persistent_config_dir / DIGEST_TIMES_FILENAME
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """設定ファイルを読み込む"""
         return load_json(self.config_file)
 
-    def _load_json_file(self, file_path: Path) -> Optional[Dict[str, Any]]:
+    def _load_json_file(self, file_path: Path) -> dict[str, Any] | None:
         """JSONファイルを読み込む（存在しない場合はNone）"""
         return try_load_json(file_path, log_on_error=False)
 
@@ -64,8 +64,8 @@ class DigestAutoAnalyzer:
         Note:
             エラーが発生した場合も AnalysisResult を返す（status="error"）
         """
-        issues: List[Issue] = []
-        recommendations: List[str] = []
+        issues: list[Issue] = []
+        recommendations: list[str] = []
 
         try:
             # 1. 設定とパス解決
@@ -161,7 +161,7 @@ class DigestAutoAnalyzer:
                 error=str(e),
             )
 
-    def _check_unprocessed_loops(self, loops_path: Path) -> List[str]:
+    def _check_unprocessed_loops(self, loops_path: Path) -> list[str]:
         """未処理Loop検出"""
         if not loops_path.exists():
             return []
@@ -184,13 +184,12 @@ class DigestAutoAnalyzer:
         unprocessed = []
         for f in loop_files:
             file_num = extract_file_number(f.stem)
-            if file_num is not None:
-                if last_processed is None or file_num > last_processed:
-                    unprocessed.append(f.stem)
+            if file_num is not None and (last_processed is None or file_num > last_processed):
+                unprocessed.append(f.stem)
 
         return sorted(unprocessed)
 
-    def _check_placeholders(self, shadow_data: Dict[str, Any]) -> List[Tuple[str, List[str]]]:
+    def _check_placeholders(self, shadow_data: dict[str, Any]) -> list[tuple[str, list[str]]]:
         """プレースホルダー検出"""
         placeholders = []
         latest_digests = shadow_data.get("latest_digests", {})
@@ -208,9 +207,9 @@ class DigestAutoAnalyzer:
 
         return placeholders
 
-    def _check_gaps(self, shadow_data: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    def _check_gaps(self, shadow_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """中間ファイルスキップ検出"""
-        gaps: Dict[str, Dict[str, Any]] = {}
+        gaps: dict[str, dict[str, Any]] = {}
         latest_digests = shadow_data.get("latest_digests", {})
 
         for level in DIGEST_LEVEL_NAMES:
@@ -238,12 +237,12 @@ class DigestAutoAnalyzer:
 
     def _determine_generatable_levels(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         loops_path: Path,
         digests_path: Path,
-        grand_data: Dict[str, Any],
+        grand_data: dict[str, Any],
         unprocessed_count: int,
-    ) -> Tuple[List[LevelStatus], List[LevelStatus]]:
+    ) -> tuple[list[LevelStatus], list[LevelStatus]]:
         """生成可能な階層判定"""
         levels_config = config.get("levels", {})
         major_digests = grand_data.get("major_digests", {})
@@ -252,7 +251,7 @@ class DigestAutoAnalyzer:
         insufficient = []
 
         # 各階層のファイル数をカウント
-        level_counts: Dict[str, int] = {}
+        level_counts: dict[str, int] = {}
 
         for level in DIGEST_LEVEL_NAMES:
             level_cfg = LEVEL_CONFIG[level]
@@ -263,10 +262,7 @@ class DigestAutoAnalyzer:
 
             if source == "loops":
                 # Loopファイル数（未処理含む）
-                if loops_path.exists():
-                    current = len(list(loops_path.glob("L*.txt")))
-                else:
-                    current = 0
+                current = len(list(loops_path.glob("L*.txt"))) if loops_path.exists() else 0
             else:
                 # 下位階層のRegular Digest数
                 source_level_data = major_digests.get(source, {})
@@ -312,10 +308,10 @@ class DigestAutoAnalyzer:
 
     def _build_analysis_result(
         self,
-        issues: List[Issue],
-        recommendations: List[str],
-        generatable: List[LevelStatus],
-        insufficient: List[LevelStatus],
+        issues: list[Issue],
+        recommendations: list[str],
+        generatable: list[LevelStatus],
+        insufficient: list[LevelStatus],
         has_unprocessed: bool,
         has_placeholders: bool,
     ) -> AnalysisResult:
@@ -333,10 +329,7 @@ class DigestAutoAnalyzer:
             構築された AnalysisResult
         """
         # ステータス判定
-        if has_unprocessed or has_placeholders:
-            status = "warning"
-        else:
-            status = "ok"
+        status = "warning" if has_unprocessed or has_placeholders else "ok"
 
         return AnalysisResult(
             status=status,

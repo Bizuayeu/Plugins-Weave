@@ -31,7 +31,7 @@ import io
 import logging
 import os
 import sys
-from typing import Optional, TextIO
+from typing import TextIO
 
 __all__ = [
     "get_logger",
@@ -134,7 +134,7 @@ def _utf8_safe_stream(stream: TextIO) -> TextIO:
         return stream
 
 
-def setup_logging(level: Optional[int] = None) -> logging.Logger:
+def setup_logging(level: int | None = None) -> logging.Logger:
     """
     デフォルトのロギング設定をセットアップ
 
@@ -193,7 +193,7 @@ _logger = setup_logging()
 logger = _logger
 
 
-def log_error(message: str, exit_code: Optional[int] = None) -> None:
+def log_error(message: str, exit_code: int | None = None) -> None:
     """
     エラーメッセージを出力
 

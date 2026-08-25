@@ -36,7 +36,7 @@ def load_config(config_file: Path) -> ConfigData:
         raise ConfigError(f"{file_not_found_message(config_file)}\nRun @digest-setup skill")
 
     try:
-        with open(config_file, 'r', encoding='utf-8') as f:
+        with config_file.open(encoding='utf-8') as f:
             data: ConfigData = json.load(f)
             return data
     except json.JSONDecodeError as e:

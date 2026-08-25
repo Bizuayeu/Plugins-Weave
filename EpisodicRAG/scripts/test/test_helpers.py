@@ -13,7 +13,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any
 from unittest.mock import patch
 
 # Domain constants for SSoT level definitions
@@ -32,7 +32,7 @@ LEVEL_DIRS = [
 ]
 
 
-def create_standard_test_structure(base_path: Path) -> Dict[str, Path]:
+def create_standard_test_structure(base_path: Path) -> dict[str, Path]:
     """
     本番環境と同一のディレクトリ構造を作成
 
@@ -120,7 +120,7 @@ def create_default_config(config_dir: Path, base_dir: str = ".") -> Path:
     }
 
     config_file = config_dir / "config.json"
-    with open(config_file, 'w', encoding='utf-8') as f:
+    with config_file.open('w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=2, ensure_ascii=False)
 
     return config_file
@@ -136,7 +136,7 @@ def create_default_templates(config_dir: Path) -> None:
     # last_digest_times.template.json
     # Use LEVEL_NAMES (includes loop) for tracking all levels
     times_template = {level: {"timestamp": "", "last_processed": None} for level in LEVEL_NAMES}
-    with open(config_dir / "last_digest_times.template.json", 'w', encoding='utf-8') as f:
+    with (config_dir / 'last_digest_times.template.json').open('w', encoding='utf-8') as f:
         json.dump(times_template, f, indent=2, ensure_ascii=False)
 
     # GrandDigest.template.txt
@@ -145,7 +145,7 @@ def create_default_templates(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
     }
-    with open(config_dir / "GrandDigest.template.txt", 'w', encoding='utf-8') as f:
+    with (config_dir / 'GrandDigest.template.txt').open('w', encoding='utf-8') as f:
         json.dump(grand_template, f, indent=2, ensure_ascii=False)
 
     # ShadowGrandDigest.template.txt
@@ -154,7 +154,7 @@ def create_default_templates(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "latest_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
     }
-    with open(config_dir / "ShadowGrandDigest.template.txt", 'w', encoding='utf-8') as f:
+    with (config_dir / 'ShadowGrandDigest.template.txt').open('w', encoding='utf-8') as f:
         json.dump(shadow_template, f, indent=2, ensure_ascii=False)
 
 
@@ -183,7 +183,7 @@ def create_test_loop_file(loops_path: Path, loop_num: int, title: str = "test") 
         }
     }
 
-    with open(file_path, 'w', encoding='utf-8') as f:
+    with file_path.open('w', encoding='utf-8') as f:
         json.dump(loop_data, f, indent=2, ensure_ascii=False)
 
     return file_path
@@ -218,9 +218,9 @@ class TempPluginEnvironment:
     ]
 
     def __init__(self) -> None:
-        self.temp_dir: Optional[Path] = None
-        self.paths: Optional[Dict[str, Path]] = None
-        self._patchers: List[Any] = []  # Active mock patchers
+        self.temp_dir: Path | None = None
+        self.paths: dict[str, Path] | None = None
+        self._patchers: list[Any] = []  # Active mock patchers
 
     def __enter__(self) -> "TempPluginEnvironment":
         self.temp_dir = Path(tempfile.mkdtemp())
@@ -250,9 +250,9 @@ class TempPluginEnvironment:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         # 全てのパッチを解除
         for patcher in self._patchers:
@@ -293,7 +293,7 @@ class TempPluginEnvironment:
         assert self.paths is not None, "Environment not initialized. Use as context manager."
         return self.paths["persistent_config"]
 
-    def create_grand_digest(self, initial_data: Optional[Dict[str, Any]] = None) -> Path:
+    def create_grand_digest(self, initial_data: dict[str, Any] | None = None) -> Path:
         """
         GrandDigest.txt を作成
 
@@ -320,15 +320,15 @@ class TempPluginEnvironment:
             },
         }
         file_path = self.essences_path / "GrandDigest.txt"
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with file_path.open('w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return file_path
 
     def create_shadow_digest(
         self,
         level: str = "weekly",
-        source_files: Optional[List[str]] = None,
-        initial_data: Optional[Dict[str, Any]] = None,
+        source_files: list[str] | None = None,
+        initial_data: dict[str, Any] | None = None,
     ) -> Path:
         """
         ShadowGrandDigest.txt を作成
@@ -341,9 +341,9 @@ class TempPluginEnvironment:
         Returns:
             作成されたファイルのPath
         """
-        data: Dict[str, Any]
+        data: dict[str, Any]
         if initial_data is None:
-            latest_digests: Dict[str, Any] = {
+            latest_digests: dict[str, Any] = {
                 lv: {"overall_digest": None}
                 for lv in [
                     "weekly",
@@ -374,7 +374,7 @@ class TempPluginEnvironment:
             data = initial_data
 
         file_path = self.essences_path / "ShadowGrandDigest.txt"
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with file_path.open('w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return file_path
 
@@ -399,7 +399,7 @@ class TempPluginEnvironment:
             ]
         }
         file_path = self.config_dir / "last_digest_times.json"
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with file_path.open('w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return file_path
 
@@ -422,8 +422,8 @@ class CLITestHelper:
     @staticmethod
     def run_cli_command(
         module_name: str,
-        args: List[str],
-    ) -> Tuple[int, Union[Dict[str, Any], str]]:
+        args: list[str],
+    ) -> tuple[int, dict[str, Any] | str]:
         """
         CLIコマンドを実行し、終了コードと出力を返す
 
@@ -440,8 +440,8 @@ class CLITestHelper:
         full_args = [f"{module_name}.py"] + args
 
         exit_code = 0
-        output: Union[Dict[str, Any], str] = ""
-        captured_outputs: List[Any] = []
+        output: dict[str, Any] | str = ""
+        captured_outputs: list[Any] = []
 
         with patch("sys.argv", full_args):
             # モジュールをリロードして新しいsys.argvを反映
@@ -482,7 +482,7 @@ class CLITestHelper:
         return exit_code, output
 
     @staticmethod
-    def assert_json_output_ok(result: Union[Dict[str, Any], str]) -> None:
+    def assert_json_output_ok(result: dict[str, Any] | str) -> None:
         """
         JSON出力がOKステータスであることを確認
 
@@ -499,8 +499,8 @@ class CLITestHelper:
 
     @staticmethod
     def assert_json_output_error(
-        result: Union[Dict[str, Any], str],
-        error_contains: Optional[str] = None,
+        result: dict[str, Any] | str,
+        error_contains: str | None = None,
     ) -> None:
         """
         JSON出力がエラーステータスであることを確認

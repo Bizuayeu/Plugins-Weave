@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -109,7 +108,7 @@ class TestDigestPersistenceSaveRegularDigest:
     ) -> None:
         """正しい内容が保存される"""
         result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
-        with open(result_path, 'r', encoding='utf-8') as f:
+        with result_path.open(encoding='utf-8') as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["name"] == "W0001_Test"
 
@@ -221,7 +220,7 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
         # Provisionalファイルを作成
         provisional_dir = config.get_provisional_dir("weekly")
         provisional_path = provisional_dir / "W0001_Individual.txt"
-        with open(provisional_path, 'w', encoding='utf-8') as f:
+        with provisional_path.open('w', encoding='utf-8') as f:
             json.dump({"test": "data"}, f)
 
         assert provisional_path.exists()
@@ -337,7 +336,7 @@ class TestDigestPersistenceUserInput:
         result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
 
         assert result_path2.exists()
-        with open(result_path2, 'r', encoding='utf-8') as f:
+        with result_path2.open(encoding='utf-8') as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["abstract"] == "Updated abstract"
 
@@ -365,7 +364,7 @@ class TestDigestPersistenceUserInput:
         result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
 
         assert result_path2.exists()
-        with open(result_path2, 'r', encoding='utf-8') as f:
+        with result_path2.open(encoding='utf-8') as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["abstract"] == "Non-interactive update"
 
@@ -438,7 +437,7 @@ class TestDigestPersistenceConfirmCallback:
         result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
 
         assert result_path2.exists()
-        with open(result_path2, 'r', encoding='utf-8') as f:
+        with result_path2.open(encoding='utf-8') as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["abstract"] == "Callback updated"
 

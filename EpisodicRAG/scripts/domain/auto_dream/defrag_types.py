@@ -20,7 +20,7 @@ Usage:
     from domain.auto_dream.defrag_types import DEFRAG_THRESHOLD, DefragScanResult
 """
 
-from typing import List, Literal, Optional, TypedDict
+from typing import Literal, TypedDict
 
 # =============================================================================
 # 閾値
@@ -70,7 +70,7 @@ class DefragCandidate(TypedDict):
     """
 
     kind: DefragKind
-    targets: List[str]  # 対象 memory ファイル名のリスト
+    targets: list[str]  # 対象 memory ファイル名のリスト
     reason: str  # 候補とした理由（Claude が記述）
 
 
@@ -92,8 +92,8 @@ class DefragScanResult(TypedDict):
     """
 
     status: str  # "ok" | "no_memory" | "error"
-    memory_dir: Optional[str]  # memory/ ディレクトリの絶対パス
+    memory_dir: str | None  # memory/ ディレクトリの絶対パス
     file_count: int  # memory ファイル数（MEMORY.md 自体は除く）
     over_threshold: bool  # file_count > DEFRAG_THRESHOLD
     threshold: int  # 適用された閾値（= DEFRAG_THRESHOLD）
-    error: Optional[str]
+    error: str | None

@@ -12,7 +12,7 @@ Classes:
 """
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 __all__ = [
     "Issue",
@@ -35,10 +35,10 @@ class Issue:
     """
 
     type: str  # "unprocessed_loops" | "placeholders" | "gaps"
-    level: Optional[str] = None
+    level: str | None = None
     count: int = 0
-    files: List[str] = field(default_factory=list)
-    details: Optional[Dict[str, Any]] = None
+    files: list[str] = field(default_factory=list)
+    details: dict[str, Any] | None = None
 
 
 @dataclass
@@ -74,8 +74,8 @@ class AnalysisResult:
     """
 
     status: str  # "ok" | "warning" | "error"
-    issues: List[Issue] = field(default_factory=list)
-    generatable_levels: List[LevelStatus] = field(default_factory=list)
-    insufficient_levels: List[LevelStatus] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    error: Optional[str] = None
+    issues: list[Issue] = field(default_factory=list)
+    generatable_levels: list[LevelStatus] = field(default_factory=list)
+    insufficient_levels: list[LevelStatus] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
+    error: str | None = None

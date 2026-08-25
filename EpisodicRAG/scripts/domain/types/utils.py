@@ -6,10 +6,10 @@ EpisodicRAG 型ユーティリティ関数
 TypedDict操作のヘルパー関数。
 """
 
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 
-def as_dict(typed_dict: Any) -> Dict[str, Any]:
+def as_dict(typed_dict: Any) -> dict[str, Any]:
     """
     TypedDictを動的キーアクセス用にDict[str, Any]にキャスト。
 
@@ -27,4 +27,4 @@ def as_dict(typed_dict: Any) -> Dict[str, Any]:
         >>> config: ConfigData = load_config()
         >>> levels = as_dict(config).get("levels", {})  # 動的アクセスOK
     """
-    return cast(Dict[str, Any], typed_dict)
+    return cast(dict[str, Any], typed_dict)

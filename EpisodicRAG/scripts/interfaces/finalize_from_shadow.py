@@ -63,7 +63,6 @@ __init__で依存オブジェクト（managers, tracker）をオプション引�
 
 import argparse
 import sys
-from typing import Optional
 
 # 設定
 from application.config import DigestConfig
@@ -98,10 +97,10 @@ class DigestFinalizerFromShadow:
 
     def __init__(
         self,
-        config: Optional[DigestConfig] = None,
-        grand_digest_manager: Optional[GrandDigestManager] = None,
-        shadow_manager: Optional[ShadowGrandDigestManager] = None,
-        times_tracker: Optional[DigestTimesTracker] = None,
+        config: DigestConfig | None = None,
+        grand_digest_manager: GrandDigestManager | None = None,
+        shadow_manager: ShadowGrandDigestManager | None = None,
+        times_tracker: DigestTimesTracker | None = None,
     ):
         """
         ファイナライザーの初期化

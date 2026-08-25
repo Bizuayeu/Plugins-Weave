@@ -34,13 +34,13 @@ Note:
 """
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple, Union
 
 from domain.protocols import LevelRegistryProtocol
 
 # Registry インスタンス（set_registry()で設定、未設定時は遅延インポートでフォールバック）
-_registry_instance: Optional[LevelRegistryProtocol] = None
+_registry_instance: LevelRegistryProtocol | None = None
 
 
 def set_registry(registry: LevelRegistryProtocol) -> None:
@@ -102,8 +102,8 @@ def _get_registry() -> LevelRegistryProtocol:
 
 def extract_file_number(
     filename: object,
-    registry: Optional[LevelRegistryProtocol] = None,
-) -> Optional[Tuple[str, int]]:
+    registry: LevelRegistryProtocol | None = None,
+) -> tuple[str, int] | None:
     """
     ファイル名からプレフィックスと番号を抽出
 
@@ -141,7 +141,7 @@ def extract_file_number(
     return None
 
 
-def extract_number_only(filename: str) -> Optional[int]:
+def extract_number_only(filename: str) -> int | None:
     """
     ファイル名から番号のみを抽出（後方互換性用）
 
@@ -162,7 +162,7 @@ def extract_number_only(filename: str) -> Optional[int]:
 def format_digest_number(
     level: str,
     number: int,
-    registry: Optional[LevelRegistryProtocol] = None,
+    registry: LevelRegistryProtocol | None = None,
 ) -> str:
     """
     レベルと番号から統一されたフォーマットの文字列を生成
@@ -197,8 +197,8 @@ def format_digest_number(
 def find_max_number(
     files: Sequence[object],
     prefix: str,
-    registry: Optional[LevelRegistryProtocol] = None,
-) -> Optional[int]:
+    registry: LevelRegistryProtocol | None = None,
+) -> int | None:
     """
     ファイルリストから指定プレフィックスの最大番号を取得
 
@@ -221,7 +221,7 @@ def find_max_number(
     if not files:
         return None
 
-    max_num: Optional[int] = None
+    max_num: int | None = None
 
     for file in files:
         # PathオブジェクトまたはStringからファイル名を取得（防御的プログラミング）
@@ -241,7 +241,7 @@ def find_max_number(
     return max_num
 
 
-def filter_files_after(files: List[Path], threshold: int) -> List[Path]:
+def filter_files_after(files: list[Path], threshold: int) -> list[Path]:
     """
     閾値より大きい番号のファイルをフィルタ
 
@@ -269,9 +269,9 @@ def filter_files_after(files: List[Path], threshold: int) -> List[Path]:
 
 
 def extract_numbers_formatted(
-    files: List[Union[str, None]],
-    registry: Optional[LevelRegistryProtocol] = None,
-) -> List[str]:
+    files: list[str | None],
+    registry: LevelRegistryProtocol | None = None,
+) -> list[str]:
     """
     ファイル名リストからフォーマット済み番号リストを抽出
 

@@ -63,7 +63,7 @@ class TestShadowStateChecker(unittest.TestCase):
                 "monthly_threshold": 5,
             },
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
     def _create_shadow_with_placeholders(self) -> None:
@@ -82,10 +82,8 @@ class TestShadowStateChecker(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -105,10 +103,8 @@ class TestShadowStateChecker(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -129,10 +125,8 @@ class TestShadowStateChecker(unittest.TestCase):
                 },
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 
@@ -279,7 +273,7 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
             "base_dir": str(self.plugin_root),
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         checker = ShadowStateChecker()
@@ -302,7 +296,7 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
             "base_dir": abs_path,
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         checker = ShadowStateChecker()
@@ -323,7 +317,7 @@ class TestShadowStateCheckerGetEssencesPath(unittest.TestCase):
             "base_dir": "~/test/path",
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         checker = ShadowStateChecker()
@@ -369,7 +363,7 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
             "base_dir": str(self.plugin_root),
             "paths": {"essences_dir": "data/Essences"},
         }
-        with open(self.persistent_config / "config.json", "w", encoding="utf-8") as f:
+        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -386,10 +380,8 @@ class TestShadowStateCheckerCLI(unittest.TestCase):
                 }
             },
         }
-        with open(
-            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt",
-            "w",
-            encoding="utf-8",
+        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
+            'w', encoding='utf-8'
         ) as f:
             json.dump(shadow_data, f)
 

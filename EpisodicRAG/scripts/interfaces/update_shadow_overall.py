@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 ShadowGrandDigest overall_digest 更新スクリプト
 
@@ -34,7 +33,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Windows環境でUTF-8入出力を有効化（CLI実行時のみ）
 if sys.platform == 'win32' and __name__ == "__main__":
@@ -62,7 +61,7 @@ _logger = get_structured_logger(__name__)
 REQUIRED_KEYS = ("digest_type", "keywords", "abstract", "impression")
 
 
-def validate_overall_payload(payload: Dict[str, Any]) -> None:
+def validate_overall_payload(payload: dict[str, Any]) -> None:
     """
     overall_digest 更新入力の構造を検証
 
@@ -87,7 +86,7 @@ def validate_overall_payload(payload: Dict[str, Any]) -> None:
 class OverallDigestUpdater:
     """ShadowGrandDigest の overall_digest 5要素を更新するクラス"""
 
-    def __init__(self, config: Optional[DigestConfig] = None):
+    def __init__(self, config: DigestConfig | None = None):
         """
         Initialize the updater.
 
@@ -101,7 +100,7 @@ class OverallDigestUpdater:
             template_factory=template.get_template,
         )
 
-    def update_overall(self, level: str, payload: Dict[str, Any]) -> Path:
+    def update_overall(self, level: str, payload: dict[str, Any]) -> Path:
         """
         指定レベルの overall_digest を更新して保存
 
@@ -172,10 +171,7 @@ Examples:
         parser.error("input_data is required unless --stdin is specified")
 
     try:
-        if args.stdin:
-            raw = sys.stdin.read()
-        else:
-            raw = Path(args.input_data).read_text(encoding="utf-8")
+        raw = sys.stdin.read() if args.stdin else Path(args.input_data).read_text(encoding="utf-8")
         payload = json.loads(raw)
 
         updater = OverallDigestUpdater(config=DigestConfig())

@@ -28,7 +28,7 @@ class TestMemoryType:
     @pytest.mark.unit
     def test_4種別が定義されている(self) -> None:
         """user, feedback, project, referenceの4種"""
-        assert VALID_MEMORY_TYPES == {"user", "feedback", "project", "reference"}
+        assert {"user", "feedback", "project", "reference"} == VALID_MEMORY_TYPES
 
     @pytest.mark.unit
     def test_VALID_MEMORY_TYPESはset(self) -> None:

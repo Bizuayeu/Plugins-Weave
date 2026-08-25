@@ -242,7 +242,7 @@ class TestFileErrorFormatterFileIOError(unittest.TestCase):
     def test_read_operation(self) -> None:
         """Message for read operation"""
         path = Path("/project/file.txt")
-        error = IOError("Permission denied")
+        error = OSError("Permission denied")
         result = self.formatter.file_io_error("read", path, error)
         self.assertIn("Failed to read file.txt", result)
         self.assertIn("Permission denied", result)
@@ -250,7 +250,7 @@ class TestFileErrorFormatterFileIOError(unittest.TestCase):
     def test_write_operation(self) -> None:
         """Message for write operation"""
         path = Path("/project/file.txt")
-        error = IOError("Disk full")
+        error = OSError("Disk full")
         result = self.formatter.file_io_error("write", path, error)
         self.assertIn("Failed to write file.txt", result)
 

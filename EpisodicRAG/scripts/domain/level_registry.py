@@ -50,7 +50,6 @@ Architecture:
 """
 
 import re
-from typing import Dict, List, Optional
 
 from domain.constants import LEVEL_CONFIG
 from domain.error_formatter import get_error_formatter
@@ -88,8 +87,8 @@ class LevelRegistry:
             >>> "weekly" in registry.get_level_names()
             True
         """
-        self._levels: Dict[str, tuple[LevelMetadata, LevelBehavior]] = {}
-        self._prefix_to_level: Dict[str, str] = {}
+        self._levels: dict[str, tuple[LevelMetadata, LevelBehavior]] = {}
+        self._prefix_to_level: dict[str, str] = {}
         self._initialize_from_config()
 
     def _initialize_from_config(self) -> None:
@@ -105,7 +104,7 @@ class LevelRegistry:
         for level_name, config in LEVEL_CONFIG.items():
             # Extract values with proper type casting
             next_val = config["next"]
-            next_level: Optional[str] = str(next_val) if next_val else None
+            next_level: str | None = str(next_val) if next_val else None
             metadata = LevelMetadata(
                 name=level_name,
                 prefix=str(config["prefix"]),
@@ -193,7 +192,7 @@ class LevelRegistry:
             raise ConfigError(formatter.config.unknown_level(level))
         return self._levels[level][0]
 
-    def get_level_names(self) -> List[str]:
+    def get_level_names(self) -> list[str]:
         """
         登録されたレベル名一覧を取得（'loop'を除く）
 
@@ -205,9 +204,9 @@ class LevelRegistry:
             >>> registry.get_level_names()
             ['weekly', 'monthly', 'quarterly', ...]
         """
-        return [name for name in self._levels.keys() if name != "loop"]
+        return [name for name in self._levels if name != "loop"]
 
-    def get_all_level_names(self) -> List[str]:
+    def get_all_level_names(self) -> list[str]:
         """
         全ての登録レベル名を取得（'loop'を含む）
 
@@ -221,7 +220,7 @@ class LevelRegistry:
         """
         return list(self._levels.keys())
 
-    def get_all_prefixes(self) -> List[str]:
+    def get_all_prefixes(self) -> list[str]:
         """
         全プレフィックスを長さ順（降順）で取得
 
@@ -239,7 +238,7 @@ class LevelRegistry:
         """
         return sorted(self._prefix_to_level.keys(), key=len, reverse=True)
 
-    def get_level_by_prefix(self, prefix: str) -> Optional[str]:
+    def get_level_by_prefix(self, prefix: str) -> str | None:
         """
         プレフィックスからレベル名を逆引き
 
@@ -300,7 +299,7 @@ class LevelRegistry:
 # Singleton アクセサ
 # =============================================================================
 
-_registry: Optional[LevelRegistry] = None
+_registry: LevelRegistry | None = None
 
 
 def get_level_registry() -> LevelRegistry:

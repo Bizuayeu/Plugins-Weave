@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -288,7 +287,7 @@ class TestJSONRoundtripInvariants:
             temp_path = f.name
 
         try:
-            with open(temp_path, "r", encoding="utf-8") as f:
+            with Path(temp_path).open(encoding="utf-8") as f:
                 loaded = json.load(f)
 
             assert loaded == config_data, "JSONラウンドトリップで内容が保持されること"

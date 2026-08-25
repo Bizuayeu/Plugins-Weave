@@ -7,7 +7,6 @@ File Appender
 """
 
 from pathlib import Path
-from typing import Dict, List, Set
 
 from domain.constants import SOURCE_TYPE_LOOPS
 from domain.types import LevelHierarchyEntry, OverallDigestData, ShadowDigestData
@@ -35,7 +34,7 @@ class FileAppender:
         shadow_io: ShadowIO,
         file_detector: FileDetector,
         template: ShadowTemplate,
-        level_hierarchy: Dict[str, LevelHierarchyEntry],
+        level_hierarchy: dict[str, LevelHierarchyEntry],
         placeholder_manager: PlaceholderManager,
     ):
         """
@@ -91,8 +90,8 @@ class FileAppender:
     def _add_new_files_to_digest(
         self,
         overall_digest: OverallDigestData,
-        new_files: List[Path],
-        existing_files: Set[str],
+        new_files: list[Path],
+        existing_files: set[str],
     ) -> int:
         """
         新規ファイルをoverall_digestに追加
@@ -117,8 +116,8 @@ class FileAppender:
 
     def _log_digest_contents_for_level(
         self,
-        new_files: List[Path],
-        existing_files: Set[str],
+        new_files: list[Path],
+        existing_files: set[str],
         level: str,
         source_type: str,
     ) -> None:
@@ -166,7 +165,7 @@ class FileAppender:
         _logger.info(f"      - abstract: {len(overall.get('abstract', ''))}文字")
         _logger.info(f"      - impression: {len(overall.get('impression', ''))}文字")
 
-    def add_files_to_shadow(self, level: str, new_files: List[Path]) -> None:
+    def add_files_to_shadow(self, level: str, new_files: list[Path]) -> None:
         """
         指定レベルのShadowに新しいファイルを追加（増分更新）
 

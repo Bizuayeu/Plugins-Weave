@@ -12,18 +12,17 @@
 """
 
 from pathlib import Path
-from typing import Optional
 
 
 def with_diagnostic_context(
     message: str,
     *,
-    config_path: Optional[Path] = None,
-    current_level: Optional[str] = None,
-    file_count: Optional[int] = None,
-    threshold: Optional[int] = None,
-    last_operation: Optional[str] = None,
-    project_root: Optional[Path] = None,
+    config_path: Path | None = None,
+    current_level: str | None = None,
+    file_count: int | None = None,
+    threshold: int | None = None,
+    last_operation: str | None = None,
+    project_root: Path | None = None,
 ) -> str:
     """
     診断情報付きエラーメッセージを生成

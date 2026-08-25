@@ -16,7 +16,7 @@ Usage:
 
 import json
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from domain.config.config_constants import REQUIRED_CONFIG_KEYS
 from domain.exceptions import ConfigError
@@ -48,7 +48,7 @@ class ConfigLoader:
             config_file: 設定ファイルのパス
         """
         self.config_file = config_file
-        self._config: Optional[ConfigData] = None
+        self._config: ConfigData | None = None
 
     def load(self) -> ConfigData:
         """
@@ -110,7 +110,7 @@ class ConfigLoader:
             )
 
         try:
-            with open(self.config_file, "r", encoding="utf-8") as f:
+            with self.config_file.open(encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             raise ConfigError(invalid_json_message(self.config_file, e)) from e
@@ -215,7 +215,7 @@ class ConfigLoader:
     # 必須の設定キー（共通定数を参照）
     REQUIRED_KEYS = REQUIRED_CONFIG_KEYS
 
-    def validate_required_keys(self) -> List[str]:
+    def validate_required_keys(self) -> list[str]:
         """
         設定の必須キーを検証
 
@@ -232,7 +232,7 @@ class ConfigLoader:
         """
         config = self.load()
         config_dict = as_dict(config)
-        errors: List[str] = []
+        errors: list[str] = []
         for key in self.REQUIRED_KEYS:
             if key not in config_dict:
                 errors.append(f"Required key missing: '{key}'")

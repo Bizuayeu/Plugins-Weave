@@ -11,7 +11,6 @@ Functions:
 """
 
 import re
-from typing import List, Optional
 
 __all__ = [
     "extract_file_number",
@@ -19,7 +18,7 @@ __all__ = [
 ]
 
 
-def extract_file_number(filename: str) -> Optional[int]:
+def extract_file_number(filename: str) -> int | None:
     """ファイル名から番号を抽出
 
     L00001, W0001, M001 などのパターンにマッチし、番号部分を返す。
@@ -44,7 +43,7 @@ def extract_file_number(filename: str) -> Optional[int]:
     return None
 
 
-def find_gaps(numbers: List[int]) -> List[int]:
+def find_gaps(numbers: list[int]) -> list[int]:
     """連番のギャップを検出
 
     与えられた数値リストの最小値から最大値の間で、

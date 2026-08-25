@@ -10,21 +10,20 @@ Usage:
     from domain.config.config_constants import REQUIRED_CONFIG_KEYS, THRESHOLD_KEYS
 """
 
-from typing import List
 
 # =============================================================================
 # 必須設定キー
 # =============================================================================
 
 # 設定ファイルに必須のキー
-REQUIRED_CONFIG_KEYS: List[str] = ["loops_path", "digests_path", "essences_path"]
+REQUIRED_CONFIG_KEYS: list[str] = ["loops_path", "digests_path", "essences_path"]
 
 # =============================================================================
 # 閾値キー
 # =============================================================================
 
 # 各レベルの閾値キー（設定ファイルで使用）
-THRESHOLD_KEYS: List[str] = [
+THRESHOLD_KEYS: list[str] = [
     "weekly_threshold",
     "monthly_threshold",
     "quarterly_threshold",

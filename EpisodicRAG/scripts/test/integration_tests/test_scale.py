@@ -8,11 +8,10 @@ Tests that verify system behavior with large amounts of data.
 import json
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -32,7 +31,7 @@ import pytest
 
 
 @pytest.fixture
-def many_loop_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
+def many_loop_files(temp_plugin_env: "TempPluginEnvironment") -> list[Path]:
     """Create many Loop files for scale testing."""
     loops_path = temp_plugin_env.loops_path
     files = []
@@ -52,7 +51,7 @@ def many_loop_files(temp_plugin_env: "TempPluginEnvironment") -> List[Path]:
                 "keywords": [f"kw{j}" for j in range(i % 10 + 1)],
             },
         }
-        with open(file_path, "w", encoding="utf-8") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(content, f, ensure_ascii=False)
         files.append(file_path)
 
@@ -76,7 +75,7 @@ def deep_hierarchy_setup(temp_plugin_env: "TempPluginEnvironment"):
             "metadata": {"version": "1.0", "level": level},
             "pending_sources": [],
         }
-        with open(shadow_path, "w", encoding="utf-8") as f:
+        with shadow_path.open("w", encoding="utf-8") as f:
             json.dump(shadow_data, f)
 
     return temp_plugin_env
@@ -112,7 +111,7 @@ class TestLargeDataVolumes:
 
         loaded_count = 0
         for file_path in many_loop_files[:100]:  # Test with first 100
-            with open(file_path, "r", encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 data = json.load(f)
             if "overall_digest" in data:
                 loaded_count += 1
@@ -233,11 +232,11 @@ class TestMemoryPressure:
         }
 
         # Write large file
-        with open(large_file, "w", encoding="utf-8") as f:
+        with large_file.open("w", encoding="utf-8") as f:
             json.dump(large_data, f)
 
         # Read it back
-        with open(large_file, "r", encoding="utf-8") as f:
+        with large_file.open(encoding="utf-8") as f:
             loaded = json.load(f)
 
         assert len(loaded["items"]) == 1000
@@ -249,7 +248,7 @@ class TestMemoryPressure:
 
         # Process files one at a time
         for file_path in many_loop_files[:200]:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 data = json.load(f)
 
             keywords = data.get("overall_digest", {}).get("keywords", [])
@@ -283,7 +282,7 @@ class TestThroughput:
         for i in range(100):
             file_path = output_dir / f"file_{i:04d}.json"
             data = {"index": i, "data": f"content {i}" * 10}
-            with open(file_path, "w", encoding="utf-8") as f:
+            with file_path.open("w", encoding="utf-8") as f:
                 json.dump(data, f)
 
         elapsed = time.perf_counter() - start
@@ -294,7 +293,7 @@ class TestThroughput:
         assert len(created) == 100
         for i, file_path in enumerate(created):
             assert file_path.name == f"file_{i:04d}.json"
-            with open(file_path, "r", encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 assert json.load(f) == {"index": i, "data": f"content {i}" * 10}
 
         # Throughput is environment-dependent: reported, not asserted

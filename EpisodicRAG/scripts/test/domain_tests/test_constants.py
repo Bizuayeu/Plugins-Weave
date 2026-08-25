@@ -112,4 +112,4 @@ class TestDigestLevelNames:
             "multi_decadal",
             "centurial",
         ]
-        assert DIGEST_LEVEL_NAMES == expected_levels
+        assert expected_levels == DIGEST_LEVEL_NAMES

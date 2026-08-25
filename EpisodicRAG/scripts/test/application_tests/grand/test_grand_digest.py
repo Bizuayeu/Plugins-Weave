@@ -13,7 +13,6 @@ from unittest.mock import MagicMock
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Dict, List, Tuple
 
     from test_helpers import TempPluginEnvironment
 
@@ -135,7 +134,7 @@ class TestGrandDigestManagerIntegration:
         # ファイルを作成
         test_data = {"metadata": {"custom": True}, "major_digests": {}}
         grand_manager.grand_digest_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(grand_manager.grand_digest_file, 'w', encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open('w', encoding='utf-8') as f:
             json.dump(test_data, f)
 
         data = grand_manager.load_or_create()
@@ -148,7 +147,7 @@ class TestGrandDigestManagerIntegration:
         from domain.exceptions import FileIOError
 
         grand_manager.grand_digest_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(grand_manager.grand_digest_file, 'w', encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open('w', encoding='utf-8') as f:
             f.write("not valid json {{{")
 
         with pytest.raises(FileIOError):
@@ -182,7 +181,7 @@ class TestGrandDigestManagerIntegration:
         test_data = {"test": "data", "number": 123, "nested": {"key": "value"}}
         grand_manager.save(test_data)
 
-        with open(grand_manager.grand_digest_file, 'r', encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open(encoding='utf-8') as f:
             loaded = json.load(f)
 
         assert loaded == test_data
@@ -263,7 +262,7 @@ class TestGrandDigestManagerIntegration:
         """update_digest() はmajor_digestsがない場合にDigestErrorを発生"""
         # major_digestsがないファイルを作成
         grand_manager.grand_digest_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(grand_manager.grand_digest_file, 'w', encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open('w', encoding='utf-8') as f:
             json.dump({"metadata": {}}, f)
 
         with pytest.raises(DigestError) as exc_info:

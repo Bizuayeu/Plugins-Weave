@@ -37,7 +37,7 @@ Usage:
 """
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from domain.constants import DIGEST_LEVEL_NAMES, build_level_hierarchy
 from domain.file_constants import SHADOW_GRAND_DIGEST_FILENAME
@@ -79,7 +79,7 @@ class CascadeComponents:
     cascade_processor: "CascadeProcessor"
     file_detector: "FileDetector"
     file_appender: "FileAppender"
-    level_hierarchy: Dict[str, LevelHierarchyEntry]
+    level_hierarchy: dict[str, LevelHierarchyEntry]
 
     @classmethod
     def from_config(cls, config: "DigestConfig") -> "CascadeComponents":
