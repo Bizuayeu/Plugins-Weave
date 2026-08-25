@@ -70,7 +70,7 @@ class TestConfigEditor(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -125,7 +125,7 @@ class TestConfigEditor(unittest.TestCase):
         assert result["new_value"] == 7
 
         # ファイルが更新されていることを確認（永続化ディレクトリ）
-        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open(encoding="utf-8") as f:
             saved_config = json.load(f)
         assert saved_config["levels"]["weekly_threshold"] == 7
 
@@ -162,7 +162,7 @@ class TestConfigEditor(unittest.TestCase):
         new_config = {"base_dir": "../other"}
         editor.update(new_config)
 
-        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open(encoding="utf-8") as f:
             saved_config = json.load(f)
 
         assert "_comment_base_dir" in saved_config
@@ -307,7 +307,7 @@ class TestConfigEditorResolvePath(unittest.TestCase):
                 "loops_dir": "data/Loops",
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -353,7 +353,7 @@ class TestConfigEditorSetValueErrors(unittest.TestCase):
             "base_dir": ".",
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def tearDown(self) -> None:
@@ -415,7 +415,7 @@ class TestConfigEditorIdentityPath(unittest.TestCase):
                 "identity_file_path": "identity.json",
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         editor = ConfigEditor()

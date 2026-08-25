@@ -47,7 +47,9 @@ CONFIG_NAME = "wakeup.config.json"
 _TOKEN_EXTS = (".tar.gz", ".tgz", ".tar", ".gz", ".zip")
 # Resolved from this file (interfaces/ -> scripts/ -> skill root), so it follows the
 # zip wherever it lands — /mnt/skills/user/wakeup once claude.ai expands it.
-SKILL_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SKILL_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
 
 def resolve_urls(repo: RepoRef, ref: str, files: tuple[LoadFile, ...]) -> list[str]:
@@ -111,7 +113,9 @@ class FsProbe:
         except OSError:
             return ()
         return tuple(
-            n for n in names if n.lower().startswith("token") and n.lower().endswith(_TOKEN_EXTS)
+            n
+            for n in names
+            if n.lower().startswith("token") and n.lower().endswith(_TOKEN_EXTS)
         )
 
     def token_readable(self, name: str) -> bool:
@@ -122,7 +126,9 @@ class FsProbe:
             return False
 
 
-def materialize(config_path: str, out_dir: str, token_path: str | None = None) -> list[str]:
+def materialize(
+    config_path: str, out_dir: str, token_path: str | None = None
+) -> list[str]:
     """Copy the ★ artifacts (config, directive, token) into ``out_dir``.
 
     The persona's config is the single source of truth and may live anywhere; the

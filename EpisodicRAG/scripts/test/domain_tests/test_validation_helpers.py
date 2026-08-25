@@ -244,7 +244,9 @@ class TestCollectListElementErrors:
     def test_multiple_invalid_elements(self) -> None:
         """複数の無効な要素があるとすべてエラー追加"""
         errors = []
-        collect_list_element_errors([1, "wrong", 3, "also wrong"], int, "numbers", errors)
+        collect_list_element_errors(
+            [1, "wrong", 3, "also wrong"], int, "numbers", errors
+        )
         assert len(errors) == 2
         assert "numbers[1]" in errors[0]
         assert "numbers[3]" in errors[1]

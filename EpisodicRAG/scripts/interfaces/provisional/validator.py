@@ -46,7 +46,9 @@ def validate_long_short_text(value: Any, field_name: str, index: int) -> None:
         )
 
     if not isinstance(value["long"], str) or not isinstance(value["short"], str):
-        raise ValidationError(f"{field_name} at index {index}: 'long' and 'short' must be strings")
+        raise ValidationError(
+            f"{field_name} at index {index}: 'long' and 'short' must be strings"
+        )
 
 
 def validate_individual_digest(digest: Any, index: int, context: str = "") -> None:
@@ -69,7 +71,9 @@ def validate_individual_digest(digest: Any, index: int, context: str = "") -> No
     formatter = get_error_formatter()
     if not is_valid_dict(digest):
         raise ValidationError(
-            formatter.validation.invalid_type(f"{prefix}digest at index {index}", "dict", digest)
+            formatter.validation.invalid_type(
+                f"{prefix}digest at index {index}", "dict", digest
+            )
         )
     if "source_file" not in digest:
         raise ValidationError(

@@ -22,7 +22,9 @@ if TYPE_CHECKING:
 class TestJsonRepositoryTypeSafety:
     """JSON操作の型安全性テスト"""
 
-    def test_load_json_returns_dict(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_load_json_returns_dict(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """load_jsonがDict型を返すことを確認"""
         from infrastructure.json_repository import load_json
 
@@ -36,7 +38,9 @@ class TestJsonRepositoryTypeSafety:
         assert result["key"] == "value"
         assert result["count"] == 42
 
-    def test_save_json_accepts_dict(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_save_json_accepts_dict(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """save_jsonがDict型を受け入れることを確認"""
         from infrastructure.json_repository import load_json, save_json
 
@@ -74,7 +78,9 @@ class TestJsonRepositoryTypeSafety:
 
         assert result is None
 
-    def test_safe_read_json_with_valid_file(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_safe_read_json_with_valid_file(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """safe_read_jsonが有効なファイルを読み込めることを確認"""
         from infrastructure.json_repository import safe_read_json
 
@@ -137,7 +143,7 @@ class TestJsonRepositoryErrorHandling:
         from infrastructure.json_repository import safe_read_json
 
         test_file = temp_plugin_env.plugin_root / "invalid.json"
-        test_file.write_text('not valid json', encoding="utf-8")
+        test_file.write_text("not valid json", encoding="utf-8")
 
         with pytest.raises(FileIOError):
             safe_read_json(test_file, raise_on_error=True)

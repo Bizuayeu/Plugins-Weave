@@ -123,7 +123,9 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         shadow_manager = ShadowGrandDigestManager(config)
         new_files = shadow_manager._detector.find_new_files("weekly")
 
-        assert len(new_files) == file_count, f"閾値-1={file_count}件のファイルが検出されること"
+        assert len(new_files) == file_count, (
+            f"閾値-1={file_count}件のファイルが検出されること"
+        )
 
         shadow_manager.add_files_to_shadow("weekly", new_files)
         weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
@@ -149,7 +151,9 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         shadow_manager = ShadowGrandDigestManager(config)
         new_files = shadow_manager._detector.find_new_files("weekly")
 
-        assert len(new_files) == threshold, f"閾値={threshold}件のファイルが検出されること"
+        assert len(new_files) == threshold, (
+            f"閾値={threshold}件のファイルが検出されること"
+        )
 
         shadow_manager.add_files_to_shadow("weekly", new_files)
         weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
@@ -176,7 +180,9 @@ class TestWeeklyThresholdBoundary(TestThresholdBoundaryBase):
         shadow_manager = ShadowGrandDigestManager(config)
         new_files = shadow_manager._detector.find_new_files("weekly")
 
-        assert len(new_files) == file_count, f"閾値+1={file_count}件のファイルが検出されること"
+        assert len(new_files) == file_count, (
+            f"閾値+1={file_count}件のファイルが検出されること"
+        )
 
         shadow_manager.add_files_to_shadow("weekly", new_files)
         weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
@@ -230,7 +236,9 @@ class TestAllLevelThresholds(TestThresholdBoundaryBase):
             ("centurial", 4),  # LEVEL_CONFIGに統合済み
         ],
     )
-    def test_default_threshold_values(self, boundary_env, level, expected_threshold) -> None:
+    def test_default_threshold_values(
+        self, boundary_env, level, expected_threshold
+    ) -> None:
         """
         デフォルト閾値が期待通りであること
 
@@ -335,7 +343,9 @@ class TestEdgeCases(TestThresholdBoundaryBase):
 
         weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")
         initial_count = len(weekly_shadow["source_files"])
-        assert initial_count == 3, f"初回追加で3件追加されるべき（実際: {initial_count}）"
+        assert initial_count == 3, (
+            f"初回追加で3件追加されるべき（実際: {initial_count}）"
+        )
 
         # 2回目の追加（同じファイルを直接追加）
         # add_files_to_shadowは内部で重複を防止するはず
@@ -353,7 +363,9 @@ class TestEdgeCases(TestThresholdBoundaryBase):
 class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
     """追加のエッジケース境界値テスト"""
 
-    def test_threshold_equals_one(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_threshold_equals_one(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """
         閾値=1の特殊ケース
 
@@ -435,7 +447,9 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
         shadow_manager = ShadowGrandDigestManager(config)
         new_files = shadow_manager._detector.find_new_files("weekly")
 
-        assert len(new_files) == file_count, f"閾値-2={file_count}件のファイルが検出されること"
+        assert len(new_files) == file_count, (
+            f"閾値-2={file_count}件のファイルが検出されること"
+        )
 
         # 閾値に達していないことを確認
         assert file_count < threshold, "ファイル数が閾値未満であること"
@@ -458,7 +472,9 @@ class TestEdgeCaseBoundaries(TestThresholdBoundaryBase):
         shadow_manager = ShadowGrandDigestManager(config)
         new_files = shadow_manager._detector.find_new_files("weekly")
 
-        assert len(new_files) == file_count, f"閾値+2={file_count}件のファイルが検出されること"
+        assert len(new_files) == file_count, (
+            f"閾値+2={file_count}件のファイルが検出されること"
+        )
 
         shadow_manager.add_files_to_shadow("weekly", new_files)
         weekly_shadow = shadow_manager.get_shadow_digest_for_level("weekly")

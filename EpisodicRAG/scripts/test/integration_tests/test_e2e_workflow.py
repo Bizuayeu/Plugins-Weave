@@ -157,9 +157,11 @@ class TestE2EDigestPromotion:
         grand_file = temp_plugin_env.essences_path / "GrandDigest.txt"
         grand_template = {
             "metadata": {"version": "test"},
-            "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
+            "major_digests": {
+                level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES
+            },
         }
-        with grand_file.open('w', encoding='utf-8') as f:
+        with grand_file.open("w", encoding="utf-8") as f:
             json.dump(grand_template, f, ensure_ascii=False, indent=2)
 
         return {
@@ -260,7 +262,7 @@ class TestE2ECascadeProcessing:
         for i in range(1, 3):
             filename = f"W{i:04d}_test.txt"
             filepath = weekly_dir / filename
-            with filepath.open('w', encoding='utf-8') as f:
+            with filepath.open("w", encoding="utf-8") as f:
                 json.dump({"test": f"weekly{i}"}, f)
 
         # ShadowGrandDigestManagerを初期化
@@ -303,9 +305,11 @@ class TestE2EFullWorkflow:
         grand_file = temp_plugin_env.essences_path / "GrandDigest.txt"
         grand_template = {
             "metadata": {"version": "test"},
-            "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
+            "major_digests": {
+                level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES
+            },
         }
-        with grand_file.open('w', encoding='utf-8') as f:
+        with grand_file.open("w", encoding="utf-8") as f:
             json.dump(grand_template, f, ensure_ascii=False, indent=2)
 
         return {

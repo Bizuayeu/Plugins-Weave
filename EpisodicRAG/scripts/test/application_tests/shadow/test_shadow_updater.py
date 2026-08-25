@@ -181,7 +181,7 @@ class TestClearShadowLevel:
         # weekly digestファイルを作成（monthlyのソース）
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         weekly_file = weekly_dir / "W0001_test.txt"
-        with weekly_file.open('w', encoding='utf-8') as f:
+        with weekly_file.open("w", encoding="utf-8") as f:
             json.dump({"overall_digest": {"test": "data"}}, f)
 
         updater.add_files_to_shadow("monthly", [weekly_file])
@@ -190,8 +190,18 @@ class TestClearShadowLevel:
         updater.clear_shadow_level("weekly")
 
         shadow_data = shadow_io.load_or_create()
-        assert shadow_data["latest_digests"]["weekly"]["overall_digest"]["source_files"] == []
-        assert len(shadow_data["latest_digests"]["monthly"]["overall_digest"]["source_files"]) == 1
+        assert (
+            shadow_data["latest_digests"]["weekly"]["overall_digest"]["source_files"]
+            == []
+        )
+        assert (
+            len(
+                shadow_data["latest_digests"]["monthly"]["overall_digest"][
+                    "source_files"
+                ]
+            )
+            == 1
+        )
 
 
 # =============================================================================
@@ -244,7 +254,9 @@ class TestUpdateShadowForNewLoops:
     """update_shadow_for_new_loops メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_does_nothing_when_no_new_files(self, updater, shadow_io: "ShadowIO") -> None:
+    def test_does_nothing_when_no_new_files(
+        self, updater, shadow_io: "ShadowIO"
+    ) -> None:
         """新しいファイルがない場合は何もしない"""
         updater.update_shadow_for_new_loops()
 
@@ -333,7 +345,9 @@ class TestCascadeUpdateOnDigestFinalize:
         assert overall["source_files"] == []
 
     @pytest.mark.integration
-    def test_does_not_cascade_from_centurial(self, updater, shadow_io: "ShadowIO") -> None:
+    def test_does_not_cascade_from_centurial(
+        self, updater, shadow_io: "ShadowIO"
+    ) -> None:
         """centurial（最上位）からはカスケードしない"""
         # centurialにはnext=Noneなのでカスケードしない
         updater.cascade_update_on_digest_finalize("centurial")
@@ -378,7 +392,10 @@ class TestPromoteShadowToGrand:
 
     @pytest.mark.integration
     def test_promote_shadow_to_grand_with_files(
-        self, updater, temp_plugin_env: "TempPluginEnvironment", capsys: pytest.CaptureFixture[str]
+        self,
+        updater,
+        temp_plugin_env: "TempPluginEnvironment",
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """ファイルがある場合、昇格準備完了をログ出力"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)
@@ -405,7 +422,10 @@ class TestPromoteShadowToGrand:
 
     @pytest.mark.integration
     def test_promote_shadow_to_grand_after_clear(
-        self, updater, temp_plugin_env: "TempPluginEnvironment", capsys: pytest.CaptureFixture[str]
+        self,
+        updater,
+        temp_plugin_env: "TempPluginEnvironment",
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """クリア後は昇格対象なし"""
         loop1 = create_test_loop_file(temp_plugin_env.loops_path, 1)

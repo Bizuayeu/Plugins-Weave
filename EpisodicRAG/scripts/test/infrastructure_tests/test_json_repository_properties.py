@@ -66,7 +66,12 @@ class TestJsonRoundtripProperties:
         """Unicode characters are preserved in roundtrip"""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Add unicode content to data
-            unicode_data = {"japanese": "こんにちは", "korean": "안녕하세요", "emoji": "🎉", **data}
+            unicode_data = {
+                "japanese": "こんにちは",
+                "korean": "안녕하세요",
+                "emoji": "🎉",
+                **data,
+            }
             file_path = Path(tmp_dir) / "unicode.json"
 
             save_json(file_path, unicode_data)
@@ -113,7 +118,7 @@ class TestTryLoadJsonProperties:
             default = {"fallback": True}
             for i, content in enumerate(invalid_contents):
                 file_path = Path(tmp_dir) / f"invalid_{i}.json"
-                file_path.write_text(content, encoding='utf-8')
+                file_path.write_text(content, encoding="utf-8")
 
                 # Should not raise
                 result = try_load_json(file_path, default=default)
@@ -124,7 +129,9 @@ class TestTryLoadJsonProperties:
     @pytest.mark.property
     @pytest.mark.integration
     @given(data=simple_json_dicts)
-    @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow], deadline=1000)
+    @settings(
+        max_examples=30, suppress_health_check=[HealthCheck.too_slow], deadline=1000
+    )
     def test_returns_data_for_valid_file(self, data) -> None:
         """try_load_json returns data for valid file"""
         with tempfile.TemporaryDirectory() as tmp_dir:

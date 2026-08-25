@@ -71,7 +71,9 @@ class ShadowIO:
         save()時にmetadata.last_updatedが自動更新される。
     """
 
-    def __init__(self, shadow_digest_file: Path, template_factory: Callable[[], ShadowDigestData]):
+    def __init__(
+        self, shadow_digest_file: Path, template_factory: Callable[[], ShadowDigestData]
+    ):
         """
         初期化
 
@@ -123,7 +125,9 @@ class ShadowIO:
         log_debug(f"{LOG_PREFIX_VALIDATE} data_keys: {list(data.keys())}")
 
         data["metadata"]["last_updated"] = datetime.now().isoformat()
-        log_debug(f"{LOG_PREFIX_STATE} updated_timestamp: {data['metadata']['last_updated']}")
+        log_debug(
+            f"{LOG_PREFIX_STATE} updated_timestamp: {data['metadata']['last_updated']}"
+        )
 
         # Cast TypedDict to Dict for infrastructure compatibility
         save_json(self.shadow_digest_file, as_dict(data))

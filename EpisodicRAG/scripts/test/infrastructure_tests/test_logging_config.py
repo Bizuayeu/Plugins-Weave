@@ -291,7 +291,9 @@ class TestLogError:
         assert exc_info.value.code == 1
 
     @pytest.mark.unit
-    def test_does_not_exit_without_exit_code(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_does_not_exit_without_exit_code(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """exit_code未指定時は終了しない"""
         with caplog.at_level(logging.ERROR, logger="episodic_rag"):
             log_error("Non-fatal error")  # Should not raise
@@ -424,7 +426,9 @@ class TestHandlerEncodingSafety:
         return errors
 
     @pytest.mark.unit
-    def test_emdash_info_does_not_hit_handle_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_emdash_info_does_not_hit_handle_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """em-dash を含む INFO ログが UnicodeEncodeError を起こさない"""
         self._make_console(monkeypatch, "cp932")
         errors = self._emit_and_collect_errors(self.EMDASH_MESSAGE)
@@ -436,11 +440,15 @@ class TestHandlerEncodingSafety:
     ) -> None:
         """em-dash を含む WARNING ログ（stderr handler）も安全"""
         self._make_console(monkeypatch, "cp932")
-        errors = self._emit_and_collect_errors(self.EMDASH_MESSAGE, level=logging.WARNING)
+        errors = self._emit_and_collect_errors(
+            self.EMDASH_MESSAGE, level=logging.WARNING
+        )
         assert errors == [], f"handler がエンコード失敗を報告: {errors}"
 
     @pytest.mark.unit
-    def test_emdash_message_content_reaches_stdout(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_emdash_message_content_reaches_stdout(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """メッセージ本体が失われず stdout 側バッファへ到達する"""
         out_buf, _ = self._make_console(monkeypatch, "cp932")
         self._emit_and_collect_errors(self.EMDASH_MESSAGE)

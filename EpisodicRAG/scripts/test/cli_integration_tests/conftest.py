@@ -179,8 +179,12 @@ def _create_template_files(config_dir: Path) -> None:
     ]
 
     # last_digest_times.template.json
-    times_template = {level: {"timestamp": "", "last_processed": None} for level in levels}
-    with (config_dir / 'last_digest_times.template.json').open('w', encoding='utf-8') as f:
+    times_template = {
+        level: {"timestamp": "", "last_processed": None} for level in levels
+    }
+    with (config_dir / "last_digest_times.template.json").open(
+        "w", encoding="utf-8"
+    ) as f:
         json.dump(times_template, f, indent=2, ensure_ascii=False)
 
     # GrandDigest.template.txt
@@ -188,7 +192,7 @@ def _create_template_files(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "major_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with (config_dir / 'GrandDigest.template.txt').open('w', encoding='utf-8') as f:
+    with (config_dir / "GrandDigest.template.txt").open("w", encoding="utf-8") as f:
         json.dump(grand_template, f, indent=2, ensure_ascii=False)
 
     # ShadowGrandDigest.template.txt
@@ -196,7 +200,9 @@ def _create_template_files(config_dir: Path) -> None:
         "metadata": {"last_updated": None, "version": "1.0"},
         "latest_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with (config_dir / 'ShadowGrandDigest.template.txt').open('w', encoding='utf-8') as f:
+    with (config_dir / "ShadowGrandDigest.template.txt").open(
+        "w", encoding="utf-8"
+    ) as f:
         json.dump(shadow_template, f, indent=2, ensure_ascii=False)
 
 
@@ -218,7 +224,7 @@ def _create_essence_files(essences_path: Path) -> None:
         "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
         "major_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with (essences_path / 'GrandDigest.txt').open('w', encoding='utf-8') as f:
+    with (essences_path / "GrandDigest.txt").open("w", encoding="utf-8") as f:
         json.dump(grand_data, f, indent=2, ensure_ascii=False)
 
     # ShadowGrandDigest.txt
@@ -226,7 +232,7 @@ def _create_essence_files(essences_path: Path) -> None:
         "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
         "latest_digests": {level: {"overall_digest": None} for level in levels},
     }
-    with (essences_path / 'ShadowGrandDigest.txt').open('w', encoding='utf-8') as f:
+    with (essences_path / "ShadowGrandDigest.txt").open("w", encoding="utf-8") as f:
         json.dump(shadow_data, f, indent=2, ensure_ascii=False)
 
 

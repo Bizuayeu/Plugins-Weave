@@ -362,7 +362,9 @@ class TestStructuredLoggerIntegration:
     """構造化ロガーの統合テスト"""
 
     @pytest.mark.unit
-    def test_multiple_log_methods_in_sequence(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_multiple_log_methods_in_sequence(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """複数のログメソッドを順次呼び出し"""
         logger = get_structured_logger("integration_test")
 
@@ -378,7 +380,9 @@ class TestStructuredLoggerIntegration:
         assert "[DECISION]" in caplog.text
 
     @pytest.mark.unit
-    def test_log_not_shown_at_info_level(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_log_not_shown_at_info_level(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """INFOレベルではDEBUGログは表示されない"""
         logger = get_structured_logger("test")
 

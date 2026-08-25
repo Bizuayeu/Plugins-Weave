@@ -62,12 +62,16 @@ class TestShadowIORoundtripProperties:
             data1 = io.load_or_create()
 
             # source_files設定
-            data1["latest_digests"]["weekly"]["overall_digest"]["source_files"] = source_files
+            data1["latest_digests"]["weekly"]["overall_digest"]["source_files"] = (
+                source_files
+            )
             io.save(data1)
 
             # 再読み込み
             data2 = io.load_or_create()
-            loaded_files = data2["latest_digests"]["weekly"]["overall_digest"]["source_files"]
+            loaded_files = data2["latest_digests"]["weekly"]["overall_digest"][
+                "source_files"
+            ]
 
             assert loaded_files == source_files
 
@@ -91,14 +95,22 @@ class TestShadowIORoundtripProperties:
             data1 = io.load_or_create()
 
             # テキストフィールド設定
-            data1["latest_digests"]["weekly"]["overall_digest"]["abstract"] = abstract_text
-            data1["latest_digests"]["weekly"]["overall_digest"]["impression"] = impression_text
+            data1["latest_digests"]["weekly"]["overall_digest"]["abstract"] = (
+                abstract_text
+            )
+            data1["latest_digests"]["weekly"]["overall_digest"]["impression"] = (
+                impression_text
+            )
             io.save(data1)
 
             # 再読み込み
             data2 = io.load_or_create()
-            loaded_abstract = data2["latest_digests"]["weekly"]["overall_digest"]["abstract"]
-            loaded_impression = data2["latest_digests"]["weekly"]["overall_digest"]["impression"]
+            loaded_abstract = data2["latest_digests"]["weekly"]["overall_digest"][
+                "abstract"
+            ]
+            loaded_impression = data2["latest_digests"]["weekly"]["overall_digest"][
+                "impression"
+            ]
 
             assert loaded_abstract == abstract_text
             assert loaded_impression == impression_text
@@ -119,12 +131,16 @@ class TestShadowIORoundtripProperties:
 
             # 指定レベルを更新
             test_files = [f"test_file_for_{level}.txt"]
-            data1["latest_digests"][level]["overall_digest"]["source_files"] = test_files
+            data1["latest_digests"][level]["overall_digest"]["source_files"] = (
+                test_files
+            )
             io.save(data1)
 
             # 再読み込み
             data2 = io.load_or_create()
-            loaded_files = data2["latest_digests"][level]["overall_digest"]["source_files"]
+            loaded_files = data2["latest_digests"][level]["overall_digest"][
+                "source_files"
+            ]
 
             assert loaded_files == test_files
 
@@ -220,16 +236,18 @@ class TestShadowIOCreationProperties:
 
             # 初回作成と変更
             data1 = io.load_or_create()
-            data1["latest_digests"]["weekly"]["overall_digest"]["source_files"] = ["existing.txt"]
+            data1["latest_digests"]["weekly"]["overall_digest"]["source_files"] = [
+                "existing.txt"
+            ]
             io.save(data1)
 
             # 新しいIOインスタンスで読み込み
             io2 = ShadowIO(shadow_file, template.get_template)
             data2 = io2.load_or_create()
 
-            assert data2["latest_digests"]["weekly"]["overall_digest"]["source_files"] == [
-                "existing.txt"
-            ]
+            assert data2["latest_digests"]["weekly"]["overall_digest"][
+                "source_files"
+            ] == ["existing.txt"]
 
 
 # =============================================================================

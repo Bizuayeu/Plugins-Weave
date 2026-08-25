@@ -65,7 +65,9 @@ class SourcePathResolver:
             Path('/digests/1_Weekly')
         """
         if level not in LEVEL_CONFIG:
-            raise ConfigError(f"Invalid level: '{level}'. Valid levels: {', '.join(LEVEL_NAMES)}")
+            raise ConfigError(
+                f"Invalid level: '{level}'. Valid levels: {', '.join(LEVEL_NAMES)}"
+            )
 
         source_type = str(LEVEL_CONFIG[level]["source"])
 
@@ -94,7 +96,9 @@ class SourcePathResolver:
             'W*.txt'
         """
         if level not in LEVEL_CONFIG:
-            raise ConfigError(f"Invalid level: '{level}'. Valid levels: {', '.join(LEVEL_NAMES)}")
+            raise ConfigError(
+                f"Invalid level: '{level}'. Valid levels: {', '.join(LEVEL_NAMES)}"
+            )
 
         source_type = str(LEVEL_CONFIG[level]["source"])
 

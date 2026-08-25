@@ -11,7 +11,10 @@ from pathlib import Path
 
 from domain.exceptions import ConfigError
 from domain.types import ConfigData
-from infrastructure.config.error_messages import file_not_found_message, invalid_json_message
+from infrastructure.config.error_messages import (
+    file_not_found_message,
+    invalid_json_message,
+)
 
 
 def load_config(config_file: Path) -> ConfigData:
@@ -33,10 +36,12 @@ def load_config(config_file: Path) -> ConfigData:
         "."
     """
     if not config_file.exists():
-        raise ConfigError(f"{file_not_found_message(config_file)}\nRun @digest-setup skill")
+        raise ConfigError(
+            f"{file_not_found_message(config_file)}\nRun @digest-setup skill"
+        )
 
     try:
-        with config_file.open(encoding='utf-8') as f:
+        with config_file.open(encoding="utf-8") as f:
             data: ConfigData = json.load(f)
             return data
     except json.JSONDecodeError as e:

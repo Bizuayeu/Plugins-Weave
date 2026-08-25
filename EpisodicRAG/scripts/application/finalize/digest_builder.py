@@ -138,11 +138,15 @@ class RegularDigestBuilder:
         normalized: list[IndividualDigestData] = []
         for digest in individual_digests:
             normalized_digest = dict(digest)  # コピー作成
-            normalized_digest["abstract"] = RegularDigestBuilder._extract_short_or_string(
-                digest.get("abstract", "")
+            normalized_digest["abstract"] = (
+                RegularDigestBuilder._extract_short_or_string(
+                    digest.get("abstract", "")
+                )
             )
-            normalized_digest["impression"] = RegularDigestBuilder._extract_short_or_string(
-                digest.get("impression", "")
+            normalized_digest["impression"] = (
+                RegularDigestBuilder._extract_short_or_string(
+                    digest.get("impression", "")
+                )
             )
             normalized.append(cast(IndividualDigestData, normalized_digest))
         return normalized
@@ -181,8 +185,12 @@ class RegularDigestBuilder:
 
         # abstract/impression は string型 または {"long": str, "short": str} 型に対応
         # overall_digest には long 版を使用
-        abstract = RegularDigestBuilder._extract_long_value(shadow_digest.get("abstract", ""))
-        impression = RegularDigestBuilder._extract_long_value(shadow_digest.get("impression", ""))
+        abstract = RegularDigestBuilder._extract_long_value(
+            shadow_digest.get("abstract", "")
+        )
+        impression = RegularDigestBuilder._extract_long_value(
+            shadow_digest.get("impression", "")
+        )
 
         return {
             "metadata": {

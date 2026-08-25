@@ -111,7 +111,9 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         self.total_loops_created += 1
 
         # 実際にファイルを作成
-        loop_file = self.base_path / "Loops" / f"L{self.total_loops_created:05d}_Test.txt"
+        loop_file = (
+            self.base_path / "Loops" / f"L{self.total_loops_created:05d}_Test.txt"
+        )
         loop_file.write_text(
             json.dumps(
                 {
@@ -188,7 +190,9 @@ class DigestWorkflowStateMachine(RuleBasedStateMachine):
         """カウントは常に非負"""
         assert self.loop_count >= 0, f"loop_count is negative: {self.loop_count}"
         assert self.weekly_count >= 0, f"weekly_count is negative: {self.weekly_count}"
-        assert self.monthly_count >= 0, f"monthly_count is negative: {self.monthly_count}"
+        assert self.monthly_count >= 0, (
+            f"monthly_count is negative: {self.monthly_count}"
+        )
 
     @invariant()
     def counts_within_valid_range(self) -> None:
@@ -258,7 +262,9 @@ class ErrorRecoveryStateMachine(RuleBasedStateMachine):
     def create_file(self) -> None:
         """正常なファイルを作成"""
         if self.test_file:
-            self.test_file.write_text(json.dumps({"status": "valid", "data": [1, 2, 3]}))
+            self.test_file.write_text(
+                json.dumps({"status": "valid", "data": [1, 2, 3]})
+            )
             self.file_exists = True
             self.file_corrupted = False
             self.corruption_detected = False

@@ -174,7 +174,12 @@ class TestLevelMetadataEquality:
             next_level="monthly",
         )
         meta2 = LevelMetadata(
-            name="weekly", prefix="W", digits=4, dir="1_Weekly", source="loops", next_level=None
+            name="weekly",
+            prefix="W",
+            digits=4,
+            dir="1_Weekly",
+            source="loops",
+            next_level=None,
         )
 
         assert meta1 != meta2
@@ -222,7 +227,12 @@ class TestLevelMetadataHashability:
             next_level="monthly",
         )
         meta3 = LevelMetadata(
-            name="monthly", prefix="M", digits=4, dir="2_Monthly", source="weekly", next_level=None
+            name="monthly",
+            prefix="M",
+            digits=4,
+            dir="2_Monthly",
+            source="weekly",
+            next_level=None,
         )
 
         metadata_set = {meta1, meta2, meta3}

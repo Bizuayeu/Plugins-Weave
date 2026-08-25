@@ -16,7 +16,12 @@ from domain.file_constants import DIGEST_TIMES_FILENAME, DIGEST_TIMES_TEMPLATE
 from domain.file_naming import extract_number_only, extract_numbers_formatted
 from domain.types import DigestTimesData
 from domain.validators import is_valid_list
-from infrastructure import get_structured_logger, load_json_with_template, log_warning, save_json
+from infrastructure import (
+    get_structured_logger,
+    load_json_with_template,
+    log_warning,
+    save_json,
+)
 from infrastructure.config import get_persistent_config_dir
 from infrastructure.config.persistent_path import get_template_dir
 
@@ -32,11 +37,15 @@ class DigestTimesTracker:
         self.last_digest_file = get_persistent_config_dir() / DIGEST_TIMES_FILENAME
         # テンプレートは.claude-plugin/ディレクトリから取得
         template_dir = get_template_dir()
-        self.template_file = template_dir / DIGEST_TIMES_TEMPLATE if template_dir else None
+        self.template_file = (
+            template_dir / DIGEST_TIMES_TEMPLATE if template_dir else None
+        )
 
     def _get_default_template(self) -> DigestTimesData:
         """テンプレートがない場合のデフォルト構造を返す"""
-        return {level: {"timestamp": "", "last_processed": None} for level in LEVEL_NAMES}
+        return {
+            level: {"timestamp": "", "last_processed": None} for level in LEVEL_NAMES
+        }
 
     def load_or_create(self) -> DigestTimesData:
         """
@@ -55,7 +64,9 @@ class DigestTimesTracker:
             log_message="Initialized last_digest_times.json from template",
         )
 
-    def extract_file_numbers(self, level: str, input_files: list[str] | None) -> list[str]:
+    def extract_file_numbers(
+        self, level: str, input_files: list[str] | None
+    ) -> list[str]:
         """
         ファイル名から連番を抽出（プレフィックス付き、ゼロ埋め維持）
 

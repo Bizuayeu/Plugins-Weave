@@ -254,7 +254,11 @@ Examples:
     try:
         paths = get_paths_from_config()
 
-        result = run_pattern1(paths) if args.level is None else run_pattern2(paths, args.level)
+        result = (
+            run_pattern1(paths)
+            if args.level is None
+            else run_pattern2(paths, args.level)
+        )
 
     except Exception as e:
         result = DigestEntryResult(

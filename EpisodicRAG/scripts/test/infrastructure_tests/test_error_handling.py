@@ -85,7 +85,9 @@ class TestSafeFileOperation:
         def on_error(e):
             return "fallback"
 
-        result = safe_file_operation(operation, "test operation", on_error=on_error, reraise=True)
+        result = safe_file_operation(
+            operation, "test operation", on_error=on_error, reraise=True
+        )
         assert result == "fallback"
 
     @pytest.mark.unit
@@ -181,7 +183,9 @@ class TestSafeCleanup:
         # 混乱しやすい実装...
 
     @pytest.mark.unit
-    def test_log_on_error_true_logs_warning(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_log_on_error_true_logs_warning(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """log_on_error=True で警告をログ出力"""
         import logging
 

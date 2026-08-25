@@ -140,7 +140,9 @@ class TestTemplateLoadStrategy:
             save_called.append((path, data))
 
         strategy = TemplateLoadStrategy(mock_read, mock_save)
-        context = LoadContext(target_file=target, template_file=template, save_on_create=True)
+        context = LoadContext(
+            target_file=target, template_file=template, save_on_create=True
+        )
         result = strategy.load(context)
 
         assert result == {"source": "template"}
@@ -180,7 +182,9 @@ class TestTemplateLoadStrategy:
         mock_save = MagicMock()
 
         strategy = TemplateLoadStrategy(mock_read, mock_save)
-        context = LoadContext(target_file=target, template_file=template, save_on_create=False)
+        context = LoadContext(
+            target_file=target, template_file=template, save_on_create=False
+        )
         result = strategy.load(context)
 
         assert result == {"source": "template"}
@@ -208,7 +212,9 @@ class TestFactoryLoadStrategy:
             save_called.append((path, data))
 
         strategy = FactoryLoadStrategy(mock_save)
-        context = LoadContext(target_file=target, default_factory=factory, save_on_create=True)
+        context = LoadContext(
+            target_file=target, default_factory=factory, save_on_create=True
+        )
         result = strategy.load(context)
 
         assert result == {"source": "factory", "created": True}
@@ -234,7 +240,9 @@ class TestFactoryLoadStrategy:
         mock_save = MagicMock()
 
         strategy = FactoryLoadStrategy(mock_save)
-        context = LoadContext(target_file=target, default_factory=factory, save_on_create=False)
+        context = LoadContext(
+            target_file=target, default_factory=factory, save_on_create=False
+        )
         result = strategy.load(context)
 
         assert result == {"source": "factory"}

@@ -114,7 +114,9 @@ def load_json_with_template(
         data = load_json_with_template(path, default_factory=get_template)
         # data is inferred as MyTypedDict
     """
-    logger.debug(f"load_json_with_template called: target={target_file}, template={template_file}")
+    logger.debug(
+        f"load_json_with_template called: target={target_file}, template={template_file}"
+    )
 
     # コンテキスト作成
     context = LoadContext(
@@ -139,7 +141,9 @@ def load_json_with_template(
 
     result = loader.load(context)
     # DefaultLoadStrategyが最後にあるため、Noneは返らない
-    assert result is not None, "ChainedLoader should never return None with DefaultLoadStrategy"
+    assert result is not None, (
+        "ChainedLoader should never return None with DefaultLoadStrategy"
+    )
     return result
 
 

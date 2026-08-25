@@ -83,7 +83,9 @@ class JSONValidator:
         with file_path.open(encoding="utf-8") as f:
             return json.load(f)  # type: ignore[no-any-return]
 
-    def validate_against_template(self, config_path: Path, template_path: Path) -> ValidationResult:
+    def validate_against_template(
+        self, config_path: Path, template_path: Path
+    ) -> ValidationResult:
         """
         configがtemplateと同じ構造を持つか検証
 
@@ -152,7 +154,9 @@ class JSONValidator:
                 missing.append(full_key)
             elif isinstance(template[key], dict) and isinstance(config.get(key), dict):
                 # ネストされた辞書を再帰的にチェック
-                missing.extend(self._find_missing_keys(template[key], config[key], full_key))
+                missing.extend(
+                    self._find_missing_keys(template[key], config[key], full_key)
+                )
 
         return missing
 

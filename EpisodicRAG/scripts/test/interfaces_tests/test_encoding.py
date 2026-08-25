@@ -58,7 +58,7 @@ class TestStdinEncoding:
             },
         }
         config_file = persistent_config_dir / "config.json"
-        config_file.write_text(json.dumps(config), encoding='utf-8')
+        config_file.write_text(json.dumps(config), encoding="utf-8")
 
         # 環境変数を設定（subprocess用）
         old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
@@ -129,8 +129,8 @@ class TestStdinEncoding:
             input=japanese_input_json,
             capture_output=True,
             text=True,
-            encoding='utf-8',
-            errors='replace',  # Windows CP932対応
+            encoding="utf-8",
+            errors="replace",  # Windows CP932対応
             cwd=scripts_dir,
             env=env,
         )
@@ -145,12 +145,16 @@ class TestStdinEncoding:
             f"Provisionalファイルが見つからない: {list(provisional_dir.iterdir())}"
         )
 
-        saved_content = provisional_files[0].read_text(encoding='utf-8')
+        saved_content = provisional_files[0].read_text(encoding="utf-8")
 
         # 日本語が正しく保存されていること
         assert "論文" in saved_content, f"日本語が見つからない: {saved_content[:500]}"
-        assert "存在論的転換" in saved_content, f"digest_typeが見つからない: {saved_content[:500]}"
-        assert "Fetus_loquens" in saved_content, f"ファイル名が見つからない: {saved_content[:500]}"
+        assert "存在論的転換" in saved_content, (
+            f"digest_typeが見つからない: {saved_content[:500]}"
+        )
+        assert "Fetus_loquens" in saved_content, (
+            f"ファイル名が見つからない: {saved_content[:500]}"
+        )
 
         # 文字化けパターンがないこと
         garbled_patterns = ["????", "???", "\\u"]
@@ -158,15 +162,17 @@ class TestStdinEncoding:
             # Note: \\u はエスケープされたUnicode、正常なJSONでは出現しない
             if pattern == "\\u":
                 # ensure_ascii=False なので \uXXXX 形式は出現しないはず
-                assert "\\u" not in saved_content or "\\u" in json.dumps(saved_content), (
-                    f"エスケープされたUnicodeが検出: {saved_content[:500]}"
-                )
+                assert "\\u" not in saved_content or "\\u" in json.dumps(
+                    saved_content
+                ), f"エスケープされたUnicodeが検出: {saved_content[:500]}"
             else:
                 assert pattern not in saved_content, (
                     f"文字化けパターン検出: {pattern} in {saved_content[:500]}"
                 )
 
-    def test_source_file_name_preserved(self, scripts_dir, temp_plugin_root, japanese_input_json):
+    def test_source_file_name_preserved(
+        self, scripts_dir, temp_plugin_root, japanese_input_json
+    ):
         """
         source_fileのファイル名が正しく保持されること
         """
@@ -186,8 +192,8 @@ class TestStdinEncoding:
             input=japanese_input_json,
             capture_output=True,
             text=True,
-            encoding='utf-8',
-            errors='replace',  # Windows CP932対応
+            encoding="utf-8",
+            errors="replace",  # Windows CP932対応
             cwd=scripts_dir,
             env=env,
         )
@@ -196,7 +202,7 @@ class TestStdinEncoding:
 
         provisional_dir = temp_plugin_root / "Digests" / "1_Weekly" / "Provisional"
         provisional_files = list(provisional_dir.glob("*.txt"))
-        saved_content = provisional_files[0].read_text(encoding='utf-8')
+        saved_content = provisional_files[0].read_text(encoding="utf-8")
 
         # ファイル名が正しく保持されていること
         saved_data = json.loads(saved_content)

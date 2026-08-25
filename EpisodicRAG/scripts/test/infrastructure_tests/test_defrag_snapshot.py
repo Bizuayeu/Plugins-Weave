@@ -61,8 +61,12 @@ class TestCreateSnapshot:
         memory_dir = _build_memory(tmp_path / "src")
         snap_root = tmp_path / "snaps"
 
-        first = create_snapshot(memory_dir, snapshot_root=snap_root, timestamp="20260614T000000Z")
-        second = create_snapshot(memory_dir, snapshot_root=snap_root, timestamp="20260614T000000Z")
+        first = create_snapshot(
+            memory_dir, snapshot_root=snap_root, timestamp="20260614T000000Z"
+        )
+        second = create_snapshot(
+            memory_dir, snapshot_root=snap_root, timestamp="20260614T000000Z"
+        )
 
         assert first != second
         assert first.exists() and second.exists()

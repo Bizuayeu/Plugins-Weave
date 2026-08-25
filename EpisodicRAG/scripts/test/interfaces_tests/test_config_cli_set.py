@@ -55,7 +55,7 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5, "monthly_threshold": 5},
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -141,7 +141,7 @@ class TestConfigCLISetCommandExtended(unittest.TestCase):
                 assert result["status"] == "ok"
 
         # ファイルを確認（永続化ディレクトリから）
-        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open(encoding="utf-8") as f:
             saved_config = json.load(f)
         assert saved_config["new_section"]["new_key"] == "new_value"
 

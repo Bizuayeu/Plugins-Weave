@@ -53,7 +53,12 @@ if TYPE_CHECKING:
     from .file_appender import FileAppender
     from .file_detector import FileDetector
 
-__all__ = ["CascadeOrchestrator", "CascadeResult", "CascadeStepResult", "CascadeStepStatus"]
+__all__ = [
+    "CascadeOrchestrator",
+    "CascadeResult",
+    "CascadeStepResult",
+    "CascadeStepStatus",
+]
 
 # 構造化ロガー
 _logger = get_structured_logger(__name__)
@@ -345,7 +350,9 @@ class CascadeOrchestrator:
         Returns:
             CascadeStepResult: 追加処理の結果
         """
-        _logger.info(f"[Step 3/4] Shadowにファイル追加中: {len(new_files)}件 → {next_level}")
+        _logger.info(
+            f"[Step 3/4] Shadowにファイル追加中: {len(new_files)}件 → {next_level}"
+        )
         _logger.state("step_add", next_level=next_level, file_count=len(new_files))
 
         self.file_appender.add_files_to_shadow(next_level, new_files)

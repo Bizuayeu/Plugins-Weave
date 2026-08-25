@@ -63,10 +63,14 @@ class TestPlaceholderManager:
 
         assert PLACEHOLDER_MARKER in empty_overall_digest["abstract"]
         assert PLACEHOLDER_MARKER in empty_overall_digest["impression"]
-        assert len(empty_overall_digest["keywords"]) == PLACEHOLDER_LIMITS["keyword_count"]
+        assert (
+            len(empty_overall_digest["keywords"]) == PLACEHOLDER_LIMITS["keyword_count"]
+        )
 
     @pytest.mark.unit
-    def test_update_placeholder_digest(self, manager, placeholder_overall_digest) -> None:
+    def test_update_placeholder_digest(
+        self, manager, placeholder_overall_digest
+    ) -> None:
         """既存PLACEHOLDERを新しいPLACEHOLDERで更新"""
         manager.update_or_preserve(placeholder_overall_digest, total_files=10)
 
@@ -85,14 +89,18 @@ class TestPlaceholderManager:
         assert analyzed_overall_digest["impression"] == original_impression
 
     @pytest.mark.unit
-    def test_placeholder_contains_file_count(self, manager, empty_overall_digest) -> None:
+    def test_placeholder_contains_file_count(
+        self, manager, empty_overall_digest
+    ) -> None:
         """PLACEHOLDERにファイル数が含まれる"""
         manager.update_or_preserve(empty_overall_digest, total_files=7)
 
         assert "7ファイル" in empty_overall_digest["abstract"]
 
     @pytest.mark.unit
-    def test_placeholder_contains_char_limit(self, manager, empty_overall_digest) -> None:
+    def test_placeholder_contains_char_limit(
+        self, manager, empty_overall_digest
+    ) -> None:
         """PLACEHOLDERに文字数制限が含まれる"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 
@@ -104,7 +112,9 @@ class TestPlaceholderManager:
         """キーワードの数がPLACEHOLDER_LIMITSと一致"""
         manager.update_or_preserve(empty_overall_digest, total_files=5)
 
-        assert len(empty_overall_digest["keywords"]) == PLACEHOLDER_LIMITS["keyword_count"]
+        assert (
+            len(empty_overall_digest["keywords"]) == PLACEHOLDER_LIMITS["keyword_count"]
+        )
 
     @pytest.mark.unit
     def test_placeholder_keywords_format(self, manager, empty_overall_digest) -> None:

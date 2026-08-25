@@ -85,7 +85,9 @@ class DigestConfig:
             # 各コンポーネントを即時初期化（軽量オブジェクトのため遅延不要）
             self._path_resolver = PathResolver(self.config)
             self._threshold_provider = ThresholdProvider(self.config)
-            self._level_path_service = LevelPathService(self._path_resolver.digests_path)
+            self._level_path_service = LevelPathService(
+                self._path_resolver.digests_path
+            )
             self._source_path_resolver = SourcePathResolver(
                 self._path_resolver.loops_path, self._level_path_service
             )

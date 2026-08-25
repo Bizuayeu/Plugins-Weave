@@ -44,7 +44,10 @@ class TestScanSubcommand:
     ) -> None:
         fake_base = tmp_path / ".claude" / "projects"
         _build_memory(fake_base)
-        with patch(_GCPB, return_value=fake_base), patch("sys.argv", ["dream_defrag", "scan"]):
+        with (
+            patch(_GCPB, return_value=fake_base),
+            patch("sys.argv", ["dream_defrag", "scan"]),
+        ):
             main()
         parsed = json.loads(capsys.readouterr().out)
         assert "status" in parsed
@@ -54,13 +57,18 @@ class TestScanSubcommand:
     @pytest.mark.integration
     def test_メモリなしで終了コード1(self, tmp_path: Path) -> None:
         fake_base = tmp_path / ".claude" / "projects"  # 未作成
-        with patch(_GCPB, return_value=fake_base), patch("sys.argv", ["dream_defrag", "scan"]):
+        with (
+            patch(_GCPB, return_value=fake_base),
+            patch("sys.argv", ["dream_defrag", "scan"]),
+        ):
             assert main() == EXIT_NO_MEMORY
 
 
 class TestSnapshotSubcommand:
     @pytest.mark.integration
-    def test_snapshotがパスを返す(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_snapshotがパスを返す(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         fake_base = tmp_path / ".claude" / "projects"
         _build_memory(fake_base)
         with (
@@ -100,7 +108,9 @@ class TestRebuildIndexSubcommand:
         assert (memory_dir / "MEMORY.md").read_text(encoding="utf-8") == before
 
     @pytest.mark.integration
-    def test_applyで書き込む(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_applyで書き込む(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         fake_base = tmp_path / ".claude" / "projects"
         memory_dir = _build_memory(fake_base)
         with (

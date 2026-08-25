@@ -29,7 +29,9 @@ from infrastructure.json_repository.load_strategy import LoadContext, LoadStrate
 class MockSuccessStrategy(LoadStrategy[dict[str, Any]]):
     """常に成功を返す戦略"""
 
-    def __init__(self, return_value: dict[str, Any], description: str = "MockSuccess") -> None:
+    def __init__(
+        self, return_value: dict[str, Any], description: str = "MockSuccess"
+    ) -> None:
         self.return_value = return_value
         self.description = description
         self.load_called = False
@@ -86,7 +88,9 @@ class TestChainedLoaderLoad:
     """loadメソッドのテスト"""
 
     @pytest.mark.unit
-    def test_returns_first_successful_result(self, sample_context, success_data) -> None:
+    def test_returns_first_successful_result(
+        self, sample_context, success_data
+    ) -> None:
         """最初に成功した戦略の結果を返す"""
         strategy1 = MockFailureStrategy("fail1")
         strategy2 = MockSuccessStrategy(success_data, "success")

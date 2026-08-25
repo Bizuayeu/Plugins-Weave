@@ -52,7 +52,9 @@ def persistence(
     times_tracker: "DigestTimesTracker",
 ):
     """テスト用DigestPersistence"""
-    return DigestPersistence(config, grand_digest_manager, shadow_manager, times_tracker)
+    return DigestPersistence(
+        config, grand_digest_manager, shadow_manager, times_tracker
+    )
 
 
 @pytest.fixture
@@ -88,33 +90,51 @@ class TestDigestPersistenceSaveRegularDigest:
 
     @pytest.mark.integration
     def test_saves_file_exists(
-        self, persistence, valid_regular_digest, temp_plugin_env: "TempPluginEnvironment"
+        self,
+        persistence,
+        valid_regular_digest,
+        temp_plugin_env: "TempPluginEnvironment",
     ) -> None:
         """保存したファイルが存在する"""
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
         assert result_path.exists()
 
     @pytest.mark.integration
     def test_saves_file_with_correct_name(
-        self, persistence, valid_regular_digest, temp_plugin_env: "TempPluginEnvironment"
+        self,
+        persistence,
+        valid_regular_digest,
+        temp_plugin_env: "TempPluginEnvironment",
     ) -> None:
         """正しいファイル名で保存される"""
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
         assert result_path.name == "W0001_Test.txt"
 
     @pytest.mark.integration
     def test_saves_correct_content(
-        self, persistence, valid_regular_digest, temp_plugin_env: "TempPluginEnvironment"
+        self,
+        persistence,
+        valid_regular_digest,
+        temp_plugin_env: "TempPluginEnvironment",
     ) -> None:
         """正しい内容が保存される"""
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
-        with result_path.open(encoding='utf-8') as f:
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
+        with result_path.open(encoding="utf-8") as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["name"] == "W0001_Test"
 
     @pytest.mark.integration
     def test_creates_directory_if_not_exists(
-        self, persistence, valid_regular_digest, temp_plugin_env: "TempPluginEnvironment"
+        self,
+        persistence,
+        valid_regular_digest,
+        temp_plugin_env: "TempPluginEnvironment",
     ) -> None:
         """ディレクトリがなければ作成"""
         # 1_Weeklyディレクトリを削除
@@ -123,19 +143,26 @@ class TestDigestPersistenceSaveRegularDigest:
         weekly_dir = temp_plugin_env.digests_path / "1_Weekly"
         shutil.rmtree(weekly_dir)
 
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
 
         assert result_path.exists()
         assert weekly_dir.exists()
 
     @pytest.mark.integration
     def test_saves_to_correct_level_directory(
-        self, persistence, valid_regular_digest, temp_plugin_env: "TempPluginEnvironment"
+        self,
+        persistence,
+        valid_regular_digest,
+        temp_plugin_env: "TempPluginEnvironment",
     ) -> None:
         """正しいレベルディレクトリに保存"""
         # monthlyに保存
         valid_regular_digest["metadata"]["digest_level"] = "monthly"
-        result_path = persistence.save_regular_digest("monthly", valid_regular_digest, "M001_Test")
+        result_path = persistence.save_regular_digest(
+            "monthly", valid_regular_digest, "M001_Test"
+        )
 
         expected_dir = temp_plugin_env.digests_path / "2_Monthly"
         assert result_path.parent == expected_dir
@@ -151,7 +178,10 @@ class TestDigestPersistenceUpdateGrandDigest:
 
     @pytest.mark.integration
     def test_updates_grand_digest(
-        self, persistence, valid_regular_digest, grand_digest_manager: "GrandDigestManager"
+        self,
+        persistence,
+        valid_regular_digest,
+        grand_digest_manager: "GrandDigestManager",
     ) -> None:
         """GrandDigestが更新される"""
         persistence.update_grand_digest("weekly", valid_regular_digest, "W0001_Test")
@@ -215,12 +245,14 @@ class TestDigestPersistenceProcessCascadeAndCleanup:
         assert times_data["weekly"]["last_processed"] == 52  # ダイジェスト番号
 
     @pytest.mark.integration
-    def test_removes_provisional_file(self, persistence, config: "DigestConfig") -> None:
+    def test_removes_provisional_file(
+        self, persistence, config: "DigestConfig"
+    ) -> None:
         """Provisionalファイルが削除される"""
         # Provisionalファイルを作成
         provisional_dir = config.get_provisional_dir("weekly")
         provisional_path = provisional_dir / "W0001_Individual.txt"
-        with provisional_path.open('w', encoding='utf-8') as f:
+        with provisional_path.open("w", encoding="utf-8") as f:
             json.dump({"test": "data"}, f)
 
         assert provisional_path.exists()
@@ -264,7 +296,9 @@ class TestDigestPersistenceInit:
         times_tracker: "DigestTimesTracker",
     ) -> None:
         """依存関係が正しく保存される"""
-        persistence = DigestPersistence(config, grand_digest_manager, shadow_manager, times_tracker)
+        persistence = DigestPersistence(
+            config, grand_digest_manager, shadow_manager, times_tracker
+        )
 
         assert persistence.config is config
         assert persistence.grand_digest_manager is grand_digest_manager
@@ -280,7 +314,9 @@ class TestDigestPersistenceInit:
         times_tracker: "DigestTimesTracker",
     ) -> None:
         """digests_pathが設定される"""
-        persistence = DigestPersistence(config, grand_digest_manager, shadow_manager, times_tracker)
+        persistence = DigestPersistence(
+            config, grand_digest_manager, shadow_manager, times_tracker
+        )
 
         assert persistence.digests_path == config.digests_path
 
@@ -305,14 +341,18 @@ class TestDigestPersistenceUserInput:
         from domain.exceptions import ValidationError
 
         # 先にファイルを作成
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
         assert result_path.exists()
 
         # input()を'n'を返すようにモック
-        monkeypatch.setattr('builtins.input', lambda _: 'n')
+        monkeypatch.setattr("builtins.input", lambda _: "n")
 
         with pytest.raises(ValidationError) as exc_info:
-            persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+            persistence.save_regular_digest(
+                "weekly", valid_regular_digest, "W0001_Test"
+            )
         assert "User cancelled" in str(exc_info.value)
 
     @pytest.mark.integration
@@ -325,18 +365,22 @@ class TestDigestPersistenceUserInput:
     ) -> None:
         """既存ファイル上書き時、ユーザーが確認"""
         # 先にファイルを作成
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
         assert result_path.exists()
 
         # input()を'y'を返すようにモック
-        monkeypatch.setattr('builtins.input', lambda _: 'y')
+        monkeypatch.setattr("builtins.input", lambda _: "y")
 
         # 内容を変更して保存
         valid_regular_digest["overall_digest"]["abstract"] = "Updated abstract"
-        result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path2 = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
 
         assert result_path2.exists()
-        with result_path2.open(encoding='utf-8') as f:
+        with result_path2.open(encoding="utf-8") as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["abstract"] == "Updated abstract"
 
@@ -350,21 +394,25 @@ class TestDigestPersistenceUserInput:
     ) -> None:
         """非対話モード（EOFError）では上書きを続行"""
         # 先にファイルを作成
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
         assert result_path.exists()
 
         # input()をEOFErrorを発生させるようにモック
         def raise_eoferror(_) -> None:
             raise EOFError()
 
-        monkeypatch.setattr('builtins.input', raise_eoferror)
+        monkeypatch.setattr("builtins.input", raise_eoferror)
 
         # 内容を変更して保存（EOFErrorでも続行）
         valid_regular_digest["overall_digest"]["abstract"] = "Non-interactive update"
-        result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path2 = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
 
         assert result_path2.exists()
-        with result_path2.open(encoding='utf-8') as f:
+        with result_path2.open(encoding="utf-8") as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["abstract"] == "Non-interactive update"
 
@@ -400,12 +448,16 @@ class TestDigestPersistenceConfirmCallback:
         )
 
         # 先にファイルを作成
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
         assert result_path.exists()
 
         # 同じファイルに上書き試行
         with pytest.raises(ValidationError) as exc_info:
-            persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+            persistence.save_regular_digest(
+                "weekly", valid_regular_digest, "W0001_Test"
+            )
         assert "User cancelled" in str(exc_info.value)
 
     @pytest.mark.integration
@@ -429,15 +481,19 @@ class TestDigestPersistenceConfirmCallback:
         )
 
         # 先にファイルを作成
-        result_path = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
         assert result_path.exists()
 
         # 内容を変更して上書き
         valid_regular_digest["overall_digest"]["abstract"] = "Callback updated"
-        result_path2 = persistence.save_regular_digest("weekly", valid_regular_digest, "W0001_Test")
+        result_path2 = persistence.save_regular_digest(
+            "weekly", valid_regular_digest, "W0001_Test"
+        )
 
         assert result_path2.exists()
-        with result_path2.open(encoding='utf-8') as f:
+        with result_path2.open(encoding="utf-8") as f:
             saved_data = json.load(f)
         assert saved_data["overall_digest"]["abstract"] == "Callback updated"
 
@@ -451,7 +507,11 @@ class TestDigestPersistenceConfirmCallback:
     ) -> None:
         """confirm_callbackがNoneの場合、デフォルトコールバックが使用される"""
         persistence = DigestPersistence(
-            config, grand_digest_manager, shadow_manager, times_tracker, confirm_callback=None
+            config,
+            grand_digest_manager,
+            shadow_manager,
+            times_tracker,
+            confirm_callback=None,
         )
 
         # デフォルトコールバックがcallableであることを確認

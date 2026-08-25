@@ -92,11 +92,14 @@ class TestRegularDigestBuilderBuild:
         # metadata の必須フィールド
         metadata = result["metadata"]
         assert all(
-            key in metadata for key in ["digest_level", "digest_number", "last_updated", "version"]
+            key in metadata
+            for key in ["digest_level", "digest_number", "last_updated", "version"]
         )
 
     @pytest.mark.unit
-    def test_metadata_digest_level_matches(self, valid_shadow_digest, individual_digests) -> None:
+    def test_metadata_digest_level_matches(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """metadata.digest_levelが正しい"""
         result = RegularDigestBuilder.build(
             level="monthly",
@@ -108,7 +111,9 @@ class TestRegularDigestBuilderBuild:
         assert result["metadata"]["digest_level"] == "monthly"
 
     @pytest.mark.unit
-    def test_metadata_digest_number_matches(self, valid_shadow_digest, individual_digests) -> None:
+    def test_metadata_digest_number_matches(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """metadata.digest_numberが正しい"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -120,7 +125,9 @@ class TestRegularDigestBuilderBuild:
         assert result["metadata"]["digest_number"] == "W0123"
 
     @pytest.mark.unit
-    def test_metadata_version_is_correct(self, valid_shadow_digest, individual_digests) -> None:
+    def test_metadata_version_is_correct(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """metadata.versionが正しい"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -170,7 +177,9 @@ class TestRegularDigestBuilderBuild:
         assert isinstance(overall.get("impression"), str)
 
     @pytest.mark.unit
-    def test_overall_digest_name_matches(self, valid_shadow_digest, individual_digests) -> None:
+    def test_overall_digest_name_matches(
+        self, valid_shadow_digest, individual_digests
+    ) -> None:
         """overall_digest.nameが正しい"""
         result = RegularDigestBuilder.build(
             level="weekly",
@@ -327,7 +336,9 @@ class TestRegularDigestBuilderBuild:
         assert result["overall_digest"]["digest_type"] == "空テスト"
 
     @pytest.mark.unit
-    def test_individual_digests_abstract_extracts_short_value(self, valid_shadow_digest) -> None:
+    def test_individual_digests_abstract_extracts_short_value(
+        self, valid_shadow_digest
+    ) -> None:
         """individual_digestsのabstractがshort版のみ文字列として抽出される"""
         individual_with_long_short = [
             {
@@ -350,7 +361,9 @@ class TestRegularDigestBuilderBuild:
         assert result["individual_digests"][0]["impression"] == "短いimpression"
 
     @pytest.mark.unit
-    def test_individual_digests_string_abstract_preserved(self, valid_shadow_digest) -> None:
+    def test_individual_digests_string_abstract_preserved(
+        self, valid_shadow_digest
+    ) -> None:
         """individual_digestsの文字列形式abstract/impressionはそのまま保持される"""
         individual_with_string = [
             {
@@ -369,4 +382,6 @@ class TestRegularDigestBuilderBuild:
             individual_digests=individual_with_string,
         )
         assert result["individual_digests"][0]["abstract"] == "すでに文字列のabstract"
-        assert result["individual_digests"][0]["impression"] == "すでに文字列のimpression"
+        assert (
+            result["individual_digests"][0]["impression"] == "すでに文字列のimpression"
+        )

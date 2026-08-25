@@ -49,7 +49,9 @@ class TestLevelConfig:
         """各レベル設定にprefix, digits, dir, source, nextが含まれる"""
         required_keys = {"prefix", "digits", "dir", "source", "next"}
         for level, config in LEVEL_CONFIG.items():
-            assert set(config.keys()) >= required_keys, f"Level {level} に必須キーが不足"
+            assert set(config.keys()) >= required_keys, (
+                f"Level {level} に必須キーが不足"
+            )
 
     @pytest.mark.unit
     def test_weeklyのソースはloops(self) -> None:
@@ -69,7 +71,9 @@ class TestLevelConfig:
             current = start_level
             chain_length = 0
             while current is not None:
-                assert current not in visited, f"循環検出: {start_level}から始まり{current}で循環"
+                assert current not in visited, (
+                    f"循環検出: {start_level}から始まり{current}で循環"
+                )
                 visited.add(current)
                 current = LEVEL_CONFIG.get(current, {}).get("next")
                 chain_length += 1

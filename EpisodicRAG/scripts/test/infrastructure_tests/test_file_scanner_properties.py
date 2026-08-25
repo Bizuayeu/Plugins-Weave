@@ -267,7 +267,11 @@ class TestGetMaxNumberedFileProperties:
     """Property-based tests for get_max_numbered_file"""
 
     @pytest.mark.property
-    @given(numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=1, max_size=20))
+    @given(
+        numbers=st.lists(
+            st.integers(min_value=1, max_value=9999), min_size=1, max_size=20
+        )
+    )
     @settings(max_examples=100, deadline=None)
     def test_returns_max_number(self, numbers) -> None:
         """最大番号を返す"""

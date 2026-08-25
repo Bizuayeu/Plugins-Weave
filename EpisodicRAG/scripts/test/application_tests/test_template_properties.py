@@ -227,5 +227,9 @@ class TestTemplateConsistencyProperties:
 
         # 片方を変更しても他方に影響しない
         first_level = levels[0]
-        data1["latest_digests"][first_level]["overall_digest"]["source_files"].append("test.txt")
-        assert data2["latest_digests"][first_level]["overall_digest"]["source_files"] == []
+        data1["latest_digests"][first_level]["overall_digest"]["source_files"].append(
+            "test.txt"
+        )
+        assert (
+            data2["latest_digests"][first_level]["overall_digest"]["source_files"] == []
+        )

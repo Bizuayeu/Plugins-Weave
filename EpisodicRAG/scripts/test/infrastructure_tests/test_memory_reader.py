@@ -27,9 +27,7 @@ class TestParseFrontmatter:
     @pytest.mark.unit
     def test_正常なfrontmatterを解析(self) -> None:
         """標準的な---/name/description/type/---形式"""
-        content = (
-            "---\nname: テスト\ndescription: テスト用メモリ\ntype: user\n---\n\n## 内容\nテスト"
-        )
+        content = "---\nname: テスト\ndescription: テスト用メモリ\ntype: user\n---\n\n## 内容\nテスト"
         fm, body = parse_frontmatter(content)
         assert fm is not None
         assert fm["name"] == "テスト"
@@ -162,7 +160,9 @@ class TestReadMemoryFile:
     def test_pathが絶対パス文字列(self, tmp_path: Path) -> None:
         """pathフィールドが絶対パス文字列"""
         f = tmp_path / "test.md"
-        f.write_text("---\nname: t\ndescription: d\ntype: user\n---\nbody", encoding="utf-8")
+        f.write_text(
+            "---\nname: t\ndescription: d\ntype: user\n---\nbody", encoding="utf-8"
+        )
         result = read_memory_file(f)
         assert result is not None
         assert str(tmp_path) in result["path"]
@@ -215,7 +215,12 @@ class TestReadMemoryIndex:
         f.write_text(content, encoding="utf-8")
         result = read_memory_index(f)
         assert len(result["sections"]) == 4
-        assert set(result["sections"].keys()) == {"User", "Feedback", "Projects", "References"}
+        assert set(result["sections"].keys()) == {
+            "User",
+            "Feedback",
+            "Projects",
+            "References",
+        }
 
     @pytest.mark.integration
     def test_リンクからファイル名を抽出(self, tmp_path: Path) -> None:

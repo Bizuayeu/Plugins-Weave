@@ -82,7 +82,7 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         # ShadowGrandDigest.txt
@@ -93,8 +93,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
                 "monthly": {"overall_digest": None},
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -103,14 +103,16 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'GrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "GrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(grand_data, f)
 
         # last_digest_times.json（永続化ディレクトリに）
         times_data = {"weekly": {"timestamp": "", "last_processed": None}}
-        with (self.persistent_config / 'last_digest_times.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "last_digest_times.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(times_data, f)
 
     @pytest.mark.unit
@@ -158,8 +160,8 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
                 },
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -181,14 +183,18 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
             "latest_digests": {
                 "weekly": {
                     "overall_digest": {
-                        "source_files": ["L00001", "L00003", "L00005"],  # L00002, L00004 が欠番
+                        "source_files": [
+                            "L00001",
+                            "L00003",
+                            "L00005",
+                        ],  # L00002, L00004 が欠番
                         "abstract": "completed abstract",
                     }
                 },
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -206,12 +212,16 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
 
         # 5つのLoopファイルを作成（weekly thresholdを満たす）
         for i in range(1, 6):
-            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text("content")
+            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text(
+                "content"
+            )
 
         # last_processedを更新して未処理扱いにしない
-        times_data = {"weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5}}
-        with (self.plugin_root / '.claude-plugin' / 'last_digest_times.json').open(
-            'w', encoding='utf-8'
+        times_data = {
+            "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5}
+        }
+        with (self.plugin_root / ".claude-plugin" / "last_digest_times.json").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(times_data, f)
 
@@ -219,7 +229,9 @@ class TestDigestAutoAnalyzer(unittest.TestCase):
         result = analyzer.analyze()
 
         # weeklyが生成可能
-        weekly_levels = [lvl for lvl in result.generatable_levels if lvl.level == "weekly"]
+        weekly_levels = [
+            lvl for lvl in result.generatable_levels if lvl.level == "weekly"
+        ]
         assert len(weekly_levels) == 1
         assert weekly_levels[0].ready is True
 

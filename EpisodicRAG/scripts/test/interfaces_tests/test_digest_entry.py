@@ -246,7 +246,9 @@ class TestRunPattern2:
             message="分析済み",
         )
 
-        with patch("interfaces.shadow_state_checker.ShadowStateChecker") as mock_checker:
+        with patch(
+            "interfaces.shadow_state_checker.ShadowStateChecker"
+        ) as mock_checker:
             mock_instance = MagicMock()
             mock_instance.check.return_value = shadow_result
             mock_checker.return_value = mock_instance
@@ -277,7 +279,9 @@ class TestRunPattern2:
             error="Shadow file not found",
         )
 
-        with patch("interfaces.shadow_state_checker.ShadowStateChecker") as mock_checker:
+        with patch(
+            "interfaces.shadow_state_checker.ShadowStateChecker"
+        ) as mock_checker:
             mock_instance = MagicMock()
             mock_instance.check.return_value = shadow_result
             mock_checker.return_value = mock_instance
@@ -400,7 +404,9 @@ class TestDigestEntryMain:
             with patch("interfaces.digest_entry.get_new_loops") as mock_new:
                 mock_new.return_value = []
 
-                with patch("interfaces.digest_entry.get_weekly_source_count") as mock_count:
+                with patch(
+                    "interfaces.digest_entry.get_weekly_source_count"
+                ) as mock_count:
                     mock_count.return_value = 0
 
                     with (

@@ -60,10 +60,14 @@ class TestFailLoudProcedure:
 
     def test_step_1_documents_verify(self):
         text = _read(SKILL_MD)
-        assert "wakeup_engine.py verify" in text, "Step 1 must run verify, not just read the config"
+        assert "wakeup_engine.py verify" in text, (
+            "Step 1 must run verify, not just read the config"
+        )
 
     def test_deployment_is_materialized_not_hand_copied(self):
-        assert "materialize" in _read(SKILL_MD), "the ★ artifacts must be placed by materialize"
+        assert "materialize" in _read(SKILL_MD), (
+            "the ★ artifacts must be placed by materialize"
+        )
 
 
 class TestCurlSafety:
@@ -89,4 +93,6 @@ class TestWriteBackSafety:
         )
 
     def test_uses_claude_branch_prefix(self):
-        assert "claude/" in _read(SKILL_MD), "write-back must go through a claude/* branch"
+        assert "claude/" in _read(SKILL_MD), (
+            "write-back must go through a claude/* branch"
+        )

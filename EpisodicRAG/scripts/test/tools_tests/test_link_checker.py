@@ -44,7 +44,9 @@ class TestMarkdownLinkChecker:
         file1 = temp_docs_dir / "index.md"
         file2 = temp_docs_dir / "guide.md"
 
-        file1.write_text("# Index\n\nSee [Guide](guide.md) for details.", encoding="utf-8")
+        file1.write_text(
+            "# Index\n\nSee [Guide](guide.md) for details.", encoding="utf-8"
+        )
         file2.write_text("# Guide\n\nThis is a guide.", encoding="utf-8")
 
         # Execute
@@ -672,10 +674,18 @@ class TestLinkCheckerMain:
         import sys
 
         file1 = temp_docs_dir / "index.md"
-        file1.write_text("[Valid](index.md)\n[Ext](https://example.com)", encoding="utf-8")
+        file1.write_text(
+            "[Valid](index.md)\n[Ext](https://example.com)", encoding="utf-8"
+        )
 
         result = subprocess.run(
-            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--verbose"],
+            [
+                sys.executable,
+                "-m",
+                "tools.link_checker",
+                str(temp_docs_dir),
+                "--verbose",
+            ],
             capture_output=True,
             cwd=str(Path(__file__).parent.parent.parent),
             encoding="utf-8",
@@ -696,7 +706,13 @@ class TestLinkCheckerMain:
         file1.write_text("[Valid](index.md)\n[Broken](missing.md)", encoding="utf-8")
 
         result = subprocess.run(
-            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--errors-only"],
+            [
+                sys.executable,
+                "-m",
+                "tools.link_checker",
+                str(temp_docs_dir),
+                "--errors-only",
+            ],
             capture_output=True,
             cwd=str(Path(__file__).parent.parent.parent),
             encoding="utf-8",
@@ -716,7 +732,14 @@ class TestLinkCheckerMain:
         file1.write_text("[Valid](index.md)", encoding="utf-8")
 
         result = subprocess.run(
-            [sys.executable, "-m", "tools.link_checker", str(temp_docs_dir), "--json", "--verbose"],
+            [
+                sys.executable,
+                "-m",
+                "tools.link_checker",
+                str(temp_docs_dir),
+                "--json",
+                "--verbose",
+            ],
             capture_output=True,
             cwd=str(Path(__file__).parent.parent.parent),
             encoding="utf-8",
@@ -816,7 +839,9 @@ class TestLinkCheckerMainDirect:
         from tools.link_checker import main
 
         file1 = temp_docs_dir / "index.md"
-        file1.write_text("[Valid](index.md)\n[Ext](https://example.com)", encoding="utf-8")
+        file1.write_text(
+            "[Valid](index.md)\n[Ext](https://example.com)", encoding="utf-8"
+        )
 
         with (
             patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--verbose"]),
@@ -855,7 +880,10 @@ class TestLinkCheckerMainDirect:
         file1.write_text("[Valid](index.md)", encoding="utf-8")
 
         with (
-            patch("sys.argv", ["link_checker.py", str(temp_docs_dir), "--json", "--verbose"]),
+            patch(
+                "sys.argv",
+                ["link_checker.py", str(temp_docs_dir), "--json", "--verbose"],
+            ),
             patch("builtins.print") as mock_print,
         ):
             try:

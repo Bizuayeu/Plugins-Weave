@@ -30,7 +30,7 @@ class TestSanitizeFilename(unittest.TestCase):
 
     def test_dangerous_chars(self) -> None:
         """危険な文字の削除"""
-        self.assertEqual(sanitize_filename("test<>:\"/\\|?*"), "test")
+        self.assertEqual(sanitize_filename('test<>:"/\\|?*'), "test")
         self.assertEqual(sanitize_filename("file:name"), "filename")
 
     def test_spaces_to_underscore(self) -> None:
@@ -81,7 +81,7 @@ class TestSanitizeFilenameEdgeCases(unittest.TestCase):
         with self.assertRaises(ValidationError):
             sanitize_filename(123)
         with self.assertRaises(ValidationError):
-            sanitize_filename(['test'])
+            sanitize_filename(["test"])
 
     def test_zero_max_length_raises_valueerror(self) -> None:
         """max_length=0でValidationError"""

@@ -140,7 +140,10 @@ class TestConfigThresholdInvariants:
     @given(level=valid_levels)
     @settings(
         max_examples=50,
-        suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
+        suppress_health_check=[
+            HealthCheck.too_slow,
+            HealthCheck.function_scoped_fixture,
+        ],
     )
     def test_threshold_is_positive_integer(
         self, level, temp_plugin_env: "TempPluginEnvironment"
@@ -161,7 +164,9 @@ class TestConfigThresholdInvariants:
         digest_config_threshold = getattr(digest_config.threshold, attr_name, 5)
 
         # 閾値は正の整数であること
-        assert isinstance(digest_config_threshold, int), f"{level}の閾値はint型であること"
+        assert isinstance(digest_config_threshold, int), (
+            f"{level}の閾値はint型であること"
+        )
         assert digest_config_threshold > 0, f"{level}の閾値は正であること"
 
         # LEVEL_CONFIGと一致すること（config.jsonでオーバーライドされていない場合）
@@ -182,7 +187,10 @@ class TestPathResolutionInvariants:
     @given(level=valid_levels)
     @settings(
         max_examples=50,
-        suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
+        suppress_health_check=[
+            HealthCheck.too_slow,
+            HealthCheck.function_scoped_fixture,
+        ],
     )
     def test_level_dir_returns_absolute_path(
         self, level, temp_plugin_env: "TempPluginEnvironment"
@@ -200,7 +208,10 @@ class TestPathResolutionInvariants:
     @given(level=valid_levels)
     @settings(
         max_examples=50,
-        suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
+        suppress_health_check=[
+            HealthCheck.too_slow,
+            HealthCheck.function_scoped_fixture,
+        ],
     )
     def test_level_dir_contains_level_name(
         self, level, temp_plugin_env: "TempPluginEnvironment"

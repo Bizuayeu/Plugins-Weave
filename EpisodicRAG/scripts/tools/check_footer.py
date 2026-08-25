@@ -72,7 +72,9 @@ def parse_footer_md(footer_md_path: Path) -> FooterDefinition:
     # フッター内容を抽出（```text ... ``` ブロック）
     footer_match = re.search(r"```text\n(.*?)\n```", content, re.DOTALL)
     if not footer_match:
-        raise ValueError("Footer content not found in _footer.md (expected ```text ... ``` block)")
+        raise ValueError(
+            "Footer content not found in _footer.md (expected ```text ... ``` block)"
+        )
 
     footer_content = footer_match.group(1).strip()
 
@@ -109,7 +111,9 @@ def parse_footer_md(footer_md_path: Path) -> FooterDefinition:
     return FooterDefinition(content=footer_content, target_files=target_files)
 
 
-def check_footer_in_file(file_path: Path, expected_footer: str) -> tuple[FooterStatus, str | None]:
+def check_footer_in_file(
+    file_path: Path, expected_footer: str
+) -> tuple[FooterStatus, str | None]:
     """
     ファイル内のフッターをチェック
 
@@ -273,7 +277,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Check footer consistency across documentation files"
     )
-    parser.add_argument("--fix", action="store_true", help="Auto-fix missing or mismatched footers")
+    parser.add_argument(
+        "--fix", action="store_true", help="Auto-fix missing or mismatched footers"
+    )
     parser.add_argument("--quiet", action="store_true", help="Only print summary")
     args = parser.parse_args()
 

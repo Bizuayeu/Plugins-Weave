@@ -132,7 +132,9 @@ class CascadeProcessor:
         overall_digest = shadow_data["latest_digests"][level]["overall_digest"]
 
         _logger.state("get_shadow_digest_for_level", level=level)
-        _logger.validation("overall_digest", is_valid=is_valid_overall_digest(overall_digest))
+        _logger.validation(
+            "overall_digest", is_valid=is_valid_overall_digest(overall_digest)
+        )
 
         if not is_valid_overall_digest(overall_digest):
             _logger.info(f"Shadowダイジェストなし: レベル {level}")

@@ -112,7 +112,9 @@ class DigestPersistence:
             save_json(final_path, as_dict(regular_digest))
         except OSError as e:
             formatter = get_error_formatter()
-            raise FileIOError(formatter.file.file_io_error("save", final_path, e)) from e
+            raise FileIOError(
+                formatter.file.file_io_error("save", final_path, e)
+            ) from e
 
         _logger.info(f"RegularDigest保存完了: {final_path}")
         return final_path
@@ -169,7 +171,9 @@ class DigestPersistence:
         if should_cascade:
             _logger.info("[Step 3] ShadowGrandDigestカスケード処理")
             log_debug(f"{LOG_PREFIX_STATE} starting cascade for level={level}")
-            self.shadow_manager.cascade_update_on_digest_finalize(level, finalized_digest)
+            self.shadow_manager.cascade_update_on_digest_finalize(
+                level, finalized_digest
+            )
         else:
             _logger.info(f"[Step 3] スキップ（{level}は最上位、カスケード不要）")
 
@@ -194,7 +198,9 @@ class DigestPersistence:
         if provisional_file and provisional_file.exists():
             try:
                 provisional_file.unlink()
-                _logger.info(f"[Step 5] マージ後のProvisional削除完了: {provisional_file.name}")
+                _logger.info(
+                    f"[Step 5] マージ後のProvisional削除完了: {provisional_file.name}"
+                )
             except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
                 # FileNotFoundError: 競合状態でファイルが既に削除された場合
                 # PermissionError: ファイルがロックされている場合
@@ -224,7 +230,9 @@ class DigestPersistence:
         """
         log_debug(f"{LOG_PREFIX_STATE} process_cascade_and_cleanup: level={level}")
         log_debug(f"{LOG_PREFIX_STATE} digest_number: {digest_number}")
-        log_debug(f"{LOG_PREFIX_FILE} provisional_to_delete: {provisional_file_to_delete}")
+        log_debug(
+            f"{LOG_PREFIX_FILE} provisional_to_delete: {provisional_file_to_delete}"
+        )
 
         self._update_shadow_cascade(level, finalized_digest)
         self._update_digest_times(level, digest_number)

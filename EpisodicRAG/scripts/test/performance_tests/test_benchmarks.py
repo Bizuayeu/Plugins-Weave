@@ -120,7 +120,9 @@ class TestJsonIOPerformance:
 
         # Writing 500 digests should take under 1 second
         assert elapsed < 1.0, f"JSON dump took {elapsed:.2f}s"
-        print(f"\nJSON dump: {elapsed:.3f}s for {len(large_individual_digests)} digests")
+        print(
+            f"\nJSON dump: {elapsed:.3f}s for {len(large_individual_digests)} digests"
+        )
 
 
 # =============================================================================
@@ -327,7 +329,10 @@ class TestFileDetectionPerformance:
     """Performance tests for file detection operations."""
 
     def test_find_new_files_1000(
-        self, large_digest_files, digest_config: "DigestConfig", times_tracker: "DigestTimesTracker"
+        self,
+        large_digest_files,
+        digest_config: "DigestConfig",
+        times_tracker: "DigestTimesTracker",
     ) -> None:
         """File detection should handle 1000 files efficiently."""
         from application.shadow import FileDetector
@@ -345,7 +350,9 @@ class TestFileDetectionPerformance:
         # Lower bound: ensure detection logic is actually executing
         assert elapsed > 0.01, "Detection too fast - check if logic is executing"
         # Upper bound: 10 iterations should complete in under 5 seconds
-        assert elapsed < 5.0, f"File detection took {elapsed:.2f}s for 10 iterations (max 5s)"
+        assert elapsed < 5.0, (
+            f"File detection took {elapsed:.2f}s for 10 iterations (max 5s)"
+        )
         # Performance rate check: ensure minimum throughput
         files_per_second = (1000 * 10) / elapsed  # 1000 files × 10 iterations
         assert files_per_second > 100, (

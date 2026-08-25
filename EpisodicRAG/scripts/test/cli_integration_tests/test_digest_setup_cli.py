@@ -22,18 +22,24 @@ from .conftest import create_loop_file
 class TestDigestSetupCheckE2E:
     """check サブコマンドのE2Eテスト"""
 
-    def test_check_unconfigured_returns_not_configured(self, cli_runner: CLIRunner) -> None:
+    def test_check_unconfigured_returns_not_configured(
+        self, cli_runner: CLIRunner
+    ) -> None:
         """未設定環境で not_configured を返す"""
         result = cli_runner.run_digest_setup("check")
         result.assert_success()
         result.assert_json_status("not_configured")
 
-    def test_check_unconfigured_shows_config_exists_false(self, cli_runner: CLIRunner) -> None:
+    def test_check_unconfigured_shows_config_exists_false(
+        self, cli_runner: CLIRunner
+    ) -> None:
         """未設定環境で config_exists が false"""
         result = cli_runner.run_digest_setup("check")
         result.assert_json_contains("config_exists", False)
 
-    def test_check_configured_returns_configured(self, configured_cli_runner: CLIRunner) -> None:
+    def test_check_configured_returns_configured(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """設定済み環境で configured を返す"""
         result = configured_cli_runner.run_digest_setup("check")
         result.assert_success()
@@ -104,7 +110,9 @@ class TestDigestSetupInitE2E:
         self, configured_cli_runner: CLIRunner, valid_config_json: str
     ) -> None:
         """既存設定がある場合は already_configured を返す"""
-        result = configured_cli_runner.run_digest_setup("init", config=valid_config_json)
+        result = configured_cli_runner.run_digest_setup(
+            "init", config=valid_config_json
+        )
         result.assert_json_status("already_configured")
 
     def test_init_with_force_overwrites(

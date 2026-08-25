@@ -34,7 +34,9 @@ class TestCliMain:
     """config.cli.main() 関数のテスト"""
 
     @pytest.mark.integration
-    def test_main_no_arguments_outputs_json(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_main_no_arguments_outputs_json(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """引数なしでJSON出力"""
         from interfaces.config_cli import main
 

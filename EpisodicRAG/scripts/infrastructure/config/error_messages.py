@@ -72,9 +72,7 @@ def config_invalid_value_message(key: str, expected: str, actual: Any) -> str:
     Returns:
         フォーマットされたエラーメッセージ
     """
-    return (
-        f"Invalid configuration value for '{key}': expected {expected}, got {type(actual).__name__}"
-    )
+    return f"Invalid configuration value for '{key}': expected {expected}, got {type(actual).__name__}"
 
 
 def config_section_missing_message(section: str) -> str:

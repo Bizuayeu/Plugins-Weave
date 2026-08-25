@@ -78,7 +78,11 @@ class ShadowUpdater:
         # 内部コンポーネントを初期化
         self._placeholder_manager = PlaceholderManager()
         self._file_appender = FileAppender(
-            shadow_io, file_detector, template, level_hierarchy, self._placeholder_manager
+            shadow_io,
+            file_detector,
+            template,
+            level_hierarchy,
+            self._placeholder_manager,
         )
 
         # ProvisionalAppender（configが提供された場合のみ）
@@ -231,4 +235,6 @@ class ShadowUpdater:
             >>> updater.cascade_update_on_digest_finalize("weekly", finalized_digest)
             # weekly Shadowがクリアされ、W0042.txt が monthly Shadow/Provisional に追加される
         """
-        return self._cascade_processor.cascade_update_on_digest_finalize(level, finalized_digest)
+        return self._cascade_processor.cascade_update_on_digest_finalize(
+            level, finalized_digest
+        )

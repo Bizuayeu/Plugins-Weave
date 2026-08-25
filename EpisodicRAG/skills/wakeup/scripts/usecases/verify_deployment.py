@@ -77,7 +77,9 @@ class VerifyDeployment:
         rel = config.directive_path
         size = self._probe.directive_size(rel)
         if size is None:
-            directive_check = CheckResult("directive", False, f"{rel} not found under skill root")
+            directive_check = CheckResult(
+                "directive", False, f"{rel} not found under skill root"
+            )
         elif size == 0:
             directive_check = CheckResult("directive", False, f"{rel} is empty")
         else:

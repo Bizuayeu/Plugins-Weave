@@ -74,7 +74,9 @@ class TestFullCascadeInitialization:
         shadow_data = shadow_manager._io.load_or_create()
 
         for level in LEVEL_ORDER:
-            assert level in shadow_data["latest_digests"], f"{level}がShadowに存在すること"
+            assert level in shadow_data["latest_digests"], (
+                f"{level}がShadowに存在すること"
+            )
 
     def test_all_eight_levels_exist_in_grand(self, full_cascade_env) -> None:
         """
@@ -88,7 +90,9 @@ class TestFullCascadeInitialization:
         grand_data = grand_manager.load_or_create()
 
         for level in LEVEL_ORDER:
-            assert level in grand_data["major_digests"], f"{level}がGrandDigestに存在すること"
+            assert level in grand_data["major_digests"], (
+                f"{level}がGrandDigestに存在すること"
+            )
 
     def test_level_hierarchy_is_correctly_linked(self, full_cascade_env) -> None:
         """
@@ -257,7 +261,9 @@ class TestFullCascadeFlow:
             next_level = hierarchy[level]["next"]
             next_index = LEVEL_ORDER.index(next_level)
 
-            assert next_index == i + 1, f"{level}({i})の次は{LEVEL_ORDER[i + 1]}({i + 1})であること"
+            assert next_index == i + 1, (
+                f"{level}({i})の次は{LEVEL_ORDER[i + 1]}({i + 1})であること"
+            )
 
 
 class TestCascadeStopConditions:

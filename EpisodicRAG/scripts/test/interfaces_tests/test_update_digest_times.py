@@ -109,8 +109,12 @@ class TestUpdateDigestTimesCLI(unittest.TestCase):
         """既存レベルのデータを保持"""
         # 事前データ作成（永続化ディレクトリに保存）
         times_file = self.persistent_dir / "last_digest_times.json"
-        initial_data = {"weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 40}}
-        times_file.write_text(json.dumps(initial_data, ensure_ascii=False), encoding="utf-8")
+        initial_data = {
+            "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 40}
+        }
+        times_file.write_text(
+            json.dumps(initial_data, ensure_ascii=False), encoding="utf-8"
+        )
 
         from interfaces.update_digest_times import main
 

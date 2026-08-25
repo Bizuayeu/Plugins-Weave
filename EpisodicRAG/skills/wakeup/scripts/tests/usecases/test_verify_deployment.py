@@ -33,7 +33,9 @@ def _config(directive_path="Directive.md", with_private=True, load_files=None):
 class _FakeProbe:
     """Filesystem stand-in: sizes by relative path, archives by name."""
 
-    def __init__(self, config=None, error=None, sizes=None, archives=None, readable=None):
+    def __init__(
+        self, config=None, error=None, sizes=None, archives=None, readable=None
+    ):
         self._config = config if config is not None else _config()
         self._error = error
         self._sizes = sizes if sizes is not None else {"Directive.md": 826}
@@ -126,7 +128,9 @@ class TestTokenFailures:
         assert _check(report, "token").ok is False
 
     def test_unreadable_archive_fails(self):
-        report = VerifyDeployment(_FakeProbe(archives=("token.zip",), readable=())).run()
+        report = VerifyDeployment(
+            _FakeProbe(archives=("token.zip",), readable=())
+        ).run()
         assert _check(report, "token").ok is False
 
     def test_any_readable_archive_passes(self):
@@ -169,7 +173,9 @@ class TestReportRendering:
         assert any("FAIL" in line for line in lines)
 
     def test_success_lines_carry_no_fail_marker(self):
-        assert not any("FAIL" in line for line in VerifyDeployment(_FakeProbe()).run().lines())
+        assert not any(
+            "FAIL" in line for line in VerifyDeployment(_FakeProbe()).run().lines()
+        )
 
 
 class TestPortContract:

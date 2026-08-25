@@ -94,7 +94,9 @@ class DigestReadinessChecker:
             threshold_met = source_count >= level_threshold
 
             # SDG完備判定
-            sgd_ready, missing_sgd_files = self._check_sgd_ready(overall_digest, source_files)
+            sgd_ready, missing_sgd_files = self._check_sgd_ready(
+                overall_digest, source_files
+            )
 
             # Provisional完備判定
             provisional_ready, missing_provisionals = self._check_provisional_ready(
@@ -261,13 +263,17 @@ class DigestReadinessChecker:
                 placeholder_fields.append("keywords")
 
             if placeholder_fields:
-                blockers.append(f"SDG未完備: PLACEHOLDERあり ({', '.join(placeholder_fields)})")
+                blockers.append(
+                    f"SDG未完備: PLACEHOLDERあり ({', '.join(placeholder_fields)})"
+                )
             elif missing_sgd_files:
                 blockers.append("SDG未完備: source_filesに未登録ファイルあり")
 
         if not provisional_ready:
             if missing_provisionals:
-                blockers.append(f"Provisional未完備: {', '.join(missing_provisionals)} が不足")
+                blockers.append(
+                    f"Provisional未完備: {', '.join(missing_provisionals)} が不足"
+                )
             else:
                 blockers.append("Provisional未完備: Provisionalファイルなし")
 

@@ -89,7 +89,8 @@ class MarkdownLinkChecker:
 
     # アンカーのみパターン（lychee互換：先頭ハイフン許可、アンダースコア除外）
     ANCHOR_ONLY_PATTERN = re.compile(
-        r"^#[-a-z0-9\u3040-\u309F\u30A0-\u30FA\u30FC-\u30FF\u4E00-\u9FFF]+$", re.IGNORECASE
+        r"^#[-a-z0-9\u3040-\u309F\u30A0-\u30FA\u30FC-\u30FF\u4E00-\u9FFF]+$",
+        re.IGNORECASE,
     )
 
     def __init__(self, docs_root: Path):
@@ -162,7 +163,9 @@ class MarkdownLinkChecker:
                 link_text = match.group(1)
                 link_target = match.group(2)
 
-                result = self._validate_link(file_path, line_num, link_text, link_target)
+                result = self._validate_link(
+                    file_path, line_num, link_text, link_target
+                )
                 file_results.append(result)
                 self.results.append(result)
 
@@ -357,7 +360,9 @@ class MarkdownLinkChecker:
         # Note: underscore is kept per GitHub/lychee spec
         # Katakana range split: U+30A0-30FA (letters), skip U+30FB (nakaguro), U+30FC-30FF (marks)
         slug = re.sub(
-            r"[^a-z0-9_\u3040-\u309F\u30A0-\u30FA\u30FC-\u30FF\u4E00-\u9FFF \-]", "", slug
+            r"[^a-z0-9_\u3040-\u309F\u30A0-\u30FA\u30FC-\u30FF\u4E00-\u9FFF \-]",
+            "",
+            slug,
         )
 
         # スペースをハイフンに（各スペースを個別に置換）
@@ -385,7 +390,7 @@ class MarkdownLinkChecker:
 
         i = 0
         while i < len(line):
-            if line[i] == '`':
+            if line[i] == "`":
                 if not in_code:
                     in_code = True
                     start = i
@@ -408,7 +413,9 @@ class MarkdownLinkChecker:
         Returns:
             コードスパン内ならTrue
         """
-        return any(span_start <= start < span_end for span_start, span_end in code_spans)
+        return any(
+            span_start <= start < span_end for span_start, span_end in code_spans
+        )
 
     def _suggest_correction(self, source_file: Path, broken_target: str) -> str | None:
         """
@@ -481,8 +488,12 @@ def main() -> None:
     import io
 
     if sys.stdout.encoding != "utf-8":
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.buffer, encoding="utf-8", errors="replace"
+        )
+        sys.stderr = io.TextIOWrapper(
+            sys.stderr.buffer, encoding="utf-8", errors="replace"
+        )
 
     parser = argparse.ArgumentParser(
         description="Markdown Link Checker - ドキュメント内リンクの検証",

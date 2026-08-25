@@ -165,7 +165,9 @@ class TestShadowValidatorInit:
     """ShadowValidator 初期化のテスト"""
 
     @pytest.mark.unit
-    def test_stores_shadow_manager(self, shadow_manager: "ShadowGrandDigestManager") -> None:
+    def test_stores_shadow_manager(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ) -> None:
         """shadow_managerが正しく保存される"""
         validator = ShadowValidator(shadow_manager)
         assert validator.shadow_manager is shadow_manager
@@ -185,7 +187,7 @@ class TestShadowValidatorNonConsecutiveFiles:
     ) -> None:
         """非連続ファイル検出時、ユーザーが'y'で続行"""
         # input()を'y'を返すようにモック
-        monkeypatch.setattr('builtins.input', lambda _: 'y')
+        monkeypatch.setattr("builtins.input", lambda _: "y")
 
         # 非連続ファイル（1, 3 で 2 が抜けている）
         source_files = ["L00001_test.txt", "L00003_test.txt"]
@@ -199,7 +201,7 @@ class TestShadowValidatorNonConsecutiveFiles:
     ) -> None:
         """非連続ファイル検出時、ユーザーが'n'でキャンセル"""
         # input()を'n'を返すようにモック
-        monkeypatch.setattr('builtins.input', lambda _: 'n')
+        monkeypatch.setattr("builtins.input", lambda _: "n")
 
         # 非連続ファイル
         source_files = ["L00001_test.txt", "L00003_test.txt"]
@@ -214,7 +216,7 @@ class TestShadowValidatorNonConsecutiveFiles:
     ) -> None:
         """非連続ファイル検出時、空入力でもキャンセル"""
         # input()を空文字を返すようにモック
-        monkeypatch.setattr('builtins.input', lambda _: '')
+        monkeypatch.setattr("builtins.input", lambda _: "")
 
         source_files = ["L00001_test.txt", "L00005_test.txt"]
 
@@ -223,14 +225,16 @@ class TestShadowValidatorNonConsecutiveFiles:
         assert "User cancelled" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_consecutive_files_no_prompt(self, validator, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_consecutive_files_no_prompt(
+        self, validator, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """連続ファイルの場合はinput()が呼ばれない"""
 
         # input()が呼ばれたらエラーを発生させる
         def raise_if_called(_) -> None:
             raise AssertionError("input() should not be called for consecutive files")
 
-        monkeypatch.setattr('builtins.input', raise_if_called)
+        monkeypatch.setattr("builtins.input", raise_if_called)
 
         # 連続ファイル
         source_files = ["L00001_test.txt", "L00002_test.txt", "L00003_test.txt"]
@@ -277,7 +281,9 @@ class TestShadowValidatorConfirmCallback:
         validator.validate_shadow_content("weekly", source_files)
 
     @pytest.mark.unit
-    def test_callback_receives_correct_message(self, shadow_manager: "ShadowGrandDigestManager"):
+    def test_callback_receives_correct_message(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ):
         """コールバックが正しいメッセージを受け取る"""
         received_messages = []
 
@@ -316,7 +322,9 @@ class TestShadowValidatorConfirmCallback:
         assert validator.confirm_callback is custom_callback
 
     @pytest.mark.unit
-    def test_consecutive_files_no_callback(self, shadow_manager: "ShadowGrandDigestManager"):
+    def test_consecutive_files_no_callback(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ):
         """連続ファイルの場合はコールバックが呼ばれない"""
         callback_called = []
 
@@ -561,7 +569,9 @@ class TestShadowValidatorPrivateMethods:
         from domain.constants import PLACEHOLDER_MARKER
 
         with pytest.raises(ValidationError) as exc_info:
-            validator._validate_digest_type({"digest_type": f"{PLACEHOLDER_MARKER}: custom -->"})
+            validator._validate_digest_type(
+                {"digest_type": f"{PLACEHOLDER_MARKER}: custom -->"}
+            )
         assert "placeholder" in str(exc_info.value).lower()
 
     @pytest.mark.unit

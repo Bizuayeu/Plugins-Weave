@@ -112,16 +112,11 @@ exclude_lines = [
 # =============================================================================
 
 [tool.ruff]
-line-length = 100
 target-version = "py310"
 src = ["scripts"]
 include = ["scripts/**/*.py", "skills/wakeup/scripts/**/*.py"]
 exclude = [".pytest_cache", "__pycache__", ".venv", "*.egg-info"]
 
-[tool.ruff.format]
-quote-style = "preserve"
-indent-style = "space"
-docstring-code-format = false
 
 [tool.ruff.lint]
 # ruff の default 選択は版が上がるたび広がるので明示固定する。集合はワークスペース共通の 10 個。

@@ -27,9 +27,13 @@ class BootSequence:
         Returns the loaded ``{path: content}``. Raises :class:`WakeupError` if any
         *required* file could not be loaded; missing *optional* files are tolerated.
         """
-        loaded = self._loader.load_public(self._config.public_repo, self._config.load_files)
+        loaded = self._loader.load_public(
+            self._config.public_repo, self._config.load_files
+        )
         missing_required = [
-            f.path for f in self._config.load_files if f.required and f.path not in loaded
+            f.path
+            for f in self._config.load_files
+            if f.required and f.path not in loaded
         ]
         if missing_required:
             raise WakeupError(f"required boot files unavailable: {missing_required}")

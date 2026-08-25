@@ -56,13 +56,15 @@ pytestmark = pytest.mark.slow
 def level_hierarchy():
     """レベル階層情報"""
     return {
-        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
+        level: {"source": cfg["source"], "next": cfg["next"]}
+        for level, cfg in LEVEL_CONFIG.items()
     }
 
 
 @pytest.fixture
 def cascade_components(
-    temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "dict[str, LevelHierarchyEntry]"
+    temp_plugin_env: "TempPluginEnvironment",
+    level_hierarchy: "dict[str, LevelHierarchyEntry]",
 ):
     """カスケード処理に必要なコンポーネント群"""
     config = DigestConfig()
@@ -92,7 +94,9 @@ def cascade_components(
 
 
 @pytest.fixture
-def cascade_orchestrator(cascade_components, level_hierarchy: "dict[str, LevelHierarchyEntry]"):
+def cascade_orchestrator(
+    cascade_components, level_hierarchy: "dict[str, LevelHierarchyEntry]"
+):
     """CascadeOrchestratorインスタンスを提供"""
     return CascadeOrchestrator(
         cascade_processor=cascade_components["cascade_processor"],
@@ -285,7 +289,9 @@ class TestCascadeOrchestratorSteps:
         assert promote_step.status == CascadeStepStatus.NO_DATA
 
     @pytest.mark.integration
-    def test_promote_step_success_with_data(self, cascade_orchestrator, cascade_components) -> None:
+    def test_promote_step_success_with_data(
+        self, cascade_orchestrator, cascade_components
+    ) -> None:
         """Promote step returns SUCCESS when shadow has data"""
         # Add data to shadow
         shadow_io = cascade_components["shadow_io"]

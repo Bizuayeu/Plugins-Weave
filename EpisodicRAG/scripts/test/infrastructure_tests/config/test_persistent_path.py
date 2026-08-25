@@ -50,8 +50,13 @@ class TestGetPersistentConfigDir:
             # ディレクトリが存在しないことを確認
             assert not expected_dir.exists()
 
-            with patch("infrastructure.config.persistent_path.Path.home", return_value=mock_home):
-                from infrastructure.config.persistent_path import get_persistent_config_dir
+            with patch(
+                "infrastructure.config.persistent_path.Path.home",
+                return_value=mock_home,
+            ):
+                from infrastructure.config.persistent_path import (
+                    get_persistent_config_dir,
+                )
 
                 result = get_persistent_config_dir()
 
@@ -71,8 +76,13 @@ class TestGetPersistentConfigDir:
             expected_dir.mkdir(parents=True, exist_ok=True)
             assert expected_dir.exists()
 
-            with patch("infrastructure.config.persistent_path.Path.home", return_value=mock_home):
-                from infrastructure.config.persistent_path import get_persistent_config_dir
+            with patch(
+                "infrastructure.config.persistent_path.Path.home",
+                return_value=mock_home,
+            ):
+                from infrastructure.config.persistent_path import (
+                    get_persistent_config_dir,
+                )
 
                 result = get_persistent_config_dir()
 

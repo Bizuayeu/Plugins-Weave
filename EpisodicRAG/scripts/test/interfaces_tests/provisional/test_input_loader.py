@@ -210,10 +210,10 @@ class TestInputLoaderEdgeCases(unittest.TestCase):
 
     def test_load_with_newlines_in_string(self) -> None:
         """Handles JSON string with embedded newlines"""
-        json_str = '''[
+        json_str = """[
             {"source_file": "a.txt"},
             {"source_file": "b.txt"}
-        ]'''
+        ]"""
         result = InputLoader.load(json_str)
         self.assertEqual(len(result), 2)
 
@@ -231,13 +231,13 @@ class TestInputLoaderEdgeCases(unittest.TestCase):
 
     def test_load_preserves_data_types(self) -> None:
         """Preserves various JSON data types"""
-        json_str = '''[{
+        json_str = """[{
             "source_file": "a.txt",
             "count": 42,
             "enabled": true,
             "tags": ["a", "b"],
             "metadata": null
-        }]'''
+        }]"""
         result = InputLoader.load(json_str)
         self.assertEqual(result[0]["count"], 42)
         self.assertTrue(result[0]["enabled"])

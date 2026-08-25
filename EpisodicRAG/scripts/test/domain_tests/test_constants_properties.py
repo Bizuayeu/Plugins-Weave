@@ -214,7 +214,9 @@ class TestLevelConfigProperties:
             visited = set()
             current = start_level
             while current is not None:
-                assert current not in visited, f"循環検出: {start_level}から始まり{current}で循環"
+                assert current not in visited, (
+                    f"循環検出: {start_level}から始まり{current}で循環"
+                )
                 visited.add(current)
                 current = LEVEL_CONFIG[current]["next"]
 

@@ -78,4 +78,6 @@ class TestThresholdKeys:
     def test_threshold_keys_naming_convention(self) -> None:
         """すべての閾値キーが '_threshold' で終わること"""
         for key in THRESHOLD_KEYS:
-            assert key.endswith("_threshold"), f"Key '{key}' should end with '_threshold'"
+            assert key.endswith("_threshold"), (
+                f"Key '{key}' should end with '_threshold'"
+            )

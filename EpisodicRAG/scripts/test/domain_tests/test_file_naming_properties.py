@@ -35,7 +35,9 @@ all_levels = st.sampled_from(LEVEL_NAMES + ["loop"])
 
 # Arbitrary filenames (for robustness testing)
 arbitrary_filenames = st.text(
-    alphabet=st.characters(whitelist_categories=("L", "N", "P", "S")), min_size=0, max_size=100
+    alphabet=st.characters(whitelist_categories=("L", "N", "P", "S")),
+    min_size=0,
+    max_size=100,
 )
 
 # Valid prefixes
@@ -128,7 +130,9 @@ class TestFindMaxNumberProperties:
 
     @pytest.mark.property
     @given(
-        numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=1, max_size=20),
+        numbers=st.lists(
+            st.integers(min_value=1, max_value=9999), min_size=1, max_size=20
+        ),
         prefix=valid_prefixes,
     )
     @settings(max_examples=200)
@@ -150,7 +154,11 @@ class TestFindMaxNumberProperties:
         assert result is None or (isinstance(result, int) and result >= 0)
 
     @pytest.mark.property
-    @given(numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=10))
+    @given(
+        numbers=st.lists(
+            st.integers(min_value=1, max_value=9999), min_size=0, max_size=10
+        )
+    )
     @settings(max_examples=100)
     def test_empty_list_returns_none(self, numbers) -> None:
         """Empty list should return None"""
@@ -163,7 +171,9 @@ class TestFilterFilesAfterProperties:
 
     @pytest.mark.property
     @given(
-        numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20),
+        numbers=st.lists(
+            st.integers(min_value=1, max_value=9999), min_size=0, max_size=20
+        ),
         threshold=st.integers(min_value=0, max_value=10000),
     )
     @settings(max_examples=100)
@@ -183,7 +193,9 @@ class TestFilterFilesAfterProperties:
 
     @pytest.mark.property
     @given(
-        numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20),
+        numbers=st.lists(
+            st.integers(min_value=1, max_value=9999), min_size=0, max_size=20
+        ),
         threshold=st.integers(min_value=0, max_value=10000),
     )
     @settings(max_examples=100)
@@ -205,7 +217,11 @@ class TestExtractNumbersFormattedProperties:
     """Test properties of extract_numbers_formatted"""
 
     @pytest.mark.property
-    @given(numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=20))
+    @given(
+        numbers=st.lists(
+            st.integers(min_value=1, max_value=9999), min_size=0, max_size=20
+        )
+    )
     @settings(max_examples=200)
     def test_output_is_sorted(self, numbers) -> None:
         """Output should always be sorted"""
@@ -217,7 +233,9 @@ class TestExtractNumbersFormattedProperties:
 
     @pytest.mark.property
     @given(
-        valid_numbers=st.lists(st.integers(min_value=1, max_value=9999), min_size=0, max_size=10),
+        valid_numbers=st.lists(
+            st.integers(min_value=1, max_value=9999), min_size=0, max_size=10
+        ),
     )
     @settings(max_examples=100)
     def test_output_contains_only_valid_entries(self, valid_numbers) -> None:

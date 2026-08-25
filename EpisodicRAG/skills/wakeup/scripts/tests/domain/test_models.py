@@ -43,7 +43,9 @@ class TestLoadFile:
 
 class TestCommitIdentity:
     def test_accepts_noreply(self):
-        c = CommitIdentity(author_name="Persona", author_email="123+user@users.noreply.github.com")
+        c = CommitIdentity(
+            author_name="Persona", author_email="123+user@users.noreply.github.com"
+        )
         assert c.author_name == "Persona"
         assert c.coauthor == ""
 
@@ -63,7 +65,9 @@ class TestCommitIdentity:
 
     def test_rejects_noreply_without_id(self):
         with pytest.raises(ValueError):
-            CommitIdentity(author_name="P", author_email="user@users.noreply.github.com")
+            CommitIdentity(
+                author_name="P", author_email="user@users.noreply.github.com"
+            )
 
     def test_coauthor_kept(self):
         c = CommitIdentity(
@@ -76,7 +80,9 @@ class TestCommitIdentity:
 
 class TestWakeupConfig:
     def _identity(self):
-        return CommitIdentity(author_name="P", author_email="1+u@users.noreply.github.com")
+        return CommitIdentity(
+            author_name="P", author_email="1+u@users.noreply.github.com"
+        )
 
     def test_construction_public_only(self):
         cfg = WakeupConfig(
@@ -92,7 +98,10 @@ class TestWakeupConfig:
     def test_construction_with_private(self):
         cfg = WakeupConfig(
             public_repo=RepoRef(owner="acme", name="memo"),
-            load_files=(LoadFile(path="dir/A.txt"), LoadFile(path="dir/B.md", required=False)),
+            load_files=(
+                LoadFile(path="dir/A.txt"),
+                LoadFile(path="dir/B.md", required=False),
+            ),
             commit_identity=self._identity(),
             directive_path="dir/Directive.md",
             private_repo=RepoRef(owner="acme", name="private", visibility="private"),
@@ -140,7 +149,9 @@ class TestDirectivePathValidation:
             directive_path=directive_path,
         )
 
-    @pytest.mark.parametrize("good", ["directive.md", "personas/foo/directive.md", "A.md"])
+    @pytest.mark.parametrize(
+        "good", ["directive.md", "personas/foo/directive.md", "A.md"]
+    )
     def test_accepts_relative_paths_of_any_depth(self, good):
         assert self._cfg(good).directive_path == good
 

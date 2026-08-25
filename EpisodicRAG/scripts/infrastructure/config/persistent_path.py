@@ -28,7 +28,11 @@ Usage:
 import os
 from pathlib import Path
 
-from domain.file_constants import CONFIG_FILENAME, PERSISTENT_CONFIG_DIR_NAME, PLUGIN_CONFIG_DIR
+from domain.file_constants import (
+    CONFIG_FILENAME,
+    PERSISTENT_CONFIG_DIR_NAME,
+    PLUGIN_CONFIG_DIR,
+)
 
 # テスト用環境変数名
 PERSISTENT_CONFIG_ENV_VAR = "EPISODICRAG_CONFIG_DIR"

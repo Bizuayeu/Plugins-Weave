@@ -65,13 +65,20 @@ class TestExtractTokenAllFormats:
         assert extract_token(str(_gz(tmp_path, "github_pat_GZ\n"))) == "github_pat_GZ"
 
     def test_tar(self, tmp_path):
-        assert extract_token(str(_tar(tmp_path, "github_pat_TAR\n"))) == "github_pat_TAR"
+        assert (
+            extract_token(str(_tar(tmp_path, "github_pat_TAR\n"))) == "github_pat_TAR"
+        )
 
     def test_tar_gz(self, tmp_path):
-        assert extract_token(str(_tar(tmp_path, "github_pat_TGZ\n", gz=True))) == "github_pat_TGZ"
+        assert (
+            extract_token(str(_tar(tmp_path, "github_pat_TGZ\n", gz=True)))
+            == "github_pat_TGZ"
+        )
 
     def test_zip(self, tmp_path):
-        assert extract_token(str(_zip(tmp_path, "github_pat_ZIP\n"))) == "github_pat_ZIP"
+        assert (
+            extract_token(str(_zip(tmp_path, "github_pat_ZIP\n"))) == "github_pat_ZIP"
+        )
 
     def test_unsupported_format_raises(self, tmp_path):
         p = tmp_path / "token.bin"
@@ -129,7 +136,10 @@ def _deployment(
             {"path": "Identities/A.txt"},
             {"path": "Identities/B.md", "required": False},
         ],
-        "commit_identity": {"author_name": "P", "author_email": "1+u@users.noreply.github.com"},
+        "commit_identity": {
+            "author_name": "P",
+            "author_email": "1+u@users.noreply.github.com",
+        },
         "directive_path": directive_path,
         "private_repo": {"owner": "acme", "name": "secret", "visibility": "private"},
     }
@@ -170,7 +180,9 @@ class TestVerifyCommand:
         assert "acme/secret" in out  # private repo wins as load_repo
 
     def test_missing_directive_fails_with_the_expected_path(self, tmp_path):
-        root = _deployment(tmp_path, directive_path="personas/foo/D.md", directive_text=None)
+        root = _deployment(
+            tmp_path, directive_path="personas/foo/D.md", directive_text=None
+        )
         result = _verify(root)
         assert result.returncode != 0
         assert "personas/foo/D.md" in result.stdout
@@ -235,7 +247,11 @@ class TestResolveUrlsCommand:
             "directive_path": "Directive.md",
         }
         if with_private:
-            config["private_repo"] = {"owner": "acme", "name": "secret", "visibility": "private"}
+            config["private_repo"] = {
+                "owner": "acme",
+                "name": "secret",
+                "visibility": "private",
+            }
         p = tmp_path / "wakeup.config.json"
         p.write_text(json.dumps(config), encoding="utf-8")
         return p
@@ -243,7 +259,15 @@ class TestResolveUrlsCommand:
     def test_resolves_against_private_repo(self, tmp_path):
         cfg = self._write_config(tmp_path, with_private=True)
         result = subprocess.run(
-            [sys.executable, str(ENGINE), "resolve-urls", "--config", str(cfg), "--sha", "sha123"],
+            [
+                sys.executable,
+                str(ENGINE),
+                "resolve-urls",
+                "--config",
+                str(cfg),
+                "--sha",
+                "sha123",
+            ],
             capture_output=True,
             text=True,
         )
@@ -255,7 +279,15 @@ class TestResolveUrlsCommand:
     def test_falls_back_to_public_repo(self, tmp_path):
         cfg = self._write_config(tmp_path, with_private=False)
         result = subprocess.run(
-            [sys.executable, str(ENGINE), "resolve-urls", "--config", str(cfg), "--sha", "sha123"],
+            [
+                sys.executable,
+                str(ENGINE),
+                "resolve-urls",
+                "--config",
+                str(cfg),
+                "--sha",
+                "sha123",
+            ],
             capture_output=True,
             text=True,
         )

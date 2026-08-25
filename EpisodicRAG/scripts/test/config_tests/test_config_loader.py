@@ -89,7 +89,9 @@ class TestConfigLoaderInit:
         assert loader._config is None  # 初期状態ではキャッシュなし
 
     @pytest.mark.unit
-    def test_init_with_path_object(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_init_with_path_object(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Pathオブジェクトで初期化できる"""
         config_path = temp_plugin_env.config_dir / "config.json"
         loader = ConfigLoader(config_path)
@@ -125,7 +127,9 @@ class TestConfigLoaderLoad:
         assert config_loader.is_loaded is True
 
     @pytest.mark.unit
-    def test_load_file_not_found(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_load_file_not_found(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """ファイルが存在しない場合ConfigError"""
         nonexistent = temp_plugin_env.config_dir / "nonexistent.json"
         loader = ConfigLoader(nonexistent)
@@ -149,7 +153,9 @@ class TestConfigLoaderLoad:
         assert "Invalid JSON" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_reload_clears_cache(self, config_loader, config_file, valid_config_data) -> None:
+    def test_reload_clears_cache(
+        self, config_loader, config_file, valid_config_data
+    ) -> None:
         """reloadでキャッシュがクリアされる"""
         # 最初のload
         config1 = config_loader.load()
@@ -305,7 +311,9 @@ class TestConfigLoaderCaching:
         assert config1 is config2
 
     @pytest.mark.unit
-    def test_load_does_not_reread_file(self, config_loader, config_file, valid_config_data) -> None:
+    def test_load_does_not_reread_file(
+        self, config_loader, config_file, valid_config_data
+    ) -> None:
         """キャッシュがある場合、ファイルを再読み込みしない"""
         # 最初のload（キャッシュを作成）
         _ = config_loader.load()
@@ -320,7 +328,9 @@ class TestConfigLoaderCaching:
         assert config2["base_dir"] == "."  # 変更前の値
 
     @pytest.mark.unit
-    def test_reload_rereads_file(self, config_loader, config_file, valid_config_data) -> None:
+    def test_reload_rereads_file(
+        self, config_loader, config_file, valid_config_data
+    ) -> None:
         """reloadはファイルを再読み込みする"""
         # 最初のload
         config1 = config_loader.load()
@@ -463,7 +473,9 @@ class TestConfigLoaderStructureValidation:
     """config_loaderの構造検証テスト（Phase 4で追加したTypeGuard検証）"""
 
     @pytest.mark.unit
-    def test_load_invalid_paths_structure_raises_config_error(self, config_file) -> None:
+    def test_load_invalid_paths_structure_raises_config_error(
+        self, config_file
+    ) -> None:
         """pathsが無効な構造の場合ConfigError"""
         invalid_config = {"paths": "not_a_dict"}
         with config_file.open("w", encoding="utf-8") as f:
@@ -477,7 +489,9 @@ class TestConfigLoaderStructureValidation:
         assert "Invalid config structure" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_load_invalid_levels_structure_raises_config_error(self, config_file) -> None:
+    def test_load_invalid_levels_structure_raises_config_error(
+        self, config_file
+    ) -> None:
         """levelsが無効な構造の場合ConfigError"""
         invalid_config = {"levels": [1, 2, 3]}
         with config_file.open("w", encoding="utf-8") as f:

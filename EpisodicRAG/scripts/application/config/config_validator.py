@@ -127,7 +127,13 @@ class ConfigValidator:
         # パス値が文字列であることを検証
         # Use dict view for dynamic key access
         config_dict = as_dict(self.config)
-        path_keys = ["loops_path", "digests_path", "essences_path", "base_dir", "identity_file"]
+        path_keys = [
+            "loops_path",
+            "digests_path",
+            "essences_path",
+            "base_dir",
+            "identity_file",
+        ]
         for key in path_keys:
             if key in config_dict:
                 _collect_type_error(config_dict[key], str, key, errors)

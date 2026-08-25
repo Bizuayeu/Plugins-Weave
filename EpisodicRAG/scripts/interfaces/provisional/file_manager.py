@@ -66,7 +66,9 @@ class ProvisionalFileManager:
         files_for_search: list[Path | str] = list(existing_files)
         return find_max_number(files_for_search, prefix)
 
-    def load_existing_provisional(self, level: str, digest_num: int) -> dict[str, Any] | None:
+    def load_existing_provisional(
+        self, level: str, digest_num: int
+    ) -> dict[str, Any] | None:
         """
         Load an existing provisional digest file.
 
@@ -155,5 +157,7 @@ class ProvisionalFileManager:
         level_cfg = self.level_config.get(level)
         if not level_cfg:
             formatter = get_error_formatter()
-            raise ConfigError(formatter.config.invalid_level(level, list(self.level_config.keys())))
+            raise ConfigError(
+                formatter.config.invalid_level(level, list(self.level_config.keys()))
+            )
         return level_cfg

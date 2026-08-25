@@ -155,7 +155,9 @@ class TestValidateDirectoryStructure(unittest.TestCase):
             shutil.rmtree(env.digests_path / "1_Weekly" / "Provisional")
 
             errors = config.validate_directory_structure()
-            self.assertTrue(any("weekly" in e.lower() and "Provisional" in e for e in errors))
+            self.assertTrue(
+                any("weekly" in e.lower() and "Provisional" in e for e in errors)
+            )
 
 
 class TestHelperFunctions(unittest.TestCase):

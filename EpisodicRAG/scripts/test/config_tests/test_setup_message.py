@@ -37,7 +37,9 @@ class TestSetupMessageRemoved:
             load_config(nonexistent)
 
         error_msg = str(exc_info.value)
-        assert "setup.sh" not in error_msg, f"Error message still contains 'setup.sh': {error_msg}"
+        assert "setup.sh" not in error_msg, (
+            f"Error message still contains 'setup.sh': {error_msg}"
+        )
         assert "@digest-setup" in error_msg, (
             f"Error message should mention '@digest-setup': {error_msg}"
         )
@@ -54,7 +56,9 @@ class TestSetupMessageRemoved:
             loader.load()
 
         error_msg = str(exc_info.value)
-        assert "setup.sh" not in error_msg, f"Error message still contains 'setup.sh': {error_msg}"
+        assert "setup.sh" not in error_msg, (
+            f"Error message still contains 'setup.sh': {error_msg}"
+        )
         assert "@digest-setup" in error_msg, (
             f"Error message should mention '@digest-setup': {error_msg}"
         )

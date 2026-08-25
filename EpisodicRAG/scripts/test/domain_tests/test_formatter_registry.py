@@ -65,7 +65,9 @@ class TestFormatterRegistryRegister(unittest.TestCase):
         self.registry.register("validation", ValidationErrorFormatter(self.root))
 
         self.assertEqual(len(self.registry), 3)
-        self.assertEqual(set(self.registry.categories()), {"config", "file", "validation"})
+        self.assertEqual(
+            set(self.registry.categories()), {"config", "file", "validation"}
+        )
 
     def test_register_rejects_non_formatter(self) -> None:
         """Rejects non-BaseErrorFormatter objects"""

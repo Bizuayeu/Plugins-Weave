@@ -63,7 +63,9 @@ class TestLoadJson:
         """UTF-8エンコーディング処理"""
         utf8_file = tmp_path / "utf8.json"
         test_data = {"japanese": "日本語テスト", "emoji": "🎉"}
-        utf8_file.write_text(json.dumps(test_data, ensure_ascii=False), encoding="utf-8")
+        utf8_file.write_text(
+            json.dumps(test_data, ensure_ascii=False), encoding="utf-8"
+        )
 
         result = load_json(utf8_file)
         assert result["japanese"] == "日本語テスト"
@@ -108,7 +110,7 @@ class TestSaveJson:
         save_json(json_file, test_data)
 
         # 読み込んで検証
-        with json_file.open(encoding='utf-8') as f:
+        with json_file.open(encoding="utf-8") as f:
             loaded = json.load(f)
         assert loaded == test_data
 
@@ -121,7 +123,7 @@ class TestSaveJson:
         save_json(json_file, test_data)
 
         # ファイル内容を直接確認
-        content = json_file.read_text(encoding='utf-8')
+        content = json_file.read_text(encoding="utf-8")
         assert "こんにちは" in content
         assert "\\u" not in content  # エスケープされていない
 
@@ -192,7 +194,9 @@ class TestLoadJsonWithTemplate:
         def factory():
             return {"source": "factory", "created": True}
 
-        result = load_json_with_template(target_file, template_file=None, default_factory=factory)
+        result = load_json_with_template(
+            target_file, template_file=None, default_factory=factory
+        )
         assert result["source"] == "factory"
         assert result["created"] is True
 
@@ -446,7 +450,9 @@ class TestTryReadJsonFromFile:
         """UTF-8コンテンツを正しく処理"""
         utf8_file = tmp_path / "utf8.txt"
         test_data = {"japanese": "日本語", "keywords": ["キーワード1", "キーワード2"]}
-        utf8_file.write_text(json.dumps(test_data, ensure_ascii=False), encoding="utf-8")
+        utf8_file.write_text(
+            json.dumps(test_data, ensure_ascii=False), encoding="utf-8"
+        )
 
         result = try_read_json_from_file(utf8_file)
         assert result is not None

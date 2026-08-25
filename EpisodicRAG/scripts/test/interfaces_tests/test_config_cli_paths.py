@@ -53,7 +53,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -83,7 +83,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         with patch(
@@ -210,7 +210,7 @@ class TestConfigCLITrustedPathsCommand(unittest.TestCase):
             "paths": {"loops_dir": "data/Loops"},
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         with patch(
@@ -298,8 +298,11 @@ class TestConfigCLINoCommand(unittest.TestCase):
         # 環境変数を設定
         self._old_env = os.environ.get("EPISODICRAG_CONFIG_DIR")
         os.environ["EPISODICRAG_CONFIG_DIR"] = str(self.persistent_config)
-        config_data = {"base_dir": str(self.plugin_root), "levels": {"weekly_threshold": 5}}
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        config_data = {
+            "base_dir": str(self.plugin_root),
+            "levels": {"weekly_threshold": 5},
+        }
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def tearDown(self) -> None:

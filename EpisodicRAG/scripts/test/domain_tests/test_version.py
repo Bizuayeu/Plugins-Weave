@@ -50,7 +50,9 @@ def assert_dynamic_version_badge(content: str, ssot_suffix: str, label: str) -> 
 def assert_no_static_version_badge(content: str, label: str) -> None:
     """静的バージョンバッジ（数字直書き）が残っていないことを検査する。"""
     found = STATIC_VERSION_BADGE_RE.search(content)
-    assert not found, f"Static version badge found in {label}: {found.group(0) if found else ''}"
+    assert not found, (
+        f"Static version badge found in {label}: {found.group(0) if found else ''}"
+    )
 
 
 class TestVersionLoading:
@@ -78,7 +80,9 @@ class TestVersionLoading:
         # セマンティックバージョニング: major.minor.patch
         # 例: "3.0.0", "1.2.3", "0.0.0"
         semver_pattern = r"^\d+\.\d+\.\d+$"
-        assert re.match(semver_pattern, __version__), f"'{__version__}' is not semver format"
+        assert re.match(semver_pattern, __version__), (
+            f"'{__version__}' is not semver format"
+        )
 
     @pytest.mark.unit
     def test_digest_format_version_exists(self) -> None:
@@ -217,7 +221,9 @@ class TestVersionConsistency:
         # marketplace.json からバージョン取得
         # plugins-weave/.claude-plugin/marketplace.json
         marketplace_json = plugin_root.parent / ".claude-plugin" / "marketplace.json"
-        assert marketplace_json.exists(), f"marketplace.json not found: {marketplace_json}"
+        assert marketplace_json.exists(), (
+            f"marketplace.json not found: {marketplace_json}"
+        )
         marketplace_data = json.loads(marketplace_json.read_text(encoding="utf-8"))
 
         # plugins 配列から EpisodicRAG を検索
@@ -250,8 +256,12 @@ class TestVersionConsistency:
         changelog_content = changelog.read_text(encoding="utf-8")
 
         # 正規表現で最初の ## [x.y.z] を抽出
-        version_match = re.search(r"^## \[(\d+\.\d+\.\d+)\]", changelog_content, re.MULTILINE)
-        assert version_match, "No version found in CHANGELOG.md (expected format: ## [x.y.z])"
+        version_match = re.search(
+            r"^## \[(\d+\.\d+\.\d+)\]", changelog_content, re.MULTILINE
+        )
+        assert version_match, (
+            "No version found in CHANGELOG.md (expected format: ## [x.y.z])"
+        )
         changelog_version = version_match.group(1)
 
         assert plugin_version == changelog_version, (
@@ -288,7 +298,9 @@ class TestVersionConsistency:
             readme_path = repo_root / readme_name
             if not readme_path.exists():
                 continue
-            assert_no_static_version_badge(readme_path.read_text(encoding="utf-8"), readme_name)
+            assert_no_static_version_badge(
+                readme_path.read_text(encoding="utf-8"), readme_name
+            )
 
     @pytest.mark.unit
     def test_docs_readme_version_badge(self) -> None:

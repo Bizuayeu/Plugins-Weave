@@ -120,7 +120,9 @@ class DigestAutoAnalyzer:
                             details=gap_info,
                         )
                     )
-                recommendations.append("Consider adding missing files to prevent memory gaps")
+                recommendations.append(
+                    "Consider adding missing files to prevent memory gaps"
+                )
 
             # 6. GrandDigest確認と生成可能な階層判定
             grand_file = essences_path / GRAND_DIGEST_FILENAME
@@ -137,7 +139,9 @@ class DigestAutoAnalyzer:
             # 推奨アクションの追加
             if generatable:
                 for level_status in generatable:
-                    recommendations.append(f"Run /digest {level_status.level} to generate digest")
+                    recommendations.append(
+                        f"Run /digest {level_status.level} to generate digest"
+                    )
 
             # 7. 結果構築
             return self._build_analysis_result(
@@ -184,12 +188,16 @@ class DigestAutoAnalyzer:
         unprocessed = []
         for f in loop_files:
             file_num = extract_file_number(f.stem)
-            if file_num is not None and (last_processed is None or file_num > last_processed):
+            if file_num is not None and (
+                last_processed is None or file_num > last_processed
+            ):
                 unprocessed.append(f.stem)
 
         return sorted(unprocessed)
 
-    def _check_placeholders(self, shadow_data: dict[str, Any]) -> list[tuple[str, list[str]]]:
+    def _check_placeholders(
+        self, shadow_data: dict[str, Any]
+    ) -> list[tuple[str, list[str]]]:
         """プレースホルダー検出"""
         placeholders = []
         latest_digests = shadow_data.get("latest_digests", {})
@@ -202,7 +210,11 @@ class DigestAutoAnalyzer:
                 source_files = overall_digest.get("source_files", [])
                 # source_filesがあるのにabstractがプレースホルダーの場合
                 abstract = overall_digest.get("abstract", "")
-                if source_files and isinstance(abstract, str) and "<!-- PLACEHOLDER" in abstract:
+                if (
+                    source_files
+                    and isinstance(abstract, str)
+                    and "<!-- PLACEHOLDER" in abstract
+                ):
                     placeholders.append((level, source_files))
 
         return placeholders
@@ -262,7 +274,9 @@ class DigestAutoAnalyzer:
 
             if source == "loops":
                 # Loopファイル数（未処理含む）
-                current = len(list(loops_path.glob("L*.txt"))) if loops_path.exists() else 0
+                current = (
+                    len(list(loops_path.glob("L*.txt"))) if loops_path.exists() else 0
+                )
             else:
                 # 下位階層のRegular Digest数
                 source_level_data = major_digests.get(source, {})

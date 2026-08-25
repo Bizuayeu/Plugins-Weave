@@ -163,7 +163,9 @@ def create_placeholder_text(content_type: str, char_limit: int) -> str:
         create_placeholder_text("全体統合分析", 2400)
         # -> "<!-- PLACEHOLDER: 全体統合分析 (2400文字程度) -->"
     """
-    return f"{PLACEHOLDER_MARKER}: {content_type} ({char_limit}文字程度){PLACEHOLDER_END}"
+    return (
+        f"{PLACEHOLDER_MARKER}: {content_type} ({char_limit}文字程度){PLACEHOLDER_END}"
+    )
 
 
 def create_placeholder_keywords(count: int) -> list:
@@ -180,7 +182,10 @@ def create_placeholder_keywords(count: int) -> list:
         create_placeholder_keywords(5)
         # -> ["<!-- PLACEHOLDER: keyword1 -->", ..., "<!-- PLACEHOLDER: keyword5 -->"]
     """
-    return [f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}" for i in range(1, count + 1)]
+    return [
+        f"{PLACEHOLDER_MARKER}: keyword{i}{PLACEHOLDER_END}"
+        for i in range(1, count + 1)
+    ]
 
 
 def build_level_hierarchy() -> dict[str, LevelHierarchyEntry]:

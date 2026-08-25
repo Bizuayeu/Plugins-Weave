@@ -98,8 +98,12 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers", "slow: 時間のかかるテスト（ファイルI/O、複数コンポーネント連携）"
     )
     config.addinivalue_line("markers", "fast: 高速テスト（純粋ロジック、I/Oなし）")
-    config.addinivalue_line("markers", "property: Property-based tests using hypothesis")
-    config.addinivalue_line("markers", "performance: パフォーマンス・ベンチマークテスト")
+    config.addinivalue_line(
+        "markers", "property: Property-based tests using hypothesis"
+    )
+    config.addinivalue_line(
+        "markers", "performance: パフォーマンス・ベンチマークテスト"
+    )
     config.addinivalue_line("markers", "cli: CLI統合テスト（subprocess経由）")
 
 
@@ -148,7 +152,9 @@ def sample_loop_files(
     """
     loop_files: list[Path] = []
     for i in range(1, 6):
-        loop_file = create_test_loop_file(temp_plugin_env.loops_path, i, f"test_loop_{i}")
+        loop_file = create_test_loop_file(
+            temp_plugin_env.loops_path, i, f"test_loop_{i}"
+        )
         loop_files.append(loop_file)
     return temp_plugin_env, loop_files
 
@@ -199,7 +205,9 @@ def mock_persistent_config_dir(
 
         with ExitStack() as stack:
             for target in persistent_dir_targets:
-                stack.enter_context(patch(target, return_value=env.persistent_config_dir))
+                stack.enter_context(
+                    patch(target, return_value=env.persistent_config_dir)
+                )
             for target in config_path_targets:
                 stack.enter_context(patch(target, return_value=config_path))
             yield
@@ -260,7 +268,9 @@ def template() -> "ShadowTemplate":
 
 
 @pytest.fixture
-def shadow_io(temp_plugin_env: TempPluginEnvironment, template: "ShadowTemplate") -> "ShadowIO":
+def shadow_io(
+    temp_plugin_env: TempPluginEnvironment, template: "ShadowTemplate"
+) -> "ShadowIO":
     """テスト用ShadowIO"""
     from application.shadow import ShadowIO
 
@@ -269,7 +279,9 @@ def shadow_io(temp_plugin_env: TempPluginEnvironment, template: "ShadowTemplate"
 
 
 @pytest.fixture
-def file_detector(config: "DigestConfig", times_tracker: "DigestTimesTracker") -> "FileDetector":
+def file_detector(
+    config: "DigestConfig", times_tracker: "DigestTimesTracker"
+) -> "FileDetector":
     """テスト用FileDetector"""
     from application.shadow import FileDetector
 
@@ -356,8 +368,14 @@ def valid_digest_long_short() -> dict[str, Any]:
         "source_file": "L00001_test.txt",
         "digest_type": "テスト",
         "keywords": ["test", "sample"],
-        "abstract": {"long": "詳細な要約（2400字程度）...", "short": "簡潔な要約（1200字程度）"},
-        "impression": {"long": "詳細な所感（800字程度）...", "short": "簡潔な所感（400字程度）"},
+        "abstract": {
+            "long": "詳細な要約（2400字程度）...",
+            "short": "簡潔な要約（1200字程度）",
+        },
+        "impression": {
+            "long": "詳細な所感（800字程度）...",
+            "short": "簡潔な所感（400字程度）",
+        },
     }
 
 

@@ -48,8 +48,12 @@ def shadow_manager(temp_plugin_env: "TempPluginEnvironment") -> None:
     times_file.write_text("{}")
 
     with (
-        patch('application.grand.shadow_grand_digest.DigestConfig') as mock_config_class,
-        patch('application.grand.shadow_grand_digest.DigestTimesTracker') as mock_tracker_class,
+        patch(
+            "application.grand.shadow_grand_digest.DigestConfig"
+        ) as mock_config_class,
+        patch(
+            "application.grand.shadow_grand_digest.DigestTimesTracker"
+        ) as mock_tracker_class,
     ):
         mock_config_class.return_value = mock_config
         mock_tracker = MagicMock()
@@ -66,7 +70,9 @@ class TestShadowGrandDigestManager:
     """ShadowGrandDigestManager の統合テスト"""
 
     @pytest.mark.integration
-    def test_load_or_create_new_file(self, shadow_manager: "ShadowGrandDigestManager") -> None:
+    def test_load_or_create_new_file(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ) -> None:
         """新規作成時の動作"""
         data = shadow_manager._io.load_or_create()
 
@@ -75,14 +81,16 @@ class TestShadowGrandDigestManager:
         assert "latest_digests" in data
 
     @pytest.mark.integration
-    def test_load_or_create_existing_file(self, shadow_manager: "ShadowGrandDigestManager") -> None:
+    def test_load_or_create_existing_file(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ) -> None:
         """既存ファイル読み込み"""
         # テストデータを作成
         test_data = {
             "metadata": {"version": "test"},
             "latest_digests": {"weekly": {"overall_digest": {"test": True}}},
         }
-        with shadow_manager.shadow_digest_file.open('w', encoding='utf-8') as f:
+        with shadow_manager.shadow_digest_file.open("w", encoding="utf-8") as f:
             json.dump(test_data, f)
 
         data = shadow_manager._io.load_or_create()
@@ -90,14 +98,18 @@ class TestShadowGrandDigestManager:
         assert data["metadata"]["version"] == "test"
 
     @pytest.mark.integration
-    def test_find_new_files_no_new(self, shadow_manager: "ShadowGrandDigestManager") -> None:
+    def test_find_new_files_no_new(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ) -> None:
         """新しいファイルがない場合"""
         shadow_manager._mock_tracker.load_or_create.return_value = {}
         new_files = shadow_manager._detector.find_new_files("weekly")
         assert new_files == []
 
     @pytest.mark.integration
-    def test_find_new_files_with_new(self, shadow_manager: "ShadowGrandDigestManager") -> None:
+    def test_find_new_files_with_new(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ) -> None:
         """新しいLoopファイルがある場合"""
         # テストファイルを作成
         loops_path = shadow_manager._temp_env.loops_path
@@ -111,7 +123,9 @@ class TestShadowGrandDigestManager:
         assert any("Loop0001" in f.name for f in new_files)
 
     @pytest.mark.integration
-    def test_clear_shadow_level(self, shadow_manager: "ShadowGrandDigestManager") -> None:
+    def test_clear_shadow_level(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ) -> None:
         """Shadowレベルのクリア"""
         # まずデータを作成
         shadow_manager._io.load_or_create()
@@ -144,7 +158,9 @@ class TestShadowGrandDigestManager:
         """ファイルがあるShadowダイジェスト取得"""
         # テストデータを作成
         data = shadow_manager._io.load_or_create()
-        data["latest_digests"]["weekly"]["overall_digest"]["source_files"] = ["Loop0001.txt"]
+        data["latest_digests"]["weekly"]["overall_digest"]["source_files"] = [
+            "Loop0001.txt"
+        ]
         shadow_manager._io.save(data)
 
         result = shadow_manager.get_shadow_digest_for_level("weekly")
@@ -153,11 +169,15 @@ class TestShadowGrandDigestManager:
         assert result["source_files"] == ["Loop0001.txt"]
 
     @pytest.mark.integration
-    def test_promote_shadow_to_grand(self, shadow_manager: "ShadowGrandDigestManager") -> None:
+    def test_promote_shadow_to_grand(
+        self, shadow_manager: "ShadowGrandDigestManager"
+    ) -> None:
         """ShadowをGrandDigestに昇格（昇格準備確認）"""
         # テストデータを作成
         data = shadow_manager._io.load_or_create()
-        data["latest_digests"]["weekly"]["overall_digest"]["source_files"] = ["Loop0001.txt"]
+        data["latest_digests"]["weekly"]["overall_digest"]["source_files"] = [
+            "Loop0001.txt"
+        ]
         data["latest_digests"]["weekly"]["overall_digest"]["abstract"] = "Test abstract"
         shadow_manager._io.save(data)
 
@@ -175,7 +195,9 @@ class TestShadowGrandDigestManagerInit:
     """ShadowGrandDigestManager 初期化テスト"""
 
     @pytest.mark.integration
-    def test_init_with_none_config(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_init_with_none_config(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """config=Noneでの初期化（デフォルト設定を使用）"""
         # config.jsonを作成
         config_file = temp_plugin_env.config_dir / "config.json"
@@ -193,7 +215,9 @@ class TestShadowGrandDigestManagerInit:
         times_file = temp_plugin_env.config_dir / "last_digest_times.json"
         times_file.write_text("{}")
 
-        with patch('application.grand.shadow_grand_digest.DigestConfig') as mock_config_class:
+        with patch(
+            "application.grand.shadow_grand_digest.DigestConfig"
+        ) as mock_config_class:
             mock_config = MagicMock()
             mock_config.digests_path = temp_plugin_env.digests_path
             mock_config.loops_path = temp_plugin_env.loops_path
@@ -237,7 +261,9 @@ class TestShadowGrandDigestMain:
         times_file.write_text("{}")
 
         with (
-            patch("application.grand.shadow_grand_digest.DigestConfig") as mock_config_class,
+            patch(
+                "application.grand.shadow_grand_digest.DigestConfig"
+            ) as mock_config_class,
             patch(
                 "application.grand.shadow_grand_digest.ShadowGrandDigestManager"
             ) as mock_manager_class,

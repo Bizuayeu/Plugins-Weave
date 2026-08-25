@@ -73,14 +73,18 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with (self.plugin_root / '.claude-plugin' / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.plugin_root / ".claude-plugin" / "config.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
     def test_main_invalid_level_exits_with_error(self) -> None:
         """無効なレベルでSystemExit"""
         with (
-            patch("sys.argv", ["finalize_from_shadow.py", "invalid_level", "TestTitle"]),
+            patch(
+                "sys.argv", ["finalize_from_shadow.py", "invalid_level", "TestTitle"]
+            ),
             patch("sys.stderr"),  # argparse エラー出力を抑制
         ):
             with pytest.raises(SystemExit) as exc_info:
@@ -103,7 +107,10 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
     @pytest.mark.unit
     def test_main_help_exits_zero(self) -> None:
         """--help で exit code 0"""
-        with patch("sys.argv", ["finalize_from_shadow.py", "--help"]), patch("sys.stdout"):
+        with (
+            patch("sys.argv", ["finalize_from_shadow.py", "--help"]),
+            patch("sys.stdout"),
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 from interfaces.finalize_from_shadow import main
 
@@ -117,7 +124,9 @@ class TestFinalizeFromShadowMain(unittest.TestCase):
 
         with (
             patch("sys.argv", ["finalize_from_shadow.py", "weekly", "TestTitle"]),
-            patch("interfaces.finalize_from_shadow.DigestFinalizerFromShadow") as MockFinalizer,
+            patch(
+                "interfaces.finalize_from_shadow.DigestFinalizerFromShadow"
+            ) as MockFinalizer,
         ):
             mock_instance = MagicMock()
             mock_instance.finalize_from_shadow.side_effect = DigestError("Test error")
@@ -183,7 +192,9 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with (self.plugin_root / '.claude-plugin' / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.plugin_root / ".claude-plugin" / "config.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -226,7 +237,9 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
     def test_main_invalid_json_exits_with_1(self) -> None:
         """不正なJSON形式でexit code 1"""
         with (
-            patch("sys.argv", ["save_provisional_digest.py", "weekly", "{invalid json"]),
+            patch(
+                "sys.argv", ["save_provisional_digest.py", "weekly", "{invalid json"]
+            ),
             patch("infrastructure.logging_config.log_error"),
         ):
             # JSONDecodeError は catch されて exit(1)
@@ -237,7 +250,10 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
     def test_main_file_not_found_exits_with_1(self) -> None:
         """存在しないファイル指定でexit code 1"""
         with (
-            patch("sys.argv", ["save_provisional_digest.py", "weekly", "/nonexistent/file.json"]),
+            patch(
+                "sys.argv",
+                ["save_provisional_digest.py", "weekly", "/nonexistent/file.json"],
+            ),
             patch("infrastructure.logging_config.log_error"),
         ):
             # FileNotFoundError は catch されて exit(1)
@@ -250,13 +266,17 @@ class TestSaveProvisionalDigestMain(unittest.TestCase):
 
         with (
             patch("sys.argv", ["save_provisional_digest.py", "weekly", "[]"]),
-            patch("interfaces.save_provisional_digest.ProvisionalDigestSaver") as MockSaver,
+            patch(
+                "interfaces.save_provisional_digest.ProvisionalDigestSaver"
+            ) as MockSaver,
         ):
             mock_instance = MagicMock()
             mock_instance.save_provisional.side_effect = ValidationError("Test error")
             MockSaver.return_value = mock_instance
 
-            with patch("interfaces.save_provisional_digest.InputLoader.load") as mock_load:
+            with patch(
+                "interfaces.save_provisional_digest.InputLoader.load"
+            ) as mock_load:
                 mock_load.return_value = []
 
                 with (
@@ -289,7 +309,9 @@ class TestMainArgumentParsing(unittest.TestCase):
             with (
                 self.subTest(level=level),
                 patch("sys.argv", ["finalize_from_shadow.py", level, "Title"]),
-                patch("interfaces.finalize_from_shadow.DigestFinalizerFromShadow") as MockFinalizer,
+                patch(
+                    "interfaces.finalize_from_shadow.DigestFinalizerFromShadow"
+                ) as MockFinalizer,
             ):
                 mock_instance = MagicMock()
                 MockFinalizer.return_value = mock_instance
@@ -298,24 +320,32 @@ class TestMainArgumentParsing(unittest.TestCase):
 
                 main()
 
-                mock_instance.finalize_from_shadow.assert_called_once_with(level, "Title")
+                mock_instance.finalize_from_shadow.assert_called_once_with(
+                    level, "Title"
+                )
 
     @pytest.mark.unit
     def test_save_provisional_append_flag(self) -> None:
         """--append フラグが正しく処理される"""
         with (
-            patch("sys.argv", ["save_provisional_digest.py", "weekly", "[]", "--append"]),
+            patch(
+                "sys.argv", ["save_provisional_digest.py", "weekly", "[]", "--append"]
+            ),
             patch("interfaces.save_provisional_digest.DigestConfig") as MockConfig,
         ):
             mock_config = MagicMock()
             MockConfig.return_value = mock_config
 
-            with patch("interfaces.save_provisional_digest.ProvisionalDigestSaver") as MockSaver:
+            with patch(
+                "interfaces.save_provisional_digest.ProvisionalDigestSaver"
+            ) as MockSaver:
                 mock_instance = MagicMock()
                 mock_instance.save_provisional.return_value = Path("/tmp/test.txt")
                 MockSaver.return_value = mock_instance
 
-                with patch("interfaces.save_provisional_digest.InputLoader.load") as mock_load:
+                with patch(
+                    "interfaces.save_provisional_digest.InputLoader.load"
+                ) as mock_load:
                     mock_load.return_value = []
 
                     with (

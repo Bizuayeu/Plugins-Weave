@@ -38,31 +38,41 @@ from domain.exceptions import ConfigError
 class TestGetSourceDir:
     """get_source_dir のテスト"""
 
-    def test_weekly_returns_loops_path(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_weekly_returns_loops_path(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """weeklyレベルはloops_pathを返す"""
         config = DigestConfig()
         result = config.get_source_dir("weekly")
         assert result == config.loops_path
 
-    def test_monthly_returns_weekly_dir(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_monthly_returns_weekly_dir(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """monthlyレベルはweeklyディレクトリを返す"""
         config = DigestConfig()
         result = config.get_source_dir("monthly")
         assert result == config.get_level_dir("weekly")
 
-    def test_quarterly_returns_monthly_dir(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_quarterly_returns_monthly_dir(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """quarterlyレベルはmonthlyディレクトリを返す"""
         config = DigestConfig()
         result = config.get_source_dir("quarterly")
         assert result == config.get_level_dir("monthly")
 
-    def test_annual_returns_quarterly_dir(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_annual_returns_quarterly_dir(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """annualレベルはquarterlyディレクトリを返す"""
         config = DigestConfig()
         result = config.get_source_dir("annual")
         assert result == config.get_level_dir("quarterly")
 
-    def test_all_levels_return_valid_paths(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_all_levels_return_valid_paths(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """全ダイジェストレベルで有効なパスを返す"""
         config = DigestConfig()
         # Note: loop は source="raw" のため除外（ソースディレクトリを持たない）
@@ -70,7 +80,9 @@ class TestGetSourceDir:
             result = config.get_source_dir(level)
             assert isinstance(result, Path)
 
-    def test_invalid_level_raises_error(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_invalid_level_raises_error(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """無効なレベルはConfigErrorを発生"""
         config = DigestConfig()
         with pytest.raises(ConfigError):
@@ -85,13 +97,17 @@ class TestGetSourceDir:
 class TestGetSourcePattern:
     """get_source_pattern のテスト"""
 
-    def test_weekly_returns_loop_pattern(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_weekly_returns_loop_pattern(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """weeklyレベルはL*.txtパターンを返す"""
         config = DigestConfig()
         result = config.get_source_pattern("weekly")
         assert result == "L*.txt"
 
-    def test_monthly_returns_weekly_pattern(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_monthly_returns_weekly_pattern(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """monthlyレベルはW*.txtパターンを返す"""
         config = DigestConfig()
         result = config.get_source_pattern("monthly")
@@ -121,7 +137,9 @@ class TestGetSourcePattern:
         result = config.get_source_pattern("centurial")
         assert result == "MD*.txt"
 
-    def test_invalid_level_raises_error(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_invalid_level_raises_error(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """無効なレベルはConfigErrorを発生"""
         config = DigestConfig()
         with pytest.raises(ConfigError):

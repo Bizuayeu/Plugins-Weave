@@ -146,7 +146,10 @@ class DigestFinalizerFromShadow:
         self._validator = ShadowValidator(self.shadow_manager)
         self._loader = ProvisionalLoader(self.config, self.shadow_manager)
         self._persistence = DigestPersistence(
-            self.config, self.grand_digest_manager, self.shadow_manager, self.times_tracker
+            self.config,
+            self.grand_digest_manager,
+            self.shadow_manager,
+            self.times_tracker,
         )
 
     def validate_shadow_content(self, level: str, source_files: list) -> None:

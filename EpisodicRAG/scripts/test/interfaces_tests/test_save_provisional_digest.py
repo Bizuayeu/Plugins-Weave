@@ -41,7 +41,7 @@ def provisional_saver(temp_plugin_env: "TempPluginEnvironment") -> None:
     weekly_provisional = temp_plugin_env.digests_path / "1_Weekly" / "Provisional"
     weekly_provisional.mkdir(parents=True, exist_ok=True)
 
-    with patch('interfaces.save_provisional_digest.DigestConfig') as mock_config_class:
+    with patch("interfaces.save_provisional_digest.DigestConfig") as mock_config_class:
         mock_config = MagicMock()
         mock_config.digests_path = temp_plugin_env.digests_path
         mock_config.get_provisional_dir.return_value = weekly_provisional
@@ -90,7 +90,9 @@ class TestDigestMerger:
     """DigestMerger のテスト"""
 
     @pytest.mark.integration
-    def test_merge_individual_digests(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_merge_individual_digests(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """マージ処理（重複は上書き）"""
         existing = [
             {"source_file": "Loop0001.txt", "keywords": ["old"]},
@@ -134,7 +136,7 @@ class TestProvisionalDigestSaver:
         assert "W0001_Individual.txt" in saved_path.name
 
         # 保存内容を検証
-        with saved_path.open(encoding='utf-8') as f:
+        with saved_path.open(encoding="utf-8") as f:
             data = json.load(f)
 
         assert "metadata" in data
@@ -150,12 +152,14 @@ class TestProvisionalDigestSaver:
 
         # 追加保存
         second_digests = [{"source_file": "Loop0002.txt", "keywords": ["second"]}]
-        second_path = provisional_saver.save_provisional("weekly", second_digests, append=True)
+        second_path = provisional_saver.save_provisional(
+            "weekly", second_digests, append=True
+        )
 
         # 同じファイルに追加されている
         assert first_path == second_path
 
-        with second_path.open(encoding='utf-8') as f:
+        with second_path.open(encoding="utf-8") as f:
             data = json.load(f)
 
         assert len(data["individual_digests"]) == 2
@@ -187,14 +191,16 @@ class TestCLIStdinOption:
         )
 
         # 標準入力をモック
-        monkeypatch.setattr('sys.stdin', io.StringIO(test_json))
+        monkeypatch.setattr("sys.stdin", io.StringIO(test_json))
 
         # コマンドライン引数をモック
-        test_args = ['save_provisional_digest.py', 'weekly', '--stdin']
-        monkeypatch.setattr('sys.argv', test_args)
+        test_args = ["save_provisional_digest.py", "weekly", "--stdin"]
+        monkeypatch.setattr("sys.argv", test_args)
 
         # DigestConfigをモック
-        with patch('interfaces.save_provisional_digest.DigestConfig') as mock_config_class:
+        with patch(
+            "interfaces.save_provisional_digest.DigestConfig"
+        ) as mock_config_class:
             mock_config = MagicMock()
             mock_config.digests_path = temp_plugin_env.digests_path
             provisional_dir = temp_plugin_env.digests_path / "1_Weekly" / "Provisional"
@@ -217,8 +223,8 @@ class TestCLIStdinOption:
         from interfaces.save_provisional_digest import main
 
         # コマンドライン引数（input_dataなし、--stdinなし）
-        test_args = ['save_provisional_digest.py', 'weekly']
-        monkeypatch.setattr('sys.argv', test_args)
+        test_args = ["save_provisional_digest.py", "weekly"]
+        monkeypatch.setattr("sys.argv", test_args)
 
         # argparse.error() は SystemExit を発生させる
         with pytest.raises(SystemExit) as exc_info:

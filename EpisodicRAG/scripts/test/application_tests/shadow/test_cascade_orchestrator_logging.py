@@ -47,7 +47,8 @@ if TYPE_CHECKING:
 def level_hierarchy() -> "dict[str, LevelHierarchyEntry]":
     """レベル階層情報"""
     return {
-        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
+        level: {"source": cfg["source"], "next": cfg["next"]}
+        for level, cfg in LEVEL_CONFIG.items()
     }
 
 

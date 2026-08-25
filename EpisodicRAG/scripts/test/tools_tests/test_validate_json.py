@@ -130,7 +130,9 @@ class TestConfigTemplateValidation:
         )
         return template
 
-    def test_config_matches_template_structure(self, tmp_path: Path, template_json: Path) -> None:
+    def test_config_matches_template_structure(
+        self, tmp_path: Path, template_json: Path
+    ) -> None:
         """configがtemplateと同じ構造を持つ場合はVALID"""
         import json
 
@@ -175,7 +177,9 @@ class TestConfigTemplateValidation:
         assert result.status == JSONStatus.INVALID
         assert "base_dir" in result.message
 
-    def test_config_with_extra_keys_is_valid(self, tmp_path: Path, template_json: Path) -> None:
+    def test_config_with_extra_keys_is_valid(
+        self, tmp_path: Path, template_json: Path
+    ) -> None:
         """templateにないキーがあってもVALID（拡張可能）"""
         import json
 
@@ -205,14 +209,20 @@ class TestConfigTemplateValidation:
         config.write_text(json.dumps({"base_dir": "."}), encoding="utf-8")
 
         validator = JSONValidator()
-        result = validator.validate_against_template(config, tmp_path / "nonexistent.json")
+        result = validator.validate_against_template(
+            config, tmp_path / "nonexistent.json"
+        )
 
         assert result.status == JSONStatus.NOT_FOUND
 
-    def test_config_not_found_returns_not_found(self, tmp_path: Path, template_json: Path) -> None:
+    def test_config_not_found_returns_not_found(
+        self, tmp_path: Path, template_json: Path
+    ) -> None:
         """configが見つからない場合はNOT_FOUND"""
         validator = JSONValidator()
-        result = validator.validate_against_template(tmp_path / "nonexistent.json", template_json)
+        result = validator.validate_against_template(
+            tmp_path / "nonexistent.json", template_json
+        )
 
         assert result.status == JSONStatus.NOT_FOUND
 
@@ -282,7 +292,9 @@ class TestPathValidation:
 
         assert result.status == JSONStatus.VALID
 
-    def test_absolute_path_without_trusted_returns_warning(self, tmp_path: Path) -> None:
+    def test_absolute_path_without_trusted_returns_warning(
+        self, tmp_path: Path
+    ) -> None:
         """trusted_external_pathsなしの絶対パスは警告"""
         import json
 
@@ -301,7 +313,9 @@ class TestPathValidation:
         result = validator.validate_paths(config)
 
         assert result.status == JSONStatus.WARNING
-        assert "absolute" in result.message.lower() or "trusted" in result.message.lower()
+        assert (
+            "absolute" in result.message.lower() or "trusted" in result.message.lower()
+        )
 
     def test_absolute_path_with_trusted_is_valid(self, tmp_path: Path) -> None:
         """trusted_external_pathsがあれば絶対パスも有効"""
@@ -324,7 +338,9 @@ class TestPathValidation:
 
         assert result.status == JSONStatus.VALID
 
-    def test_unix_absolute_path_without_trusted_returns_warning(self, tmp_path: Path) -> None:
+    def test_unix_absolute_path_without_trusted_returns_warning(
+        self, tmp_path: Path
+    ) -> None:
         """Unix形式の絶対パスも警告対象"""
         import json
 
@@ -449,10 +465,14 @@ class TestCLIIntegration:
         import json
 
         template = tmp_path / "template.json"
-        template.write_text(json.dumps({"base_dir": ".", "paths": {}}), encoding="utf-8")
+        template.write_text(
+            json.dumps({"base_dir": ".", "paths": {}}), encoding="utf-8"
+        )
 
         config = tmp_path / "config.json"
-        config.write_text(json.dumps({"base_dir": "./custom", "paths": {}}), encoding="utf-8")
+        config.write_text(
+            json.dumps({"base_dir": "./custom", "paths": {}}), encoding="utf-8"
+        )
 
         from tools.validate_json import main
 

@@ -51,7 +51,12 @@ from domain.file_constants import GRAND_DIGEST_FILENAME
 from domain.types import GrandDigestData, OverallDigestData, as_dict
 from domain.validators import is_valid_dict
 from domain.version import DIGEST_FORMAT_VERSION
-from infrastructure import get_structured_logger, load_json_with_template, log_debug, save_json
+from infrastructure import (
+    get_structured_logger,
+    load_json_with_template,
+    log_debug,
+    save_json,
+)
 
 _logger = get_structured_logger(__name__)
 
@@ -103,7 +108,9 @@ class GrandDigestManager:
                 "last_updated": datetime.now().isoformat(),
                 "version": DIGEST_FORMAT_VERSION,
             },
-            "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
+            "major_digests": {
+                level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES
+            },
         }
 
     def load_or_create(self) -> GrandDigestData:
@@ -166,8 +173,12 @@ class GrandDigestManager:
         """
         grand_data = self.load_or_create()
 
-        log_debug(f"{LOG_PREFIX_STATE} update_digest: level={level}, digest_name={digest_name}")
-        log_debug(f"{LOG_PREFIX_VALIDATE} grand_data: is_valid={is_valid_dict(grand_data)}")
+        log_debug(
+            f"{LOG_PREFIX_STATE} update_digest: level={level}, digest_name={digest_name}"
+        )
+        log_debug(
+            f"{LOG_PREFIX_VALIDATE} grand_data: is_valid={is_valid_dict(grand_data)}"
+        )
 
         formatter = get_error_formatter()
         # 型チェック
@@ -187,12 +198,16 @@ class GrandDigestManager:
 
         # overall_digestを更新（完全なオブジェクトとして保存）
         log_debug(f"{LOG_PREFIX_STATE} updating overall_digest for level={level}")
-        log_debug(f"{LOG_PREFIX_VALIDATE} overall_digest_keys: {list(overall_digest.keys())}")
+        log_debug(
+            f"{LOG_PREFIX_VALIDATE} overall_digest_keys: {list(overall_digest.keys())}"
+        )
         grand_data["major_digests"][level]["overall_digest"] = overall_digest
 
         # メタデータを更新
         grand_data["metadata"]["last_updated"] = datetime.now().isoformat()
-        log_debug(f"{LOG_PREFIX_STATE} updated_timestamp: {grand_data['metadata']['last_updated']}")
+        log_debug(
+            f"{LOG_PREFIX_STATE} updated_timestamp: {grand_data['metadata']['last_updated']}"
+        )
 
         # 保存
         self.save(cast(GrandDigestData, grand_data))

@@ -48,7 +48,9 @@ def validate_type(data: Any, expected_type: type[T], context: str, type_name: st
     """
     if not isinstance(data, expected_type):
         formatter = get_error_formatter()
-        raise ValidationError(formatter.validation.invalid_type(context, type_name, data))
+        raise ValidationError(
+            formatter.validation.invalid_type(context, type_name, data)
+        )
     return data
 
 
@@ -154,13 +156,17 @@ def validate_dict_key_type(
 
     if key not in data:
         raise ValidationError(
-            formatter.validation.validation_error(context, f"missing required key '{key}'", None)
+            formatter.validation.validation_error(
+                context, f"missing required key '{key}'", None
+            )
         )
 
     value = data[key]
     if not isinstance(value, expected_type):
         raise ValidationError(
-            formatter.validation.invalid_type(f"{context}.{key}", expected_type.__name__, value)
+            formatter.validation.invalid_type(
+                f"{context}.{key}", expected_type.__name__, value
+            )
         )
 
     return value
@@ -171,7 +177,9 @@ def validate_dict_key_type(
 # =============================================================================
 
 
-def collect_type_error(value: Any, expected_type: type[Any], key: str, errors: list[str]) -> None:
+def collect_type_error(
+    value: Any, expected_type: type[Any], key: str, errors: list[str]
+) -> None:
     """
     設定値の型検証を行い、エラーがあればリストに追加
 

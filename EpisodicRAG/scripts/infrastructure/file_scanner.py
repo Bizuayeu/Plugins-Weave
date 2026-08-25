@@ -14,7 +14,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 
-def scan_files(directory: Path, pattern: str = "*.txt", sort: bool = True) -> list[Path]:
+def scan_files(
+    directory: Path, pattern: str = "*.txt", sort: bool = True
+) -> list[Path]:
     """
     指定ディレクトリ内のファイルをスキャン
 

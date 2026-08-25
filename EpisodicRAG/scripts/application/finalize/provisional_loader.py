@@ -74,7 +74,9 @@ class ProvisionalLoader:
         provisional_dir = self.config.get_provisional_dir(level)
         return provisional_dir / f"{level_cfg['prefix']}{digest_num}_Individual.txt"
 
-    def _load_provisional(self, provisional_path: Path) -> tuple[list[IndividualDigestData], Path]:
+    def _load_provisional(
+        self, provisional_path: Path
+    ) -> tuple[list[IndividualDigestData], Path]:
         """
         Provisionalファイルを読み込んで検証
 
@@ -96,7 +98,9 @@ class ProvisionalLoader:
         if not is_valid_dict(provisional_data):
             formatter = get_error_formatter()
             raise DigestError(
-                formatter.validation.invalid_type(provisional_path.name, "dict", provisional_data)
+                formatter.validation.invalid_type(
+                    provisional_path.name, "dict", provisional_data
+                )
             )
 
         individual_digests = provisional_data.get("individual_digests", [])
@@ -141,7 +145,9 @@ class ProvisionalLoader:
             return self._load_provisional(provisional_path)
 
         # Provisionalファイルが存在しない場合、source_filesから自動生成
-        log_debug(f"{LOG_PREFIX_DECISION} provisional_not_found: generating from source files")
+        log_debug(
+            f"{LOG_PREFIX_DECISION} provisional_not_found: generating from source files"
+        )
         _logger.info("Provisionalダイジェストなし、ソースファイルから自動生成中...")
         individual_digests = self.generate_from_source(level, shadow_digest)
 
@@ -221,14 +227,19 @@ class ProvisionalLoader:
 
         # 各ソースファイルを処理し、成功したもののみ収集
         results = [
-            self._process_single_source(source_dir, source_file) for source_file in source_files
+            self._process_single_source(source_dir, source_file)
+            for source_file in source_files
         ]
         individual_digests = [entry for entry in results if entry is not None]
 
         # スキップ数の計算とログ出力
         skipped_count = len(source_files) - len(individual_digests)
         if skipped_count > 0:
-            log_warning(f"エラーにより{skipped_count}/{len(source_files)}ファイルをスキップ")
+            log_warning(
+                f"エラーにより{skipped_count}/{len(source_files)}ファイルをスキップ"
+            )
 
-        _logger.info(f"ソースファイルから{len(individual_digests)}件の個別ダイジェストを自動生成")
+        _logger.info(
+            f"ソースファイルから{len(individual_digests)}件の個別ダイジェストを自動生成"
+        )
         return individual_digests

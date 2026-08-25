@@ -165,7 +165,9 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         """DigestConfigとFinalizerを作成"""
         from application.config import DigestConfig
 
-        config = DigestConfig()  # get_config_path() は TempPluginEnvironment でモック済み
+        config = (
+            DigestConfig()
+        )  # get_config_path() は TempPluginEnvironment でモック済み
         return DigestFinalizerFromShadow(config)
 
     def test_finalize_creates_regular_digest_file(self) -> None:
@@ -181,7 +183,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         self.assertEqual(len(digest_files), 1)
 
         # ファイル内容を確認
-        with digest_files[0].open(encoding='utf-8') as f:
+        with digest_files[0].open(encoding="utf-8") as f:
             digest_data = json.load(f)
         self.assertIn("metadata", digest_data)
         self.assertIn("overall_digest", digest_data)
@@ -195,7 +197,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         finalizer.finalize_from_shadow("weekly", "TestDigest")
 
         # GrandDigest.txtが更新されたことを確認
-        with (self.essences_path / 'GrandDigest.txt').open(encoding='utf-8') as f:
+        with (self.essences_path / "GrandDigest.txt").open(encoding="utf-8") as f:
             grand_data = json.load(f)
 
         weekly_digest = grand_data["major_digests"]["weekly"]["overall_digest"]
@@ -210,8 +212,8 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         finalizer.finalize_from_shadow("weekly", "TestDigest")
 
         # last_digest_times.jsonが更新されたことを確認（永続化ディレクトリ）
-        with (self.env.persistent_config_dir / 'last_digest_times.json').open(
-            encoding='utf-8'
+        with (self.env.persistent_config_dir / "last_digest_times.json").open(
+            encoding="utf-8"
         ) as f:
             times_data = json.load(f)
 
@@ -227,7 +229,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         finalizer.finalize_from_shadow("weekly", "TestDigest")
 
         # ShadowGrandDigest.txtが更新されたことを確認
-        with (self.essences_path / 'ShadowGrandDigest.txt').open(encoding='utf-8') as f:
+        with (self.essences_path / "ShadowGrandDigest.txt").open(encoding="utf-8") as f:
             shadow_data = json.load(f)
 
         # weeklyレベルのShadowがクリアされていることを確認
@@ -249,7 +251,7 @@ class TestDigestFinalizerIntegration(unittest.TestCase):
         self.assertEqual(len(digest_files), 1)
 
         # individual_digestsが自動生成されたことを確認
-        with digest_files[0].open(encoding='utf-8') as f:
+        with digest_files[0].open(encoding="utf-8") as f:
             digest_data = json.load(f)
 
         individual_digests = digest_data.get("individual_digests", [])

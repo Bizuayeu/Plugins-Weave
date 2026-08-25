@@ -79,7 +79,9 @@ class TestAutoDreamScanMain:
         assert exit_code == EXIT_OK
 
     @pytest.mark.integration
-    def test_JSON出力がパース可能(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_JSON出力がパース可能(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         """出力がvalid JSON"""
         fake_base = tmp_path / ".claude" / "projects"
 

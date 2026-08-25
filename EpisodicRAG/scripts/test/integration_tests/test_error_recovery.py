@@ -30,7 +30,9 @@ class TestFilePermissionErrors:
     """ファイル権限エラーのテスト"""
 
     @pytest.mark.unit
-    @pytest.mark.skipif(sys.platform == "win32", reason="Windows has different permission model")
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="Windows has different permission model"
+    )
     def test_save_json_permission_denied(self, tmp_path: Path) -> None:
         """save_jsonが権限エラーを適切に処理"""
         test_file = tmp_path / "readonly.json"
@@ -44,7 +46,9 @@ class TestFilePermissionErrors:
             test_file.chmod(0o644)  # Restore for cleanup
 
     @pytest.mark.unit
-    @pytest.mark.skipif(sys.platform == "win32", reason="Windows has different permission model")
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="Windows has different permission model"
+    )
     def test_load_json_permission_denied(self, tmp_path: Path) -> None:
         """load_jsonが権限エラーを適切に処理"""
         test_file = tmp_path / "noaccess.json"
@@ -58,7 +62,9 @@ class TestFilePermissionErrors:
             test_file.chmod(0o644)
 
     @pytest.mark.unit
-    @pytest.mark.skipif(sys.platform == "win32", reason="Windows has different permission model")
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="Windows has different permission model"
+    )
     def test_save_json_directory_not_writable(self, tmp_path: Path) -> None:
         """ディレクトリが書き込み不可の場合"""
         readonly_dir = tmp_path / "readonly_dir"
@@ -88,7 +94,9 @@ class TestDiskSpaceErrors:
 
         # OSError 28 = ENOSPC (No space left on device)
         with (
-            patch.object(Path, "open", side_effect=OSError(28, "No space left on device")),
+            patch.object(
+                Path, "open", side_effect=OSError(28, "No space left on device")
+            ),
             pytest.raises((FileIOError, OSError)),
         ):
             save_json(test_file, {"large": "data"})

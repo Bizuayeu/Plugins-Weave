@@ -81,7 +81,9 @@ class TestConfigPathResolution:
             assert prov_dir.exists(), f"Provisional dir for {level} should exist"
             assert prov_dir.name == "Provisional"
 
-    def test_source_dir_for_each_level(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_source_dir_for_each_level(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """各レベルのソースディレクトリが正しく解決される"""
         config = DigestConfig()
 
@@ -142,7 +144,9 @@ class TestConfigApplicationIntegration:
 class TestThresholdApplication:
     """閾値設定がApplication層で正しく適用されることを確認"""
 
-    def test_default_thresholds_available(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_default_thresholds_available(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """デフォルト閾値が全ダイジェストレベルで利用可能"""
         config = DigestConfig()
 
@@ -229,7 +233,9 @@ class TestEndToEndConfigFlow:
         new_files_after = detector.find_new_files("weekly")
         assert len(new_files_after) == 0
 
-    def test_threshold_affects_behavior(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_threshold_affects_behavior(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """閾値がApplication層の動作に影響を与える"""
         config = DigestConfig()
 

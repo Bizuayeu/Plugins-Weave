@@ -193,7 +193,13 @@ class TestPathConfigKeyLiteral:
         from domain.types import PathConfigKey
 
         args = get_args(PathConfigKey)
-        expected = {"loops_path", "digests_path", "essences_path", "base_dir", "identity_file"}
+        expected = {
+            "loops_path",
+            "digests_path",
+            "essences_path",
+            "base_dir",
+            "identity_file",
+        }
         assert set(args) == expected
 
 

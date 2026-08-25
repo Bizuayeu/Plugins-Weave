@@ -155,7 +155,9 @@ class ProvisionalAppender:
             "individual_digests": [],
         }
 
-    def _build_individual_entry(self, finalized_digest: RegularDigestData) -> dict[str, Any]:
+    def _build_individual_entry(
+        self, finalized_digest: RegularDigestData
+    ) -> dict[str, Any]:
         """
         確定ダイジェストから個別エントリを構築
 
@@ -209,13 +211,17 @@ class ProvisionalAppender:
 
         for existing in individual_digests:
             # 既存データは filename または source_file のどちらかを持つ可能性がある
-            existing_source_file = existing.get("source_file") or existing.get("filename", "")
+            existing_source_file = existing.get("source_file") or existing.get(
+                "filename", ""
+            )
             existing_base = existing_source_file.split("_")[0].replace(".txt", "")
             if new_base == existing_base:
                 return True
         return False
 
-    def append_to_next_provisional(self, level: str, finalized_digest: RegularDigestData) -> None:
+    def append_to_next_provisional(
+        self, level: str, finalized_digest: RegularDigestData
+    ) -> None:
         """
         次レベルのProvisionalに確定ダイジェストを追加
 
@@ -242,7 +248,9 @@ class ProvisionalAppender:
         _logger.info(f"Provisionalファイル: {provisional_path.name}")
 
         # Provisionalデータを読み込みまたは作成
-        provisional_data = self._load_or_create_provisional(provisional_path, next_level)
+        provisional_data = self._load_or_create_provisional(
+            provisional_path, next_level
+        )
 
         # 個別エントリを構築
         new_entry = self._build_individual_entry(finalized_digest)

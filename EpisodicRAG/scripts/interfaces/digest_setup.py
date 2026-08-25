@@ -76,7 +76,9 @@ class SetupManager:
             config_data = try_load_json(self.config_file, log_on_error=False)
             if config_data is not None:
                 try:
-                    base_dir = self._resolve_base_dir(config_data.get("base_dir", DEFAULT_BASE_DIR))
+                    base_dir = self._resolve_base_dir(
+                        config_data.get("base_dir", DEFAULT_BASE_DIR)
+                    )
                     paths = config_data.get("paths", {})
                     loops_dir = base_dir / paths.get("loops_dir", "data/Loops")
                     directories_exist = loops_dir.exists()
@@ -130,10 +132,15 @@ class SetupManager:
             validation_errors = self._validate_config_data(config_data)
             if validation_errors:
                 return SetupResult(
-                    status="error", error=f"Invalid config: {', '.join(validation_errors)}"
+                    status="error",
+                    error=f"Invalid config: {', '.join(validation_errors)}",
                 )
 
-            created: dict[str, Any] = {"config_file": None, "directories": [], "files": []}
+            created: dict[str, Any] = {
+                "config_file": None,
+                "directories": [],
+                "files": [],
+            }
             warnings: list[str] = []
 
             # 1. 設定ファイル作成
@@ -211,7 +218,9 @@ class SetupManager:
             "_comment_base_dir": "データの基準ディレクトリ（絶対パス必須）",
             "base_dir": config_data.get("base_dir", DEFAULT_BASE_DIR),
             "_comment_trusted_external_paths": "外部パスへのアクセス許可リスト",
-            "trusted_external_paths": config_data.get("trusted_external_paths", [DEFAULT_BASE_DIR]),
+            "trusted_external_paths": config_data.get(
+                "trusted_external_paths", [DEFAULT_BASE_DIR]
+            ),
             "_comment_paths": "base_dirからの相対パスでデータ配置先を指定",
             "paths": config_data.get("paths", {}),
             "_comment_levels": "各階層のダイジェスト生成に必要なファイル数（Threshold）",

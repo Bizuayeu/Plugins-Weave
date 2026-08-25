@@ -34,7 +34,9 @@ class TestSingletonDocumentation:
         doc_lower = error_formatter.__doc__.lower()
 
         assert "singleton" in doc_lower, "singletonパターンの説明がない"
-        assert "reset_error_formatter" in error_formatter.__doc__, "reset関数の説明がない"
+        assert "reset_error_formatter" in error_formatter.__doc__, (
+            "reset関数の説明がない"
+        )
 
     def test_file_naming_has_singleton_warning(self) -> None:
         """file_namingモジュールにシングルトン警告がある"""
@@ -74,6 +76,7 @@ class TestSingletonDocumentation:
             # テスト時の注意が含まれているか
             doc = module.__doc__
             has_test_mention = any(
-                keyword in doc.lower() for keyword in ["test", "テスト", "conftest", "fixture"]
+                keyword in doc.lower()
+                for keyword in ["test", "テスト", "conftest", "fixture"]
             )
             assert has_test_mention, f"{module_name}にテスト時の注意がない"

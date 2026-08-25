@@ -16,7 +16,12 @@ import pytest
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 
-from domain.constants import DIGEST_LEVEL_NAMES, LEVEL_CONFIG, LEVEL_NAMES, build_level_hierarchy
+from domain.constants import (
+    DIGEST_LEVEL_NAMES,
+    LEVEL_CONFIG,
+    LEVEL_NAMES,
+    build_level_hierarchy,
+)
 
 # Property-Based Test マーカー
 pytestmark = pytest.mark.property
@@ -62,7 +67,11 @@ class TestLevelHierarchyInvariants:
         必須キー: prefix, digits, dir
         """
         config = LEVEL_CONFIG[level]
-        required_keys = ["prefix", "digits", "dir"]  # キー名は "dir"（"dir_name"ではない）
+        required_keys = [
+            "prefix",
+            "digits",
+            "dir",
+        ]  # キー名は "dir"（"dir_name"ではない）
 
         for key in required_keys:
             assert key in config, f"{level}のLEVEL_CONFIGに{key}が存在すること"

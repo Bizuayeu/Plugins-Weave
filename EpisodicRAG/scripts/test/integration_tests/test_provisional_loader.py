@@ -57,7 +57,9 @@ class TestProvisionalLoaderLoadOrGenerate:
     """load_or_generate メソッドのテスト"""
 
     @pytest.mark.integration
-    def test_loads_existing_provisional_file(self, loader, config: "DigestConfig") -> None:
+    def test_loads_existing_provisional_file(
+        self, loader, config: "DigestConfig"
+    ) -> None:
         """既存のProvisionalファイルを読み込む"""
         # Provisionalファイルを作成
         provisional_dir = config.get_provisional_dir("weekly")
@@ -69,7 +71,7 @@ class TestProvisionalLoaderLoadOrGenerate:
                 {"filename": "L00002.txt", "content": "Test 2"},
             ]
         }
-        with provisional_path.open('w', encoding='utf-8') as f:
+        with provisional_path.open("w", encoding="utf-8") as f:
             json.dump(provisional_data, f)
 
         shadow_digest = {"source_files": ["L00001.txt", "L00002.txt"]}
@@ -103,7 +105,7 @@ class TestProvisionalLoaderLoadOrGenerate:
         provisional_dir = config.get_provisional_dir("weekly")
         provisional_path = provisional_dir / "W0001_Individual.txt"
 
-        with provisional_path.open('w', encoding='utf-8') as f:
+        with provisional_path.open("w", encoding="utf-8") as f:
             f.write("{ invalid json }")
 
         shadow_digest = {"source_files": []}
@@ -113,12 +115,14 @@ class TestProvisionalLoaderLoadOrGenerate:
         assert "Invalid JSON" in str(exc_info.value)
 
     @pytest.mark.integration
-    def test_raises_on_non_dict_provisional(self, loader, config: "DigestConfig") -> None:
+    def test_raises_on_non_dict_provisional(
+        self, loader, config: "DigestConfig"
+    ) -> None:
         """Provisionalがdict以外の場合はDigestError"""
         provisional_dir = config.get_provisional_dir("weekly")
         provisional_path = provisional_dir / "W0001_Individual.txt"
 
-        with provisional_path.open('w', encoding='utf-8') as f:
+        with provisional_path.open("w", encoding="utf-8") as f:
             json.dump(["list", "not", "dict"], f)
 
         shadow_digest = {"source_files": []}
@@ -281,7 +285,10 @@ class TestProvisionalLoaderSkippedCount:
 
     @pytest.mark.integration
     def test_skipped_count_on_json_decode_error(
-        self, loader, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture
+        self,
+        loader,
+        temp_plugin_env: "TempPluginEnvironment",
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """JSONDecodeError発生時にskipped_countが増加し、警告ログが出力される"""
         import logging
@@ -304,7 +311,10 @@ class TestProvisionalLoaderSkippedCount:
 
     @pytest.mark.integration
     def test_skipped_count_summary_log_on_multiple_errors(
-        self, loader, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture
+        self,
+        loader,
+        temp_plugin_env: "TempPluginEnvironment",
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """複数エラー発生時に集計ログが出力される"""
         import logging
@@ -329,7 +339,10 @@ class TestProvisionalLoaderSkippedCount:
 
     @pytest.mark.integration
     def test_skipped_count_partial_success(
-        self, loader, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture
+        self,
+        loader,
+        temp_plugin_env: "TempPluginEnvironment",
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """一部成功、一部失敗の場合の集計ログ"""
         import logging
@@ -356,7 +369,10 @@ class TestProvisionalLoaderSkippedCount:
 
     @pytest.mark.integration
     def test_no_summary_log_when_no_errors(
-        self, loader, temp_plugin_env: "TempPluginEnvironment", caplog: pytest.LogCaptureFixture
+        self,
+        loader,
+        temp_plugin_env: "TempPluginEnvironment",
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """エラーがない場合は集計ログが出力されない"""
         import logging

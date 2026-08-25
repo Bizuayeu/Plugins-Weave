@@ -60,7 +60,9 @@ class TestSetupWorkflowE2E:
         assert "config" in result.json_output
         assert result.json_output["config"]["base_dir"] == str(cli_plugin_root)
 
-    def test_init_then_auto_workflow(self, cli_runner: CLIRunner, valid_config_json: str) -> None:
+    def test_init_then_auto_workflow(
+        self, cli_runner: CLIRunner, valid_config_json: str
+    ) -> None:
         """init → auto ワークフロー"""
         # Step 1: init
         result = cli_runner.run_digest_setup("init", config=valid_config_json)
@@ -116,7 +118,9 @@ class TestConfigModificationWorkflowE2E:
 
         # Step 3: 変更を確認
         result = configured_cli_runner.run_digest_config("show")
-        assert result.json_output["config"]["levels"]["weekly_threshold"] == new_threshold
+        assert (
+            result.json_output["config"]["levels"]["weekly_threshold"] == new_threshold
+        )
 
     def test_update_and_verify_workflow(self, configured_cli_runner: CLIRunner) -> None:
         """update → show で変更を確認"""
@@ -132,10 +136,14 @@ class TestConfigModificationWorkflowE2E:
         assert result.json_output["config"]["base_dir"] == "../updated_path"
         assert result.json_output["config"]["levels"]["weekly_threshold"] == 10
 
-    def test_trusted_paths_add_and_list_workflow(self, configured_cli_runner: CLIRunner) -> None:
+    def test_trusted_paths_add_and_list_workflow(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """trusted-paths add → list で追加を確認"""
         # Step 1: パスを追加
-        result = configured_cli_runner.run_digest_config("trusted-paths", "add", "~/DEV/external1")
+        result = configured_cli_runner.run_digest_config(
+            "trusted-paths", "add", "~/DEV/external1"
+        )
         result.assert_success()
 
         # Step 2: リストで確認
@@ -143,7 +151,9 @@ class TestConfigModificationWorkflowE2E:
         assert "~/DEV/external1" in result.json_output["trusted_external_paths"]
 
         # Step 3: 別のパスを追加
-        result = configured_cli_runner.run_digest_config("trusted-paths", "add", "~/DEV/external2")
+        result = configured_cli_runner.run_digest_config(
+            "trusted-paths", "add", "~/DEV/external2"
+        )
         result.assert_success()
 
         # Step 4: 両方存在することを確認
@@ -168,7 +178,9 @@ class TestDigestInternalWorkflowE2E:
         DigestAnalyzer（AI分析）はモックまたはスキップ。
     """
 
-    def test_shadow_state_checker_for_empty_shadow(self, configured_cli_runner: CLIRunner) -> None:
+    def test_shadow_state_checker_for_empty_shadow(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """空のShadowに対するshadow_state_checker"""
         result = configured_cli_runner.run_shadow_state_checker("weekly")
         result.assert_success()
@@ -191,7 +203,11 @@ class TestDigestInternalWorkflowE2E:
 
         shadow_data["latest_digests"]["weekly"] = {
             "overall_digest": {
-                "source_files": ["L00001_test_1.txt", "L00002_test_2.txt", "L00003_test_3.txt"],
+                "source_files": [
+                    "L00001_test_1.txt",
+                    "L00002_test_2.txt",
+                    "L00003_test_3.txt",
+                ],
                 "digest_type": "__PLACEHOLDER__",
                 "keywords": ["__PLACEHOLDER__"],
                 "abstract": "__PLACEHOLDER__",
@@ -208,7 +224,9 @@ class TestDigestInternalWorkflowE2E:
         assert "source_count" in result.json_output
         # If source_count is 0, it might be due to file not being re-read
         if result.json_output["source_count"] == 0:
-            pytest.skip("shadow_state_checker may not detect updated Shadow file in subprocess")
+            pytest.skip(
+                "shadow_state_checker may not detect updated Shadow file in subprocess"
+            )
         assert result.json_output["source_count"] == 3
 
     def test_save_provisional_digest_creates_file(
@@ -229,7 +247,9 @@ class TestDigestInternalWorkflowE2E:
             }
         )
 
-        result = configured_cli_runner.run_save_provisional_digest("weekly", digest_json)
+        result = configured_cli_runner.run_save_provisional_digest(
+            "weekly", digest_json
+        )
         result.assert_success()
 
         # Provisionalファイルが作成されていることを確認

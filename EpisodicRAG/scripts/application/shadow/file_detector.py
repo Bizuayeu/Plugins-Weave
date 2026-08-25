@@ -10,7 +10,12 @@ from pathlib import Path
 
 from application.config import DigestConfig
 from application.tracking import DigestTimesTracker
-from domain.constants import LEVEL_CONFIG, SOURCE_TYPE_LOOPS, SOURCE_TYPE_RAW, build_level_hierarchy
+from domain.constants import (
+    LEVEL_CONFIG,
+    SOURCE_TYPE_LOOPS,
+    SOURCE_TYPE_RAW,
+    build_level_hierarchy,
+)
 from domain.file_naming import filter_files_after
 from infrastructure import get_structured_logger
 

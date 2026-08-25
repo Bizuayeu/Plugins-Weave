@@ -42,7 +42,11 @@ class TestLoadConfig:
 
     def test_optional_private_repo(self):
         data = _valid_data()
-        data["private_repo"] = {"owner": "acme", "name": "secret", "visibility": "private"}
+        data["private_repo"] = {
+            "owner": "acme",
+            "name": "secret",
+            "visibility": "private",
+        }
         cfg = load_config(data)
         assert cfg.private_repo is not None
         assert cfg.private_repo.visibility == "private"

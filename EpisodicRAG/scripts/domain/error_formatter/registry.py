@@ -188,7 +188,9 @@ class FormatterRegistry:
         """
         # _formatters自体へのアクセスは通常の属性アクセス
         if name.startswith("_"):
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
         try:
             return self.get(name)

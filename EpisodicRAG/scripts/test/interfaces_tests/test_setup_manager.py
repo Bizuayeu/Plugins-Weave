@@ -51,7 +51,9 @@ class TestSetupManager(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with (template_dir / 'GrandDigest.template.txt').open('w', encoding='utf-8') as f:
+        with (template_dir / "GrandDigest.template.txt").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(grand_template, f)
 
         # ShadowGrandDigest.template.txt
@@ -59,12 +61,16 @@ class TestSetupManager(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "latest_digests": {},
         }
-        with (template_dir / 'ShadowGrandDigest.template.txt').open('w', encoding='utf-8') as f:
+        with (template_dir / "ShadowGrandDigest.template.txt").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(shadow_template, f)
 
         # last_digest_times.template.json
         times_template = {"weekly": {"timestamp": "", "last_processed": None}}
-        with (template_dir / 'last_digest_times.template.json').open('w', encoding='utf-8') as f:
+        with (template_dir / "last_digest_times.template.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(times_template, f)
 
     @pytest.mark.unit
@@ -103,7 +109,7 @@ class TestSetupManager(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         # ディレクトリを作成
@@ -182,7 +188,9 @@ class TestSetupManager(unittest.TestCase):
         assert result.status == "ok"
         assert (self.plugin_root / "data" / "Loops").exists()
         assert (self.plugin_root / "data" / "Digests" / "1_Weekly").exists()
-        assert (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").exists()
+        assert (
+            self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional"
+        ).exists()
         assert (self.plugin_root / "data" / "Essences").exists()
 
     @pytest.mark.unit
@@ -228,7 +236,7 @@ class TestSetupManager(unittest.TestCase):
         from interfaces.digest_setup import SetupManager
 
         # 既存の設定ファイルを作成（永続化ディレクトリに）
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump({}, f)
 
         config_data = {
@@ -263,7 +271,7 @@ class TestSetupManager(unittest.TestCase):
         self._create_templates()
 
         # 既存の設定ファイルを作成（永続化ディレクトリに）
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump({}, f)
 
         config_data = {
@@ -376,7 +384,7 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
                 "essences_dir": "data/Essences",
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         manager = SetupManager()
@@ -392,7 +400,7 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
         from interfaces.digest_setup import SetupManager
 
         # 破損したJSONファイルを作成（永続化ディレクトリに）
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             f.write("{ invalid json content")
 
         manager = SetupManager()
@@ -410,7 +418,7 @@ class TestSetupManagerCheckEdgeCases(unittest.TestCase):
 
         # pathsキーがない設定ファイルを作成（永続化ディレクトリに、base_dirは絶対パス）
         config_data = {"base_dir": str(self.plugin_root)}  # pathsがない
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         manager = SetupManager()

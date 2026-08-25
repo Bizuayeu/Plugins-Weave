@@ -21,7 +21,11 @@ from domain.error_formatter import CompositeErrorFormatter, get_error_formatter
 from domain.exceptions import DigestError, ValidationError
 from domain.types import OverallDigestData
 from domain.validators import is_valid_dict
-from infrastructure import get_default_confirm_callback, get_structured_logger, log_warning
+from infrastructure import (
+    get_default_confirm_callback,
+    get_structured_logger,
+    log_warning,
+)
 
 _logger = get_structured_logger(__name__)
 
@@ -96,7 +100,9 @@ class ShadowValidator:
         numbers: list[int] = []
 
         # 1. 型チェックと空チェック（CollectionValidatorに委譲）
-        type_errors = self.collection_validator.validate_list(source_files, "source_files")
+        type_errors = self.collection_validator.validate_list(
+            source_files, "source_files"
+        )
         if type_errors:
             return type_errors, warnings, numbers
 
@@ -107,7 +113,9 @@ class ShadowValidator:
             return empty_errors, warnings, numbers
 
         # 2. ファイル名検証と番号抽出（FileNumberValidatorに委譲）
-        numbers, extraction_errors = self.file_number_validator.extract_numbers(source_files)
+        numbers, extraction_errors = self.file_number_validator.extract_numbers(
+            source_files
+        )
         if extraction_errors:
             return extraction_errors, warnings, numbers
 
@@ -137,7 +145,9 @@ class ShadowValidator:
             >>> validator.validate_shadow_content("weekly", ["L00186.txt", "L00187.txt"])
             # ValidationError if invalid
         """
-        fatal_errors, warnings, numbers = self._collect_validation_errors(level, source_files)
+        fatal_errors, warnings, numbers = self._collect_validation_errors(
+            level, source_files
+        )
 
         # 致命的エラーがあれば即座に例外
         if fatal_errors:
@@ -206,7 +216,9 @@ class ShadowValidator:
         if not is_valid_dict(shadow_digest):
             formatter = get_error_formatter()
             raise ValidationError(
-                formatter.validation.invalid_type("shadow digest", "dict", shadow_digest)
+                formatter.validation.invalid_type(
+                    "shadow digest", "dict", shadow_digest
+                )
             )
 
     def _validate_digest_type(self, shadow_digest: OverallDigestData) -> None:
@@ -226,9 +238,13 @@ class ShadowValidator:
             raise ValidationError(formatter.validation.empty_collection("digest_type"))
 
         if PLACEHOLDER_MARKER in str(digest_type):
-            raise ValidationError("digest_type contains placeholder. Run DigestAnalyzer first.")
+            raise ValidationError(
+                "digest_type contains placeholder. Run DigestAnalyzer first."
+            )
 
-    def validate_and_get_shadow(self, level: str, weave_title: str) -> OverallDigestData:
+    def validate_and_get_shadow(
+        self, level: str, weave_title: str
+    ) -> OverallDigestData:
         """
         Shadowデータの検証と取得
 

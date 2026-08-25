@@ -63,7 +63,9 @@ class ConfigEditor:
         config_data = self._load_config()
 
         # コメントフィールドを除去
-        clean_config = {k: v for k, v in config_data.items() if not k.startswith("_comment")}
+        clean_config = {
+            k: v for k, v in config_data.items() if not k.startswith("_comment")
+        }
 
         # 解決後のパスを計算
         base_dir_str = config_data.get("base_dir", "")
@@ -295,7 +297,9 @@ def main() -> None:
     )
 
     # trusted-paths サブコマンド
-    trusted_parser = subparsers.add_parser("trusted-paths", help="Manage trusted external paths")
+    trusted_parser = subparsers.add_parser(
+        "trusted-paths", help="Manage trusted external paths"
+    )
     trusted_subparsers = trusted_parser.add_subparsers(dest="trusted_command")
 
     _trusted_list = trusted_subparsers.add_parser("list", help="List trusted paths")  # noqa: F841
@@ -303,7 +307,9 @@ def main() -> None:
     trusted_add = trusted_subparsers.add_parser("add", help="Add a trusted path")
     trusted_add.add_argument("path", type=str, help="Path to add")
 
-    trusted_remove = trusted_subparsers.add_parser("remove", help="Remove a trusted path")
+    trusted_remove = trusted_subparsers.add_parser(
+        "remove", help="Remove a trusted path"
+    )
     trusted_remove.add_argument("path", type=str, help="Path to remove")
 
     args = parser.parse_args()
@@ -336,7 +342,9 @@ def main() -> None:
                 value = False
             elif lower_value == "null" or lower_value == "none":
                 value = None
-            elif raw_value.isdigit() or (raw_value.startswith("-") and raw_value[1:].isdigit()):
+            elif raw_value.isdigit() or (
+                raw_value.startswith("-") and raw_value[1:].isdigit()
+            ):
                 value = int(raw_value)
             else:
                 value = raw_value

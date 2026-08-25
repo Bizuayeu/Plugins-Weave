@@ -44,7 +44,9 @@ def validate_source_files(files: Any, context: str = "source_files") -> list[str
     return validate_list_not_empty(files, context)
 
 
-def get_dict_or_default(data: Any, default: dict[str, Any] | None = None) -> dict[str, Any]:
+def get_dict_or_default(
+    data: Any, default: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """dict取得またはデフォルト値"""
     return get_or_default(data, dict, lambda: default if default is not None else {})
 

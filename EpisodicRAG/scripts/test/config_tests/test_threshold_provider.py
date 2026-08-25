@@ -25,7 +25,11 @@ class TestThresholdProvider:
     def custom_config(self):
         """カスタム設定"""
         return {
-            "levels": {"weekly_threshold": 10, "monthly_threshold": 8, "quarterly_threshold": 6}
+            "levels": {
+                "weekly_threshold": 10,
+                "monthly_threshold": 8,
+                "quarterly_threshold": 6,
+            }
         }
 
     @pytest.mark.unit
@@ -117,7 +121,10 @@ class TestThresholdProvider:
         """multi_decadal_thresholdプロパティ（デフォルト）"""
         provider = ThresholdProvider(default_config)
 
-        assert provider.multi_decadal_threshold == LEVEL_CONFIG["multi_decadal"]["threshold"]
+        assert (
+            provider.multi_decadal_threshold
+            == LEVEL_CONFIG["multi_decadal"]["threshold"]
+        )
 
     @pytest.mark.unit
     def test_property_centurial_threshold(self, default_config) -> None:

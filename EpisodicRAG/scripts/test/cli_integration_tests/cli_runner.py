@@ -109,7 +109,9 @@ class CLIResult:
             AssertionError: キーが存在しない、または値が異なる場合
         """
         assert self.json_output is not None, f"Output is not JSON: {self.stdout}"
-        assert key in self.json_output, f"Key '{key}' not found in output: {self.json_output}"
+        assert key in self.json_output, (
+            f"Key '{key}' not found in output: {self.json_output}"
+        )
         if value is not None:
             actual = self.json_output[key]
             assert actual == value, f"Expected {key}='{value}', got '{actual}'"
@@ -241,7 +243,9 @@ class CLIRunner:
             command=args,
         )
 
-    def _build_module_args(self, module_name: str, *args: str, **kwargs: str | bool) -> list[str]:
+    def _build_module_args(
+        self, module_name: str, *args: str, **kwargs: str | bool
+    ) -> list[str]:
         """
         モジュール実行用の引数リストを構築
 
@@ -338,7 +342,9 @@ class CLIRunner:
     # shadow_state_checker CLI
     # =========================================================================
 
-    def run_shadow_state_checker(self, level: str, *args: str, **kwargs: Any) -> CLIResult:
+    def run_shadow_state_checker(
+        self, level: str, *args: str, **kwargs: Any
+    ) -> CLIResult:
         """
         shadow_state_checker.py を実行
 
@@ -350,7 +356,9 @@ class CLIRunner:
         Returns:
             CLIResult: 実行結果
         """
-        cmd = self._build_module_args("interfaces.shadow_state_checker", level, *args, **kwargs)
+        cmd = self._build_module_args(
+            "interfaces.shadow_state_checker", level, *args, **kwargs
+        )
         return self._run_command(cmd)
 
     # =========================================================================

@@ -78,7 +78,9 @@ class FileAppender:
         # 単一条件で初期化判定（dictかつsource_files存在）
         # file_appender では空のsource_filesも許容（後でファイルを追加するため）
         if not is_valid_overall_digest(overall_digest, require_non_empty=False):
-            _logger.decision("reinitializing overall_digest (invalid or missing source_files)")
+            _logger.decision(
+                "reinitializing overall_digest (invalid or missing source_files)"
+            )
             initialized = self.template.create_empty_overall_digest()
             shadow_data["latest_digests"][level]["overall_digest"] = initialized
             return initialized
@@ -195,10 +197,14 @@ class FileAppender:
         )
 
         # ファイル追加
-        added_count = self._add_new_files_to_digest(overall_digest, new_files, existing_files)
+        added_count = self._add_new_files_to_digest(
+            overall_digest, new_files, existing_files
+        )
 
         # ログ出力（Monthly以上）
-        self._log_digest_contents_for_level(new_files, existing_files, level, source_type)
+        self._log_digest_contents_for_level(
+            new_files, existing_files, level, source_type
+        )
 
         _logger.state("files_added", count=added_count)
 

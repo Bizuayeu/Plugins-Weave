@@ -215,7 +215,9 @@ class TestFileDetectorFindNewFiles:
         assert result == []
 
     @pytest.mark.integration
-    def test_files_are_sorted(self, detector, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_files_are_sorted(
+        self, detector, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """返されるファイルはソートされている"""
         # ファイルをランダムな順序で作成
         for i in [3, 1, 5, 2, 4]:
@@ -251,7 +253,7 @@ class TestFileDetectorFindNewFiles:
         for i in range(1, 4):
             filename = f"W{i:04d}_test.txt"
             filepath = weekly_dir / filename
-            with filepath.open('w', encoding='utf-8') as f:
+            with filepath.open("w", encoding="utf-8") as f:
                 json.dump({"test": f"weekly{i}"}, f)
 
         result = detector.find_new_files("monthly")
@@ -275,7 +277,9 @@ class TestFileDetectorInit:
         assert detector.config is config
 
     @pytest.mark.integration
-    def test_stores_times_tracker(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_stores_times_tracker(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """times_trackerが正しく保存される"""
         config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
@@ -283,7 +287,9 @@ class TestFileDetectorInit:
         assert detector.times_tracker is times_tracker
 
     @pytest.mark.integration
-    def test_builds_level_hierarchy(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_builds_level_hierarchy(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """レベル階層情報が構築される"""
         config = DigestConfig()
         times_tracker = DigestTimesTracker(config)
@@ -345,7 +351,9 @@ class TestFileDetectorGetDetectionLevel:
             ("centurial", "multi_decadal"),
         ],
     )
-    def test_higher_levels_return_source_level(self, detector, level, expected_source) -> None:
+    def test_higher_levels_return_source_level(
+        self, detector, level, expected_source
+    ) -> None:
         """上位レベルはそれぞれのソースレベルを参照する"""
         result = detector._get_detection_level(level)
         assert result == expected_source

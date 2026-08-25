@@ -78,7 +78,9 @@ def validator_with_env(temp_plugin_env: "TempPluginEnvironment", valid_config):
 
 
 @pytest.fixture
-def validator_without_level_service(temp_plugin_env: "TempPluginEnvironment", valid_config):
+def validator_without_level_service(
+    temp_plugin_env: "TempPluginEnvironment", valid_config
+):
     """LevelPathServiceなしのConfigValidator"""
     return ConfigValidator(
         config=valid_config,
@@ -145,7 +147,9 @@ class TestValidateRequiredKeys:
         assert len(errors) == 0
 
     @pytest.mark.unit
-    def test_missing_loops_path_key(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_missing_loops_path_key(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """loops_pathキーがない場合エラー"""
         config = cast(
             ConfigData,
@@ -166,7 +170,9 @@ class TestValidateRequiredKeys:
         assert any("loops_path" in e for e in errors)
 
     @pytest.mark.unit
-    def test_missing_digests_path_key(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_missing_digests_path_key(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """digests_pathキーがない場合エラー"""
         config = cast(
             ConfigData,
@@ -217,7 +223,9 @@ class TestValidatePaths:
         assert len(errors) == 0
 
     @pytest.mark.unit
-    def test_invalid_path_type_int(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_invalid_path_type_int(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """パスが整数の場合エラー"""
         config = cast(
             ConfigData,
@@ -239,7 +247,9 @@ class TestValidatePaths:
         assert any("loops_path" in e for e in errors)
 
     @pytest.mark.unit
-    def test_invalid_path_type_list(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_invalid_path_type_list(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """パスがリストの場合エラー"""
         config = cast(
             ConfigData,
@@ -276,7 +286,9 @@ class TestValidateThresholds:
         assert len(errors) == 0
 
     @pytest.mark.unit
-    def test_threshold_zero_is_invalid(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_threshold_zero_is_invalid(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """閾値0は無効"""
         config = cast(
             ConfigData,
@@ -296,7 +308,9 @@ class TestValidateThresholds:
         assert any("weekly_threshold" in e and "positive" in e for e in errors)
 
     @pytest.mark.unit
-    def test_threshold_negative_is_invalid(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_threshold_negative_is_invalid(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """負の閾値は無効"""
         config = cast(
             ConfigData,
@@ -316,7 +330,9 @@ class TestValidateThresholds:
         assert any("monthly_threshold" in e for e in errors)
 
     @pytest.mark.unit
-    def test_threshold_string_is_invalid(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_threshold_string_is_invalid(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """文字列の閾値は無効"""
         config = cast(
             ConfigData,
@@ -397,11 +413,15 @@ class TestValidateDirectoryStructure:
         assert any("Essences directory missing" in e for e in errors)
 
     @pytest.mark.unit
-    def test_skips_level_check_without_service(self, validator_without_level_service) -> None:
+    def test_skips_level_check_without_service(
+        self, validator_without_level_service
+    ) -> None:
         """LevelPathServiceがない場合、レベルディレクトリチェックをスキップ"""
         errors = validator_without_level_service.validate_directory_structure()
         # 基本ディレクトリのみチェック、レベルディレクトリはスキップ
-        level_errors = [e for e in errors if "weekly" in e.lower() or "monthly" in e.lower()]
+        level_errors = [
+            e for e in errors if "weekly" in e.lower() or "monthly" in e.lower()
+        ]
         assert len(level_errors) == 0
 
 
@@ -428,7 +448,15 @@ class TestValidateLevelConfig:
     @pytest.mark.unit
     def test_all_standard_levels_valid(self, validator_with_env) -> None:
         """全ての標準レベルが有効"""
-        levels = ["weekly", "monthly", "quarterly", "annual", "triennial", "decadal", "centurial"]
+        levels = [
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "triennial",
+            "decadal",
+            "centurial",
+        ]
         for level in levels:
             errors = validator_with_env.validate_level_config(level)
             assert len(errors) == 0, f"Level {level} should be valid"

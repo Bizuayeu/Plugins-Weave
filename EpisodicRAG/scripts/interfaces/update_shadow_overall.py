@@ -36,10 +36,10 @@ from pathlib import Path
 from typing import Any
 
 # Windows環境でUTF-8入出力を有効化（CLI実行時のみ）
-if sys.platform == 'win32' and __name__ == "__main__":
-    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+if sys.platform == "win32" and __name__ == "__main__":
+    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 # Application層
 from application.config import DigestConfig
@@ -163,7 +163,9 @@ Examples:
         help="JSONファイルパス（--stdin使用時は不要）",
     )
     parser.add_argument(
-        "--stdin", action="store_true", help="標準入力からJSONを読み込む（長いJSONに推奨）"
+        "--stdin",
+        action="store_true",
+        help="標準入力からJSONを読み込む（長いJSONに推奨）",
     )
     args = parser.parse_args()
 
@@ -171,7 +173,11 @@ Examples:
         parser.error("input_data is required unless --stdin is specified")
 
     try:
-        raw = sys.stdin.read() if args.stdin else Path(args.input_data).read_text(encoding="utf-8")
+        raw = (
+            sys.stdin.read()
+            if args.stdin
+            else Path(args.input_data).read_text(encoding="utf-8")
+        )
         payload = json.loads(raw)
 
         updater = OverallDigestUpdater(config=DigestConfig())

@@ -27,14 +27,20 @@ def _validate_directive_path(path: str) -> None:
     if not path.strip():
         raise ValueError("directive_path must not be empty")
     if "\\" in path:
-        raise ValueError(f"directive_path must use '/' separators (deployment is Linux): {path!r}")
+        raise ValueError(
+            f"directive_path must use '/' separators (deployment is Linux): {path!r}"
+        )
     if path.startswith("/") or _DRIVE_RE.match(path):
-        raise ValueError(f"directive_path must be relative to the config, not absolute: {path!r}")
+        raise ValueError(
+            f"directive_path must be relative to the config, not absolute: {path!r}"
+        )
     segments = path.split("/")
     if ".." in segments:
         raise ValueError(f"directive_path must not escape the skill root: {path!r}")
     if any(not s for s in segments):
-        raise ValueError(f"directive_path must name a file, with no empty segment: {path!r}")
+        raise ValueError(
+            f"directive_path must name a file, with no empty segment: {path!r}"
+        )
 
 
 @dataclass(frozen=True)

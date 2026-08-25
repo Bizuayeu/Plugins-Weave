@@ -42,7 +42,9 @@ class FileNumberValidator:
             self._formatter = get_error_formatter()
         return self._formatter
 
-    def extract_numbers(self, filenames: Sequence[object]) -> tuple[list[int], list[str]]:
+    def extract_numbers(
+        self, filenames: Sequence[object]
+    ) -> tuple[list[int], list[str]]:
         """
         ファイル名リストから番号を抽出
 
@@ -103,9 +105,14 @@ class FileNumberValidator:
             return True
 
         sorted_nums = sorted(numbers)
-        return all(sorted_nums[i + 1] == sorted_nums[i] + 1 for i in range(len(sorted_nums) - 1))
+        return all(
+            sorted_nums[i + 1] == sorted_nums[i] + 1
+            for i in range(len(sorted_nums) - 1)
+        )
 
-    def validate_consecutive(self, numbers: list[int], source_files: list[str]) -> list[str]:
+    def validate_consecutive(
+        self, numbers: list[int], source_files: list[str]
+    ) -> list[str]:
         """
         番号が連番かを検証し、連番でない場合は警告メッセージを返す
 

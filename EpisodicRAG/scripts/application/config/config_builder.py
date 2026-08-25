@@ -102,7 +102,9 @@ class DigestConfigBuilder:
         self._config_loader = loader
         return self
 
-    def with_custom_path_resolver(self, resolver: PathResolver) -> "DigestConfigBuilder":
+    def with_custom_path_resolver(
+        self, resolver: PathResolver
+    ) -> "DigestConfigBuilder":
         """
         カスタムPathResolverを設定
 
@@ -164,7 +166,9 @@ class DigestConfigBuilder:
             # 他のコンポーネント構築
             threshold_provider = ThresholdProvider(config)
             level_path_service = LevelPathService(path_resolver.digests_path)
-            source_path_resolver = SourcePathResolver(path_resolver.loops_path, level_path_service)
+            source_path_resolver = SourcePathResolver(
+                path_resolver.loops_path, level_path_service
+            )
             config_validator = ConfigValidator(
                 config,
                 path_resolver.loops_path,

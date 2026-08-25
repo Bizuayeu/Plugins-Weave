@@ -80,12 +80,14 @@ class UpdateShadowOverallTestBase(unittest.TestCase):
                 "monthly_threshold": 4,
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def _create_shadow(self) -> None:
         """weekly=PLACEHOLDER / monthly=分析済み の SGD を作成"""
-        self.shadow_path = self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt"
+        self.shadow_path = (
+            self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt"
+        )
         self.original_shadow = {
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "latest_digests": {
@@ -155,7 +157,9 @@ class TestOverallDigestUpdater(UpdateShadowOverallTestBase):
         saved = self._load_shadow()
         self.assertEqual(
             saved["latest_digests"]["monthly"]["overall_digest"]["source_files"],
-            self.original_shadow["latest_digests"]["monthly"]["overall_digest"]["source_files"],
+            self.original_shadow["latest_digests"]["monthly"]["overall_digest"][
+                "source_files"
+            ],
         )
 
     @pytest.mark.integration
@@ -216,7 +220,10 @@ class TestUpdateShadowOverallCLI(UpdateShadowOverallTestBase):
 
     def _run_cli(self, *args: str) -> subprocess.CompletedProcess:
         scripts_dir = Path(__file__).parent.parent.parent
-        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(self.persistent_config)}
+        env = {
+            **dict(os.environ),
+            "EPISODICRAG_CONFIG_DIR": str(self.persistent_config),
+        }
         return subprocess.run(
             [sys.executable, "-m", "interfaces.update_shadow_overall", *args],
             capture_output=True,
@@ -231,7 +238,9 @@ class TestUpdateShadowOverallCLI(UpdateShadowOverallTestBase):
     def test_cli_updates_from_json_file(self) -> None:
         """JSON ファイル経由で CLI 更新が成功する"""
         payload_file = self.plugin_root / "payload.json"
-        payload_file.write_text(json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8")
+        payload_file.write_text(
+            json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8"
+        )
 
         result = self._run_cli("monthly", str(payload_file))
 
@@ -246,7 +255,9 @@ class TestUpdateShadowOverallCLI(UpdateShadowOverallTestBase):
     def test_cli_invalid_level_rejected(self) -> None:
         """不正な level は非0 exit"""
         payload_file = self.plugin_root / "payload.json"
-        payload_file.write_text(json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8")
+        payload_file.write_text(
+            json.dumps(UPDATE_PAYLOAD, ensure_ascii=False), encoding="utf-8"
+        )
 
         result = self._run_cli("nosuchlevel", str(payload_file))
 

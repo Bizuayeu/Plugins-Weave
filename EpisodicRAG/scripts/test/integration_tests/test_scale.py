@@ -127,10 +127,12 @@ class TestLargeDataVolumes:
 
         # Create large digest lists
         digests_a = [
-            {"source_file": f"L{i:05d}.txt", "keywords": [f"kw{i}"]} for i in range(1, 251)
+            {"source_file": f"L{i:05d}.txt", "keywords": [f"kw{i}"]}
+            for i in range(1, 251)
         ]
         digests_b = [
-            {"source_file": f"L{i:05d}.txt", "keywords": [f"new_kw{i}"]} for i in range(200, 501)
+            {"source_file": f"L{i:05d}.txt", "keywords": [f"new_kw{i}"]}
+            for i in range(200, 501)
         ]
 
         start = time.perf_counter()
@@ -214,7 +216,9 @@ class TestHierarchyDepth:
 class TestMemoryPressure:
     """Tests for memory usage under load."""
 
-    def test_large_json_structure_handling(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_large_json_structure_handling(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Handle large JSON structures without excessive memory."""
         large_file = temp_plugin_env.digests_path / "large.json"
         large_file.parent.mkdir(parents=True, exist_ok=True)
@@ -271,7 +275,9 @@ class TestMemoryPressure:
 class TestThroughput:
     """Tests for operation throughput."""
 
-    def test_file_creation_throughput(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_file_creation_throughput(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Measure file creation throughput."""
         output_dir = temp_plugin_env.digests_path / "throughput_test"
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -308,7 +314,8 @@ class TestThroughput:
             {"source_file": f"L{i:05d}.txt", "keywords": ["a", "b"]} for i in range(100)
         ]
         new_digests = [
-            {"source_file": f"L{i:05d}.txt", "keywords": ["c", "d"]} for i in range(50, 150)
+            {"source_file": f"L{i:05d}.txt", "keywords": ["c", "d"]}
+            for i in range(50, 150)
         ]
 
         start = time.perf_counter()
@@ -326,7 +333,10 @@ class TestThroughput:
         keywords_by_source = {d["source_file"]: d["keywords"] for d in merged}
         assert len(keywords_by_source) == 150
         assert keywords_by_source["L00000.txt"] == ["a", "b"]  # base only
-        assert keywords_by_source["L00049.txt"] == ["a", "b"]  # base only (last before overlap)
+        assert keywords_by_source["L00049.txt"] == [
+            "a",
+            "b",
+        ]  # base only (last before overlap)
         assert keywords_by_source["L00050.txt"] == ["c", "d"]  # overlap: new wins
         assert keywords_by_source["L00099.txt"] == ["c", "d"]  # overlap: new wins
         assert keywords_by_source["L00149.txt"] == ["c", "d"]  # new only

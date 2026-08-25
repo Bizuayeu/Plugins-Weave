@@ -26,10 +26,10 @@ from datetime import datetime
 from pathlib import Path
 
 # Windows環境でUTF-8入出力を有効化（CLI実行時のみ）
-if sys.platform == 'win32' and __name__ == "__main__":
-    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+if sys.platform == "win32" and __name__ == "__main__":
+    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 # Application層
 from application.config import DigestConfig
@@ -73,7 +73,10 @@ class ProvisionalDigestSaver:
         self.merger = DigestMerger()
 
     def save_provisional(
-        self, level: str, individual_digests: list[IndividualDigestData], append: bool = False
+        self,
+        level: str,
+        individual_digests: list[IndividualDigestData],
+        append: bool = False,
     ) -> Path:
         """
         ProvisionalDigestファイルを保存
@@ -115,7 +118,9 @@ class ProvisionalDigestSaver:
             Tuple of (digest_number, final_individual_digests)
         """
         if not append:
-            return get_next_digest_number(self.config.digests_path, level), individual_digests
+            return get_next_digest_number(
+                self.config.digests_path, level
+            ), individual_digests
 
         # Append mode: try to use existing file
         current_num = self.file_manager.get_current_digest_number(level)
@@ -124,7 +129,9 @@ class ProvisionalDigestSaver:
             log_warning(
                 "--append指定されましたが既存Provisionalがありません。新規ファイルを作成します。"
             )
-            return get_next_digest_number(self.config.digests_path, level), individual_digests
+            return get_next_digest_number(
+                self.config.digests_path, level
+            ), individual_digests
 
         # Load and merge with existing data
         existing_data = self.file_manager.load_existing_provisional(level, current_num)
@@ -185,10 +192,14 @@ Note: JSONはファイルまたは--stdinで渡してください。
         help="JSONファイルパスまたはJSON文字列（--stdin使用時は不要）",
     )
     parser.add_argument(
-        "--stdin", action="store_true", help="標準入力からJSONを読み込む（長いJSONに推奨）"
+        "--stdin",
+        action="store_true",
+        help="標準入力からJSONを読み込む（長いJSONに推奨）",
     )
     parser.add_argument(
-        "--append", action="store_true", help="既存のProvisionalファイルに追加（新規作成ではなく）"
+        "--append",
+        action="store_true",
+        help="既存のProvisionalファイルに追加（新規作成ではなく）",
     )
     args = parser.parse_args()
 
@@ -213,7 +224,9 @@ Note: JSONはファイルまたは--stdinで渡してください。
         _logger.info(f"個別ダイジェスト {len(individual_digests)}件を読込")
 
         # Save ProvisionalDigest
-        saved_path = saver.save_provisional(args.level, individual_digests, append=args.append)
+        saved_path = saver.save_provisional(
+            args.level, individual_digests, append=args.append
+        )
 
         _logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         _logger.info("ProvisionalDigest保存完了")

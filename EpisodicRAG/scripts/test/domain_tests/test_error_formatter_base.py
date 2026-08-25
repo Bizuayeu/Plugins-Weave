@@ -391,7 +391,9 @@ class TestDigestErrorFormatterShadowEmpty(unittest.TestCase):
     def test_basic(self) -> None:
         """Basic shadow empty message"""
         result = self.formatter.shadow_empty("monthly")
-        self.assertEqual(result, "Shadow digest for level 'monthly' has no source files")
+        self.assertEqual(
+            result, "Shadow digest for level 'monthly' has no source files"
+        )
 
 
 class TestDigestErrorFormatterCascadeError(unittest.TestCase):
@@ -404,7 +406,9 @@ class TestDigestErrorFormatterCascadeError(unittest.TestCase):
     def test_basic(self) -> None:
         """Basic cascade error message"""
         result = self.formatter.cascade_error("weekly", "monthly", "threshold not met")
-        self.assertEqual(result, "Cascade failed from 'weekly' to 'monthly': threshold not met")
+        self.assertEqual(
+            result, "Cascade failed from 'weekly' to 'monthly': threshold not met"
+        )
 
 
 if __name__ == "__main__":

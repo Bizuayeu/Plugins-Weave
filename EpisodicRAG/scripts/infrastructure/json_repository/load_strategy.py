@@ -118,7 +118,9 @@ class FileLoadStrategy(LoadStrategy[T]):
     最優先で試行される。ファイルが存在すればその内容を返す。
     """
 
-    def __init__(self, read_func: Callable[[Path, bool], dict[str, Any] | None]) -> None:
+    def __init__(
+        self, read_func: Callable[[Path, bool], dict[str, Any] | None]
+    ) -> None:
         """
         Args:
             read_func: JSON読み込み関数（_safe_read_json相当）
@@ -186,7 +188,9 @@ class TemplateLoadStrategy(LoadStrategy[T]):
         if not context.template_file or not context.template_file.exists():
             return None
 
-        logger.debug(f"Target not found, loading from template: {context.template_file}")
+        logger.debug(
+            f"Target not found, loading from template: {context.template_file}"
+        )
         raw_template = self._read_func(context.template_file, True)
 
         if raw_template is not None and context.save_on_create:
@@ -194,7 +198,10 @@ class TemplateLoadStrategy(LoadStrategy[T]):
             logger.debug(f"Saved initialized file to: {context.target_file}")
 
         if raw_template is not None:
-            msg = context.log_message or f"Initialized {context.target_file.name} from template"
+            msg = (
+                context.log_message
+                or f"Initialized {context.target_file.name} from template"
+            )
             logger.info(msg)
 
         return cast(T | None, raw_template)
@@ -244,7 +251,10 @@ class FactoryLoadStrategy(LoadStrategy[T]):
             self._save_func(context.target_file, cast(dict[str, Any], result))
             logger.debug(f"Saved default template to: {context.target_file}")
 
-        msg = context.log_message or f"Created {context.target_file.name} with default template"
+        msg = (
+            context.log_message
+            or f"Created {context.target_file.name} with default template"
+        )
         logger.info(msg)
         return result
 

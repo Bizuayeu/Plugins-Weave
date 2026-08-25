@@ -46,14 +46,26 @@ class TestSetupCLIInitCommand(unittest.TestCase):
     def _create_templates(self) -> None:
         """テンプレートファイルを作成"""
         template_dir = self.plugin_root / ".claude-plugin"
-        grand_template = {"metadata": {"last_updated": "", "version": "1.0"}, "major_digests": {}}
-        with (template_dir / 'GrandDigest.template.txt').open('w', encoding='utf-8') as f:
+        grand_template = {
+            "metadata": {"last_updated": "", "version": "1.0"},
+            "major_digests": {},
+        }
+        with (template_dir / "GrandDigest.template.txt").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(grand_template, f)
-        shadow_template = {"metadata": {"last_updated": "", "version": "1.0"}, "latest_digests": {}}
-        with (template_dir / 'ShadowGrandDigest.template.txt').open('w', encoding='utf-8') as f:
+        shadow_template = {
+            "metadata": {"last_updated": "", "version": "1.0"},
+            "latest_digests": {},
+        }
+        with (template_dir / "ShadowGrandDigest.template.txt").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(shadow_template, f)
         times_template = {"weekly": {"timestamp": "", "last_processed": None}}
-        with (template_dir / 'last_digest_times.template.json').open('w', encoding='utf-8') as f:
+        with (template_dir / "last_digest_times.template.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(times_template, f)
 
     def _get_valid_config_json(self):
@@ -275,7 +287,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
     def test_init_without_force_fails_when_exists(self) -> None:
         """既存設定がある場合、force なしで失敗する"""
         # 既存の設定ファイルを作成（永続化ディレクトリに）
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump({}, f)
 
         config_json = self._get_valid_config_json()
@@ -301,7 +313,7 @@ class TestSetupCLIInitCommand(unittest.TestCase):
     def test_init_with_force_overwrites_existing(self) -> None:
         """既存設定がある場合でも force で上書きする"""
         # 既存の設定ファイルを作成（永続化ディレクトリに）
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump({"old": "config"}, f)
 
         config_json = self._get_valid_config_json()

@@ -52,13 +52,15 @@ pytestmark = pytest.mark.slow
 def level_hierarchy():
     """レベル階層情報"""
     return {
-        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
+        level: {"source": cfg["source"], "next": cfg["next"]}
+        for level, cfg in LEVEL_CONFIG.items()
     }
 
 
 @pytest.fixture
 def cascade_processor(
-    temp_plugin_env: "TempPluginEnvironment", level_hierarchy: "dict[str, LevelHierarchyEntry]"
+    temp_plugin_env: "TempPluginEnvironment",
+    level_hierarchy: "dict[str, LevelHierarchyEntry]",
 ):
     """CascadeProcessorインスタンスを提供（ProvisionalAppender含む）"""
     config = DigestConfig()
@@ -74,7 +76,12 @@ def cascade_processor(
     )
     provisional_appender = ProvisionalAppender(config, level_hierarchy)
     return CascadeProcessor(
-        shadow_io, file_detector, template, level_hierarchy, file_appender, provisional_appender
+        shadow_io,
+        file_detector,
+        template,
+        level_hierarchy,
+        file_appender,
+        provisional_appender,
     )
 
 
@@ -139,7 +146,9 @@ class TestPromoteShadowToGrand:
     """promote_shadow_to_grand メソッドのテスト"""
 
     @pytest.mark.unit
-    def test_logs_when_no_digest(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+    def test_logs_when_no_digest(
+        self, cascade_processor, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Shadowダイジェストがない場合、ログ出力のみ"""
         cascade_processor.promote_shadow_to_grand("weekly")
         assert "昇格対象のShadowダイジェストなし" in caplog.text
@@ -191,7 +200,9 @@ class TestClearShadowLevel:
         assert not overall.get("source_files") or overall["source_files"] == []
 
     @pytest.mark.integration
-    def test_clear_logs_message(self, cascade_processor, caplog: pytest.LogCaptureFixture) -> None:
+    def test_clear_logs_message(
+        self, cascade_processor, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """クリア時にログを出力"""
         cascade_processor.clear_shadow_level("monthly")
         assert "ShadowGrandDigestクリア完了: レベル monthly" in caplog.text
@@ -271,7 +282,9 @@ class TestCascadeUpdateOnDigestFinalize:
         shadow_data = cascade_processor.shadow_io.load_or_create()
         # 新しいWeeklyファイルがmonthlyのsource_filesに追加されているはず
         # （ただしtimes_trackerの状態による）
-        _ = shadow_data["latest_digests"]["monthly"]["overall_digest"].get("source_files", [])
+        _ = shadow_data["latest_digests"]["monthly"]["overall_digest"].get(
+            "source_files", []
+        )
 
 
 # =============================================================================
@@ -415,10 +428,14 @@ class TestCascadeWithProvisionalAppender:
         cascade_processor.cascade_update_on_digest_finalize("weekly", finalized_digest)
 
         # monthlyのProvisionalにエントリが追加されたか確認
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = (
+            temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        )
         provisional_files = list(monthly_provisional_dir.glob("M*_Individual.txt"))
 
-        assert len(provisional_files) >= 1, "Monthly Provisionalファイルが作成されていない"
+        assert len(provisional_files) >= 1, (
+            "Monthly Provisionalファイルが作成されていない"
+        )
 
         # ファイル内容を確認
         import json
@@ -477,9 +494,9 @@ class TestCascadeWithProvisionalAppender:
 
         # monthlyのShadowにsource_filesが追加されているか確認
         shadow_data = cascade_processor.shadow_io.load_or_create()
-        monthly_source_files = shadow_data["latest_digests"]["monthly"]["overall_digest"].get(
-            "source_files", []
-        )
+        monthly_source_files = shadow_data["latest_digests"]["monthly"][
+            "overall_digest"
+        ].get("source_files", [])
         # 新規Weeklyファイルが追加されている可能性を確認（times_trackerの状態による）
         # この確認は実装依存のため、エラーなく完了することを主に確認
         assert isinstance(monthly_source_files, list)
@@ -507,7 +524,9 @@ class TestCascadeWithProvisionalAppender:
         }
 
         # centurialのカスケード処理
-        cascade_processor.cascade_update_on_digest_finalize("centurial", finalized_digest)
+        cascade_processor.cascade_update_on_digest_finalize(
+            "centurial", finalized_digest
+        )
 
         # 「上位レベルなし」のログが出力される
         assert "centurialに上位レベルなし（最上位）" in caplog.text

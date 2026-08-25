@@ -37,7 +37,9 @@ from domain.exceptions import DigestError, FileIOError, ValidationError
 class TestDigestPersistenceInit:
     """DigestPersistence initialization tests"""
 
-    def test_init_with_all_dependencies(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_init_with_all_dependencies(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Initializes with all required dependencies"""
         from application.config import DigestConfig
         from application.finalize.persistence import DigestPersistence
@@ -131,17 +133,25 @@ class TestSaveRegularDigest:
         }
 
     def test_saves_to_correct_directory(
-        self, persistence, sample_regular_digest, temp_plugin_env: "TempPluginEnvironment"
+        self,
+        persistence,
+        sample_regular_digest,
+        temp_plugin_env: "TempPluginEnvironment",
     ) -> None:
         """Saves digest to correct level directory"""
-        result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
+        result = persistence.save_regular_digest(
+            "weekly", sample_regular_digest, "W0001"
+        )
 
         assert result.exists()
         assert "1_Weekly" in str(result)
         assert result.name == "W0001.txt"
 
     def test_creates_directory_if_not_exists(
-        self, persistence, sample_regular_digest, temp_plugin_env: "TempPluginEnvironment"
+        self,
+        persistence,
+        sample_regular_digest,
+        temp_plugin_env: "TempPluginEnvironment",
     ) -> None:
         """Creates target directory if it doesn't exist"""
         # Remove the directory first
@@ -151,14 +161,18 @@ class TestSaveRegularDigest:
 
             shutil.rmtree(weekly_dir)
 
-        result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
+        result = persistence.save_regular_digest(
+            "weekly", sample_regular_digest, "W0001"
+        )
 
         assert result.exists()
         assert weekly_dir.exists()
 
     def test_saves_valid_json(self, persistence, sample_regular_digest) -> None:
         """Saves valid JSON content"""
-        result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
+        result = persistence.save_regular_digest(
+            "weekly", sample_regular_digest, "W0001"
+        )
 
         with result.open(encoding="utf-8") as f:
             loaded = json.load(f)
@@ -191,14 +205,18 @@ class TestSaveRegularDigest:
         with pytest.raises(ValidationError, match="User cancelled"):
             persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
 
-    def test_overwrites_when_confirmed(self, persistence, sample_regular_digest) -> None:
+    def test_overwrites_when_confirmed(
+        self, persistence, sample_regular_digest
+    ) -> None:
         """Overwrites existing file when confirmed"""
         # First save
         persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
 
         # Modify and save again
         sample_regular_digest["overall_digest"]["abstract"] = "Modified"
-        result = persistence.save_regular_digest("weekly", sample_regular_digest, "W0001")
+        result = persistence.save_regular_digest(
+            "weekly", sample_regular_digest, "W0001"
+        )
 
         with result.open(encoding="utf-8") as f:
             loaded = json.load(f)
@@ -244,10 +262,14 @@ class TestUpdateGrandDigest:
             }
         }
 
-        persistence_with_mock_grand.update_grand_digest("weekly", regular_digest, "W0001")
+        persistence_with_mock_grand.update_grand_digest(
+            "weekly", regular_digest, "W0001"
+        )
 
         persistence_with_mock_grand.grand_digest_manager.update_digest.assert_called_once()
-        call_args = persistence_with_mock_grand.grand_digest_manager.update_digest.call_args
+        call_args = (
+            persistence_with_mock_grand.grand_digest_manager.update_digest.call_args
+        )
         assert call_args[0][0] == "weekly"
         assert call_args[0][1] == "W0001"
 
@@ -258,7 +280,9 @@ class TestUpdateGrandDigest:
         regular_digest = {"overall_digest": None}
 
         with pytest.raises(DigestError):
-            persistence_with_mock_grand.update_grand_digest("weekly", regular_digest, "W0001")
+            persistence_with_mock_grand.update_grand_digest(
+                "weekly", regular_digest, "W0001"
+            )
 
     def test_raises_digest_error_for_missing_overall_digest(
         self, persistence_with_mock_grand
@@ -267,7 +291,9 @@ class TestUpdateGrandDigest:
         regular_digest = {}
 
         with pytest.raises(DigestError):
-            persistence_with_mock_grand.update_grand_digest("weekly", regular_digest, "W0001")
+            persistence_with_mock_grand.update_grand_digest(
+                "weekly", regular_digest, "W0001"
+            )
 
 
 # =============================================================================
@@ -306,7 +332,9 @@ class TestProcessCascadeAndCleanup:
         persistence.process_cascade_and_cleanup("weekly", 52, None)
 
         # finalized_digestがNoneの場合（後方互換性）
-        mock_shadow.cascade_update_on_digest_finalize.assert_called_once_with("weekly", None)
+        mock_shadow.cascade_update_on_digest_finalize.assert_called_once_with(
+            "weekly", None
+        )
 
     def test_passes_finalized_digest_to_cascade(self, persistence_with_mocks) -> None:
         """finalized_digestをcascade_update_on_digest_finalizeに渡す"""
@@ -333,7 +361,9 @@ class TestProcessCascadeAndCleanup:
             "weekly", finalized_digest
         )
 
-    def test_calls_times_tracker_save_digest_number(self, persistence_with_mocks) -> None:
+    def test_calls_times_tracker_save_digest_number(
+        self, persistence_with_mocks
+    ) -> None:
         """Calls times_tracker.save_digest_number with correct arguments"""
         persistence, _, mock_times = persistence_with_mocks
 
@@ -341,7 +371,9 @@ class TestProcessCascadeAndCleanup:
 
         mock_times.save_digest_number.assert_called_once_with("weekly", 52)
 
-    def test_deletes_provisional_file(self, persistence_with_mocks, tmp_path: Path) -> None:
+    def test_deletes_provisional_file(
+        self, persistence_with_mocks, tmp_path: Path
+    ) -> None:
         """Deletes provisional file when provided"""
         persistence, _, _ = persistence_with_mocks
 
@@ -353,7 +385,9 @@ class TestProcessCascadeAndCleanup:
 
         assert not provisional_file.exists()
 
-    def test_handles_missing_provisional_file(self, persistence_with_mocks, tmp_path: Path) -> None:
+    def test_handles_missing_provisional_file(
+        self, persistence_with_mocks, tmp_path: Path
+    ) -> None:
         """Handles non-existent provisional file gracefully"""
         persistence, _, _ = persistence_with_mocks
 

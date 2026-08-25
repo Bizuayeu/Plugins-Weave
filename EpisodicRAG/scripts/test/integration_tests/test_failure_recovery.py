@@ -44,7 +44,9 @@ class TestCascadeFailureRecovery:
         from application.config import DigestConfig
 
         # Setup: Create weekly Shadow with entries
-        weekly_shadow_path = temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
+        weekly_shadow_path = (
+            temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
+        )
         weekly_shadow_path.parent.mkdir(parents=True, exist_ok=True)
 
         shadow_data = {
@@ -64,7 +66,9 @@ class TestCascadeFailureRecovery:
     ) -> None:
         """System should handle corrupted Shadow file gracefully."""
         # Create corrupted Shadow file
-        weekly_shadow_path = temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
+        weekly_shadow_path = (
+            temp_plugin_env.digests_path / "1_Weekly" / "ShadowWeekly.txt"
+        )
         weekly_shadow_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write invalid JSON
@@ -106,7 +110,9 @@ class TestPartialWriteRecovery:
         result = try_load_json(incomplete_file, default=None, log_on_error=False)
         assert result is None
 
-    def test_atomic_write_behavior(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_atomic_write_behavior(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """Verify that writes don't corrupt existing data on failure."""
         target_file = temp_plugin_env.digests_path / "target.json"
         target_file.parent.mkdir(parents=True, exist_ok=True)
@@ -191,7 +197,9 @@ class TestOrphanedFileDetection:
 class TestErrorStateRecovery:
     """Tests for recovering from various error states."""
 
-    def test_recover_from_invalid_config(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_recover_from_invalid_config(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """System should handle missing config file by using defaults."""
         from application.config import DigestConfig
 
@@ -202,7 +210,9 @@ class TestErrorStateRecovery:
         assert config.loops_path is not None
         assert config.digests_path is not None
 
-    def test_recover_from_missing_template(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_recover_from_missing_template(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """System should create from defaults when template is missing."""
         from infrastructure import load_json_with_template
 

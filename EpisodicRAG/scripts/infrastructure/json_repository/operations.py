@@ -38,7 +38,9 @@ from domain.exceptions import FileIOError
 logger = logging.getLogger("episodic_rag")
 
 
-def safe_read_json(file_path: Path, raise_on_error: bool = True) -> dict[str, Any] | None:
+def safe_read_json(
+    file_path: Path, raise_on_error: bool = True
+) -> dict[str, Any] | None:
     """
     JSONファイルを安全に読み込む共通ヘルパー
 
@@ -60,7 +62,7 @@ def safe_read_json(file_path: Path, raise_on_error: bool = True) -> dict[str, An
     """
     formatter = get_error_formatter()
     try:
-        with file_path.open(encoding='utf-8') as f:
+        with file_path.open(encoding="utf-8") as f:
             result: dict[str, Any] = json.load(f)
             return result
     except json.JSONDecodeError as e:
@@ -121,7 +123,7 @@ def save_json(file_path: Path, data: dict[str, Any], indent: int = 2) -> None:
     formatter = get_error_formatter()
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with file_path.open('w', encoding='utf-8') as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=indent)
     except OSError as e:
         raise FileIOError(formatter.file.file_io_error("write", file_path, e)) from e
@@ -162,7 +164,9 @@ def try_load_json(
     return result if result is not None else default
 
 
-def try_read_json_from_file(file_path: Path, log_on_error: bool = True) -> dict[str, Any] | None:
+def try_read_json_from_file(
+    file_path: Path, log_on_error: bool = True
+) -> dict[str, Any] | None:
     """
     JSONファイルを安全に読み込む（個別ファイル処理用）
 

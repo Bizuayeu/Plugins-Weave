@@ -32,7 +32,9 @@ class _RecordingLoader:
 
     def load_public(self, repo, files):
         self.log.append("load_public")
-        return {f.path: f"content-of-{f.path}" for f in files if f.path not in self.missing}
+        return {
+            f.path: f"content-of-{f.path}" for f in files if f.path not in self.missing
+        }
 
 
 class TestBootOrder:
@@ -62,4 +64,6 @@ class TestRequiredOptional:
         cfg = _config((LoadFile(path="dir/opt.md", required=False),))
         loader = _RecordingLoader(log, missing_paths=["dir/opt.md"])
         result = BootSequence(cfg, loader).run()
-        assert "dir/opt.md" not in result  # optional missing tolerated; returns what loaded
+        assert (
+            "dir/opt.md" not in result
+        )  # optional missing tolerated; returns what loaded

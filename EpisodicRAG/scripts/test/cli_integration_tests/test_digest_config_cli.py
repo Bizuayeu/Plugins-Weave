@@ -21,7 +21,9 @@ from .cli_runner import CLIRunner
 class TestDigestConfigShowE2E:
     """show サブコマンドのE2Eテスト"""
 
-    def test_show_returns_current_config(self, configured_cli_runner: CLIRunner) -> None:
+    def test_show_returns_current_config(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """show が現在の設定を返す"""
         result = configured_cli_runner.run_digest_config("show")
         result.assert_success()
@@ -80,13 +82,17 @@ class TestDigestConfigSetE2E:
 
     def test_set_boolean_true(self, configured_cli_runner: CLIRunner) -> None:
         """set で true を設定"""
-        result = configured_cli_runner.run_digest_config("set", key="some_flag", value="true")
+        result = configured_cli_runner.run_digest_config(
+            "set", key="some_flag", value="true"
+        )
         result.assert_success()
         assert result.json_output["new_value"] is True
 
     def test_set_boolean_false(self, configured_cli_runner: CLIRunner) -> None:
         """set で false を設定"""
-        result = configured_cli_runner.run_digest_config("set", key="some_flag", value="false")
+        result = configured_cli_runner.run_digest_config(
+            "set", key="some_flag", value="false"
+        )
         result.assert_success()
         assert result.json_output["new_value"] is False
 
@@ -97,7 +103,9 @@ class TestDigestConfigSetE2E:
 
     def test_set_missing_value_fails(self, configured_cli_runner: CLIRunner) -> None:
         """set で --value なしはエラー"""
-        result = configured_cli_runner.run_digest_config("set", key="levels.weekly_threshold")
+        result = configured_cli_runner.run_digest_config(
+            "set", key="levels.weekly_threshold"
+        )
         result.assert_failure(2)
 
 
@@ -117,7 +125,9 @@ class TestDigestConfigUpdateE2E:
         result.assert_success()
         result.assert_json_status("ok")
 
-    def test_update_reports_updated_keys(self, configured_cli_runner: CLIRunner) -> None:
+    def test_update_reports_updated_keys(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """update が更新されたキーを報告"""
         config_json = json.dumps({"base_dir": "../new"})
         result = configured_cli_runner.run_digest_config("update", config=config_json)
@@ -130,13 +140,17 @@ class TestDigestConfigUpdateE2E:
         result.assert_success()
         assert result.json_output["updated_keys"] == []
 
-    def test_update_with_invalid_json_fails(self, configured_cli_runner: CLIRunner) -> None:
+    def test_update_with_invalid_json_fails(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """update で不正なJSONはエラー"""
         result = configured_cli_runner.run_digest_config("update", config="{invalid")
         result.assert_failure(1)
         result.assert_json_status("error")
 
-    def test_update_missing_config_flag_fails(self, configured_cli_runner: CLIRunner) -> None:
+    def test_update_missing_config_flag_fails(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """update で --config なしはエラー"""
         result = configured_cli_runner.run_digest_config("update")
         result.assert_failure(2)
@@ -157,9 +171,13 @@ class TestDigestConfigTrustedPathsE2E:
         result.assert_success()
         assert result.json_output["count"] == 0
 
-    def test_trusted_paths_add_tilde_path(self, configured_cli_runner: CLIRunner) -> None:
+    def test_trusted_paths_add_tilde_path(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """trusted-paths add で ~ パスを追加"""
-        result = configured_cli_runner.run_digest_config("trusted-paths", "add", "~/DEV/production")
+        result = configured_cli_runner.run_digest_config(
+            "trusted-paths", "add", "~/DEV/production"
+        )
         result.assert_success()
         assert "~/DEV/production" in result.json_output["trusted_external_paths"]
 
@@ -167,12 +185,18 @@ class TestDigestConfigTrustedPathsE2E:
         self, configured_cli_runner: CLIRunner
     ) -> None:
         """trusted-paths add で相対パスを拒否"""
-        result = configured_cli_runner.run_digest_config("trusted-paths", "add", "relative/path")
+        result = configured_cli_runner.run_digest_config(
+            "trusted-paths", "add", "relative/path"
+        )
         result.assert_json_status("error")
 
-    def test_trusted_paths_remove_nonexistent_error(self, configured_cli_runner: CLIRunner) -> None:
+    def test_trusted_paths_remove_nonexistent_error(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """trusted-paths remove で存在しないパスはエラー"""
-        result = configured_cli_runner.run_digest_config("trusted-paths", "remove", "~/nonexistent")
+        result = configured_cli_runner.run_digest_config(
+            "trusted-paths", "remove", "~/nonexistent"
+        )
         result.assert_json_status("error")
 
 
@@ -185,12 +209,16 @@ class TestDigestConfigTrustedPathsE2E:
 class TestDigestConfigErrorsE2E:
     """エラー処理のE2Eテスト"""
 
-    def test_no_subcommand_exits_with_error(self, configured_cli_runner: CLIRunner) -> None:
+    def test_no_subcommand_exits_with_error(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """サブコマンドなしでエラー"""
         result = configured_cli_runner.run_digest_config()
         result.assert_failure()
 
-    def test_invalid_subcommand_exits_with_error(self, configured_cli_runner: CLIRunner) -> None:
+    def test_invalid_subcommand_exits_with_error(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """無効なサブコマンドでエラー"""
         result = configured_cli_runner.run_digest_config("invalid_command")
         result.assert_failure(2)

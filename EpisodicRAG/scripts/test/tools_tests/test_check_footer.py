@@ -285,7 +285,9 @@ class TestRunCheck:
         test_md = base / "EpisodicRAG" / "TEST.md"
         test_md.write_text(f"# TEST\n\n{footer}\n", encoding="utf-8")
 
-        results = run_check(base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True)
+        results = run_check(
+            base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True
+        )
 
         ok_count = sum(1 for r in results if r.status == FooterStatus.OK)
         assert ok_count == 2
@@ -303,7 +305,9 @@ class TestRunCheck:
         test_md = base / "EpisodicRAG" / "TEST.md"
         test_md.write_text("# TEST\n\nNo footer here.\n", encoding="utf-8")
 
-        results = run_check(base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True)
+        results = run_check(
+            base / "EpisodicRAG" / "_footer.md", base, fix=False, quiet=True
+        )
 
         statuses = {r.status for r in results}
         assert FooterStatus.OK in statuses
@@ -320,7 +324,9 @@ class TestRunCheck:
         test_md = base / "EpisodicRAG" / "TEST.md"
         test_md.write_text("# TEST\n\nNo footer.\n", encoding="utf-8")
 
-        results = run_check(base / "EpisodicRAG" / "_footer.md", base, fix=True, quiet=True)
+        results = run_check(
+            base / "EpisodicRAG" / "_footer.md", base, fix=True, quiet=True
+        )
 
         # 修正後は全てOK
         ok_count = sum(1 for r in results if r.status == FooterStatus.OK)
@@ -402,7 +408,9 @@ class TestPrintReport:
     def test_prints_not_found_status(self, tmp_path: Path, capsys) -> None:
         """FILE_NOT_FOUNDステータスを表示"""
         results = [
-            CheckResult(file_path=tmp_path / "test.md", status=FooterStatus.FILE_NOT_FOUND),
+            CheckResult(
+                file_path=tmp_path / "test.md", status=FooterStatus.FILE_NOT_FOUND
+            ),
         ]
 
         print_report(results, quiet=False)
@@ -445,7 +453,9 @@ class TestPrintReport:
 class TestMain:
     """main() 関数のテスト"""
 
-    def test_main_with_missing_footer_md(self, tmp_path: Path, capsys, monkeypatch) -> None:
+    def test_main_with_missing_footer_md(
+        self, tmp_path: Path, capsys, monkeypatch
+    ) -> None:
         """_footer.md が見つからない場合"""
         from unittest.mock import patch
 
@@ -489,7 +499,9 @@ class TestMain:
                 mock_footer = tmp_path / "_footer.md"
                 mock_footer.parent.mkdir(parents=True, exist_ok=True)
                 mock_footer.write_text("```text\n---\nFooter\n```\n", encoding="utf-8")
-                mock_path.__truediv__ = lambda s, x: tmp_path / x if x == "_footer.md" else tmp_path
+                mock_path.__truediv__ = lambda s, x: (
+                    tmp_path / x if x == "_footer.md" else tmp_path
+                )
                 mock_path_cls.return_value = mock_path
                 mock_path_cls.__file__ = str(tmp_path / "check_footer.py")
 

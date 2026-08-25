@@ -95,7 +95,9 @@ class TestLevelPathService:
         assert "Invalid level" in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_digests_path_stored(self, temp_plugin_env: "TempPluginEnvironment") -> None:
+    def test_digests_path_stored(
+        self, temp_plugin_env: "TempPluginEnvironment"
+    ) -> None:
         """digests_pathが正しく格納される"""
         service = LevelPathService(temp_plugin_env.digests_path)
 

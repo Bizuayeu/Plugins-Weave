@@ -103,7 +103,11 @@ class TestValidateDictHasKeysProperties:
     """Property-based tests for validate_dict_has_keys"""
 
     @pytest.mark.property
-    @given(keys=st.lists(st.text(min_size=1, max_size=10), min_size=1, max_size=5, unique=True))
+    @given(
+        keys=st.lists(
+            st.text(min_size=1, max_size=10), min_size=1, max_size=5, unique=True
+        )
+    )
     @settings(max_examples=200)
     def test_passes_when_all_keys_present(self, keys) -> None:
         """全必須キーが存在すれば検証通過（例外なし）"""
@@ -223,7 +227,9 @@ class TestCollectListElementErrorsProperties:
         invalid_count=st.integers(min_value=1, max_value=10),
     )
     @settings(max_examples=200)
-    def test_error_count_matches_invalid_count(self, valid_count, invalid_count) -> None:
+    def test_error_count_matches_invalid_count(
+        self, valid_count, invalid_count
+    ) -> None:
         """エラー数 == 型が一致しない要素数"""
         lst: list[Any] = [1] * valid_count + ["str"] * invalid_count
         errors: list[str] = []

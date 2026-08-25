@@ -206,7 +206,9 @@ class TestGetTemplate:
         assert "last_updated" in result["metadata"]
 
     @pytest.mark.unit
-    def test_metadata_last_updated_is_iso_format(self, template: "ShadowTemplate") -> None:
+    def test_metadata_last_updated_is_iso_format(
+        self, template: "ShadowTemplate"
+    ) -> None:
         """metadata.last_updatedはISO形式の日時"""
         result = template.get_template()
         last_updated = result["metadata"]["last_updated"]
@@ -243,7 +245,9 @@ class TestGetTemplate:
             assert "overall_digest" in result["latest_digests"][level]
 
     @pytest.mark.unit
-    def test_level_overall_digest_has_placeholders(self, template: "ShadowTemplate") -> None:
+    def test_level_overall_digest_has_placeholders(
+        self, template: "ShadowTemplate"
+    ) -> None:
         """各レベルのoverall_digestにプレースホルダーが含まれる（timestampは実時刻ゆえ除外）"""
         result = template.get_template()
         for level in LEVEL_NAMES:

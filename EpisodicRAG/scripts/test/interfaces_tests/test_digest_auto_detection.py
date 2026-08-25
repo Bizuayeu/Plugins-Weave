@@ -85,7 +85,7 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
                 "centurial_threshold": 4,
             },
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         # ShadowGrandDigest.txt
@@ -96,8 +96,8 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
                 "monthly": {"overall_digest": None},
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -106,8 +106,8 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00", "version": "1.0"},
             "major_digests": {},
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'GrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "GrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(grand_data, f)
 
@@ -130,7 +130,9 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
 
         # Arrange: 10個のLoopファイルを作成
         for i in range(1, 11):
-            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text("content")
+            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text(
+                "content"
+            )
 
         # last_digest_times.json を設定（永続化ディレクトリに）
         # loop.last_processed = 9 → L00001-L00009 までshadowに追加済み
@@ -139,7 +141,9 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
             "loop": {"timestamp": "2025-01-01T00:00:00", "last_processed": 9},
             "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 2},
         }
-        with (self.persistent_config / 'last_digest_times.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "last_digest_times.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(times_data, f)
 
         # Act
@@ -164,14 +168,18 @@ class TestDigestAutoUnprocessedLoopsDetection(unittest.TestCase):
 
         # Arrange: 5個のLoopファイルを作成
         for i in range(1, 6):
-            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text("content")
+            (self.plugin_root / "data" / "Loops" / f"L{i:05d}_Test.txt").write_text(
+                "content"
+            )
 
         # loop.last_processed = 5 → 全て処理済み（永続化ディレクトリに）
         times_data = {
             "loop": {"timestamp": "2025-01-01T00:00:00", "last_processed": 5},
             "weekly": {"timestamp": "2025-01-01T00:00:00", "last_processed": 1},
         }
-        with (self.persistent_config / 'last_digest_times.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "last_digest_times.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(times_data, f)
 
         # Act

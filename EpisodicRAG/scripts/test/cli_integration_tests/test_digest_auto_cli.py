@@ -27,12 +27,16 @@ class TestDigestAutoJsonOutputE2E:
         result = configured_cli_runner.run_digest_auto(output="json")
         assert result.json_output is not None
 
-    def test_json_output_contains_status(self, configured_cli_runner: CLIRunner) -> None:
+    def test_json_output_contains_status(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """JSON出力に status が含まれる"""
         result = configured_cli_runner.run_digest_auto(output="json")
         assert "status" in result.json_output
 
-    def test_json_output_status_is_valid(self, configured_cli_runner: CLIRunner) -> None:
+    def test_json_output_status_is_valid(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """JSON出力の status が有効な値"""
         result = configured_cli_runner.run_digest_auto(output="json")
         assert result.json_output["status"] in ["ok", "warning", "error"]
@@ -52,18 +56,23 @@ class TestDigestAutoJsonOutputE2E:
 class TestDigestAutoTextOutputE2E:
     """テキスト出力のE2Eテスト"""
 
-    def test_text_output_contains_header(self, configured_cli_runner: CLIRunner) -> None:
+    def test_text_output_contains_header(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """テキスト出力にヘッダーが含まれる"""
         result = configured_cli_runner.run_digest_auto(output="text")
         result.assert_success()
         assert "EpisodicRAG" in result.stdout
 
-    def test_text_output_contains_status_indicators(self, configured_cli_runner: CLIRunner) -> None:
+    def test_text_output_contains_status_indicators(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """テキスト出力にステータスインジケータが含まれる"""
         result = configured_cli_runner.run_digest_auto(output="text")
         # ステータスインジケータ（絵文字または記号）が含まれる
         assert any(
-            indicator in result.stdout for indicator in ["OK", "WARNING", "ERROR", "HEALTHY", "━"]
+            indicator in result.stdout
+            for indicator in ["OK", "WARNING", "ERROR", "HEALTHY", "━"]
         )
 
 
@@ -114,7 +123,9 @@ class TestDigestAutoScenariosE2E:
 class TestDigestAutoErrorsE2E:
     """エラー処理のE2Eテスト"""
 
-    def test_invalid_output_format_fails(self, configured_cli_runner: CLIRunner) -> None:
+    def test_invalid_output_format_fails(
+        self, configured_cli_runner: CLIRunner
+    ) -> None:
         """無効な --output 形式でエラー"""
         result = configured_cli_runner.run_digest_auto(output="invalid")
         result.assert_failure(2)  # argparse error

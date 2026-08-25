@@ -44,7 +44,9 @@ class TestIsValidType:
             (None, type(None), True),
         ],
     )
-    def test_valid_types_return_true(self, data, expected_type, expected_result) -> None:
+    def test_valid_types_return_true(
+        self, data, expected_type, expected_result
+    ) -> None:
         """正しい型の場合 True を返す"""
         assert is_valid_type(data, expected_type) is expected_result
 

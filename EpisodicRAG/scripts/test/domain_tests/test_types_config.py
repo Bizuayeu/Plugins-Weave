@@ -128,7 +128,13 @@ class TestProvisionalDigestEntry:
     def test_has_required_fields(self) -> None:
         """必須フィールドを持つ"""
         hints = get_type_hints(ProvisionalDigestEntry)
-        required_fields = ["source_file", "digest_type", "keywords", "abstract", "impression"]
+        required_fields = [
+            "source_file",
+            "digest_type",
+            "keywords",
+            "abstract",
+            "impression",
+        ]
         for field in required_fields:
             assert field in hints, f"Missing field: {field}"
 

@@ -104,7 +104,7 @@ class TestConfigCLI(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -137,7 +137,7 @@ class TestConfigCLI(unittest.TestCase):
                 main()
 
         # 値が更新されていることを確認（永続化ディレクトリから）
-        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open(encoding="utf-8") as f:
             config = json.load(f)
         assert config["levels"]["weekly_threshold"] == 7
 
@@ -189,7 +189,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -279,7 +279,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
                 main()
 
         # levels キーが保持されていることを確認（永続化ディレクトリから）
-        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open(encoding="utf-8") as f:
             saved_config = json.load(f)
         assert "levels" in saved_config
         assert saved_config["levels"]["weekly_threshold"] == 5
@@ -340,7 +340,7 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
                 assert result["status"] == "ok"
 
         # 更新されていることを確認（永続化ディレクトリから）
-        with (self.persistent_config / 'config.json').open(encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open(encoding="utf-8") as f:
             saved_config = json.load(f)
         assert saved_config["levels"]["weekly_threshold"] == 10
 
@@ -348,7 +348,10 @@ class TestConfigCLIUpdateCommand(unittest.TestCase):
     def test_update_reports_updated_keys(self) -> None:
         """update が更新されたキーを報告"""
         config_json = json.dumps(
-            {"base_dir": str(self.plugin_root / "new"), "levels": {"weekly_threshold": 7}}
+            {
+                "base_dir": str(self.plugin_root / "new"),
+                "levels": {"weekly_threshold": 7},
+            }
         )
 
         with patch(

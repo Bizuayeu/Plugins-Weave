@@ -70,9 +70,15 @@ class TestDigestReadinessChecker(unittest.TestCase):
         """プラグイン構造を作成"""
         # ディレクトリ構造
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
-        (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(parents=True)
-        (self.plugin_root / "data" / "Digests" / "2_Monthly" / "Provisional").mkdir(parents=True)
-        (self.plugin_root / "data" / "Digests" / "3_Quarterly" / "Provisional").mkdir(parents=True)
+        (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(
+            parents=True
+        )
+        (self.plugin_root / "data" / "Digests" / "2_Monthly" / "Provisional").mkdir(
+            parents=True
+        )
+        (self.plugin_root / "data" / "Digests" / "3_Quarterly" / "Provisional").mkdir(
+            parents=True
+        )
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
@@ -94,7 +100,9 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 "monthly_threshold": 4,
             },
         }
-        with (self.persistent_config_dir / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config_dir / "config.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(config_data, f)
 
     def _create_shadow_complete(self, level: str = "weekly") -> None:
@@ -133,8 +141,8 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 },
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -154,8 +162,8 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 },
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -166,7 +174,10 @@ class TestDigestReadinessChecker(unittest.TestCase):
             "latest_digests": {
                 "weekly": {
                     "overall_digest": {
-                        "source_files": ["L00001_test.txt", "L00002_test.txt"],  # 2件のみ
+                        "source_files": [
+                            "L00001_test.txt",
+                            "L00002_test.txt",
+                        ],  # 2件のみ
                         "digest_type": "テスト分析",
                         "keywords": ["キーワード1"],
                         "abstract": "要約",
@@ -175,8 +186,8 @@ class TestDigestReadinessChecker(unittest.TestCase):
                 },
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -499,7 +510,9 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
     def _setup_plugin_structure(self) -> None:
         """プラグイン構造を作成"""
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
-        (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(parents=True)
+        (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(
+            parents=True
+        )
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
@@ -516,7 +529,9 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config_dir / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config_dir / "config.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(config_data, f)
 
     def _create_shadow_empty_overall(self) -> None:
@@ -525,8 +540,8 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
             "metadata": {"last_updated": "2025-01-01T00:00:00"},
             "latest_digests": {"weekly": {"overall_digest": {}}},
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -546,8 +561,8 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
                 }
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -597,7 +612,9 @@ class TestDigestReadinessEdgeCases(unittest.TestCase):
         from interfaces.digest_readiness import DigestReadinessChecker
 
         checker = DigestReadinessChecker()
-        self.assertTrue(checker._keywords_has_placeholder(["kw1", "<!-- PLACEHOLDER -->"]))
+        self.assertTrue(
+            checker._keywords_has_placeholder(["kw1", "<!-- PLACEHOLDER -->"])
+        )
 
     @pytest.mark.unit
     def test_check_provisional_ready_empty_source_files(self) -> None:
@@ -687,7 +704,7 @@ class TestDigestReadinessCLI(unittest.TestCase):
             "levels": {"weekly_threshold": 5},
         }
         # 永続化ディレクトリに設定ファイルを作成
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         shadow_data = {
@@ -704,8 +721,8 @@ class TestDigestReadinessCLI(unittest.TestCase):
                 }
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -726,7 +743,10 @@ class TestDigestReadinessCLI(unittest.TestCase):
     def test_main_with_valid_level(self) -> None:
         """有効なレベルでCLI実行"""
         # 環境変数を渡してサブプロセスを実行
-        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(self.persistent_config)}
+        env = {
+            **dict(os.environ),
+            "EPISODICRAG_CONFIG_DIR": str(self.persistent_config),
+        }
         result = subprocess.run(
             [
                 sys.executable,
@@ -807,7 +827,9 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
     def _setup_plugin_structure(self) -> None:
         """プラグイン構造を作成"""
         (self.plugin_root / "data" / "Loops").mkdir(parents=True)
-        (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(parents=True)
+        (self.plugin_root / "data" / "Digests" / "1_Weekly" / "Provisional").mkdir(
+            parents=True
+        )
         (self.plugin_root / "data" / "Essences").mkdir(parents=True)
         (self.plugin_root / ".claude-plugin").mkdir(parents=True)
 
@@ -824,7 +846,9 @@ class TestDigestReadinessCoverageImprovements(unittest.TestCase):
             },
             "levels": {"weekly_threshold": 5},
         }
-        with (self.persistent_config_dir / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config_dir / "config.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(config_data, f)
 
     @pytest.mark.unit
@@ -927,7 +951,7 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
             "levels": {"weekly_threshold": 5},
         }
         # 永続化ディレクトリに設定ファイルを作成
-        with (self.persistent_config / 'config.json').open('w', encoding='utf-8') as f:
+        with (self.persistent_config / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
     def _create_shadow_complete(self) -> None:
@@ -946,8 +970,8 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
                 },
             },
         }
-        with (self.plugin_root / 'data' / 'Essences' / 'ShadowGrandDigest.txt').open(
-            'w', encoding='utf-8'
+        with (self.plugin_root / "data" / "Essences" / "ShadowGrandDigest.txt").open(
+            "w", encoding="utf-8"
         ) as f:
             json.dump(shadow_data, f)
 
@@ -957,7 +981,10 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
         self._create_shadow_complete()
 
         # 環境変数を渡してサブプロセスを実行
-        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(self.persistent_config)}
+        env = {
+            **dict(os.environ),
+            "EPISODICRAG_CONFIG_DIR": str(self.persistent_config),
+        }
         result = subprocess.run(
             [
                 sys.executable,
@@ -984,7 +1011,10 @@ class TestDigestReadinessCLIMain(unittest.TestCase):
     def test_main_error_returns_exit_code_1(self) -> None:
         """main()がエラー時に終了コード1を返す（lines 324-325）"""
         # 環境変数を渡してサブプロセスを実行（ShadowGrandDigestなしで実行 → エラー）
-        env = {**dict(os.environ), "EPISODICRAG_CONFIG_DIR": str(self.persistent_config)}
+        env = {
+            **dict(os.environ),
+            "EPISODICRAG_CONFIG_DIR": str(self.persistent_config),
+        }
         result = subprocess.run(
             [
                 sys.executable,

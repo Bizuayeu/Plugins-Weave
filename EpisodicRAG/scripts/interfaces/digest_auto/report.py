@@ -65,7 +65,9 @@ def format_text_report(result: "AnalysisResult") -> str:
                 output.append("")
 
             elif issue.type == "placeholders":
-                output.append(f"⚠️ プレースホルダー検出 ({issue.level}): {issue.count}個")
+                output.append(
+                    f"⚠️ プレースホルダー検出 ({issue.level}): {issue.count}個"
+                )
                 output.append("")
 
             elif issue.type == "gaps":

@@ -87,7 +87,9 @@ class TestValidateList:
 
     def test_list_with_mixed_types(self, validator) -> None:
         """異なる型を含むリストも有効"""
-        errors = validator.validate_list([1, "string", None, {"key": "value"}], "test_context")
+        errors = validator.validate_list(
+            [1, "string", None, {"key": "value"}], "test_context"
+        )
         assert errors == []
 
     # -------------------------------------------------------------------------
@@ -106,7 +108,9 @@ class TestValidateList:
             (True, "bool"),
         ],
     )
-    def test_non_list_types_return_error(self, validator, invalid_input, type_name) -> None:
+    def test_non_list_types_return_error(
+        self, validator, invalid_input, type_name
+    ) -> None:
         """リスト以外の型はエラーを返す"""
         errors = validator.validate_list(invalid_input, "test_context")
         assert len(errors) == 1

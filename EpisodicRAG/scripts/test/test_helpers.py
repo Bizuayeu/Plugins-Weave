@@ -120,7 +120,7 @@ def create_default_config(config_dir: Path, base_dir: str = ".") -> Path:
     }
 
     config_file = config_dir / "config.json"
-    with config_file.open('w', encoding='utf-8') as f:
+    with config_file.open("w", encoding="utf-8") as f:
         json.dump(config_data, f, indent=2, ensure_ascii=False)
 
     return config_file
@@ -135,26 +135,36 @@ def create_default_templates(config_dir: Path) -> None:
     """
     # last_digest_times.template.json
     # Use LEVEL_NAMES (includes loop) for tracking all levels
-    times_template = {level: {"timestamp": "", "last_processed": None} for level in LEVEL_NAMES}
-    with (config_dir / 'last_digest_times.template.json').open('w', encoding='utf-8') as f:
+    times_template = {
+        level: {"timestamp": "", "last_processed": None} for level in LEVEL_NAMES
+    }
+    with (config_dir / "last_digest_times.template.json").open(
+        "w", encoding="utf-8"
+    ) as f:
         json.dump(times_template, f, indent=2, ensure_ascii=False)
 
     # GrandDigest.template.txt
     # Use DIGEST_LEVEL_NAMES (excludes loop) for digest structures
     grand_template = {
         "metadata": {"last_updated": None, "version": "1.0"},
-        "major_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
+        "major_digests": {
+            level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES
+        },
     }
-    with (config_dir / 'GrandDigest.template.txt').open('w', encoding='utf-8') as f:
+    with (config_dir / "GrandDigest.template.txt").open("w", encoding="utf-8") as f:
         json.dump(grand_template, f, indent=2, ensure_ascii=False)
 
     # ShadowGrandDigest.template.txt
     # Use DIGEST_LEVEL_NAMES (excludes loop) for digest structures
     shadow_template = {
         "metadata": {"last_updated": None, "version": "1.0"},
-        "latest_digests": {level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES},
+        "latest_digests": {
+            level: {"overall_digest": None} for level in DIGEST_LEVEL_NAMES
+        },
     }
-    with (config_dir / 'ShadowGrandDigest.template.txt').open('w', encoding='utf-8') as f:
+    with (config_dir / "ShadowGrandDigest.template.txt").open(
+        "w", encoding="utf-8"
+    ) as f:
         json.dump(shadow_template, f, indent=2, ensure_ascii=False)
 
 
@@ -183,7 +193,7 @@ def create_test_loop_file(loops_path: Path, loop_num: int, title: str = "test") 
         }
     }
 
-    with file_path.open('w', encoding='utf-8') as f:
+    with file_path.open("w", encoding="utf-8") as f:
         json.dump(loop_data, f, indent=2, ensure_ascii=False)
 
     return file_path
@@ -264,33 +274,45 @@ class TempPluginEnvironment:
 
     @property
     def plugin_root(self) -> Path:
-        assert self.paths is not None, "Environment not initialized. Use as context manager."
+        assert self.paths is not None, (
+            "Environment not initialized. Use as context manager."
+        )
         return self.paths["plugin_root"]
 
     @property
     def loops_path(self) -> Path:
-        assert self.paths is not None, "Environment not initialized. Use as context manager."
+        assert self.paths is not None, (
+            "Environment not initialized. Use as context manager."
+        )
         return self.paths["loops"]
 
     @property
     def digests_path(self) -> Path:
-        assert self.paths is not None, "Environment not initialized. Use as context manager."
+        assert self.paths is not None, (
+            "Environment not initialized. Use as context manager."
+        )
         return self.paths["digests"]
 
     @property
     def essences_path(self) -> Path:
-        assert self.paths is not None, "Environment not initialized. Use as context manager."
+        assert self.paths is not None, (
+            "Environment not initialized. Use as context manager."
+        )
         return self.paths["essences"]
 
     @property
     def config_dir(self) -> Path:
-        assert self.paths is not None, "Environment not initialized. Use as context manager."
+        assert self.paths is not None, (
+            "Environment not initialized. Use as context manager."
+        )
         return self.paths["config_dir"]
 
     @property
     def persistent_config_dir(self) -> Path:
         """永続化設定ディレクトリ（テスト用）"""
-        assert self.paths is not None, "Environment not initialized. Use as context manager."
+        assert self.paths is not None, (
+            "Environment not initialized. Use as context manager."
+        )
         return self.paths["persistent_config"]
 
     def create_grand_digest(self, initial_data: dict[str, Any] | None = None) -> Path:
@@ -320,7 +342,7 @@ class TempPluginEnvironment:
             },
         }
         file_path = self.essences_path / "GrandDigest.txt"
-        with file_path.open('w', encoding='utf-8') as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return file_path
 
@@ -374,7 +396,7 @@ class TempPluginEnvironment:
             data = initial_data
 
         file_path = self.essences_path / "ShadowGrandDigest.txt"
-        with file_path.open('w', encoding='utf-8') as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return file_path
 
@@ -399,7 +421,7 @@ class TempPluginEnvironment:
             ]
         }
         file_path = self.config_dir / "last_digest_times.json"
-        with file_path.open('w', encoding='utf-8') as f:
+        with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return file_path
 
@@ -449,7 +471,9 @@ class CLITestHelper:
             # モジュールをリロード（キャッシュされた状態をクリア）
             importlib.reload(module)
 
-            with patch("builtins.print", side_effect=lambda x: captured_outputs.append(x)):
+            with patch(
+                "builtins.print", side_effect=lambda x: captured_outputs.append(x)
+            ):
                 try:
                     module.main()
                 except SystemExit as e:
@@ -492,7 +516,9 @@ class CLITestHelper:
         Raises:
             AssertionError: ステータスがokでない場合
         """
-        assert isinstance(result, dict), f"Output should be JSON object, got: {type(result)}"
+        assert isinstance(result, dict), (
+            f"Output should be JSON object, got: {type(result)}"
+        )
         assert result.get("status") == "ok", (
             f"Expected status=ok, got {result.get('status')}: {result}"
         )
@@ -512,8 +538,12 @@ class CLITestHelper:
         Raises:
             AssertionError: ステータスがerrorでない場合
         """
-        assert isinstance(result, dict), f"Output should be JSON object, got: {type(result)}"
-        assert result.get("status") == "error", f"Expected status=error, got {result.get('status')}"
+        assert isinstance(result, dict), (
+            f"Output should be JSON object, got: {type(result)}"
+        )
+        assert result.get("status") == "error", (
+            f"Expected status=error, got {result.get('status')}"
+        )
         if error_contains:
             error_msg = result.get("error", "")
             assert error_contains.lower() in error_msg.lower(), (

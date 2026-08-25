@@ -10,7 +10,11 @@ Strategy Pattern implementation for level-specific behaviors.
 
 import pytest
 
-from domain.level_behaviors import LevelBehavior, LoopLevelBehavior, StandardLevelBehavior
+from domain.level_behaviors import (
+    LevelBehavior,
+    LoopLevelBehavior,
+    StandardLevelBehavior,
+)
 from domain.level_metadata import LevelMetadata
 
 # =============================================================================
@@ -72,7 +76,12 @@ class TestStandardLevelBehaviorInit:
     def test_stores_metadata_reference(self) -> None:
         """Stores reference to metadata"""
         metadata = LevelMetadata(
-            name="monthly", prefix="M", digits=4, dir="2_Monthly", source="weekly", next_level=None
+            name="monthly",
+            prefix="M",
+            digits=4,
+            dir="2_Monthly",
+            source="weekly",
+            next_level=None,
         )
         behavior = StandardLevelBehavior(metadata)
 
@@ -100,7 +109,12 @@ class TestStandardLevelBehaviorFormatNumber:
     def monthly_behavior(self):
         """Monthly level behavior with different digits"""
         metadata = LevelMetadata(
-            name="monthly", prefix="M", digits=3, dir="2_Monthly", source="weekly", next_level=None
+            name="monthly",
+            prefix="M",
+            digits=3,
+            dir="2_Monthly",
+            source="weekly",
+            next_level=None,
         )
         return StandardLevelBehavior(metadata)
 

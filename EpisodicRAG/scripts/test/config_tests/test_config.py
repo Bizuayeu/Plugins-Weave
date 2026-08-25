@@ -71,7 +71,7 @@ class TestDigestConfig:
         }
         # 永続化ディレクトリにconfig.jsonを配置（auto-update対象外の場所）
         config_file = temp_plugin_env.persistent_config_dir / "config.json"
-        with config_file.open('w', encoding='utf-8') as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         return {
@@ -117,7 +117,7 @@ class TestDigestConfig:
     @pytest.mark.unit
     def test_load_config_invalid_json(self, config_env) -> None:
         """無効なJSONの場合"""
-        with config_env["config_file"].open('w', encoding='utf-8') as f:
+        with config_env["config_file"].open("w", encoding="utf-8") as f:
             f.write("invalid json {")
         with pytest.raises(ConfigError):
             DigestConfig()
@@ -127,7 +127,7 @@ class TestDigestConfig:
         """base_dirは絶対パス必須"""
         config_data = config_env["config_data"]
         config_data["base_dir"] = "."  # 相対パス
-        with config_env["config_file"].open('w', encoding='utf-8') as f:
+        with config_env["config_file"].open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         with pytest.raises(ConfigError) as exc_info:
@@ -157,7 +157,7 @@ class TestDigestConfig:
         """pathsセクションがない場合、初期化時にエラー"""
         config_data = config_env["config_data"]
         del config_data["paths"]
-        with config_env["config_file"].open('w', encoding='utf-8') as f:
+        with config_env["config_file"].open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         # 即時初期化により、DigestConfigコンストラクタでエラーが発生
@@ -194,7 +194,9 @@ class TestDigestConfig:
         # ConfigLoader.load を PermissionError を発生させるようにモック
         from infrastructure.config import ConfigLoader
 
-        with patch.object(ConfigLoader, "load", side_effect=PermissionError("Access denied")):
+        with patch.object(
+            ConfigLoader, "load", side_effect=PermissionError("Access denied")
+        ):
             with pytest.raises(ConfigError) as exc_info:
                 DigestConfig()
 
@@ -240,7 +242,7 @@ class TestDigestConfigThresholds:
         }
         # 永続化ディレクトリにconfig.jsonを配置
         config_file = temp_plugin_env.persistent_config_dir / "config.json"
-        with config_file.open('w', encoding='utf-8') as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         return {
@@ -273,7 +275,7 @@ class TestDigestConfigThresholds:
         """thresholdのデフォルト値"""
         config_data = threshold_env["config_data"]
         del config_data["levels"]
-        with threshold_env["config_file"].open('w', encoding='utf-8') as f:
+        with threshold_env["config_file"].open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         config = DigestConfig()
@@ -292,7 +294,7 @@ class TestDigestConfigThresholds:
         config_data = threshold_env["config_data"]
         config_data["levels"]["weekly_threshold"] = 10
         config_data["levels"]["monthly_threshold"] = 8
-        with threshold_env["config_file"].open('w', encoding='utf-8') as f:
+        with threshold_env["config_file"].open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         config = DigestConfig()
@@ -336,7 +338,7 @@ class TestDigestConfigIdentityFile:
         }
         # 永続化ディレクトリにconfig.jsonを配置
         config_file = temp_plugin_env.persistent_config_dir / "config.json"
-        with config_file.open('w', encoding='utf-8') as f:
+        with config_file.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         return {
@@ -356,7 +358,7 @@ class TestDigestConfigIdentityFile:
         """identity_file_pathが設定されている場合"""
         config_data = identity_env["config_data"]
         config_data["paths"]["identity_file_path"] = "Identity.md"
-        with identity_env["config_file"].open('w', encoding='utf-8') as f:
+        with identity_env["config_file"].open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         config = DigestConfig()
@@ -495,7 +497,9 @@ class TestDigestConfigContextManager:
             assert config.loops_path.name == "Loops"
 
     @pytest.mark.unit
-    def test_context_manager_exit_does_not_suppress_exception(self, context_env) -> None:
+    def test_context_manager_exit_does_not_suppress_exception(
+        self, context_env
+    ) -> None:
         """__exit__が例外を抑制しない"""
         with pytest.raises(ValueError), DigestConfig() as _:
             raise ValueError("Test exception")

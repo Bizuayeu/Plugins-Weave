@@ -124,7 +124,9 @@ class TestPluginRootValidator:
         assert result.validator_name == "PluginRootValidator"
 
     @pytest.mark.unit
-    def test_returns_none_for_path_outside_plugin_root(self, validator, tmp_path: Path) -> None:
+    def test_returns_none_for_path_outside_plugin_root(
+        self, validator, tmp_path: Path
+    ) -> None:
         """Returns None for path outside plugin root"""
         plugin_root = tmp_path / "plugin"
         plugin_root.mkdir()
@@ -159,7 +161,9 @@ class TestTrustedExternalPathValidator:
         assert validator.name == "TrustedExternalPathValidator"
 
     @pytest.mark.unit
-    def test_validates_path_within_trusted_paths(self, validator, tmp_path: Path) -> None:
+    def test_validates_path_within_trusted_paths(
+        self, validator, tmp_path: Path
+    ) -> None:
         """Validates path within trusted paths"""
         trusted_path = tmp_path / "trusted"
         trusted_path.mkdir()
@@ -179,7 +183,9 @@ class TestTrustedExternalPathValidator:
         assert result.validator_name == "TrustedExternalPathValidator"
 
     @pytest.mark.unit
-    def test_returns_none_for_path_outside_trusted_paths(self, validator, tmp_path: Path) -> None:
+    def test_returns_none_for_path_outside_trusted_paths(
+        self, validator, tmp_path: Path
+    ) -> None:
         """Returns None for path outside trusted paths"""
         trusted_path = tmp_path / "trusted"
         trusted_path.mkdir()
@@ -196,7 +202,9 @@ class TestTrustedExternalPathValidator:
         assert result is None
 
     @pytest.mark.unit
-    def test_returns_none_when_no_trusted_paths(self, validator, tmp_path: Path) -> None:
+    def test_returns_none_when_no_trusted_paths(
+        self, validator, tmp_path: Path
+    ) -> None:
         """Returns None when no trusted paths configured"""
         context = ValidationContext(
             resolved_path=tmp_path / "any",
@@ -284,7 +292,9 @@ class TestPathValidatorChain:
         assert result.validator_name == "TrustedExternalPathValidator"
 
     @pytest.mark.unit
-    def test_chain_returns_failure_when_no_validator_matches(self, tmp_path: Path) -> None:
+    def test_chain_returns_failure_when_no_validator_matches(
+        self, tmp_path: Path
+    ) -> None:
         """Chain returns failure when no validator matches"""
         plugin_root = tmp_path / "plugin"
         trusted_path = tmp_path / "trusted"

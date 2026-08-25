@@ -106,7 +106,9 @@ class TestGrandDigestManagerUnit:
     def test_grand_digest_file_path(self, grand_manager) -> None:
         """grand_digest_fileパスが正しく設定される"""
         assert grand_manager.grand_digest_file.name == "GrandDigest.txt"
-        assert grand_manager.grand_digest_file.parent == grand_manager.config.essences_path
+        assert (
+            grand_manager.grand_digest_file.parent == grand_manager.config.essences_path
+        )
 
 
 # =============================================================================
@@ -134,7 +136,7 @@ class TestGrandDigestManagerIntegration:
         # ファイルを作成
         test_data = {"metadata": {"custom": True}, "major_digests": {}}
         grand_manager.grand_digest_file.parent.mkdir(parents=True, exist_ok=True)
-        with grand_manager.grand_digest_file.open('w', encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open("w", encoding="utf-8") as f:
             json.dump(test_data, f)
 
         data = grand_manager.load_or_create()
@@ -147,7 +149,7 @@ class TestGrandDigestManagerIntegration:
         from domain.exceptions import FileIOError
 
         grand_manager.grand_digest_file.parent.mkdir(parents=True, exist_ok=True)
-        with grand_manager.grand_digest_file.open('w', encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open("w", encoding="utf-8") as f:
             f.write("not valid json {{{")
 
         with pytest.raises(FileIOError):
@@ -181,7 +183,7 @@ class TestGrandDigestManagerIntegration:
         test_data = {"test": "data", "number": 123, "nested": {"key": "value"}}
         grand_manager.save(test_data)
 
-        with grand_manager.grand_digest_file.open(encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open(encoding="utf-8") as f:
             loaded = json.load(f)
 
         assert loaded == test_data
@@ -201,7 +203,9 @@ class TestGrandDigestManagerIntegration:
         assert data["major_digests"]["weekly"]["overall_digest"] == overall
 
     @pytest.mark.integration
-    def test_update_digest_preserves_monthly_when_weekly_updated(self, grand_manager) -> None:
+    def test_update_digest_preserves_monthly_when_weekly_updated(
+        self, grand_manager
+    ) -> None:
         """update_digest() でweekly更新時にmonthlyが保持される"""
         # まずmonthlyを更新
         monthly_digest = {"type": "monthly"}
@@ -262,7 +266,7 @@ class TestGrandDigestManagerIntegration:
         """update_digest() はmajor_digestsがない場合にDigestErrorを発生"""
         # major_digestsがないファイルを作成
         grand_manager.grand_digest_file.parent.mkdir(parents=True, exist_ok=True)
-        with grand_manager.grand_digest_file.open('w', encoding='utf-8') as f:
+        with grand_manager.grand_digest_file.open("w", encoding="utf-8") as f:
             json.dump({"metadata": {}}, f)
 
         with pytest.raises(DigestError) as exc_info:

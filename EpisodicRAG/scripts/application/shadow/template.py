@@ -53,8 +53,12 @@ class ShadowTemplate:
             "source_files": [],
             "digest_type": PLACEHOLDER_SIMPLE,
             "keywords": create_placeholder_keywords(limits["keyword_count"]),
-            "abstract": create_placeholder_text("全体統合分析", limits['abstract_chars']),
-            "impression": create_placeholder_text("所感・展望", limits['impression_chars']),
+            "abstract": create_placeholder_text(
+                "全体統合分析", limits["abstract_chars"]
+            ),
+            "impression": create_placeholder_text(
+                "所感・展望", limits["impression_chars"]
+            ),
         }
 
     def get_template(self) -> ShadowDigestData:

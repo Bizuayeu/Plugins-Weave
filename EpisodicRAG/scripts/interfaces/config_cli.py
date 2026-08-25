@@ -21,7 +21,9 @@ def main() -> None:
     from domain.exceptions import ConfigError
 
     parser = argparse.ArgumentParser(description="Digest Plugin Configuration Manager")
-    parser.add_argument("--show-paths", action="store_true", help="Show all configured paths")
+    parser.add_argument(
+        "--show-paths", action="store_true", help="Show all configured paths"
+    )
 
     args = parser.parse_args()
 

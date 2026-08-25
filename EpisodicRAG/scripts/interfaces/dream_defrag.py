@@ -106,7 +106,9 @@ def _cmd_snapshot(project_path: "str | None") -> int:
     """剪定前スナップショットを作成"""
     scan = DefragScanner(project_path=project_path).scan()
     if scan["status"] != "ok":
-        output_json({"status": scan["status"], "snapshot_path": None, "error": scan["error"]})
+        output_json(
+            {"status": scan["status"], "snapshot_path": None, "error": scan["error"]}
+        )
         return _STATUS_EXIT_MAP.get(scan["status"], EXIT_ERROR)
 
     try:
@@ -129,7 +131,9 @@ def _cmd_rebuild_index(project_path: "str | None", preview: bool) -> int:
     """MEMORY.md をディスク現存に同期（preview 時は書き込まない）"""
     scan = DefragScanner(project_path=project_path).scan()
     if scan["status"] != "ok":
-        output_json({"status": scan["status"], "index_path": None, "error": scan["error"]})
+        output_json(
+            {"status": scan["status"], "index_path": None, "error": scan["error"]}
+        )
         return _STATUS_EXIT_MAP.get(scan["status"], EXIT_ERROR)
 
     try:
@@ -137,7 +141,9 @@ def _cmd_rebuild_index(project_path: "str | None", preview: bool) -> int:
         new_text = rebuild_index_text(memory_dir)
 
         if preview:
-            output_json({"status": "ok", "preview": True, "index_text": new_text, "error": None})
+            output_json(
+                {"status": "ok", "preview": True, "index_text": new_text, "error": None}
+            )
             return EXIT_OK
 
         path = apply_index(memory_dir, new_text)
@@ -176,8 +182,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("scan", parents=[common], help="メモリ件数を診断し threshold 超過を判定")
-    sub.add_parser("snapshot", parents=[common], help="剪定前バックアップを作成（必須前提）")
+    sub.add_parser(
+        "scan", parents=[common], help="メモリ件数を診断し threshold 超過を判定"
+    )
+    sub.add_parser(
+        "snapshot", parents=[common], help="剪定前バックアップを作成（必須前提）"
+    )
     rebuild = sub.add_parser(
         "rebuild-index",
         parents=[common],

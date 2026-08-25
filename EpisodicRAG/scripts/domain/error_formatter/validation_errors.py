@@ -47,7 +47,9 @@ class ValidationErrorFormatter(BaseErrorFormatter):
         """
         return f"{context}: expected {expected}, got {type(actual).__name__}"
 
-    def validation_error(self, field: str, reason: str, value: Any | None = None) -> str:
+    def validation_error(
+        self, field: str, reason: str, value: Any | None = None
+    ) -> str:
         """
         バリデーションエラーメッセージ
 

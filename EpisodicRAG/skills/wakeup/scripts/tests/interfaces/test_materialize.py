@@ -16,7 +16,9 @@ from pathlib import Path
 ENGINE = Path(__file__).resolve().parents[2] / "interfaces" / "wakeup_engine.py"
 
 
-def _source(tmp_path, directive_path="Directive.md", with_private=True, write_directive=True):
+def _source(
+    tmp_path, directive_path="Directive.md", with_private=True, write_directive=True
+):
     """A persona's own staging area: config + the directive beside it."""
     src = tmp_path / "persona-src"
     src.mkdir(parents=True, exist_ok=True)
@@ -31,7 +33,11 @@ def _source(tmp_path, directive_path="Directive.md", with_private=True, write_di
         "directive_path": directive_path,
     }
     if with_private:
-        config["private_repo"] = {"owner": "acme", "name": "secret", "visibility": "private"}
+        config["private_repo"] = {
+            "owner": "acme",
+            "name": "secret",
+            "visibility": "private",
+        }
     cfg = src / "mypersona.config.json"
     cfg.write_text(json.dumps(config), encoding="utf-8")
     if write_directive:
@@ -51,7 +57,15 @@ def _token(tmp_path, name="token.tar.gz"):
 
 
 def _run(config, out, token=None):
-    argv = [sys.executable, str(ENGINE), "materialize", "--config", str(config), "--out", str(out)]
+    argv = [
+        sys.executable,
+        str(ENGINE),
+        "materialize",
+        "--config",
+        str(config),
+        "--out",
+        str(out),
+    ]
     if token is not None:
         argv += ["--token", str(token)]
     return subprocess.run(argv, capture_output=True, text=True)
@@ -68,13 +82,15 @@ class TestPlacesArtifacts:
         src = _source(tmp_path)
         out = tmp_path / "wakeup"
         _run(src, out, _token(tmp_path))
-        assert json.loads((out / "wakeup.config.json").read_text(encoding="utf-8")) == json.loads(
-            src.read_text(encoding="utf-8")
-        )
+        assert json.loads(
+            (out / "wakeup.config.json").read_text(encoding="utf-8")
+        ) == json.loads(src.read_text(encoding="utf-8"))
 
     def test_directive_lands_at_the_configured_relative_path(self, tmp_path):
         out = tmp_path / "wakeup"
-        _run(_source(tmp_path, directive_path="personas/foo/D.md"), out, _token(tmp_path))
+        _run(
+            _source(tmp_path, directive_path="personas/foo/D.md"), out, _token(tmp_path)
+        )
         assert (out / "personas" / "foo" / "D.md").is_file()
 
     def test_token_lands_under_its_own_basename(self, tmp_path):
@@ -132,7 +148,10 @@ class TestResync:
 
 class TestVerifiesAfterPlacing:
     def test_exit_zero_on_a_complete_deployment(self, tmp_path):
-        assert _run(_source(tmp_path), tmp_path / "wakeup", _token(tmp_path)).returncode == 0
+        assert (
+            _run(_source(tmp_path), tmp_path / "wakeup", _token(tmp_path)).returncode
+            == 0
+        )
 
     def test_prints_the_verify_report(self, tmp_path):
         out = _run(_source(tmp_path), tmp_path / "wakeup", _token(tmp_path)).stdout
@@ -147,7 +166,9 @@ class TestVerifiesAfterPlacing:
 
 class TestSourceProblems:
     def test_missing_directive_at_source_fails_and_names_it(self, tmp_path):
-        src = _source(tmp_path, directive_path="personas/foo/D.md", write_directive=False)
+        src = _source(
+            tmp_path, directive_path="personas/foo/D.md", write_directive=False
+        )
         result = _run(src, tmp_path / "wakeup", _token(tmp_path))
         assert result.returncode != 0
         assert "personas/foo/D.md" in result.stdout + result.stderr

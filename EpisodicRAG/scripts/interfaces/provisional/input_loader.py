@@ -21,7 +21,9 @@ class InputLoader:
     """Loads individual digests from various input sources."""
 
     @staticmethod
-    def load(input_data: str, base_path: Path | None = None) -> list[IndividualDigestData]:
+    def load(
+        input_data: str, base_path: Path | None = None
+    ) -> list[IndividualDigestData]:
         """
         Load individual_digests from a JSON file path or JSON string.
 
@@ -58,7 +60,7 @@ class InputLoader:
         # Quick heuristic: JSON arrays/objects start with [ or {
         # This avoids calling Path.exists() on long JSON strings (OSError on Linux)
         stripped = input_data.strip()
-        if stripped.startswith('[') or stripped.startswith('{'):
+        if stripped.startswith("[") or stripped.startswith("{"):
             # Parse as JSON string directly
             data = InputLoader._parse_json_string(input_data)
         else:
@@ -93,7 +95,7 @@ class InputLoader:
         Returns:
             Parsed JSON data
         """
-        with file_path.open(encoding='utf-8') as f:
+        with file_path.open(encoding="utf-8") as f:
             result: JsonData = json.load(f)
             return result
 

@@ -38,7 +38,8 @@ pytestmark = pytest.mark.slow
 def level_hierarchy() -> "dict[str, LevelHierarchyEntry]":
     """レベル階層情報"""
     return {
-        level: {"source": cfg["source"], "next": cfg["next"]} for level, cfg in LEVEL_CONFIG.items()
+        level: {"source": cfg["source"], "next": cfg["next"]}
+        for level, cfg in LEVEL_CONFIG.items()
     }
 
 
@@ -114,10 +115,14 @@ class TestAppendToEmptyProvisional:
     ) -> None:
         """Provisionalファイルが存在しない場合、新規作成される"""
         # weekly確定 → monthlyのProvisionalに追加
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # M0001_Individual.txt が作成されているか確認
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = (
+            temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        )
         provisional_files = list(monthly_provisional_dir.glob("M*_Individual.txt"))
 
         assert len(provisional_files) == 1
@@ -131,10 +136,14 @@ class TestAppendToEmptyProvisional:
         sample_finalized_digest: "dict[str, Any]",
     ) -> None:
         """新規作成されたProvisionalに確定ダイジェストのindividual_digestsが含まれる"""
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # ファイルの内容を確認
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = (
+            temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        )
         provisional_file = list(monthly_provisional_dir.glob("M*_Individual.txt"))[0]
 
         with provisional_file.open(encoding="utf-8") as f:
@@ -190,7 +199,9 @@ class TestAppendToExistingProvisional:
             json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
         # 追加
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # 確認
         with existing_provisional.open(encoding="utf-8") as f:
@@ -247,7 +258,9 @@ class TestDuplicateSourceFileSkipped:
             json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
         # 同じW0053を追加しようとする
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # 確認：件数が増えていない
         with existing_provisional.open(encoding="utf-8") as f:
@@ -268,7 +281,9 @@ class TestProvisionalDirectoryCreation:
     ) -> None:
         """Provisionalディレクトリが存在しない場合、作成される"""
         # Provisionalディレクトリを削除
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = (
+            temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        )
         if monthly_provisional_dir.exists():
             import shutil
 
@@ -277,7 +292,9 @@ class TestProvisionalDirectoryCreation:
         assert not monthly_provisional_dir.exists()
 
         # 追加処理（ディレクトリ作成が必要）
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # ディレクトリが作成されている
         assert monthly_provisional_dir.exists()
@@ -301,7 +318,9 @@ class TestProvisionalAppenderEdgeCases:
     ) -> None:
         """centurialは最上位のため、Provisional追加をスキップ"""
         # centurialには次レベルがない
-        provisional_appender.append_to_next_provisional("centurial", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "centurial", sample_finalized_digest
+        )
 
         # スキップメッセージがログに出力される
         assert "centurialに上位レベルなし" in caplog.text or "最上位" in caplog.text
@@ -340,7 +359,9 @@ class TestProvisionalAppenderEdgeCases:
             json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
         # 追加
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # last_updatedが更新されている
         with existing_provisional.open(encoding="utf-8") as f:
@@ -369,9 +390,13 @@ class TestProvisionalFilenameMatchesSGD:
         sample_finalized_digest: "dict[str, Any]",
     ) -> None:
         """追加されるエントリのfilenameがoverall_digest.name + .txt形式であること"""
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = (
+            temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        )
         provisional_file = list(monthly_provisional_dir.glob("M*_Individual.txt"))[0]
 
         with provisional_file.open(encoding="utf-8") as f:
@@ -414,7 +439,9 @@ class TestProvisionalFilenameMatchesSGD:
 
         provisional_appender.append_to_next_provisional("weekly", digest_without_name)
 
-        monthly_provisional_dir = temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        monthly_provisional_dir = (
+            temp_plugin_env.digests_path / "2_Monthly" / "Provisional"
+        )
         provisional_file = list(monthly_provisional_dir.glob("M*_Individual.txt"))[0]
 
         with provisional_file.open(encoding="utf-8") as f:
@@ -454,7 +481,9 @@ class TestProvisionalNumberingFromExistingRegular:
         (monthly_dir / "M0011_テスト.txt").write_text("{}", encoding="utf-8")
 
         # Act: weekly確定時のProvisional追加
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # Assert: M0012_Individual.txtが作成される（M0001ではない）
         provisional_dir = monthly_dir / "Provisional"
@@ -482,7 +511,9 @@ class TestProvisionalNumberingFromExistingRegular:
         (monthly_dir / "M0010_新しい.txt").write_text("{}", encoding="utf-8")
 
         # Act
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # Assert: M0011_Individual.txt（最大M0010の次）
         provisional_dir = monthly_dir / "Provisional"
@@ -512,7 +543,9 @@ class TestProvisionalNumberingFromExistingRegular:
             shutil.rmtree(monthly_dir)
 
         # Act
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # Assert: M0001_Individual.txt
         monthly_dir = temp_plugin_env.digests_path / "2_Monthly"
@@ -553,7 +586,9 @@ class TestProvisionalNumberingFromExistingRegular:
         )
 
         # Act
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # Assert: M0012_Individual.txtが使用される（M0001ではなく）
         provisional_files = list(provisional_dir.glob("M*_Individual.txt"))
@@ -567,7 +602,9 @@ class TestProvisionalNumberingFromExistingRegular:
         with correct_file.open(encoding="utf-8") as f:
             data = json.load(f)
         assert len(data["individual_digests"]) == 1
-        assert data["individual_digests"][0]["source_file"] == "W0053_テストタイトル.txt"
+        assert (
+            data["individual_digests"][0]["source_file"] == "W0053_テストタイトル.txt"
+        )
 
     @pytest.mark.integration
     def test_reuses_correct_numbered_existing_provisional(
@@ -597,7 +634,9 @@ class TestProvisionalNumberingFromExistingRegular:
         )
 
         # Act
-        provisional_appender.append_to_next_provisional("weekly", sample_finalized_digest)
+        provisional_appender.append_to_next_provisional(
+            "weekly", sample_finalized_digest
+        )
 
         # Assert: 既存のM0012_Individual.txtが再利用されている
         provisional_files = list(provisional_dir.glob("M*_Individual.txt"))
