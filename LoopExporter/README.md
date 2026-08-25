@@ -92,7 +92,8 @@ LoopExporter/
 ├── test/                       # node:test（fixtures/ は track、fixtures/local/ は .gitignore）
 ├── docs/SCHEMA_NOTES.md        # API 実測スキーマの SSoT
 ├── README.md / CHANGELOG.md
-└── 要件定義書_Fuhito_LoopExporter_v0.3.md   # 要求 SSoT（v0.3 凍結）
+├── 要件定義書_Fuhito_LoopExporter_v0.3.md   # 要求 SSoT（v0.3 凍結）
+└── …                          # 開発時の計画書・検収レポート等は本図の関心事外（抜粋）
 ```
 
 ## 関連ドキュメント
