@@ -125,7 +125,8 @@ claude.ai の Code → Environments で：
 | `registry fetch failed`（起動時） | 固定ブランチ未作成 or git 認証不足 | 初回は対象ブランチが空でも継続（前回ローカル状態で起動）。git 認証（PAT 等）が Environment にあるか確認 |
 | 管理表は埋まっているのに、秘書が登録済みのタスク・方針を毎回忘れる | 起動時に管理表を並べて `list` している（肥大した表は出力上限を超え、コンテキストに載らないまま exit 0 する＝沈黙失敗） | 起動時オリエンテーションは `python scripts/main.py orientation` の一撃で行う（bootstrap が `ready` の直前に案内を出す）。単表 `list` が 200KB を超えると stderr に警告が出るので、それを合図に `orientation` / `get --key` へ切り替える（→ DESIGN §3.12） |
 | 管理表が空＝記憶なし稼働（stderr に `WARNING: ... EMPTY tables`） | `registry_dir` が独立 worktree でない（dev ツリー内サブディレクトリ＝旧構成） | `registry_dir` を独立 worktree 値（`ts-registry-wt`）にする。bootstrap の `registry worktree provisioned/refreshed` ログを確認（→ DESIGN §3.6） |
-| `add` / `import` が exit 2 で落ちる（stderr に `unknown field(s): ...` や主題の候補列挙） | v1.9.0 の fail-closed——書き込み口がトップレベルの未知キー・語彙外の subject・許可集合外の category を弾いている | stderr が原因（キー名・候補）を出すので、それを見てレコードを直してから再実行する。typo キーを黙って捨てないための仕様で、read 経路（`list` / `get` / `orientation`）は従来どおり読める（→ DESIGN §3.8/§3.12） |
+| `add` / `import` / `wal-append` が exit 2 で落ちる（stderr に `unknown field(s): ...` や主題の候補列挙） | 書き込み口の fail-closed——トップレベルの未知キー・語彙外の subject・許可集合外の category を弾いている（v1.9.0 で `add` / `import`、v1.11.0 で `wal-append` も同じ関門へ） | stderr が原因（キー名・候補）を出すので、それを見てレコードを直してから再実行する。typo キーを黙って捨てないための仕様で、read 経路（`list` / `get` / `orientation`）は従来どおり読める。`wal-append` は**ログを書く前に**止まるので、弾かれた intent は残らない（→ DESIGN §3.7/§3.8/§3.12） |
+| 起動のたびに stderr へ `wal redo: dead <表> key=<key>: <理由>` が出る | v1.11.0 の redo 検証で落ちた intent が `dead` に隔離されている＝「登録すると約束したのに反映できていない」やり残しの記録（期限で消えない） | 理由を見て二つの出口のどちらかを取る——①正しい payload で同じ key を `add` し直す（次回 redo の `settle` が done 化＝自己治癒）／②履行しないと決めたなら `wal-drop --kind <表> --key <key>` で畳む。放置すると毎起動出続ける（→ DESIGN §3.7） |
 
 ## 参照
 

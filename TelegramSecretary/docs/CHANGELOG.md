@@ -2,6 +2,32 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.11.0] - 2026-08-25 — 書き込み口を一つの検証で揃え、果たせなかった約束を dead に残す
+
+記憶の正典へ書く口は四つあるのに、検証が掛かっていたのは二つだけだった。
+残る二つ——WAL の入口と起動時 redo——は、`add` が受理しない payload をそのまま正典へ通す。
+読み側は fail-open で鳴らず、`settle` の done 化と 24h 掃除で証拠まで消える。**エラーを出さない壊れ方**である。
+
+### Added
+
+- **`wal-drop --kind --key`**——`dead` になった intent を WAL から落とし、固定ブランチへ **must-succeed** push する（履行しないと決めた約束を明示的に畳む）。**`pending` / `done` は落とせない**（不在も同じく exit 2）。果たしていない約束を黙って捨てる口は開けない、が設計判断（秘書倫理としての SSoT は SecretaryRole の「言行一致」）
+- **WAL の状態語彙に `dead` を足した**（`pending` / `done` / `dead`、理由を持つ省略可能フィールド付き）。スキーマ変更は加算のみで、`reason` を持たない既存行の書き戻しは従来と同一。`dead` は checkpoint の掃除対象にならず、`reconcile`（redo の入力）にも乗らない——**redo ソースではなく、未履行の約束の記録**だから
+
+### Changed
+
+- **四つの書き込み口が一つの検証関門を共有するようになった**——`add` / `import` / `wal-append` / `wal-redo` がいずれも `registry_cli.canonical_record`（未知トップレベルキー・語彙外 subject・許可集合外 category の判定＋値オブジェクトを通した正準化）を呼ぶ。検証を口ごとに書けば、口を増やすたびに「そこだけ緩い」抜け道が増える。`add` / `import` の挙動と stderr 文言は不変（公開名化は純粋なリファクタ）
+- **`wal-append`（registry kind）が fail-closed になった**（後方非互換）——不正 payload は **exit 2**（stderr `invalid <kind> wal payload: <理由>`）で、**ログを書く前に**止まる。WAL は must-succeed push で remote へ出る片道の口ゆえ、不正を redo まで持ち越すと「push 済みなのに永久に反映されない intent」が残る。入口で弾けば、その場で書き直せる。書かれる payload は正準形（`from_dict` → `to_dict`。`subjects` 省略が `[]` で載る等）。`outbound` kind は値オブジェクトを持たないため従来どおり
+- **`wal-redo` が各 intent を検証し、落ちたものを `dead` へ隔離するようになった**——registry へは書かず、理由を添えて状態を移す。stdout は `wal redo: redone=N resent=N kept=N dead=N` へ変わった（**`dead` を加えた 4 フィールド形**。旧 3 フィールド形を引用していた記述は追従済み）。`dead` が示すのは**ログに残る総数**であって今回隔離した分ではない——残存する dead は毎起動 stderr へ `wal redo: dead <kind> key=<key>: <理由>` として 1 行ずつ出る。**exit は 0 のまま**で起動経路を止めない
+- **隔離の理由に payload の値を残さない**——検証の例外文は弾いた値そのもの（individuals / profile なら名前や note 断片）を含みうる一方、`dead` は無期限に残り毎起動 stderr へ出る。例外型名＋メッセージ先頭を**既存の topic 幅**で切り詰めてから記録する（新しい閾値を発明しない）。SECURITY §7 に保持期間の例外（`wal-drop` まで保持）とあわせて明記
+- **DESIGN §3.7 を WAL 設計根拠の SSoT として見出しに明示**（§3.9 の再送方針・§3.12 の起動時オリエンテーションと同じ流儀）。書き込み口と検証の関係・`dead` の意味・状態ごとの保持期間（pending 無条件／dead 無条件／done は 24h）を同節に集約し、他文書は要約＋ポインタに留めた
+
+### 移行（稼働中の routine への波及）
+
+1. **body 再登録は不要**——コードと SKILL.md は毎枠の fresh clone で読まれるため、本体リポ（`Homunculus-Weave/Expertises/TelegramSecretary`）へ反映された次の枠から効く。**ROUTINE_PROMPT の文言変更だけは次のまとめた再登録で足りる**（手順の説明であって値ではない。1.10.3 と同型）
+2. **1.11.0 未満で書かれた pending は、初回 redo で検証される**——通れば従来どおり registry へ反映され、通らなければ `dead` になる。旧版が緩く受けて WAL に積んだ不正 payload の窓は、この初回 redo が塞ぐ。stderr の `wal redo: dead <kind> key=<key>: <理由>` を読み、正しい payload で同じ key を `add` し直す（次回 redo の `settle` が done 化＝自己治癒）か、`wal-drop --kind <kind> --key <key>` で畳む
+3. **`wal-append` が exit 2 で弾くようになる**（後方非互換）——registry kind の payload は `add` へ渡すのと**同一のレコード**（`created_at` / `updated_at` を含む）でなければ通らない。手順書で「payload は `add` に渡すレコードと同一でよい」と読めていた箇所は「同一でなければならない」に変わった。弾かれた時点でログには何も書かれていないので、その intent について対外的な約束をしないこと
+4. **1.11.0 未満へのダウングレードは `dead` 行を黙って捨てる**——旧版の loader は `dead` を未知 status として `ValueError` で読み飛ばし、その後の rewrite（done-marking / checkpoint）で永久に落とす。コードでは防げない非可逆な向きなので、`dead` を残したまま巻き戻さない（先に消化するか、`WAL.jsonl` を退避してから戻す）
+
 ## [1.10.3] - 2026-08-16 — 障害時にだけ露出する窓の不変条件と、静かに落ちる二つの読み筋
 
 平常時は成立して見え、障害時にだけ破れる条件が一つ（窓）、

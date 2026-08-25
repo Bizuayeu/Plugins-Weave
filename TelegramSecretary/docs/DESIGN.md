@@ -14,7 +14,7 @@
   - [3.4 なぜ CRUD はエージェント主体 + `/telegram-secretary` ラップか](#34-なぜ-crud-はエージェント主体--telegram-secretary-ラップか)
   - [3.5 なぜ肥大化対策が管理表ごとに違うか（発火判断は重要度の世界）](#35-なぜ肥大化対策が管理表ごとに違うか発火判断は重要度の世界)
   - [3.6 なぜ管理表を git で永続化するか（揮発/永続分離）](#36-なぜ管理表を-git-で永続化するか揮発永続分離)
-  - [3.7 なぜ WAL（Write-Ahead Log）で言行一致を保証するか（consistency vs durability）](#37-なぜ-walwrite-ahead-logで言行一致を保証するかconsistency-vs-durability)
+  - [3.7 なぜ WAL（Write-Ahead Log）で言行一致を保証するか（consistency vs durability）★WAL 設計根拠 SSoT](#37-なぜ-walwrite-ahead-logで言行一致を保証するかconsistency-vs-durabilitywal-設計根拠-ssot)
   - [3.8 なぜ管理表を足すのが 1 行で済むか（abilities 4 表目・subjects 8 表目）](#38-なぜ管理表を足すのが-1-行で済むかabilities-4-表目subjects-8-表目)
   - [3.9 なぜ outbound（proactive-send）に WAL 再送を足すのか（offset 安全網の無い経路の冪等性）★再送方針 SSoT](#39-なぜ-outboundproactive-sendに-wal-再送を足すのかoffset-安全網の無い経路の冪等性再送方針-ssot)
   - [3.10 なぜ artifacts を成果物層として持つか（決定論の管理表と分ける理由）](#310-なぜ-artifacts-を成果物層として持つか決定論の管理表と分ける理由)
@@ -147,17 +147,19 @@ cap が当たるのは**表の支配的長文フィールド 1 つだけ**で、
 
 > **cloud routine harness の作業ブランチについて**: cloud routine は session ごとに `<registry_branch>-<ランダム SUFFIX>`（例 `claude/ts-registry-AbCdE`）の作業ブランチをローカルに自動生成する。一方 registry_sync は `git push HEAD:<registry_branch>`（SUFFIX なし）で固定ブランチへ直接 push するため、管理表は常に1本（`registry_branch`）へ集約される。**harness 作業ブランチは commit が乗った時だけ GitHub に push される**ので、registry_cli 以外で git commit しない限り（＝作業ブランチが空のまま）リモートに残骸は生じない。`<registry_branch>-XXXXX` がリモートに増えていたら、それは session 中に registry_cli を通さない手動 commit が乗ったサイン——削除は手動掃除（`gh api -X DELETE .../git/refs/heads/<branch>`）で足り、毎 session の常設削除処理は要らない。
 
-### 3.7 なぜ WAL（Write-Ahead Log）で言行一致を保証するか（consistency vs durability）
+### 3.7 なぜ WAL（Write-Ahead Log）で言行一致を保証するか（consistency vs durability）★WAL 設計根拠 SSoT
 
 §3.6 の registry 永続化は push が **best-effort**（一時失敗は次回再送）。これは durability（データを失わない）には十分だが、**consistency（対外的な約束と内部状態の一致）には穴がある**: 秘書が「登録しました」と返信した後にコンテナが強制終了され push が漏れると、「言ったのに registry に無い」言行不一致が起きうる。これは冗長化でなく**順序**（WAL）で解く。
 
 - **先行書込**: 内部状態の変更を約束する返信の**前に**、intent を WAL ログ（`registry_dir/wal/WAL.jsonl`、registry と同一固定ブランチ）へ追記し push する
 - **must-succeed push（送信前ゲート）**: WAL ログ push は redo のソースゆえ best-effort では不可。push 成功まで send-reply を打たない＝**push できないなら約束もしない**（矛盾が表面化する前に止まる）。registry の add 自体は従来どおり best-effort（漏れても redo される側）
-- **起動時 redo**: 次回起動で WAL の pending（registry に無いやり残し）を registry へ upsert（key 冪等）。registry-sync（fetch）の**後**に置き最新 registry で照合。**返信は再送しない**——送信前クラッシュ分は offset 再取得が再処理を担う（役割分担: offset=メッセージ再処理、WAL=送信後の registry 漏れ専任）。※この「返信は再送しない」は **inbound 返信に固有の前提**であり、offset 安全網を持たない proactive-send（能動 push）にはそのまま適用できない。outbound 経路にだけ WAL 再送を足す整合的拡張は §3.9 を参照
-- **二重役割**: ログは WAL（整合性＝pending redo）と短期記憶（直近 24h の会話文脈、起動時に読む）を兼ねる。pending は無条件保持（redo ソース）、done は起動時チェックポイントで 24h 掃除（ローテーションを終了処理に依存させない＝強制終了で飛ばない）
+- **起動時 redo**: 次回起動で WAL の pending（registry に無いやり残し）を registry へ upsert（key 冪等）。registry-sync（fetch）の**後**に置き最新 registry で照合。**返信は再送しない**——送信前クラッシュ分は offset 再取得が再処理を担う（役割分担: offset=メッセージ再処理、WAL=送信後の registry 漏れ専任）。※この「返信は再送しない」は **inbound 返信に固有の前提**であり、offset 安全網を持たない proactive-send（能動 push）にはそのまま適用できない。outbound 経路にだけ WAL 再送を足す整合的拡張は §3.9 を参照。redo が registry へ書く前に、payload は次項の関門を通る
+- **検証は一つ、書き込み口はどれも同じ関門を通る（v1.11.0）**: registry への書き込み口は `add` / `import` / `wal-redo` の三口で、これに WAL の入口 `wal-append` を足した**四つが `registry_cli.canonical_record` 一つを呼ぶ**——未知トップレベルキー・語彙外 subject・許可集合外 category を弾き、値オブジェクトを通した正準形（`from_dict` → `to_dict`）を返す同一の関門である。検証を口ごとに書けば、口を増やすたびに「そこだけ緩い」抜け道が増える。WAL は must-succeed push で remote へ出る**片道の口**ゆえ、不正を redo まで持ち越すと「push 済みなのに永久に反映されない intent」が残る——入口で弾けば運用者はその場で書き直せる（`wal-append` は exit 2 で、ログを書く前に止まる）。読み側（`list` / `get` / `orientation`）は従来どおり fail-open のまま（write / read の非対称は §3.8）
+- **dead は未履行の約束の記録であって redo ソースではない（v1.11.0）**: `wal-redo` の検証で落ちた pending は registry へ書かず `status=dead` へ隔離し、理由（例外型名＋メッセージ先頭を既存の topic 幅で切り詰め＝payload の値を残さない）を添える。dead を**再検証しない**のは、それが redo の入力ではなく「果たされていない約束がここに在る」という記録だからである。exit は 0 のまま（起動経路を止めない）で、残存する dead は毎起動 stderr へ 1 行ずつ出る。出口は二つ——同じ key の正しい `add` が入れば `settle` が done 化する（自己治癒）か、履行しないと決めたなら `wal-drop --kind --key` で畳む。**pending を落とす口は作らない**（果たされていない約束を黙って捨てる操作を持たせない。秘書倫理としての SSoT は SecretaryRole の「言行一致」）
+- **二重役割**: ログは WAL（整合性＝pending redo）と短期記憶（直近 24h の会話文脈、起動時に読む）を兼ねる。保持は状態ごとに違う——**pending は無条件保持**（redo ソース）、**dead も無条件保持**（期限を置かず、上記の二つの出口でだけ消える）、**done だけ**が起動時チェックポイントで 24h 掃除（ローテーションを終了処理に依存させない＝強制終了で飛ばない）
 - **守備範囲は key の存在であって内容ではない（★誤解しやすい境界）**: `reconcile` / `settle` の判定は `(kind, key)` が registry にあるかだけで、payload の中身は見ない。ゆえに**既存レコードの内容更新——例えば既にある tasks の `notes` への追記——は WAL では守れない**。intent を積んでも key は既に在るので redo の対象にならず、それどころか `settle` が「registry に在る」を根拠に done 化する＝**反映されていないのに反映済みに見える**（偽陽性）。WAL が塞ぐのは「約束したレコードが存在しない」穴だけで、「約束した内容が入っていない」穴は塞がない。後者に冗長も再送も効かず、順序——送信と記録を同じ手順の内側で連続させる——でしか塞げない（秘書倫理としての SSoT は SecretaryRole の「言行一致」）
 
-> consistency と durability は別問題: durability の穴は冗長で塞ぐが、ここでの穴は「同一障害ドメイン（同じ git push）に冗長を足しても共倒れ」ゆえ順序で塞ぐ。設計の背骨は §2 の踏襲——WAL の純粋ロジック（reconcile/settle/checkpoint）は Domain、push/redo の順序遵守は ROUTINE_PROMPT（従属度の世界）、git 操作は決定論。`registry_sync` 有効時のみ稼働（無効は no-op、後方互換）。
+> consistency と durability は別問題: durability の穴は冗長で塞ぐが、ここでの穴は「同一障害ドメイン（同じ git push）に冗長を足しても共倒れ」ゆえ順序で塞ぐ。設計の背骨は §2 の踏襲——WAL の純粋ロジック（reconcile/settle/checkpoint/quarantine）は Domain、push/redo の順序遵守は ROUTINE_PROMPT（従属度の世界）、git 操作は決定論。`registry_sync` 有効時のみ稼働（無効は no-op、後方互換）。
 
 ### 3.8 なぜ管理表を足すのが 1 行で済むか（abilities 4 表目・subjects 8 表目）
 
@@ -181,7 +183,7 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **なぜ topic の接頭辞規約（`[主題] 本文`）を捨てたか**: v1.8.0 は主題軸を `topic` 文字列の接頭辞で持つ規約（コード変更ゼロ）を提案していたが、規約は**強制されないぶん揺れる**（付け忘れ・表記ゆれ・遡及付与の未完了が混在しても誰も気づかない）。フィールドに分けて語彙表と照合すれば、範囲外は書き込み口で弾ける——検証できない規約より、検証できるデータ構造を採る
 - **なぜ status=deprecated で退場させるか**: 語彙の削除は過去レコードの主題を読めなくする（照合先が消えるだけでなく、その主題で引けなくなる）。`deprecated` は**新規付与だけを止める**——既存レコードの読み出しは壊さない。「消さずに止める」は archive 方針（§3.5）と同じ思想
 - **なぜ照合の純関数を Domain に置き、データ供給を Interface にするか**: 語彙はデータゆえ Domain 定数にできないが、「与えられた語彙集合に対して範囲外を列挙する」判定はビジネスルールである。`invalid_subjects(subjects, active_ids)` を Domain の純関数に置き、SUBJECTS を読んで渡すのは Interface（`registry_cli`）が担う——依存は内向きのまま、判定は引数だけでテストできる
-- **なぜ書き込み口だけを fail-closed にするか（write / read の非対称）**: `add` / `import` はトップレベルの未知キーを exit 2 で弾く（キー名を stderr に出す）。従来 `from_dict` は既知キーだけを転記するため、typo（`subjects` → `subject`）は**例外にならず沈黙して消えていた**——「登録したのに無い」を後から探させる形。対して read 経路（`list` / `get` / `orientation`）は警告どまりに留める——read に同じ検証を入れると、未知キーを 1 つ持つレコードがあるだけで list が全滅する（v1.8.0 の category 検証が読み取り経路で発火して起きた形）。**前方互換は read に残し、fail-closed は write に置く**
+- **なぜ書き込み口だけを fail-closed にするか（write / read の非対称）**: `add` / `import` はトップレベルの未知キーを exit 2 で弾く（キー名を stderr に出す）。従来 `from_dict` は既知キーだけを転記するため、typo（`subjects` → `subject`）は**例外にならず沈黙して消えていた**——「登録したのに無い」を後から探させる形。対して read 経路（`list` / `get` / `orientation`）は警告どまりに留める——read に同じ検証を入れると、未知キーを 1 つ持つレコードがあるだけで list が全滅する（v1.8.0 の category 検証が読み取り経路で発火して起きた形）。**前方互換は read に残し、fail-closed は write に置く**。v1.11.0 でこの fail-closed は WAL の入口（`wal-append`）と redo（`wal-redo`）にも広がり、書き込み側は四口とも同じ検証関門を共有する（§3.7）——read の fail-open はそのまま
 - **配線コストの実証**: subjects の CRUD・WAL kind・orientation の表順・subparser はすべて `REGISTRY_SPEC` の 1 行と `Config.subjects_path` だけで生えた（表名の列挙は `main.py` / `wal_cli` とも `REGISTRY_SPEC` 導出ゆえ、表を足すための改修はゼロ）。§3.8 が abilities で主張した「テーブル駆動なら 4 表目は 1 行」は、8 表目でも成り立っている
 
 ### 3.9 なぜ outbound（proactive-send）に WAL 再送を足すのか（offset 安全網の無い経路の冪等性）★再送方針 SSoT

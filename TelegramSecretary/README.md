@@ -23,7 +23,7 @@ Clean Architecture 4層（Domain → UseCase → Interface → Infrastructure、
   - voice / audio / video → 音声を文字起こし（ローカル STT、音声が外部に出ない）
 - **生成物の送り返し** — 画像・レポート等を返信に添付（reply threading、typing 表示）
 - **管理表** — 関係者（INDIVIDUALS）／依頼（TASKS）／対応知（KNOWLEDGE）／主題語彙（SUBJECTS）／能力カタログ（ABILITIES）を秘書が判断して記録。秘書は応答前に能力カタログを引き、依頼に使えるスキルがあれば行使する。対応知は category（認識の型・許可集合 10 種）と subjects（主題・SUBJECTS 表が語彙を持つ）の二軸で引ける。`registry_sync` 有効時は固定ブランチへ git 永続化（揮発 state と分離・イベント駆動 commit&push）。PROFILE / GOALS が蓄積すると秘書の役割が進化する（次節）
-- **言行一致の保証（WAL）** — `registry_sync` 有効時、「登録しました」等の約束をする返信の前に intent を WAL ログへ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo。push 漏れによる「言ったのに未登録」を構造的に防ぐ
+- **言行一致の保証（WAL）** — `registry_sync` 有効時、「登録しました」等の約束をする返信の前に intent を WAL ログへ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo。push 漏れによる「言ったのに未登録」を構造的に防ぐ。先行書込の入口と redo の双方に管理表 `add` と同じ検証が掛かり、受理されない payload は WAL に入らない（入口で exit 2）／redo で `dead` へ隔離されて記録に残る（正典へ黙って書かれない）
 
 ## 秘書が育つ——役割の進化（P×A、守護霊機能）
 
@@ -108,7 +108,7 @@ python scripts/main.py lease release
 | `handoff-archive <name>...` | 消化済みの申し送りブロックを `handoff/archive/` へ移して卒業させる（以後 orientation に載らない）。移動後は `artifacts-sync` 経路で push。不正名・不在・archive 側の同名既存は何も移動せず exit 2 | 0, 1=push失敗, 2=不正/不在 |
 | `role-status` | PROFILE/GOALS から現在の役割（secretary/butler/coach/anego＝守護霊）をデータ駆動で判定し JSON 1行を emit | 0 |
 | `registry-sync` | 起動時に固定ブランチから管理表を fetch（`registry_sync` 有効時のみ、無効は no-op） | 0, 1 |
-| `wal-append --kind <...> (--json\|--json-file)` / `wal-push` / `wal-redo` | WAL（言行一致）: 登録系返信の前に intent を先行 push（must-succeed）、起動時に未反映分を registry へ redo。`registry_sync` 有効時のみ | 0, 1=push失敗, 2 |
+| `wal-append --kind <...> (--json\|--json-file)` / `wal-push` / `wal-redo` / `wal-drop --kind --key` | WAL（言行一致）: 登録系返信の前に intent を先行 push（must-succeed）、起動時に未反映分を registry へ redo。`wal-append` と `wal-redo` は管理表 `add` と同じ検証を通し、不正は入口なら exit 2（ログを書く前に停止）、redo なら `dead` へ隔離（exit 0・stderr に理由）。`wal-drop` は dead を明示的に畳む（pending は落とせない）。`registry_sync` 有効時のみ | 0, 1=push失敗, 2 |
 
 `--owner` は省略可（`source bootstrap.sh` で env 経由自動同期、緊急時の上書きにのみ使用）。
 

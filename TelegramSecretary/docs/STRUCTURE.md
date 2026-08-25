@@ -83,7 +83,7 @@ TelegramSecretary/
 │   │   ├── authorization.py / lease.py / normalize.py / offset.py / watch_window.py
 │   │   ├── session_config.py # session_duration_sec の値域検証（範囲ガード・MAX_SECONDS）
 │   │   ├── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge / Subject / Ability / Profile / Goal / Step）＋ derive_role（P×A 役割導出、§3.11）＋ unknown_keys / invalid_subjects（書き込み口の検証純関数）
-│   │   └── wal.py            # WAL 純粋ロジック（reconcile/settle/checkpoint・outbound の二分、DESIGN §3.9）
+│   │   └── wal.py            # WAL 純粋ロジック（reconcile/settle/checkpoint/quarantine・pending/done/dead の三状態・outbound の二分、DESIGN §3.7/§3.9）
 │   ├── usecases/             # オーケストレーション + Port
 │   │   ├── ports.py          # Port 定義（Store 群含む）
 │   │   ├── acquire_lease.py / renew_lease.py / release_lease.py
@@ -94,7 +94,7 @@ TelegramSecretary/
 │   │   ├── manage_registry.py # 管理表 CRUD UseCase
 │   │   ├── orientation.py    # 起動時ダイジェストの射影（8 表それぞれに処方＝cap 側 4 表の長文フィールド上限／索引側 4 表の一行索引と件数絞り、category・subject 絞り/notes 末尾/handoff 選択、DESIGN §3.12）
 │   │   ├── registry_sync.py  # 管理表の git 永続化（イベント駆動 commit&push、GitSyncPort 越し、DESIGN §3.6）
-│   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents / SettleOutboundIntent）
+│   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents〔validate 必須注入・落ちた intent は dead へ隔離〕 / SettleOutboundIntent / DropDeadIntent）
 │   ├── adapters/
 │   │   ├── atomic_io.py      # JSON store 共有の atomic 書込（tmp→os.replace）＋破損フォールバック load
 │   │   ├── media_failure.py  # render/transcribe 共通の失敗ログ + redact ヘルパ
@@ -108,7 +108,7 @@ TelegramSecretary/
 │   │   ├── composition.py    # Composition Root（load_config / build_media_stack）
 │   │   ├── exit_codes.py     # 終了コード（0/1/2/3/4）の SSoT
 │   │   ├── registry_cli.py   # 管理表 CRUD の CLI 配線
-│   │   ├── wal_cli.py        # WAL の CLI 配線（wal-append / wal-push / wal-redo）
+│   │   ├── wal_cli.py        # WAL の CLI 配線（wal-append / wal-push / wal-redo / wal-drop）。検証は registry_cli.canonical_record を共有し、redo 用に reason 切り詰めを被せて注入
 │   │   └── archive_rotate.py # 日付Archive（TASKS/INDIVIDUALS）+ カテゴリ分割（KNOWLEDGE）
 │   └── tests/                # 全層のテスト（配布物として公開）
 │
@@ -202,9 +202,12 @@ TelegramSecretary/
         → registry_sync 有効なら commit&push（イベント駆動・non-ff は rebase で取り込み・force 不使用）
 
 [応答] 登録系の返信は先に WAL 先行書込（registry_sync 有効時、言行一致）:
-        wal-append（intent pending）→ wal-push（must-succeed、失敗なら送信中止）
+        wal-append（add と同じ検証関門を通し、正準 payload を pending 追記。不正はログを書く前に exit 2）
+        → wal-push（must-succeed、失敗なら送信中止）
         → registry add → エージェント起草 → 出力漏洩スキャン → send-reply（必要なら --file/--reply-to）
-        ※起動時 wal-redo が前回 push 漏れの intent を registry へ反映（registry-sync 直後）
+        ※起動時 wal-redo が前回 push 漏れの intent を registry へ反映（registry-sync 直後）。redo も同じ関門を
+          通し、落ちた intent は registry へ書かず dead へ隔離する（理由は stderr、exit は 0）。dead の出口は
+          同 key の正しい add（settle で done＝自己治癒）か wal-drop の二つ（DESIGN §3.7）
 
 [能動発信] grant された自由時間の不定期 push（proactive-send、offset 非干渉）:
         エージェント起草 → 出力漏洩スキャン → proactive-send（--update-id を付けない＝offset を触らない）

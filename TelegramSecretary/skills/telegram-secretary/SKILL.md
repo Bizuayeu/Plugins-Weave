@@ -11,7 +11,7 @@ description: Telegram Bot API の long-polling を cloud routine 上で常駐さ
 - **受信方式**: Telegram getUpdates の long-polling（公開 ingress 不要のため **Claude Code Routines**（Anthropic のクラウド実行＝cloud routine）と整合）
 - **応答主体**: 親プロセスのエージェント本人が担う（LLM 推論をサブプロセスで多重起動しない設計原則）。本スキルは fetch / 認可 / 正規化 / 送信のみ
 - **state 永続化**: `offset.json` + `lease.json` を `state_dir` に保存、heartbeat + TTL リースで並走防止と crash 自己治癒。**管理表（8表: individuals/tasks/knowledge/subjects/abilities/profile/goals/steps）は揮発 state と分離した `registry_dir` に置き、`registry_sync` 有効時は固定ブランチへ git 永続化**（イベント駆動 commit&push + 起動時 fetch、force 不使用）
-- **言行一致の保証（WAL、`registry_sync` 有効時）**: registry の push は best-effort ゆえ「登録したと返信したのに未登録」の不整合が起きうる。これを **WAL（Write-Ahead Log）** で防ぐ——登録系の返信の前に intent を WAL ログ（`registry_dir/wal/WAL.jsonl`、同一固定ブランチ）へ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo（key 冪等）。ログは直近 24h の会話文脈の短期記憶も兼ねる
+- **言行一致の保証（WAL、`registry_sync` 有効時）**: registry の push は best-effort ゆえ「登録したと返信したのに未登録」の不整合が起きうる。これを **WAL（Write-Ahead Log）** で防ぐ——登録系の返信の前に intent を WAL ログ（`registry_dir/wal/WAL.jsonl`、同一固定ブランチ）へ先行 push（must-succeed＝push 不能なら送信もしない）し、起動時に未反映分を registry へ redo（key 冪等）。ログは直近 24h の会話文脈の短期記憶も兼ねる。**書き込み口（`add` / `import` / `wal-append` / `wal-redo`）は同一の検証関門を共有**し、redo で落ちた intent は正典へ書かず `dead` へ隔離される（出口は同 key の正しい `add` による自己治癒か `wal-drop`。設計根拠は DESIGN §3.7）
 - **アイドル枠ゼロの心臓部**: `/goal` が deadline まで各ターンで foreground `watch --exit-on-message` を回す。メッセージ受信で即 exit→返信→再起動（即応、遅延 ≤ long-poll の timeout）、無メッセージ時は long-poll でブロック（待機トークン最小＋ foreground call でセッション warm 保持）。詳細は [`ROUTINE_PROMPT.md`](../../docs/ROUTINE_PROMPT.md)
 
 ## Daily Workflow（cloud routine 起動時）
@@ -78,9 +78,10 @@ PDF は **常に全ページ画像化**する（テキスト層の有無を判�
 | `handoff-archive <name>...` | 消化（knowledge への結晶化）を終えた handoff ブロックを `handoff/archive/` へ移し、`artifacts-sync` 経路で送る（卒業）。**orientation は `handoff/` 直下の `*.md` しか読まない契約ゆえ、archive/ へ移したブロックは以後載らない**（消えるのではなく読み筋から外れる）。名前は `handoff/` 直下のファイル名そのもの（複数可）。パス成分を含む名前・不在・archive/ に同名既存は**何も移動せず** exit 2（部分成功を作らない）。どれを卒業させるかは持たない＝消化判断の出力を受ける指名制（DESIGN §3.12）。**卒業後、そのブロックへの参照（notes / knowledge に書いたファイル名）の解決先は「直下 → `archive/`」の二箇所になる**——名前は不変で場所だけが動くため。**直下に無い＝失われた、ではない**ので、`archive/` を見てから判定する | 0=OK, 1=push失敗, 2=不正/不在 |
 | `role-status` | PROFILE/GOALS から現在の役割（secretary/butler/coach/anego＝守護霊）を決定論導出し JSON 1行で emit（P=principal の PROFILE≥1、A=active な GOALS≥1。役割の自称をしない＝判定はコード、演技は SecretaryRole。DESIGN §3.11）。起動時は `orientation` の `## role` に同一判定が載るため、単独で叩くのは役割だけ確かめたい時 | 0=OK |
 | `registry-sync` | 起動時に固定ブランチから管理表を fetch（`registry_sync` 有効時のみ、無効は no-op）。最新の管理表で起動するため ROUTINE_PROMPT が起動時に1回呼ぶ | 0=OK, 1=fetch失敗 |
-| `wal-append --kind <individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps\|outbound> (--json \| --json-file)` | WAL に intent を pending 追記（**登録系の返信の前**、言行一致保証の先行書込）。kind は registry 全8表＋outbound（choices は `REGISTRY_SPEC` 導出＝表追加に自動追従）。`outbound` は通常 `proactive-send` が内包するため手動使用は非推奨。`registry_sync` 有効時のみ・無効は no-op | 0=OK, 2=不正 |
+| `wal-append --kind <individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps\|outbound> (--json \| --json-file)` | WAL に intent を pending 追記（**登録系の返信の前**、言行一致保証の先行書込）。kind は registry 全8表＋outbound（choices は `REGISTRY_SPEC` 導出＝表追加に自動追従）。**registry kind は `add` と同一の検証を通り、正準化した payload を書く**——未知トップレベルキー・語彙外 subject・許可集合外 category は **exit 2**（stderr `invalid <kind> wal payload: <理由>`）で、**ログを書く前に**止まる。ゆえに **`add` へ渡すのと同一のレコード**（`created_at` / `updated_at` を含む）が要る（後方非互換、v1.11.0）。`outbound` は値オブジェクトを持たないため従来どおり素通し（通常 `proactive-send` が内包するため手動使用は非推奨）。`registry_sync` 有効時のみ・無効は no-op | 0=OK, 2=不正 |
 | `wal-push [--message]` | WAL ログを commit & push（**must-succeed**＝失敗は exit 1＝**送信前ゲートで send-reply を中止**）。`registry_sync` 無効は no-op | 0=OK, 1=push失敗 |
-| `wal-redo` | 起動時に WAL の pending を redo（`registry_sync` 有効時）。registry kind は upsert（key 冪等・**inbound 返信は再送しない**）、outbound kind は happy-path settle 後に残った中断分のみ1回再送→即 done。ROUTINE_PROMPT が registry-sync 直後に1回呼ぶ | 0=OK |
+| `wal-redo` | 起動時に WAL の pending を redo（`registry_sync` 有効時）。registry kind は upsert（key 冪等・**inbound 返信は再送しない**）、outbound kind は happy-path settle 後に残った中断分のみ1回再送→即 done。**各 intent は `add` と同一の検証を通り、落ちたものは registry へ書かず `dead`（理由付き）へ隔離**する（v1.11.0）。stdout は `wal redo: redone=N resent=N kept=N dead=N`——`dead` は**ログに残る dead の総数**であって今回隔離した分ではない。残存する dead は毎起動 stderr へ `wal redo: dead <kind> key=<key>: <理由>` を 1 行ずつ出す。**exit は 0 のまま**（起動経路を止めない）。ROUTINE_PROMPT が registry-sync 直後に1回呼ぶ | 0=OK |
+| `wal-drop --kind <individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps> --key <key>` | `dead` の intent を WAL から落とし、固定ブランチへ **must-succeed** push する（履行しないと決めた約束を明示的に畳む、v1.11.0）。`--kind` / `--key` はどちらも必須で、kind は registry 全8表のみ（`outbound` は検証対象外＝dead にならないため choices に無い）。**pending / done は落とせない**（不在も同じく exit 2）——果たしていない約束を黙って捨てる口は開けない。dead のもう一つの出口は同 key の正しい `add` で、次回 redo の `settle` が done 化する（自己治癒）。stdout `wal dropped <kind> key=<key>`。`registry_sync` 無効は no-op | 0=OK, 1=push失敗, 2=dead でない/不在 |
 
 `--owner` は省略可（`source bootstrap.sh` で env 経由自動同期）。優先順位は `--owner > env > uuid 自動生成`。
 
@@ -101,7 +102,7 @@ PDF は **常に全ページ画像化**する（テキスト層の有無を判�
 |---|---|---|
 | 0 | 成功 | — |
 | 1 | fetch / send 失敗（5xx 再試行後 or 4xx） | 一時的、次サイクルで再試行 |
-| 2 | 設定欠損 / 形式不正 / **書き込み口の fail-closed**（未知トップレベルキー・語彙外 subject・許可集合外 category） | env vars 確認。fail-closed は stderr が原因（キー名・候補列挙）を出すので、それを見て直してから再実行 |
+| 2 | 設定欠損 / 形式不正 / **書き込み口の fail-closed**（未知トップレベルキー・語彙外 subject・許可集合外 category。主語は `add` / `import` / **`wal-append`**） / `wal-drop` の指定違い（dead でない・不在） | env vars 確認。fail-closed は stderr が原因（キー名・候補列挙）を出すので、それを見て直してから再実行。`wal-append` の exit 2 はログを書く前に止まるので、その intent について約束をしない |
 | 3 | 401 Unauthorized | bot token 確認・再生成 |
 | 4 | リース conflict（他セッション保持中 or lease 不在） | 自己治癒の正常動作 |
 
