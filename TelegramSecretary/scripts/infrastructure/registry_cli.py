@@ -62,7 +62,9 @@ class RegistrySpec(NamedTuple):
 
     path_attr: str  # Config の path property 名
     key_field: str  # レコードの一意キー
-    record_cls: type  # 検証に使う値オブジェクトクラス
+    # 検証に使う値オブジェクトクラス（from_dict / to_dict を持つ）。具体型は表ごとに
+    # 違うので type[Any] で受ける。
+    record_cls: type[Any]
 
 
 # name -> RegistrySpec。wal_cli の kind -> key_field 導出と main.py の subparser 生成も

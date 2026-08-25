@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
+from typing import cast
 
 from domain.exceptions import AudioDecodeError
 
@@ -69,6 +70,8 @@ class FfmpegAudioPreprocessor:
             ) from decode_error
 
         if not chunks:
-            return empty, TARGET_RATE
+            return cast("Sequence[float]", empty), TARGET_RATE
         samples = np.concatenate(chunks).astype("float32")
-        return samples, TARGET_RATE
+        # ndarray は実行時に Sequence 相当（len/添字/反復）だが typing 上は Sequence ではない。
+        # 契約（to_float_pcm -> Sequence[float]）は変えず、意図を cast で書く。
+        return cast("Sequence[float]", samples), TARGET_RATE

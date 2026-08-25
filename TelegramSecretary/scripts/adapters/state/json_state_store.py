@@ -12,6 +12,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Any, cast
 
 from adapters.atomic_io import load_json_or_default, write_text_atomic
 from domain.lease import SessionLease
@@ -30,7 +31,9 @@ class JsonOffsetStore:
     def load(self) -> UpdateOffset:
         return load_json_or_default(
             self._path,
-            parse=lambda data: UpdateOffset(value=int(data["value"])),
+            parse=lambda data: UpdateOffset(
+                value=int(cast("dict[str, Any]", data)["value"])
+            ),
             default=UpdateOffset.initial,
         )
 
@@ -54,10 +57,13 @@ class JsonLeaseStore:
 
     @staticmethod
     def _parse(data: object) -> SessionLease:
+        # load_json_or_default の parse は object を受ける契約（デコード結果の形は
+        # 呼び出し側の責任）。添字アクセスの前に dict へ絞る。
+        fields = cast("dict[str, Any]", data)
         return SessionLease(
-            owner=str(data["owner"]),
-            heartbeat=datetime.fromisoformat(data["heartbeat"]),
-            ttl_seconds=int(data["ttl_seconds"]),
+            owner=str(fields["owner"]),
+            heartbeat=datetime.fromisoformat(fields["heartbeat"]),
+            ttl_seconds=int(fields["ttl_seconds"]),
         )
 
     def save(self, lease: SessionLease) -> None:

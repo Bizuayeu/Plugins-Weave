@@ -66,10 +66,11 @@ def run_wal_append(config: Config, kind: str, args: Any) -> int:
         key = created_at
     elif kind in _WAL_KINDS:
         key_field = _WAL_KINDS[kind]
-        key = payload.get(key_field)
-        if not key:
+        raw_key = payload.get(key_field)
+        if not raw_key:
             print(f"wal payload missing key field {key_field!r}", file=sys.stderr)
             return EXIT_CONFIG_INVALID
+        key = str(raw_key)
         try:
             payload = canonical_record(config, kind, payload)  # 検証 + 正準化
         except (ValueError, OSError, TypeError, KeyError) as exc:

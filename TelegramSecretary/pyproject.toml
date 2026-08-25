@@ -100,6 +100,26 @@ select = ["E4", "E7", "E9", "F", "I", "UP", "N", "B", "SIM", "PTH"]
 # 6 件 red になった）。検査可能性を優先し、この 1 ファイルだけ PTH105 を外す。
 "scripts/adapters/atomic_io.py" = ["PTH105"]
 
+[tool.mypy]
+# scripts/ を import root にする。これが無いと自前モジュール（domain.* 等）が
+# 「インストール済みだがスタブが無い第三者パッケージ」と誤認され、解決漏れだけで
+# 300 件超の診断が出る（実測 330 → 18）。
+mypy_path = "scripts"
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+# 型スタブを持たないサードパーティ。グローバルに ignore_missing_imports すると
+# 自前モジュールの解決漏れまで黙って通るので、当該モジュールだけに限定する。
+module = [
+    "moonshine_voice",
+    "moonshine_voice.*",
+    "openpyxl",
+    "openpyxl.*",
+    "pypdfium2",
+    "reportlab.*",
+]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["scripts/tests"]
 pythonpath = ["scripts"]

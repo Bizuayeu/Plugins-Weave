@@ -191,6 +191,7 @@ class Config:
         # env があればその絶対パスをそのまま信頼（再 resolve しない）。env 無し（ローカル運用/テスト）は
         # 従来どおり config.json の値を .resolve()。
         registry_dir_env = os.environ.get("TELEGRAM_SECRETARY_REGISTRY_DIR", "").strip()
+        registry_dir: Path | None
         if registry_dir_env:
             registry_dir = Path(registry_dir_env)
         else:

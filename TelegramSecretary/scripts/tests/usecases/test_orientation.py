@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from usecases.orientation import (
     DEFAULT_NOTES_TAIL,
@@ -46,8 +47,8 @@ def _service(sizes: dict[str, int] | None = None, **tables) -> OrientationServic
     return OrientationService(listers, all_sizes)
 
 
-def _task(**kw) -> dict:
-    base = {
+def _task(**kw: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {
         "id": "T-001",
         "title": "見積を送る",
         "status": "open",
