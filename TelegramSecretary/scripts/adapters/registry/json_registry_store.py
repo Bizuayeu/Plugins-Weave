@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from adapters.atomic_io import load_json_or_default, write_text_atomic
 
@@ -28,14 +29,14 @@ class JsonRegistryStore:
         )  # str 渡しでも壊れない防御変換（wal/state store と統一）
         self._version = version
 
-    def load(self) -> list[dict]:
+    def load(self) -> list[dict[str, Any]]:
         return load_json_or_default(self._path, parse=self._records_of, default=list)
 
     @staticmethod
-    def _records_of(data: object) -> list[dict]:
+    def _records_of(data: object) -> list[dict[str, Any]]:
         records = data.get("records") if isinstance(data, dict) else None
         return list(records) if isinstance(records, list) else []
 
-    def save(self, records: list[dict]) -> None:
+    def save(self, records: list[dict[str, Any]]) -> None:
         payload = {"version": self._version, "records": list(records)}
         write_text_atomic(self._path, json.dumps(payload, ensure_ascii=False, indent=2))

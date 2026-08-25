@@ -52,7 +52,7 @@ _CAP_FIELDS: Mapping[str, tuple[str, ...]] = {
 class RecordLister(Protocol):
     """`RegistryService.list()` の読み取り面だけを要求する（差し替え可能性の確保）。"""
 
-    def list(self) -> list[dict]: ...
+    def list(self) -> list[dict[str, Any]]: ...
 
 
 def _utf8_len(text: str) -> int:
@@ -172,7 +172,9 @@ def index_step(record: Mapping[str, Any]) -> str:
     )
 
 
-def cap_record_field(record: Mapping[str, Any], path: Sequence[str], cap: int) -> dict:
+def cap_record_field(
+    record: Mapping[str, Any], path: Sequence[str], cap: int
+) -> dict[str, Any]:
     """レコードの支配的長文フィールド 1 つだけを cap バイトで丸めた複製を返す。
 
     丸め方は `_truncate` に委ねる（バイト・文字境界・マーカーは幅の内側・非正は全捨て）——
@@ -197,7 +199,7 @@ def cap_record_field(record: Mapping[str, Any], path: Sequence[str], cap: int) -
 
 def filter_knowledge_by_category(
     rows: Sequence[Mapping[str, Any]], category: str
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """knowledge を category **完全一致**で絞る（前方一致にしない——絞りの意味が曖昧になる）。
 
     索引は O(n) で全件並ぶため、表が育つほど起動時の読み負荷が効いてくる。絞りは母数側から
@@ -209,7 +211,7 @@ def filter_knowledge_by_category(
 
 def filter_knowledge_by_subject(
     rows: Sequence[Mapping[str, Any]], subject: str
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """knowledge を subjects の**要素の完全一致**で絞る（`filter_knowledge_by_category` の同型）。
 
     category（認識の型・閉じた語彙）と直交する主題の引き出し口。ここも検証ではなく観測——
@@ -223,7 +225,9 @@ def filter_knowledge_by_subject(
     ]
 
 
-def pick_latest_by_id(rows: Sequence[Mapping[str, Any]], latest: int) -> list[dict]:
+def pick_latest_by_id(
+    rows: Sequence[Mapping[str, Any]], latest: int
+) -> list[dict[str, Any]]:
     """レコード群を id 昇順の**末尾** latest 件＝新しい順 N 件に絞る（knowledge / tasks 共用）。
 
     id は日付順に振られるため id の大きい方が新しい——「新しい順に選ぶ」は
@@ -321,7 +325,7 @@ class OrientationService:
 
     # --- sections ---
 
-    def _role_section(self, records: Mapping[str, list[dict]]) -> list[str]:
+    def _role_section(self, records: Mapping[str, list[dict[str, Any]]]) -> list[str]:
         """役割はコードが決める（derive_role、DESIGN §3.11）——role-status と同一の判定。"""
         status = derive_role(records.get("profile", []), records.get("goals", []))
         return [
@@ -330,7 +334,7 @@ class OrientationService:
             "",
         ]
 
-    def _counts_section(self, records: Mapping[str, list[dict]]) -> list[str]:
+    def _counts_section(self, records: Mapping[str, list[dict[str, Any]]]) -> list[str]:
         lines = ["## counts"]
         lines += [
             f"{name}: {len(rows)} records, {self._sizes.get(name, 0)} bytes"
@@ -341,7 +345,7 @@ class OrientationService:
     def _table_section(
         self,
         name: str,
-        rows: list[dict],
+        rows: list[dict[str, Any]],
         notes_tail: int,
         topic_width: int,
         knowledge_category: str | None,
@@ -382,7 +386,7 @@ class OrientationService:
         ]
 
     def _tasks_section(
-        self, rows: list[dict], notes_tail: int, latest: int | None = None
+        self, rows: list[dict[str, Any]], notes_tail: int, latest: int | None = None
     ) -> list[str]:
         """一行要約を latest で絞り、notes は**絞った集合に連動**させる。
 
@@ -412,7 +416,7 @@ class OrientationService:
 
     def _knowledge_section(
         self,
-        rows: list[dict],
+        rows: list[dict[str, Any]],
         topic_width: int,
         category: str | None = None,
         subject: str | None = None,
@@ -448,7 +452,7 @@ class OrientationService:
         ]
         return [*lines, ""]
 
-    def _subjects_section(self, rows: list[dict]) -> list[str]:
+    def _subjects_section(self, rows: list[dict[str, Any]]) -> list[str]:
         """語彙を id 昇順の索引で**全量**並べる（件数絞りは付けない）。
 
         この表は「どの主題で knowledge を引くか」を選ぶための一覧なので、母数を減らすと
@@ -462,7 +466,9 @@ class OrientationService:
         ]
         return [*lines, ""]
 
-    def _steps_section(self, rows: list[dict], latest: int | None = None) -> list[str]:
+    def _steps_section(
+        self, rows: list[dict[str, Any]], latest: int | None = None
+    ) -> list[str]:
         """索引を latest で絞る（`_tasks_section` と同型、母数は見出しの `of M` で開示）。
 
         選ぶのは新しい順・並びは id 昇順という捻れの解き方も tasks / knowledge と同じ

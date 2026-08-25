@@ -8,7 +8,8 @@ WAL ログは registry と同じ `registry_root` 配下に置き、同一固定�
 from __future__ import annotations
 
 import sys
-from typing import Any
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from adapters.telegram.api_gateway import TelegramApiGateway
 from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
@@ -31,6 +32,9 @@ from usecases.wal import (
     RedoPendingIntents,
     SettleOutboundIntent,
 )
+
+if TYPE_CHECKING:
+    from adapters.registry.git_cli import GitCliAdapter
 
 # WAL 対象種別は registry の全管理表種別（REGISTRY_SPEC の全キー）。
 # abilities の能力宣言や goals の目標起票も「○○します」という対外的約束を伴うため一様に対象
@@ -87,7 +91,7 @@ def run_wal_append(config: Config, kind: str, args: Any) -> int:
     return EXIT_OK
 
 
-def run_wal_push(config: Config, args: Any, git=None) -> int:
+def run_wal_push(config: Config, args: Any, git: GitCliAdapter | None = None) -> int:
     """WAL ログを commit & push（must-succeed）。push 失敗は exit 非0（送信前ゲート）。
 
     git 注入はテスト用、本番は config から GitCliAdapter を組み立てる。PushRejectedError は
@@ -107,7 +111,11 @@ def run_wal_push(config: Config, args: Any, git=None) -> int:
     return EXIT_OK
 
 
-def run_wal_redo(config: Config, sink=None, git=None) -> int:
+def run_wal_redo(
+    config: Config,
+    sink: TelegramApiGateway | None = None,
+    git: GitCliAdapter | None = None,
+) -> int:
     """起動時に WAL pending を registry へ redo + outbound を1回再送（registry_sync 有効時のみ）。
 
     registry kind は再送しない（送信前クラッシュ分の再配信は Telegram サーバ側の
@@ -140,7 +148,7 @@ def run_wal_redo(config: Config, sink=None, git=None) -> int:
     return EXIT_OK
 
 
-def _redo_validator(config: Config):
+def _redo_validator(config: Config) -> Callable[[str, dict[str, Any]], dict[str, Any]]:
     """redo に注入する validator（`canonical_record` に reason の切り詰めを被せる）。
 
     validator の例外文は値を含む（`invalid category: <値>` / `unknown subject(s): <値>`）。
@@ -151,7 +159,7 @@ def _redo_validator(config: Config):
     再送出は**同じ例外型**で行う——UseCase の捕捉タプルに乗らない型へ変えると隔離を素通りする。
     """
 
-    def validate(kind: str, payload: dict) -> dict:
+    def validate(kind: str, payload: dict[str, Any]) -> dict[str, Any]:
         try:
             return canonical_record(config, kind, payload)
         except (ValueError, OSError, TypeError, KeyError) as exc:
@@ -173,7 +181,7 @@ def _report_dead(log: JsonlWalLogStore) -> None:
             print(f"wal redo: dead {e.kind} key={e.key}: {e.reason}", file=sys.stderr)
 
 
-def _persist_redo_log(config: Config, git=None) -> None:
+def _persist_redo_log(config: Config, git: GitCliAdapter | None = None) -> None:
     """redo で書き戻した WAL ログ（done-marking / checkpoint）を固定ブランチへ best-effort push。
 
     add/remove と同じイベント駆動 best-effort（registry_sync の握る push）。push 不能なら
@@ -190,7 +198,9 @@ def _persist_redo_log(config: Config, git=None) -> None:
         print(f"wal redo persist (best-effort) skipped: {exc}", file=sys.stderr)
 
 
-def run_wal_drop(config: Config, kind: str, key: str, git=None) -> int:
+def run_wal_drop(
+    config: Config, kind: str, key: str, git: GitCliAdapter | None = None
+) -> int:
     """dead 化した intent を操作者の明示指示で WAL から落とし、固定ブランチへ push する。
 
     dead の出口は二つ——同 key の再登録（redo の `settle` が done 化＝自己治癒）と、この
@@ -222,9 +232,9 @@ def run_wal_append_outbound(
     config: Config,
     chat_id: int,
     text: str,
-    attachment_paths: list,
+    attachment_paths: list[str],
     reply_to: int | None,
-    git=None,
+    git: GitCliAdapter | None = None,
 ) -> tuple[bool, str]:
     """outbound intent を WAL に先行書込み + push（proactive-send の送信前ゲート）。
 
@@ -236,7 +246,7 @@ def run_wal_append_outbound(
     if not config.registry_sync_enabled:
         return True, ""
     created_at = utc_now().isoformat()
-    payload: dict = {"chat_id": chat_id, "text": text}
+    payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
     if attachment_paths:
         payload["attachments"] = list(attachment_paths)
     if reply_to is not None:
@@ -256,7 +266,9 @@ def run_wal_append_outbound(
     return True, created_at
 
 
-def run_wal_settle_outbound(config: Config, key: str, git=None) -> None:
+def run_wal_settle_outbound(
+    config: Config, key: str, git: GitCliAdapter | None = None
+) -> None:
     """送信成功した outbound intent を done 化 + push（happy-path settle、best-effort）。
 
     proactive-send が送信成功直後に呼ぶ。registry_sync 無効 or key 空なら no-op。

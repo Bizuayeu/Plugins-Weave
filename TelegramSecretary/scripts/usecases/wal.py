@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from domain.exceptions import PushRejectedError
 from domain.lease import utc_now
@@ -33,7 +34,9 @@ class AppendWalIntent:
     def __init__(self, log_store: WalLogStore) -> None:
         self._log = log_store
 
-    def execute(self, key: str, kind: str, payload: dict, created_at: str) -> WalEntry:
+    def execute(
+        self, key: str, kind: str, payload: dict[str, Any], created_at: str
+    ) -> WalEntry:
         entry = WalEntry(
             key=key, kind=kind, status="pending", payload=payload, created_at=created_at
         )
@@ -157,7 +160,7 @@ class RedoPendingIntents:
         self,
         log_store: WalLogStore,
         services: Mapping[str, RegistryService],
-        validate: Callable[[str, dict], dict],
+        validate: Callable[[str, dict[str, Any]], dict[str, Any]],
         sink: MessageSink | None = None,
         now_fn: Callable[[], datetime] = utc_now,
         retention_h: int = 24,
@@ -169,7 +172,7 @@ class RedoPendingIntents:
         self._now_fn = now_fn
         self._retention_h = retention_h
 
-    def execute(self) -> dict:
+    def execute(self) -> dict[str, Any]:
         entries = self._log.load()
         registry_entries = [e for e in entries if e.kind != "outbound"]
         outbound_entries = [e for e in entries if e.kind == "outbound"]

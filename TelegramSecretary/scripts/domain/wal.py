@@ -38,7 +38,7 @@ class WalEntry:
     key: str
     kind: str
     status: str
-    payload: dict
+    payload: dict[str, Any]
     created_at: str
     reason: str = ""
 
@@ -86,7 +86,7 @@ class WalEntry:
             reason=d.get("reason", ""),
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         d = {
             "key": self.key,
             "kind": self.kind,

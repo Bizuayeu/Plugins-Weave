@@ -36,7 +36,9 @@ class AcquireLease:
         return new_lease
 
     @staticmethod
-    def _raise_if_held_by_other(lease, now: datetime, owner: str) -> None:
+    def _raise_if_held_by_other(
+        lease: SessionLease | None, now: datetime, owner: str
+    ) -> None:
         if lease is not None and lease.held_by_other(now=now, me=owner):
             raise LeaseConflictError(
                 f"lease held by {lease.owner!r} until {lease.heartbeat.isoformat()}"

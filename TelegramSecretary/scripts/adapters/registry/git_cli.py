@@ -44,7 +44,10 @@ class GitCliAdapter:
     """
 
     def __init__(
-        self, repo_dir, remote: str = "origin", branch: str = "claude/ts-registry"
+        self,
+        repo_dir: Path | str,
+        remote: str = "origin",
+        branch: str = "claude/ts-registry",
     ) -> None:
         self._repo = Path(repo_dir)
         self._remote = remote
@@ -52,7 +55,7 @@ class GitCliAdapter:
 
     def _run(
         self, args: Sequence[str], check: bool = True
-    ) -> subprocess.CompletedProcess:
+    ) -> subprocess.CompletedProcess[str]:
         try:
             result = subprocess.run(
                 ["git", *args],

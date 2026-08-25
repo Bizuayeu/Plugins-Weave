@@ -6,7 +6,7 @@ Port は Protocol で定義し、実装は adapters/ 配下に置く。テスト
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from domain.lease import SessionLease
 from domain.media import MediaAttachment, RenderedMedia
@@ -91,9 +91,9 @@ class RegistryStore(Protocol):
     （値オブジェクトへの変換は呼び出し側の責務）。
     """
 
-    def load(self) -> list[dict]: ...
+    def load(self) -> list[dict[str, Any]]: ...
 
-    def save(self, records: list[dict]) -> None: ...
+    def save(self, records: list[dict[str, Any]]) -> None: ...
 
 
 class GitSyncPort(Protocol):

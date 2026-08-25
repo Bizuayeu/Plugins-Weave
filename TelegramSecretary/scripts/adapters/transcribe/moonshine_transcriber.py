@@ -15,6 +15,7 @@ Enterprise License or kotoba-whisper(Apache-2.0) へ Port 差し替え。
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from adapters.audio.ffmpeg_preprocessor import FfmpegAudioPreprocessor
 from adapters.media_failure import failed_render
@@ -36,9 +37,11 @@ class MoonshineTranscriber:
     ) -> None:
         self._language = language
         self._preprocessor = preprocessor or FfmpegAudioPreprocessor()
-        self._model = None  # (Transcriber, model_path, model_arch) を lazy load
+        self._model: tuple[Any, Any, Any] | None = (
+            None  # (Transcriber, model_path, model_arch) を lazy load
+        )
 
-    def _ensure_model(self):
+    def _ensure_model(self) -> tuple[Any, Any, Any]:
         if self._model is None:
             import moonshine_voice
             from moonshine_voice.transcriber import Transcriber

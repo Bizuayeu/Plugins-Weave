@@ -82,7 +82,7 @@ class Identity:
             shared_with=list(d.get("shared_with", [])),
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "category": self.category,
             "relationship_label": self.relationship_label,
@@ -127,7 +127,7 @@ class Individual:
             updated_at=d["updated_at"],
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "uuid": self.uuid,
             "display_name": self.display_name,
@@ -177,7 +177,7 @@ class Task:
             closed_at=d.get("closed_at"),
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "title": self.title,
@@ -238,7 +238,7 @@ class Knowledge:
             updated_at=d["updated_at"],
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "topic": self.topic,
@@ -291,7 +291,7 @@ class Subject:
             updated_at=d["updated_at"],
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "label": self.label,
@@ -339,7 +339,7 @@ class Ability:
             updated_at=d["updated_at"],
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -390,7 +390,7 @@ class Profile:
             updated_at=d["updated_at"],
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "subject": self.subject,
@@ -446,7 +446,7 @@ class Goal:
             closed_at=d.get("closed_at"),
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "title": self.title,
@@ -499,7 +499,7 @@ class Step:
             updated_at=d["updated_at"],
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "goal_id": self.goal_id,
@@ -524,7 +524,7 @@ class RoleStatus:
     personalize: bool
     accompany: bool
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "role": self.role,
             "personalize": self.personalize,
@@ -532,7 +532,9 @@ class RoleStatus:
         }
 
 
-def derive_role(profiles: list[dict], goals: list[dict]) -> RoleStatus:
+def derive_role(
+    profiles: list[dict[str, Any]], goals: list[dict[str, Any]]
+) -> RoleStatus:
     """PROFILE / GOALS のレコードから秘書の役割を決定論的に導出する。
 
     P = PROFILE に subject="principal" が1件以上（本人の人物理解を預かっている）
@@ -560,7 +562,9 @@ def derive_role(profiles: list[dict], goals: list[dict]) -> RoleStatus:
 # === コレクション操作（純関数、dict ベース） ===
 
 
-def upsert(records: list[dict], record: dict, key: str) -> list[dict]:
+def upsert(
+    records: list[dict[str, Any]], record: dict[str, Any], key: str
+) -> list[dict[str, Any]]:
     """key が一致する既存を同位置で置換、なければ末尾に追加。元 list は変更しない。"""
     out = list(records)
     for i, r in enumerate(out):
@@ -571,7 +575,9 @@ def upsert(records: list[dict], record: dict, key: str) -> list[dict]:
     return out
 
 
-def find_by(records: list[dict], key: str, value: Any) -> dict | None:
+def find_by(
+    records: list[dict[str, Any]], key: str, value: Any
+) -> dict[str, Any] | None:
     """key == value の最初のレコードを返す。無ければ None。"""
     for r in records:
         if r.get(key) == value:
@@ -579,7 +585,9 @@ def find_by(records: list[dict], key: str, value: Any) -> dict | None:
     return None
 
 
-def remove_by(records: list[dict], key: str, value: Any) -> list[dict]:
+def remove_by(
+    records: list[dict[str, Any]], key: str, value: Any
+) -> list[dict[str, Any]]:
     """key == value のレコードを除いた新 list を返す。元 list は変更しない（upsert と対称）。"""
     return [r for r in records if r.get(key) != value]
 

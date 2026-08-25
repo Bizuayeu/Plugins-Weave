@@ -107,6 +107,11 @@ select = ["E4", "E7", "E9", "F", "I", "UP", "N", "B", "SIM", "PTH"]
 mypy_path = "scripts"
 explicit_package_bases = true
 
+# 本番コードは strict。ワークスペースの ToBe（A の lint ＋ B の mypy）に揃える。
+# strict でしか出ない型は実在する: os.path.join → Path(a) / b の機械変換で str が Path に
+# 変わり sys.path へ流れた不具合は、112 件のテストを素通りして strict mypy だけが捕らえた。
+strict = true
+
 [[tool.mypy.overrides]]
 # 型スタブを持たないサードパーティ。グローバルに ignore_missing_imports すると
 # 自前モジュールの解決漏れまで黙って通るので、当該モジュールだけに限定する。
@@ -119,6 +124,14 @@ module = [
     "reportlab.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# テスト層は strict の対象外。ここで出る 1200 件超は全て no-untyped-def / no-untyped-call、
+# 中身は test 関数への `-> None` 付与という機械的増補で、バグ検出への寄与がほぼ無い一方、
+# 双子（ShioriSecretary）との diff 監査面積だけが増える。テストの担保は pytest が持つ。
+# EpisodicRAG / JootoGrabber が同じ形（strict = true ＋ テスト層 ignore_errors）を先に採っている。
+module = ["tests.*"]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["scripts/tests"]

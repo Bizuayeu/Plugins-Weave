@@ -25,6 +25,7 @@ mime-routing は UseCase 側（render_authorized_media._route_mime）が担う�
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from adapters.media_failure import failed_render, log_media_failure
 from adapters.telegram.media_downloader import FILE_ID_PREFIX_LEN
@@ -118,7 +119,7 @@ class PdfRenderer:
             return []
 
     def _rasterize_range(
-        self, pdf, local_path: Path, start: int, end: int
+        self, pdf: Any, local_path: Path, start: int, end: int
     ) -> list[str]:
         """開いた pdf の [start, end) ページを png 化（範囲は実ページ数でクランプ）。
 

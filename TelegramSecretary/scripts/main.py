@@ -10,6 +10,7 @@ import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, cast
 
 from adapters.state.emitter import StdoutEventEmitter
 from adapters.state.json_state_store import JsonLeaseStore, JsonOffsetStore
@@ -21,7 +22,7 @@ from domain.exceptions import (
     LeaseConflictError,
     TelegramSecretaryError,
 )
-from domain.lease import utc_now
+from domain.lease import SessionLease, utc_now
 from domain.models import OutboundMessage
 from domain.outbound import OutboundAttachment
 from domain.watch_window import WatchWindow
@@ -53,7 +54,11 @@ from infrastructure.wal_cli import (
     run_wal_settle_outbound,
 )
 from usecases.acquire_lease import AcquireLease
-from usecases.fetch_authorized_updates import FetchAuthorizedUpdates
+from usecases.download_authorized_media import MediaDownloadResult
+from usecases.fetch_authorized_updates import (
+    FetchAuthorizedUpdates,
+    NormalizedUpdate,
+)
 from usecases.orientation import (
     DEFAULT_HANDOFF_CAP,
     DEFAULT_HANDOFF_LATEST,
@@ -62,6 +67,7 @@ from usecases.orientation import (
 )
 from usecases.proactive_send import ProactiveSend
 from usecases.release_lease import ReleaseLease
+from usecases.render_authorized_media import RenderResult
 from usecases.renew_lease import RenewLease
 from usecases.send_reply import SendReply
 
@@ -166,7 +172,7 @@ def cmd_init_config(args: argparse.Namespace) -> int:
         )
         return EXIT_CONFIG_INVALID
 
-    data: dict = {"session_duration_sec": args.session_duration_sec}
+    data: dict[str, Any] = {"session_duration_sec": args.session_duration_sec}
     if args.agent_name:
         data["agent_name"] = args.agent_name
     if args.private_dir:
@@ -209,8 +215,8 @@ def cmd_poll(args: argparse.Namespace) -> int:
 
     offset_store = JsonOffsetStore(config.state_dir)
     emitter = StdoutEventEmitter()
-    download_results: list = []
-    render_results: list = []
+    download_results: list[MediaDownloadResult] = []
+    render_results: list[RenderResult] = []
     with TelegramApiGateway(bot_token=config.bot_token) as gateway:
         uc = FetchAuthorizedUpdates(gateway, offset_store, config.authorized_chats)
         try:
@@ -260,7 +266,7 @@ class _LazyMediaStack:
     常駐では構築せず httpx だけで起動できる（fresh container で markitdown/moonshine 未導入でも落ちない）。
     """
 
-    def __init__(self, config: Config, gateway) -> None:
+    def __init__(self, config: Config, gateway: TelegramApiGateway) -> None:
         self._config = config
         self._gateway = gateway
         self._stack: MediaStack | None = None
@@ -305,7 +311,7 @@ def _run_watch_cycle(
             poll_timeout = max(1, int(remaining))
 
     fetch_ok = True
-    updates: list = []
+    updates: list[NormalizedUpdate] = []
     try:
         updates = uc.execute(timeout_seconds=poll_timeout)
     except AuthFailureError as exc:
@@ -318,8 +324,8 @@ def _run_watch_cycle(
 
     had_messages = False
     if fetch_ok:
-        download_results: list = []
-        render_results: list = []
+        download_results: list[MediaDownloadResult] = []
+        render_results: list[RenderResult] = []
         if config.media_enable_download and any(u.update.media for u in updates):
             stack = media.ensure()
             download_results = stack.download_uc.execute(
@@ -491,7 +497,9 @@ def _read_text_file(path_str: str) -> str | None:
         return None
 
 
-def _load_owned_lease(config: Config, owner: str):
+def _load_owned_lease(
+    config: Config, owner: str
+) -> tuple[SessionLease, JsonLeaseStore] | None:
     """lease を load し owner 一致を検証（send-reply / proactive-send 共通）。OK なら
     (lease, lease_store)、NG なら None（stderr 出力済み、呼び出し側で EXIT_LEASE_CONFLICT）。
     """
@@ -1028,7 +1036,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     # handler は各 subparser の set_defaults が携行（subparsers required=True ゆえ必ず存在）。
     # 旧 handlers dict（subcommand 名との二重管理）は廃止
     try:
-        return args.handler(args)
+        # handler は set_defaults 経由なので argparse からは Any で返る。全 cmd_* が
+        # exit code を返す約束なので、その約束を型に戻す。
+        return cast("int", args.handler(args))
     except _ConfigInvalidError:
         return EXIT_CONFIG_INVALID
 

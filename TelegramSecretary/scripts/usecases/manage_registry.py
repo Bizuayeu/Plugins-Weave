@@ -26,13 +26,13 @@ class RegistryService:
         """この管理表のキー名（uuid / id）。WAL redo の registry_keys 収集に使う。"""
         return self._key
 
-    def list(self) -> builtins.list[dict]:
+    def list(self) -> builtins.list[dict[str, Any]]:
         return self._store.load()
 
-    def get(self, key_value: Any) -> dict | None:
+    def get(self, key_value: Any) -> dict[str, Any] | None:
         return find_by(self._store.load(), self._key, key_value)
 
-    def add_or_update(self, record: dict) -> dict:
+    def add_or_update(self, record: dict[str, Any]) -> dict[str, Any]:
         records = upsert(self._store.load(), record, self._key)
         self._store.save(records)
         return record
@@ -40,7 +40,7 @@ class RegistryService:
     def remove(self, key_value: Any) -> None:
         self._store.save(remove_by(self._store.load(), self._key, key_value))
 
-    def replace_all(self, records: builtins.list[dict]) -> None:
+    def replace_all(self, records: builtins.list[dict[str, Any]]) -> None:
         """表の中身を丸ごと差し替える（import の正面口）。
 
         `add_or_update` の繰り返しでは「消えたレコード」を表現できない——全件を書き戻す

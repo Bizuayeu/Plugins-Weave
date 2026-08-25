@@ -89,7 +89,7 @@ class JsonLeaseStore:
         return True
 
     @staticmethod
-    def _payload(lease: SessionLease) -> dict:
+    def _payload(lease: SessionLease) -> dict[str, Any]:
         return {
             "owner": lease.owner,
             "heartbeat": lease.heartbeat.isoformat(),

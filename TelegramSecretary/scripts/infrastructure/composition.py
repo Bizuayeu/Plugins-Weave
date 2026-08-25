@@ -23,7 +23,10 @@ from usecases.download_authorized_media import DownloadAuthorizedMedia
 from usecases.render_authorized_media import RenderAuthorizedMedia
 
 if TYPE_CHECKING:
+    from adapters.registry.git_cli import GitCliAdapter
+    from adapters.telegram.api_gateway import TelegramApiGateway
     from adapters.telegram.media_downloader import TelegramMediaDownloader
+    from usecases.registry_sync import RegistrySyncService
 
 
 def load_config() -> Config:
@@ -39,7 +42,7 @@ def load_config() -> Config:
     return Config.from_sources()
 
 
-def build_git(config: Config):
+def build_git(config: Config) -> GitCliAdapter:
     """config から GitCliAdapter を組み立てる（registry_root を git リポとして操作）。
 
     registry_cli / wal_cli 共用。adapter の import は呼び出し時 lazy に保ち、
@@ -54,7 +57,7 @@ def build_git(config: Config):
     )
 
 
-def build_sync(config: Config):
+def build_sync(config: Config) -> RegistrySyncService | None:
     """config から RegistrySyncService を組み立てる（registry_sync_enabled 無効なら None）。"""
     if not config.registry_sync_enabled:
         return None
@@ -75,7 +78,7 @@ class MediaStack:
     render_uc: RenderAuthorizedMedia
 
 
-def build_media_stack(config: Config, gateway) -> MediaStack:
+def build_media_stack(config: Config, gateway: TelegramApiGateway) -> MediaStack:
     """media download + render の依存一式を組み立てる（poll/watch 共用）。
 
     markitdown は必須。transcriber(moonshine)/pdf_renderer(pdfplumber) は optional:

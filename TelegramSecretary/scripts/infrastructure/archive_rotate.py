@@ -11,30 +11,33 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 
 def partition_for_archive(
-    records: list[dict], should_archive: Callable[[dict], bool]
-) -> tuple[list[dict], list[dict]]:
+    records: list[dict[str, Any]], should_archive: Callable[[dict[str, Any]], bool]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """`should_archive` が True のレコードを archive 側へ分離。順序保持。
 
     返り値は `(keep, archive)`。keep を現役ファイル、archive を `archive/<NAME>_<YYYY-MM>.json` へ。
     """
-    keep: list[dict] = []
-    archive: list[dict] = []
+    keep: list[dict[str, Any]] = []
+    archive: list[dict[str, Any]] = []
     for r in records:
         (archive if should_archive(r) else keep).append(r)
     return keep, archive
 
 
 def split_by_category(
-    records: list[dict], category_key: str = "category", default: str = "general"
-) -> dict[str, list[dict]]:
+    records: list[dict[str, Any]],
+    category_key: str = "category",
+    default: str = "general",
+) -> dict[str, list[dict[str, Any]]]:
     """`category` ごとに records をグループ化（KNOWLEDGE のシャード分割用）。
 
     category 欠落・空のレコードは `default`（"general"）に集約。各グループ内の順序は保持。
     """
-    out: dict[str, list[dict]] = {}
+    out: dict[str, list[dict[str, Any]]] = {}
     for r in records:
         cat = r.get(category_key) or default
         out.setdefault(cat, []).append(r)

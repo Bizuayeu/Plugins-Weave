@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from adapters.registry.json_registry_store import JsonRegistryStore
 from domain.exceptions import GitSyncError
@@ -40,6 +40,10 @@ from usecases.orientation import (
     DEFAULT_TOPIC_WIDTH,
     OrientationService,
 )
+
+if TYPE_CHECKING:
+    from adapters.registry.git_cli import GitCliAdapter
+    from usecases.registry_sync import RegistrySyncService
 
 # list 出力がこの大きさを超えたら警告する（orientation_report_20260809 指定）。
 # ハーネスは巨大出力を persisted-output へ退避するため、超過した list は
@@ -91,7 +95,11 @@ def registry_service(config: Config, name: str) -> RegistryService:
 
 
 def run_registry_command(
-    config: Config, name: str, action: str, args: Any, sync=None
+    config: Config,
+    name: str,
+    action: str,
+    args: Any,
+    sync: RegistrySyncService | None = None,
 ) -> int:
     spec = REGISTRY_SPEC[name]
     svc = registry_service(config, name)
@@ -148,7 +156,7 @@ def _import_records(
     spec: RegistrySpec,
     svc: RegistryService,
     args: Any,
-    sync,
+    sync: RegistrySyncService | None,
 ) -> int:
     """--json / --json-file の全レコードを**全件検証してから一括置換**する（全件書き戻しの正面口）。
 
@@ -196,7 +204,7 @@ def canonical_record(
     name: str,
     raw: Any,
     active_subjects: set[str] | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """書き込み口（add / import / wal-append / wal-redo）が共有する検証＋正準化の一口。
 
     read 経路には掛けない（fail-closed は書き込み側だけ）。**四つの書き込み口がこの関数
@@ -223,11 +231,13 @@ def canonical_record(
     # 主題の照合は knowledge 固有（他表は未知キー検証だけを共有する）
     if name == "knowledge":
         _reject_unknown_subjects(config, raw, active_subjects)
-    return spec.record_cls.from_dict(raw).to_dict()
+    # record_cls は表ごとに具体型が違うため `type[Any]`（上の定義参照）。to_dict の戻りは
+    # どの値オブジェクトでも dict[str, Any] という約束なので、その約束をここで型に戻す。
+    return cast("dict[str, Any]", spec.record_cls.from_dict(raw).to_dict())
 
 
 def _reject_unknown_subjects(
-    config: Config, raw: dict, active_subjects: set[str] | None
+    config: Config, raw: dict[str, Any], active_subjects: set[str] | None
 ) -> None:
     """knowledge の `subjects` を SUBJECTS の active な語彙と照合する。"""
     subjects = [str(s) for s in raw.get("subjects") or []]
@@ -243,7 +253,7 @@ def _reject_unknown_subjects(
         )
 
 
-def _reject_duplicate_keys(spec: RegistrySpec, records: list[dict]) -> None:
+def _reject_duplicate_keys(spec: RegistrySpec, records: list[dict[str, Any]]) -> None:
     """import batch 内のキー重複を弾く（add 経路の upsert が担っていた一意性の代わり）。
 
     `replace_all` は渡された配列をそのまま保存するため、重複 id はそのまま表に残る——
@@ -277,8 +287,12 @@ def _active_subject_ids(config: Config) -> set[str]:
     }
 
 
-def read_json_arg(args: Any) -> dict:
-    """--json または --json-file から1レコードの dict を読む（wal_cli と共有）。
+def read_json_arg(args: Any) -> Any:
+    """--json または --json-file から JSON を読む（wal_cli と共有）。
+
+    戻り値は `Any`——add / wal-append は 1 レコードの dict、import は配列を渡すため、
+    ここで型は決まらない。**どちらを期待するかは呼び出し側が narrow する**
+    （import は `_import_records` の isinstance(list) で言語化して弾く）。
 
     両方未指定は明示メッセージの ValueError——json.loads(None) の TypeError に任せると
     「型エラー」という誤シグナルになるため、入力不正として言語化する
@@ -294,7 +308,9 @@ def read_json_arg(args: Any) -> dict:
     return json.loads(text)
 
 
-def _sync_after_change(config: Config, name: str, message: str, sync) -> None:
+def _sync_after_change(
+    config: Config, name: str, message: str, sync: RegistrySyncService | None
+) -> None:
     """管理表の変更後に git 同期（イベント駆動）。
 
     sync 注入を優先（テスト/外部組み立て）、無ければ config から組み立てる
@@ -327,7 +343,9 @@ def _warn_if_oversized(name: str, payload: str) -> None:
     )
 
 
-def _warn_if_unknown_keys(name: str, spec: RegistrySpec, records: list[dict]) -> None:
+def _warn_if_unknown_keys(
+    name: str, spec: RegistrySpec, records: list[dict[str, Any]]
+) -> None:
     """未知キーを持つレコードがあれば stderr で告げる（read は fail-open、exit 0 のまま）。
 
     fail-closed は書き込み口（add / import）だけ——read に検証を掛けると、既存データの
@@ -375,7 +393,8 @@ def _report_orientation_size(digest: str) -> None:
 def _table_size(config: Config, name: str) -> int:
     """管理表ファイルの実バイト数（不在は 0＝初回起動でも orientation は完走する）。"""
     try:
-        return getattr(config, REGISTRY_SPEC[name].path_attr).stat().st_size
+        path: Path = getattr(config, REGISTRY_SPEC[name].path_attr)
+        return path.stat().st_size
     except OSError:
         return 0
 
@@ -462,7 +481,7 @@ def run_orientation(config: Config, args: Any = None) -> int:
     return EXIT_OK
 
 
-def run_artifacts_sync(config: Config, sync=None) -> int:
+def run_artifacts_sync(config: Config, sync: RegistrySyncService | None = None) -> int:
     """`artifacts/` 配下を既存 sync 経路で commit & push（新規 git コードを書かない）。
 
     書き込み CLI は持たない——成果物の構造は秘書の判断（重要度の世界、DESIGN §3.10）。
@@ -488,7 +507,9 @@ def run_artifacts_sync(config: Config, sync=None) -> int:
     return EXIT_OK
 
 
-def run_handoff_archive(config: Config, names: list[str], sync=None) -> int:
+def run_handoff_archive(
+    config: Config, names: list[str], sync: RegistrySyncService | None = None
+) -> int:
     """指名された handoff ブロックを `handoff/archive/` へ mv し、既存 sync で送る（卒業）。
 
     非再帰読みの契約（`_read_handoff_blocks`）が受け皿なので、移した時点で以後の
@@ -535,7 +556,7 @@ def run_role_status(config: Config) -> int:
     return EXIT_OK
 
 
-def run_registry_fetch(config: Config, git=None) -> int:
+def run_registry_fetch(config: Config, git: GitCliAdapter | None = None) -> int:
     """起動時に固定ブランチから管理表を fetch（ROUTINE_PROMPT が起動時に呼ぶ）。
 
     registry_sync 無効なら no-op（exit 0＝ローカル運用は git に触れない）。git 注入は
