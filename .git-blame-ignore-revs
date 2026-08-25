@@ -13,3 +13,19 @@
 # style(contextpreloader): ruff format を適用する (25 files) — 2026-08-25
 # pytest 112 / mypy 36 files / ruff check が適用前後で完全一致
 35ed241925fc45aeb53f3c698474af168e6d7ba8
+
+# style(VisualExpression): formatter をワークスペース既定へ揃える (19 files) — 2026-08-25
+# ruff check / mypy Success / pytest 220 passed が適用前後で完全一致
+6d0e65a58e003843611846cbac35c7f805a17511
+
+# style(EmotionPulse): formatter をワークスペース既定へ揃える (11 files) — 2026-08-25
+# ruff check / mypy Success / pytest 105 passed が適用前後で完全一致
+c9ea49ea6033b3b951c0e92386db3731bc706207
+
+# style(EmailingEssay): formatter をワークスペース既定へ揃える (36 files) — 2026-08-25
+# ruff check / mypy Success (63 files) / pytest 343 passed が適用前後で完全一致
+701b3d21d5c87672666de7888a0dc7a8939482bb
+
+# style(EpisodicRAG): formatter をワークスペース既定へ揃える (178 files) — 2026-08-25
+# ruff check / mypy Success (300 files) / pytest 2686 passed, 5 skipped が適用前後で完全一致
+c6de15664974782c6252e843f79ac3754924ff0b
