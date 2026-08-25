@@ -28,7 +28,7 @@ BACKUP_SIZE_THRESHOLD = 1024  # 1KB以上でバックアップ
 BACKUP_TIME_THRESHOLD = 3600  # 1時間以上経過でバックアップ
 
 # モジュールロガー
-logger = logging.getLogger('emailingessay.storage')
+logger = logging.getLogger("emailingessay.storage")
 
 
 class ScheduleStorageAdapter:
@@ -74,7 +74,7 @@ class ScheduleStorageAdapter:
             return False
 
         # 時間チェック（バックアップファイルの更新時刻）
-        backup = filepath.with_suffix('.json.bak')
+        backup = filepath.with_suffix(".json.bak")
         if not backup.exists():
             return True  # バックアップが無ければ作成
 
@@ -98,7 +98,7 @@ class ScheduleStorageAdapter:
             バックアップファイルのパス。ファイルが存在しない場合はNone
         """
         if filepath.exists():
-            backup = filepath.with_suffix('.json.bak')
+            backup = filepath.with_suffix(".json.bak")
             try:
                 shutil.copy2(filepath, backup)
                 logger.debug(f"Created backup: {backup}")
@@ -117,12 +117,12 @@ class ScheduleStorageAdapter:
         Returns:
             復旧に成功した場合はTrue
         """
-        backup = filepath.with_suffix('.json.bak')
+        backup = filepath.with_suffix(".json.bak")
         if not backup.exists():
             return False
 
         try:
-            with backup.open(encoding='utf-8') as f:
+            with backup.open(encoding="utf-8") as f:
                 content = f.read()
                 if not content.strip():
                     return False
@@ -169,7 +169,9 @@ class ScheduleStorageAdapter:
             logger.error("No valid backup available, returning empty list")
             return []
 
-    def save_schedules(self, schedules: list[ScheduleEntry], force_backup: bool = False) -> None:
+    def save_schedules(
+        self, schedules: list[ScheduleEntry], force_backup: bool = False
+    ) -> None:
         """
         スケジュール一覧を保存する。
 

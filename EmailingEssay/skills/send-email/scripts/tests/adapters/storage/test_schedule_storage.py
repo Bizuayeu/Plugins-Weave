@@ -14,7 +14,10 @@ import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(
-    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    0,
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    ),
 )
 
 from adapters.storage.path_resolver import PathResolverAdapter
@@ -121,7 +124,12 @@ class TestScheduleStorageAdapter:
         """複数スケジュールの保存・読み込み"""
         schedules = [
             {"name": "daily_essay", "frequency": "daily", "time": "22:00"},
-            {"name": "weekly_essay", "frequency": "weekly", "time": "10:00", "weekday": "monday"},
+            {
+                "name": "weekly_essay",
+                "frequency": "weekly",
+                "time": "10:00",
+                "weekday": "monday",
+            },
         ]
         adapter.save_schedules(schedules)
         loaded = adapter.load_schedules()
@@ -130,10 +138,14 @@ class TestScheduleStorageAdapter:
     def test_overwrite_existing(self, adapter):
         """既存データの上書き"""
         # 初回保存
-        adapter.save_schedules([{"name": "first", "frequency": "daily", "time": "22:00"}])
+        adapter.save_schedules(
+            [{"name": "first", "frequency": "daily", "time": "22:00"}]
+        )
 
         # 上書き
-        adapter.save_schedules([{"name": "second", "frequency": "weekly", "time": "10:00"}])
+        adapter.save_schedules(
+            [{"name": "second", "frequency": "weekly", "time": "10:00"}]
+        )
 
         loaded = adapter.load_schedules()
         assert len(loaded) == 1

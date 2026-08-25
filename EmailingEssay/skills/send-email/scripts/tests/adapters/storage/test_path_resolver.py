@@ -13,7 +13,10 @@ import pytest
 
 # scriptsディレクトリをパスに追加
 sys.path.insert(
-    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    0,
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    ),
 )
 
 from usecases.ports import PathResolverPort

@@ -10,7 +10,9 @@ from unittest.mock import Mock
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 
 class TestProcessAlivenessCache:
@@ -38,7 +40,9 @@ class TestProcessAlivenessCache:
         from adapters.storage.process_cache import ProcessAlivenessCache
 
         mock_checker = Mock(return_value=True)
-        cache = ProcessAlivenessCache(ttl=0.0, cleanup_interval=60.0)  # TTL=0で即時期限切れ
+        cache = ProcessAlivenessCache(
+            ttl=0.0, cleanup_interval=60.0
+        )  # TTL=0で即時期限切れ
 
         # 最初の呼び出し
         result1 = cache.is_alive(123, mock_checker)
@@ -60,7 +64,9 @@ class TestProcessAlivenessCache:
         def mock_checker(pid: int) -> bool:
             return is_alive
 
-        cache = ProcessAlivenessCache(ttl=5.0, cleanup_interval=0.0)  # 即時クリーンアップ
+        cache = ProcessAlivenessCache(
+            ttl=5.0, cleanup_interval=0.0
+        )  # 即時クリーンアップ
 
         # プロセス生存時にキャッシュ
         cache.is_alive(123, mock_checker)

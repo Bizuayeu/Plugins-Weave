@@ -83,7 +83,7 @@ def render_template(template: str, **kwargs: Any) -> str:
         # group(0) は常にマッチした全体を返すので None にならない
         return str(match.group(0))
 
-    return re.sub(r'\{\{(\w+)\}\}', replacer, template)
+    return re.sub(r"\{\{(\w+)\}\}", replacer, template)
 
 
 __all__ = ["TemplateError", "clear_template_cache", "load_template", "render_template"]

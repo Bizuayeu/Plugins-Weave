@@ -108,7 +108,7 @@ class Config:
                 key = key.strip()
                 value = value.strip()
                 # クォートを除去
-                value = value.strip('"\'')
+                value = value.strip("\"'")
                 # 既存の環境変数は上書きしない
                 os.environ.setdefault(key, value)
 

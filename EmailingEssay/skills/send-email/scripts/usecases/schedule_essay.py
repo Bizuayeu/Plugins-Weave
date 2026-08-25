@@ -105,7 +105,11 @@ class ScheduleEssayUseCase:
 
         # タスク名生成
         task_name = self._generate_task_name(
-            config.frequency, config.time_spec, config.theme, config.name, config.day_spec
+            config.frequency,
+            config.time_spec,
+            config.theme,
+            config.name,
+            config.day_spec,
         )
         command = build_claude_command(
             config.theme, config.context_file, config.file_list, config.lang
@@ -253,7 +257,11 @@ class ScheduleEssayUseCase:
 
         # 自動生成
         if frequency == "monthly" and day_spec:
-            base = theme if theme else f"{frequency}_{day_spec}_{time_spec.replace(':', '')}"
+            base = (
+                theme
+                if theme
+                else f"{frequency}_{day_spec}_{time_spec.replace(':', '')}"
+            )
         else:
             base = theme if theme else f"{frequency}_{time_spec.replace(':', '')}"
         safe_name = "".join(c if c.isalnum() or c in "_-" else "_" for c in base)
@@ -282,14 +290,23 @@ class ScheduleEssayUseCase:
         """OSスケジューラにタスクを登録"""
         if frequency == "monthly" and monthly_type == "last_day":
             # 月末は日次タスク + ランナースクリプトで対応
-            runner_path = self._create_runner_script(task_name, day_spec, monthly_type, command)
+            runner_path = self._create_runner_script(
+                task_name, day_spec, monthly_type, command
+            )
             runner_command = (
-                f'python "{runner_path}"' if sys.platform == "win32" else f'python3 "{runner_path}"'
+                f'python "{runner_path}"'
+                if sys.platform == "win32"
+                else f'python3 "{runner_path}"'
             )
             self._scheduler.add(task_name, runner_command, "daily", time_spec)
         else:
             self._scheduler.add(
-                task_name, command, frequency, time_spec, weekday=weekday, day_spec=day_spec
+                task_name,
+                command,
+                frequency,
+                time_spec,
+                weekday=weekday,
+                day_spec=day_spec,
             )
 
     def _create_runner_script(

@@ -9,7 +9,9 @@ import sys
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from frameworks.templates import TemplateError, load_template, render_template
 

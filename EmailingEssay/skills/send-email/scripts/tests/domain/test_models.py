@@ -11,7 +11,9 @@ import sys
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from domain.models import EssaySchedule, MonthlyPattern, MonthlyType
 
@@ -40,7 +42,10 @@ class TestEssaySchedule:
     def test_create_monthly_schedule(self):
         """月次スケジュールの作成"""
         schedule = EssaySchedule(
-            name="monthly_summary", frequency="monthly", time="15:00", day_spec="last_fri"
+            name="monthly_summary",
+            frequency="monthly",
+            time="15:00",
+            day_spec="last_fri",
         )
         assert schedule.frequency == "monthly"
         assert schedule.day_spec == "last_fri"
@@ -57,7 +62,9 @@ class TestEssaySchedule:
 
     def test_to_dict(self):
         """to_dict() メソッドのテスト"""
-        schedule = EssaySchedule(name="test", frequency="daily", time="09:00", theme="test_theme")
+        schedule = EssaySchedule(
+            name="test", frequency="daily", time="09:00", theme="test_theme"
+        )
         d = schedule.to_dict()
         assert d["name"] == "test"
         assert d["frequency"] == "daily"
@@ -472,7 +479,9 @@ class TestScheduleConfigValidation:
         """monthly_type プロパティのテスト"""
         from domain.models import ScheduleConfig
 
-        config = ScheduleConfig(frequency="monthly", time_spec="22:00", day_spec="last_fri")
+        config = ScheduleConfig(
+            frequency="monthly", time_spec="22:00", day_spec="last_fri"
+        )
         assert config.monthly_type == "last_weekday"
 
     def test_monthly_type_for_non_monthly(self):

@@ -18,7 +18,7 @@ import yagmail
 
 from domain.exceptions import MailError
 
-logger = logging.getLogger('emailingessay.mail')
+logger = logging.getLogger("emailingessay.mail")
 
 # 後方互換性のため再エクスポート
 __all__ = ["MailError", "YagmailAdapter", "collapse_style_whitespace"]
@@ -27,7 +27,9 @@ __all__ = ["MailError", "YagmailAdapter", "collapse_style_whitespace"]
 EMAIL_TEMPLATE_NAME = "email_base.html.template"
 EMAIL_FALLBACK_TEMPLATE = "email_fallback.html.template"
 
-_STYLE_BLOCK_RE = re.compile(r"(<style[^>]*>)(.*?)(</style>)", re.DOTALL | re.IGNORECASE)
+_STYLE_BLOCK_RE = re.compile(
+    r"(<style[^>]*>)(.*?)(</style>)", re.DOTALL | re.IGNORECASE
+)
 
 
 def collapse_style_whitespace(html: str) -> str:
@@ -46,7 +48,11 @@ def collapse_style_whitespace(html: str) -> str:
     """
 
     def _collapse(match: re.Match[str]) -> str:
-        return match.group(1) + re.sub(r"\s+", " ", match.group(2)).strip() + match.group(3)
+        return (
+            match.group(1)
+            + re.sub(r"\s+", " ", match.group(2)).strip()
+            + match.group(3)
+        )
 
     return _STYLE_BLOCK_RE.sub(_collapse, html)
 
@@ -100,13 +106,19 @@ class YagmailAdapter:
             # フォールバックテンプレートを使用
             try:
                 fallback_template = load_template(EMAIL_FALLBACK_TEMPLATE)
-                title_block = f'<h2 style="color: #f97316;">{title}</h2>' if title else ''
-                return render_template(fallback_template, title_block=title_block, content=content)
+                title_block = (
+                    f'<h2 style="color: #f97316;">{title}</h2>' if title else ""
+                )
+                return render_template(
+                    fallback_template, title_block=title_block, content=content
+                )
             except Exception:
                 # 最終手段: 最小限のHTML
                 return f"<div>{content}</div>"
 
-    def send(self, to: str, subject: str, body: str, max_retries: int | None = None) -> None:
+    def send(
+        self, to: str, subject: str, body: str, max_retries: int | None = None
+    ) -> None:
         """
         メールを送信する（指数バックオフ付きリトライ）。
 
@@ -135,7 +147,11 @@ class YagmailAdapter:
                     yag.send(to=recipient, subject=subject, contents=body)
                 print(f"Sent to: {recipient}")
                 return
-            except (smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError, OSError) as e:
+            except (
+                smtplib.SMTPServerDisconnected,
+                smtplib.SMTPConnectError,
+                OSError,
+            ) as e:
                 # 一時的なネットワーク障害はリトライ
                 last_error = e
                 if attempt < retries - 1:

@@ -67,7 +67,9 @@ class ScheduleConfig:
         try:
             datetime.strptime(self.time_spec, "%H:%M")
         except ValueError as e:
-            raise ValueError(f"time must be in HH:MM format, got '{self.time_spec}'") from e
+            raise ValueError(
+                f"time must be in HH:MM format, got '{self.time_spec}'"
+            ) from e
 
     def _validate_weekday(self) -> None:
         """曜日のバリデーション（weekly用）"""
@@ -332,7 +334,9 @@ class TargetTime:
         # HH:MM 形式（今日または明日）
         try:
             target = datetime.strptime(time_str, "%H:%M").replace(
-                year=datetime.now().year, month=datetime.now().month, day=datetime.now().day
+                year=datetime.now().year,
+                month=datetime.now().month,
+                day=datetime.now().day,
             )
             # 今日の指定時刻が過ぎていれば明日にスケジュール
             if target < datetime.now():

@@ -21,7 +21,7 @@ class TestLoggingConfiguration:
         from frameworks.logging_config import configure_logging
 
         configure_logging()
-        logger = logging.getLogger('emailingessay')
+        logger = logging.getLogger("emailingessay")
         assert logger is not None
 
     def test_configure_logging_sets_level(self):
@@ -29,15 +29,15 @@ class TestLoggingConfiguration:
         from frameworks.logging_config import configure_logging
 
         configure_logging(level=logging.DEBUG)
-        logger = logging.getLogger('emailingessay')
+        logger = logging.getLogger("emailingessay")
         assert logger.level == logging.DEBUG
 
     def test_get_logger_returns_child_logger(self):
         """get_logger()が子loggerを返す"""
         from frameworks.logging_config import get_logger
 
-        logger = get_logger('storage')
-        assert logger.name == 'emailingessay.storage'
+        logger = get_logger("storage")
+        assert logger.name == "emailingessay.storage"
 
 
 class TestModuleLoggers:
@@ -47,7 +47,7 @@ class TestModuleLoggers:
         """ScheduleStorageAdapterモジュールがloggerを持つ"""
         from adapters.storage import schedule_storage
 
-        assert hasattr(schedule_storage, 'logger')
+        assert hasattr(schedule_storage, "logger")
 
     def test_schedule_storage_logs_on_corruption(self, tmp_path, caplog):
         """JSON破損時に警告ログを出力"""
@@ -58,7 +58,7 @@ class TestModuleLoggers:
         file_path = tmp_path / "schedules.json"
         file_path.write_text("{corrupted")
 
-        with caplog.at_level(logging.WARNING, logger='emailingessay'):
+        with caplog.at_level(logging.WARNING, logger="emailingessay"):
             adapter.load_schedules()
 
         # 警告ログが出力されている

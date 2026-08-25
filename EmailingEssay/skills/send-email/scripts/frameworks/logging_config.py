@@ -15,11 +15,11 @@ import sys
 from datetime import datetime
 
 # デフォルトのフォーマット
-DEFAULT_FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+DEFAULT_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 # ルートロガー名
-ROOT_LOGGER_NAME = 'emailingessay'
+ROOT_LOGGER_NAME = "emailingessay"
 
 
 class JsonFormatter(logging.Formatter):
@@ -93,4 +93,4 @@ def get_logger(name: str) -> logging.Logger:
     Returns:
         emailingessay.{name} のlogger
     """
-    return logging.getLogger(f'{ROOT_LOGGER_NAME}.{name}')
+    return logging.getLogger(f"{ROOT_LOGGER_NAME}.{name}")

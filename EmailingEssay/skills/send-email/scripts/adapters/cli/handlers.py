@@ -107,13 +107,13 @@ def _handle_schedule_add(args: Namespace, frequency: str) -> int:
     usecase.add(
         frequency=frequency,
         time_spec=args.time,
-        weekday=getattr(args, 'weekday', ''),
+        weekday=getattr(args, "weekday", ""),
         theme=args.theme,
         context_file=args.context,
         file_list=args.file_list,
         lang=args.lang,
         name=args.name,
-        day_spec=getattr(args, 'day_spec', ''),
+        day_spec=getattr(args, "day_spec", ""),
     )
     return 0
 

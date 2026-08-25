@@ -11,7 +11,9 @@ import sys
 from unittest.mock import Mock, patch
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from usecases.ports import (
     MailPort,
@@ -73,9 +75,9 @@ class TestProtocolConformance:
         from adapters.mail import YagmailAdapter
 
         # メソッド存在確認（インスタンス化せずにProtocol準拠を確認）
-        assert hasattr(YagmailAdapter, 'send')
-        assert hasattr(YagmailAdapter, 'test')
-        assert hasattr(YagmailAdapter, 'send_custom')
+        assert hasattr(YagmailAdapter, "send")
+        assert hasattr(YagmailAdapter, "test")
+        assert hasattr(YagmailAdapter, "send_custom")
 
 
 # =============================================================================
@@ -141,9 +143,9 @@ class TestCreateWaitUsecase:
     def test_create_wait_usecase_injects_dependencies(self):
         """依存性が注入される"""
         with (
-            patch('usecases.factories.get_waiter_storage') as mock_get_waiter_storage,
-            patch('usecases.factories.get_path_resolver') as mock_get_path_resolver,
-            patch('usecases.factories.get_spawner') as mock_get_spawner,
+            patch("usecases.factories.get_waiter_storage") as mock_get_waiter_storage,
+            patch("usecases.factories.get_path_resolver") as mock_get_path_resolver,
+            patch("usecases.factories.get_spawner") as mock_get_spawner,
         ):
             mock_waiter_storage = Mock()
             mock_path_resolver = Mock()

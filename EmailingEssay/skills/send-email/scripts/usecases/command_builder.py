@@ -142,7 +142,9 @@ class ClaudeCommandBuilder:
 
         if sys.platform == "win32":
             claude_path = str(Path.home() / ".local" / "bin" / "claude.exe")
-            return f'"{claude_path}" --dangerously-skip-permissions -p "/essay {args_str}"'
+            return (
+                f'"{claude_path}" --dangerously-skip-permissions -p "/essay {args_str}"'
+            )
         return f'claude --dangerously-skip-permissions -p "/essay {args_str}"'
 
 
@@ -160,7 +162,11 @@ def build_claude_args(
     wait_essay用のデフォルト: シングルクォート
     """
     return ClaudeCommandBuilder.build_args(
-        theme=theme, context=context, file_list=file_list, lang=lang, quote_style=quote_style
+        theme=theme,
+        context=context,
+        file_list=file_list,
+        lang=lang,
+        quote_style=quote_style,
     )
 
 

@@ -13,9 +13,16 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
-from usecases.wait_essay import WaiterError, WaitEssayUseCase, get_persistent_dir, parse_target_time
+from usecases.wait_essay import (
+    WaiterError,
+    WaitEssayUseCase,
+    get_persistent_dir,
+    parse_target_time,
+)
 
 
 class TestParseTargetTime:
@@ -110,7 +117,11 @@ class TestWaitEssayUseCase:
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(
-            target_time=future_time, theme="test_theme", context="", file_list="", lang="ja"
+            target_time=future_time,
+            theme="test_theme",
+            context="",
+            file_list="",
+            lang="ja",
         )
 
         # スクリプトファイルが作成されたことを確認
@@ -121,7 +132,9 @@ class TestWaitEssayUseCase:
         """spawn() がデタッチドプロセスを起動"""
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
-        usecase.spawn(target_time=future_time, theme="", context="", file_list="", lang="")
+        usecase.spawn(
+            target_time=future_time, theme="", context="", file_list="", lang=""
+        )
 
         mock_spawner.spawn_detached.assert_called_once()
 
@@ -130,7 +143,11 @@ class TestWaitEssayUseCase:
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
 
         usecase.spawn(
-            target_time=future_time, theme="朝の振り返り", context="", file_list="", lang=""
+            target_time=future_time,
+            theme="朝の振り返り",
+            context="",
+            file_list="",
+            lang="",
         )
 
         script_file = tmp_path / "essay_waiter_temp.py"
@@ -226,7 +243,9 @@ class TestWaitEssayUseCaseSeparatedPorts:
         )
         assert usecase is not None
 
-    def test_spawn_uses_path_resolver(self, mock_waiter_storage, mock_path_resolver, mock_spawner):
+    def test_spawn_uses_path_resolver(
+        self, mock_waiter_storage, mock_path_resolver, mock_spawner
+    ):
         """spawn()がPathResolverPortを使用する"""
         usecase = WaitEssayUseCase(
             waiter_storage=mock_waiter_storage,
@@ -237,7 +256,9 @@ class TestWaitEssayUseCaseSeparatedPorts:
         usecase.spawn(target_time=future_time)
         mock_path_resolver.get_persistent_dir.assert_called()
 
-    def test_spawn_uses_waiter_storage(self, mock_waiter_storage, mock_path_resolver, mock_spawner):
+    def test_spawn_uses_waiter_storage(
+        self, mock_waiter_storage, mock_path_resolver, mock_spawner
+    ):
         """spawn()がWaiterStoragePortを使用する"""
         usecase = WaitEssayUseCase(
             waiter_storage=mock_waiter_storage,
@@ -268,4 +289,6 @@ class TestGetPersistentDir:
         """永続ディレクトリは ~/.claude/plugins/.emailingessay を使用する"""
         result = get_persistent_dir()
         # Claude Code plugin convention: ~/.claude/plugins/.emailingessay
-        assert ".claude" in result and "plugins" in result and ".emailingessay" in result
+        assert (
+            ".claude" in result and "plugins" in result and ".emailingessay" in result
+        )

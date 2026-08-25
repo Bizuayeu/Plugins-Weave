@@ -15,7 +15,9 @@ from typing import Final
 # =============================================================================
 
 # 有効な曜日の省略形セット（バリデーション用）
-VALID_WEEKDAYS: Final[frozenset[str]] = frozenset({"mon", "tue", "wed", "thu", "fri", "sat", "sun"})
+VALID_WEEKDAYS: Final[frozenset[str]] = frozenset(
+    {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
+)
 
 # 曜日フルネームのリスト（順序保証用）
 WEEKDAYS_FULL: Final[tuple[str, ...]] = (
@@ -29,7 +31,15 @@ WEEKDAYS_FULL: Final[tuple[str, ...]] = (
 )
 
 # 曜日省略形のリスト（順序保証用）
-WEEKDAYS_ABBR: Final[tuple[str, ...]] = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+WEEKDAYS_ABBR: Final[tuple[str, ...]] = (
+    "mon",
+    "tue",
+    "wed",
+    "thu",
+    "fri",
+    "sat",
+    "sun",
+)
 
 # =============================================================================
 # 曜日マッピング（Python weekday → 文字列）
@@ -95,7 +105,12 @@ FULL_TO_SCHTASKS: Final[dict[str, str]] = {
 }
 
 # 序数 → schtasks週指定
-ORDINAL_TO_SCHTASKS: Final[dict[int, str]] = {1: "FIRST", 2: "SECOND", 3: "THIRD", 4: "FOURTH"}
+ORDINAL_TO_SCHTASKS: Final[dict[int, str]] = {
+    1: "FIRST",
+    2: "SECOND",
+    3: "THIRD",
+    4: "FOURTH",
+}
 
 # =============================================================================
 # Unix cron 用マッピング

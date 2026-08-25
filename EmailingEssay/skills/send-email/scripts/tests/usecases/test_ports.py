@@ -11,7 +11,9 @@ import sys
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 
 class TestScheduleStoragePort:
@@ -21,13 +23,13 @@ class TestScheduleStoragePort:
         """load_schedulesメソッドを持つ"""
         from usecases.ports import ScheduleStoragePort
 
-        assert hasattr(ScheduleStoragePort, 'load_schedules')
+        assert hasattr(ScheduleStoragePort, "load_schedules")
 
     def test_protocol_has_save_schedules(self):
         """save_schedulesメソッドを持つ"""
         from usecases.ports import ScheduleStoragePort
 
-        assert hasattr(ScheduleStoragePort, 'save_schedules')
+        assert hasattr(ScheduleStoragePort, "save_schedules")
 
 
 class TestWaiterStoragePort:
@@ -37,13 +39,13 @@ class TestWaiterStoragePort:
         """register_waiterメソッドを持つ"""
         from usecases.ports import WaiterStoragePort
 
-        assert hasattr(WaiterStoragePort, 'register_waiter')
+        assert hasattr(WaiterStoragePort, "register_waiter")
 
     def test_protocol_has_get_active_waiters(self):
         """get_active_waitersメソッドを持つ"""
         from usecases.ports import WaiterStoragePort
 
-        assert hasattr(WaiterStoragePort, 'get_active_waiters')
+        assert hasattr(WaiterStoragePort, "get_active_waiters")
 
 
 class TestPathResolverPort:
@@ -53,13 +55,13 @@ class TestPathResolverPort:
         """get_persistent_dirメソッドを持つ"""
         from usecases.ports import PathResolverPort
 
-        assert hasattr(PathResolverPort, 'get_persistent_dir')
+        assert hasattr(PathResolverPort, "get_persistent_dir")
 
     def test_protocol_has_get_runners_dir(self):
         """get_runners_dirメソッドを持つ"""
         from usecases.ports import PathResolverPort
 
-        assert hasattr(PathResolverPort, 'get_runners_dir')
+        assert hasattr(PathResolverPort, "get_runners_dir")
 
 
 class TestStorageAdaptersImplementPorts:

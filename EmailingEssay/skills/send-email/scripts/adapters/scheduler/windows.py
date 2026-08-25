@@ -59,7 +59,9 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
         elif frequency == "weekly":
             schtasks_cmd = self._build_weekly_command(task_name, command, time, weekday)
         elif frequency == "monthly":
-            schtasks_cmd = self._build_monthly_command(task_name, command, time, day_spec)
+            schtasks_cmd = self._build_monthly_command(
+                task_name, command, time, day_spec
+            )
         else:
             raise SchedulerError(f"Unknown frequency: {frequency}")
 
@@ -101,11 +103,13 @@ class WindowsSchedulerAdapter(BaseSchedulerAdapter):
             if "Essay_" in line or any(name in line for name in search_names):
                 parts = line.strip().strip('"').split('","')
                 if parts:
-                    task_name = parts[0].replace('"', '').lstrip('\\')
+                    task_name = parts[0].replace('"', "").lstrip("\\")
                     tasks.append({"name": task_name})
         return tasks
 
-    def _build_daily_command(self, task_name: str, command: str, time: str) -> _List[str]:
+    def _build_daily_command(
+        self, task_name: str, command: str, time: str
+    ) -> _List[str]:
         """日次タスクのschtasksコマンドを構築する。"""
         return [
             "schtasks",

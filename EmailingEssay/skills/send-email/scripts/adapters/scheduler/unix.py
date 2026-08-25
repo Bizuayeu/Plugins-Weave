@@ -45,7 +45,9 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
         """
 
         hour, minute = time.split(":")
-        cron_line = self._build_cron_line(frequency, hour, minute, command, weekday, day_spec)
+        cron_line = self._build_cron_line(
+            frequency, hour, minute, command, weekday, day_spec
+        )
 
         # 既存のcrontabを取得
         current = self._get_current_crontab()

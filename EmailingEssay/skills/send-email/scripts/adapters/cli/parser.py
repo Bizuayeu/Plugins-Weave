@@ -19,9 +19,14 @@ def add_common_options(parser: argparse.ArgumentParser) -> None:
     Args:
         parser: オプションを追加する ArgumentParser
     """
-    parser.add_argument("-t", "--theme", default="", help="Essay theme (エッセイのテーマ)")
     parser.add_argument(
-        "-c", "--context", default="", help="Context file path (コンテキストファイルのパス)"
+        "-t", "--theme", default="", help="Essay theme (エッセイのテーマ)"
+    )
+    parser.add_argument(
+        "-c",
+        "--context",
+        default="",
+        help="Context file path (コンテキストファイルのパス)",
     )
     parser.add_argument(
         "-f",
@@ -37,7 +42,9 @@ def add_common_options(parser: argparse.ArgumentParser) -> None:
         choices=["ja", "en", "auto"],
         help="Language (言語: ja, en, auto)",
     )
-    parser.add_argument("--name", default="", help="Custom task name (カスタムタスク名)")
+    parser.add_argument(
+        "--name", default="", help="Custom task name (カスタムタスク名)"
+    )
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -88,7 +95,9 @@ Examples:
     # -------------------------------------------------------------------------
     # send コマンド
     # -------------------------------------------------------------------------
-    send_parser = subparsers.add_parser("send", help="Send custom email (カスタムメール送信)")
+    send_parser = subparsers.add_parser(
+        "send", help="Send custom email (カスタムメール送信)"
+    )
     send_parser.add_argument("subject", help="Email subject (メールの件名)")
     send_parser.add_argument("body", help="Email body (メールの本文)")
 
@@ -96,10 +105,12 @@ Examples:
     # wait コマンド
     # -------------------------------------------------------------------------
     wait_parser = subparsers.add_parser(
-        "wait", help="Schedule one-time essay or list waiters (一回限りのエッセイ配信 / 待機一覧)"
+        "wait",
+        help="Schedule one-time essay or list waiters (一回限りのエッセイ配信 / 待機一覧)",
     )
     wait_parser.add_argument(
-        "time", help="Target time (HH:MM or YYYY-MM-DD HH:MM) or 'list' to show active waiters"
+        "time",
+        help="Target time (HH:MM or YYYY-MM-DD HH:MM) or 'list' to show active waiters",
     )
     add_common_options(wait_parser)
 
@@ -117,8 +128,12 @@ Examples:
     schedule_subs.add_parser("list", help="List all schedules (スケジュール一覧)")
 
     # schedule remove
-    remove_parser = schedule_subs.add_parser("remove", help="Remove a schedule (スケジュール削除)")
-    remove_parser.add_argument("name", help="Schedule name to remove (削除するスケジュール名)")
+    remove_parser = schedule_subs.add_parser(
+        "remove", help="Remove a schedule (スケジュール削除)"
+    )
+    remove_parser.add_argument(
+        "name", help="Schedule name to remove (削除するスケジュール名)"
+    )
 
     # schedule daily
     daily_parser = schedule_subs.add_parser(

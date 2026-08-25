@@ -17,7 +17,12 @@ from domain.exceptions import WaiterError
 from .command_builder import build_claude_args
 
 if TYPE_CHECKING:
-    from .ports import PathResolverPort, ProcessSpawnerPort, WaiterEntry, WaiterStoragePort
+    from .ports import (
+        PathResolverPort,
+        ProcessSpawnerPort,
+        WaiterEntry,
+        WaiterStoragePort,
+    )
 
 # 後方互換性のため再エクスポート
 __all__ = [
@@ -157,13 +162,18 @@ class WaitEssayUseCase:
 
         return pid
 
-    def _generate_waiter_script(self, target_time: str, claude_args_str: str, log_file: str) -> str:
+    def _generate_waiter_script(
+        self, target_time: str, claude_args_str: str, log_file: str
+    ) -> str:
         """待機スクリプトを生成（テンプレートシステム使用）"""
         from frameworks.templates import load_template, render_template
 
         template = load_template("essay_waiter.py.template")
         return render_template(
-            template, log_file=log_file, target_time=target_time, claude_args=claude_args_str
+            template,
+            log_file=log_file,
+            target_time=target_time,
+            claude_args=claude_args_str,
         )
 
     def list_waiters(self) -> list[WaiterEntry]:

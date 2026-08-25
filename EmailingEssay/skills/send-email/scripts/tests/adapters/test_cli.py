@@ -11,7 +11,9 @@ import sys
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from adapters.cli.parser import add_common_options, create_parser
 
@@ -44,7 +46,16 @@ class TestCreateParser:
     def test_wait_command_with_options(self, parser):
         """wait コマンドのオプション付きパース"""
         args = parser.parse_args(
-            ["wait", "09:30", "-t", "test_theme", "-c", "/path/to/context.md", "-l", "ja"]
+            [
+                "wait",
+                "09:30",
+                "-t",
+                "test_theme",
+                "-c",
+                "/path/to/context.md",
+                "-l",
+                "ja",
+            ]
         )
         assert args.command == "wait"
         assert args.time == "09:30"
@@ -104,7 +115,9 @@ class TestCreateParser:
 
     def test_name_option(self, parser):
         """--name オプションのパース"""
-        args = parser.parse_args(["schedule", "daily", "09:00", "--name", "custom_name"])
+        args = parser.parse_args(
+            ["schedule", "daily", "09:00", "--name", "custom_name"]
+        )
         assert args.name == "custom_name"
 
     def test_help_does_not_error(self, parser):
@@ -170,10 +183,14 @@ class TestScheduleHandlerUseCase:
         from unittest.mock import MagicMock, patch
 
         mock_usecase = MagicMock()
-        with patch('adapters.cli.handlers.create_schedule_usecase', return_value=mock_usecase):
+        with patch(
+            "adapters.cli.handlers.create_schedule_usecase", return_value=mock_usecase
+        ):
             from adapters.cli.handlers import _handle_schedule_add
 
-            args = Namespace(time="09:00", theme="test", context="", file_list="", lang="", name="")
+            args = Namespace(
+                time="09:00", theme="test", context="", file_list="", lang="", name=""
+            )
             result = _handle_schedule_add(args, "daily")
 
             assert result == 0
@@ -195,7 +212,9 @@ class TestScheduleHandlerUseCase:
         from unittest.mock import MagicMock, patch
 
         mock_usecase = MagicMock()
-        with patch('adapters.cli.handlers.create_schedule_usecase', return_value=mock_usecase):
+        with patch(
+            "adapters.cli.handlers.create_schedule_usecase", return_value=mock_usecase
+        ):
             from adapters.cli.handlers import _handle_schedule_list
 
             args = Namespace()
@@ -210,7 +229,9 @@ class TestScheduleHandlerUseCase:
         from unittest.mock import MagicMock, patch
 
         mock_usecase = MagicMock()
-        with patch('adapters.cli.handlers.create_schedule_usecase', return_value=mock_usecase):
+        with patch(
+            "adapters.cli.handlers.create_schedule_usecase", return_value=mock_usecase
+        ):
             from adapters.cli.handlers import _handle_schedule_remove
 
             args = Namespace(name="test_task")
@@ -226,7 +247,9 @@ class TestScheduleHandlerUseCase:
 
         mock_usecase = MagicMock()
         mock_usecase.list_waiters.return_value = []
-        with patch('adapters.cli.handlers.create_wait_usecase', return_value=mock_usecase):
+        with patch(
+            "adapters.cli.handlers.create_wait_usecase", return_value=mock_usecase
+        ):
             from adapters.cli.handlers import handle_wait
 
             args = Namespace(time="list")

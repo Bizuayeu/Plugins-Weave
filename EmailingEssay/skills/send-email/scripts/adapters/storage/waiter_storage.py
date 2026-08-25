@@ -29,7 +29,7 @@ PROCESS_CACHE_TTL = 5.0  # 5秒
 PROCESS_CLEANUP_INTERVAL = 60.0  # 60秒
 
 # モジュールロガー
-logger = logging.getLogger('emailingessay.storage')
+logger = logging.getLogger("emailingessay.storage")
 
 
 class WaiterStorageAdapter:

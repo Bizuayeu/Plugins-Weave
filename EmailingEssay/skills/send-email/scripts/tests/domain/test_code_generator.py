@@ -9,7 +9,9 @@ import sys
 import pytest
 
 # scriptsディレクトリをパスに追加
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 
 class TestSafeCodeGenerator:
@@ -34,7 +36,7 @@ class TestSafeCodeGenerator:
         from domain.code_generator import SafeCodeGenerator
 
         result = SafeCodeGenerator.escape_for_python_string(r'C:\Users\test "quoted"')
-        assert result == r'C:\\Users\\test \"quoted\"'
+        assert result == r"C:\\Users\\test \"quoted\""
 
     def test_escape_empty_string(self):
         """空文字列"""
@@ -57,7 +59,7 @@ class TestSafeCodeGenerator:
         result = SafeCodeGenerator.escape_for_python_string(
             r'python "C:\Users\you\scripts\main.py"'
         )
-        expected = r'python \"C:\\Users\\you\\scripts\\main.py\"'
+        expected = r"python \"C:\\Users\\you\\scripts\\main.py\""
         assert result == expected
 
     def test_escape_multiple_backslashes(self):

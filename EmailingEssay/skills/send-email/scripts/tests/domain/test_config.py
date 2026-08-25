@@ -46,7 +46,11 @@ class TestConfig:
 
     def test_validate_all_missing_returns_three_errors(self, monkeypatch):
         """全フィールド欠落で3つの検証エラー"""
-        for var in ["ESSAY_SENDER_EMAIL", "ESSAY_APP_PASSWORD", "ESSAY_RECIPIENT_EMAIL"]:
+        for var in [
+            "ESSAY_SENDER_EMAIL",
+            "ESSAY_APP_PASSWORD",
+            "ESSAY_RECIPIENT_EMAIL",
+        ]:
             monkeypatch.delenv(var, raising=False)
 
         from domain.config import Config
@@ -60,13 +64,17 @@ class TestConfig:
     def test_load_from_env_file(self, tmp_path, monkeypatch):
         """.envファイルから読込"""
         env_file = tmp_path / ".env"
-        env_file.write_text('''
+        env_file.write_text("""
 ESSAY_SENDER_EMAIL=file@test.com
 ESSAY_APP_PASSWORD=filepassword
 ESSAY_RECIPIENT_EMAIL=filerecipient@test.com
-''')
+""")
         # 既存環境変数をクリア
-        for var in ["ESSAY_SENDER_EMAIL", "ESSAY_APP_PASSWORD", "ESSAY_RECIPIENT_EMAIL"]:
+        for var in [
+            "ESSAY_SENDER_EMAIL",
+            "ESSAY_APP_PASSWORD",
+            "ESSAY_RECIPIENT_EMAIL",
+        ]:
             monkeypatch.delenv(var, raising=False)
 
         from domain.config import Config
@@ -112,12 +120,16 @@ ESSAY_RECIPIENT_EMAIL=filerecipient@test.com
     def test_env_file_with_quotes(self, tmp_path, monkeypatch):
         """.envファイルのクォート除去"""
         env_file = tmp_path / ".env"
-        env_file.write_text('''
+        env_file.write_text("""
 ESSAY_SENDER_EMAIL="quoted@test.com"
 ESSAY_APP_PASSWORD='singlequoted'
 ESSAY_RECIPIENT_EMAIL=noquote@test.com
-''')
-        for var in ["ESSAY_SENDER_EMAIL", "ESSAY_APP_PASSWORD", "ESSAY_RECIPIENT_EMAIL"]:
+""")
+        for var in [
+            "ESSAY_SENDER_EMAIL",
+            "ESSAY_APP_PASSWORD",
+            "ESSAY_RECIPIENT_EMAIL",
+        ]:
             monkeypatch.delenv(var, raising=False)
 
         from domain.config import Config
@@ -132,14 +144,18 @@ ESSAY_RECIPIENT_EMAIL=noquote@test.com
     def test_env_file_ignores_comments(self, tmp_path, monkeypatch):
         """.envファイルのコメント行無視"""
         env_file = tmp_path / ".env"
-        env_file.write_text('''
+        env_file.write_text("""
 # This is a comment
 ESSAY_SENDER_EMAIL=test@test.com
 # Another comment
 ESSAY_APP_PASSWORD=pass
 ESSAY_RECIPIENT_EMAIL=recv@test.com
-''')
-        for var in ["ESSAY_SENDER_EMAIL", "ESSAY_APP_PASSWORD", "ESSAY_RECIPIENT_EMAIL"]:
+""")
+        for var in [
+            "ESSAY_SENDER_EMAIL",
+            "ESSAY_APP_PASSWORD",
+            "ESSAY_RECIPIENT_EMAIL",
+        ]:
             monkeypatch.delenv(var, raising=False)
 
         from domain.config import Config

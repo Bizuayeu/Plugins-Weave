@@ -98,7 +98,10 @@ class TestTemplatesIntegration:
 
         template = load_template("essay_waiter.py.template")
         rendered = render_template(
-            template, log_file="/tmp/test.log", target_time="12:00", claude_args="-t 'テスト'"
+            template,
+            log_file="/tmp/test.log",
+            target_time="12:00",
+            claude_args="-t 'テスト'",
         )
 
         assert "/tmp/test.log" in rendered
@@ -157,7 +160,7 @@ class TestMainEntryPoint:
         """main.py がインポートできる"""
         import main
 
-        assert hasattr(main, 'main')
+        assert hasattr(main, "main")
 
     def test_main_help_returns_zero(self):
         """--help オプションで終了コード0"""
@@ -165,8 +168,8 @@ class TestMainEntryPoint:
             [sys.executable, "main.py", "--help"],
             capture_output=True,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            encoding='utf-8',
-            errors='replace',
+            encoding="utf-8",
+            errors="replace",
         )
         assert result.returncode == 0
         assert "Essay" in result.stdout or "Mail" in result.stdout
@@ -177,8 +180,8 @@ class TestMainEntryPoint:
             [sys.executable, "main.py", "schedule", "list"],
             capture_output=True,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            encoding='utf-8',
-            errors='replace',
+            encoding="utf-8",
+            errors="replace",
         )
         # エラーなく実行できることを確認
         assert result.returncode == 0
@@ -189,8 +192,8 @@ class TestMainEntryPoint:
             [sys.executable, "main.py", "schedule", "--help"],
             capture_output=True,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            encoding='utf-8',
-            errors='replace',
+            encoding="utf-8",
+            errors="replace",
         )
         assert result.returncode == 0
         assert "daily" in result.stdout
@@ -244,7 +247,9 @@ class TestE2EScenarios:
         storage = ScheduleStorageAdapter(path_resolver)
 
         # Step 1: 正常なデータを保存（必須フィールド: name, frequency, time）
-        storage.save_schedules([{"name": "test1", "frequency": "daily", "time": "22:00"}])
+        storage.save_schedules(
+            [{"name": "test1", "frequency": "daily", "time": "22:00"}]
+        )
         assert len(storage.load_schedules()) == 1
 
         # Step 2: JSONを破損させる
@@ -256,7 +261,9 @@ class TestE2EScenarios:
         assert schedules == []
 
         # Step 4: 新しいデータを保存（正常動作に戻る）
-        storage.save_schedules([{"name": "test2", "frequency": "weekly", "time": "23:00"}])
+        storage.save_schedules(
+            [{"name": "test2", "frequency": "weekly", "time": "23:00"}]
+        )
         assert len(storage.load_schedules()) == 1
         assert storage.load_schedules()[0]["name"] == "test2"
 
@@ -292,13 +299,17 @@ class TestE2EScenarios:
 
         # ストレージ保存で失敗するように設定
         schedule_storage_with_error = Mock()
-        schedule_storage_with_error.save_schedules.side_effect = PermissionError("Disk full")
+        schedule_storage_with_error.save_schedules.side_effect = PermissionError(
+            "Disk full"
+        )
         schedule_storage_with_error.load_schedules.return_value = []
 
         path_resolver = Mock()
         path_resolver.get_runners_dir.return_value = str(tmp_path / "runners")
 
-        usecase = ScheduleEssayUseCase(scheduler, schedule_storage_with_error, path_resolver)
+        usecase = ScheduleEssayUseCase(
+            scheduler, schedule_storage_with_error, path_resolver
+        )
 
         # 例外が発生し、スケジューラがロールバックされる
         with pytest.raises(PermissionError):
@@ -363,7 +374,10 @@ class TestE2EScenarios:
 
         # Step 1: スケジュールを追加
         usecase.add(
-            frequency="daily", time_spec="09:00", theme="original_theme", name="test_schedule"
+            frequency="daily",
+            time_spec="09:00",
+            theme="original_theme",
+            name="test_schedule",
         )
         schedules = storage.load_schedules()
         assert len(schedules) == 1
@@ -372,7 +386,10 @@ class TestE2EScenarios:
 
         # Step 2: 同名で再登録（時刻とテーマを変更）
         usecase.add(
-            frequency="daily", time_spec="15:00", theme="updated_theme", name="test_schedule"
+            frequency="daily",
+            time_spec="15:00",
+            theme="updated_theme",
+            name="test_schedule",
         )
 
         # Step 3: 上書きされたことを確認（重複なし）
