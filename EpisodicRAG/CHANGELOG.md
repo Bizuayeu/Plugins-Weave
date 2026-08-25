@@ -11,13 +11,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#583---2026-07-29)
+- [v5.x](#590---2026-08-26)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
 
 ---
+
+## [5.9.0] - 2026-08-26
+
+静的チェックをワークスペース基準へ揃える。挙動の変更は無い。
+
+### Changed
+
+- ruff の `select` を `E,W,F,I` から `E4,E7,E9,F,I,UP,N,B,SIM,PTH` へ拡張。狭い網では
+  CI が green のまま旧記法・危険記法が溜まる（`B904` の例外連鎖切断、`B017` の例外型を
+  絞らない assert、`PTH` の `os.path` 残存）。**型検査ではこの類は出ない**
+- `E501` は新集合に含まれない（`E4`/`E7`/`E9` のみ）ため `ignore` から落とし、行長の判断を
+  formatter へ一本化
+- formatter をワークスペース既定へ（`line-length = 100` と `quote-style = "preserve"` を撤去
+  ＝ 88 桁・クオート正規化）。178 ファイルが再整形された（本ワークスペース最大）
+- 入れ子 `with patch(...)` 29 箇所を 1 文へ（3.10 の括弧付き context manager）
+
+### Fixed
+
+- **UP 系 約 960 件** — `typing.Dict/List/Tuple/Optional/Union` → 組込み総称・`X | None`。
+  取り残された未使用 import は `if TYPE_CHECKING:` 配下の字下げ版まで含めて整理
+- **PTH123 265 件** — `open(x, …)` → `x.open(…)`
+- **B017 4 件** — `Exception` を実際に投げられる型へ絞った（`ValueError` /
+  `FileNotFoundError` / `EpisodicRAGError` ×2）。観測してから絞っており、推測していない
+- **B904 2 件**（`from e`）／**SIM102 2 件**（入れ子 if を単文へ）
+- 障害注入テスト 3 件の patch 先を `builtins.open` → `patch.object(Path, "open", ...)` へ。
+  `save_json` が `Path.open` を呼ぶようになり、旧 patch では素通り（`DID NOT RAISE`）に
+  なっていた。テストの意図（書込み失敗→`FileIOError`）は変えていない
+
+### Notes
+
+- **`N802` 144 件は ignore**（理由付き）。全てテストの日本語名
+  （`test_50件ちょうどはover_threshold_false` 等）で、日本語に大文字小文字の区別が無い以上
+  「lowercase にせよ」は構造上適用できない。**本番側の `N802` は 0 件**
+- **`N806` 6 件も ignore** — `patch(...) as MockConfig` は unittest.mock の慣習
+- **wakeup skill は `PTH` ごと ignore** — claude.ai へ zip で配る stdlib のみの独立ツリーで、
+  str のパスを自前 API の境界（`config_path: str` / `self._root: str`）で受け渡す。冒頭の
+  `sys.path.insert` は**要素が str でないと import が黙って失敗する**（実測:
+  `ModuleNotFoundError`）。昇格トリガーは wakeup の API 契約を Path 化するとき
+
+#### 機械変換で踏んだ穴（いずれもテストが捕らえた）
+
+1. **演算子優先順位** — `a / b / "x.txt".open(...)` は `.open` が**文字列に付く**。
+   単純置換で 98 箇所に作り込み、`(a / b / "x.txt").open(...)` へ AST で直した
+2. **str への `.open()`** — `NamedTemporaryFile.name` は str。1 箇所取りこぼした。
+   **残り 264 箇所は全て Path だった**ことがテストで確かめられた
+
+### 検証
+
+ruff 1519→0 ／ mypy Success（本体 300 files・wakeup 11 files、CI と同じ起動形）／
+pytest 2686 passed, 5 skipped（前後一致）
 
 ## [5.8.3] - 2026-07-29
 

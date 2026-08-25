@@ -12,13 +12,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#583---2026-07-29)
+- [v5.x](#590---2026-08-26)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
 
 ---
+
+## [5.9.0] - 2026-08-26
+
+Static checking aligned with the workspace baseline. No behavior change.
+
+### Changed
+
+- ruff `select` widened from `E,W,F,I` to `E4,E7,E9,F,I,UP,N,B,SIM,PTH`. A narrow net lets
+  outdated and hazardous idioms accumulate while CI stays green (`B904` breaking the exception
+  chain, `B017` asserting on a bare `Exception`, `PTH` leaving `os.path` in place).
+  **A type checker surfaces none of these**
+- `E501` is not in the new set (only `E4`/`E7`/`E9`), so it was dropped from `ignore`; line
+  length is now entirely the formatter's call
+- Formatter aligned with the workspace default (`line-length = 100` and
+  `quote-style = "preserve"` removed → 88 columns, quotes normalized). 178 files reformatted —
+  the largest reformat in the workspace
+- 29 nested `with patch(...)` blocks collapsed into single statements (3.10 parenthesized
+  context managers)
+
+### Fixed
+
+- **~960 `UP` findings** — `typing.Dict/List/Tuple/Optional/Union` → builtin generics and
+  `X | None`. Leftover unused imports were cleaned up, including the indented ones under
+  `if TYPE_CHECKING:`
+- **265 `PTH123`** — `open(x, …)` → `x.open(…)`
+- **4 `B017`** — narrowed from `Exception` to the type actually raised (`ValueError`,
+  `FileNotFoundError`, `EpisodicRAGError` ×2). Each was observed first, not guessed
+- **2 `B904`** (`from e`) and **2 `SIM102`** (nested `if` collapsed)
+- Three fault-injection tests now patch `Path.open` instead of `builtins.open`. Once `save_json`
+  started calling `Path.open`, the old patch no longer intercepted anything and the tests
+  silently stopped asserting (`DID NOT RAISE`). What they assert — a write failure becoming
+  `FileIOError` — is unchanged
+
+### Notes
+
+- **144 `N802` are ignored** with a documented reason: every one is a Japanese test name
+  (e.g. `test_50件ちょうどはover_threshold_false`). Japanese has no letter case, so "should be
+  lowercase" cannot apply. **Production code has zero `N802`**
+- **6 `N806` are ignored** — `patch(...) as MockConfig` is the `unittest.mock` convention
+- **`PTH` is ignored across the wakeup skill** — a stdlib-only, self-contained tree shipped to
+  claude.ai as a zip, passing `str` paths across its own API boundary (`config_path: str`,
+  `self._root: str`). Its opening `sys.path.insert` **requires a `str`**; a `Path` makes the
+  import fail silently (verified: `ModuleNotFoundError`). Promotion trigger: when wakeup's API
+  contract moves to `Path`
+
+#### Two traps hit during the mechanical rewrite (both caught by the test suite)
+
+1. **Operator precedence** — in `a / b / "x.txt".open(...)`, `.open` binds to the **string**.
+   A naive substitution introduced this in 98 places; an AST pass corrected them to
+   `(a / b / "x.txt").open(...)`
+2. **`.open()` on a `str`** — `NamedTemporaryFile.name` is a `str`. One site was missed.
+   The tests confirmed **the other 264 were all `Path` objects**
+
+### Verification
+
+ruff 1519→0 / mypy Success (300 files in the main tree, 11 in wakeup — the same invocation CI
+uses) / pytest 2686 passed, 5 skipped (unchanged from baseline)
 
 ## [5.8.3] - 2026-07-29
 
