@@ -47,6 +47,7 @@ from infrastructure.registry_cli import (
 from infrastructure.wal_cli import (
     run_wal_append,
     run_wal_append_outbound,
+    run_wal_drop,
     run_wal_push,
     run_wal_redo,
     run_wal_settle_outbound,
@@ -680,6 +681,11 @@ def cmd_wal_redo(args: argparse.Namespace) -> int:
     return run_wal_redo(_load_config())
 
 
+def cmd_wal_drop(args: argparse.Namespace) -> int:
+    """dead 化した intent を WAL から落とす（操作者の明示指示、push は must-succeed）。"""
+    return run_wal_drop(_load_config(), args.kind, args.key)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """subcommand parser を組み立てる。
 
@@ -999,6 +1005,19 @@ def build_parser() -> argparse.ArgumentParser:
         "wal-redo",
         help="起動時に WAL pending を registry へ redo（registry_sync 有効時）",
     ).set_defaults(handler=cmd_wal_redo)
+
+    p_wal_drop = sub.add_parser(
+        "wal-drop",
+        help="dead 化した intent を WAL から落とす（履行しないと決めた約束を畳む）",
+    )
+    p_wal_drop.set_defaults(handler=cmd_wal_drop)
+    p_wal_drop.add_argument(
+        "--kind",
+        required=True,
+        # dead になるのは検証を通る registry 表だけ（outbound は値オブジェクトを持たない）
+        choices=list(REGISTRY_SPEC),
+    )
+    p_wal_drop.add_argument("--key", required=True, help="落とす intent のキー")
 
     return parser
 

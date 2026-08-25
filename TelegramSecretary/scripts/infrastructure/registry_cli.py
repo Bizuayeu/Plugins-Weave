@@ -3,8 +3,8 @@
 main.py の subcommand から呼ばれる。値オブジェクトで入力を検証してから永続化する
 （決定論的 I/O。何を登録/更新するかの判断は エージェント = 重要度の世界）。
 
-`REGISTRY_SPEC` / `read_json_arg` / `registry_service` は wal_cli と共有する公開名
-（旧 private 名の越境 import を解消）。git/sync の DI 組み立ては composition.py に移設済み。
+`REGISTRY_SPEC` / `read_json_arg` / `registry_service` / `canonical_record` は wal_cli と
+共有する公開名（旧 private 名の越境 import を解消）。git/sync の DI 組み立ては composition.py に移設済み。
 """
 
 from __future__ import annotations
@@ -117,14 +117,12 @@ def run_registry_command(
     if action == "add":
         try:
             raw = read_json_arg(args)
-            _reject_invalid_write(config, name, spec, raw)
-            vo = spec.record_cls.from_dict(raw)  # 値オブジェクトで検証
+            record = canonical_record(config, name, raw)  # 検証 + 正準化
         except (ValueError, OSError, TypeError, KeyError) as exc:
             # wal_cli.run_wal_append と同一の捕捉タプル（入力不正は exit 2 に統一）。
             # json.JSONDecodeError は ValueError の子なので個別列挙しない
             print(f"invalid {name} record: {exc}", file=sys.stderr)
             return EXIT_CONFIG_INVALID
-        record = vo.to_dict()
         svc.add_or_update(record)
         _sync_after_change(
             config, name, f"registry: add {name} {record[spec.key_field]}", sync
@@ -169,8 +167,7 @@ def _import_records(
         active = _active_subject_ids(config) if name == "knowledge" else set()
         records = []
         for row in raw:
-            _reject_invalid_write(config, name, spec, row, active)
-            records.append(spec.record_cls.from_dict(row).to_dict())
+            records.append(canonical_record(config, name, row, active))
         _reject_duplicate_keys(spec, records)
     except (ValueError, OSError, TypeError, KeyError) as exc:
         # add と同一の捕捉タプル（入力不正は exit 2 に統一）
@@ -192,31 +189,45 @@ def _import_records(
     return EXIT_OK
 
 
-def _reject_invalid_write(
+def canonical_record(
     config: Config,
     name: str,
-    spec: RegistrySpec,
     raw: Any,
     active_subjects: set[str] | None = None,
-) -> None:
-    """書き込み口（add / import）だけの fail-closed 検証。read 経路には掛けない。
+) -> dict:
+    """書き込み口（add / import / wal-append / wal-redo）が共有する検証＋正準化の一口。
 
-    `from_dict` は既知キーだけを転記するため、typo（`subjects` → `subject`）は例外にならず
-    沈黙して消える。書き込みの手前で差集合を見て弾く——読み手が「登録したのに無い」を
-    後から突き止める羽目にならない側に倒す。knowledge の `subjects` だけは追加で SUBJECTS の
-    **active** な語彙と照合する（deprecated は既存レコードを壊さず新規付与だけ止める）。
-    語彙はデータ（開いた語彙）ゆえ Interface が load し、判定は Domain 純関数に委ねる。
+    read 経路には掛けない（fail-closed は書き込み側だけ）。**四つの書き込み口がこの関数
+    一つを呼ぶ**——検証を口ごとに書くと、口を増やすたびに「そこだけ緩い」抜け道が増える。
+
+    検証は二段。①`from_dict` は既知キーだけを転記するため、typo（`subjects` → `subject`）は
+    例外にならず沈黙して消える。書き込みの手前で差集合を見て弾く——読み手が「登録したのに
+    無い」を後から突き止める羽目にならない側に倒す。knowledge の `subjects` だけは追加で
+    SUBJECTS の **active** な語彙と照合する（deprecated は既存レコードを壊さず新規付与だけ
+    止める）。語彙はデータ（開いた語彙）ゆえ Interface が load し、判定は Domain 純関数に委ねる。
     `active_subjects` 未指定なら必要になった時だけ引く（add は 1 レコードゆえ遅延で十分、
-    import は batch で 1 回引いた集合を渡す）。例外は呼び出し側の捕捉タプル
-    （ValueError / TypeError）に乗って exit 2 へ翻訳される。
+    import は batch で 1 回引いた集合を渡す）。②値オブジェクトを通し `to_dict()` の正準形を
+    返す——省略項目が既定で埋まり、どの口から入っても表の形が揃う。
+
+    例外は呼び出し側の捕捉タプル（ValueError / OSError / TypeError / KeyError）に乗って
+    exit 2 へ翻訳される。
     """
+    spec = REGISTRY_SPEC[name]
     if not isinstance(raw, dict):
         raise TypeError(f"record must be a JSON object, got {type(raw).__name__}")
     unknown = unknown_keys(spec.record_cls, raw)
     if unknown:
         raise ValueError(f"unknown field(s): {', '.join(sorted(unknown))}")
-    if name != "knowledge":
-        return  # 主題の照合は knowledge 固有（他表は未知キー検証だけを共有する）
+    # 主題の照合は knowledge 固有（他表は未知キー検証だけを共有する）
+    if name == "knowledge":
+        _reject_unknown_subjects(config, raw, active_subjects)
+    return spec.record_cls.from_dict(raw).to_dict()
+
+
+def _reject_unknown_subjects(
+    config: Config, raw: dict, active_subjects: set[str] | None
+) -> None:
+    """knowledge の `subjects` を SUBJECTS の active な語彙と照合する。"""
     subjects = [str(s) for s in raw.get("subjects") or []]
     if not subjects:
         return  # subjects 省略／空は従来どおり（SUBJECTS が空の環境でも add できる）

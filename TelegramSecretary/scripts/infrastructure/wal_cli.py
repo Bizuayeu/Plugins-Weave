@@ -1,4 +1,4 @@
-"""WAL CLI ハンドラ。main.py の wal-append / wal-push / wal-redo から呼ばれる。
+"""WAL CLI ハンドラ。main.py の wal-append / wal-push / wal-redo / wal-drop から呼ばれる。
 
 `registry_sync` 有効時のみ稼働（無効は no-op、後方互換）。決定論 I/O＝何を intent に
 するかの判断は エージェント（重要度の世界）、ここは append/push/redo の primitive。
@@ -19,11 +19,14 @@ from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
 from infrastructure.registry_cli import (
     REGISTRY_SPEC,
+    canonical_record,
     read_json_arg,
     registry_service,
 )
+from usecases.orientation import DEFAULT_TOPIC_WIDTH
 from usecases.wal import (
     AppendWalIntent,
+    DropDeadIntent,
     PushWalLog,
     RedoPendingIntents,
     SettleOutboundIntent,
@@ -39,9 +42,12 @@ _WAL_KINDS = {k: spec.key_field for k, spec in REGISTRY_SPEC.items()}
 def run_wal_append(config: Config, kind: str, args: Any) -> int:
     """intent を pending で WAL ログに追記（registry_sync 無効なら no-op）。
 
-    registry kind（REGISTRY_SPEC の各表）は payload の key_field をキーにする。
-    outbound kind（proactive-send）は registry key を持たないため created_at をキーにする
-    （reconcile 照合に乗らない＝registry redo と独立、DESIGN §3.9）。
+    registry kind（REGISTRY_SPEC の各表）は payload の key_field をキーにし、**add と同じ
+    `canonical_record` で検証・正準化してから書く**——WAL は must-succeed push で remote へ
+    出る片道の口なので、redo まで不正を持ち越すと「push 済みだが永久に反映されない intent」
+    が残る。入口で弾けば運用者はその場で書き直せる（既存 `test_append_rejects_*` と同じ規律）。
+    outbound kind（proactive-send）は registry key も値オブジェクトも持たないため created_at を
+    キーに素通しする（reconcile 照合に乗らない＝registry redo と独立、DESIGN §3.9）。
     """
     if not config.registry_sync_enabled:
         return EXIT_OK  # WAL は registry 永続化に相乗り、無効環境では素通り
@@ -63,6 +69,12 @@ def run_wal_append(config: Config, kind: str, args: Any) -> int:
         key = payload.get(key_field)
         if not key:
             print(f"wal payload missing key field {key_field!r}", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
+        try:
+            payload = canonical_record(config, kind, payload)  # 検証 + 正準化
+        except (ValueError, OSError, TypeError, KeyError) as exc:
+            # registry_cli の add と同一の捕捉タプル（入力不正は exit 2 に統一）
+            print(f"invalid {kind} wal payload: {exc}", file=sys.stderr)
             return EXIT_CONFIG_INVALID
     else:
         print(f"unknown wal kind: {kind}", file=sys.stderr)
@@ -112,21 +124,52 @@ def run_wal_redo(config: Config, sink=None, git=None) -> int:
         return EXIT_OK
     services = {kind: registry_service(config, kind) for kind in _WAL_KINDS}
     log = JsonlWalLogStore(config.wal_log_path)
-    # cc-defer: 恒等 validator、Stage 3 で canonical_record へ差し替え
+    validate = _redo_validator(config)
     if sink is not None:
-        result = RedoPendingIntents(
-            log, services, lambda kind, p: p, sink=sink
-        ).execute()
+        result = RedoPendingIntents(log, services, validate, sink=sink).execute()
     else:
         with TelegramApiGateway(bot_token=config.bot_token) as gateway:
-            result = RedoPendingIntents(
-                log, services, lambda kind, p: p, sink=gateway
-            ).execute()
+            result = RedoPendingIntents(log, services, validate, sink=gateway).execute()
     print(
-        f"wal redo: redone={result['redone']} resent={result['resent']} kept={result['kept']}"
+        f"wal redo: redone={result['redone']} resent={result['resent']} "
+        f"kept={result['kept']} dead={result['dead']}"
     )
+    _report_dead(log)
     _persist_redo_log(config, git=git)
     return EXIT_OK
+
+
+def _redo_validator(config: Config):
+    """redo に注入する validator（`canonical_record` に reason の切り詰めを被せる）。
+
+    validator の例外文は値を含む（`invalid category: <値>` / `unknown subject(s): <値>`）。
+    dead は無期限保持され毎起動 stderr に出るため、individuals / profile の名前や note 断片が
+    そのまま WAL に焼き付くと SECURITY §7 の PII 範囲を超える。**入口で切る**——UseCase は
+    `str(exc)` をそのまま reason に入れる約束なので、切り詰めはここでしか掛けられない。
+    幅は orientation の `DEFAULT_TOPIC_WIDTH` を流用する（新しい閾値を発明しない）。
+    再送出は**同じ例外型**で行う——UseCase の捕捉タプルに乗らない型へ変えると隔離を素通りする。
+    """
+
+    def validate(kind: str, payload: dict) -> dict:
+        try:
+            return canonical_record(config, kind, payload)
+        except (ValueError, OSError, TypeError, KeyError) as exc:
+            raise type(exc)(
+                f"{type(exc).__name__}: {str(exc)[:DEFAULT_TOPIC_WIDTH]}"
+            ) from exc
+
+    return validate
+
+
+def _report_dead(log: JsonlWalLogStore) -> None:
+    """ログに残る dead を1行ずつ stderr に出す（exit は 0 のまま＝起動経路を止めない）。
+
+    「今回隔離した分」ではなく**残存する全 dead** を毎起動で出す——未履行の約束は運用者が
+    再登録するか `wal-drop` で畳むまで消えない、という無期限保持の意味を可視化する側に倒す。
+    """
+    for e in log.load():
+        if e.status == "dead":
+            print(f"wal redo: dead {e.kind} key={e.key}: {e.reason}", file=sys.stderr)
 
 
 def _persist_redo_log(config: Config, git=None) -> None:
@@ -144,6 +187,34 @@ def _persist_redo_log(config: Config, git=None) -> None:
         PushWalLog(git, config.wal_log_path).execute("wal: persist redo (done-marking)")
     except GitSyncError as exc:
         print(f"wal redo persist (best-effort) skipped: {exc}", file=sys.stderr)
+
+
+def run_wal_drop(config: Config, kind: str, key: str, git=None) -> int:
+    """dead 化した intent を操作者の明示指示で WAL から落とし、固定ブランチへ push する。
+
+    dead の出口は二つ——同 key の再登録（redo の `settle` が done 化＝自己治癒）と、この
+    明示的な drop。**pending は落とせない**（果たされていない約束を黙って捨てる口を作らない）。
+    push は `PushWalLog`（must-succeed）を再利用し、失敗を握らない——起動経路の best-effort と
+    違い操作者がその場で結果を見ているので、「落としたのに remote に残っている」を黙らせない。
+    git 注入はテスト用（`run_wal_push` と同型）。
+    """
+    if not config.registry_sync_enabled:
+        return EXIT_OK  # WAL は registry 永続化に相乗り、無効環境では素通り
+    try:
+        DropDeadIntent(JsonlWalLogStore(config.wal_log_path)).execute(kind, key)
+    except ValueError as exc:
+        # dead でない（pending / done）・不在はどちらも操作者の指定違い＝入力不正
+        print(f"wal drop failed: {exc}", file=sys.stderr)
+        return EXIT_CONFIG_INVALID
+    if git is None:
+        git = build_git(config)
+    try:
+        PushWalLog(git, config.wal_log_path).execute(f"wal: drop dead {kind} {key}")
+    except GitSyncError as exc:
+        print(f"wal drop push failed: {exc}", file=sys.stderr)
+        return EXIT_FETCH_FAILED
+    print(f"wal dropped {kind} key={key}")
+    return EXIT_OK
 
 
 def run_wal_append_outbound(

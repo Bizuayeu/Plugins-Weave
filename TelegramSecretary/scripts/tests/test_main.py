@@ -1677,3 +1677,15 @@ def test_wal_append_accepts_outbound_kind(env_ready):
         ["wal-append", "--kind", "outbound", "--json", '{"chat_id": 100, "text": "hi"}']
     )
     assert rc == EXIT_OK
+
+
+# --- v1.11.0: wal-drop（dead intent の明示的な出口）の parser 入口 ---
+
+
+def test_wal_drop_parser_entry(env_ready):
+    """parser が `wal-drop --kind --key` を受け付ける（registry_sync 無効ゆえ no-op で exit 0）。
+
+    dead は無期限に残るため、運用者が「もう履行しない」と決めた約束を畳む口が要る。
+    --kind の choices は REGISTRY_SPEC 導出（outbound は dead 化経路を持たないので含めない）。
+    """
+    assert main(["wal-drop", "--kind", "tasks", "--key", "T0001"]) == EXIT_OK
