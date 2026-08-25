@@ -1,6 +1,6 @@
 {
   "name": "VisualExpression",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Visual expression system for AI personas with emotion-based face switching. Use at session start to display the expression UI, and switch expressions whenever the emotional state changes during conversation.",
   "author": {
     "name": "Weave @ VisualExpression"

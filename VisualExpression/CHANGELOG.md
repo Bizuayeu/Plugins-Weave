@@ -5,6 +5,43 @@ All notable changes to VisualExpression will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-25
+
+Static checking aligned with the workspace baseline. No behavior change.
+
+### Changed
+- ruff `select` widened with `N` (naming) and `PTH` (pathlib). The existing `C4` / `RUF`
+  were kept — the workspace target is the *union* of the two conventions, not a replacement.
+  `E` narrowed to `E4,E7,E9`, and `E501` dropped from `ignore`: line length is the formatter's job
+- Formatter aligned with the workspace default (`line-length = 100` and
+  `quote-style = "preserve"` removed → 88 columns, quotes normalized). 19 files reformatted
+- `[tool.mypy]` now has `mypy_path`, and the test-layer override targets `tests.*`
+
+### Fixed
+- `PTH123` ×6 — `open(x)` → `x.open()`. **Three of the six take a `str` by contract**
+  (`read_template(template_path: str)`, `HtmlBuilder.template_path`,
+  `build_from_json(json_path: str)`); those are wrapped as `Path(x).open()` instead, since a
+  direct rewrite would break them. The other three already held `Path` objects
+- The `[tool.mypy]` section was not doing its job. Without `mypy_path`, `from domain.validators
+  import ...` could not resolve; `ignore_missing_imports = true` silenced that and collapsed
+  everything to `Any`. The only visible symptom was three `no-any-return` diagnostics. The
+  test-layer override pointed at `skills.scripts.MakeExpressionJson.tests.*`, which **matched no
+  module at all**. With both corrected, the 226 previously hidden diagnostics surfaced — all of
+  them in the test layer. **Production code was already at zero**; fixing the config is what
+  proved it
+
+### Notes
+- CI was *not* blind: its `type-check-visualexpression` job runs from inside the package with
+  CLI flags (`--explicit-package-bases --exclude tests`) and does not read `pyproject.toml`.
+  What was broken is the repository-root invocation that *does* read it. The CI job is unchanged
+  here, so CI and local still run mypy under different configurations
+- `N999` ×5 (the package name `MakeExpressionJson`) is ignored with a documented reason: the name
+  is the public one shared by `pythonpath`, the setuptools `include`, the coverage `source`, and
+  the skill docs. Renaming buys nothing and leaves only reference churn
+
+### Verification
+ruff 11→0 / mypy Success (40 files) / pytest 220 passed (unchanged from baseline)
+
 ## [1.1.0] - 2026-06-01
 
 ### Changed
