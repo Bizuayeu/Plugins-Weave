@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from scripts.domain.constants import (
@@ -15,7 +14,7 @@ from scripts.domain.constants import (
 
 def get_data_dir() -> Path:
     """Return ~/.claude/plugins/.emotionpulse/."""
-    return Path(os.path.expanduser("~")) / ".claude" / "plugins" / PLUGIN_DATA_DIR_NAME
+    return Path.home() / ".claude" / "plugins" / PLUGIN_DATA_DIR_NAME
 
 
 def get_state_file_path() -> Path:
@@ -43,11 +42,11 @@ def get_plugin_root() -> Path | None:
     has a scripts/ subdirectory.
     """
     candidates = [
-        os.path.expanduser("~/DEV/plugins-weave/EmotionPulse"),
-        os.path.expanduser("~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse"),
-        str(Path(__file__).resolve().parents[2]),
+        Path("~/DEV/plugins-weave/EmotionPulse").expanduser(),
+        Path("~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse").expanduser(),
+        Path(__file__).resolve().parents[2],
     ]
     for candidate in candidates:
-        if os.path.isdir(os.path.join(candidate, "scripts")):
-            return Path(candidate)
+        if (candidate / "scripts").is_dir():
+            return candidate
     return None

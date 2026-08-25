@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import os
+from pathlib import Path
 
 from scripts.domain.constants import STOP_SYSTEM_MESSAGE
 from scripts.infrastructure.path_resolver import get_plugin_root
 
-_DEV_FALLBACK = os.path.expanduser("~/DEV/plugins-weave/EmotionPulse")
+_DEV_FALLBACK = str(Path("~/DEV/plugins-weave/EmotionPulse").expanduser())
 
 
 def _resolve_plugin_base() -> str:
@@ -19,7 +19,9 @@ def _resolve_plugin_base() -> str:
 def _handler_path() -> str:
     """Resolve absolute path to hooks/stop_handler.py for settings.json."""
     base = _resolve_plugin_base()
-    return os.path.join(base, "hooks", "stop_handler.py").replace("\\", "/")
+    # str に戻してから `.replace` する。`Path.replace` は引数 1 個のリネーム操作であり、
+    # 区切り文字の置換ではない（settings.json は "/" 区切りの文字列を要求する）。
+    return str(Path(base) / "hooks" / "stop_handler.py").replace("\\", "/")
 
 
 def get_launcher_path() -> str:
@@ -29,7 +31,7 @@ def get_launcher_path() -> str:
     caller's cwd (avoiding collision with other plugins' scripts/ packages).
     """
     base = _resolve_plugin_base()
-    return os.path.join(base, "hooks", "emotion_writer_launcher.py").replace("\\", "/")
+    return str(Path(base) / "hooks" / "emotion_writer_launcher.py").replace("\\", "/")
 
 
 def build_system_message() -> str:

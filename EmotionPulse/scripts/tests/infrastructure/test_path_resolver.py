@@ -46,10 +46,7 @@ class TestGetPluginRoot:
 
     def test_returns_dev_candidate_when_exists(self) -> None:
         """DEV 候補の scripts/ が存在 → DEV 候補を返す."""
-        with patch(
-            "scripts.infrastructure.path_resolver.os.path.isdir",
-            side_effect=lambda p: "DEV" in p,
-        ):
+        with patch.object(Path, "is_dir", lambda self: "DEV" in str(self)):
             root = get_plugin_root()
         assert root is not None
         assert "DEV" in str(root)
@@ -57,10 +54,7 @@ class TestGetPluginRoot:
 
     def test_returns_marketplace_candidate_when_dev_missing(self) -> None:
         """DEV 候補なし、marketplace 候補あり → marketplace 返す."""
-        with patch(
-            "scripts.infrastructure.path_resolver.os.path.isdir",
-            side_effect=lambda p: "marketplaces" in p,
-        ):
+        with patch.object(Path, "is_dir", lambda self: "marketplaces" in str(self)):
             root = get_plugin_root()
         assert root is not None
         assert "marketplaces" in str(root)
@@ -69,18 +63,14 @@ class TestGetPluginRoot:
     def test_returns_installed_location_when_named_candidates_missing(self) -> None:
         """DEV / marketplace のどちらも無い（CI 等）→ 自身の設置場所を返す."""
         expected = Path(path_resolver.__file__).resolve().parents[2]
-        with patch(
-            "scripts.infrastructure.path_resolver.os.path.isdir",
-            side_effect=lambda p: p.startswith(str(expected)),
+        with patch.object(
+            Path, "is_dir", lambda self: str(self).startswith(str(expected))
         ):
             root = get_plugin_root()
         assert root == expected
 
     def test_returns_none_when_all_missing(self) -> None:
         """どの候補にも scripts/ が無い → None."""
-        with patch(
-            "scripts.infrastructure.path_resolver.os.path.isdir",
-            return_value=False,
-        ):
+        with patch.object(Path, "is_dir", lambda self: False):
             root = get_plugin_root()
         assert root is None

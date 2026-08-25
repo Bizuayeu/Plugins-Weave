@@ -17,17 +17,17 @@ def write_json_atomic(path: Path, data: Mapping[str, object]) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        os.replace(tmp_path, str(path))
+        Path(tmp_path).replace(path)
     except BaseException:
         with contextlib.suppress(OSError):
-            os.unlink(tmp_path)
+            Path(tmp_path).unlink()
         raise
 
 
 def read_json_safe(path: Path) -> dict[str, object] | None:
     """Read JSON file, return None on any error."""
     try:
-        with open(path, encoding="utf-8") as f:
+        with path.open(encoding="utf-8") as f:
             data = json.load(f)
         if isinstance(data, dict):
             return data  # type: ignore[return-value]

@@ -101,23 +101,31 @@ quote-style = "preserve"
 indent-style = "space"
 
 [tool.ruff.lint]
+# ワークスペース共通の 10 集合（E4,E7,E9,F,I,UP,N,B,SIM,PTH）を床にし、
+# 本プラグインが既に持っていた C4 / RUF はそのまま残す（和集合であって置換ではない）。
 select = [
-    "E", "W", "F", "I",
+    "E4", "E7", "E9", "F", "I",  # E501 は選ばない（行長は formatter の担当）
     "B",
     "C4",
+    "N",
+    "PTH",
     "UP",
     "SIM",
     "RUF",
 ]
 ignore = [
-    "E501",
     "RUF002",
     "RUF003",
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/tests/*" = ["F401"]
-"hooks/*" = ["E402"]
+# hooks/ は sys.path を自力で組んでから plugin 本体を import する起動スクリプト。
+# E402: import を先頭へ集めると sys.path が未構築のまま解決に失敗する。
+# PTH: 候補パスは最終的に `sys.path.insert()` へ渡る。**sys.path の要素は str でなければ
+# ならず**、Path を入れると import が黙って失敗する（実測: ModuleNotFoundError）。
+# ここだけは os.path のまま置く——移植性より、起動が成立することを取る。
+"hooks/*" = ["E402", "PTH"]
 
 # =============================================================================
 # Mypy Configuration
