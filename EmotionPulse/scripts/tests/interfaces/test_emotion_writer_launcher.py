@@ -28,7 +28,9 @@ def _env_without_coverage() -> dict[str, str]:
 def _launcher_path() -> Path:
     """Resolve the expected launcher path; fails the test early if absent."""
     root = get_plugin_root()
-    assert root is not None, "Plugin root not found; ensure DEV or marketplace copy exists"
+    assert root is not None, (
+        "Plugin root not found; ensure DEV or marketplace copy exists"
+    )
     return root / "hooks" / "emotion_writer_launcher.py"
 
 
@@ -64,7 +66,9 @@ class TestEmotionWriterLauncherIntegration:
             elif state_path.is_file():
                 state_path.unlink()
 
-    def test_launcher_survives_conflicting_scripts_module_in_cwd(self, tmp_path: Path) -> None:
+    def test_launcher_survives_conflicting_scripts_module_in_cwd(
+        self, tmp_path: Path
+    ) -> None:
         """cwd に scripts/__init__.py があっても launcher は動く (import 衝突回避)."""
         conflict_dir = tmp_path / "scripts"
         conflict_dir.mkdir()

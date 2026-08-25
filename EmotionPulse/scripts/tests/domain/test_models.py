@@ -6,7 +6,12 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from scripts.domain.constants import EMOTION_KEYS
-from scripts.domain.models import DisplayConfig, EmotionVector, HookLock, StopHookPayload
+from scripts.domain.models import (
+    DisplayConfig,
+    EmotionVector,
+    HookLock,
+    StopHookPayload,
+)
 
 
 class TestEmotionVector:
@@ -53,7 +58,9 @@ class TestEmotionVector:
             EmotionVector.from_raw_scores({}).session_id = "x"  # type: ignore[misc]
 
     def test_all_keys_present(self) -> None:
-        assert set(EmotionVector.from_raw_scores({"calm": 1}).emotions.keys()) == set(EMOTION_KEYS)
+        assert set(EmotionVector.from_raw_scores({"calm": 1}).emotions.keys()) == set(
+            EMOTION_KEYS
+        )
 
 
 class TestStopHookPayload:

@@ -7,7 +7,9 @@ from scripts.domain.models import DisplayConfig, EmotionVector
 
 class TestFormatEmotionDisplay:
     def test_labels_off(self) -> None:
-        vec = EmotionVector.from_raw_scores({"calm": 2, "curiosity": 3, "playfulness": 1})
+        vec = EmotionVector.from_raw_scores(
+            {"calm": 2, "curiosity": 3, "playfulness": 1}
+        )
         config = DisplayConfig(show_labels=False)
         result = format_emotion_display(vec, config)
         expected = (

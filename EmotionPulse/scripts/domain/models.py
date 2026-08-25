@@ -16,7 +16,9 @@ class EmotionVector:
 
     emotions: dict[str, int]
     session_id: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     @classmethod
     def from_dict(cls, data: dict[str, object]) -> EmotionVector:
@@ -30,7 +32,9 @@ class EmotionVector:
         return cls(emotions=emotions, session_id=session_id, timestamp=timestamp)
 
     @classmethod
-    def from_raw_scores(cls, scores: dict[str, int], session_id: str = "") -> EmotionVector:
+    def from_raw_scores(
+        cls, scores: dict[str, int], session_id: str = ""
+    ) -> EmotionVector:
         """Construct from raw scores, clamping to 0-3."""
         emotions = cls._validate_emotions(scores)
         return cls(emotions=emotions, session_id=session_id)

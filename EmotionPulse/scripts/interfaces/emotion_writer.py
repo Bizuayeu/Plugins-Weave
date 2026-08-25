@@ -25,7 +25,9 @@ def main() -> None:
         sys.exit(1)
 
     if not isinstance(scores, dict):
-        print(f"EmotionPulse: Expected dict, got {type(scores).__name__}", file=sys.stderr)
+        print(
+            f"EmotionPulse: Expected dict, got {type(scores).__name__}", file=sys.stderr
+        )
         sys.exit(1)
 
     vector = EmotionVector.from_raw_scores(scores)

@@ -12,7 +12,9 @@ class TestRunStatusline:
         config = DisplayConfig(show_labels=False)
         with (
             patch("scripts.interfaces.statusline.load_state", return_value=vec),
-            patch("scripts.interfaces.statusline.load_display_config", return_value=config),
+            patch(
+                "scripts.interfaces.statusline.load_display_config", return_value=config
+            ),
         ):
             run_statusline()
         # Verify no crash; actual output tested in formatter tests
@@ -33,6 +35,8 @@ class TestRunStatusline:
         config = DisplayConfig(show_labels=False)
         with (
             patch("scripts.interfaces.statusline.load_state", return_value=vec),
-            patch("scripts.interfaces.statusline.load_display_config", return_value=config),
+            patch(
+                "scripts.interfaces.statusline.load_display_config", return_value=config
+            ),
         ):
             run_statusline()  # Empty output, no crash

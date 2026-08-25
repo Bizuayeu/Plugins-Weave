@@ -47,7 +47,9 @@ class TestHandleStop:
         """reason fallback (#34600 silent mode迂回): prefixが期待文言で始まる."""
         result = _capture_output({"session_id": "s1"}, lock=None)
         assert "reason" in result["output"]
-        assert result["output"]["reason"].startswith("EmotionPulse: evaluating emotions.")
+        assert result["output"]["reason"].startswith(
+            "EmotionPulse: evaluating emotions."
+        )
 
     def test_no_lock_blocks_reason_includes_system_message(self) -> None:
         """silent mode下でもreasonだけで実行可能なよう、systemMessage全文がreasonに埋め込まれる."""
