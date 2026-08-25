@@ -36,7 +36,7 @@ class HtmlBuilder:
         Raises:
             ValueError: If template does not contain the placeholder
         """
-        with open(self.template_path, encoding="utf-8") as f:
+        with Path(self.template_path).open(encoding="utf-8") as f:
             self._template = f.read()
 
         if self.placeholder not in self._template:
@@ -83,6 +83,6 @@ class HtmlBuilder:
         Returns:
             The complete HTML content
         """
-        with open(json_path, encoding="utf-8") as f:
+        with Path(json_path).open(encoding="utf-8") as f:
             images_dict = json.load(f)
         return self.build(images_dict)

@@ -72,7 +72,7 @@ class FileWriter:
         self.ensure_output_dir()
         output_path = self.output_dir / filename
 
-        with open(output_path, "w", encoding="utf-8") as f:
+        with output_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
         return output_path
@@ -95,7 +95,7 @@ class FileWriter:
         self.ensure_output_dir()
         output_path = self.output_dir / filename
 
-        with open(output_path, "w", encoding="utf-8") as f:
+        with output_path.open("w", encoding="utf-8") as f:
             f.write(content)
 
         return output_path
@@ -110,7 +110,7 @@ class FileWriter:
         Returns:
             Template content as string
         """
-        with open(template_path, encoding="utf-8") as f:
+        with Path(template_path).open(encoding="utf-8") as f:
             return f.read()
 
 

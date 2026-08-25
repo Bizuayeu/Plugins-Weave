@@ -128,7 +128,7 @@ Grid specification:
             logger.error(f"Offsets file not found: {offsets_path}")
             sys.exit(1)
         try:
-            with open(offsets_path, encoding="utf-8") as f:
+            with offsets_path.open(encoding="utf-8") as f:
                 offsets_data = json.load(f)
                 offsets = offsets_data.get("offsets", offsets_data)
         except json.JSONDecodeError as e:
