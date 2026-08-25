@@ -96,7 +96,9 @@ class TestSplitFromFile:
         expected_height = GRID_CONFIG["total_height"]
 
         # RGBA画像を作成
-        img = Image.new("RGBA", (expected_width, expected_height), color=(255, 255, 255, 128))
+        img = Image.new(
+            "RGBA", (expected_width, expected_height), color=(255, 255, 255, 128)
+        )
         file_path = tmp_path / "test_rgba.png"
         img.save(file_path)
 
@@ -178,8 +180,12 @@ class TestCenterCrop:
         center_pixel = first_img.getpixel((140, 140))  # 中心
 
         # 両方とも緑であれば中心切り抜きが正しく動作している
-        assert corner_pixel == (0, 255, 0), f"Corner should be green, got {corner_pixel}"
-        assert center_pixel == (0, 255, 0), f"Center should be green, got {center_pixel}"
+        assert corner_pixel == (0, 255, 0), (
+            f"Corner should be green, got {corner_pixel}"
+        )
+        assert center_pixel == (0, 255, 0), (
+            f"Center should be green, got {center_pixel}"
+        )
 
     def test_fallback_resize_for_exact_size(self):
         """280x280セルはそのまま出力されることを確認"""

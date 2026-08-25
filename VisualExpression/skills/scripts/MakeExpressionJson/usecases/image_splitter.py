@@ -114,7 +114,9 @@ class ImageSplitter:
                         margin_y + self.output_size,
                     )
                 )
-            elif cropped.width != self.output_size or cropped.height != self.output_size:
+            elif (
+                cropped.width != self.output_size or cropped.height != self.output_size
+            ):
                 # Fallback: resize for smaller cells
                 cropped = cropped.resize(
                     (self.output_size, self.output_size), Image.Resampling.LANCZOS

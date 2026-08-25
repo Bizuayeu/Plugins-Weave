@@ -105,7 +105,9 @@ class TestJsonSerialization:
         result = builder.build({"test": "data\\with\\backslash"})
 
         # JSONエスケープが適用されている（\\は\\\\になる）
-        assert "data\\\\with\\\\backslash" in result, "バックスラッシュはエスケープされるべき"
+        assert "data\\\\with\\\\backslash" in result, (
+            "バックスラッシュはエスケープされるべき"
+        )
 
 
 class TestCustomPlaceholder:
@@ -168,7 +170,7 @@ class TestExplicitSerialization:
         result = builder.build(images)
 
         # キー内のダブルクォートが正しくエスケープされている
-        assert r'key\"with\"quotes' in result
+        assert r"key\"with\"quotes" in result
 
     def test_build_empty_dict(self, sample_template_file):
         """空の辞書でも正しく動作することを確認"""

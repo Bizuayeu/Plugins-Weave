@@ -41,7 +41,8 @@ def sample_template_file(tmp_path: Path) -> Path:
     """
     template = tmp_path / "template.html"
     template.write_text(
-        "<html><script>const IMAGES={__IMAGES_PLACEHOLDER__}</script></html>", encoding="utf-8"
+        "<html><script>const IMAGES={__IMAGES_PLACEHOLDER__}</script></html>",
+        encoding="utf-8",
     )
     return template
 

@@ -23,7 +23,9 @@ class HtmlBuilder:
         if not Path(template_path).exists():
             raise FileNotFoundError(f"Template file not found: {template_path}")
         self.template_path = template_path
-        self.placeholder = placeholder if placeholder is not None else self.DEFAULT_PLACEHOLDER
+        self.placeholder = (
+            placeholder if placeholder is not None else self.DEFAULT_PLACEHOLDER
+        )
         self._template: str = ""
 
     def load_template(self) -> str:

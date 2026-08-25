@@ -22,18 +22,18 @@ from main import main
 class TestMainArgumentParsing:
     """コマンドライン引数解析のテスト"""
 
-    @patch('sys.argv', ['main.py', 'test_input.png'])
-    @patch('main.Path')
+    @patch("sys.argv", ["main.py", "test_input.png"])
+    @patch("main.Path")
     def test_requires_input_file(self, mock_path):
         """入力ファイルが必須であること"""
         mock_path.return_value.exists.return_value = False
 
-        with patch('sys.exit') as mock_exit:
+        with patch("sys.exit") as mock_exit:
             mock_exit.side_effect = SystemExit(1)
             with pytest.raises(SystemExit):
                 main()
 
-    @patch('sys.argv', ['main.py'])
+    @patch("sys.argv", ["main.py"])
     def test_missing_input_shows_error(self):
         """入力ファイルがない場合エラーを表示"""
         with pytest.raises(SystemExit) as exc_info:
@@ -54,7 +54,7 @@ class TestMainSpecialCodes:
         import logging
 
         with (
-            patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c']),
+            patch("sys.argv", ["main.py", str(test_image), "--special", "a,b,c"]),
             caplog.at_level(logging.ERROR),
             pytest.raises(SystemExit) as exc_info,
         ):
@@ -72,7 +72,7 @@ class TestMainSpecialCodes:
         import logging
 
         with (
-            patch('sys.argv', ['main.py', str(test_image), '--special', 'a,b,c,d,e']),
+            patch("sys.argv", ["main.py", str(test_image), "--special", "a,b,c,d,e"]),
             caplog.at_level(logging.ERROR),
             pytest.raises(SystemExit) as exc_info,
         ):

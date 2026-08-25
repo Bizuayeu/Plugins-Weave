@@ -15,10 +15,13 @@ class TestFullPipeline:
     def test_full_pipeline_from_image_to_html(self, create_test_grid_image, tmp_path):
         """画像→分割→エンコード→HTML生成の全パイプライン"""
         # Arrange: グリッド画像とテンプレートを準備
-        grid_img = create_test_grid_image(GRID_CONFIG["total_width"], GRID_CONFIG["total_height"])
+        grid_img = create_test_grid_image(
+            GRID_CONFIG["total_width"], GRID_CONFIG["total_height"]
+        )
         template = tmp_path / "template.html"
         template.write_text(
-            "<html><script>const IMAGES={__IMAGES_PLACEHOLDER__}</script></html>", encoding="utf-8"
+            "<html><script>const IMAGES={__IMAGES_PLACEHOLDER__}</script></html>",
+            encoding="utf-8",
         )
 
         # Act: パイプライン実行
@@ -40,7 +43,9 @@ class TestFullPipeline:
         assert '"dreamy":' in html
         assert "__IMAGES_PLACEHOLDER__" not in html
 
-    def test_pipeline_preserves_all_expression_codes(self, create_test_grid_image, tmp_path):
+    def test_pipeline_preserves_all_expression_codes(
+        self, create_test_grid_image, tmp_path
+    ):
         """パイプラインは全20表情コードを保持"""
         grid_img = create_test_grid_image()
         template = tmp_path / "template.html"

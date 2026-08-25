@@ -23,7 +23,7 @@ from main import main
 class TestMainFileValidation:
     """ファイル検証のテスト"""
 
-    @patch('sys.argv', ['main.py', '/nonexistent/file.png'])
+    @patch("sys.argv", ["main.py", "/nonexistent/file.png"])
     def test_nonexistent_file_exits_with_error(self, caplog):
         """存在しないファイルでエラー終了する"""
         import logging
@@ -43,15 +43,17 @@ class TestMainErrorHandling:
     def missing_template(self, tmp_path):
         """存在しないテンプレート"""
         test_image = Image.new(
-            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+            "RGB",
+            (GRID_CONFIG["total_width"], GRID_CONFIG["total_height"]),
+            color="white",
         )
         input_file = tmp_path / "test_grid.png"
         test_image.save(str(input_file))
 
         return {
-            'input_file': input_file,
-            'template_file': tmp_path / "nonexistent_template.html",
-            'output_dir': tmp_path / "output",
+            "input_file": input_file,
+            "template_file": tmp_path / "nonexistent_template.html",
+            "output_dir": tmp_path / "output",
         }
 
     def test_missing_template_exits_with_error(self, missing_template, capsys, caplog):
@@ -61,14 +63,14 @@ class TestMainErrorHandling:
         with (
             caplog.at_level(logging.ERROR),
             patch(
-                'sys.argv',
+                "sys.argv",
                 [
-                    'main.py',
-                    str(missing_template['input_file']),
-                    '--output',
-                    str(missing_template['output_dir']),
-                    '--template',
-                    str(missing_template['template_file']),
+                    "main.py",
+                    str(missing_template["input_file"]),
+                    "--output",
+                    str(missing_template["output_dir"]),
+                    "--template",
+                    str(missing_template["template_file"]),
                 ],
             ),
         ):
@@ -93,7 +95,9 @@ class TestMainLogging:
     def valid_setup(self, tmp_path):
         """有効なセットアップ"""
         test_image = Image.new(
-            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+            "RGB",
+            (GRID_CONFIG["total_width"], GRID_CONFIG["total_height"]),
+            color="white",
         )
         input_file = tmp_path / "test_grid.png"
         test_image.save(str(input_file))
@@ -102,9 +106,9 @@ class TestMainLogging:
         template_file.write_text("<html>const IMAGES={__IMAGES_PLACEHOLDER__}</html>")
 
         return {
-            'input_file': input_file,
-            'template_file': template_file,
-            'output_dir': tmp_path / "output",
+            "input_file": input_file,
+            "template_file": template_file,
+            "output_dir": tmp_path / "output",
         }
 
     def test_main_uses_logging_for_info(self, valid_setup, caplog):
@@ -114,15 +118,15 @@ class TestMainLogging:
         with (
             caplog.at_level(logging.INFO),
             patch(
-                'sys.argv',
+                "sys.argv",
                 [
-                    'main.py',
-                    str(valid_setup['input_file']),
-                    '--output',
-                    str(valid_setup['output_dir']),
-                    '--template',
-                    str(valid_setup['template_file']),
-                    '--no-zip',
+                    "main.py",
+                    str(valid_setup["input_file"]),
+                    "--output",
+                    str(valid_setup["output_dir"]),
+                    "--template",
+                    str(valid_setup["template_file"]),
+                    "--no-zip",
                 ],
             ),
         ):
@@ -138,15 +142,15 @@ class TestMainLogging:
         with (
             caplog.at_level(logging.INFO),
             patch(
-                'sys.argv',
+                "sys.argv",
                 [
-                    'main.py',
-                    str(valid_setup['input_file']),
-                    '--output',
-                    str(valid_setup['output_dir']),
-                    '--template',
-                    str(valid_setup['template_file']),
-                    '--no-zip',
+                    "main.py",
+                    str(valid_setup["input_file"]),
+                    "--output",
+                    str(valid_setup["output_dir"]),
+                    "--template",
+                    str(valid_setup["template_file"]),
+                    "--no-zip",
                 ],
             ),
         ):
@@ -164,7 +168,7 @@ class TestMainLogging:
 
         with (
             caplog.at_level(logging.ERROR),
-            patch('sys.argv', ['main.py', '/nonexistent/file.png']),
+            patch("sys.argv", ["main.py", "/nonexistent/file.png"]),
             pytest.raises(SystemExit),
         ):
             main()
@@ -182,7 +186,9 @@ class TestPipelineErrorHandling:
     def valid_setup(self, tmp_path):
         """有効なセットアップ"""
         test_image = Image.new(
-            'RGB', (GRID_CONFIG['total_width'], GRID_CONFIG['total_height']), color='white'
+            "RGB",
+            (GRID_CONFIG["total_width"], GRID_CONFIG["total_height"]),
+            color="white",
         )
         input_file = tmp_path / "test_grid.png"
         test_image.save(str(input_file))
@@ -191,9 +197,9 @@ class TestPipelineErrorHandling:
         template_file.write_text("<html>const IMAGES={__IMAGES_PLACEHOLDER__}</html>")
 
         return {
-            'input_file': input_file,
-            'template_file': template_file,
-            'output_dir': tmp_path / "output",
+            "input_file": input_file,
+            "template_file": template_file,
+            "output_dir": tmp_path / "output",
         }
 
     def test_pipeline_handles_io_error_on_json_write(self, valid_setup, caplog):
@@ -203,18 +209,18 @@ class TestPipelineErrorHandling:
         with (
             caplog.at_level(logging.ERROR),
             patch(
-                'sys.argv',
+                "sys.argv",
                 [
-                    'main.py',
-                    str(valid_setup['input_file']),
-                    '--output',
-                    str(valid_setup['output_dir']),
-                    '--template',
-                    str(valid_setup['template_file']),
-                    '--no-zip',
+                    "main.py",
+                    str(valid_setup["input_file"]),
+                    "--output",
+                    str(valid_setup["output_dir"]),
+                    "--template",
+                    str(valid_setup["template_file"]),
+                    "--no-zip",
                 ],
             ),
-            patch('main.FileWriter.write_json', side_effect=OSError("Disk full")),
+            patch("main.FileWriter.write_json", side_effect=OSError("Disk full")),
             pytest.raises(SystemExit) as exc_info,
         ):
             main()
@@ -229,18 +235,20 @@ class TestPipelineErrorHandling:
         with (
             caplog.at_level(logging.ERROR),
             patch(
-                'sys.argv',
+                "sys.argv",
                 [
-                    'main.py',
-                    str(valid_setup['input_file']),
-                    '--output',
-                    str(valid_setup['output_dir']),
-                    '--template',
-                    str(valid_setup['template_file']),
-                    '--no-zip',
+                    "main.py",
+                    str(valid_setup["input_file"]),
+                    "--output",
+                    str(valid_setup["output_dir"]),
+                    "--template",
+                    str(valid_setup["template_file"]),
+                    "--no-zip",
                 ],
             ),
-            patch('main.FileWriter.write_html', side_effect=OSError("Permission denied")),
+            patch(
+                "main.FileWriter.write_html", side_effect=OSError("Permission denied")
+            ),
             pytest.raises(SystemExit) as exc_info,
         ):
             main()
@@ -255,19 +263,19 @@ class TestPipelineErrorHandling:
         with (
             caplog.at_level(logging.ERROR),
             patch(
-                'sys.argv',
+                "sys.argv",
                 [
-                    'main.py',
-                    str(valid_setup['input_file']),
-                    '--output',
-                    str(valid_setup['output_dir']),
-                    '--template',
-                    str(valid_setup['template_file']),
-                    '--no-zip',
+                    "main.py",
+                    str(valid_setup["input_file"]),
+                    "--output",
+                    str(valid_setup["output_dir"]),
+                    "--template",
+                    str(valid_setup["template_file"]),
+                    "--no-zip",
                 ],
             ),
             patch(
-                'main.Base64Encoder.encode_expressions',
+                "main.Base64Encoder.encode_expressions",
                 side_effect=RuntimeError("Unexpected failure"),
             ),
             pytest.raises(SystemExit) as exc_info,

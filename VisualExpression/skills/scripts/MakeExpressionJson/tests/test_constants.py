@@ -112,7 +112,12 @@ class TestExpressionCategoryEnum:
         from domain import CATEGORY_CODES, ExpressionCategory
 
         assert ExpressionCategory.BASIC in CATEGORY_CODES
-        assert CATEGORY_CODES[ExpressionCategory.BASIC] == ["normal", "smile", "focus", "diverge"]
+        assert CATEGORY_CODES[ExpressionCategory.BASIC] == [
+            "normal",
+            "smile",
+            "focus",
+            "diverge",
+        ]
 
     def test_category_codes_has_all_categories(self):
         """CATEGORY_CODESに全カテゴリが含まれることを確認"""
@@ -166,7 +171,9 @@ class TestBuildExpressionLabels:
 
         custom_codes = ["test1", "test2", "test3", "test4"]
         custom_labels = {"test1": "テスト1", "test2": "テスト2"}
-        result = build_expression_labels(special_codes=custom_codes, special_labels=custom_labels)
+        result = build_expression_labels(
+            special_codes=custom_codes, special_labels=custom_labels
+        )
 
         # ラベルが定義されているものはそれを使う
         assert result["test1"] == "テスト1"

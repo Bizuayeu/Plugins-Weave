@@ -52,7 +52,9 @@ class TestSpecialCodesValidation:
         with pytest.raises(ValueError) as exc:
             build_expression_codes(["wink", "wink", "smug", "starry"])
 
-        assert "unique" in str(exc.value).lower() or "duplicate" in str(exc.value).lower()
+        assert (
+            "unique" in str(exc.value).lower() or "duplicate" in str(exc.value).lower()
+        )
 
     def test_special_codes_overlap_with_base(self):
         """Baseコードと衝突する場合のエラー"""
