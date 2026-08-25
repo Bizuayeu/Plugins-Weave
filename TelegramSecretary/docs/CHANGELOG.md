@@ -2,6 +2,52 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.13.0] - 2026-08-25 — strict を本番だけに掛ける：1294 の 7% が本体だった
+
+前版で型検査を配線し 18 件を 0 にしたが、`strict = true` は入れていなかった。入れると
+**1294 件**出る——という数字が「まだ早い」という見え方を作っていた。
+
+### 機序
+
+**1294 件のうち本番コードは 92 件（7%）だけだった。** 残る 1202 件はテスト層で、内訳は
+no-untyped-def 938 / no-untyped-call 213——中身は test 関数への `-> None` 付与という
+機械的増補である。バグ検出への寄与はほぼ無く、双子（ShioriSecretary）との diff 監査面積
+だけが増える。テストの担保は pytest が持つ。
+
+**strict の値打ちは本番側にある。** 型検査を入れる動機になった不具合（`os.path.join` →
+`Path(a) / b` の機械変換で str が Path に変わり `sys.path` へ流れる）は本番コードに居り、
+テストが緑のまま通り抜けた種類のものだった。テスト層を除外しても、その網は閉じたままになる。
+
+### Added
+
+- `strict = true`（`[tool.mypy]`）
+- テスト層の `ignore_errors`（`module = ["tests.*"]`）——理由はコメントに残した
+
+### Fixed
+
+本番 92 件の内訳は type-arg 64 / no-untyped-def 22 / no-any-return 4 / no-untyped-call 1 /
+assignment 1。大半は `dict` → `dict[str, Any]` の機械的な補完だが、次の三点は型が情報を持った:
+
+- **DI 差込口の無注釈**（`registry_cli` の `sync` / `wal_cli` の `git`・`sink` /
+  `composition` の `gateway`）——テスト注入のための口が、何を注入してよいか型で読めるようになった
+- **`moonshine_transcriber._model`** の lazy 三つ組——「未ロード（None）か三つ組か」が型に出た
+- **`_load_owned_lease`** の戻り——`tuple[SessionLease, JsonLeaseStore] | None` と書かれた
+
+`Any` に潰れる二箇所（`record_cls.to_dict()` / `args.handler(args)`）は `cast` で約束を型に
+戻し、理由をコメントに残す。スタブを持たない handle（pypdfium2 / moonshine_voice）は
+`Any` と明記した——実型を書いても `ignore_missing_imports` で `Any` に潰れるため。
+
+### Notes
+
+`read_json_arg` の戻りは `dict` ではなく `Any` にした。`add` / `wal-append` は 1 レコードの
+dict を、`import` は配列を渡す**両用の口**で、ここで型は決まらない（narrow は呼び出し側の
+`_import_records` が既に持っている）。dict へ狭める修正を一度入れて import 系 7 件が赤くなり、
+差し戻した。
+
+### 検証
+
+mypy 92→0 ／ ruff All checks passed ／ pytest 860 passed（前後一致）
+
 ## [1.12.0] - 2026-08-25 — 型検査を配線する：解決漏れに隠れていた 18 件
 
 CI に lint（`ruff check` / `ruff format --check`）はあったが**型検査が無かった**。`[tool.mypy]` 節も
