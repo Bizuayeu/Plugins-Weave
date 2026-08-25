@@ -1,4 +1,5 @@
 """T8: Config repository tests."""
+
 import json
 import tempfile
 import unittest
@@ -23,14 +24,14 @@ class TestLoadConfig(unittest.TestCase):
         return f.name
 
     def test_load_valid_config(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "settings": {"encoding": "utf-8"},
-            "text_extensions": [".txt"],
-            "sources": [
-                {"id": "a", "label": "A", "path": "/a.txt"}
-            ],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "settings": {"encoding": "utf-8"},
+                "text_extensions": [".txt"],
+                "sources": [{"id": "a", "label": "A", "path": "/a.txt"}],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertIsInstance(cfg, Config)
@@ -63,10 +64,12 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
     def test_default_settings(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "sources": [],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "sources": [],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertEqual(cfg.settings.encoding, "utf-8")
@@ -75,10 +78,12 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
     def test_default_text_extensions(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "sources": [],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "sources": [],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertIn(".txt", cfg.text_extensions)
@@ -86,13 +91,14 @@ class TestLoadConfig(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-
     def test_load_config_with_mode(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "settings": {"mode": "reference"},
-            "sources": [],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "settings": {"mode": "reference"},
+                "sources": [],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertEqual(cfg.settings.mode, "reference")
@@ -100,10 +106,12 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
     def test_load_config_mode_default(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "sources": [],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "sources": [],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertEqual(cfg.settings.mode, "inline")
@@ -111,10 +119,14 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
     def test_load_config_with_source_description(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "sources": [{"id": "a", "label": "A", "path": "/a.txt", "description": "memo"}],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "sources": [
+                    {"id": "a", "label": "A", "path": "/a.txt", "description": "memo"}
+                ],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertEqual(cfg.sources[0].description, "memo")
@@ -122,10 +134,12 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
     def test_load_config_source_description_default(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "sources": [{"id": "a", "label": "A", "path": "/a.txt"}],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "sources": [{"id": "a", "label": "A", "path": "/a.txt"}],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertEqual(cfg.sources[0].description, "")
@@ -133,10 +147,14 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
     def test_load_config_with_source_priority(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "sources": [{"id": "a", "label": "A", "path": "/a.txt", "priority": "critical"}],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "sources": [
+                    {"id": "a", "label": "A", "path": "/a.txt", "priority": "critical"}
+                ],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertEqual(cfg.sources[0].priority, "critical")
@@ -144,10 +162,12 @@ class TestLoadConfig(unittest.TestCase):
             Path(path).unlink()
 
     def test_load_config_source_priority_default(self) -> None:
-        path = self._write_config({
-            "version": "1.0.0",
-            "sources": [{"id": "a", "label": "A", "path": "/a.txt"}],
-        })
+        path = self._write_config(
+            {
+                "version": "1.0.0",
+                "sources": [{"id": "a", "label": "A", "path": "/a.txt"}],
+            }
+        )
         try:
             cfg = load_config(path)
             self.assertEqual(cfg.sources[0].priority, "normal")
@@ -180,7 +200,15 @@ class TestSaveConfig(unittest.TestCase):
             version="1.0.0",
             settings=Settings(),
             text_extensions=[".txt"],
-            sources=[Source(id="a", label="A", path="/a.txt", description="memo", priority="high")],
+            sources=[
+                Source(
+                    id="a",
+                    label="A",
+                    path="/a.txt",
+                    description="memo",
+                    priority="high",
+                )
+            ],
         )
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
@@ -201,7 +229,13 @@ class TestSaveConfig(unittest.TestCase):
             settings=Settings(mode="reference"),
             text_extensions=[".txt", ".md"],
             sources=[
-                Source(id="a", label="A", path="/a.txt", description="desc", priority="critical"),
+                Source(
+                    id="a",
+                    label="A",
+                    path="/a.txt",
+                    description="desc",
+                    priority="critical",
+                ),
             ],
         )
         with tempfile.NamedTemporaryFile(
@@ -213,7 +247,9 @@ class TestSaveConfig(unittest.TestCase):
             loaded = load_config(f.name)
             self.assertEqual(loaded.version, original.version)
             self.assertEqual(loaded.settings.mode, original.settings.mode)
-            self.assertEqual(loaded.sources[0].description, original.sources[0].description)
+            self.assertEqual(
+                loaded.sources[0].description, original.sources[0].description
+            )
             self.assertEqual(loaded.sources[0].priority, original.sources[0].priority)
         finally:
             Path(f.name).unlink()
@@ -228,12 +264,19 @@ class TestLoadProfileSources(unittest.TestCase):
         return f.name
 
     def test_load_profile_with_description_priority(self) -> None:
-        path = self._write_profile({
-            "sources": [
-                {"id": "a", "label": "A", "path": "/a.txt",
-                 "description": "profile desc", "priority": "high"},
-            ],
-        })
+        path = self._write_profile(
+            {
+                "sources": [
+                    {
+                        "id": "a",
+                        "label": "A",
+                        "path": "/a.txt",
+                        "description": "profile desc",
+                        "priority": "high",
+                    },
+                ],
+            }
+        )
         try:
             sources = load_profile_sources(path)
             self.assertEqual(sources[0].description, "profile desc")
@@ -242,11 +285,13 @@ class TestLoadProfileSources(unittest.TestCase):
             Path(path).unlink()
 
     def test_load_profile_defaults_description_priority(self) -> None:
-        path = self._write_profile({
-            "sources": [
-                {"id": "a", "label": "A", "path": "/a.txt"},
-            ],
-        })
+        path = self._write_profile(
+            {
+                "sources": [
+                    {"id": "a", "label": "A", "path": "/a.txt"},
+                ],
+            }
+        )
         try:
             sources = load_profile_sources(path)
             self.assertEqual(sources[0].description, "")

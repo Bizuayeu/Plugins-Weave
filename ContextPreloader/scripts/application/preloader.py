@@ -1,4 +1,5 @@
 """Preloader: orchestrates source processing."""
+
 from __future__ import annotations
 
 import sys
@@ -35,7 +36,9 @@ class Preloader:
         for source in all_sources:
             if not source.enabled:
                 continue
-            entries.append((source.path, source.label, source.description, source.priority))
+            entries.append(
+                (source.path, source.label, source.description, source.priority)
+            )
         output = format_reference_output(entries)
         output_bytes = len(output.encode("utf-8"))
         if output_bytes > REFERENCE_OUTPUT_WARNING_BYTES:

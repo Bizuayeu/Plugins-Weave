@@ -1,4 +1,5 @@
 """Pure detection functions (no I/O)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,9 +12,7 @@ def is_url(path: str) -> bool:
     return path.startswith("http://") or path.startswith("https://")
 
 
-def detect_source_kind(
-    path: str, text_extensions: list[str], forced_type: str
-) -> str:
+def detect_source_kind(path: str, text_extensions: list[str], forced_type: str) -> str:
     """Detect how a source should be handled.
 
     Returns: "text" | "binary" | "url"

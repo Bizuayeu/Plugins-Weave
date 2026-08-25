@@ -9,6 +9,7 @@ Usage:
   python -m scripts test                     # Test sources
   python -m scripts profiles                 # List profiles
 """
+
 from scripts.interfaces.cli import main
 
 if __name__ == "__main__":

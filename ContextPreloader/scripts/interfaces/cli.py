@@ -1,4 +1,5 @@
 """CLI interface for ContextPreloader management."""
+
 from __future__ import annotations
 
 import json
@@ -22,14 +23,27 @@ def cmd_list(config_path: str, profile: str | None) -> list[dict[str, Any]]:
     """List all configured sources. Returns list of dicts."""
     cfg = load_config(config_path)
     sources = [
-        {"id": s.id, "label": s.label, "path": s.path, "type": s.type, "enabled": s.enabled}
+        {
+            "id": s.id,
+            "label": s.label,
+            "path": s.path,
+            "type": s.type,
+            "enabled": s.enabled,
+        }
         for s in cfg.sources
     ]
 
     if profile:
         profile_sources = load_profile_sources(profile)
         sources.extend(
-            {"id": s.id, "label": s.label, "path": s.path, "type": s.type, "enabled": s.enabled, "profile": True}
+            {
+                "id": s.id,
+                "label": s.label,
+                "path": s.path,
+                "type": s.type,
+                "enabled": s.enabled,
+                "profile": True,
+            }
             for s in profile_sources
         )
 
@@ -38,7 +52,9 @@ def cmd_list(config_path: str, profile: str | None) -> list[dict[str, Any]]:
 
 def _generate_id(path: str) -> str:
     """Generate a source ID from a path."""
-    basename = Path(path).name.rsplit(".", 1)[0] if "/" in path or "\\" in path else path
+    basename = (
+        Path(path).name.rsplit(".", 1)[0] if "/" in path or "\\" in path else path
+    )
     return re.sub(r"[^a-z0-9]+", "-", basename.lower()).strip("-") or "source"
 
 
@@ -107,7 +123,9 @@ def cmd_test(config_path: str, profile: str | None) -> list[dict[str, Any]]:
     results = []
     for s in sources:
         if is_url(s.path):
-            results.append({"id": s.id, "path": s.path, "status": "ok", "note": "URL (not tested)"})
+            results.append(
+                {"id": s.id, "path": s.path, "status": "ok", "note": "URL (not tested)"}
+            )
         elif Path(s.path).exists():
             results.append({"id": s.id, "path": s.path, "status": "ok"})
         else:
@@ -147,6 +165,7 @@ def cmd_status() -> dict[str, Any]:
         if candidate.exists():
             try:
                 import json as _json
+
                 with Path(candidate).open(encoding="utf-8") as f:
                     settings = _json.load(f)
                 hooks = settings.get("hooks", {}).get("SessionStart", [])
@@ -196,10 +215,10 @@ def main() -> None:
     import sys
 
     parser = argparse.ArgumentParser(description="ContextPreloader CLI")
-    parser.add_argument("--config", default=str(get_default_config_path()),
-                        help="Config file path")
-    parser.add_argument("--profile", default=None,
-                        help="Profile name or path")
+    parser.add_argument(
+        "--config", default=str(get_default_config_path()), help="Config file path"
+    )
+    parser.add_argument("--profile", default=None, help="Profile name or path")
 
     subparsers = parser.add_subparsers(dest="command")
 
@@ -225,6 +244,7 @@ def main() -> None:
             profile_path = args.profile
         else:
             from scripts.infrastructure.path_resolver import get_profile_path
+
             profile_path = str(get_profile_path(args.profile))
 
     # 分岐ごとに戻り値の型が違う（dict / list[dict] / list[str]）。直後に
@@ -262,4 +282,5 @@ def main() -> None:
     else:
         # No subcommand = hook mode
         from scripts.interfaces.hook_runner import run_hook
+
         run_hook(profile_path)

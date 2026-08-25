@@ -1,4 +1,5 @@
 """T11: CLI command tests."""
+
 import json
 import tempfile
 import unittest
@@ -37,6 +38,7 @@ class CLITestBase(unittest.TestCase):
 
     def tearDown(self) -> None:
         import shutil
+
         shutil.rmtree(self._tmpdir, ignore_errors=True)
 
     def _reload_config(self) -> dict[str, Any]:
@@ -103,7 +105,11 @@ class TestCmdTest(CLITestBase):
         config = {
             "version": "1.0.0",
             "sources": [
-                {"id": name, "label": name.upper(), "path": str(Path(self._tmpdir) / f"{name}.txt")}
+                {
+                    "id": name,
+                    "label": name.upper(),
+                    "path": str(Path(self._tmpdir) / f"{name}.txt"),
+                }
                 for name in ("a", "b", "c")
             ],
         }

@@ -1,4 +1,5 @@
 """Hook mode runner - outputs preloaded context to stdout."""
+
 from __future__ import annotations
 
 import io
@@ -24,7 +25,9 @@ def run_hook(profile: str | None = None, config_path: str | None = None) -> None
         and sys.stdout.encoding.lower().replace("-", "") != "utf8"
         and hasattr(sys.stdout, "buffer")
     ):
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.buffer, encoding="utf-8", errors="replace"
+        )
 
     if config_path is None:
         config_path = str(get_default_config_path())

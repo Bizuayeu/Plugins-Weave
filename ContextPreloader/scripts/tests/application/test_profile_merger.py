@@ -1,4 +1,5 @@
 """T10: Profile merger tests."""
+
 import json
 import tempfile
 import unittest

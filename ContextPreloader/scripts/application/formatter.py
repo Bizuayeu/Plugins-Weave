@@ -1,4 +1,5 @@
 """Output formatting functions."""
+
 from __future__ import annotations
 
 from scripts.domain.detection import format_file_size, get_file_type_label
@@ -21,11 +22,7 @@ def format_binary_output(label: str, path: str, size: int, ext: str) -> str:
 
 
 def format_url_text_output(label: str, url: str, content: str) -> str:
-    return (
-        f"=== {label} [URL] ===\n"
-        f"Source: {url}\n"
-        f"{content}\n"
-    )
+    return f"=== {label} [URL] ===\nSource: {url}\n{content}\n"
 
 
 def format_url_ref_output(label: str, url: str, content_type: str) -> str:
@@ -38,10 +35,7 @@ def format_url_ref_output(label: str, url: str, content_type: str) -> str:
 
 
 def format_error_output(label: str, error: str) -> str:
-    return (
-        f"=== {label} [ERROR] ===\n"
-        f"{error}\n"
-    )
+    return f"=== {label} [ERROR] ===\n{error}\n"
 
 
 def format_reference_output(
@@ -76,7 +70,9 @@ def format_summary(
     if url_count:
         parts.append(f"{url_count} URL{'s' if url_count != 1 else ''}")
     if binary_count:
-        parts.append(f"{binary_count} binary reference{'s' if binary_count != 1 else ''}")
+        parts.append(
+            f"{binary_count} binary reference{'s' if binary_count != 1 else ''}"
+        )
 
     loaded = ", ".join(parts) if parts else "nothing"
     return (

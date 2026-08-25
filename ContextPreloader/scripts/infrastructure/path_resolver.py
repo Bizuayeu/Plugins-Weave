@@ -1,4 +1,5 @@
 """Path resolution utilities (cross-platform)."""
+
 from __future__ import annotations
 
 import os

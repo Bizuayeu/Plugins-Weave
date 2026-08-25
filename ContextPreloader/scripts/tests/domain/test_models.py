@@ -1,4 +1,5 @@
 """T1 (partial): Domain model tests for Source, Settings, Config."""
+
 import unittest
 
 from scripts.domain.models import Config, Settings, Source
@@ -14,7 +15,6 @@ class TestSource(unittest.TestCase):
         s = Source(id="test", label="Test", path="/tmp/file.txt")
         with self.assertRaises(AttributeError):
             s.id = "changed"  # type: ignore[misc]
-
 
     def test_source_description_default(self) -> None:
         s = Source(id="test", label="Test", path="/tmp/file.txt")

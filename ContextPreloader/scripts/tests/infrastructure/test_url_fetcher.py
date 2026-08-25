@@ -1,4 +1,5 @@
 """T6+T7: HTML text extraction and URL fetching tests."""
+
 import unittest
 from email.message import Message
 from unittest.mock import MagicMock, patch
@@ -40,7 +41,9 @@ class TestStripHtml(unittest.TestCase):
         self.assertEqual(strip_html(""), "")
 
 
-def _mock_response(data: bytes, content_type: str = "text/html", status: int = 200) -> MagicMock:
+def _mock_response(
+    data: bytes, content_type: str = "text/html", status: int = 200
+) -> MagicMock:
     """Create a mock HTTP response."""
     resp = MagicMock()
     resp.read.return_value = data
@@ -65,18 +68,14 @@ class TestFetchUrl(unittest.TestCase):
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
     def test_fetch_plain_text(self, mock_urlopen: MagicMock) -> None:
-        mock_urlopen.return_value = _mock_response(
-            b"Plain text content", "text/plain"
-        )
+        mock_urlopen.return_value = _mock_response(b"Plain text content", "text/plain")
         content, ctype = fetch_url("https://example.com/text", 10)
         self.assertEqual(content, "Plain text content")
         self.assertEqual(ctype, "text/plain")
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
     def test_fetch_non_text(self, mock_urlopen: MagicMock) -> None:
-        mock_urlopen.return_value = _mock_response(
-            b"%PDF-1.4", "application/pdf"
-        )
+        mock_urlopen.return_value = _mock_response(b"%PDF-1.4", "application/pdf")
         content, ctype = fetch_url("https://example.com/doc.pdf", 10)
         self.assertEqual(ctype, "application/pdf")
         self.assertEqual(content, "")

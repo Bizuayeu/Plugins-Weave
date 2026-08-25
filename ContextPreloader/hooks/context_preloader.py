@@ -9,6 +9,7 @@ your .claude/settings.json SessionStart hook to call it:
 This thin launcher resolves the plugin location at runtime, supporting
 both marketplace installs and local development paths.
 """
+
 import io
 import os
 import sys
@@ -23,7 +24,11 @@ if hasattr(sys.stdout, "buffer"):
 _CANDIDATE_PATHS = [
     # sys.path へ入れるので str を保つ——Path を入れると import 機構が黙って
     # 素通りし ModuleNotFoundError になる（実測）。
-    str(Path("~/.claude/plugins/marketplaces/plugins-weave/ContextPreloader").expanduser()),
+    str(
+        Path(
+            "~/.claude/plugins/marketplaces/plugins-weave/ContextPreloader"
+        ).expanduser()
+    ),
 ]
 
 # Allow override via environment variable

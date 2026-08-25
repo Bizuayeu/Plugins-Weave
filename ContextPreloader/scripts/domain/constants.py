@@ -3,10 +3,26 @@ from typing import Any
 """Domain constants for ContextPreloader (Single Source of Truth)."""
 
 DEFAULT_TEXT_EXTENSIONS: list[str] = [
-    ".txt", ".md", ".json", ".yaml", ".yml", ".csv",
-    ".py", ".js", ".ts", ".html", ".css", ".xml",
-    ".toml", ".ini", ".cfg", ".log",
-    ".sh", ".bash", ".ps1", ".bat",
+    ".txt",
+    ".md",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".csv",
+    ".py",
+    ".js",
+    ".ts",
+    ".html",
+    ".css",
+    ".xml",
+    ".toml",
+    ".ini",
+    ".cfg",
+    ".log",
+    ".sh",
+    ".bash",
+    ".ps1",
+    ".bat",
 ]
 
 FILE_TYPE_LABELS: dict[str, str] = {

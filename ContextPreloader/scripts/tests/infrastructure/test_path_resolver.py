@@ -1,4 +1,5 @@
 """T1.1-T1.2: Path resolver tests."""
+
 import os
 import unittest
 from pathlib import Path

@@ -1,4 +1,5 @@
 """URL fetching and HTML text extraction."""
+
 from __future__ import annotations
 
 from html.parser import HTMLParser
@@ -19,7 +20,19 @@ class HTMLTextExtractor(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag.lower() in self.SKIP_TAGS:
             self._skip_depth += 1
-        elif tag.lower() in ("p", "br", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "tr"):
+        elif tag.lower() in (
+            "p",
+            "br",
+            "div",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "tr",
+        ):
             self._result.append("\n")
 
     def handle_endtag(self, tag: str) -> None:

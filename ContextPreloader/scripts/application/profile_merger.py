@@ -1,4 +1,5 @@
 """Profile merging logic."""
+
 from __future__ import annotations
 
 from scripts.domain.models import Source

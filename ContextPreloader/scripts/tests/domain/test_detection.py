@@ -1,4 +1,5 @@
 """T2: Source Kind Detection tests for domain/detection.py"""
+
 import unittest
 
 from scripts.domain.constants import DEFAULT_TEXT_EXTENSIONS

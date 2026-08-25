@@ -1,4 +1,5 @@
 """Single source processing logic."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,7 +22,7 @@ from scripts.infrastructure.url_fetcher import fetch_url
 @dataclass
 class ProcessedSource:
     output: str
-    kind: str       # "text" | "url" | "binary" | "error"
+    kind: str  # "text" | "url" | "binary" | "error"
     text_size: int  # bytes of text output (for summary)
 
 
@@ -39,7 +40,9 @@ def process_source(
                 source.path, settings.encoding, settings.max_lines_per_file
             )
             output = format_text_output(source.label, content)
-            return ProcessedSource(output=output, kind="text", text_size=len(content.encode("utf-8")))
+            return ProcessedSource(
+                output=output, kind="text", text_size=len(content.encode("utf-8"))
+            )
 
         elif kind == "url":
             content, content_type = fetch_url(source.path, settings.url_timeout)
@@ -49,7 +52,9 @@ def process_source(
                 return ProcessedSource(output=output, kind="error", text_size=0)
             elif content:
                 output = format_url_text_output(source.label, source.path, content)
-                return ProcessedSource(output=output, kind="url", text_size=len(content.encode("utf-8")))
+                return ProcessedSource(
+                    output=output, kind="url", text_size=len(content.encode("utf-8"))
+                )
             else:
                 output = format_url_ref_output(source.label, source.path, content_type)
                 return ProcessedSource(output=output, kind="binary", text_size=0)

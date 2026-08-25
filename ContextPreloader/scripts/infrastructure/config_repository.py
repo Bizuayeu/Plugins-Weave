@@ -1,4 +1,5 @@
 """Configuration file loading and saving."""
+
 from __future__ import annotations
 
 import json
@@ -35,7 +36,9 @@ def load_config(config_path: str | Path) -> Config:
     raw_settings = data.get("settings", {})
     settings = Settings(
         encoding=raw_settings.get("encoding", DEFAULT_SETTINGS["encoding"]),
-        max_lines_per_file=raw_settings.get("max_lines_per_file", DEFAULT_SETTINGS["max_lines_per_file"]),
+        max_lines_per_file=raw_settings.get(
+            "max_lines_per_file", DEFAULT_SETTINGS["max_lines_per_file"]
+        ),
         show_summary=raw_settings.get("show_summary", DEFAULT_SETTINGS["show_summary"]),
         url_timeout=raw_settings.get("url_timeout", DEFAULT_SETTINGS["url_timeout"]),
         mode=raw_settings.get("mode", DEFAULT_SETTINGS["mode"]),
@@ -47,15 +50,17 @@ def load_config(config_path: str | Path) -> Config:
     # Build Source list
     sources = []
     for s in data["sources"]:
-        sources.append(Source(
-            id=s.get("id", s.get("path", "")),
-            label=s.get("label", s.get("path", "")),
-            path=s["path"],
-            type=s.get("type", "auto"),
-            enabled=s.get("enabled", True),
-            description=s.get("description", ""),
-            priority=s.get("priority", "normal"),
-        ))
+        sources.append(
+            Source(
+                id=s.get("id", s.get("path", "")),
+                label=s.get("label", s.get("path", "")),
+                path=s["path"],
+                type=s.get("type", "auto"),
+                enabled=s.get("enabled", True),
+                description=s.get("description", ""),
+                priority=s.get("priority", "normal"),
+            )
+        )
 
     return Config(
         version=data.get("version", "1.0.0"),
@@ -117,15 +122,17 @@ def load_profile_sources(profile_path: str | Path) -> list[Source]:
 
     sources = []
     for s in data.get("sources", []):
-        sources.append(Source(
-            id=s.get("id", s.get("path", "")),
-            label=s.get("label", s.get("path", "")),
-            path=s["path"],
-            type=s.get("type", "auto"),
-            enabled=s.get("enabled", True),
-            description=s.get("description", ""),
-            priority=s.get("priority", "normal"),
-        ))
+        sources.append(
+            Source(
+                id=s.get("id", s.get("path", "")),
+                label=s.get("label", s.get("path", "")),
+                path=s["path"],
+                type=s.get("type", "auto"),
+                enabled=s.get("enabled", True),
+                description=s.get("description", ""),
+                priority=s.get("priority", "normal"),
+            )
+        )
     return sources
 
 
@@ -134,6 +141,4 @@ def list_profiles(profiles_dir: str | Path) -> list[str]:
     profiles_dir = Path(profiles_dir)
     if not profiles_dir.exists():
         return []
-    return [
-        p.stem for p in sorted(profiles_dir.glob("*.json"))
-    ]
+    return [p.stem for p in sorted(profiles_dir.glob("*.json"))]
