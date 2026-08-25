@@ -75,7 +75,7 @@
       "name": "ContextPreloader",
       "source": "./ContextPreloader",
       "description": "Session context preloader - recreates claude.ai Project feature for Claude Code",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Weave @ ContextPreloader"
       },
@@ -138,7 +138,7 @@
       "name": "ConsiderateCoder",
       "source": "./ConsiderateCoder",
       "description": "Development methodology plugin: Clean Architecture x TDD x three-tier delegation (communicator / orchestrator / worker) with /plan-sdd, /outsource and /dig commands",
-      "version": "1.5.2",
+      "version": "1.6.0",
       "author": {
         "name": "Weave @ ConsiderateCoder"
       },

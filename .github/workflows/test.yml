@@ -607,6 +607,48 @@ jobs:
   # ContextPreloader Jobs
   # =============================================================================
 
+  lint-contextpreloader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+
+      - name: Install ruff
+        run: pip install ruff==0.16.0
+
+      # ルールの正典は ContextPreloader/pyproject.toml の [tool.ruff]。ここでは呼ぶだけ。
+      - name: Run ruff linter
+        working-directory: ContextPreloader
+        run: ruff check .
+
+      # --check は書き換えず差分の有無だけを見る（CI が勝手にコードを直して
+      # green にする経路は作らない）。
+      - name: Run ruff formatter check
+        working-directory: ContextPreloader
+        run: ruff format --check .
+
+  type-check-contextpreloader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+
+      - name: Install mypy
+        run: pip install mypy==2.3.0
+
+      # strict は ContextPreloader/pyproject.toml の [tool.mypy] が SSoT。
+      - name: Run mypy
+        working-directory: ContextPreloader
+        run: mypy scripts hooks
+
   test-contextpreloader:
     runs-on: ubuntu-latest
     strategy:
@@ -621,7 +663,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # pyproject を持たない stdlib-only プラグイン（editable install する対象が無い）ため、
+      # pyproject.toml は在るが [project] / [build-system] を持たない（ruff / mypy /
+      # pytest が設定を読む場所としてのみ置いてある）ので editable install はできない。
       # 他プラグインの `pip install -e X[dev]` ではなく pytest 単体を入れる。
       - name: Install pytest
         run: |
@@ -638,6 +681,48 @@ jobs:
   # ConsiderateCoder Jobs
   # =============================================================================
 
+  lint-consideratecoder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+
+      - name: Install ruff
+        run: pip install ruff==0.16.0
+
+      # ルールの正典は ConsiderateCoder/pyproject.toml の [tool.ruff]。ここでは呼ぶだけ。
+      - name: Run ruff linter
+        working-directory: ConsiderateCoder
+        run: ruff check .
+
+      # --check は書き換えず差分の有無だけを見る（CI が勝手にコードを直して
+      # green にする経路は作らない）。
+      - name: Run ruff formatter check
+        working-directory: ConsiderateCoder
+        run: ruff format --check .
+
+  type-check-consideratecoder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+
+      - name: Install mypy
+        run: pip install mypy==2.3.0
+
+      # strict は ConsiderateCoder/pyproject.toml の [tool.mypy] が SSoT。
+      - name: Run mypy
+        working-directory: ConsiderateCoder
+        run: mypy tests
+
   test-consideratecoder:
     runs-on: ubuntu-latest
     strategy:
@@ -652,7 +737,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # 規範・テンプレート群を検査する stdlib-only スイート（pyproject 無し）。
+      # 規範・テンプレート群を検査する stdlib-only スイート。pyproject.toml は
+      # 設定専用（[project] 無し）なので editable install はできない。
       - name: Install pytest
         run: |
           python -m pip install --upgrade pip

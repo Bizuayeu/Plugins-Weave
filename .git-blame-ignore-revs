@@ -1,0 +1,15 @@
+# `git blame` から除外するリビジョン。
+#
+# 整形だけの一括 commit は全行の blame を自分に書き換えてしまい、「この行を
+# 書いたのは誰で、なぜか」を辿る手段を潰す。ここに挙げた revision は blame が
+# 素通りし、その一つ前の実質的な変更を指すようになる。
+#
+# GitHub の blame ビューは本ファイルを自動で読む。手元では clone ごとに一度:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# 挙げてよいのは「意味を変えていないことを実測で示した commit」だけ。
+# 挙動が 1 ビットでも変わる commit を隠すと、事故の出所が消える。
+
+# style(contextpreloader): ruff format を適用する (25 files) — 2026-08-25
+# pytest 112 / mypy 36 files / ruff check が適用前後で完全一致
+35ed241925fc45aeb53f3c698474af168e6d7ba8

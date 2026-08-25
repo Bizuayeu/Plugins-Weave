@@ -2,6 +2,31 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.6.0] - 2026-08-25
+
+### Added
+
+- `pyproject.toml`（新設）— `[tool.ruff]` / `[tool.mypy]` / `[tool.pytest.ini_options]`。**`[project]` /
+  `[build-system]` は置かない**（本プラグインの実体は skills/ と commands/ の Markdown で、Python は
+  tests/ の 4 本だけ。設定を読む場所としてのみ要る）。規約はワークスペースの**和集合**（同日確定）——
+  ruff の select 10 集合 ＋ mypy strict
+- CI に `lint-consideratecoder` / `type-check-consideratecoder` ジョブ。**方法論を配る側が自分の
+  検証コードを検めていないのは筋が通らない**
+
+### Fixed
+
+- **`re.search(...).group(1)` が None 参照になりうる箇所を 1 件**（`test_stage2_usecase.py`）。
+  match を束ねて `assert` を挟み、「orchestrator の frontmatter に `tools:` 行が在ること」という
+  テストの意図をコードに書いた。mypy strict の `union-attr` が検出
+
+### Changed
+
+- lint 2 件（`E741`: `l` → `line`）、mypy strict 57 → 0（35 件は `-> None` の付与、ヘルパー 4 本の
+  型付けで `no-untyped-call` 17 件が連鎖で解消）、`ruff format` を適用（4 files）
+- テストは **35 passed で作業前後同一**
+
+---
+
 ## [1.5.2] - 2026-08-20
 
 ### Added
