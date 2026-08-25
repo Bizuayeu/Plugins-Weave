@@ -1,5 +1,44 @@
 # Changelog
 
+## [1.4.0] - 2026-08-25
+
+静的チェックをワークスペース基準へ揃える。挙動の変更は無い（`path_resolver` の候補探索は
+`os.path` から `pathlib` へ移ったが、優先順・戻り値の契約は不変）。
+
+### Changed
+
+- ruff の `select` に `N`（命名）と `PTH`（pathlib）を追加。既存の `C4` / `RUF` は残した
+  ——ワークスペースの ToBe は二流儀の**和集合**であって置換ではない。`E` は `E4,E7,E9` へ
+  絞り、`E501` は `ignore` から落として行長の判断を formatter へ一本化
+- formatter をワークスペース既定へ（`line-length = 100` と `quote-style = "preserve"` を撤去
+  ＝ 88 桁・クオート正規化）。11 ファイルが再整形された
+- `path_resolver.get_plugin_root()` の候補リストを `list[Path]` へ統一
+  （戻り値は元々 `Path(candidate)` だったので契約は不変）
+
+### Fixed
+
+PTH 22 件。**一様ではないので一括変換していない**:
+
+- **`hooks/*.py` の 7 件は `per-file-ignores` で除外**（理由をコメントに明記）。候補パスは
+  最終的に `sys.path.insert()` へ渡る。**`sys.path` の要素は str でなければならず**、`Path`
+  を入れると import が黙って失敗する（実測: `ModuleNotFoundError`）。起動スクリプトなので、
+  移植性より起動が成立することを取る
+- **`hook_config.py` は `str()` で包んで変換**。`os.path.join(...).replace("\\", "/")` の
+  `.replace` は **str のメソッド**であり、`Path.replace()` は引数 1 個の**リネーム操作**
+  ——`Path` のまま繋ぐと意味が変わる（`settings.json` は "/" 区切りの文字列を要求する）
+- **`file_io.py` / `path_resolver.py` は素直に変換**。前者の `tmp_path` は `mkstemp` 由来の
+  str なので `Path(tmp_path)` で包んだ
+
+### Notes
+
+`path_resolver` のテスト 4 件は `path_resolver.os.path.isdir` を patch していたため、patch 先を
+`Path.is_dir` へ移した。判定対象は候補パスの文字列のままで、各テストの意図（どの候補が
+勝つか）は変えていない。
+
+### 検証
+
+ruff 22→0 ／ mypy Success ／ pytest 105 passed（前後一致）
+
 ## [1.3.1] - 2026-07-26
 
 ### Fixed
