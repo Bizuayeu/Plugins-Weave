@@ -1,7 +1,7 @@
 """File reading operations."""
 from __future__ import annotations
 
-import os
+from pathlib import Path
 
 from scripts.domain.exceptions import SourceError
 
@@ -21,7 +21,7 @@ def read_text_file(path: str, encoding: str, max_lines: int) -> str:
         SourceError: If file cannot be read.
     """
     try:
-        with open(path, "r", encoding=encoding) as f:
+        with Path(path).open(encoding=encoding) as f:
             if max_lines > 0:
                 lines = []
                 for i, line in enumerate(f):
@@ -32,12 +32,12 @@ def read_text_file(path: str, encoding: str, max_lines: int) -> str:
                 return "\n".join(lines)
             else:
                 return f.read()
-    except FileNotFoundError:
-        raise SourceError(f"File not found: {path}")
-    except PermissionError:
-        raise SourceError(f"Permission denied: {path}")
+    except FileNotFoundError as e:
+        raise SourceError(f"File not found: {path}") from e
+    except PermissionError as e:
+        raise SourceError(f"Permission denied: {path}") from e
     except UnicodeDecodeError as e:
-        raise SourceError(f"Encoding error reading {path}: {e}")
+        raise SourceError(f"Encoding error reading {path}: {e}") from e
 
 
 def get_file_info(path: str) -> tuple[int, str]:
@@ -50,8 +50,8 @@ def get_file_info(path: str) -> tuple[int, str]:
         SourceError: If file cannot be accessed.
     """
     try:
-        size = os.path.getsize(path)
-        _, ext = os.path.splitext(path)
+        size = Path(path).stat().st_size
+        ext = Path(path).suffix
         return size, ext.lower()
     except OSError as e:
-        raise SourceError(f"Cannot access file {path}: {e}")
+        raise SourceError(f"Cannot access file {path}: {e}") from e

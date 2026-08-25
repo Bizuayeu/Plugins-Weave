@@ -1,12 +1,17 @@
 """T11: CLI command tests."""
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
-from scripts.interfaces.cli import cmd_add, cmd_list, cmd_profiles, cmd_remove, cmd_status, cmd_test
+from scripts.interfaces.cli import (
+    cmd_add,
+    cmd_list,
+    cmd_profiles,
+    cmd_remove,
+    cmd_status,
+    cmd_test,
+)
 
 
 class CLITestBase(unittest.TestCase):
@@ -14,9 +19,9 @@ class CLITestBase(unittest.TestCase):
 
     def setUp(self):
         self._tmpdir = tempfile.mkdtemp()
-        self._config_path = os.path.join(self._tmpdir, "sources.json")
-        self._profiles_dir = os.path.join(self._tmpdir, "profiles")
-        os.makedirs(self._profiles_dir, exist_ok=True)
+        self._config_path = Path(self._tmpdir) / "sources.json"
+        self._profiles_dir = Path(self._tmpdir) / "profiles"
+        Path(self._profiles_dir).mkdir(parents=True, exist_ok=True)
 
         config = {
             "version": "1.0.0",
@@ -26,7 +31,7 @@ class CLITestBase(unittest.TestCase):
                 {"id": "c", "label": "C", "path": "/c.txt"},
             ],
         }
-        with open(self._config_path, "w", encoding="utf-8") as f:
+        with Path(self._config_path).open("w", encoding="utf-8") as f:
             json.dump(config, f)
 
     def tearDown(self):
@@ -34,7 +39,7 @@ class CLITestBase(unittest.TestCase):
         shutil.rmtree(self._tmpdir, ignore_errors=True)
 
     def _reload_config(self):
-        with open(self._config_path, "r", encoding="utf-8") as f:
+        with Path(self._config_path).open(encoding="utf-8") as f:
             return json.load(f)
 
 
@@ -62,12 +67,12 @@ class TestCmdAdd(CLITestBase):
         self.assertEqual(added["type"], "auto")
 
     def test_cmd_add_to_profile(self):
-        profile_path = os.path.join(self._profiles_dir, "test.json")
-        with open(profile_path, "w", encoding="utf-8") as f:
+        profile_path = Path(self._profiles_dir) / "test.json"
+        with Path(profile_path).open("w", encoding="utf-8") as f:
             json.dump({"sources": []}, f)
 
         cmd_add(self._config_path, "/e.txt", "E", "auto", profile_path)
-        with open(profile_path, "r", encoding="utf-8") as f:
+        with Path(profile_path).open(encoding="utf-8") as f:
             profile_data = json.load(f)
         self.assertEqual(len(profile_data["sources"]), 1)
 
@@ -89,18 +94,18 @@ class TestCmdTest(CLITestBase):
     def test_cmd_test_all_ok(self):
         # Create actual files
         for name in ("a", "b", "c"):
-            path = os.path.join(self._tmpdir, f"{name}.txt")
-            with open(path, "w") as f:
+            path = Path(self._tmpdir) / f"{name}.txt"
+            with Path(path).open("w") as f:
                 f.write(f"content {name}")
 
         config = {
             "version": "1.0.0",
             "sources": [
-                {"id": name, "label": name.upper(), "path": os.path.join(self._tmpdir, f"{name}.txt")}
+                {"id": name, "label": name.upper(), "path": str(Path(self._tmpdir) / f"{name}.txt")}
                 for name in ("a", "b", "c")
             ],
         }
-        with open(self._config_path, "w", encoding="utf-8") as f:
+        with Path(self._config_path).open("w", encoding="utf-8") as f:
             json.dump(config, f)
 
         results = cmd_test(self._config_path, None)
@@ -115,7 +120,7 @@ class TestCmdTest(CLITestBase):
 class TestCmdProfiles(CLITestBase):
     def test_cmd_profiles(self):
         for name in ("alpha", "beta"):
-            with open(os.path.join(self._profiles_dir, f"{name}.json"), "w") as f:
+            with (Path(self._profiles_dir) / f"{name}.json").open("w") as f:
                 json.dump({"sources": []}, f)
 
         result = cmd_profiles(self._profiles_dir)

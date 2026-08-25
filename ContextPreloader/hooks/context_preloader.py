@@ -12,6 +12,7 @@ both marketplace installs and local development paths.
 import io
 import os
 import sys
+from pathlib import Path
 
 # Ensure UTF-8 stdout (critical for non-ASCII text)
 if hasattr(sys.stdout, "buffer"):
@@ -20,7 +21,9 @@ if hasattr(sys.stdout, "buffer"):
 # Resolve plugin location - checks multiple candidate paths
 # Add your dev path here if developing locally
 _CANDIDATE_PATHS = [
-    os.path.expanduser("~/.claude/plugins/marketplaces/plugins-weave/ContextPreloader"),
+    # sys.path へ入れるので str を保つ——Path を入れると import 機構が黙って
+    # 素通りし ModuleNotFoundError になる（実測）。
+    str(Path("~/.claude/plugins/marketplaces/plugins-weave/ContextPreloader").expanduser()),
 ]
 
 # Allow override via environment variable
@@ -30,7 +33,7 @@ if _env_path:
 
 _plugin_dir = None
 for p in _CANDIDATE_PATHS:
-    if os.path.isdir(os.path.join(p, "scripts")):
+    if (Path(p) / "scripts").is_dir():
         _plugin_dir = p
         break
 
@@ -43,8 +46,8 @@ if _plugin_dir is None:
 # Add plugin dir to path so `scripts` package is importable
 sys.path.insert(0, _plugin_dir)
 
-from scripts.interfaces.hook_runner import run_hook
 from scripts.infrastructure.path_resolver import get_profile_path
+from scripts.interfaces.hook_runner import run_hook
 
 # Parse --profile from sys.argv
 profile_path = None

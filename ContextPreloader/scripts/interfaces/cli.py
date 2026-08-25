@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from pathlib import Path
 
@@ -38,7 +37,7 @@ def cmd_list(config_path: str, profile: str | None) -> list[dict]:
 
 def _generate_id(path: str) -> str:
     """Generate a source ID from a path."""
-    basename = os.path.basename(path).rsplit(".", 1)[0] if "/" in path or "\\" in path else path
+    basename = Path(path).name.rsplit(".", 1)[0] if "/" in path or "\\" in path else path
     return re.sub(r"[^a-z0-9]+", "-", basename.lower()).strip("-") or "source"
 
 
@@ -53,7 +52,7 @@ def cmd_add(
     target_path = profile if profile else config_path
     src_id = _generate_id(path)
 
-    with open(target_path, "r", encoding="utf-8") as f:
+    with Path(target_path).open(encoding="utf-8") as f:
         data = json.load(f)
 
     new_source = {
@@ -65,7 +64,7 @@ def cmd_add(
     }
     data.setdefault("sources", []).append(new_source)
 
-    with open(target_path, "w", encoding="utf-8") as f:
+    with Path(target_path).open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
@@ -77,7 +76,7 @@ def cmd_remove(config_path: str, src_id: str, profile: str | None) -> None:
     """
     target_path = profile if profile else config_path
 
-    with open(target_path, "r", encoding="utf-8") as f:
+    with Path(target_path).open(encoding="utf-8") as f:
         data = json.load(f)
 
     original_len = len(data.get("sources", []))
@@ -86,7 +85,7 @@ def cmd_remove(config_path: str, src_id: str, profile: str | None) -> None:
     if len(data["sources"]) == original_len:
         raise ValueError(f"Source ID '{src_id}' not found")
 
-    with open(target_path, "w", encoding="utf-8") as f:
+    with Path(target_path).open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
@@ -108,7 +107,7 @@ def cmd_test(config_path: str, profile: str | None) -> list[dict]:
     for s in sources:
         if is_url(s.path):
             results.append({"id": s.id, "path": s.path, "status": "ok", "note": "URL (not tested)"})
-        elif os.path.exists(s.path):
+        elif Path(s.path).exists():
             results.append({"id": s.id, "path": s.path, "status": "ok"})
         else:
             results.append({"id": s.id, "path": s.path, "status": "missing"})
@@ -118,7 +117,6 @@ def cmd_test(config_path: str, profile: str | None) -> list[dict]:
 
 def cmd_status() -> dict:
     """Check setup state. Returns dict with status of each component."""
-    from pathlib import Path
 
     config_path = get_default_config_path()
     profiles_dir = get_profiles_dir()
@@ -148,7 +146,7 @@ def cmd_status() -> dict:
         if candidate.exists():
             try:
                 import json as _json
-                with open(candidate, "r", encoding="utf-8") as f:
+                with Path(candidate).open(encoding="utf-8") as f:
                     settings = _json.load(f)
                 hooks = settings.get("hooks", {}).get("SessionStart", [])
                 for group in hooks:
@@ -222,7 +220,7 @@ def main() -> None:
     # Resolve profile path if profile name given
     profile_path = None
     if args.profile:
-        if os.path.exists(args.profile):
+        if Path(args.profile).exists():
             profile_path = args.profile
         else:
             from scripts.infrastructure.path_resolver import get_profile_path

@@ -1,13 +1,13 @@
 """T2: Source Kind Detection tests for domain/detection.py"""
 import unittest
 
+from scripts.domain.constants import DEFAULT_TEXT_EXTENSIONS
 from scripts.domain.detection import (
     detect_source_kind,
     format_file_size,
     get_file_type_label,
     is_url,
 )
-from scripts.domain.constants import DEFAULT_TEXT_EXTENSIONS
 
 
 class TestIsUrl(unittest.TestCase):

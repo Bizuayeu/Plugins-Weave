@@ -9,7 +9,7 @@ from scripts.infrastructure.path_resolver import expand_path
 class TestExpandPath(unittest.TestCase):
     def test_expand_path_tilde(self):
         result = expand_path("~/docs/file.txt")
-        expected = Path(os.path.expanduser("~")) / "docs" / "file.txt"
+        expected = Path("~").expanduser() / "docs" / "file.txt"
         self.assertEqual(result, expected)
 
     def test_expand_path_absolute(self):

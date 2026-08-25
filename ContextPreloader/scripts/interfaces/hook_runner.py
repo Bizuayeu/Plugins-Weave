@@ -4,10 +4,10 @@ from __future__ import annotations
 import io
 import sys
 
+from scripts.application.preloader import Preloader
 from scripts.domain.exceptions import ConfigError
 from scripts.infrastructure.config_repository import load_config, load_profile_sources
 from scripts.infrastructure.path_resolver import get_default_config_path
-from scripts.application.preloader import Preloader
 
 
 def run_hook(profile: str | None = None, config_path: str | None = None) -> None:
@@ -18,9 +18,13 @@ def run_hook(profile: str | None = None, config_path: str | None = None) -> None
         config_path: Config file path (or None for default).
     """
     # Ensure UTF-8 stdout (only wrap if not already UTF-8)
-    if hasattr(sys.stdout, "encoding") and sys.stdout.encoding and sys.stdout.encoding.lower().replace("-", "") != "utf8":
-        if hasattr(sys.stdout, "buffer"):
-            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    if (
+        hasattr(sys.stdout, "encoding")
+        and sys.stdout.encoding
+        and sys.stdout.encoding.lower().replace("-", "") != "utf8"
+        and hasattr(sys.stdout, "buffer")
+    ):
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
     if config_path is None:
         config_path = str(get_default_config_path())

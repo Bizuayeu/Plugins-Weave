@@ -1,7 +1,7 @@
 """Pure detection functions (no I/O)."""
 from __future__ import annotations
 
-import os
+from pathlib import Path
 
 from .constants import FILE_TYPE_LABELS
 
@@ -28,8 +28,7 @@ def detect_source_kind(
     if forced_type == "binary":
         return "binary"
 
-    _, ext = os.path.splitext(path)
-    ext = ext.lower()
+    ext = Path(path).suffix.lower()
     if ext in text_extensions:
         return "text"
     return "binary"

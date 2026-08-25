@@ -1,0 +1,33 @@
+# ContextPreloader の開発ツール設定。
+#
+# `[project]` / `[build-system]` は意図的に置かない —— 本プラグインは pip install
+# する配布物ではなく、`python -m scripts` で起動されるフック実装。ここが要るのは
+# ruff / mypy / pytest が設定を読む場所としてだけで、パッケージ化は目的ではない。
+#
+# 規約はワークスペースの和集合（2026-08-25 確定）: ruff の select は広く取り
+# （書き方の危険を機械検出）、mypy は strict（型の不整合を機械検出）。両者は直交
+# しており、片方だけでは B904 のような例外連鎖の切断も、型の不整合も、どちらかが
+# 素通りする。
+
+[tool.ruff]
+src = ["scripts"]
+
+[tool.ruff.lint]
+# ruff の default 選択は版が上がるたび広がるので明示固定する。集合は
+# BlueberrySprite / NewsCaster / GeneralConstructor / TelegramSecretary /
+# ShioriSecretary と同一の 10 個。`select = ["ALL"]` は採らない。
+select = ["E4", "E7", "E9", "F", "I", "UP", "N", "B", "SIM", "PTH"]
+
+[tool.ruff.lint.per-file-ignores]
+# sys.path へプラグインディレクトリを差し込んでから scripts パッケージを import する
+# 起動時ブートストラップ。import を先頭へ集めると解決に失敗する。
+"hooks/context_preloader.py" = ["E402"]
+
+[tool.mypy]
+# path 系のキーは置かない。scripts/ は __init__.py を持つ実パッケージなので、
+# mypy_path で root を切ると scripts/__main__.py が top-level `__main__` と
+# 衝突して解析が止まる（実測: Duplicate module named "__main__"）。
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["scripts/tests"]

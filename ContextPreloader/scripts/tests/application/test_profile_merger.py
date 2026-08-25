@@ -1,12 +1,12 @@
 """T10: Profile merger tests."""
 import json
-import os
 import tempfile
 import unittest
+from pathlib import Path
 
+from scripts.application.profile_merger import merge_sources
 from scripts.domain.exceptions import ConfigError
 from scripts.domain.models import Source
-from scripts.application.profile_merger import merge_sources
 from scripts.infrastructure.config_repository import load_profile_sources
 
 
@@ -55,17 +55,16 @@ class TestMergeSources(unittest.TestCase):
                 {"id": "y", "label": "Y", "path": "/y.txt"},
             ]
         }
-        f = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
-        )
-        json.dump(data, f)
-        f.close()
+        ) as f:
+            json.dump(data, f)
         try:
             sources = load_profile_sources(f.name)
             self.assertEqual(len(sources), 2)
             self.assertEqual(sources[0].id, "x")
         finally:
-            os.unlink(f.name)
+            Path(f.name).unlink()
 
 
 if __name__ == "__main__":

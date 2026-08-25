@@ -83,8 +83,8 @@ class TestFormatReferenceOutput(unittest.TestCase):
         # With description: label, path, description, separator = 4 lines per entry
         # Without description: label, path, separator = 3 lines per entry
         with_desc = format_reference_output([("C:/a.txt", "FileA", "Has desc", "normal")])
-        lines_without = [l for l in result.split("\n") if l.startswith("   ")]
-        lines_with = [l for l in with_desc.split("\n") if l.startswith("   ")]
+        lines_without = [line for line in result.split("\n") if line.startswith("   ")]
+        lines_with = [line for line in with_desc.split("\n") if line.startswith("   ")]
         self.assertEqual(len(lines_without), 1)  # only Path line
         self.assertEqual(len(lines_with), 2)     # Path + description
 

@@ -1,7 +1,5 @@
 """T6+T7: HTML text extraction and URL fetching tests."""
 import unittest
-from http.client import HTTPResponse
-from io import BytesIO
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
 

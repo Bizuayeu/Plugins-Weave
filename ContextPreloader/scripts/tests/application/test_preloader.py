@@ -1,22 +1,21 @@
 """T9: Preloader integration tests."""
 import json
-import os
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-from scripts.domain.models import Config, Settings, Source
 from scripts.application.preloader import Preloader
+from scripts.domain.models import Config, Settings, Source
 from scripts.infrastructure.config_repository import load_config, load_profile_sources
 
 
 class TestPreloader(unittest.TestCase):
     def _create_temp_file(self, content: str, suffix: str = ".txt") -> str:
-        f = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             mode="w", suffix=suffix, delete=False, encoding="utf-8"
-        )
-        f.write(content)
-        f.close()
+        ) as f:
+            f.write(content)
         return f.name
 
     def _make_config(self, sources: list[Source]) -> Config:
@@ -39,8 +38,8 @@ class TestPreloader(unittest.TestCase):
             self.assertIn("Content A", result)
             self.assertIn("Content B", result)
         finally:
-            os.unlink(p1)
-            os.unlink(p2)
+            Path(p1).unlink()
+            Path(p2).unlink()
 
     def test_preload_mixed(self):
         p1 = self._create_temp_file("Text content")
@@ -53,7 +52,7 @@ class TestPreloader(unittest.TestCase):
             self.assertIn("Text content", result)
             self.assertIn("Path:", result)
         finally:
-            os.unlink(p1)
+            Path(p1).unlink()
 
     @patch("scripts.infrastructure.url_fetcher.urlopen")
     def test_preload_with_url(self, mock_urlopen):
@@ -71,7 +70,7 @@ class TestPreloader(unittest.TestCase):
             self.assertIn("File content", result)
             self.assertIn("URL content", result)
         finally:
-            os.unlink(p1)
+            Path(p1).unlink()
 
     def test_preload_disabled_skipped(self):
         p1 = self._create_temp_file("Should appear")
@@ -85,8 +84,8 @@ class TestPreloader(unittest.TestCase):
             self.assertIn("Should appear", result)
             self.assertNotIn("Should NOT appear", result)
         finally:
-            os.unlink(p1)
-            os.unlink(p2)
+            Path(p1).unlink()
+            Path(p2).unlink()
 
     def test_preload_missing_continues(self):
         p1 = self._create_temp_file("Good content")
@@ -99,7 +98,7 @@ class TestPreloader(unittest.TestCase):
             self.assertIn("Good content", result)
             self.assertIn("ERROR", result)
         finally:
-            os.unlink(p1)
+            Path(p1).unlink()
 
     def test_preload_empty_sources(self):
         cfg = self._make_config([])
@@ -119,8 +118,8 @@ class TestPreloader(unittest.TestCase):
             self.assertIn("2 text", result)
             self.assertIn("1 binary", result)
         finally:
-            os.unlink(p1)
-            os.unlink(p2)
+            Path(p1).unlink()
+            Path(p2).unlink()
 
 
 class TestPreloaderReferenceMode(unittest.TestCase):
@@ -224,11 +223,10 @@ class TestPreloaderReferenceMode(unittest.TestCase):
 
     def test_inline_mode_unchanged(self):
         """Inline mode regression guard: file content appears in output."""
-        f = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             mode="w", suffix=".txt", delete=False, encoding="utf-8"
-        )
-        f.write("inline content here")
-        f.close()
+        ) as f:
+            f.write("inline content here")
         try:
             cfg = self._make_config(
                 [Source(id="a", label="A", path=f.name)],
@@ -237,18 +235,17 @@ class TestPreloaderReferenceMode(unittest.TestCase):
             result = Preloader(cfg).run()
             self.assertIn("inline content here", result)
         finally:
-            os.unlink(f.name)
+            Path(f.name).unlink()
 
 
 class TestPreloaderReferenceIntegration(unittest.TestCase):
     """End-to-end: JSON config -> load_config -> Preloader -> reference output."""
 
     def _write_json(self, data: dict) -> str:
-        f = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
-        )
-        json.dump(data, f)
-        f.close()
+        ) as f:
+            json.dump(data, f)
         return f.name
 
     def test_reference_e2e_from_config(self):
@@ -273,7 +270,7 @@ class TestPreloaderReferenceIntegration(unittest.TestCase):
             self.assertIn("Long-term memory", result)
             self.assertLess(len(result.encode("utf-8")), 2048)
         finally:
-            os.unlink(path)
+            Path(path).unlink()
 
     def test_reference_e2e_with_profile(self):
         config_path = self._write_json({
@@ -294,15 +291,14 @@ class TestPreloaderReferenceIntegration(unittest.TestCase):
             self.assertIn("ProfileSource", result)
             self.assertIn("From profile", result)
         finally:
-            os.unlink(config_path)
-            os.unlink(profile_path)
+            Path(config_path).unlink()
+            Path(profile_path).unlink()
 
     def test_inline_e2e_regression(self):
-        content_file = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             mode="w", suffix=".txt", delete=False, encoding="utf-8"
-        )
-        content_file.write("actual file content")
-        content_file.close()
+        ) as content_file:
+            content_file.write("actual file content")
         config_path = self._write_json({
             "version": "1.0.0",
             "sources": [
@@ -314,8 +310,8 @@ class TestPreloaderReferenceIntegration(unittest.TestCase):
             result = Preloader(cfg).run()
             self.assertIn("actual file content", result)
         finally:
-            os.unlink(content_file.name)
-            os.unlink(config_path)
+            Path(content_file.name).unlink()
+            Path(config_path).unlink()
 
 
 if __name__ == "__main__":

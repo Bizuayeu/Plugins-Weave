@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 from scripts.domain.constants import DEFAULT_SETTINGS, DEFAULT_TEXT_EXTENSIONS
@@ -20,14 +19,14 @@ def load_config(config_path: str | Path) -> Config:
     """
     config_path = str(config_path)
 
-    if not os.path.exists(config_path):
+    if not Path(config_path).exists():
         raise ConfigError(f"Config file not found: {config_path}")
 
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
+        with Path(config_path).open(encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        raise ConfigError(f"Invalid JSON in {config_path}: {e}")
+        raise ConfigError(f"Invalid JSON in {config_path}: {e}") from e
 
     if "sources" not in data:
         raise ConfigError(f"Missing 'sources' key in {config_path}")
@@ -95,7 +94,7 @@ def save_config(config_path: str | Path, config: Config) -> None:
         ],
     }
 
-    with open(config_path, "w", encoding="utf-8") as f:
+    with Path(config_path).open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
@@ -107,14 +106,14 @@ def load_profile_sources(profile_path: str | Path) -> list[Source]:
     """
     profile_path = str(profile_path)
 
-    if not os.path.exists(profile_path):
+    if not Path(profile_path).exists():
         raise ConfigError(f"Profile not found: {profile_path}")
 
     try:
-        with open(profile_path, "r", encoding="utf-8") as f:
+        with Path(profile_path).open(encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        raise ConfigError(f"Invalid JSON in profile {profile_path}: {e}")
+        raise ConfigError(f"Invalid JSON in profile {profile_path}: {e}") from e
 
     sources = []
     for s in data.get("sources", []):

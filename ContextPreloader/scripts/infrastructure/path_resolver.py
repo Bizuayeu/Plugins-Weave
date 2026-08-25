@@ -7,7 +7,7 @@ from pathlib import Path
 
 def expand_path(path: str) -> Path:
     """Expand ~ and environment variables, normalize to absolute Path."""
-    return Path(os.path.expanduser(os.path.expandvars(path))).resolve()
+    return Path(os.path.expandvars(path)).expanduser().resolve()
 
 
 def get_default_config_path() -> Path:

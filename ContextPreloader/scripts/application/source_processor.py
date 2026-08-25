@@ -2,12 +2,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
-from scripts.domain.detection import detect_source_kind
-from scripts.domain.exceptions import FetchError, SourceError
-from scripts.domain.models import Settings, Source
-from scripts.infrastructure.file_reader import get_file_info, read_text_file
-from scripts.infrastructure.url_fetcher import fetch_url
 from scripts.application.formatter import (
     format_binary_output,
     format_error_output,
@@ -15,6 +11,11 @@ from scripts.application.formatter import (
     format_url_ref_output,
     format_url_text_output,
 )
+from scripts.domain.detection import detect_source_kind
+from scripts.domain.exceptions import SourceError
+from scripts.domain.models import Settings, Source
+from scripts.infrastructure.file_reader import get_file_info, read_text_file
+from scripts.infrastructure.url_fetcher import fetch_url
 
 
 @dataclass
@@ -57,10 +58,8 @@ def process_source(
             try:
                 size, ext = get_file_info(source.path)
             except SourceError:
-                size, ext = 0, ""
-                import os
-                _, ext = os.path.splitext(source.path)
-                ext = ext.lower()
+                size = 0
+                ext = Path(source.path).suffix.lower()
             output = format_binary_output(source.label, source.path, size, ext)
             return ProcessedSource(output=output, kind="binary", text_size=0)
 

@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import sys
 
-from scripts.domain.constants import REFERENCE_OUTPUT_WARNING_BYTES
-from scripts.domain.models import Config, Source
 from scripts.application.formatter import format_reference_output, format_summary
 from scripts.application.profile_merger import merge_sources
 from scripts.application.source_processor import process_source
+from scripts.domain.constants import REFERENCE_OUTPUT_WARNING_BYTES
+from scripts.domain.models import Config, Source
 
 
 class Preloader:
