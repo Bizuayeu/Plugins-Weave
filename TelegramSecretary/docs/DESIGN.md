@@ -93,7 +93,7 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 
 | 管理表 | 方式（既定方針） | 理由 |
 |---|---|---|
-| **TASKS** | 日付 Archive（done が N 日経過） | 完了タスクは「過去ログ」が自然。時系列で流れる |
+| **TASKS** | 日付 Archive（done / cancelled が N 日経過） | 閉じたタスクは「過去ログ」が自然。時系列で流れる |
 | **INDIVIDUALS** | 日付 Archive（blocked + 長期非接触） | 離脱者は稀に過去ログ化 |
 | **KNOWLEDGE** | **カテゴリ分割**（Archive せず） | 知識は**蓄積が本質**（判例DBは古いから捨てない）。肥大化は category 単位のシャード分割で解く |
 | **ABILITIES** | **カテゴリ分割**（Archive せず、KNOWLEDGE と同型） | 能力カタログも蓄積が本質（捨てない）。分割の単位・キーは必要時にエージェントが定義（§3.2 の JSON 柔軟性） |

@@ -2,6 +2,47 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.14.0] - 2026-08-28 — TASKS の終端に `cancelled` を足す：取り止めを「やり遂げた」と記録しない
+
+TASKS の終端は `done` 一つだった。依頼が取り下げられても要件が消滅しても、閉じる語は
+「完了」しか無い。notes に「これは達成ではない」と書き添えて凌ぐことはできるが、
+**status を機械が読み、notes を人間が読む**以上、この二つが食い違う台帳を残すことになる。
+
+### 機序
+
+**この非対称は設計ではなく歴史だった。** 後から生えた表は、非達成の終端を語で持っている——
+GOALS は `abandoned`、STEPS は `skipped`、SUBJECTS は `deprecated`。SecretaryRole の雛型も
+STEPS について「不要になったら skipped（**黙って消さない**）」と書いている。同じ思想が
+TASKS 行だけ「完了で done」で止まっていたのは、TASKS が最古の表で、役割進化3表を作った
+ときに育った語彙が遡って適用されなかったからである。
+
+**語は表ごとにドメインの動詞を当てる。** ステップは飛ばす（`skipped`）、目標は諦める
+（`abandoned`）、そして TASKS は**他者起点の依頼**なので取り下げる（`cancelled`）。
+全表を一語に揃えるより、各表がその意味論の語を持つ方が、書く側が迷わない。
+
+**下流はコード変更を要さなかった。** `archive_rotate.partition_for_archive` は述語注入で
+`"done"` を持たず、orientation は `ACTIVE_TASK_STATUSES`（open / in_progress / blocked）という
+**許可集合**で active を判定する——終端の語が増えても active の側は自動的に閉じる。
+生の `status == "done"` 比較はコードベースに存在しない（WAL の `done` は別ドメイン）。
+
+### Added
+
+- `Task.status` に `cancelled`（完了条件を満たさずに閉じた終端）。`done` と同じく `closed_at`
+  が付き、Archive と orientation の扱いも同じ
+
+### Changed
+
+- `TASKS.template.json` の `status` / `closed_at` / `_archive_policy` を二終端に更新
+- `SecretaryRole.template.md` の TASKS 行に「黙って done にしない」を明記（STEPS 行と同じ形）
+- `DESIGN.md` §3.5 の Archive 方針、`ROUTINE_PROMPT.md` の「notes が載らない範囲」を
+  `done` から終端（`done` / `cancelled`）へ
+
+### 互換性
+
+書き込み側だけの拡張。`canonical_record` の fail-closed 検証は**書き込み口にしか掛からない**
+（read 経路は前方互換）ため、旧版のコードでも `cancelled` レコードは**読める**——書けないだけ。
+移行順は「コードを更新してから `cancelled` を書く」。既存データの書き換えは不要。
+
 ## [1.13.0] - 2026-08-25 — strict を本番だけに掛ける：1294 の 7% が本体だった
 
 前版で型検査を配線し 18 件を 0 にしたが、`strict = true` は入れていなかった。入れると

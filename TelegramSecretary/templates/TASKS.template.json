@@ -3,7 +3,7 @@
   "_record_schema": {
     "id": "string — 一意ID",
     "title": "string — 依頼の要約",
-    "status": "open | in_progress | blocked | done",
+    "status": "open | in_progress | blocked | done | cancelled — 終端は2つ。done は完了条件を満たして閉じた、cancelled は満たさずに閉じた（取り下げ・要件消滅）。どちらも closed_at が付き Archive の対象になる",
     "priority": "low | normal | high",
     "due_date": "ISO date | null",
     "requester": "uuid | 'principal' — 依頼主（INDIVIDUALS の uuid か principal）",
@@ -11,9 +11,9 @@
     "notes": "string — 経緯メモ（短く保つ。長文の申し送りは <registry_dir>/artifacts/handoff/<UTC日時>_<session_id>.md へ書く——notes への追記は 1 レコードを線形に太らせ、起動時オリエンテーションを壊す。DESIGN §3.12）",
     "created_at": "ISO8601",
     "updated_at": "ISO8601",
-    "closed_at": "ISO8601 | null — done になった時刻（Archive 判定に使用）"
+    "closed_at": "ISO8601 | null — 終端（done / cancelled）になった時刻（Archive 判定に使用）"
   },
-  "_archive_policy": "status=done かつ closed_at が保持期間を超えたレコードを tasks/archive/TASKS_<YYYY-MM>.json へ日付 Archive",
+  "_archive_policy": "status=done または cancelled かつ closed_at が保持期間を超えたレコードを tasks/archive/TASKS_<YYYY-MM>.json へ日付 Archive",
   "version": 1,
   "tasks": []
 }

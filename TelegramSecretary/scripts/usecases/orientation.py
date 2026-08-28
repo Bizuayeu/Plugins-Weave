@@ -34,7 +34,8 @@ DEFAULT_HANDOFF_CAP = 8000
 TRUNCATION_MARK = "…"
 _MARK_BYTES = len(TRUNCATION_MARK.encode("utf-8"))
 
-# 一行要約に載せる tasks の status（done は要約行のみで notes を載せない）
+# 一行要約に載せる tasks の status（終端＝done / cancelled は要約行のみで notes を載せない）。
+# 許可集合ゆえ、終端の語が増えても active の側は自動的に閉じる
 ACTIVE_TASK_STATUSES = frozenset({"open", "in_progress", "blocked"})
 
 # 全文で載る小表の「支配的長文フィールド」への経路（orientation_report_20260810 実測の支配項）。
@@ -407,7 +408,7 @@ class OrientationService:
         lines += ["", f"## tasks.notes (active only, last {notes_tail} bytes)"]
         for task in ordered:
             if task.get("status") not in ACTIVE_TASK_STATUSES:
-                continue  # done の notes は載せない（過去の申し送りは digest の対象外）
+                continue  # 終端の notes は載せない（過去の申し送りは digest の対象外）
             notes = str(task.get("notes", ""))
             if not notes:
                 continue

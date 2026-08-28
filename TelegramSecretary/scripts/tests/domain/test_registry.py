@@ -131,6 +131,24 @@ def test_task_rejects_invalid_status():
         )
 
 
+def test_task_accepts_cancelled_status():
+    # 取り止めは達成ではない——done に潰すと台帳が「やり遂げた」と読める。
+    # GOALS の abandoned / STEPS の skipped と同じ、非達成の終端を語で持つ
+    t = Task.from_dict(
+        {
+            "id": "t",
+            "title": "x",
+            "status": "cancelled",
+            "priority": "normal",
+            "requester": "principal",
+            "created_at": "t",
+            "updated_at": "t",
+            "closed_at": "t",
+        }
+    )
+    assert t.status == "cancelled"
+
+
 def test_task_rejects_invalid_priority():
     with pytest.raises(ValueError):
         Task(

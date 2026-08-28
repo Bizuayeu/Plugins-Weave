@@ -18,7 +18,10 @@ _CATEGORIES = frozenset(
     {"family", "friend", "client", "vendor", "employee", "peer", "introducer", "other"}
 )
 _BIASES = frozenset({"low", "normal", "high"})
-_TASK_STATUSES = frozenset({"open", "in_progress", "blocked", "done"})
+# 終端は2つ——`done`（完了条件を満たした）と `cancelled`（満たさずに閉じた）。
+# 取り止めを `done` に潰すと台帳は後から「やり遂げた」としか読めない。GOALS の
+# `abandoned` / STEPS の `skipped` と同じ思想で、依頼のドメインの語を当てる。
+_TASK_STATUSES = frozenset({"open", "in_progress", "blocked", "done", "cancelled"})
 _PRIORITIES = frozenset({"low", "normal", "high"})
 _PROFILE_METHODS = frozenset(
     {"precognitive_viewer", "json_fortune", "mbti", "interview", "observation", "other"}
