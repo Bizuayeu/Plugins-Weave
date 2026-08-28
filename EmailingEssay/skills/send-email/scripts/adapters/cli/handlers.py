@@ -24,7 +24,7 @@ from usecases.factories import (
 from .decorators import validate_config
 
 if TYPE_CHECKING:
-    from usecases.import_legacy import LegacyPlan
+    from usecases.import_legacy import LegacyItem, LegacyPlan
 
 # ハンドラ型: argsを受け取り、終了コードを返す
 Handler = Callable[[Namespace], int]
@@ -148,20 +148,44 @@ def handle_replies(args: Namespace) -> int:
 # =============================================================================
 
 
-def _print_legacy_plan(plan: LegacyPlan) -> None:
+def _print_legacy_items(items: list[LegacyItem]) -> None:
     """
-    移行計画を検品できる形で出す。
+    移行対象を 1 件ずつ並べる。
 
     件数だけでは取り違えを検出できない（本文を 1 本入れ替えても件数は同じ）。
-    どの本文にどの件名がどの出所から付くのかを 1 件ずつ並べる。
+    どの本文にどの件名がどの出所から付くのかを出す。
     """
-    print(f"Import candidates: {len(plan.items)}")
-    print("-" * 60)
-    for item in plan.items:
+    for item in items:
         print(f"  {item.sent_at}  {item.body_file}")
         print(f"    subject: {item.subject}")
         print(f"    source:  {item.subject_source}")
         print(f"    id:      {item.message_id}")
+
+
+def _print_legacy_plan(plan: LegacyPlan, known_ids: frozenset[str]) -> None:
+    """
+    移行計画を検品できる形で出す。
+
+    plan() も台帳を見る（本文が既に記録済みの候補は除外して返る）が、移行済みの
+    一件は item のまま残る。それを既出分と新規分に分けるのはここ——総数だけでは
+    「今回何件増えるのか」が読めない。
+
+    Args:
+        plan: 移行計画
+        known_ids: 台帳に既にある message_id
+    """
+    new_items = [i for i in plan.items if i.message_id not in known_ids]
+    already = [i for i in plan.items if i.message_id in known_ids]
+
+    print(f"Import candidates: {len(plan.items)}")
+    print(f"  new:               {len(new_items)}")
+    print(f"  already in ledger: {len(already)}")
+    print("-" * 60)
+    print(f"New ({len(new_items)}):")
+    _print_legacy_items(new_items)
+    print()
+    print(f"Already in the ledger ({len(already)}):")
+    _print_legacy_items(already)
     print()
     print(f"Excluded: {len(plan.skipped)}")
     print("-" * 60)
@@ -184,13 +208,14 @@ def _handle_ledger_import_legacy(args: Namespace) -> int:
     移行元は読むだけ——削除も改変もしない。
     """
     usecase = create_import_legacy_usecase()
+    known_ids = frozenset(record.message_id for record in get_ledger().load_records())
 
     if args.dry_run:
         print("Dry run: nothing is written.")
-        _print_legacy_plan(usecase.plan())
+        _print_legacy_plan(usecase.plan(), known_ids)
         return 0
 
-    _print_legacy_plan(usecase.plan())
+    _print_legacy_plan(usecase.plan(), known_ids)
     records = usecase.execute()
     print(f"Imported: {len(records)}")
     return 0

@@ -91,6 +91,9 @@ class FakeLedger:
     def load_records(self) -> list[LedgerRecord]:
         return list(self.records)
 
+    def load_sent_bodies(self) -> list[str]:
+        return list(self.bodies)
+
     def append_reply(self, reply: ReplyRecord) -> bool:
         return True
 

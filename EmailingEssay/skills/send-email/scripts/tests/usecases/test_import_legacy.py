@@ -24,7 +24,7 @@ from adapters.storage.ledger_storage import (
     LedgerStorageAdapter,
 )
 from adapters.storage.path_resolver import PathResolverAdapter
-from usecases.import_legacy import ImportLegacyUseCase
+from usecases.import_legacy import RECORDED_BODY_REASON, ImportLegacyUseCase
 
 RECIPIENT = "reader@example.com"
 
@@ -364,3 +364,378 @@ class TestDryRunAndExecute:
         assert message_id.startswith("<legacy.")
         assert message_id.endswith(">")
         assert "_essay_body_20260721" in message_id
+
+
+# =============================================================================
+# ランナーからの復元（③）
+# =============================================================================
+
+# 実物の形を写したランナー（`send_essay_20260827_2112.py` 世代）
+LITERAL_RUNNER = '''# -*- coding: utf-8 -*-
+"""EmailingEssay 送信ランナー Windows cp932 回避版"""
+
+import sys
+from pathlib import Path
+
+SCRIPTS_DIR = r"C:\\Users\\anyth\\.claude\\plugins\\marketplaces\\plugins-weave"
+BODY_PATH = Path(r"C:\\Users\\anyth\\.claude\\plugins\\.emailingessay\\{body}")
+
+SUBJECT = "{subject}"
+
+
+def main() -> int:
+    body = BODY_PATH.read_text(encoding="utf-8-sig").strip()
+
+    from usecases.factories import get_mail_adapter
+
+    get_mail_adapter().send_custom(SUBJECT, body)
+    return 0
+'''
+
+# 実物の形を写したランナー（`_send_20260611.py` 世代）
+OLD_LITERAL_RUNNER = """# -*- coding: utf-8 -*-
+import sys
+from pathlib import Path
+
+body_path = Path(r"C:\\Users\\anyth\\.claude\\plugins\\.emailingessay\\{body}")
+content = body_path.read_text(encoding="utf-8").strip("\\n")
+
+subject = "{subject}"
+
+adapter.send_custom(subject=subject, content=content)
+"""
+
+# 実物の形を写したランナー（`_send_20260724.py` 世代——件名もファイルから読む）
+FILE_SUBJECT_RUNNER = """# -*- coding: utf-8 -*-
+import sys
+from pathlib import Path
+
+DATA = r"C:\\Users\\anyth\\.claude\\plugins\\.emailingessay"
+
+subject = Path(DATA, "{subject_file}").read_text(encoding="utf-8").strip()
+body = Path(DATA, "{body}").read_text(encoding="utf-8").strip("\\n")
+"""
+
+
+def write_runner(
+    directory: Path, name: str, source: str, encoding: str = "utf-8"
+) -> Path:
+    """送信ランナーを置く（encoding は移行元の世代差を再現するため）"""
+    path = directory / name
+    path.write_bytes(source.encode(encoding))
+    return path
+
+
+class TestRunnerRestoration:
+    """③ 送信ランナー内の plain な件名リテラルから復元する"""
+
+    def test_restores_from_a_dated_runner(self, tmp_path, usecase_factory):
+        """① ② が無くても、日付付きランナーの件名リテラルで復元する"""
+        write_file(
+            tmp_path, "essay_body_20260827_2112.txt", "本文", "2026-08-27 21:12:00"
+        )
+        write_runner(
+            tmp_path,
+            "send_essay_20260827_2112.py",
+            LITERAL_RUNNER.format(
+                body="essay_body_20260827_2112.txt",
+                subject="意図は見えないが、意図が見えなくなる書き方は見える",
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert [i.body_file for i in plan.items] == ["essay_body_20260827_2112.txt"]
+        item = plan.items[0]
+        assert item.subject == "意図は見えないが、意図が見えなくなる書き方は見える"
+        assert item.subject_source == "runner:send_essay_20260827_2112.py"
+        # ③ 単独なら送信時刻は本文の mtime、宛先は既定値（ランナー名から推測しない）
+        assert item.sent_at == "2026-08-27T21:12:00"
+        assert item.recipient == RECIPIENT
+        assert plan.warnings == ()
+
+    def test_restores_from_the_old_generation_runner(self, tmp_path, usecase_factory):
+        """③ 旧世代（`subject = "..."` を後ろに置く形）でも同じく復元する"""
+        write_file(tmp_path, "_essay_body_20260611.txt", "本文", "2026-06-11 21:18:00")
+        write_runner(
+            tmp_path,
+            "_send_20260611.py",
+            OLD_LITERAL_RUNNER.format(
+                body="_essay_body_20260611.txt",
+                subject="日々の雑感 — 認知の所在",
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert [i.subject for i in plan.items] == ["日々の雑感 — 認知の所在"]
+        assert plan.items[0].subject_source == "runner:_send_20260611.py"
+
+    def test_subject_file_wins_over_runner(self, tmp_path, usecase_factory):
+        """① 件名ファイルがあれば ③ は使わない（③ は ① ② を上回らない）"""
+        write_file(tmp_path, "essay_body_20260815.txt", "本文", "2026-08-15 21:10:00")
+        write_file(tmp_path, "essay_subject_20260815.txt", "件名ファイル側の件名\n")
+        write_runner(
+            tmp_path,
+            "send_20260815.py",
+            LITERAL_RUNNER.format(
+                body="essay_body_20260815.txt", subject="ランナー側の件名"
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert [i.subject for i in plan.items] == ["件名ファイル側の件名"]
+        assert plan.items[0].subject_source.startswith("subject-file:")
+
+    def test_wait_log_wins_over_runner(self, tmp_path, usecase_factory):
+        """② SENT 行があれば ③ は使わない"""
+        write_file(tmp_path, "_essay_body_20260703.txt", "本文", "2026-07-04 00:05:00")
+        write_file(
+            tmp_path,
+            "essay_wait.log",
+            wait_log_line("2026-07-04 00:05:30", "ログ側の件名"),
+        )
+        write_runner(
+            tmp_path,
+            "_send_20260703.py",
+            OLD_LITERAL_RUNNER.format(
+                body="_essay_body_20260703.txt", subject="ランナー側の件名"
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert [i.subject for i in plan.items] == ["ログ側の件名"]
+        assert plan.items[0].subject_source.startswith("wait-log:")
+
+    def test_file_reference_subject_is_not_taken(self, tmp_path, usecase_factory):
+        """件名をファイルから読むランナーは採らない（送った値がソースに無い）"""
+        write_file(tmp_path, "_essay_body_20260724.txt", "本文", "2026-07-24 21:19:00")
+        write_runner(
+            tmp_path,
+            "_send_20260724.py",
+            FILE_SUBJECT_RUNNER.format(
+                subject_file="_essay_subject_20260724.txt",
+                body="_essay_body_20260724.txt",
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert plan.items == ()
+        assert [s.body_file for s in plan.skipped] == ["_essay_body_20260724.txt"]
+        assert any("_send_20260724.py" in w for w in plan.warnings)
+
+    def test_cp932_runner_is_decoded(self, tmp_path, usecase_factory):
+        """cp932 で書かれたランナーからも件名が化けずに復元する"""
+        write_file(tmp_path, "essay_body_20260804.txt", "本文", "2026-08-04 21:06:00")
+        write_runner(
+            tmp_path,
+            "_send_20260804.py",
+            OLD_LITERAL_RUNNER.format(
+                body="essay_body_20260804.txt",
+                subject="【日々の雑感】慎みは、いつから一滴ずつになったか",
+            ),
+            encoding="cp932",
+        )
+
+        plan = usecase_factory().plan()
+
+        assert [i.subject for i in plan.items] == [
+            "【日々の雑感】慎みは、いつから一滴ずつになったか"
+        ]
+        assert "\ufffd" not in plan.items[0].subject
+
+    def test_mojibake_subject_is_skipped(self, tmp_path, usecase_factory):
+        """U+FFFD が混じった件名は採らない（化けた値を送信済み件名にしない）"""
+        write_file(tmp_path, "essay_body_20260811.txt", "本文", "2026-08-11 21:03:00")
+        write_runner(
+            tmp_path,
+            "_send_20260811.py",
+            OLD_LITERAL_RUNNER.format(
+                body="essay_body_20260811.txt", subject="栓が一人\ufffdであること"
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert plan.items == ()
+        assert [s.body_file for s in plan.skipped] == ["essay_body_20260811.txt"]
+        assert any("_send_20260811.py" in w for w in plan.warnings)
+
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "_send_runner.py",
+            "_send_driver.py",
+            "_tmp_send_runner.py",
+            "send_essay.py",
+            "essay_waiter_temp.py",
+        ],
+    )
+    def test_undated_runner_is_ignored(self, tmp_path, usecase_factory, name):
+        """日付を持たない汎用ランナーの件名は、どの送信のものか決まらない
+
+        実データの `_send_runner.py` / `_send_driver.py` は同じ `essay_body.txt`
+        を名指す（本文は毎回上書きされていた）。採ると取り違えになる。
+        """
+        write_file(tmp_path, "essay_body.txt", "本文", "2026-08-17 21:06:00")
+        write_runner(
+            tmp_path,
+            name,
+            OLD_LITERAL_RUNNER.format(
+                body="essay_body.txt", subject="日付のない正しさ"
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert plan.items == ()
+        assert [s.body_file for s in plan.skipped] == ["essay_body.txt"]
+
+    def test_body_name_is_matched_whole(self, tmp_path, usecase_factory):
+        """`essay_body.txt` は `_essay_body.txt` の参照に食い込まない"""
+        write_file(tmp_path, "essay_body.txt", "本編", "2026-08-17 21:06:00")
+        write_file(tmp_path, "_essay_body.txt", "別物", "2026-07-31 21:39:00")
+        write_runner(
+            tmp_path,
+            "send_essay_20260817.py",
+            LITERAL_RUNNER.format(
+                body="essay_body.txt", subject="取りに行かないと、来ない期日"
+            ),
+        )
+
+        plan = usecase_factory().plan()
+
+        assert [i.body_file for i in plan.items] == ["essay_body.txt"]
+        assert [s.body_file for s in plan.skipped] == ["_essay_body.txt"]
+
+    def test_ambiguous_body_reference_is_reported(self, tmp_path, usecase_factory):
+        """本文を 2 本名指すランナーは、どちらの送信か決まらないので採らない"""
+        write_file(tmp_path, "essay_body_20260819.txt", "本文", "2026-08-19 22:04:00")
+        write_file(tmp_path, "essay_body_20260820.txt", "本文", "2026-08-20 21:09:00")
+        source = (
+            LITERAL_RUNNER.format(body="essay_body_20260819.txt", subject="件名")
+            + '\nFALLBACK = Path(r"C:\\x\\essay_body_20260820.txt")\n'
+        )
+        write_runner(tmp_path, "send_essay_20260819.py", source)
+
+        plan = usecase_factory().plan()
+
+        assert plan.items == ()
+        assert any("send_essay_20260819.py" in w for w in plan.warnings)
+
+    def test_runner_import_is_idempotent(self, tmp_path, usecase_factory):
+        """③ 経由でも 2 回実行で台帳が二重にならない"""
+        write_file(
+            tmp_path, "essay_body_20260823.txt", "本文の中身\n", "2026-08-23 21:13:00"
+        )
+        write_runner(
+            tmp_path,
+            "send_essay_20260823.py",
+            LITERAL_RUNNER.format(body="essay_body_20260823.txt", subject="件名"),
+        )
+
+        first = usecase_factory().execute()
+        second = usecase_factory().execute()
+
+        assert len(first) == 1
+        assert second == []
+        lines = (tmp_path / LEDGER_FILE_NAME).read_text(encoding="utf-8").splitlines()
+        assert len(lines) == 1
+        assert len(list((tmp_path / SENT_DIR_NAME).iterdir())) == 1
+
+
+# =============================================================================
+# 台帳に既にある本文（実送信経路との二重計上）
+# =============================================================================
+
+BODY_NAME = "essay_body_20260828_2107.txt"
+SUBJECT_NAME = "essay_subject_20260828_2107.txt"
+BODY_WRITTEN_AT = "2026-08-28 21:07:00"
+REAL_MESSAGE_ID = "<real@mail.gmail.com>"
+
+
+def write_source_pair(directory: Path, body: str, encoding: str = "utf-8") -> None:
+    """件名の出所つきで移行元の 1 通を置く（encoding は BOM の再現用）"""
+    path = directory / BODY_NAME
+    path.write_bytes(body.encode(encoding))
+    stamp = datetime.fromisoformat(BODY_WRITTEN_AT).timestamp()
+    os.utime(path, (stamp, stamp))
+    write_file(directory, SUBJECT_NAME, "移行側の件名\n", BODY_WRITTEN_AT)
+
+
+def record_in_ledger(directory: Path, body: str, message_id: str) -> None:
+    """台帳へ 1 行記録する（sent/ に frontmatter 付きの本文ができる）"""
+    LedgerStorageAdapter(PathResolverAdapter(base_dir=str(directory))).record_sent(
+        message_id=message_id,
+        sent_at="2026-08-28T21:15:34",
+        subject="実送信の件名",
+        recipient=RECIPIENT,
+        body=body,
+    )
+
+
+class TestBodyAlreadyInLedger:
+    """
+    実送信ぶんとの二重計上を塞ぐ。実 Message-ID と合成 ID は突合できず、
+    命名時刻と送信時刻もずれる（実測 8 分）ため、鍵は本文の内容そのもの。
+    """
+
+    def test_recorded_body_is_excluded(self, tmp_path, usecase_factory):
+        """台帳に同一本文があれば、件名が復元できても取り込まない"""
+        write_source_pair(tmp_path, "本文の中身\n")
+        record_in_ledger(tmp_path, "本文の中身\n", REAL_MESSAGE_ID)
+
+        plan = usecase_factory().plan()
+
+        assert plan.items == ()
+        assert [(s.body_file, s.reason) for s in plan.skipped] == [
+            (BODY_NAME, RECORDED_BODY_REASON)
+        ]
+
+    def test_different_body_is_imported(self, tmp_path, usecase_factory):
+        """本文が違えば取り込む（同じ日の別の一通を巻き添えにしない）"""
+        write_source_pair(tmp_path, "移行する本文\n")
+        record_in_ledger(tmp_path, "台帳にある別の本文\n", REAL_MESSAGE_ID)
+
+        plan = usecase_factory().plan()
+
+        assert [i.body_file for i in plan.items] == [BODY_NAME]
+
+    def test_frontmatter_is_stripped_but_the_body_is_not(
+        self, tmp_path, usecase_factory
+    ):
+        """frontmatter は剥がし、本文中の `---` 行は残す"""
+        body = "序\n\n---\n\n結び\n"
+        write_source_pair(tmp_path, body)
+        record_in_ledger(tmp_path, body, REAL_MESSAGE_ID)
+        sent = next((tmp_path / SENT_DIR_NAME).iterdir()).read_text(encoding="utf-8")
+        assert sent.startswith("---")  # 比較相手に frontmatter が付いている前提
+
+        plan = usecase_factory().plan()
+
+        assert plan.items == ()
+
+    def test_bom_in_the_source_still_matches(self, tmp_path, usecase_factory):
+        """BOM 付きの移行元も一致する（U+FEFF は strip() では落ちない）"""
+        write_source_pair(tmp_path, "本文の中身\n", encoding="utf-8-sig")
+        record_in_ledger(tmp_path, "本文の中身\n", REAL_MESSAGE_ID)
+
+        plan = usecase_factory().plan()
+
+        assert plan.items == ()
+
+    def test_migrated_body_stays_an_item(self, tmp_path, usecase_factory):
+        """移行済み（合成 ID が台帳にある）は item のまま残る——ID の門が先"""
+        write_source_pair(tmp_path, "本文の中身\n")
+        record_in_ledger(
+            tmp_path,
+            "本文の中身\n",
+            f"<legacy.{Path(BODY_NAME).stem}@emailingessay.invalid>",
+        )
+
+        plan = usecase_factory().plan()
+
+        assert [i.body_file for i in plan.items] == [BODY_NAME]

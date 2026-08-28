@@ -52,11 +52,12 @@ class TestLedgerPort:
     """LedgerPortのテスト"""
 
     def test_protocol_has_send_side_methods(self):
-        """送信側（record_sent / load_records）を持つ"""
+        """送信側（record_sent / load_records / load_sent_bodies）を持つ"""
         from usecases.ports import LedgerPort
 
         assert hasattr(LedgerPort, "record_sent")
         assert hasattr(LedgerPort, "load_records")
+        assert hasattr(LedgerPort, "load_sent_bodies")
 
     def test_protocol_has_reply_side_methods(self):
         """返信側（append_reply / load_replies）を持つ"""

@@ -5,6 +5,77 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-08-28
+
+Closes the duplicate hole in the retroactive import. No behavior change to sending.
+
+### Fixed
+- **`ledger import-legacy` no longer re-imports essays the sending path already recorded.**
+  A real send is recorded by the `LedgerRecordingMail` decorator under the Message-ID
+  `make_msgid()` issued; the migration synthesizes `<legacy.{stem}@emailingessay.invalid>`
+  from the body file name. The two never join on `message_id`, so every bare re-run added a
+  duplicate row for each essay sent since [1.2.0]. `plan()` now applies two gates **in this
+  order**: a candidate whose synthetic id is already in the ledger stays an item (it is the
+  migrated row, reported as "already in the ledger"); any remaining candidate whose body
+  text matches a recorded body under `sent/` is excluded, with its own reason
+  (`台帳に同一本文あり`). Reversed, the gates would drop all 38 migrated bodies, since
+  those are in `sent/` too
+- Timestamps cannot serve as the key: measured, `essay_body_20260828_2107.txt` was sent at
+  `21:15:34` — eight minutes after the name was minted, because the body is named when the
+  writing starts and sent when it ends. Hence no cutoff date and no tolerance window; the
+  key is the body text itself
+- The comparison reads the source with `utf-8-sig`. A BOM survives `str.strip()` (U+FEFF is
+  not whitespace) and would make the comparison miss in silence. Nothing else is
+  normalized — the match was measured exact (2279 characters), and further normalization
+  would only widen the room for false matches
+- A resend of the same text is treated as a duplicate on purpose: if the same essay went
+  out twice, one ledger row is enough
+
+### Added
+- `LedgerPort.load_sent_bodies()` — the recorded bodies with their YAML frontmatter
+  stripped. The stripping sits next to `_write_body`, which puts the frontmatter on
+
+### Changed
+- Dry-run against the live data: candidates 40 → 38, **new 2 → 0**, already in the ledger
+  38 (unchanged), excluded 24 → 26 (the two 2026-08-28 sends). The ledger stays at 40 rows
+
+## [1.2.1] - 2026-08-28
+
+A third recovery path for the retroactive import, and the IMAP connectivity check that
+[1.2.0] left pending. No behavior change to sending.
+
+### Added
+- **Third subject recovery path: the literal subjects in the old runners.** Throwaway
+  runners such as `_send_20260611.py` name their body file and pass the subject as a string
+  literal; `import-legacy` now reads that literal (`ast.Constant`, str assignments only —
+  the runner is parsed, never executed) and joins it to the body file the runner names.
+  Priority stays ① subject-file → ② `essay_wait.log` → ③ runner, and ③ never overrides ①②
+- Guards on the new path: the runner is decoded utf-8-sig strict then cp932 strict, a
+  subject with U+FFFD is skipped, a runner referencing zero or several body files is
+  skipped, and undated generic runners are not candidates at all
+
+### Changed
+- Retroactive migration re-run with the third path: the ledger went **17 → 38 rows**
+  (`sent/` likewise 38 files), covering 2026-06-11 – 08-27. By source: ① subject-file 7 /
+  ② wait-log 10 / ③ runner 21. The 21 include seven essays from 2026-06-11 – 06-19
+  that no `essay_wait.log` covered (the log begins 2026-07-02). A second run adds 0 rows, and the
+  source files were again neither deleted nor altered
+- `import-legacy --dry-run` now separates candidates into **new / already in the ledger**,
+  so re-running it on a migrated ledger reads as "nothing to do" rather than as a re-import
+
+### Notes
+- **IMAP connectivity is verified; the fetch path is not.** With the user's permission a
+  single live check against `imap.gmail.com` succeeded — `login`, `NOOP`, and
+  `SELECT INBOX` (readonly, 29 messages) all OK, so IMAP is enabled on the account and the
+  same app password used for SMTP works for it. `ImapInboxAdapter`'s own retrieval logic
+  (`_collect` / the fetch path) has still never run against the real server. Both halves
+  hold: the door opens, the walk through it is untested
+- Reply bodies are untrusted external input; `skills/send-email/SKILL.md` now says so where
+  the other security notes live
+
+### Verification
+ruff 0 / ruff format clean / mypy Success (75 files) / pytest 497 passed
+
 ## [1.2.0] - 2026-08-28
 
 Sent essays are now recorded in an append-only ledger, and replies to them are ingested

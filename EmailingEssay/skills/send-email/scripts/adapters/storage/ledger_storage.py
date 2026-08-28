@@ -32,9 +32,33 @@ SENT_DIR_NAME = "sent"
 
 # frontmatter に出す台帳フィールド（本文ファイル単体でも出所が辿れるように）
 _FRONTMATTER_FIELDS = ("message_id", "sent_at", "subject", "recipient")
+_FRONTMATTER_DELIMITER = "---"
 
 # モジュールロガー
 logger = logging.getLogger("emailingessay.storage")
+
+
+def _strip_frontmatter(text: str) -> str:
+    """
+    `_write_body` が付けた先頭の frontmatter を落とす。
+
+    区切りは行単位で見る——件名に含まれる `---` は json.dumps された値の内側に
+    あり、行全体が区切りに化けることはない。閉じが無ければ frontmatter ではない
+    と見なし、本文をそのまま返す。
+
+    Args:
+        text: 本文ファイルの中身
+
+    Returns:
+        frontmatter を除いた本文
+    """
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != _FRONTMATTER_DELIMITER:
+        return text
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == _FRONTMATTER_DELIMITER:
+            return "\n".join(lines[index + 1 :])
+    return text
 
 
 class LedgerStorageAdapter:
@@ -63,9 +87,13 @@ class LedgerStorageAdapter:
         """返信ファイルのパスを取得"""
         return Path(self._path_resolver.get_persistent_dir()) / REPLIES_FILE_NAME
 
+    def _sent_dir_path(self) -> Path:
+        """本文ディレクトリのパス（作らない——読み取り経路に副作用を持たせない）"""
+        return Path(self._path_resolver.get_persistent_dir()) / SENT_DIR_NAME
+
     def _get_sent_dir(self) -> Path:
         """本文ディレクトリのパスを取得（なければ作成）"""
-        sent_dir = Path(self._path_resolver.get_persistent_dir()) / SENT_DIR_NAME
+        sent_dir = self._sent_dir_path()
         sent_dir.mkdir(parents=True, exist_ok=True)
         return sent_dir
 
@@ -161,12 +189,12 @@ class LedgerStorageAdapter:
             body: 本文
         """
         values = record.to_dict()
-        lines = ["---"]
+        lines = [_FRONTMATTER_DELIMITER]
         lines += [
             f"{key}: {json.dumps(values[key], ensure_ascii=False)}"
             for key in _FRONTMATTER_FIELDS
         ]
-        lines += ["---", ""]
+        lines += [_FRONTMATTER_DELIMITER, ""]
         content = "\n".join(lines) + "\n" + body.rstrip("\n") + "\n"
 
         with filepath.open("w", encoding="utf-8", newline="\n") as f:
@@ -222,6 +250,26 @@ class LedgerStorageAdapter:
             有効な LedgerRecord のリスト（壊れた行は除外）
         """
         return validate_ledger_records(self._read_jsonl(self._get_ledger_file()))
+
+    def load_sent_bodies(self) -> list[str]:
+        """
+        記録済みの本文を frontmatter 抜きで読み出す。
+
+        frontmatter を付けた `_write_body` と対になるよう、剥がすのもここに置く。
+        1 ファイルが読めないだけで全体を落とさない（JSONL の壊れた行と同じ扱い）。
+
+        Returns:
+            記録済み本文のリスト（読めないファイルは除外）
+        """
+        bodies: list[str] = []
+        for path in sorted(self._sent_dir_path().glob("*.md")):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as e:
+                logger.warning(f"Failed to read {path.name}: {e}")
+                continue
+            bodies.append(_strip_frontmatter(text))
+        return bodies
 
     # -------------------------------------------------------------------------
     # 返信の記録

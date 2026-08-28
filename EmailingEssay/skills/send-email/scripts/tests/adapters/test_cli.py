@@ -446,6 +446,13 @@ class TestLedgerHandlers:
         monkeypatch.setenv("ESSAY_APP_PASSWORD", "testpass")
         monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
 
+        # 既出判定に使う台帳もフェイクにする（実台帳を読みに行かせない）
+        from unittest.mock import MagicMock
+
+        ledger = MagicMock()
+        ledger.load_records.return_value = []
+        monkeypatch.setattr("adapters.cli.handlers.get_ledger", lambda: ledger)
+
         from domain.config import Config
 
         Config.reset()

@@ -164,6 +164,15 @@ class LedgerPort(Protocol):
         """台帳を読み込む（壊れた行は飛ばす）"""
         ...
 
+    def load_sent_bodies(self) -> list[str]:
+        """
+        記録済みの本文を frontmatter 抜きで読み出す。
+
+        Returns:
+            記録済み本文のリスト（読めないファイルは飛ばす）
+        """
+        ...
+
     def append_reply(self, reply: ReplyRecord) -> bool:
         """
         取り込んだ返信を追記する。
