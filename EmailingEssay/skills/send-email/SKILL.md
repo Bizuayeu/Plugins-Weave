@@ -50,6 +50,9 @@ yagmail
 | send | `python main.py send "Subject" "Body"` | Send custom email |
 | wait | `python main.py wait TIME [OPTIONS]` | One-time schedule |
 | schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Recurring schedule |
+| replies | `python main.py replies fetch` | Ingest replies to sent essays |
+| replies | `python main.py replies list` | List ingested replies |
+| ledger | `python main.py ledger import-legacy [--dry-run]` | Import past essays into the ledger |
 
 **Quick test**:
 
@@ -70,6 +73,11 @@ For full options and examples, see `commands/essay.md` → **Command Structure**
 | `schedules.json` | `~/.claude/plugins/.emailingessay/` | Backup of registered schedules |
 | `active_waiters.json` | `~/.claude/plugins/.emailingessay/` | Active waiting process tracking |
 | `runners/` | `~/.claude/plugins/.emailingessay/runners/` | Monthly schedule runner scripts |
+| `essay_ledger.jsonl` | `~/.claude/plugins/.emailingessay/` | One line per sent essay (`message_id` is the primary key) |
+| `sent/` | `~/.claude/plugins/.emailingessay/sent/` | Sent essay bodies, `YYYYMMDD_HHMM.md` with YAML frontmatter |
+| `essay_replies.jsonl` | `~/.claude/plugins/.emailingessay/` | One line per ingested reply, linked to the ledger by `in_reply_to` |
+
+The ledger is memory, too.
 
 Note: Persistent data directory is created automatically if not exists.
 

@@ -3,12 +3,32 @@
 
 import pytest
 
+from domain.models import LedgerRecord, ReplyRecord
 from domain.validators import (
     is_schedule_entry,
     is_waiter_entry,
+    validate_ledger_records,
+    validate_reply_records,
     validate_schedule_entries,
     validate_waiter_entries,
 )
+
+VALID_LEDGER_DICT = {
+    "message_id": "<20260828.abc123@example.com>",
+    "sent_at": "2026-08-28T21:00:00",
+    "subject": "日々の雑感",
+    "recipient": "reader@example.com",
+    "body_file": "sent/20260828_2100.md",
+}
+
+VALID_REPLY_DICT = {
+    "message_id": "<reply.20260828@mail.example.com>",
+    "in_reply_to": "<20260828.abc123@example.com>",
+    "sender": "Reader <reader@example.com>",
+    "received_at": "2026-08-28T22:15:00",
+    "body": "読みました。\n特に二段落目が。",
+    "content_class": "untrusted_external_data",
+}
 
 
 class TestIsScheduleEntry:
@@ -199,3 +219,53 @@ class TestValidateWaiterEntries:
         ]
         result = validate_waiter_entries(data)
         assert len(result) == 2
+
+
+class TestValidateLedgerRecords:
+    """validate_ledger_records のテスト"""
+
+    def test_filters_invalid_entries(self):
+        """破損エントリを落として正常分のみ LedgerRecord で返す"""
+        data = [
+            VALID_LEDGER_DICT,
+            "not a dict",
+            {"message_id": "<only-key@example.com>"},  # 必須キー欠落
+        ]
+        result = validate_ledger_records(data)
+        assert len(result) == 1
+        assert isinstance(result[0], LedgerRecord)
+        assert result[0].subject == "日々の雑感"
+
+    def test_non_str_value_is_rejected(self):
+        """キーは揃っていても値の型が不正なら落とす"""
+        data = [{**VALID_LEDGER_DICT, "message_id": 123}]
+        assert validate_ledger_records(data) == []
+
+    def test_empty_list_returns_empty(self):
+        """空リストは空リストを返す"""
+        assert validate_ledger_records([]) == []
+
+
+class TestValidateReplyRecords:
+    """validate_reply_records のテスト"""
+
+    def test_filters_invalid_entries(self):
+        """破損エントリを落として正常分のみ ReplyRecord で返す"""
+        data = [
+            VALID_REPLY_DICT,
+            None,
+            {"message_id": "<only-key@example.com>"},  # 必須キー欠落
+        ]
+        result = validate_reply_records(data)
+        assert len(result) == 1
+        assert isinstance(result[0], ReplyRecord)
+        assert result[0].in_reply_to == "<20260828.abc123@example.com>"
+
+    def test_non_str_value_is_rejected(self):
+        """キーは揃っていても値の型が不正なら落とす"""
+        data = [{**VALID_REPLY_DICT, "body": ["改行", "分割"]}]
+        assert validate_reply_records(data) == []
+
+    def test_empty_list_returns_empty(self):
+        """空リストは空リストを返す"""
+        assert validate_reply_records([]) == []

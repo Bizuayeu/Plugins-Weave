@@ -49,6 +49,8 @@ Key terms used throughout this plugin:
 | **frequency** | Schedule interval: `daily`, `weekly`, `monthly`, `quarterly`, `half_yearly`, `yearly`, or `custom` |
 | **reflection** | Deep thinking process before essay composition (uses UltraThink) |
 | **delivery decision** | Conscious choice to send or not send (silence is meaningful) |
+| **ledger** | Append-only record of every sent essay, keyed by `message_id` |
+| **reply ingestion** | Pulling back the replies to sent essays, matched by `In-Reply-To` |
 
 ---
 
@@ -73,6 +75,17 @@ Key terms used throughout this plugin:
 | `-f`, `--file` | Context file | `-f ./notes.md` |
 | `-r`, `--recipient` | Email recipient | `-r user@example.com` |
 | `--time` | Delivery time | `--time 09:00` |
+
+### Ledger and Replies
+
+Sends are recorded on their own. Replies are pulled back through the script CLI:
+
+```bash
+python main.py replies fetch    # Ingest replies to sent essays
+python main.py replies list     # List ingested replies
+```
+
+See [skills/send-email/SKILL.md](skills/send-email/SKILL.md) for file locations.
 
 ---
 

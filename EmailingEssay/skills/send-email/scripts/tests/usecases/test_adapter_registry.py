@@ -118,3 +118,41 @@ class TestAdapterRegistry:
         spawner2 = get_spawner()
 
         assert spawner1 is spawner2
+
+
+class TestMailAdapterIsLedgerWrapped:
+    """get_mail_adapter が台帳記録デコレータで包んだものを返す（Stage 3）"""
+
+    @pytest.fixture(autouse=True)
+    def _mail_env(self, monkeypatch):
+        """YagmailAdapter が必要とする環境変数"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@test.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "testpass")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
+
+        from domain.config import Config
+
+        Config.reset()
+
+    def test_returns_ledger_recording_mail(self):
+        """戻り値は LedgerRecordingMail（呼び出し側は無改造のまま記録される）"""
+        from adapters.mail.ledger_recording_mail import LedgerRecordingMail
+        from usecases.factories import AdapterRegistry, get_mail_adapter
+
+        AdapterRegistry.clear()
+        assert isinstance(get_mail_adapter(), LedgerRecordingMail)
+
+    def test_wraps_yagmail_adapter(self):
+        """内側は YagmailAdapter（送信の責務は元のアダプターのまま）"""
+        from adapters.mail import YagmailAdapter
+        from usecases.factories import AdapterRegistry, get_mail_adapter
+
+        AdapterRegistry.clear()
+        assert isinstance(get_mail_adapter()._inner, YagmailAdapter)
+
+    def test_uses_registry_ledger(self):
+        """台帳は get_ledger() のシングルトンを共有する"""
+        from usecases.factories import AdapterRegistry, get_ledger, get_mail_adapter
+
+        AdapterRegistry.clear()
+        assert get_mail_adapter()._ledger is get_ledger()

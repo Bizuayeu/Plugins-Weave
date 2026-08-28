@@ -16,6 +16,7 @@ sys.path.insert(
 )
 
 from usecases.ports import (
+    LedgerPort,
     MailPort,
     PathResolverPort,
     ProcessSpawnerPort,
@@ -112,6 +113,14 @@ class TestFactoryTypeSafety:
         storage = get_waiter_storage()
         assert isinstance(storage, WaiterStoragePort)
 
+    def test_get_ledger_returns_ledger_port(self):
+        """get_ledger()がLedgerPort準拠インスタンスを返す"""
+        from usecases.factories import AdapterRegistry, get_ledger
+
+        AdapterRegistry.clear()
+        ledger = get_ledger()
+        assert isinstance(ledger, LedgerPort)
+
     def test_get_path_resolver_returns_resolver_port(self):
         """get_path_resolver()がPathResolverPort準拠インスタンスを返す"""
         from usecases.factories import AdapterRegistry, get_path_resolver
@@ -161,3 +170,72 @@ class TestCreateWaitUsecase:
             mock_get_waiter_storage.assert_called_once()
             mock_get_path_resolver.assert_called_once()
             mock_get_spawner.assert_called_once()
+
+
+# =============================================================================
+# Stage 4: 受信箱ファクトリ（実接続はしない）
+# =============================================================================
+
+
+class TestInboxFactory:
+    """get_inbox / create_ingest_replies_usecase のテスト"""
+
+    @staticmethod
+    def _set_env(monkeypatch):
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@test.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "testpass")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
+
+        from domain.config import Config
+
+        Config.reset()
+
+    def test_get_inbox_returns_inbox_port(self, monkeypatch):
+        """get_inbox()がInboxPort準拠インスタンスを返す"""
+        self._set_env(monkeypatch)
+
+        from usecases.factories import AdapterRegistry, get_inbox
+        from usecases.ports import InboxPort
+
+        AdapterRegistry.clear()
+        assert isinstance(get_inbox(), InboxPort)
+
+    def test_get_inbox_uses_registry(self, monkeypatch):
+        """get_inboxがレジストリを使用する（シングルトン）"""
+        self._set_env(monkeypatch)
+
+        from usecases.factories import AdapterRegistry, get_inbox
+
+        AdapterRegistry.clear()
+        assert get_inbox() is get_inbox()
+
+    def test_get_inbox_returns_imap_adapter(self, monkeypatch):
+        """実体は ImapInboxAdapter（構築だけでは接続しない）"""
+        self._set_env(monkeypatch)
+
+        from adapters.mail import ImapInboxAdapter
+        from usecases.factories import AdapterRegistry, get_inbox
+
+        AdapterRegistry.clear()
+        assert isinstance(get_inbox(), ImapInboxAdapter)
+
+    def test_create_ingest_replies_usecase_injects_dependencies(self, monkeypatch):
+        """IngestRepliesUseCase に inbox / ledger / recipient が注入される"""
+        self._set_env(monkeypatch)
+
+        with (
+            patch("usecases.factories.get_inbox") as mock_get_inbox,
+            patch("usecases.factories.get_ledger") as mock_get_ledger,
+        ):
+            mock_get_inbox.return_value = Mock()
+            mock_get_ledger.return_value = Mock()
+
+            from usecases.factories import create_ingest_replies_usecase
+            from usecases.ingest_replies import IngestRepliesUseCase
+
+            usecase = create_ingest_replies_usecase()
+
+            assert isinstance(usecase, IngestRepliesUseCase)
+            mock_get_inbox.assert_called_once()
+            mock_get_ledger.assert_called_once()
+            assert usecase._recipient == "recv@test.com"

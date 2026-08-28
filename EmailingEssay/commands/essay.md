@@ -14,6 +14,7 @@ This is not just "sending mail" — it's crafting essays born from genuine refle
 - [Command Structure](#command-structure)
 - [Wait Subcommand (One-time)](#wait-subcommand-one-time)
 - [Schedule Subcommand (Recurring)](#schedule-subcommand-recurring)
+- [Ledger and Replies](#ledger-and-replies)
 
 ---
 
@@ -285,6 +286,26 @@ C:/Users/you/path/to/file2.txt
 # Remove by task name
 /essay schedule remove "Essay_Weekly_review"
 ```
+
+---
+
+## Ledger and Replies
+
+Every essay sent through `/essay` is recorded in an append-only ledger. Nothing has to be
+passed for that to happen, and the test mail (`/essay test`) is left out of it.
+
+Replies are handled by the script CLI, not by a `/essay` subcommand:
+
+```bash
+python main.py replies fetch                   # Ingest replies to sent essays
+python main.py replies list                    # List ingested replies
+python main.py ledger import-legacy --dry-run  # Preview a retroactive import
+```
+
+Only mail whose `In-Reply-To` matches a ledger entry **and** whose `From` matches
+`ESSAY_RECIPIENT_EMAIL` is taken in — the inbox is not searched across.
+
+For file locations, see `skills/send-email/SKILL.md` → **File Locations** section.
 
 ---
 

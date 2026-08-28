@@ -48,6 +48,24 @@ class TestWaiterStoragePort:
         assert hasattr(WaiterStoragePort, "get_active_waiters")
 
 
+class TestLedgerPort:
+    """LedgerPortのテスト"""
+
+    def test_protocol_has_send_side_methods(self):
+        """送信側（record_sent / load_records）を持つ"""
+        from usecases.ports import LedgerPort
+
+        assert hasattr(LedgerPort, "record_sent")
+        assert hasattr(LedgerPort, "load_records")
+
+    def test_protocol_has_reply_side_methods(self):
+        """返信側（append_reply / load_replies）を持つ"""
+        from usecases.ports import LedgerPort
+
+        assert hasattr(LedgerPort, "append_reply")
+        assert hasattr(LedgerPort, "load_replies")
+
+
 class TestPathResolverPort:
     """PathResolverPortのテスト"""
 
@@ -92,3 +110,29 @@ class TestStorageAdaptersImplementPorts:
 
         adapter = PathResolverAdapter(base_dir=str(tmp_path))
         assert isinstance(adapter, PathResolverPort)
+
+
+class TestInboxPort:
+    """InboxPortのテスト（Stage 4）"""
+
+    def test_protocol_has_fetch_replies(self):
+        """fetch_repliesメソッドを持つ"""
+        from usecases.ports import InboxPort
+
+        assert hasattr(InboxPort, "fetch_replies")
+
+    def test_imap_adapter_implements_protocol(self, monkeypatch):
+        """ImapInboxAdapterがInboxPortを実装（構築のみ。接続はしない）"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@test.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "testpass")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
+
+        from adapters.mail import ImapInboxAdapter
+        from domain.config import Config
+        from usecases.ports import InboxPort
+
+        Config.reset()
+        try:
+            assert isinstance(ImapInboxAdapter(), InboxPort)
+        finally:
+            Config.reset()

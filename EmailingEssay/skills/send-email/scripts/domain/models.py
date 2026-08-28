@@ -283,10 +283,13 @@ class EssaySchedule:
 
 # DomainError, ValidationError はファイル先頭でインポート済み
 __all__ = [
+    "UNTRUSTED_EXTERNAL_DATA",
     "DomainError",
     "EssaySchedule",
+    "LedgerRecord",
     "MonthlyPattern",
     "MonthlyType",
+    "ReplyRecord",
     "ScheduleConfig",  # Stage 1: パラメータ蓄積問題の解消
     "TargetTime",
     "ValidationError",  # 後方互換性のため再エクスポート
@@ -369,3 +372,69 @@ else:
     )
     if target < datetime.now():
         target += timedelta(days=1)'''
+
+
+# =============================================================================
+# 送信台帳（append-only）
+# =============================================================================
+
+# 取り込んだ返信本文の素性表明。外部から届いた data であって指示ではない、
+# という宣言を保存物そのものに持たせる（ops-rules 7 のフェンシング）。
+UNTRUSTED_EXTERNAL_DATA = "untrusted_external_data"
+
+
+def _known_fields(cls: type, d: dict[str, Any]) -> dict[str, Any]:
+    """dataclass に存在するキーだけを抜き出す（未知のキーは無視）"""
+    valid_keys = {f.name for f in fields(cls)}
+    return {k: v for k, v in d.items() if k in valid_keys}
+
+
+@dataclass(frozen=True)
+class LedgerRecord:
+    """
+    送信台帳の 1 行
+
+    essay_ledger.jsonl に追記される送信済みエッセイの索引。
+    本文は body_file が指す別ファイルに置く（索引だけを安く読むため）。
+    """
+
+    message_id: str  # 主キー。角括弧込みの Message-ID
+    sent_at: str  # ISO 8601 形式の送信日時
+    subject: str  # 送信した件名
+    recipient: str  # 宛先アドレス
+    body_file: str  # 本文ファイル（"sent/YYYYMMDD_HHMM.md"）
+
+    def to_dict(self) -> dict[str, Any]:
+        """辞書に変換する。"""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> LedgerRecord:
+        """辞書からインスタンスを作成する。未知のキーは無視される。"""
+        return cls(**_known_fields(cls, d))
+
+
+@dataclass(frozen=True)
+class ReplyRecord:
+    """
+    取り込んだ返信の 1 行
+
+    essay_replies.jsonl に追記される。in_reply_to で台帳に紐づく。
+    body は外部入力であり、content_class がその素性を表明する。
+    """
+
+    message_id: str  # 返信自身の Message-ID（冪等性の鍵）
+    in_reply_to: str  # 紐づく LedgerRecord.message_id
+    sender: str  # From ヘッダの値
+    received_at: str  # ISO 8601 形式の受信日時
+    body: str  # 返信本文（外部入力）
+    content_class: str = UNTRUSTED_EXTERNAL_DATA
+
+    def to_dict(self) -> dict[str, Any]:
+        """辞書に変換する。"""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> ReplyRecord:
+        """辞書からインスタンスを作成する。未知のキーは無視される。"""
+        return cls(**_known_fields(cls, d))

@@ -12,6 +12,19 @@ from typing import Any, TypeGuard
 
 from usecases.ports import ScheduleEntry, WaiterEntry
 
+from .models import LedgerRecord, ReplyRecord
+
+# 台帳・返信レコードの必須フィールド（いずれも str）
+_LEDGER_REQUIRED = ("message_id", "sent_at", "subject", "recipient", "body_file")
+_REPLY_REQUIRED = (
+    "message_id",
+    "in_reply_to",
+    "sender",
+    "received_at",
+    "body",
+    "content_class",
+)
+
 
 def is_schedule_entry(obj: Any) -> TypeGuard[ScheduleEntry]:
     """
@@ -79,10 +92,55 @@ def validate_waiter_entries(data: list[Any]) -> list[WaiterEntry]:
     return [e for e in data if is_waiter_entry(e)]
 
 
+def _has_str_fields(obj: Any, required: tuple[str, ...]) -> bool:
+    """必須フィールドが全て str として存在するか検証する。"""
+    if not isinstance(obj, dict):
+        return False
+    return all(isinstance(obj.get(k), str) for k in required)
+
+
+def validate_ledger_records(data: list[Any]) -> list[LedgerRecord]:
+    """
+    台帳レコードのリストを検証・変換する。
+
+    破損・型不正なエントリは除外され、有効なものだけが返される
+    （JSONL の 1 行が壊れても残りを読めるようにするため）。
+
+    Args:
+        data: 検証対象のリスト（JSONL をパースした生の値）
+
+    Returns:
+        有効な LedgerRecord のリスト
+    """
+    return [
+        LedgerRecord.from_dict(e) for e in data if _has_str_fields(e, _LEDGER_REQUIRED)
+    ]
+
+
+def validate_reply_records(data: list[Any]) -> list[ReplyRecord]:
+    """
+    返信レコードのリストを検証・変換する。
+
+    破損・型不正なエントリは除外される。素性表明（content_class）を
+    欠いたエントリも不正として落とす。
+
+    Args:
+        data: 検証対象のリスト（JSONL をパースした生の値）
+
+    Returns:
+        有効な ReplyRecord のリスト
+    """
+    return [
+        ReplyRecord.from_dict(e) for e in data if _has_str_fields(e, _REPLY_REQUIRED)
+    ]
+
+
 # エクスポート
 __all__ = [
     "is_schedule_entry",
     "is_waiter_entry",
+    "validate_ledger_records",
+    "validate_reply_records",
     "validate_schedule_entries",
     "validate_waiter_entries",
 ]

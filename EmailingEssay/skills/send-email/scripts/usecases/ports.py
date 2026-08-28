@@ -10,7 +10,10 @@ Adapters層がこれらを実装する。
 
 from __future__ import annotations
 
-from typing import Protocol, TypedDict, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, TypedDict, runtime_checkable
+
+if TYPE_CHECKING:
+    from domain.models import LedgerRecord, ReplyRecord
 
 # =============================================================================
 # 型定義
@@ -57,16 +60,20 @@ class WaiterEntry(TypedDict):
 class MailPort(Protocol):
     """メール送信の抽象インターフェース"""
 
-    def send(self, to: str, subject: str, body: str) -> None:
-        """メールを送信する"""
+    def send(
+        self, to: str, subject: str, body: str, *, message_id: str | None = None
+    ) -> None:
+        """メールを送信する（message_id 省略時は送信側で採番される）"""
         ...
 
     def test(self) -> None:
         """テストメールを送信する"""
         ...
 
-    def send_custom(self, subject: str, content: str) -> None:
-        """カスタムコンテンツを送信する"""
+    def send_custom(
+        self, subject: str, content: str, *, message_id: str | None = None
+    ) -> None:
+        """カスタムコンテンツを送信する（message_id 省略時は送信側で採番される）"""
         ...
 
 
@@ -123,6 +130,74 @@ class WaiterStoragePort(Protocol):
 
     def get_active_waiters(self) -> list[WaiterEntry]:
         """アクティブな待機プロセス一覧を取得する（死亡プロセスは除外）"""
+        ...
+
+
+@runtime_checkable
+class LedgerPort(Protocol):
+    """送信台帳（追記専用）の抽象インターフェース"""
+
+    def record_sent(
+        self,
+        message_id: str,
+        sent_at: str,
+        subject: str,
+        recipient: str,
+        body: str,
+    ) -> LedgerRecord | None:
+        """
+        送信を台帳に記録する。
+
+        Args:
+            message_id: 採番済み Message-ID（角括弧込み。台帳の主キー）
+            sent_at: ISO 8601 形式の送信日時
+            subject: 送信した件名
+            recipient: 宛先アドレス
+            body: 本文（別ファイルへ書き出される）
+
+        Returns:
+            記録した LedgerRecord。message_id が既出の場合は None（冪等）
+        """
+        ...
+
+    def load_records(self) -> list[LedgerRecord]:
+        """台帳を読み込む（壊れた行は飛ばす）"""
+        ...
+
+    def append_reply(self, reply: ReplyRecord) -> bool:
+        """
+        取り込んだ返信を追記する。
+
+        Returns:
+            追記した場合は True。message_id が既出の場合は False（冪等）
+        """
+        ...
+
+    def load_replies(self) -> list[ReplyRecord]:
+        """返信一覧を読み込む（壊れた行は飛ばす）"""
+        ...
+
+
+@runtime_checkable
+class InboxPort(Protocol):
+    """受信箱の抽象インターフェース"""
+
+    def fetch_replies(self, sender: str) -> list[ReplyRecord]:
+        """
+        指定の差出人から届いた返信候補を取得する。
+
+        返るのはあくまで**候補**——取り込むか否かの判定（In-Reply-To の突合と
+        From の照合）は UseCase の領分。受信箱の横断検索は行わない。
+
+        Args:
+            sender: 差出人アドレス（受信箱の絞り込みに使う）
+
+        Returns:
+            返信候補のリスト（該当なしなら空）
+
+        Raises:
+            MailError: 接続・認証・取得に失敗した場合
+        """
         ...
 
 
@@ -186,6 +261,8 @@ class WaiterPort(Protocol):
 
 # 全てエクスポート
 __all__ = [
+    "InboxPort",
+    "LedgerPort",
     "MailPort",
     "PathResolverPort",
     "ProcessSpawnerPort",

@@ -57,6 +57,11 @@ def create_parser() -> argparse.ArgumentParser:
     - wait: 一回限りのエッセイ配信
         - <time>: 指定時刻に待機
         - list: アクティブな待機プロセス一覧
+    - replies: 返信の取り込み
+        - fetch: 受信箱から返信を取り込む
+        - list: 取り込み済み返信の一覧
+    - ledger: 送信台帳
+        - import-legacy: 過去の本文を台帳へ遡及移行する
     - schedule: 定期配信管理
         - list: スケジュール一覧
         - remove: スケジュール削除
@@ -77,6 +82,10 @@ Examples:
   python main.py send "Subject" "Body"         # Send custom email
   python main.py wait 09:30 -t "morning"       # Schedule one-time essay
   python main.py wait list                     # List active waiting processes
+  python main.py replies fetch                 # Ingest replies from the inbox
+  python main.py replies list                  # List ingested replies
+  python main.py ledger import-legacy --dry-run  # Preview the legacy import
+  python main.py ledger import-legacy          # Import past essays into the ledger
   python main.py schedule daily 09:00          # Add daily schedule
   python main.py schedule weekly monday 10:00  # Add weekly schedule
   python main.py schedule monthly last_fri 15:00  # Add monthly schedule
@@ -113,6 +122,42 @@ Examples:
         help="Target time (HH:MM or YYYY-MM-DD HH:MM) or 'list' to show active waiters",
     )
     add_common_options(wait_parser)
+
+    # -------------------------------------------------------------------------
+    # replies コマンド（ネストされたサブパーサー）
+    # -------------------------------------------------------------------------
+    replies_parser = subparsers.add_parser(
+        "replies", help="Manage essay replies (返信の取り込み)"
+    )
+    replies_subs = replies_parser.add_subparsers(
+        dest="replies_cmd", help="Replies sub-commands"
+    )
+    replies_subs.add_parser(
+        "fetch", help="Fetch replies from the inbox (受信箱から返信を取り込む)"
+    )
+    replies_subs.add_parser(
+        "list", help="List ingested replies (取り込み済み返信の一覧)"
+    )
+
+    # -------------------------------------------------------------------------
+    # ledger コマンド（ネストされたサブパーサー）
+    # -------------------------------------------------------------------------
+    ledger_parser = subparsers.add_parser(
+        "ledger", help="Manage the sent ledger (送信台帳)"
+    )
+    ledger_subs = ledger_parser.add_subparsers(
+        dest="ledger_cmd", help="Ledger sub-commands"
+    )
+    import_legacy_parser = ledger_subs.add_parser(
+        "import-legacy",
+        help="Import past essays into the ledger (過去の本文を台帳へ遡及移行)",
+    )
+    import_legacy_parser.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        help="Show the plan without writing anything (何も書かずに計画を出す)",
+    )
 
     # -------------------------------------------------------------------------
     # schedule コマンド（ネストされたサブパーサー）

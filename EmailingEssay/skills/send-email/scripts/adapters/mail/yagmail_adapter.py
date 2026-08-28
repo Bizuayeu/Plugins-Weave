@@ -117,7 +117,13 @@ class YagmailAdapter:
                 return f"<div>{content}</div>"
 
     def send(
-        self, to: str, subject: str, body: str, max_retries: int | None = None
+        self,
+        to: str,
+        subject: str,
+        body: str,
+        max_retries: int | None = None,
+        *,
+        message_id: str | None = None,
     ) -> None:
         """
         メールを送信する（指数バックオフ付きリトライ）。
@@ -127,6 +133,7 @@ class YagmailAdapter:
             subject: 件名
             body: 本文（HTML可）
             max_retries: 最大リトライ回数（None時はConfig設定値を使用）
+            message_id: 採番済み Message-ID（None時は yagmail が採番する）
 
         Raises:
             MailError: 送信に失敗した場合
@@ -144,7 +151,12 @@ class YagmailAdapter:
         for attempt in range(retries):
             try:
                 with yagmail.SMTP(self._sender, self._password) as yag:
-                    yag.send(to=recipient, subject=subject, contents=body)
+                    yag.send(
+                        to=recipient,
+                        subject=subject,
+                        contents=body,
+                        message_id=message_id,
+                    )
                 print(f"Sent to: {recipient}")
                 return
             except (
@@ -187,14 +199,17 @@ class YagmailAdapter:
         body = self._render_html(content, title="Essay System Startup Check")
         self.send(to=self._recipient, subject=subject, body=body)
 
-    def send_custom(self, subject: str, content: str) -> None:
+    def send_custom(
+        self, subject: str, content: str, *, message_id: str | None = None
+    ) -> None:
         """
         カスタムコンテンツを送信する。
 
         Args:
             subject: 件名
             content: 本文（プレーンテキスト、改行はHTMLに変換）
+            message_id: 採番済み Message-ID（None時は yagmail が採番する）
         """
         html_content = f"<p>{content.replace(chr(10), '</p><p>')}</p>"
         body = self._render_html(html_content)
-        self.send(to=self._recipient, subject=subject, body=body)
+        self.send(to=self._recipient, subject=subject, body=body, message_id=message_id)

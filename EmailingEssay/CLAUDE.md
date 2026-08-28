@@ -55,16 +55,45 @@ EmailingEssay/
         ├── SKILL.md          # Email sending skill
         └── scripts/          # Clean Architecture implementation
             ├── main.py       # Entry point
-            ├── domain/       # Core entities (models.py)
-            ├── usecases/     # Business logic (ports.py, schedule_essay.py, wait_essay.py)
+            ├── domain/       # Core entities
+            │   ├── code_generator.py
+            │   ├── config.py
+            │   ├── constants.py
+            │   ├── exceptions.py
+            │   ├── message_id.py           # Message-ID minting (the ledger key)
+            │   ├── models.py
+            │   └── validators.py
+            ├── usecases/     # Business logic
+            │   ├── command_builder.py
+            │   ├── factories.py
+            │   ├── import_legacy.py        # Retroactive ledger migration
+            │   ├── ingest_replies.py       # Reply ingestion
+            │   ├── ports.py
+            │   ├── schedule_essay.py
+            │   └── wait_essay.py
             ├── adapters/     # Interface implementations
             │   ├── cli/      # CLI handlers & parser
-            │   ├── mail/     # yagmail adapter
+            │   ├── mail/
+            │   │   ├── imap_inbox.py           # IMAP reply source
+            │   │   ├── ledger_recording_mail.py # MailPort decorator, records every send
+            │   │   └── yagmail_adapter.py      # Gmail SMTP
             │   ├── process/  # subprocess spawner
             │   ├── scheduler/ # cron/Task Scheduler adapters
-            │   └── storage/  # JSON persistence
+            │   └── storage/
+            │       ├── ledger_storage.py    # JSONL ledger + sent/ bodies
+            │       ├── path_resolver.py
+            │       ├── process_cache.py
+            │       ├── schedule_storage.py
+            │       └── waiter_storage.py
             ├── frameworks/   # External frameworks (templates)
-            ├── tests/        # Comprehensive test suite
+            ├── tests/        # Test suite, mirrors the layers
+            │   ├── domain/test_message_id.py
+            │   ├── adapters/test_imap_inbox.py
+            │   ├── adapters/test_ledger_recording_mail.py
+            │   ├── adapters/storage/test_ledger_storage.py
+            │   ├── usecases/test_ingest_replies.py
+            │   ├── usecases/test_import_legacy.py
+            │   └── …                       # existing suites, one per layer
             └── archive/      # Retired implementation backup
 ```
 

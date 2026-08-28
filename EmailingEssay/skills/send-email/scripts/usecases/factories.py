@@ -17,7 +17,11 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, ClassVar, cast
 
 if TYPE_CHECKING:
+    from .import_legacy import ImportLegacyUseCase
+    from .ingest_replies import IngestRepliesUseCase
     from .ports import (
+        InboxPort,
+        LedgerPort,
         MailPort,
         PathResolverPort,
         ProcessSpawnerPort,
@@ -78,10 +82,21 @@ class AdapterRegistry:
 
 
 def get_mail_adapter() -> MailPort:
-    """メールアダプターを取得する（シングルトン）"""
-    from adapters.mail import YagmailAdapter
+    """
+    メールアダプターを取得する（シングルトン）。
 
-    adapter = AdapterRegistry.get_or_create("mail", YagmailAdapter)
+    台帳記録デコレータで包んで返す。送信経路はすべてここを通るため、
+    呼び出し側を変えずに全送信が台帳に載る（Stage 3）。
+    """
+    from adapters.mail import LedgerRecordingMail, YagmailAdapter
+    from domain.config import Config
+
+    def factory() -> LedgerRecordingMail:
+        return LedgerRecordingMail(
+            YagmailAdapter(), get_ledger(), Config.load().email.recipient
+        )
+
+    adapter = AdapterRegistry.get_or_create("mail", factory)
     # Note: MailPort は Protocol のため isinstance チェック不可、cast を使用
     return cast("MailPort", adapter)
 
@@ -140,6 +155,45 @@ def get_schedule_storage() -> ScheduleStoragePort:
     return storage
 
 
+def get_ledger() -> LedgerPort:
+    """
+    送信台帳ストレージアダプターを取得する（シングルトン）。
+
+    Stage 2: 台帳の永続化 - LedgerStorageAdapter を使用
+    """
+    from adapters.storage.ledger_storage import LedgerStorageAdapter
+
+    from .ports import LedgerPort
+
+    def factory() -> LedgerStorageAdapter:
+        return LedgerStorageAdapter(get_path_resolver())
+
+    ledger = AdapterRegistry.get_or_create("ledger", factory)
+    assert isinstance(ledger, LedgerPort), (
+        f"Ledger does not conform to LedgerPort: {type(ledger).__name__}"
+    )
+    return ledger
+
+
+def get_inbox() -> InboxPort:
+    """
+    受信箱アダプターを取得する（シングルトン）。
+
+    構築時に接続は張らない（YagmailAdapter と同じく設定の検証のみ）。
+
+    Stage 4: IMAP による返信の取り込み
+    """
+    from adapters.mail import ImapInboxAdapter
+
+    from .ports import InboxPort
+
+    inbox = AdapterRegistry.get_or_create("inbox", ImapInboxAdapter)
+    assert isinstance(inbox, InboxPort), (
+        f"Inbox does not conform to InboxPort: {type(inbox).__name__}"
+    )
+    return inbox
+
+
 def get_waiter_storage() -> WaiterStoragePort:
     """
     待機プロセスストレージアダプターを取得する（シングルトン）。
@@ -193,6 +247,35 @@ def create_schedule_usecase() -> ScheduleEssayUseCase:
     )
 
 
+def create_ingest_replies_usecase() -> IngestRepliesUseCase:
+    """IngestRepliesUseCaseを生成する"""
+    from domain.config import Config
+
+    from .ingest_replies import IngestRepliesUseCase
+
+    return IngestRepliesUseCase(
+        inbox=get_inbox(),
+        ledger=get_ledger(),
+        recipient=Config.load().email.recipient,
+    )
+
+
+def create_import_legacy_usecase() -> ImportLegacyUseCase:
+    """ImportLegacyUseCaseを生成する
+
+    移行元は永続化ディレクトリそのもの（台帳の置き場に過去の本文が散っている）。
+    """
+    from domain.config import Config
+
+    from .import_legacy import ImportLegacyUseCase
+
+    return ImportLegacyUseCase(
+        source_dir=get_path_resolver().get_persistent_dir(),
+        ledger=get_ledger(),
+        recipient=Config.load().email.recipient,
+    )
+
+
 def create_wait_usecase() -> WaitEssayUseCase:
     """WaitEssayUseCaseを生成する"""
     from .wait_essay import WaitEssayUseCase
@@ -206,8 +289,12 @@ def create_wait_usecase() -> WaitEssayUseCase:
 
 __all__ = [
     "AdapterRegistry",
+    "create_import_legacy_usecase",
+    "create_ingest_replies_usecase",
     "create_schedule_usecase",
     "create_wait_usecase",
+    "get_inbox",
+    "get_ledger",
     "get_mail_adapter",
     "get_path_resolver",
     "get_schedule_storage",

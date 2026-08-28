@@ -36,6 +36,10 @@ All variables are **mandatory**.
 | `ESSAY_SENDER_EMAIL` | Sender email address (AI's Gmail) |
 | `ESSAY_RECIPIENT_EMAIL` | Recipient email address (your email) |
 
+Reply ingestion (`python main.py replies fetch`) reads the same Gmail account over IMAP
+(`imap.gmail.com`) with these same three variables. **No additional variable is required**,
+and `imaplib` ships with Python, so no additional dependency is installed either.
+
 ### Security Notes
 
 - App password is retrieved from environment variable (never hardcode)
@@ -144,6 +148,30 @@ SMTPAuthenticationError: Username and Password not accepted
 1. Verify recipient email is correct
 2. Check `~/.claude/plugins/.emailingessay/essay_wait.log` for errors
 3. Wait and retry (Gmail has daily sending limits)
+
+### IMAP Connection Fails (reply ingestion)
+
+**Symptom**: `python main.py replies fetch` fails to connect to or log in to `imap.gmail.com`.
+
+**Note**: this path has not yet been exercised against a live Gmail account. If it fails,
+work through the causes below before suspecting the code.
+
+**Possible causes**:
+1. IMAP is disabled on the account (Gmail → Settings → Forwarding and POP/IMAP)
+2. The app password was generated before IMAP was enabled, or has been revoked
+3. `ESSAY_SENDER_EMAIL` names an account other than the one the essays were sent from
+
+**Solution**:
+1. Enable IMAP in Gmail settings, then retry
+2. If sending (`/essay test`) works and only fetching fails, the credentials are good and
+   the account setting is the suspect — regenerate the app password and update
+   `ESSAY_APP_PASSWORD`
+3. If neither works, both directions share the same credentials, so treat it as the
+   [Authentication Error](#authentication-error) case above
+
+Replies are matched by `In-Reply-To` against the ledger and by `From` against
+`ESSAY_RECIPIENT_EMAIL`, so a reply sent from a different address is skipped by design,
+not by failure.
 
 ### Scheduled Run Not Firing on Battery (Windows)
 

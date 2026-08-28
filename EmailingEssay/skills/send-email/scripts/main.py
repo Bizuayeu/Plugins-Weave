@@ -13,6 +13,8 @@ Usage:
   python main.py wait "22:00" -t "theme" -l ja           # With language
   python main.py wait "2025-01-05 22:00" -t "theme"      # Specific date
   python main.py wait list                               # List active waiters
+  python main.py replies fetch                           # Ingest replies
+  python main.py replies list                            # List ingested replies
   python main.py schedule daily 22:00 -t "theme"         # Daily schedule
   python main.py schedule weekly monday 09:00            # Weekly schedule
   python main.py schedule monthly 15 09:00 -t "theme"    # Monthly (day)

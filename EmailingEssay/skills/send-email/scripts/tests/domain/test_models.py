@@ -7,6 +7,7 @@ EssaySchedule と MonthlyPattern のテスト。
 
 import os
 import sys
+from dataclasses import FrozenInstanceError
 
 import pytest
 
@@ -15,7 +16,14 @@ sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from domain.models import EssaySchedule, MonthlyPattern, MonthlyType
+from domain.models import (
+    UNTRUSTED_EXTERNAL_DATA,
+    EssaySchedule,
+    LedgerRecord,
+    MonthlyPattern,
+    MonthlyType,
+    ReplyRecord,
+)
 
 
 class TestEssaySchedule:
@@ -490,3 +498,78 @@ class TestScheduleConfigValidation:
 
         config = ScheduleConfig(frequency="daily", time_spec="22:00")
         assert config.monthly_type == ""
+
+
+class TestLedgerRecord:
+    """LedgerRecord のテスト"""
+
+    def _record(self):
+        return LedgerRecord(
+            message_id="<20260828.abc123@example.com>",
+            sent_at="2026-08-28T21:00:00",
+            subject="日々の雑感 — 台帳という記憶",
+            recipient="reader@example.com",
+            body_file="sent/20260828_2100.md",
+        )
+
+    def test_roundtrip_preserves_japanese_subject(self):
+        """to_dict() → from_dict() の往復で同値に戻る（日本語件名）"""
+        record = self._record()
+        assert LedgerRecord.from_dict(record.to_dict()) == record
+
+    def test_roundtrip_preserves_newline_in_body_file(self):
+        """改行を含む本文パスでも往復で同値に戻る（値を素通しすることの固定）"""
+        record = LedgerRecord(
+            message_id="<20260828.def456@example.com>",
+            sent_at="2026-08-28T21:30:00",
+            subject="改行入りパスの検証",
+            recipient="reader@example.com",
+            body_file="sent/20260828_2130.md\n",
+        )
+        assert LedgerRecord.from_dict(record.to_dict()) == record
+
+    def test_is_frozen(self):
+        """frozen dataclass なので属性を書き換えられない"""
+        record = self._record()
+        with pytest.raises(FrozenInstanceError):
+            record.subject = "書き換え"  # type: ignore[misc]
+
+    def test_from_dict_ignores_unknown_keys(self):
+        """未知のキーは無視される（EssaySchedule と同じ流儀）"""
+        d = self._record().to_dict()
+        d["unknown_field"] = "後から増えた列"
+        assert LedgerRecord.from_dict(d) == self._record()
+
+
+class TestReplyRecord:
+    """ReplyRecord のテスト"""
+
+    def _record(self):
+        return ReplyRecord(
+            message_id="<reply.20260828@mail.example.com>",
+            in_reply_to="<20260828.abc123@example.com>",
+            sender="Reader <reader@example.com>",
+            received_at="2026-08-28T22:15:00",
+            body="読みました。\n\n特に二段落目が刺さりました。\n——読者より\n",
+        )
+
+    def test_roundtrip_preserves_multiline_japanese_body(self):
+        """to_dict() → from_dict() の往復で同値に戻る（改行を含む日本語本文）"""
+        record = self._record()
+        assert ReplyRecord.from_dict(record.to_dict()) == record
+
+    def test_content_class_defaults_to_untrusted(self):
+        """取り込んだ本文は外部入力である表明をデフォルトで持つ"""
+        assert self._record().content_class == UNTRUSTED_EXTERNAL_DATA
+
+    def test_is_frozen(self):
+        """frozen dataclass なので属性を書き換えられない"""
+        record = self._record()
+        with pytest.raises(FrozenInstanceError):
+            record.body = "書き換え"  # type: ignore[misc]
+
+    def test_from_dict_ignores_unknown_keys(self):
+        """未知のキーは無視される（EssaySchedule と同じ流儀）"""
+        d = self._record().to_dict()
+        d["unknown_field"] = "後から増えた列"
+        assert ReplyRecord.from_dict(d) == self._record()

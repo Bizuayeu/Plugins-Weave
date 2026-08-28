@@ -283,3 +283,56 @@ class TestCollapseStyleWhitespace:
         style = result.split("<style>")[1].split("</style>")[0]
 
         assert "\n" not in style
+
+
+# =============================================================================
+# Stage 3: Message-ID の受け渡し
+# =============================================================================
+
+
+class TestMessageIdPassthrough:
+    """採番済み Message-ID を yagmail へ渡す（Stage 3）"""
+
+    @pytest.fixture
+    def adapter(self, monkeypatch):
+        """アダプターのインスタンス"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "sender@example.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "password123")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recipient@example.com")
+        Config.reset()
+        return YagmailAdapter()
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_passes_message_id_to_yagmail(self, mock_yagmail, adapter):
+        """send() の message_id が yagmail の SMTP.send へそのまま渡る"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send(
+            to="test@example.com",
+            subject="Test Subject",
+            body="Test Body",
+            message_id="<given@example.com>",
+        )
+
+        assert mock_smtp.send.call_args[1]["message_id"] == "<given@example.com>"
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_custom_forwards_message_id(self, mock_yagmail, adapter):
+        """send_custom() の message_id が内部の send を経て yagmail まで届く"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send_custom("件名", "本文", message_id="<given@example.com>")
+
+        assert mock_smtp.send.call_args[1]["message_id"] == "<given@example.com>"
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_without_message_id_still_works(self, mock_yagmail, adapter):
+        """message_id 省略時も既存の呼び出しは壊れない"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send(to="test@example.com", subject="Test Subject", body="Test Body")
+
+        assert mock_smtp.send.call_args[1]["message_id"] is None

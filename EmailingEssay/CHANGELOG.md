@@ -5,6 +5,53 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-28
+
+Sent essays are now recorded in an append-only ledger, and replies to them are ingested
+back. No new dependency, no new environment variable.
+
+### Added
+- **Sent ledger**. `get_mail_adapter()` now returns the mail adapter wrapped in a
+  `LedgerRecordingMail` decorator, so every send is recorded without a single change at
+  the call sites. `test()` (the configuration test mail) is not recorded, and a send that
+  ends in an exception is not recorded either
+- **Persistence under `~/.claude/plugins/.emailingessay/`**: `essay_ledger.jsonl`
+  (one line per send, `message_id` as the primary key), `sent/YYYYMMDD_HHMM.md` (body with
+  YAML frontmatter), `essay_replies.jsonl` (one line per reply, linked by `in_reply_to`)
+- **Reply ingestion** over `imaplib` (standard library) from `imap.gmail.com`. Only mail
+  whose `In-Reply-To` matches a `message_id` in the ledger **and** whose `From` matches
+  `ESSAY_RECIPIENT_EMAIL` is taken; the inbox is never searched across. The plugin picks up
+  only the return of a ball it threw itself, which is what keeps the attack surface small.
+  Ingested bodies are stored as data carrying a `content_class: untrusted_external_data`
+  declaration — they are external input, not instructions
+- **CLI**: `python main.py replies fetch` / `replies list` /
+  `python main.py ledger import-legacy [--dry-run]`
+- New modules: `domain/message_id.py`, `adapters/storage/ledger_storage.py`,
+  `adapters/mail/ledger_recording_mail.py`, `adapters/mail/imap_inbox.py`,
+  `usecases/ingest_replies.py`, `usecases/import_legacy.py` (each with its test file)
+
+### Changed
+- Retroactive migration was run once: 17 past essays (2026-07-02 – 08-16) were imported,
+  45 body files excluded. Only essays whose **actually sent subject** could be recovered
+  were taken in — no subject was inferred, because a ledger mixing recovered and guessed
+  subjects cannot be told apart by whoever reads it later. Source files were not deleted.
+  Migrated rows carry `<legacy.{body file stem}@emailingessay.invalid>` as `message_id`;
+  being synthetic, these rows can never be matched by a reply — an intended limit
+
+### Notes
+- **Why the ledger did not exist before**: there was no record of sends anywhere as a
+  structure. The `SENT` lines in `essay_wait.log` were not a plugin feature — they were
+  5 lines hand-copied into a throwaway runner, and they were lost when the runner was
+  rewritten in 2026-08. The log stops at 2026-07-30 while the body files continue to
+  08-27. The missing record was the necessary consequence of depending on a habit, so it
+  is now held by structure (the confluence point of the send path) rather than by convention
+- **IMAP connection is not yet verified**. The adapter and its tests are complete, but the
+  code path that talks to `imap.gmail.com` has never been executed — a live connection needs
+  the user's explicit permission, and that is still pending
+
+### Verification
+ruff 0 / ruff format clean / mypy Success (75 files) / pytest 482 passed
+
 ## [1.1.0] - 2026-08-25
 
 Static checking aligned with the workspace baseline. No behavior change.
