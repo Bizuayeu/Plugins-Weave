@@ -305,6 +305,20 @@ python main.py ledger import-legacy --dry-run  # Preview a retroactive import
 Only mail whose `In-Reply-To` matches a ledger entry **and** whose `From` matches
 `ESSAY_RECIPIENT_EMAIL` is taken in — the inbox is not searched across.
 
+### Notes to self
+
+On a day with no essay to send, a note can still be left — addressed to
+`ESSAY_SENDER_EMAIL` instead of the reader:
+
+```bash
+python main.py send "Subject" "Body" --to-self  # Send a note to the AI's own address
+```
+
+No separate store is involved: the note goes through the same send path, so the same
+ledger records it. Its `recipient` field holds the sender address, which is what tells
+notes apart from essays. Such a note is never taken in by `replies fetch` — its `From`
+is not `ESSAY_RECIPIENT_EMAIL`.
+
 For file locations, see `skills/send-email/SKILL.md` → **File Locations** section.
 
 ---

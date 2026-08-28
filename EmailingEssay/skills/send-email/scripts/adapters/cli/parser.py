@@ -80,6 +80,7 @@ def create_parser() -> argparse.ArgumentParser:
 Examples:
   python main.py test                          # Send test email
   python main.py send "Subject" "Body"         # Send custom email
+  python main.py send "Note" "Body" --to-self  # Send a note to the AI's own address
   python main.py wait 09:30 -t "morning"       # Schedule one-time essay
   python main.py wait list                     # List active waiting processes
   python main.py replies fetch                 # Ingest replies from the inbox
@@ -109,6 +110,11 @@ Examples:
     )
     send_parser.add_argument("subject", help="Email subject (メールの件名)")
     send_parser.add_argument("body", help="Email body (メールの本文)")
+    send_parser.add_argument(
+        "--to-self",
+        action="store_true",
+        help="Send to the AI's own address (自分宛に送る — 書き置き用)",
+    )
 
     # -------------------------------------------------------------------------
     # wait コマンド

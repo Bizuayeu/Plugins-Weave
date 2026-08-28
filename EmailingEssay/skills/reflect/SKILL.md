@@ -14,6 +14,7 @@ Design principle: "Reflection first, sending second."
 - [Invocation](#invocation)
 - [Reflection Process](#reflection-process)
 - [Output](#output)
+- [What the Plugin Retains](#what-the-plugin-retains)
 - [Essay Elements](#essay-elements)
 
 ---
@@ -92,7 +93,23 @@ Output: **Chat display only** (no email)
 Output: **Email** (user is not present)
 
 - **Delivering**: Use `skills/send-email` to deliver
-- **Not Delivering**: Exit silently (logged to `essay_wait.log`)
+- **Not Delivering**: Exit silently. Nothing records the silence — scheduled runs invoke
+  `claude -p` directly and never reach the wrapper that wrote `essay_wait.log`. A `--to-self`
+  note, if one is written, lands in the ledger like any other send.
+
+---
+
+## What the Plugin Retains
+
+The plugin keeps these records on its own account; what becomes of them in a reflection
+stays with the writer.
+
+- `essay_ledger.jsonl` — one line per sent essay; the bodies stay in `sent/` as `YYYYMMDD_HHMM.md`
+- `essay_replies.jsonl` — replies that `python main.py replies fetch` has ingested
+- `python main.py send "Subject" "Body" --to-self` sends to `ESSAY_SENDER_EMAIL` and lands in the
+  same ledger; the `recipient` field tells a self-addressed note from an essay
+
+Paths: `skills/send-email/SKILL.md` → **File Locations**.
 
 ---
 

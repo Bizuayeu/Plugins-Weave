@@ -22,6 +22,7 @@ from domain.models import LedgerRecord, ReplyRecord
 from usecases.ports import LedgerPort, MailPort
 
 RECIPIENT = "recipient@example.com"
+SENDER = "ai@example.com"
 
 
 class FakeMail:
@@ -267,3 +268,24 @@ class TestMessageId:
         mail.send_custom("件名2", "本文2")
 
         assert len({r.message_id for r in ledger.records}) == 2
+
+
+class TestSelfAddressedNote:
+    """自分宛の書き置き（CLI の --to-self）が台帳へどう載るか"""
+
+    def test_records_sender_as_recipient(self, mail, ledger):
+        """宛先が台帳の recipient に入る（エッセイと書き置きを区別する根拠）"""
+        mail.send(to=SENDER, subject="書き置き", body="沈黙の日のメモ")
+
+        record = ledger.records[0]
+        assert record.recipient == SENDER
+        assert record.recipient != RECIPIENT
+        assert record.subject == "書き置き"
+        assert ledger.bodies[0] == "沈黙の日のメモ"
+
+    def test_message_id_is_issued_without_caller_help(self, mail, inner, ledger):
+        """message_id はデコレータが採番する（呼び出し側の採番は要らない）"""
+        mail.send(to=SENDER, subject="書き置き", body="本文")
+
+        assert ledger.records[0].message_id
+        assert inner.send_calls[0]["message_id"] == ledger.records[0].message_id

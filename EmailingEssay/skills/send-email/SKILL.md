@@ -48,6 +48,7 @@ yagmail
 |-----------|-----|-------------|
 | test | `python main.py test` | Send test email |
 | send | `python main.py send "Subject" "Body"` | Send custom email |
+| send | `python main.py send "Subject" "Body" --to-self` | Send a note to the AI's own address (`ESSAY_SENDER_EMAIL`); the ledger records it under that address |
 | wait | `python main.py wait TIME [OPTIONS]` | One-time schedule |
 | schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Recurring schedule |
 | replies | `python main.py replies fetch` | Ingest replies to sent essays |
@@ -69,7 +70,7 @@ For full options and examples, see `commands/essay.md` → **Command Structure**
 
 | File | Location | Description |
 |------|----------|-------------|
-| `essay_wait.log` | `~/.claude/plugins/.emailingessay/` | Logs for wait/schedule operations |
+| `essay_wait.log` | `~/.claude/plugins/.emailingessay/` | Written by `wait` runs only; a registered `schedule` never writes it |
 | `schedules.json` | `~/.claude/plugins/.emailingessay/` | Backup of registered schedules |
 | `active_waiters.json` | `~/.claude/plugins/.emailingessay/` | Active waiting process tracking |
 | `runners/` | `~/.claude/plugins/.emailingessay/runners/` | Monthly schedule runner scripts |
@@ -100,11 +101,11 @@ The `wait` and `schedule` features use `--dangerously-skip-permissions` when lau
 **Safeguards**:
 - No file modifications or system changes are made by the essay command
 - Essay content is sent only to the configured `ESSAY_RECIPIENT_EMAIL`
-- All operations are logged to `~/.claude/plugins/.emailingessay/essay_wait.log`
+- A `wait` run logs its launch, the target time being reached, and the return code to `~/.claude/plugins/.emailingessay/essay_wait.log`; a registered `schedule` invokes `claude -p` directly and never reaches that wrapper
 
 **Best practices**:
 - Keep `ESSAY_RECIPIENT_EMAIL` set to your own email address
-- Review logs periodically with `cat ~/.claude/plugins/.emailingessay/essay_wait.log`
+- Review what was actually sent in the ledger (`essay_ledger.jsonl` + `sent/`, see File Locations), which records every send; `essay_wait.log` covers `wait` runs only
 - Audit registered tasks with `python main.py schedule list`
 
 ### Ingested Replies Are Untrusted Input

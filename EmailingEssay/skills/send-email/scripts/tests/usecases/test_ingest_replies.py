@@ -24,7 +24,9 @@ from domain.models import UNTRUSTED_EXTERNAL_DATA, ReplyRecord
 from usecases.ingest_replies import IngestRepliesUseCase
 
 RECIPIENT = "reader@example.com"
+SENDER = "ai@example.com"
 SENT_MESSAGE_ID = "<abc123@essay.local>"
+SELF_NOTE_MESSAGE_ID = "<note456@essay.local>"
 
 
 class FakeInbox:
@@ -116,6 +118,35 @@ class TestAcceptance:
     def test_empty_inbox_yields_nothing(self, ledger):
         """受信箱が空でも落ちない"""
         assert _usecase(FakeInbox([]), ledger).fetch() == []
+
+
+class TestSelfAddressedNotes:
+    """自分宛の書き置き（CLI の --to-self）は返信として取り込まない"""
+
+    @pytest.fixture
+    def ledger_with_note(self, ledger):
+        """自分宛の書き置きを 1 件足した台帳"""
+        ledger.record_sent(
+            message_id=SELF_NOTE_MESSAGE_ID,
+            sent_at="2026-08-27T22:00:00",
+            subject="書き置き",
+            recipient=SENDER,
+            body="沈黙の日のメモ",
+        )
+        return ledger
+
+    def test_note_from_self_is_not_ingested(self, ledger_with_note):
+        """In-Reply-To は台帳と合っても、From が自分なら取り込まない"""
+        inbox = FakeInbox([_reply("<n1@mail>", SELF_NOTE_MESSAGE_ID, SENDER)])
+
+        assert _usecase(inbox, ledger_with_note).fetch() == []
+        assert ledger_with_note.load_replies() == []
+
+    def test_same_thread_from_reader_is_ingested(self, ledger_with_note):
+        """同じ書き置きへの反響でも From が読み手なら取り込む（弾いたのは From）"""
+        inbox = FakeInbox([_reply("<n2@mail>", SELF_NOTE_MESSAGE_ID, RECIPIENT)])
+
+        assert len(_usecase(inbox, ledger_with_note).fetch()) == 1
 
 
 class TestIdempotency:

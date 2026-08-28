@@ -12,6 +12,7 @@ from argparse import Namespace
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from domain.config import Config
 from usecases.factories import (
     create_import_legacy_usecase,
     create_ingest_replies_usecase,
@@ -45,9 +46,15 @@ def handle_test(args: Namespace) -> int:
 
 @validate_config
 def handle_send(args: Namespace) -> int:
-    """カスタムメール送信"""
+    """カスタムメール送信（--to-self なら自分宛の書き置き）"""
     mail = get_mail_adapter()
-    mail.send_custom(args.subject, args.body)
+    if args.to_self:
+        # 自分宛は send() を通す。send_custom() は宛先を問わず既定の受信者を
+        # 台帳へ書くため、そちらへ流すと台帳の recipient が宛先を語らなくなる。
+        sender = Config.load().email.sender
+        mail.send(to=sender, subject=args.subject, body=args.body)
+    else:
+        mail.send_custom(args.subject, args.body)
     return 0
 
 

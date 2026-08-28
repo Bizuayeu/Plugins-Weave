@@ -37,6 +37,16 @@ class TestCreateParser:
         assert args.subject == "Subject"
         assert args.body == "Body"
 
+    def test_send_command_defaults_to_recipient(self, parser):
+        """send は既定で --to-self が立たない（従来の宛先のまま）"""
+        args = parser.parse_args(["send", "Subject", "Body"])
+        assert args.to_self is False
+
+    def test_send_command_to_self(self, parser):
+        """send --to-self のパース"""
+        args = parser.parse_args(["send", "Subject", "Body", "--to-self"])
+        assert args.to_self is True
+
     def test_wait_command_basic(self, parser):
         """wait コマンドの基本パース"""
         args = parser.parse_args(["wait", "09:30"])
@@ -578,3 +588,64 @@ class TestLedgerHandlers:
         from adapters.cli.handlers import handle_ledger
 
         assert handle_ledger(Namespace(ledger_cmd=None)) == 1
+
+
+class TestSendHandler:
+    """send ハンドラのテスト（フェイク注入。実送信はしない）"""
+
+    @pytest.fixture(autouse=True)
+    def _env(self, monkeypatch):
+        """validate_config デコレータを通すためのダミー設定"""
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "ai@test.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "testpass")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
+
+        from domain.config import Config
+
+        Config.reset()
+        yield
+        Config.reset()
+
+    def test_default_goes_through_send_custom(self):
+        """--to-self なし: 従来どおり send_custom（既存挙動を変えない）"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(Namespace(subject="件名", body="本文", to_self=False))
+
+            assert result == 0
+            mail.send_custom.assert_called_once_with("件名", "本文")
+            mail.send.assert_not_called()
+
+    def test_to_self_sends_to_sender_address(self):
+        """--to-self: ESSAY_SENDER_EMAIL 宛に送る"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(Namespace(subject="件名", body="本文", to_self=True))
+
+            assert result == 0
+            mail.send.assert_called_once_with(
+                to="ai@test.com", subject="件名", body="本文"
+            )
+
+    def test_to_self_does_not_use_send_custom(self):
+        """--to-self は send_custom を通さない（無条件に受信者を台帳へ書くため）"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            handle_send(Namespace(subject="件名", body="本文", to_self=True))
+
+            mail.send_custom.assert_not_called()

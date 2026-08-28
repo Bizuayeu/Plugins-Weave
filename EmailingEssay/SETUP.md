@@ -146,8 +146,10 @@ SMTPAuthenticationError: Username and Password not accepted
 
 **Solution**:
 1. Verify recipient email is correct
-2. Check `~/.claude/plugins/.emailingessay/essay_wait.log` for errors
-3. Wait and retry (Gmail has daily sending limits)
+2. Look for the send in the ledger (`essay_ledger.jsonl` + `sent/`) — every send is recorded there
+3. For a `wait` run, `essay_wait.log` also holds the return code; a registered `schedule` never
+   writes it, so an old timestamp there is not evidence that nothing was sent
+4. Wait and retry (Gmail has daily sending limits)
 
 ### IMAP Connection Fails (reply ingestion)
 
