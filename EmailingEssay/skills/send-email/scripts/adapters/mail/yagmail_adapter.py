@@ -9,7 +9,6 @@ HTMLテンプレートシステムにより一貫したスタイリングを実�
 
 from __future__ import annotations
 
-import logging
 import re
 import smtplib
 import time
@@ -17,8 +16,9 @@ import time
 import yagmail
 
 from domain.exceptions import MailError
+from frameworks.logging_config import get_logger
 
-logger = logging.getLogger("emailingessay.mail")
+logger = get_logger("mail")
 
 # 後方互換性のため再エクスポート
 __all__ = ["MailError", "YagmailAdapter", "collapse_style_whitespace"]

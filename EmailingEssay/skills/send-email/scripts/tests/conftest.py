@@ -13,22 +13,23 @@ from unittest.mock import create_autospec
 
 import pytest
 
+# テストが実ホーム（~/.claude/plugins/.emailingessay）へログを書かないよう、
+# プロジェクトの import より前に逃がす。import 時にログ設定が走る経路が二つ
+# （main.py の configure_logging() と、get_logger() の自動設定）あり、
+# どちらも fixture では間に合わない。
+# subprocess で起動される子も os.environ を継いでここへ来る。
+_TEST_LOG_DIR = Path(tempfile.gettempdir()) / "emailingessay-tests"
+_TEST_LOG_DIR.mkdir(parents=True, exist_ok=True)
+os.environ["ESSAY_LOG_FILE"] = str(_TEST_LOG_DIR / "emailingessay.log")
+
 # 本番のPortsをインポート（重複定義を排除）
-from usecases.ports import (
+from usecases.ports import (  # noqa: E402
     MailPort,
     ProcessSpawnerPort,
     SchedulerPort,
     ScheduleStoragePort,
     WaiterStoragePort,
 )
-
-# テストが実ホーム（~/.claude/plugins/.emailingessay）へログを書かないよう、
-# テストモジュールの import より前に逃がす。main.py は import 時に
-# configure_logging() を呼ぶため、fixture では間に合わない。
-# subprocess で起動される子も os.environ を継いでここへ来る。
-_TEST_LOG_DIR = Path(tempfile.gettempdir()) / "emailingessay-tests"
-_TEST_LOG_DIR.mkdir(parents=True, exist_ok=True)
-os.environ["ESSAY_LOG_FILE"] = str(_TEST_LOG_DIR / "emailingessay.log")
 
 # =============================================================================
 # Fixtures

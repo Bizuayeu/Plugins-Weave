@@ -14,13 +14,13 @@ Stage 2: 台帳の永続化
 from __future__ import annotations
 
 import json
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from domain.models import LedgerRecord
 from domain.validators import validate_ledger_records, validate_reply_records
+from frameworks.logging_config import get_logger
 
 if TYPE_CHECKING:
     from domain.models import ReplyRecord
@@ -35,7 +35,7 @@ _FRONTMATTER_FIELDS = ("message_id", "sent_at", "subject", "recipient")
 _FRONTMATTER_DELIMITER = "---"
 
 # モジュールロガー
-logger = logging.getLogger("emailingessay.storage")
+logger = get_logger("storage")
 
 
 def _strip_frontmatter(text: str) -> str:

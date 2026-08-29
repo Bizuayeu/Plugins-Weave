@@ -44,6 +44,12 @@ For CLI options, see `commands/essay.md` → **Command Structure** section.
 
 ### 1. Load Context
 
+First, ingest any replies that have arrived: `python main.py replies fetch`. This is
+plumbing — it moves replies from the inbox onto disk, so what has come back is at hand.
+Best-effort: an IMAP, authentication or network failure stops the fetch, not the
+reflection — go on to read and write regardless. What is made of them is the writer's;
+see **What the Plugin Retains**.
+
 Read specified files as material for reflection.
 
 **Recommended context**:

@@ -57,7 +57,7 @@ flowchart TD
 
 ### 1. Load Context
 
-Read the specified files and note the language setting.
+Ingest replies first with `python main.py replies fetch` (best-effort; a failure does not stop the run), then read the specified files and note the language setting.
 
 **Language Guidelines**:
 - `ja`: Write the essay in Japanese. Use natural Japanese expressions.

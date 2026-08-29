@@ -5,6 +5,32 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-29
+
+Reply ingestion joins the reflection flow as plumbing, and the file log finally reaches the
+send path that production actually uses.
+
+### Changed
+- **`python main.py replies fetch` is now a step of the reflection flow**
+  (`skills/reflect/SKILL.md` → **Reflection Process** → *Load Context*, and
+  `agents/essay-writer.md` → *Load Context*). It is plumbing — replies move from the inbox
+  onto disk so what has come back is at hand. Best-effort: an IMAP, authentication or network
+  failure stops the fetch, not the reflection. Whether to read them, and whether anything of
+  them reaches the essay, stays with the writer; nothing instructs it
+
+### Fixed
+- **File logging did not reach the send path in actual use.** v1.2.4 wired the file handler in
+  `frameworks/logging_config.py`, but only `main.py` called the setup — the route production
+  takes, importing `usecases.factories` directly and never passing through `main.py`, wrote
+  nothing to `emailingessay.log`. `get_logger()` now establishes the configuration when none
+  is set, and the adapters that reached for `logging.getLogger("emailingessay.xxx")` on their
+  own go through `get_logger()` instead, so a logger exists on every entry path. What is
+  logged, its format, logging being on by default, `ESSAY_LOG_FILE` overriding the path, and
+  a log file that cannot be opened not stopping the run are all unchanged from v1.2.4
+
+### Verification
+ruff 0 / ruff format clean (75 files) / mypy Success (75 files) / pytest 540 passed
+
 ## [1.2.4] - 2026-08-29
 
 The reply gate stops trusting `From` alone, and a dropped reply now says why it was dropped.

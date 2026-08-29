@@ -11,13 +11,13 @@ Stage 5.2: ストレージアダプター責務分離
 from __future__ import annotations
 
 import json
-import logging
 import shutil
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.validators import validate_schedule_entries
+from frameworks.logging_config import get_logger
 from usecases.ports import ScheduleEntry
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ BACKUP_SIZE_THRESHOLD = 1024  # 1KB以上でバックアップ
 BACKUP_TIME_THRESHOLD = 3600  # 1時間以上経過でバックアップ
 
 # モジュールロガー
-logger = logging.getLogger("emailingessay.storage")
+logger = get_logger("storage")
 
 
 class ScheduleStorageAdapter:

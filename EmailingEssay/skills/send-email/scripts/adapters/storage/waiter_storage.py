@@ -11,12 +11,12 @@ Stage 5.3: ストレージアダプター責務分離
 from __future__ import annotations
 
 import json
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from domain.validators import validate_waiter_entries
+from frameworks.logging_config import get_logger
 from usecases.ports import WaiterEntry
 
 from .process_cache import ProcessAlivenessCache
@@ -29,7 +29,7 @@ PROCESS_CACHE_TTL = 5.0  # 5秒
 PROCESS_CLEANUP_INTERVAL = 60.0  # 60秒
 
 # モジュールロガー
-logger = logging.getLogger("emailingessay.storage")
+logger = get_logger("storage")
 
 
 class WaiterStorageAdapter:

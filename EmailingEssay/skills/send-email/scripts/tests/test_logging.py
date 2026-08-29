@@ -5,7 +5,9 @@ loggingモジュール統合テスト（Item 5）
 
 import logging
 import os
+import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -221,3 +223,98 @@ class TestLogFileOutput:
         out = capsys.readouterr().out
         assert "still alive" in out
         assert "Log file unavailable" in out
+
+
+# =============================================================================
+# ランナー経路（main.py を通らない送信）でのログ出力
+# =============================================================================
+
+# 実運用のランナーは cp932 の文字化けを避けるため main.py を通らず、
+# sys.path に scripts/ を足して usecases.factories だけを import する。
+# その経路を子プロセスで再現する（親の import 済みモジュールを持ち込まない）。
+_RUNNER_LIKE_CHILD = """
+import sys
+from types import SimpleNamespace
+
+sys.path.insert(0, {scripts!r})
+
+from usecases.factories import get_mail_adapter, get_path_resolver
+
+# 先に工場を叩く: これがランナーの順序であり、ここから伸びる import 連鎖
+# adapters.mail → get_logger → 自動設定 → adapters.storage が
+# ログ設定の再入経路そのもの。順序を入れ替えると再入が起きず、
+# ハンドラ二重付けを取り逃がす。
+adapter = get_mail_adapter()
+
+print("PERSISTENT_DIR=" + get_path_resolver().get_persistent_dir())
+
+# 差し替えるのは YagmailAdapter 内部の SMTP 境界だけ: 既存テストと同じ継ぎ目。
+# アダプタ自身のリトライとログは本物が走る。
+class FakeSMTP:
+    attempts = 0
+
+    def __init__(self, sender, password):
+        type(self).attempts += 1
+        if type(self).attempts == 1:
+            raise OSError("fake transient")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def send(self, **kwargs):
+        pass
+
+
+sys.modules["adapters.mail.yagmail_adapter"].yagmail = SimpleNamespace(SMTP=FakeSMTP)
+
+adapter.send_custom("テスト件名", "テスト本文")
+"""
+
+
+def test_runner_path_logs_to_file_without_main(tmp_path):
+    """main.py を通らないランナー経路でも、ログがファイルに残る"""
+    scripts_dir = Path(__file__).resolve().parent.parent
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    child = tmp_path / "runner_like.py"
+    child.write_text(
+        _RUNNER_LIKE_CHILD.format(scripts=str(scripts_dir)), encoding="utf-8"
+    )
+
+    env = os.environ.copy()
+    # 既定パス（永続化ディレクトリ配下）を通したいので conftest の逃がし先を外す
+    env.pop("ESSAY_LOG_FILE", None)
+    # 実ホームへ書かせない: ログも台帳もこの偽ホーム配下に落ちる
+    env["HOME"] = str(fake_home)
+    env["USERPROFILE"] = str(fake_home)
+    env["ESSAY_SENDER_EMAIL"] = "essay@example.com"
+    env["ESSAY_APP_PASSWORD"] = "dummy-password"
+    env["ESSAY_RECIPIENT_EMAIL"] = "reader@example.com"
+    env["ESSAY_MAIL_RETRY_COUNT"] = "2"
+
+    result = subprocess.run(
+        [sys.executable, str(child)],
+        capture_output=True,
+        cwd=str(tmp_path),
+        env=env,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+    assert result.returncode == 0, result.stderr
+    persistent_dir = next(
+        line.removeprefix("PERSISTENT_DIR=")
+        for line in result.stdout.splitlines()
+        if line.startswith("PERSISTENT_DIR=")
+    )
+    assert persistent_dir.startswith(str(fake_home))
+
+    log_file = (
+        fake_home / ".claude" / "plugins" / ".emailingessay" / "emailingessay.log"
+    )
+    content = log_file.read_text(encoding="utf-8")
+    # 1 回だけ = ハンドラ二重付けで行が重複していないことも同時に見る
+    assert content.count("SMTP transient error") == 1

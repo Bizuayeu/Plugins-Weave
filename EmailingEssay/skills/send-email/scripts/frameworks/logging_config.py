@@ -26,6 +26,13 @@ ROOT_LOGGER_NAME = "emailingessay"
 # essay_wait.log とは別物——あれは wait 経路専用として v1.2.3 で定義し直した。
 LOG_FILE_NAME = "emailingessay.log"
 
+# 設定済みフラグ。get_logger() が未設定を見たら自分で configure_logging() を呼ぶ
+# ため、main.py を通らない経路（ランナーは usecases.factories だけを import する）
+# でもハンドラが付く。_configuring は再入防止——configure_logging() は途中で
+# adapters.storage を import し、その連鎖が get_logger() を呼び返す。
+_configured = False
+_configuring = False
+
 
 def _default_log_path() -> str:
     """
@@ -89,48 +96,61 @@ def configure_logging(
         log_file: ログファイルのパス（NoneはESSAY_LOG_FILE環境変数、
             それも無ければ永続化ディレクトリ配下の既定パス）
     """
-    # JSON形式の判定（環境変数を参照）
-    if json_format is None:
-        json_format = os.environ.get("ESSAY_LOG_JSON", "").lower() == "true"
+    global _configured, _configuring
 
-    formatter: logging.Formatter
-    if json_format:
-        formatter = JsonFormatter()
-    else:
-        formatter = logging.Formatter(fmt=format_str, datefmt=date_format)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(formatter)
-
-    # ルートロガーを設定
-    root_logger = logging.getLogger(ROOT_LOGGER_NAME)
-    root_logger.setLevel(level)
-
-    # 既存のハンドラーをクリア（重複防止）。閉じてから外す——開いたままのファイル
-    # ハンドルを捨てると、再設定のたびにハンドルが漏れる。
-    for existing in list(root_logger.handlers):
-        existing.close()
-    root_logger.handlers.clear()
-    root_logger.addHandler(handler)
-
-    # ファイル出力（既定 ON）。ここが失敗しても本業は止めない。
+    # 設定中に走る import が get_logger() を呼び返しても、ここへ再入させない
+    # （再入するとハンドラを二重に付け、ログ行が重複する）。
+    _configuring = True
     try:
-        path = log_file or os.environ.get("ESSAY_LOG_FILE") or _default_log_path()
-        # cc-defer: ローテーション無しの追記（日に数行の量で、根拠のある閾値を
-        # 持たないため上限を発明しない）。ファイルが実用上邪魔になる大きさに
-        # 育ったら RotatingFileHandler へ昇格する。
-        file_handler = logging.FileHandler(path, encoding="utf-8")
-    except OSError as e:
-        # stdout は生かしたまま続行し、開けなかったことだけ 1 行残す
-        root_logger.warning(f"Log file unavailable ({e}); logging to stdout only")
-    else:
-        file_handler.setFormatter(formatter)
-        root_logger.addHandler(file_handler)
+        # JSON形式の判定（環境変数を参照）
+        if json_format is None:
+            json_format = os.environ.get("ESSAY_LOG_JSON", "").lower() == "true"
+
+        formatter: logging.Formatter
+        if json_format:
+            formatter = JsonFormatter()
+        else:
+            formatter = logging.Formatter(fmt=format_str, datefmt=date_format)
+
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(formatter)
+
+        # ルートロガーを設定
+        root_logger = logging.getLogger(ROOT_LOGGER_NAME)
+        root_logger.setLevel(level)
+
+        # 既存のハンドラーをクリア（重複防止）。閉じてから外す——開いたままのファイル
+        # ハンドルを捨てると、再設定のたびにハンドルが漏れる。
+        for existing in list(root_logger.handlers):
+            existing.close()
+        root_logger.handlers.clear()
+        root_logger.addHandler(handler)
+
+        # ファイル出力（既定 ON）。ここが失敗しても本業は止めない。
+        try:
+            path = log_file or os.environ.get("ESSAY_LOG_FILE") or _default_log_path()
+            # cc-defer: ローテーション無しの追記（日に数行の量で、根拠のある閾値を
+            # 持たないため上限を発明しない）。ファイルが実用上邪魔になる大きさに
+            # 育ったら RotatingFileHandler へ昇格する。
+            file_handler = logging.FileHandler(path, encoding="utf-8")
+        except OSError as e:
+            # stdout は生かしたまま続行し、開けなかったことだけ 1 行残す
+            root_logger.warning(f"Log file unavailable ({e}); logging to stdout only")
+        else:
+            file_handler.setFormatter(formatter)
+            root_logger.addHandler(file_handler)
+    finally:
+        _configuring = False
+
+    _configured = True
 
 
 def get_logger(name: str) -> logging.Logger:
     """
     子loggerを取得する。
+
+    未設定なら configure_logging() を呼ぶ。ログの起点を入口（main.py）でなく
+    ロガーの取得そのものに置くことで、main.py を通らない呼び出しにも届く。
 
     Args:
         name: ロガー名（例: 'storage', 'scheduler'）
@@ -138,4 +158,6 @@ def get_logger(name: str) -> logging.Logger:
     Returns:
         emailingessay.{name} のlogger
     """
+    if not _configured and not _configuring:
+        configure_logging()
     return logging.getLogger(f"{ROOT_LOGGER_NAME}.{name}")

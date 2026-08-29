@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import email
 import imaplib
-import logging
 import re
 from collections.abc import Sequence
 from dataclasses import replace
@@ -29,8 +28,9 @@ from typing import Any
 
 from domain.exceptions import MailError
 from domain.models import ReplyRecord
+from frameworks.logging_config import get_logger
 
-logger = logging.getLogger("emailingessay.inbox")
+logger = get_logger("inbox")
 
 __all__ = [
     "IMAP_HOST",
