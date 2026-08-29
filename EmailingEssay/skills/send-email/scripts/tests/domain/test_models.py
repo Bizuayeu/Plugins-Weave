@@ -573,3 +573,21 @@ class TestReplyRecord:
         d = self._record().to_dict()
         d["unknown_field"] = "後から増えた列"
         assert ReplyRecord.from_dict(d) == self._record()
+
+    def test_roundtrip_preserves_auth_results(self):
+        """取り込みの根拠（Authentication-Results）も往復で保たれる"""
+        record = ReplyRecord(
+            message_id="<reply.20260828@mail.example.com>",
+            in_reply_to="<20260828.abc123@example.com>",
+            sender="Reader <reader@example.com>",
+            received_at="2026-08-28T22:15:00",
+            body="読みました。",
+            auth_results="mx.google.com; dkim=pass; spf=pass",
+        )
+        assert ReplyRecord.from_dict(record.to_dict()) == record
+
+    def test_auth_results_defaults_to_empty(self):
+        """auth_results を持たない旧 JSONL 行も読み戻せる（空 = 検証根拠なし）"""
+        d = self._record().to_dict()
+        del d["auth_results"]
+        assert ReplyRecord.from_dict(d).auth_results == ""

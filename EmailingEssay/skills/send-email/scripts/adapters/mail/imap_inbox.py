@@ -127,6 +127,11 @@ def parse_fetch_response(data: Sequence[Any]) -> dict[str, bytes]:
     return result
 
 
+def _unfold(value: str) -> str:
+    """折り返し（CRLF + 空白）を潰してヘッダ値を 1 行にする。"""
+    return " ".join(value.split())
+
+
 def _header(msg: Message, name: str) -> str:
     """
     ヘッダ値を 1 行に畳んで返す（折り返しの CRLF + 空白を潰す）。
@@ -137,7 +142,28 @@ def _header(msg: Message, name: str) -> str:
     value = msg.get(name)
     if value is None:
         return ""
-    return " ".join(str(value).split())
+    return _unfold(str(value))
+
+
+def _topmost_header(msg: Message, name: str) -> str:
+    """
+    同名ヘッダが複数あるとき、最上部の 1 本だけを 1 行に畳んで返す。
+
+    中継は自分の書いたヘッダをメールの最上部に足していくので、最上部が
+    最後の中継＝受信側 MTA の 1 本になる。下方にあるものは送信者が自分で
+    仕込めるため、差出人検証の根拠にしてはならない。
+
+    Args:
+        msg: パース済みメッセージ
+        name: ヘッダ名
+
+    Returns:
+        最上部のヘッダ値（不在なら空文字）
+    """
+    values = msg.get_all(name)
+    if not values:
+        return ""
+    return _unfold(str(values[0]))
 
 
 def parse_candidate(raw_header: bytes) -> ReplyRecord:
@@ -157,6 +183,7 @@ def parse_candidate(raw_header: bytes) -> ReplyRecord:
         sender=_header(msg, "From"),
         received_at=_received_at(msg),
         body="",
+        auth_results=_topmost_header(msg, "Authentication-Results"),
     )
 
 

@@ -428,6 +428,10 @@ class ReplyRecord:
     sender: str  # From ヘッダの値
     received_at: str  # ISO 8601 形式の受信日時
     body: str  # 返信本文（外部入力）
+    # 受信側 MTA が付けた Authentication-Results（差出人検証の根拠）。
+    # 既定が空なのは「根拠なし」を意味し、取り込みの関門はそれを通さない
+    # （fail-closed）。auth_results を持たない旧 JSONL 行も読み戻せる。
+    auth_results: str = ""
     content_class: str = UNTRUSTED_EXTERNAL_DATA
 
     def to_dict(self) -> dict[str, Any]:

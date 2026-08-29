@@ -8,6 +8,7 @@ Complete setup instructions for EmailingEssay plugin.
 - [Environment Variables](#environment-variables)
 - [Installation](#installation)
 - [Verification](#verification)
+- [Scheduling Reply Ingestion](#scheduling-reply-ingestion)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -105,6 +106,46 @@ This sends a test email to `ESSAY_RECIPIENT_EMAIL`.
 
 ---
 
+## Scheduling Reply Ingestion
+
+`/essay schedule` registers essay delivery only. To pull replies in without typing the
+command, register `python main.py replies fetch` with the OS scheduler. `main.py` may be
+invoked by absolute path from any working directory.
+
+### Windows (Task Scheduler)
+
+```powershell
+schtasks /create /tn "EmailingEssay replies" /tr "python C:\path\to\EmailingEssay\skills\send-email\scripts\main.py replies fetch" /sc daily /st 07:00 /f
+```
+
+`/sc` and `/st` set the frequency and start time — `daily` at `07:00` here is only an
+example. If the machine runs on battery, see
+[Scheduled Run Not Firing on Battery](#scheduled-run-not-firing-on-battery-windows).
+
+Scheduled tasks do not inherit a shell session's variables, but they do see the User-scope
+variables set in [Installation](#installation) — no extra step is needed.
+
+### Linux/macOS (cron)
+
+```cron
+# Ingest replies daily at 07:00 (time is an example)
+0 7 * * * /usr/bin/python3 /path/to/EmailingEssay/skills/send-email/scripts/main.py replies fetch
+```
+
+cron does not read `~/.bashrc` or `~/.zshrc`, so the `export` lines from
+[Installation](#installation) never reach it. Either declare the three variables at the top
+of the crontab, or keep them in a `.env` file — which is read from the **current working
+directory**, so the entry has to enter that directory first:
+
+```cron
+0 7 * * * cd /path/to/dir/with/.env && /usr/bin/python3 /path/to/EmailingEssay/skills/send-email/scripts/main.py replies fetch
+```
+
+A scheduled run's stdout is discarded, so the trace is
+`~/.claude/plugins/.emailingessay/emailingessay.log`.
+
+---
+
 ## Troubleshooting
 
 ### Missing Environment Variables
@@ -155,9 +196,6 @@ SMTPAuthenticationError: Username and Password not accepted
 
 **Symptom**: `python main.py replies fetch` fails to connect to or log in to `imap.gmail.com`.
 
-**Note**: this path has not yet been exercised against a live Gmail account. If it fails,
-work through the causes below before suspecting the code.
-
 **Possible causes**:
 1. IMAP is disabled on the account (Gmail → Settings → Forwarding and POP/IMAP)
 2. The app password was generated before IMAP was enabled, or has been revoked
@@ -171,9 +209,18 @@ work through the causes below before suspecting the code.
 3. If neither works, both directions share the same credentials, so treat it as the
    [Authentication Error](#authentication-error) case above
 
-Replies are matched by `In-Reply-To` against the ledger and by `From` against
-`ESSAY_RECIPIENT_EMAIL`, so a reply sent from a different address is skipped by design,
-not by failure.
+### A Reply Was Not Ingested
+
+Connecting is one thing; being accepted is another. A candidate has to clear four gates — it
+carries a `Message-ID`, its `In-Reply-To` matches an essay in the ledger, its `From` is
+`ESSAY_RECIPIENT_EMAIL`, and the receiving MTA's own `Authentication-Results` shows `dkim` and
+`spf` both `pass`. Missing any of them, the reply is skipped by design, not by failure.
+
+The last gate is the one that surprises: forwarding, a mailing list, or a provider that rewrites
+the message can break DKIM or SPF on a perfectly genuine reply. Each skip writes one INFO line
+naming the gate that refused it to `~/.claude/plugins/.emailingessay/emailingessay.log`, so
+start there rather than guessing. The line carries the Message-ID, the sender and the reason —
+never the body.
 
 ### Scheduled Run Not Firing on Battery (Windows)
 

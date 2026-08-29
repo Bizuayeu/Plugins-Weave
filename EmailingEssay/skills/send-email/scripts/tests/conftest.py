@@ -6,6 +6,9 @@ Clean Architecture に基づき、各層のモックを提供する。
 本番のportsをインポートし、create_autospecで型安全なモックを生成。
 """
 
+import os
+import tempfile
+from pathlib import Path
 from unittest.mock import create_autospec
 
 import pytest
@@ -18,6 +21,14 @@ from usecases.ports import (
     ScheduleStoragePort,
     WaiterStoragePort,
 )
+
+# テストが実ホーム（~/.claude/plugins/.emailingessay）へログを書かないよう、
+# テストモジュールの import より前に逃がす。main.py は import 時に
+# configure_logging() を呼ぶため、fixture では間に合わない。
+# subprocess で起動される子も os.environ を継いでここへ来る。
+_TEST_LOG_DIR = Path(tempfile.gettempdir()) / "emailingessay-tests"
+_TEST_LOG_DIR.mkdir(parents=True, exist_ok=True)
+os.environ["ESSAY_LOG_FILE"] = str(_TEST_LOG_DIR / "emailingessay.log")
 
 # =============================================================================
 # Fixtures

@@ -5,6 +5,49 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-08-29
+
+The reply gate stops trusting `From` alone, and a dropped reply now says why it was dropped.
+No behavior change to essay delivery.
+
+### Added
+- **`Authentication-Results` as the fourth gate on reply ingestion.** `From` is forgeable, so
+  a candidate that clears Message-ID, `In-Reply-To` and sender is now also checked against the
+  receiving MTA's own verdict: `_is_verified_by_receiving_mta` (`usecases/ingest_replies.py`)
+  ingests only when the `authserv-id` is the receiving MTA's and `dkim` and `spf` are both
+  `pass`. A header the sender wrote themselves carries another `authserv-id` and counts for
+  nothing. Fail-closed — missing, unparseable or short of a `pass`, the reply is dropped.
+  `parse_auth_results` is a pure function beside it, so the parsing rules (comments are not
+  separators, a repeated method with conflicting results never resolves to `pass`) are tested
+  without an inbox. `ReplyRecord.auth_results` (`domain/models.py`) carries the header and
+  defaults to `""` — "no grounds" — so JSONL lines written before this version still read back
+- `adapters/mail/imap_inbox.py` takes the **topmost** `Authentication-Results` only
+  (`_topmost_header`). Lower ones were added before the message reached the receiving MTA and
+  are as forgeable as the body
+- **A dropped reply leaves a reason.** Each of the four gates in `_is_accepted` writes one INFO
+  line naming the Message-ID, the sender and which gate refused it. The body is never in it —
+  the record class says untrusted external data, and the log is not a way around that
+- **File logging.** `frameworks/logging_config.py` now writes to `emailingessay.log` under the
+  persistent directory as well as stdout, on by default, `ESSAY_LOG_FILE` overriding the path.
+  A scheduled run's stdout is discarded, so without this a failed ingestion left no trace. A
+  log file that cannot be opened is reported in one line and the run continues on stdout
+- `SETUP.md` → **Scheduling Reply Ingestion**: `/essay schedule` registers delivery only, so
+  pulling replies in needs an OS scheduler entry (`schtasks` / cron) for
+  `python main.py replies fetch`. Written down with what neither scheduler inherits — cron
+  reads no `~/.bashrc`, and `.env` is read from the working directory
+
+### Fixed
+- `SETUP.md`, IMAP troubleshooting: "this path has not yet been exercised against a live Gmail
+  account" was written while that was true and outlived it. `replies fetch` ran against real
+  Gmail on 2026-08-28 and ingested a reply; the note is gone
+- `SETUP.md` → **A Reply Was Not Ingested**: the section described two gates when there are
+  four, so the one most likely to skip a genuine reply — forwarding or a mailing list breaking
+  DKIM or SPF — was undocumented. The four gates are now named, and the reader is sent to
+  `emailingessay.log`, where the refusing gate is on the record
+
+### Verification
+ruff 0 / ruff format clean (75 files) / mypy Success (75 files) / pytest 539 passed
+
 ## [1.2.3] - 2026-08-28
 
 A note one can leave for oneself, and the reflection skill told what the plugin keeps.

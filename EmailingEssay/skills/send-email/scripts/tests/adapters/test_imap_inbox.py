@@ -56,6 +56,20 @@ HEADER_NO_IN_REPLY_TO = (
 
 MESSAGE_BYTES = HEADER_BYTES + "ありがとう\n".encode()
 
+# 受信側 MTA（Gmail）が最上部に付けた本物と、送信者が本文と一緒に下へ
+# 仕込んだ偽装。信用できるのは前者だけ。
+TOP_AUTH_RESULTS = "mx.google.com; dkim=pass header.i=@example.com; spf=pass"
+FORGED_AUTH_RESULTS = "evil.example; dkim=pass; spf=pass"
+
+HEADER_TWO_AUTH_RESULTS = (
+    b"Authentication-Results: " + TOP_AUTH_RESULTS.encode() + b"\r\n"
+    b"From: Reader <reader@example.com>\r\n"
+    b"Message-ID: <reply-1@mail.example.com>\r\n"
+    b"In-Reply-To: <abc123@essay.local>\r\n"
+    b"Authentication-Results: " + FORGED_AUTH_RESULTS.encode() + b"\r\n"
+    b"\r\n"
+)
+
 
 @pytest.fixture(autouse=True)
 def _block_network(monkeypatch):
@@ -309,6 +323,23 @@ class TestParseCandidate:
         assert record.message_id == ""
         assert record.in_reply_to == ""
         assert record.sender == ""
+        assert record.auth_results == ""
+
+    def test_unfolds_authentication_results(self):
+        """折り返された Authentication-Results も 1 行に畳む"""
+        raw = (
+            b"Message-ID: <r1@mail>\r\n"
+            b"Authentication-Results: mx.google.com;\r\n dkim=pass;\r\n spf=pass\r\n\r\n"
+        )
+
+        assert parse_candidate(raw).auth_results == "mx.google.com; dkim=pass; spf=pass"
+
+    def test_takes_only_the_topmost_authentication_results(self):
+        """AR が複数あれば最上部の 1 本だけを採る（下方は送信者が仕込める）"""
+        record = parse_candidate(HEADER_TWO_AUTH_RESULTS)
+
+        assert record.auth_results == TOP_AUTH_RESULTS
+        assert "evil.example" not in record.auth_results
 
     def test_unparsable_date_falls_back_to_now(self):
         """Date が壊れていても落ちない"""
