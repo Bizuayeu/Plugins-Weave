@@ -72,6 +72,23 @@ The asynchronous nature allows:
 - Scheduled delivery at appropriate times
 - Non-intrusive communication
 
+A diary written in one direction is not an exchange. A reply is admitted — matched to the essay
+it answers and to no other mail — so the diary has both hands, and the recipient has a way to
+say something back that is not a new prompt in a chat window.
+
+This is also what takes the abruptness out of writing. An essay no longer has to begin from
+nothing: the last exchange is at hand when the next reflection starts. Whether to take it up
+remains the writer's decision, as every other decision here does.
+
+### 4. The Correspondence Is Itself a Memory
+
+A feature that sends mail becomes an agent that sends mail when something remains afterwards.
+
+Every essay that leaves, and every reply that returns, is retained — kept by structure rather
+than by habit, so it accrues whether or not anyone remembers to keep it. It is a modest memory:
+it holds the correspondence and nothing else. But it gives the AI somewhere of its own to
+remember from, and not only somewhere to speak into.
+
 ---
 
 ## Relationship with EpisodicRAG
@@ -86,6 +103,10 @@ EpisodicRAG (Memory)
 EmailingEssay (Presentation)
        ↓
    Communicates insights born from memory
+       ↓
+   Retains the exchange — what was sent, what came back
+       ├──→ at hand for the next reflection      (inside the plugin)
+       └╌╌→ merged into EpisodicRAG by hand      (outside the plugin)
 ```
 
 Without EpisodicRAG:
@@ -97,6 +118,12 @@ Without EmailingEssay:
 - AI cannot initiate communication
 - Insights remain unsurfaced
 - Memory exists but is never presented
+- A topic raised but never hand-merged into memory is lost
+
+The retained exchange narrows that last loss without closing it. A topic that never made it
+into curated memory still survives as correspondence, and can be read back. But the plugin
+only holds the record; carrying any of it into EpisodicRAG stays a deliberate act on the
+operator's side. That line is drawn on purpose: what deserves to become memory is a judgment.
 
 ---
 
@@ -126,12 +153,13 @@ The implementation follows Clean Architecture to ensure:
 
 ## Summary
 
-EmailingEssay transforms AI from a reactive tool into a proactive communicator that:
+EmailingEssay transforms AI from a reactive tool into a proactive correspondent that:
 
 - **Reflects** before acting
 - **Respects** silence as valid
 - **Delivers** thoughtfully and asynchronously
 - **Integrates** with memory (EpisodicRAG) for depth
+- **Retains** the exchange, so the next essay need not begin from nothing
 
 It's not about sending more emails — it's about enabling genuine, reflective AI communication.
 

@@ -5,6 +5,31 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-08-29
+
+The concept document catches up with what [1.2.0]–[1.3.0] built. Documentation only; no code,
+no behavior change.
+
+### Changed
+- **`CONCEPT.md` updated from the inside.** The document already named the plugin an *exchange
+  diary* while there was no way for anything to come back, and drew the relationship with
+  EpisodicRAG as a single arrow from memory to presentation. Three existing sections were
+  brought level with the implementation rather than a new section appended: **Exchange Diary
+  Model** now states that a diary written in one direction is not an exchange, that a reply is
+  admitted, and that the last exchange being at hand is what takes the abruptness out of
+  beginning an essay;
+  **Relationship with EpisodicRAG** gains the return leg — the exchange is retained and is
+  there for the next reflection — with the boundary named in the diagram, since merging any of
+  it into EpisodicRAG is deliberately outside the plugin; **Summary** follows both
+- **A fourth principle, *The Correspondence Is Itself a Memory*.** What separates a feature
+  that sends mail from an agent that sends mail is whether anything remains afterwards. The
+  first three principles cover the reflection before a send, the choice not to send, and the
+  cadence of the channel; none of them covers what accrues across sends. Table of Contents
+  untouched — it lists `##` headings, and this is a `###`
+
+### Verification
+ruff 0 / ruff format clean (75 files) / mypy Success (75 files) / pytest 540 passed
+
 ## [1.3.0] - 2026-08-29
 
 Reply ingestion joins the reflection flow as plumbing, and the file log finally reaches the
