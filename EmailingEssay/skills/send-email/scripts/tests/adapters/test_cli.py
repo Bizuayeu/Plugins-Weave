@@ -5,6 +5,7 @@ CLI パーサーのテスト
 argparse ベースの CLI インターフェースをテストする。
 """
 
+import logging
 import os
 import sys
 
@@ -46,6 +47,46 @@ class TestCreateParser:
         """send --to-self のパース"""
         args = parser.parse_args(["send", "Subject", "Body", "--to-self"])
         assert args.to_self is True
+
+    def test_send_command_file_options_default_empty(self, parser):
+        """位置引数だけの send はファイル指定を空のまま持つ（後方互換）"""
+        args = parser.parse_args(["send", "Subject", "Body"])
+        assert args.subject_file == ""
+        assert args.body_file == ""
+
+    def test_send_command_with_both_files(self, parser):
+        """send --body-file --subject-file のパース（位置引数なし）"""
+        args = parser.parse_args(
+            ["send", "--body-file", "x.txt", "--subject-file", "y.txt"]
+        )
+        assert args.command == "send"
+        assert args.body_file == "x.txt"
+        assert args.subject_file == "y.txt"
+        assert args.subject == ""
+        assert args.body == ""
+
+    def test_send_command_subject_positional_with_body_file(self, parser):
+        """send "Subject" --body-file のパース（件名は位置引数、本文はファイル）"""
+        args = parser.parse_args(["send", "Subject", "--body-file", "x.txt"])
+        assert args.subject == "Subject"
+        assert args.body == ""
+        assert args.body_file == "x.txt"
+
+    def test_send_command_body_file_with_to_self(self, parser):
+        """--body-file は --to-self と併用できる"""
+        args = parser.parse_args(["send", "S", "--body-file", "x.txt", "--to-self"])
+        assert args.body_file == "x.txt"
+        assert args.to_self is True
+
+    def test_send_command_body_and_body_file_conflict(self, parser):
+        """本文を位置引数とファイルの両方で渡すとパーサがエラーにする"""
+        with pytest.raises(SystemExit):
+            parser.parse_args(["send", "S", "B", "--body-file", "x.txt"])
+
+    def test_send_command_subject_and_subject_file_conflict(self, parser):
+        """件名も同様に二重指定を弾く"""
+        with pytest.raises(SystemExit):
+            parser.parse_args(["send", "S", "--subject-file", "y.txt"])
 
     def test_wait_command_basic(self, parser):
         """wait コマンドの基本パース"""
@@ -294,6 +335,14 @@ class TestRepliesParser:
             parser.parse_args(["replies", "nope"])
 
 
+def _reset_root_handlers():
+    """ルートロガーのハンドラを閉じて外す（tmp_path のファイルを掴んだままにしない）"""
+    root = logging.getLogger("emailingessay")
+    for handler in list(root.handlers):
+        handler.close()
+        root.removeHandler(handler)
+
+
 class TestRepliesHandlers:
     """replies ハンドラのテスト（フェイク注入。実接続はしない）"""
 
@@ -327,6 +376,41 @@ class TestRepliesHandlers:
 
             assert result == 0
             mock_usecase.fetch.assert_called_once()
+
+    def test_fetch_reports_count_once(self, tmp_path, capsys):
+        """replies fetch: 件数行が stdout に 1 回だけ出る（ログと print の二重出力なし）"""
+        from argparse import Namespace
+        from unittest.mock import patch
+
+        from adapters.storage.ledger_storage import LedgerStorageAdapter
+        from adapters.storage.path_resolver import PathResolverAdapter
+        from frameworks.logging_config import configure_logging
+        from usecases.ingest_replies import IngestRepliesUseCase
+
+        class FakeInbox:
+            def fetch_replies(self, sender):
+                return []
+
+        usecase = IngestRepliesUseCase(
+            inbox=FakeInbox(),
+            ledger=LedgerStorageAdapter(PathResolverAdapter(str(tmp_path))),
+            recipient="recv@test.com",
+        )
+
+        # StreamHandler は生成時の sys.stdout を掴むため、capsys の下で貼り直す
+        configure_logging(log_file=str(tmp_path / "emailingessay.log"))
+        try:
+            with patch(
+                "adapters.cli.handlers.create_ingest_replies_usecase",
+                return_value=usecase,
+            ):
+                from adapters.cli.handlers import _handle_replies_fetch
+
+                assert _handle_replies_fetch(Namespace()) == 0
+        finally:
+            _reset_root_handlers()
+
+        assert capsys.readouterr().out.count("Ingested replies:") == 1
 
     def test_fetch_requires_config(self, monkeypatch, capsys):
         """設定が欠けていれば取り込みへ進まない（接続を試みない）"""
@@ -615,7 +699,15 @@ class TestSendHandler:
         with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
             from adapters.cli.handlers import handle_send
 
-            result = handle_send(Namespace(subject="件名", body="本文", to_self=False))
+            result = handle_send(
+                Namespace(
+                    subject="件名",
+                    body="本文",
+                    subject_file="",
+                    body_file="",
+                    to_self=False,
+                )
+            )
 
             assert result == 0
             mail.send_custom.assert_called_once_with("件名", "本文")
@@ -630,7 +722,15 @@ class TestSendHandler:
         with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
             from adapters.cli.handlers import handle_send
 
-            result = handle_send(Namespace(subject="件名", body="本文", to_self=True))
+            result = handle_send(
+                Namespace(
+                    subject="件名",
+                    body="本文",
+                    subject_file="",
+                    body_file="",
+                    to_self=True,
+                )
+            )
 
             assert result == 0
             mail.send.assert_called_once_with(
@@ -646,6 +746,189 @@ class TestSendHandler:
         with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
             from adapters.cli.handlers import handle_send
 
-            handle_send(Namespace(subject="件名", body="本文", to_self=True))
+            handle_send(
+                Namespace(
+                    subject="件名",
+                    body="本文",
+                    subject_file="",
+                    body_file="",
+                    to_self=True,
+                )
+            )
 
             mail.send_custom.assert_not_called()
+
+    @staticmethod
+    def _write_bom_crlf(path, text):
+        """BOM 付き・CRLF の実ファイルを書く。
+
+        write_text は既定の newline 変換で "\r\n" を "\r\r\n" に膨らませるため、
+        バイト列で書く（Windows 加工層の罠——書いたら実物で着地確認）。
+        """
+        path.write_bytes(text.replace("\n", "\r\n").encode("utf-8-sig"))
+        return path
+
+    def test_body_file_is_read_without_bom_and_normalized(self, tmp_path):
+        """BOM 付き CRLF の複数段落本文が BOM 無し LF 正規化済みで渡る"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        body = (
+            "軸に欄が無い。\n番号は日を数えていなかった。\n気づいたのは今朝のこと。\n"
+        )
+        body_file = self._write_bom_crlf(tmp_path / "body.txt", body)
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(
+                Namespace(
+                    subject="件名",
+                    body="",
+                    subject_file="",
+                    body_file=str(body_file),
+                    to_self=False,
+                )
+            )
+
+        assert result == 0
+        sent_subject, sent_body = mail.send_custom.call_args[0]
+        assert sent_subject == "件名"
+        assert sent_body == (
+            "軸に欄が無い。\n番号は日を数えていなかった。\n気づいたのは今朝のこと。"
+        )
+        assert "\ufeff" not in sent_body
+        assert "\r" not in sent_body
+
+    def test_subject_file_is_read_without_bom(self, tmp_path):
+        """件名ファイルも BOM 無し・前後空白を落として渡る"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        subject_file = self._write_bom_crlf(tmp_path / "subject.txt", "軸に欄が無い\n")
+        body_file = self._write_bom_crlf(tmp_path / "body.txt", "一段落目\n二段落目\n")
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(
+                Namespace(
+                    subject="",
+                    body="",
+                    subject_file=str(subject_file),
+                    body_file=str(body_file),
+                    to_self=False,
+                )
+            )
+
+        assert result == 0
+        mail.send_custom.assert_called_once_with("軸に欄が無い", "一段落目\n二段落目")
+
+    def test_blank_line_body_file_refuses_to_send(self, tmp_path, capsys, caplog):
+        """空行を含む本文は送らずに 1 を返す（stderr と logger.error の両方に出る）"""
+        import logging
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        body_file = self._write_bom_crlf(
+            tmp_path / "body.txt", "一段落目\n\n二段落目\n"
+        )
+
+        mail = MagicMock()
+        with (
+            patch("adapters.cli.handlers.get_mail_adapter", return_value=mail),
+            caplog.at_level(logging.ERROR, logger="emailingessay"),
+        ):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(
+                Namespace(
+                    subject="件名",
+                    body="",
+                    subject_file="",
+                    body_file=str(body_file),
+                    to_self=False,
+                )
+            )
+
+        assert result == 1
+        mail.send_custom.assert_not_called()
+        mail.send.assert_not_called()
+        assert "blank line" in capsys.readouterr().err
+        assert any("blank line" in r.message for r in caplog.records)
+
+    def test_empty_subject_file_refuses_to_send(self, tmp_path):
+        """空の件名ファイルでも送らない"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        subject_file = self._write_bom_crlf(tmp_path / "subject.txt", "   \n")
+        body_file = self._write_bom_crlf(tmp_path / "body.txt", "一段落目\n二段落目\n")
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(
+                Namespace(
+                    subject="",
+                    body="",
+                    subject_file=str(subject_file),
+                    body_file=str(body_file),
+                    to_self=False,
+                )
+            )
+
+        assert result == 1
+        mail.send_custom.assert_not_called()
+
+    def test_to_self_with_body_file(self, tmp_path):
+        """--to-self と --body-file の併用も正規化済み本文を送る"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        body_file = self._write_bom_crlf(tmp_path / "body.txt", "一段落目\n二段落目\n")
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(
+                Namespace(
+                    subject="件名",
+                    body="",
+                    subject_file="",
+                    body_file=str(body_file),
+                    to_self=True,
+                )
+            )
+
+        assert result == 0
+        mail.send.assert_called_once_with(
+            to="ai@test.com", subject="件名", body="一段落目\n二段落目"
+        )
+        mail.send_custom.assert_not_called()
+
+    def test_missing_body_file_propagates(self, tmp_path):
+        """存在しないパスは FileNotFoundError のまま上げる（main.py のログ経路に乗せる）"""
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            with pytest.raises(FileNotFoundError):
+                handle_send(
+                    Namespace(
+                        subject="件名",
+                        body="",
+                        subject_file="",
+                        body_file=str(tmp_path / "missing.txt"),
+                        to_self=False,
+                    )
+                )
+
+        mail.send_custom.assert_not_called()

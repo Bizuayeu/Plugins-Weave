@@ -239,7 +239,7 @@ class LedgerStorageAdapter:
 
         self._write_body(body_path, record, body)
         self._append_jsonl(self._get_ledger_file(), record.to_dict())
-        logger.debug(f"Recorded to ledger: {record.body_file}")
+        logger.info(f"Recorded to ledger: {record.body_file}")
         return record
 
     def load_records(self) -> list[LedgerRecord]:

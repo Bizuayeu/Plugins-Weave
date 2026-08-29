@@ -7,6 +7,8 @@ from domain.models import LedgerRecord, ReplyRecord
 from domain.validators import (
     is_schedule_entry,
     is_waiter_entry,
+    validate_essay_body,
+    validate_essay_subject,
     validate_ledger_records,
     validate_reply_records,
     validate_schedule_entries,
@@ -269,3 +271,49 @@ class TestValidateReplyRecords:
     def test_empty_list_returns_empty(self):
         """空リストは空リストを返す"""
         assert validate_reply_records([]) == []
+
+
+class TestValidateEssayBody:
+    """validate_essay_body のテスト"""
+
+    def test_empty_body_returns_error(self):
+        """空文字はエラーを返す"""
+        assert validate_essay_body("") == ["Body is empty."]
+
+    def test_whitespace_only_body_returns_error(self):
+        """空白のみもエラーを返す"""
+        assert validate_essay_body("   \n\t ") == ["Body is empty."]
+
+    def test_blank_line_returns_error(self):
+        """空行を含む本文はエラーを返す（HTML 化で空 <p> を生む）"""
+        errors = validate_essay_body("一段落目\n\n二段落目")
+        assert errors == ["Body contains a blank line (would produce an empty <p>)."]
+
+    def test_single_newline_paragraphs_pass(self):
+        """改行 1 つ区切りの複数段落はエラー無し"""
+        assert validate_essay_body("一段落目\n二段落目") == []
+
+    def test_multi_paragraph_japanese_body_passes(self):
+        """正常な複数段落の日本語本文は空リストを返す"""
+        body = "軸に欄が無い。\n番号は日を数えていなかった。\n気づいたのは今朝のこと。"
+        assert validate_essay_body(body) == []
+
+    def test_carriage_return_is_not_normalized_here(self):
+        """Domain は \n のみを見る（正規化は Interface の責務）"""
+        assert validate_essay_body("一段落目\r\n二段落目") == []
+
+
+class TestValidateEssaySubject:
+    """validate_essay_subject のテスト"""
+
+    def test_empty_subject_returns_error(self):
+        """空文字はエラーを返す"""
+        assert validate_essay_subject("") == ["Subject is empty."]
+
+    def test_whitespace_only_subject_returns_error(self):
+        """空白のみもエラーを返す"""
+        assert validate_essay_subject("  ") == ["Subject is empty."]
+
+    def test_normal_subject_passes(self):
+        """通常の件名はエラー無し"""
+        assert validate_essay_subject("軸に欄が無い") == []

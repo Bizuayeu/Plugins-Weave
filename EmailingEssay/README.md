@@ -85,7 +85,14 @@ python main.py replies fetch    # Ingest replies to sent essays
 python main.py replies list     # List ingested replies
 ```
 
-See [skills/send-email/SKILL.md](skills/send-email/SKILL.md) for file locations.
+A body of more than one paragraph is sent from a file, not from the command line:
+
+```bash
+python main.py send --subject-file s.txt --body-file b.txt
+```
+
+See [skills/send-email/SKILL.md](skills/send-email/SKILL.md) for the round trip
+(**Correspondence Paths**) and file locations.
 
 ---
 

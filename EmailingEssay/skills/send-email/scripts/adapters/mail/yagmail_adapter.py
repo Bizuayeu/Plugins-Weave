@@ -157,7 +157,7 @@ class YagmailAdapter:
                         contents=body,
                         message_id=message_id,
                     )
-                print(f"Sent to: {recipient}")
+                logger.info(f"Sent to: {recipient}")
                 return
             except (
                 smtplib.SMTPServerDisconnected,

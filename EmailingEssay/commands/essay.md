@@ -305,6 +305,20 @@ python main.py ledger import-legacy --dry-run  # Preview a retroactive import
 Only mail whose `In-Reply-To` matches a ledger entry **and** whose `From` matches
 `ESSAY_RECIPIENT_EMAIL` is taken in — the inbox is not searched across.
 
+### Sending a body from a file
+
+An essay of more than one paragraph does not fit on a shell argument line. It is passed by
+file instead:
+
+```bash
+python main.py send --subject-file subject.txt --body-file body.txt
+python main.py send "Subject" --body-file body.txt   # the two forms mix
+```
+
+This is what a throwaway sending script used to be written for; one is no longer needed.
+Files are read `utf-8-sig` and their newlines normalized, and a body that is empty or
+contains a blank line is refused before anything is sent.
+
 ### Notes to self
 
 On a day with no essay to send, a note can still be left — addressed to

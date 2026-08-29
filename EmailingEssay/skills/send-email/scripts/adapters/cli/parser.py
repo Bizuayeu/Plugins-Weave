@@ -81,6 +81,7 @@ Examples:
   python main.py test                          # Send test email
   python main.py send "Subject" "Body"         # Send custom email
   python main.py send "Note" "Body" --to-self  # Send a note to the AI's own address
+  python main.py send --subject-file s.txt --body-file b.txt  # Send from files
   python main.py wait 09:30 -t "morning"       # Schedule one-time essay
   python main.py wait list                     # List active waiting processes
   python main.py replies fetch                 # Ingest replies from the inbox
@@ -108,8 +109,30 @@ Examples:
     send_parser = subparsers.add_parser(
         "send", help="Send custom email (カスタムメール送信)"
     )
-    send_parser.add_argument("subject", help="Email subject (メールの件名)")
-    send_parser.add_argument("body", help="Email body (メールの本文)")
+    # 件名・本文はそれぞれ「位置引数」か「ファイル」のどちらか一方で渡す。
+    # 相互排他をパーサに持たせるため、位置引数を nargs="?" にして排他グループへ入れる
+    # （handler 側の判定では「同時指定をパーサがエラーにする」を満たせない）。
+    # ファイル経由は Windows のシェル引数に載らない複数段落の日本語本文のための経路。
+    subject_group = send_parser.add_mutually_exclusive_group()
+    subject_group.add_argument(
+        "subject", nargs="?", default="", help="Email subject (メールの件名)"
+    )
+    subject_group.add_argument(
+        "--subject-file",
+        dest="subject_file",
+        default="",
+        help="Read the subject from a file (件名をファイルから読む)",
+    )
+    body_group = send_parser.add_mutually_exclusive_group()
+    body_group.add_argument(
+        "body", nargs="?", default="", help="Email body (メールの本文)"
+    )
+    body_group.add_argument(
+        "--body-file",
+        dest="body_file",
+        default="",
+        help="Read the body from a file (本文をファイルから読む)",
+    )
     send_parser.add_argument(
         "--to-self",
         action="store_true",

@@ -5,6 +5,7 @@
 YagmailAdapterのテスト。
 """
 
+import logging
 import os
 import sys
 from unittest.mock import MagicMock, Mock, patch
@@ -56,6 +57,24 @@ class TestYagmailAdapter:
 
         mock_yagmail.SMTP.assert_called_once()
         mock_smtp.send.assert_called_once()
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_logs_success_as_info(self, mock_yagmail, adapter, caplog):
+        """送信成功が INFO 1 行として残る（print はログレコードを発しない）"""
+        mock_yagmail.SMTP.return_value.__enter__.return_value = MagicMock()
+
+        with caplog.at_level(logging.INFO, logger="emailingessay"):
+            adapter.send(
+                to="test@example.com", subject="Test Subject", body="Test Body"
+            )
+
+        infos = [
+            r
+            for r in caplog.records
+            if r.name.startswith("emailingessay") and r.levelno == logging.INFO
+        ]
+        assert len(infos) == 1
+        assert "test@example.com" in infos[0].getMessage()
 
     @patch("adapters.mail.yagmail_adapter.yagmail")
     def test_send_email_uses_default_recipient(self, mock_yagmail, adapter):

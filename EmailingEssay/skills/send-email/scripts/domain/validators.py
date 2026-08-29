@@ -135,10 +135,52 @@ def validate_reply_records(data: list[Any]) -> list[ReplyRecord]:
     ]
 
 
+def validate_essay_body(body: str) -> list[str]:
+    """
+    エッセイ本文の妥当性を検証する。
+
+    使い捨て送信ランナー（`~/.claude/plugins/.emailingessay/send_essay_*.py`）が
+    各自で持っていた検査の昇格であり、発明した規則ではない。空行を弾くのは
+    `send_custom()` が改行を `</p><p>` に置換するため——連続改行は空の段落を生む。
+
+    改行は LF のみを見る（CRLF の正規化は本文をファイルから読む Interface 層の責務）。
+
+    Args:
+        body: 検証対象の本文
+
+    Returns:
+        エラーメッセージのリスト（問題が無ければ空リスト）
+    """
+    if not body.strip():
+        return ["Body is empty."]
+    if "\n\n" in body:
+        return ["Body contains a blank line (would produce an empty <p>)."]
+    return []
+
+
+def validate_essay_subject(subject: str) -> list[str]:
+    """
+    エッセイ件名の妥当性を検証する。
+
+    本文と同じく、使い捨てランナーが持っていた検査の昇格。
+
+    Args:
+        subject: 検証対象の件名
+
+    Returns:
+        エラーメッセージのリスト（問題が無ければ空リスト）
+    """
+    if not subject.strip():
+        return ["Subject is empty."]
+    return []
+
+
 # エクスポート
 __all__ = [
     "is_schedule_entry",
     "is_waiter_entry",
+    "validate_essay_body",
+    "validate_essay_subject",
     "validate_ledger_records",
     "validate_reply_records",
     "validate_schedule_entries",

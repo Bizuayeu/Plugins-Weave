@@ -8,11 +8,15 @@ main.pyの条件分岐ロジックをハンドラ関数に分離。
 
 from __future__ import annotations
 
+import sys
 from argparse import Namespace
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.config import Config
+from domain.validators import validate_essay_body, validate_essay_subject
+from frameworks.logging_config import get_logger
 from usecases.factories import (
     create_import_legacy_usecase,
     create_ingest_replies_usecase,
@@ -26,6 +30,8 @@ from .decorators import validate_config
 
 if TYPE_CHECKING:
     from usecases.import_legacy import LegacyItem, LegacyPlan
+
+logger = get_logger("cli")
 
 # ハンドラ型: argsを受け取り、終了コードを返す
 Handler = Callable[[Namespace], int]
@@ -44,17 +50,51 @@ def handle_test(args: Namespace) -> int:
     return 0
 
 
+def _read_text_file(path: str) -> str:
+    """
+    件名・本文のファイルを読む。
+
+    BOM 付きで保存された実ファイルを踏んでも壊れないよう utf-8-sig で読み、
+    改行を LF に正規化して前後の空白を落とす（Domain の validator は LF だけを
+    見る——正規化は Interface の責務）。cp932 フォールバックは持たない：
+    読めない符号化はここで UnicodeDecodeError のまま上げ、main.py のログ経路に乗せる。
+
+    Args:
+        path: 読み込むファイルのパス
+
+    Returns:
+        BOM 無し・LF 正規化済みの本文
+    """
+    text = Path(path).read_text(encoding="utf-8-sig")
+    return text.replace("\r\n", "\n").replace("\r", "\n").strip()
+
+
 @validate_config
 def handle_send(args: Namespace) -> int:
-    """カスタムメール送信（--to-self なら自分宛の書き置き）"""
+    """
+    カスタムメール送信（--to-self なら自分宛の書き置き）。
+
+    件名・本文はファイル（--subject-file / --body-file）でも渡せる。検証に落ちたら
+    送信せずに 1 を返す——空本文や空行は届いてから直せない。
+    """
+    subject = _read_text_file(args.subject_file) if args.subject_file else args.subject
+    body = _read_text_file(args.body_file) if args.body_file else args.body
+
+    errors = validate_essay_subject(subject) + validate_essay_body(body)
+    if errors:
+        for error in errors:
+            logger.error(error)
+            print(f"Error: {error}", file=sys.stderr)
+        return 1
+
     mail = get_mail_adapter()
     if args.to_self:
         # 自分宛は send() を通す。send_custom() は宛先を問わず既定の受信者を
         # 台帳へ書くため、そちらへ流すと台帳の recipient が宛先を語らなくなる。
         sender = Config.load().email.sender
-        mail.send(to=sender, subject=args.subject, body=args.body)
+        mail.send(to=sender, subject=subject, body=body)
     else:
-        mail.send_custom(args.subject, args.body)
+        mail.send_custom(subject, body)
     return 0
 
 
@@ -105,8 +145,9 @@ def handle_wait(args: Namespace) -> int:
 def _handle_replies_fetch(args: Namespace) -> int:
     """受信箱から返信を取り込む"""
     usecase = create_ingest_replies_usecase()
-    ingested = usecase.fetch()
-    print(f"Ingested replies: {len(ingested)}")
+    # 件数は usecase が INFO 1 行で報告する（logger の StreamHandler は stdout。
+    # ここで print すると同じ行が二重に出る）
+    usecase.fetch()
     return 0
 
 

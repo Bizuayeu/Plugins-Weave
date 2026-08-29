@@ -5,6 +5,7 @@ main.py のテスト
 例外処理とエントリーポイントのテスト。
 """
 
+import logging
 import os
 import sys
 from unittest.mock import Mock, patch
@@ -91,6 +92,35 @@ class TestMainExceptionHandling:
         result = main()
 
         assert result == 1
+
+    @pytest.mark.parametrize(
+        "error",
+        [
+            ValueError("invalid argument"),
+            FileNotFoundError("file not found"),
+            PermissionError("permission denied"),
+        ],
+        ids=["ValueError", "FileNotFoundError", "PermissionError"],
+    )
+    @patch("main.dispatch")
+    @patch("main.create_parser")
+    def test_builtin_error_paths_log_error(
+        self, mock_parser, mock_dispatch, caplog, error
+    ):
+        """組込例外の三経路も ERROR としてログに残る（print だけでは痕跡が消える）"""
+        mock_parser.return_value.parse_args.return_value = Mock()
+        mock_dispatch.side_effect = error
+
+        with caplog.at_level(logging.ERROR, logger="emailingessay"):
+            assert main() == 1
+
+        errors = [
+            r
+            for r in caplog.records
+            if r.name.startswith("emailingessay") and r.levelno == logging.ERROR
+        ]
+        assert len(errors) == 1
+        assert str(error) in errors[0].getMessage()
 
     @patch("main.dispatch")
     @patch("main.create_parser")

@@ -98,7 +98,10 @@ Output: **Chat display only** (no email)
 
 Output: **Email** (user is not present)
 
-- **Delivering**: Use `skills/send-email` to deliver
+- **Delivering**: Use `skills/send-email` to deliver. Write the essay to a file and send it
+  with `python main.py send --subject-file … --body-file …` — the default route, since a body
+  of more than one paragraph does not fit on a shell argument line. Do not write a throwaway
+  sending script
 - **Not Delivering**: Exit silently. Nothing records the silence — scheduled runs invoke
   `claude -p` directly and never reach the wrapper that wrote `essay_wait.log`. A `--to-self`
   note, if one is written, lands in the ledger like any other send.

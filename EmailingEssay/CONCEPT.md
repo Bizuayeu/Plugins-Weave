@@ -8,6 +8,7 @@ Why does EmailingEssay exist? What problems does it solve?
 - [The Solution: Proactive AI Communication](#the-solution-proactive-ai-communication)
 - [Core Principles](#core-principles)
 - [Relationship with EpisodicRAG](#relationship-with-episodicrag)
+- [Where Each Kind of Fact Lives](#where-each-kind-of-fact-lives)
 - [Design Decisions](#design-decisions)
 - [Summary](#summary)
 
@@ -89,6 +90,26 @@ than by habit, so it accrues whether or not anyone remembers to keep it. It is a
 it holds the correspondence and nothing else. But it gives the AI somewhere of its own to
 remember from, and not only somewhere to speak into.
 
+What remains includes the act of sending, not only what was sent: the send path now leaves
+its own line in the log, so a delivery that happened can be shown to have happened.
+
+### 5. The Address Is the Safeguard
+
+An agent that sends without being asked needs something to make that safe. The usual answer is
+to vet the content — a review step, a filter, a rule about what may be said. That answer does
+not hold here. The essay is written by the same judgment that decides to send it, so a content
+check performed by the sender is the sender grading its own work.
+
+What makes it safe is the address. One reader, who can answer, and who holds the correction.
+Something sent in error does not stay in the world uncorrected; it comes back on the return
+leg and is answered. That property belongs to the recipient, not to the message — which is
+why `ESSAY_RECIPIENT_EMAIL` is meant to be an address that answers, and why there is no
+broadcast mode here.
+
+Widen the address list and the safeguard is not weakened but gone. The channel becomes
+publishing, and nothing on the return leg can reach what was already sent. Every scheduling
+feature in this plugin rests on that assumption.
+
 ---
 
 ## Relationship with EpisodicRAG
@@ -124,6 +145,27 @@ The retained exchange narrows that last loss without closing it. A topic that ne
 into curated memory still survives as correspondence, and can be read back. But the plugin
 only holds the record; carrying any of it into EpisodicRAG stays a deliberate act on the
 operator's side. That line is drawn on purpose: what deserves to become memory is a judgment.
+
+---
+
+## Where Each Kind of Fact Lives
+
+That was one line. There is a second, and it runs between the documents rather than around the
+plugin: a fact written in two places goes stale in one of them, and the stale copy is the one
+still being read. So each kind of fact is given a single address.
+
+| Kind of fact | Canonical place | Example |
+|---|---|---|
+| **Mechanism** — what exists, and how it is connected now | `skills/send-email/SKILL.md` | Replies are pulled from the inbox over IMAP through four gates; the round trip, in **Correspondence Paths** |
+| **Change** — when something changed, and what it made false | `CHANGELOG.md` | Reply ingestion arrived in v1.2.0, and "replies do not come back" stopped being true then |
+| **Rationale** — why it was built this way | `CONCEPT.md` | The fourth principle, *The Correspondence Is Itself a Memory* |
+| **Interpretation** — what any of it means to the one writing | `Identities/IntentionPad.md` — the persona layer, outside the plugin (not shipped with it) | What it is to be answered; on what condition an unprompted send is allowed |
+
+The failure this prevents is specific. A document that mixes two of these keeps the half that
+ages well and carries the half that has already expired — mechanism written into a note about
+meaning is the usual case, where the meaning stays true while the mechanism quietly stops
+being. The repair is not a dated footnote. It is to move the mechanism to its own address and
+leave a pointer where it was.
 
 ---
 

@@ -70,12 +70,15 @@ def main() -> int:
         print(f"Error: {e}")
         return 1
     except ValueError as e:
+        logger.error(f"{e.__class__.__name__}: {e}")
         print(f"Invalid argument: {e}")
         return 1
     except FileNotFoundError as e:
+        logger.error(f"{e.__class__.__name__}: {e}")
         print(f"File not found: {e}")
         return 1
     except PermissionError as e:
+        logger.error(f"{e.__class__.__name__}: {e}")
         print(f"Permission denied: {e}")
         return 1
     except Exception as e:

@@ -11,6 +11,7 @@ Send emails via Gmail SMTP. Frugal design with yagmail as the only dependency.
 
 - [Invocation](#invocation)
 - [Implementation](#implementation)
+- [Correspondence Paths](#correspondence-paths)
 - [File Locations](#file-locations)
 - [Security Considerations](#security-considerations)
 
@@ -48,6 +49,8 @@ yagmail
 |-----------|-----|-------------|
 | test | `python main.py test` | Send test email |
 | send | `python main.py send "Subject" "Body"` | Send custom email |
+| send | `python main.py send --subject-file s.txt --body-file b.txt` | Send with the subject and body read from files (`utf-8-sig`, newlines normalized) — the way to send a multi-paragraph body, which does not fit on a shell argument line |
+| send | `python main.py send "Subject" --body-file b.txt` | The two forms mix; a positional argument and its file form do not (mutually exclusive) |
 | send | `python main.py send "Subject" "Body" --to-self` | Send a note to the AI's own address (`ESSAY_SENDER_EMAIL`); the ledger records it under that address |
 | wait | `python main.py wait TIME [OPTIONS]` | One-time schedule |
 | schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Recurring schedule |
@@ -63,6 +66,43 @@ python main.py send "Test Subject" "Test Body"
 ```
 
 For full options and examples, see `commands/essay.md` → **Command Structure** section.
+
+---
+
+## Correspondence Paths
+
+The mail goes both ways. This is the current shape of the round trip — what happens, where it
+lands, and what has to be run by hand.
+
+```text
+essay written
+    ↓   python main.py send --subject-file … --body-file …   (or /essay --send)
+sent over Gmail SMTP
+    →   essay_ledger.jsonl      one line, keyed by the Message-ID minted for the send
+    →   sent/YYYYMMDD_HHMM.md   the body, with YAML frontmatter
+    →   emailingessay.log       one INFO line for the send, one for the ledger record
+    ↓
+the reader's inbox   →   the reader replies
+    ↓   python main.py replies fetch   (by hand, or by an OS scheduler entry — there is
+    ↓   no /essay subcommand for it)
+IMAP over imap.gmail.com, four gates (see Security Considerations)
+    →   essay_replies.jsonl     one line, linked to the ledger by in_reply_to
+    ↓
+at hand for the next reflection   (skills/reflect/SKILL.md → Load Context)
+```
+
+Three things this makes explicit:
+
+- **Replies do come back.** They are pulled from the inbox over IMAP and land on disk; the
+  plugin no longer sends into a channel with nothing on the return leg
+- **Nothing polls.** `replies fetch` runs when something runs it — a reflection, or an OS
+  scheduler entry (`SETUP.md` → **Scheduling Reply Ingestion**). Between runs, a reply sits in
+  the inbox unread by the plugin
+- **Only replies to this plugin's own mail are taken.** Matching is by `In-Reply-To` against
+  the ledger, so a reply to an essay sent before the ledger existed — or to a migrated row,
+  whose Message-ID is synthetic — can never be matched
+
+Where each kind of fact about this is kept: `CONCEPT.md` → **Where Each Kind of Fact Lives**.
 
 ---
 

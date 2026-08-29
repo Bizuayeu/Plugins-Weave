@@ -5,6 +5,65 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-29
+
+A multi-paragraph essay can now be sent from `main.py` itself, and the send path says on the
+record that it sent. Between them, the throwaway runner that had grown up beside the
+documented CLI has nothing left to do.
+
+### Added
+- **`send --body-file` / `--subject-file`.** `python main.py send --subject-file s.txt
+  --body-file b.txt` sends a body that will not fit on a shell argument line — which is why
+  the send path in actual use had drifted onto throwaway runners under
+  `~/.claude/plugins/.emailingessay/`, Windows cp932 and blank-line-separated paragraphs not
+  surviving the command line. `send "Subject" --body-file b.txt` mixes the two forms. Files
+  are read `utf-8-sig`, so a BOM never reaches the mail, and `\r\n` / `\r` is normalized to
+  `\n` before validation. A positional argument and its file form are mutually exclusive
+  (`argparse`, exit 2). `--to-self` combines with either
+- **`validate_essay_body` / `validate_essay_subject`** (`domain/validators.py`). Pure
+  functions with no external dependency: an empty or whitespace-only body, a body carrying a
+  blank line (the HTML conversion turns one into an empty `<p>`), and an empty or
+  whitespace-only subject are refused. The rules are not invented thresholds — they are the
+  checks each throwaway runner had been keeping privately, promoted to the Domain. A send
+  that fails them does not go out: exit 1, with the reason on both `logger.error` and stderr
+- **A fifth principle, *The Address Is the Safeguard*** (`CONCEPT.md`). What makes unprompted
+  sending safe is not that the content was vetted — written and sent by the same judgment, a
+  self-check is the sender grading its own work — but that the address answers and holds the
+  correction. It states what the standing advice to keep `ESSAY_RECIPIENT_EMAIL` as your own
+  address was already resting on, and what breaks when the list is widened: not a weaker
+  safeguard, but none
+
+### Fixed
+- **A successful send left no trace in the log.** `adapters/mail/yagmail_adapter.py`
+  announced it with `print`, which a scheduled run discards. It is `logger.info` now, so
+  `emailingessay.log` holds what `SKILL.md` has been promising it holds
+- **The ledger recorded silently.** The line written when a send is recorded
+  (`adapters/storage/ledger_storage.py`) was `logger.debug`, below the INFO threshold in
+  actual use; it is `logger.info` now. The two duplicate-detection DEBUG lines stay as they
+  are — those are noise suppression working as designed, not the record of a send
+- **A failed run said nothing to the log either.** `main.py` reported `ValueError`,
+  `FileNotFoundError` and `PermissionError` to stdout alone; each now also writes
+  `logger.error`. The `print` stays for the reader who is present
+- **`replies fetch` reported itself twice.** `adapters/cli/handlers.py` printed
+  `Ingested replies: ...` beside the INFO line `usecases/ingest_replies.py` already wrote.
+  The handler's copy is gone
+
+### Changed
+- **Two intended behavior changes on `send`.** A bare `python main.py send` now exits 1 from
+  validation rather than 2 from `argparse` — both positional arguments had to become optional
+  for the file forms to take their place — and the positional route is validated like the
+  file route, so `send "S" ""` is refused instead of sending an empty body
+- **The reply path's facts have one address.** Reply ingestion arrived in [1.2.0]; "replies
+  do not come back to the inbox" has been false ever since.
+  `skills/send-email/SKILL.md` → **Correspondence Paths** states the round trip in the
+  present tense and is where that fact is kept from here on. `CONCEPT.md` → **Where Each Kind
+  of Fact Lives** names the division it belongs to: mechanism in `SKILL.md`, change in this
+  file, rationale in `CONCEPT.md`, and what any of it means to the writer in the persona
+  layer, which the plugin does not ship
+
+### Verification
+ruff 0 / ruff format clean (75 files) / mypy Success (75 files) / pytest 567 passed
+
 ## [1.3.1] - 2026-08-29
 
 The concept document catches up with what [1.2.0]–[1.3.0] built. Documentation only; no code,

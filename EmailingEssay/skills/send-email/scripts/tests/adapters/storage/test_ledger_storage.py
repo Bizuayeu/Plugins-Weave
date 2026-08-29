@@ -6,6 +6,7 @@ Stage 2: 送信台帳の永続化（JSONL インデックス + sent/ 本文）
 """
 
 import json
+import logging
 import os
 import sys
 from pathlib import Path
@@ -86,6 +87,26 @@ class TestLedgerStorageAdapter:
         assert '"reader@example.com"' in content
         assert f'"{MSG_ID}"' in content
         assert content.endswith("一行目\n\n二行目\n")
+
+    def test_record_sent_logs_completion_as_info(self, adapter, caplog):
+        """記録完了が INFO 1 行として残る（DEBUG では閾値 INFO の下に沈む）"""
+        with caplog.at_level(logging.INFO, logger="emailingessay"):
+            record = adapter.record_sent(
+                message_id=MSG_ID,
+                sent_at=SENT_AT,
+                subject="件名",
+                recipient="reader@example.com",
+                body="本文",
+            )
+
+        assert record is not None
+        infos = [
+            r
+            for r in caplog.records
+            if r.name.startswith("emailingessay") and r.levelno == logging.INFO
+        ]
+        assert len(infos) == 1
+        assert record.body_file in infos[0].getMessage()
 
     def test_record_sent_roundtrips_through_load_records(self, adapter):
         """書いたレコードが load_records() で読み戻せる"""
