@@ -438,3 +438,56 @@ class TestNetworkGuard:
         """autouse fixture が socket を塞いでいる"""
         with pytest.raises(AssertionError):
             socket.create_connection(("imap.gmail.com", 993))
+
+
+class TestSubjectHeader:
+    """件名の取り出し（RFC 2047 のデコードを含む）"""
+
+    def test_extracts_plain_subject(self):
+        """素の件名がそのまま乗る"""
+        assert parse_candidate(HEADER_BYTES).subject == "Re: nikki"
+
+    def test_decodes_encoded_word(self):
+        """encoded-word の日本語件名を読める形へ戻す（人が読む欄なのでデコードする）"""
+        raw = (
+            b"From: Reader <reader@example.com>\r\n"
+            b"Message-ID: <r1@mail>\r\n"
+            b"Subject: =?UTF-8?B?UmU6IOepuuashOOBr+S6jOeorumhnuOBguOCiw==?=\r\n\r\n"
+        )
+
+        assert parse_candidate(raw).subject == "Re: 空欄は二種類ある"
+
+    def test_decodes_folded_encoded_words(self):
+        """折り返された複数の encoded-word も 1 本に繋がる"""
+        raw = (
+            b"From: Reader <reader@example.com>\r\n"
+            b"Message-ID: <r1@mail>\r\n"
+            b"Subject: =?UTF-8?B?UmU6IA==?=\r\n =?UTF-8?B?56m65qyE?=\r\n\r\n"
+        )
+
+        assert parse_candidate(raw).subject == "Re: 空欄"
+
+    def test_missing_subject_is_empty(self):
+        """件名が無ければ空文字（既定値のまま）"""
+        assert parse_candidate(b"From: Reader <r@e.com>\r\n\r\n").subject == ""
+
+    def test_broken_encoded_word_falls_back_to_raw(self):
+        """壊れた encoded-word でも例外にせず生値へ落とす（取り込みを止めない）"""
+        raw = (
+            b"From: Reader <reader@example.com>\r\n"
+            b"Message-ID: <r1@mail>\r\n"
+            b"Subject: =?UTF-8?B?!!!not-base64!!!?=\r\n\r\n"
+        )
+
+        assert parse_candidate(raw).subject != ""
+
+    def test_sender_is_still_not_decoded(self):
+        """From は従来どおり生値のまま（照合は parseaddr が担う）"""
+        raw = (
+            b"From: =?UTF-8?B?6Kqt6ICF?= <reader@example.com>\r\n"
+            b"Message-ID: <r1@mail>\r\n\r\n"
+        )
+
+        assert (
+            parse_candidate(raw).sender == "=?UTF-8?B?6Kqt6ICF?= <reader@example.com>"
+        )

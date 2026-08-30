@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Protocol, TypedDict, runtime_checkable
 
 if TYPE_CHECKING:
     from domain.models import LedgerRecord, ReplyRecord
+    from domain.thread_ref import ThreadRef
 
 # =============================================================================
 # 型定義
@@ -61,9 +62,19 @@ class MailPort(Protocol):
     """メール送信の抽象インターフェース"""
 
     def send(
-        self, to: str, subject: str, body: str, *, message_id: str | None = None
+        self,
+        to: str,
+        subject: str,
+        body: str,
+        *,
+        message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
-        """メールを送信する（message_id 省略時は送信側で採番される）"""
+        """メールを送信する（message_id 省略時は送信側で採番される）
+
+        thread を渡すと In-Reply-To / References が載り、返した便が
+        紐づけ先と同じスレッドに並ぶ（省略時は新規スレッドとして立つ）。
+        """
         ...
 
     def test(self) -> None:
@@ -71,9 +82,19 @@ class MailPort(Protocol):
         ...
 
     def send_custom(
-        self, subject: str, content: str, *, message_id: str | None = None
+        self,
+        subject: str,
+        content: str,
+        *,
+        to: str = "",
+        message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
-        """カスタムコンテンツを送信する（message_id 省略時は送信側で採番される）"""
+        """カスタムコンテンツを送信する（message_id 省略時は送信側で採番される）
+
+        content はプレーンテキストとして扱われ、HTML へ整形する前に検疫される。
+        to を省略すると既定の受信者へ送る。
+        """
         ...
 
 

@@ -5,6 +5,50 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-30
+
+Three defects the plugin reported about itself, in the essay of 2026-08-30. The string that
+tied a reply to an essay ran one way only; a body that quoted markup lost the quoted part;
+and a reply was stored without the one field a person would use to recognise it.
+
+### Added
+- **`send --in-reply-to <message-id>`.** The outgoing mail now carries `In-Reply-To` and
+  `References`, so an essay that answers a reply belongs to the same thread as the reply.
+  The ID is one that `replies list` prints; brackets are optional, and a folded value is
+  flattened before it goes on the header. Pointing at a reply the ledger already holds
+  chains `References` back to the essay that reply answered — the ledger knows that much
+  without storing anything new. Without the flag nothing is added and the mail stands as a
+  new thread, exactly as before. Gmail's conversation view additionally groups by subject,
+  which the headers cannot override; other clients thread on the headers alone
+- **`ThreadRef`** (`domain/thread_ref.py`). A frozen value object carrying the link and the
+  chain, with `headers()` producing the two RFC 5322 fields. `MailPort.send` /
+  `send_custom` take it as one keyword rather than growing two more string parameters, and
+  the bracket normalisation lives in one place so a bare ID can never reach a header
+- **`ReplyRecord.subject`.** The `Subject` of an ingested reply, decoded from its
+  RFC 2047 encoded-words, is stored and shown by `replies list`. It defaults to empty, so
+  rows written before this version load unchanged; a subject that cannot be decoded is kept
+  raw rather than costing the plugin the reply. `From` is still stored undecoded — matching
+  compares the value the route wrote, and only what is displayed is made readable
+
+### Fixed
+- **Essay bodies were not HTML-escaped.** `send_custom()` wrapped the content in paragraph
+  tags without touching its angle brackets, so text that looked like markup was read as
+  markup by the renderer. This was not hypothetical: the essay of 2026-08-26, *空欄は二種類
+  ある*, discussed an HTML comment, and the word inside it was dropped on the way to the
+  inbox — one send in forty-seven, and the ledger still holds the body that was meant. The
+  content is escaped now, before newlines become paragraph tags so that the plugin's own
+  tags survive
+- **`--to-self` bypassed that escaping entirely.** The note-to-self path went through
+  `send()`, which takes an HTML body, because `send_custom()` could not be told a recipient
+  and would have written the wrong address into the ledger. `send_custom()` takes `to` now,
+  and both paths run through the one place where escaping and the template live. A route
+  that exists to avoid a limitation outlives the limitation
+
+### Changed
+- `replies list` prints a `Subject:` line. It is untrusted text like the body, so its control
+  characters are removed and it is folded onto one line before it reaches a terminal; the
+  body is still never printed
+
 ## [1.4.0] - 2026-08-29
 
 A multi-paragraph essay can now be sent from `main.py` itself, and the send path says on the

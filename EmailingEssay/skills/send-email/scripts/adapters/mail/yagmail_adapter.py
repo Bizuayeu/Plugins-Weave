@@ -9,14 +9,19 @@ HTMLテンプレートシステムにより一貫したスタイリングを実�
 
 from __future__ import annotations
 
+import html
 import re
 import smtplib
 import time
+from typing import TYPE_CHECKING
 
 import yagmail
 
 from domain.exceptions import MailError
 from frameworks.logging_config import get_logger
+
+if TYPE_CHECKING:
+    from domain.thread_ref import ThreadRef
 
 logger = get_logger("mail")
 
@@ -124,6 +129,7 @@ class YagmailAdapter:
         max_retries: int | None = None,
         *,
         message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
         """
         メールを送信する（指数バックオフ付きリトライ）。
@@ -134,6 +140,7 @@ class YagmailAdapter:
             body: 本文（HTML可）
             max_retries: 最大リトライ回数（None時はConfig設定値を使用）
             message_id: 採番済み Message-ID（None時は yagmail が採番する）
+            thread: 紐づけ先（None時はスレッドヘッダを載せない）
 
         Raises:
             MailError: 送信に失敗した場合
@@ -144,6 +151,9 @@ class YagmailAdapter:
         recipient = to if to else self._recipient
         # yagmail が改行を <br> に変換して CSS を壊すため、送信直前に <style> を畳む
         body = collapse_style_whitespace(body)
+        # 空の辞書は渡さない——yagmail は headers が None でない場合だけ Date の
+        # 自動付与を条件分岐するため、載せるものが無いときは None に倒す
+        headers = thread.headers() if thread else None
         last_error: Exception | None = None
         # Stage 8: Configからのデフォルト値使用
         retries = max_retries if max_retries is not None else self._max_retries
@@ -156,6 +166,7 @@ class YagmailAdapter:
                         subject=subject,
                         contents=body,
                         message_id=message_id,
+                        headers=headers or None,
                     )
                 logger.info(f"Sent to: {recipient}")
                 return
@@ -200,16 +211,38 @@ class YagmailAdapter:
         self.send(to=self._recipient, subject=subject, body=body)
 
     def send_custom(
-        self, subject: str, content: str, *, message_id: str | None = None
+        self,
+        subject: str,
+        content: str,
+        *,
+        to: str = "",
+        message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
         """
         カスタムコンテンツを送信する。
 
+        content はプレーンテキストという約束なので、HTML へ埋める前に検疫する。
+        これを欠いたまま送った 2026-08-26 の便では、本文に書いた HTML コメント
+        記法が描画側に食われ、その語だけが抜けて届いた。エスケープは改行→段落
+        タグの変換より**前**に行う（後だと足したタグ自身が実体参照になる）。
+        quote=False なのは、content が要素の内容であって属性値ではないため
+        （引用符を潰さない分、生 HTML を読むときに素直に読める）。
+
         Args:
             subject: 件名
             content: 本文（プレーンテキスト、改行はHTMLに変換）
+            to: 送信先（空の場合はデフォルト受信者）
             message_id: 採番済み Message-ID（None時は yagmail が採番する）
+            thread: 紐づけ先（None時はスレッドヘッダを載せない）
         """
-        html_content = f"<p>{content.replace(chr(10), '</p><p>')}</p>"
+        escaped = html.escape(content, quote=False)
+        html_content = f"<p>{escaped.replace(chr(10), '</p><p>')}</p>"
         body = self._render_html(html_content)
-        self.send(to=self._recipient, subject=subject, body=body, message_id=message_id)
+        self.send(
+            to=to or self._recipient,
+            subject=subject,
+            body=body,
+            message_id=message_id,
+            thread=thread,
+        )

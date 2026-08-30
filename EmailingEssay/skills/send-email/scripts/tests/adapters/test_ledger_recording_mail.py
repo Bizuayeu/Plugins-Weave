@@ -19,6 +19,7 @@ sys.path.insert(
 
 from domain.exceptions import MailError
 from domain.models import LedgerRecord, ReplyRecord
+from domain.thread_ref import ThreadRef
 from usecases.ports import LedgerPort, MailPort
 
 RECIPIENT = "recipient@example.com"
@@ -40,10 +41,22 @@ class FakeMail:
         self._error = error
 
     def send(
-        self, to: str, subject: str, body: str, *, message_id: str | None = None
+        self,
+        to: str,
+        subject: str,
+        body: str,
+        *,
+        message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
         self.send_calls.append(
-            {"to": to, "subject": subject, "body": body, "message_id": message_id}
+            {
+                "to": to,
+                "subject": subject,
+                "body": body,
+                "message_id": message_id,
+                "thread": thread,
+            }
         )
         if self._error:
             raise self._error
@@ -53,12 +66,30 @@ class FakeMail:
         self.send(to=RECIPIENT, subject="Essay System Test", body="<p>test</p>")
 
     def send_custom(
-        self, subject: str, content: str, *, message_id: str | None = None
+        self,
+        subject: str,
+        content: str,
+        *,
+        to: str = "",
+        message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
         self.send_custom_calls.append(
-            {"subject": subject, "content": content, "message_id": message_id}
+            {
+                "subject": subject,
+                "content": content,
+                "to": to,
+                "message_id": message_id,
+                "thread": thread,
+            }
         )
-        self.send(to=RECIPIENT, subject=subject, body=content, message_id=message_id)
+        self.send(
+            to=to or RECIPIENT,
+            subject=subject,
+            body=content,
+            message_id=message_id,
+            thread=thread,
+        )
 
 
 class FakeLedger:
@@ -289,3 +320,53 @@ class TestSelfAddressedNote:
 
         assert ledger.records[0].message_id
         assert inner.send_calls[0]["message_id"] == ledger.records[0].message_id
+
+
+class TestThreadForwarding:
+    """紐づけ先（ThreadRef）の受け渡し"""
+
+    THREAD = ThreadRef(in_reply_to="<reply-1@mail.gmail.com>")
+
+    def test_send_forwards_thread_to_inner(self, mail, inner):
+        """send の thread がそのまま内側の MailPort へ渡る"""
+        mail.send(RECIPIENT, "件名", "本文", thread=self.THREAD)
+
+        assert inner.send_calls[0]["thread"] is self.THREAD
+
+    def test_send_custom_forwards_thread_to_inner(self, mail, inner):
+        """send_custom の thread がそのまま内側の MailPort へ渡る"""
+        mail.send_custom("件名", "本文", thread=self.THREAD)
+
+        assert inner.send_custom_calls[0]["thread"] is self.THREAD
+
+    def test_thread_is_not_recorded_in_the_ledger(self, mail, ledger):
+        """紐づけ先は台帳の列に増えない（台帳の主キーは Message-ID のまま）"""
+        mail.send_custom("件名", "本文", thread=self.THREAD)
+
+        assert len(ledger.records) == 1
+        assert ledger.records[0].subject == "件名"
+
+
+class TestExplicitRecipient:
+    """send_custom の宛先指定（--to-self の書き置き経路）"""
+
+    def test_explicit_to_is_forwarded_and_recorded(self, mail, inner, ledger):
+        """to を渡すと送信も台帳もその宛先になる"""
+        mail.send_custom("件名", "本文", to=SENDER)
+
+        assert inner.send_custom_calls[0]["to"] == SENDER
+        assert ledger.records[0].recipient == SENDER
+
+    def test_default_recipient_is_unchanged(self, mail, ledger):
+        """to 省略時は従来どおり既定の受信者を台帳へ書く"""
+        mail.send_custom("件名", "本文")
+
+        assert ledger.records[0].recipient == RECIPIENT
+
+    def test_ledger_keeps_the_raw_unescaped_body(self, mail, ledger):
+        """台帳に残るのはエスケープ前の生本文（整形は送信アダプタの領分）"""
+        content = "週の欄は `<!-- PLACEHOLDER -->` に戻っていて"
+
+        mail.send_custom("件名", content)
+
+        assert ledger.bodies == [content]

@@ -22,6 +22,8 @@ import re
 from collections.abc import Sequence
 from dataclasses import replace
 from datetime import datetime
+from email.errors import HeaderParseError
+from email.header import decode_header, make_header
 from email.message import Message
 from email.utils import parsedate_to_datetime
 from typing import Any
@@ -145,6 +147,27 @@ def _header(msg: Message, name: str) -> str:
     return _unfold(str(value))
 
 
+def _decoded_header(msg: Message, name: str) -> str:
+    """
+    ヘッダ値を RFC 2047 のデコード込みで 1 行に畳んで返す。
+
+    件名は人が読むための欄なので encoded-word を戻す。From を生値のまま
+    にしているのと非対称なのは意図的——照合に使う値は経路が付けた形のまま
+    比較し、表示に使う値だけ読める形へ直す。
+
+    壊れた encoded-word はデコードせず生値へ落とす。件名が読めないことは
+    返信を落とす理由にならない（取り込みの関門は別の 4 つが担う）。
+    """
+    raw = _header(msg, name)
+    if not raw:
+        return ""
+    try:
+        return _unfold(str(make_header(decode_header(raw))))
+    except (HeaderParseError, UnicodeDecodeError, LookupError, ValueError):
+        logger.debug(f"Undecodable {name} header; keeping the raw value")
+        return raw
+
+
 def _topmost_header(msg: Message, name: str) -> str:
     """
     同名ヘッダが複数あるとき、最上部の 1 本だけを 1 行に畳んで返す。
@@ -183,6 +206,7 @@ def parse_candidate(raw_header: bytes) -> ReplyRecord:
         sender=_header(msg, "From"),
         received_at=_received_at(msg),
         body="",
+        subject=_decoded_header(msg, "Subject"),
         auth_results=_topmost_header(msg, "Authentication-Results"),
     )
 

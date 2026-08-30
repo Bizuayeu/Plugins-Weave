@@ -8,6 +8,7 @@ main.pyの条件分岐ロジックをハンドラ関数に分離。
 
 from __future__ import annotations
 
+import re
 import sys
 from argparse import Namespace
 from collections.abc import Callable
@@ -15,6 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from domain.config import Config
+from domain.thread_ref import ThreadRef, thread_ref_for
 from domain.validators import validate_essay_body, validate_essay_subject
 from frameworks.logging_config import get_logger
 from usecases.factories import (
@@ -35,6 +37,10 @@ logger = get_logger("cli")
 
 # ハンドラ型: argsを受け取り、終了コードを返す
 Handler = Callable[[Namespace], int]
+
+# 端末へ出してはいけない制御文字（C0 / DEL / C1）。空白扱いの TAB・LF・CR は
+# 除いてあり、それらは後段の split() が区切りとして畳む
+_CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
 
 
 # =============================================================================
@@ -76,6 +82,9 @@ def handle_send(args: Namespace) -> int:
 
     件名・本文はファイル（--subject-file / --body-file）でも渡せる。検証に落ちたら
     送信せずに 1 を返す——空本文や空行は届いてから直せない。
+
+    宛先の別を問わず send_custom() を通す。整形もエスケープもそこに一本だけ
+    置いてあるので、経路を分けた分だけ検疫を通らない便が生まれる。
     """
     subject = _read_text_file(args.subject_file) if args.subject_file else args.subject
     body = _read_text_file(args.body_file) if args.body_file else args.body
@@ -87,15 +96,28 @@ def handle_send(args: Namespace) -> int:
             print(f"Error: {error}", file=sys.stderr)
         return 1
 
-    mail = get_mail_adapter()
-    if args.to_self:
-        # 自分宛は send() を通す。send_custom() は宛先を問わず既定の受信者を
-        # 台帳へ書くため、そちらへ流すと台帳の recipient が宛先を語らなくなる。
-        sender = Config.load().email.sender
-        mail.send(to=sender, subject=subject, body=body)
-    else:
-        mail.send_custom(subject, body)
+    to = Config.load().email.sender if args.to_self else ""
+    get_mail_adapter().send_custom(
+        subject, body, to=to, thread=_thread_for(args.in_reply_to)
+    )
     return 0
+
+
+def _thread_for(in_reply_to: str) -> ThreadRef | None:
+    """
+    --in-reply-to の値から紐づけ先を組む。
+
+    台帳の返信を読むのは指定があるときだけ——紐づけない送信に I/O を課さない。
+
+    Args:
+        in_reply_to: 紐づけ先の Message-ID（空なら紐づけない）
+
+    Returns:
+        組み上がった ThreadRef。指定が無ければ None
+    """
+    if not in_reply_to:
+        return None
+    return thread_ref_for(in_reply_to, get_ledger().load_replies())
 
 
 # =============================================================================
@@ -151,12 +173,30 @@ def _handle_replies_fetch(args: Namespace) -> int:
     return 0
 
 
+def _terminal_safe(value: str) -> str:
+    """
+    外部入力を端末へ出す前に検疫する。
+
+    件名は取り込みの 4 関門を通った差出人が書いた値だが、ANSI エスケープや
+    改行を素で流せば一覧の行そのものを偽装できる。文字は削らず、制御文字だけを
+    落として空白で畳む——読めなくするより、行が崩れないことを採る。
+
+    Args:
+        value: 表示したい外部入力
+
+    Returns:
+        制御文字を含まない 1 行の文字列
+    """
+    return " ".join(_CONTROL_CHARS_RE.sub("", value).split())
+
+
 def _handle_replies_list(args: Namespace) -> int:
     """
     取り込み済み返信の一覧（本文は出さない）。
 
     本文は外部入力であり、端末やログへ素で流す経路を作らない
     （読むときは essay_replies.jsonl を data として開く — ops-rules 7）。
+    件名だけは索引として要るので、制御文字を落としてから 1 行で出す。
     台帳を読むだけなので資格情報を要さない。
     """
     replies = get_ledger().load_replies()
@@ -168,6 +208,7 @@ def _handle_replies_list(args: Namespace) -> int:
     print("-" * 60)
     for r in replies:
         print(f"  Message-ID: {r.message_id}")
+        print(f"    Subject:     {_terminal_safe(r.subject)}")
         print(f"    In-Reply-To: {r.in_reply_to}")
         print(f"    From:        {r.sender}")
         print(f"    Received:    {r.received_at}")

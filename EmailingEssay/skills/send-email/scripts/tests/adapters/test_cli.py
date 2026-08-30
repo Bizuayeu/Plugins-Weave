@@ -78,6 +78,18 @@ class TestCreateParser:
         assert args.body_file == "x.txt"
         assert args.to_self is True
 
+    def test_send_command_in_reply_to_defaults_empty(self, parser):
+        """send は既定で紐づけ先を持たない（新規スレッドとして立つ）"""
+        args = parser.parse_args(["send", "Subject", "Body"])
+        assert args.in_reply_to == ""
+
+    def test_send_command_with_in_reply_to(self, parser):
+        """send --in-reply-to のパース"""
+        args = parser.parse_args(
+            ["send", "S", "B", "--in-reply-to", "<reply-1@mail.gmail.com>"]
+        )
+        assert args.in_reply_to == "<reply-1@mail.gmail.com>"
+
     def test_send_command_body_and_body_file_conflict(self, parser):
         """本文を位置引数とファイルの両方で渡すとパーサがエラーにする"""
         with pytest.raises(SystemExit):
@@ -706,11 +718,12 @@ class TestSendHandler:
                     subject_file="",
                     body_file="",
                     to_self=False,
+                    in_reply_to="",
                 )
             )
 
             assert result == 0
-            mail.send_custom.assert_called_once_with("件名", "本文")
+            mail.send_custom.assert_called_once_with("件名", "本文", to="", thread=None)
             mail.send.assert_not_called()
 
     def test_to_self_sends_to_sender_address(self):
@@ -729,16 +742,21 @@ class TestSendHandler:
                     subject_file="",
                     body_file="",
                     to_self=True,
+                    in_reply_to="",
                 )
             )
 
             assert result == 0
-            mail.send.assert_called_once_with(
-                to="ai@test.com", subject="件名", body="本文"
-            )
+            assert mail.send_custom.call_args[1]["to"] == "ai@test.com"
 
-    def test_to_self_does_not_use_send_custom(self):
-        """--to-self は send_custom を通さない（無条件に受信者を台帳へ書くため）"""
+    def test_to_self_goes_through_send_custom(self):
+        """--to-self も send_custom を通る（書き置きにも整形とエスケープが要る）
+
+        send_custom が宛先を取れるようになる前は、台帳の recipient が宛先を
+        語らなくなるのを避けるため send() へ逃がしていた。逃がした先には
+        エスケープもテンプレートも無かったので、宛先の方を send_custom に
+        持たせて経路を一本に戻す。
+        """
         from argparse import Namespace
         from unittest.mock import MagicMock, patch
 
@@ -753,10 +771,12 @@ class TestSendHandler:
                     subject_file="",
                     body_file="",
                     to_self=True,
+                    in_reply_to="",
                 )
             )
 
-            mail.send_custom.assert_not_called()
+            mail.send.assert_not_called()
+            mail.send_custom.assert_called_once()
 
     @staticmethod
     def _write_bom_crlf(path, text):
@@ -789,6 +809,7 @@ class TestSendHandler:
                     subject_file="",
                     body_file=str(body_file),
                     to_self=False,
+                    in_reply_to="",
                 )
             )
 
@@ -820,11 +841,14 @@ class TestSendHandler:
                     subject_file=str(subject_file),
                     body_file=str(body_file),
                     to_self=False,
+                    in_reply_to="",
                 )
             )
 
         assert result == 0
-        mail.send_custom.assert_called_once_with("軸に欄が無い", "一段落目\n二段落目")
+        mail.send_custom.assert_called_once_with(
+            "軸に欄が無い", "一段落目\n二段落目", to="", thread=None
+        )
 
     def test_blank_line_body_file_refuses_to_send(self, tmp_path, capsys, caplog):
         """空行を含む本文は送らずに 1 を返す（stderr と logger.error の両方に出る）"""
@@ -850,6 +874,7 @@ class TestSendHandler:
                     subject_file="",
                     body_file=str(body_file),
                     to_self=False,
+                    in_reply_to="",
                 )
             )
 
@@ -878,6 +903,7 @@ class TestSendHandler:
                     subject_file=str(subject_file),
                     body_file=str(body_file),
                     to_self=False,
+                    in_reply_to="",
                 )
             )
 
@@ -902,14 +928,15 @@ class TestSendHandler:
                     subject_file="",
                     body_file=str(body_file),
                     to_self=True,
+                    in_reply_to="",
                 )
             )
 
         assert result == 0
-        mail.send.assert_called_once_with(
-            to="ai@test.com", subject="件名", body="一段落目\n二段落目"
+        mail.send_custom.assert_called_once_with(
+            "件名", "一段落目\n二段落目", to="ai@test.com", thread=None
         )
-        mail.send_custom.assert_not_called()
+        mail.send.assert_not_called()
 
     def test_missing_body_file_propagates(self, tmp_path):
         """存在しないパスは FileNotFoundError のまま上げる（main.py のログ経路に乗せる）"""
@@ -928,7 +955,175 @@ class TestSendHandler:
                         subject_file="",
                         body_file=str(tmp_path / "missing.txt"),
                         to_self=False,
+                        in_reply_to="",
                     )
                 )
 
         mail.send_custom.assert_not_called()
+
+
+class TestSendHandlerThreading:
+    """send --in-reply-to が紐づけ先を組んで送信まで運ぶ"""
+
+    @pytest.fixture(autouse=True)
+    def _env(self, monkeypatch):
+        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "ai@test.com")
+        monkeypatch.setenv("ESSAY_APP_PASSWORD", "testpass")
+        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
+
+        from domain.config import Config
+
+        Config.reset()
+        yield
+        Config.reset()
+
+    @staticmethod
+    def _args(**overrides):
+        from argparse import Namespace
+
+        base = {
+            "subject": "件名",
+            "body": "本文",
+            "subject_file": "",
+            "body_file": "",
+            "to_self": False,
+            "in_reply_to": "",
+        }
+        base.update(overrides)
+        return Namespace(**base)
+
+    @staticmethod
+    def _reply():
+        from domain.models import ReplyRecord
+
+        return ReplyRecord(
+            message_id="<reply-1@mail.gmail.com>",
+            in_reply_to="<essay-1@essay.local>",
+            sender="reader@example.com",
+            received_at="2026-08-30T21:36:18+09:00",
+            body="ありがとう",
+        )
+
+    def test_no_flag_sends_without_a_thread(self):
+        """--in-reply-to 無しなら紐づけ先は None（従来どおり）"""
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        with patch("adapters.cli.handlers.get_mail_adapter", return_value=mail):
+            from adapters.cli.handlers import handle_send
+
+            assert handle_send(self._args()) == 0
+
+        assert mail.send_custom.call_args[1]["thread"] is None
+
+    def test_known_reply_becomes_a_chained_thread(self):
+        """取り込み済みの返信を指すと、鎖が元の便まで遡って送信へ渡る"""
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        ledger = MagicMock()
+        ledger.load_replies.return_value = [self._reply()]
+        with (
+            patch("adapters.cli.handlers.get_mail_adapter", return_value=mail),
+            patch("adapters.cli.handlers.get_ledger", return_value=ledger),
+        ):
+            from adapters.cli.handlers import handle_send
+
+            result = handle_send(self._args(in_reply_to="<reply-1@mail.gmail.com>"))
+
+        assert result == 0
+        thread = mail.send_custom.call_args[1]["thread"]
+        assert thread.headers() == {
+            "In-Reply-To": "<reply-1@mail.gmail.com>",
+            "References": "<essay-1@essay.local> <reply-1@mail.gmail.com>",
+        }
+
+    def test_ledger_is_not_read_without_the_flag(self):
+        """紐づけ先を指定しない送信は台帳の返信を読みに行かない"""
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        ledger = MagicMock()
+        with (
+            patch("adapters.cli.handlers.get_mail_adapter", return_value=mail),
+            patch("adapters.cli.handlers.get_ledger", return_value=ledger),
+        ):
+            from adapters.cli.handlers import handle_send
+
+            handle_send(self._args())
+
+        ledger.load_replies.assert_not_called()
+
+    def test_to_self_also_carries_the_thread(self):
+        """--to-self の書き置きも紐づけ先を運ぶ"""
+        from unittest.mock import MagicMock, patch
+
+        mail = MagicMock()
+        ledger = MagicMock()
+        ledger.load_replies.return_value = []
+        with (
+            patch("adapters.cli.handlers.get_mail_adapter", return_value=mail),
+            patch("adapters.cli.handlers.get_ledger", return_value=ledger),
+        ):
+            from adapters.cli.handlers import handle_send
+
+            handle_send(
+                self._args(to_self=True, in_reply_to="<reply-1@mail.gmail.com>")
+            )
+
+        thread = mail.send_custom.call_args[1]["thread"]
+        assert thread.headers()["In-Reply-To"] == "<reply-1@mail.gmail.com>"
+
+
+class TestRepliesListSubject:
+    """replies list に件名が出る（外部入力なので端末向けに検疫してから）"""
+
+    @staticmethod
+    def _reply(subject):
+        from domain.models import ReplyRecord
+
+        return ReplyRecord(
+            message_id="<r1@mail>",
+            in_reply_to="<abc@essay.local>",
+            sender="reader@example.com",
+            received_at="2026-08-28T10:00:00",
+            body="本文は出さない",
+            subject=subject,
+        )
+
+    def _run(self, subject):
+        from argparse import Namespace
+        from unittest.mock import MagicMock, patch
+
+        ledger = MagicMock()
+        ledger.load_replies.return_value = [self._reply(subject)]
+        with patch("adapters.cli.handlers.get_ledger", return_value=ledger):
+            from adapters.cli.handlers import _handle_replies_list
+
+            _handle_replies_list(Namespace())
+
+    def test_subject_is_printed(self, capsys):
+        """件名が一覧に出る"""
+        self._run("Re: 空欄は二種類ある")
+
+        assert "Re: 空欄は二種類ある" in capsys.readouterr().out
+
+    def test_control_characters_are_stripped(self, capsys):
+        """制御文字（ANSI エスケープ等）は端末へ流さない"""
+        self._run("Re: \x1b[31m赤\x1b[0m\r\n偽の行")
+
+        out = capsys.readouterr().out
+        assert "\x1b" not in out
+        assert "Re: [31m赤[0m 偽の行" in out
+
+    def test_missing_subject_prints_an_empty_field(self, capsys):
+        """件名を持たない旧レコードでも欄は出る（欠落を隠さない）"""
+        self._run("")
+
+        assert "Subject:" in capsys.readouterr().out
+
+    def test_body_is_still_withheld(self, capsys):
+        """件名を出しても本文は出さない"""
+        self._run("Re: 件名")
+
+        assert "本文は出さない" not in capsys.readouterr().out

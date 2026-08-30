@@ -428,6 +428,9 @@ class ReplyRecord:
     sender: str  # From ヘッダの値
     received_at: str  # ISO 8601 形式の受信日時
     body: str  # 返信本文（外部入力）
+    # Subject ヘッダ（RFC 2047 デコード済み。外部入力）。既定が空なのは
+    # 件名を持たない旧 JSONL 行をそのまま読み戻せるようにするため
+    subject: str = ""
     # 受信側 MTA が付けた Authentication-Results（差出人検証の根拠）。
     # 既定が空なのは「根拠なし」を意味し、取り込みの関門はそれを通さない
     # （fail-closed）。auth_results を持たない旧 JSONL 行も読み戻せる。

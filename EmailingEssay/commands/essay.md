@@ -319,6 +319,24 @@ This is what a throwaway sending script used to be written for; one is no longer
 Files are read `utf-8-sig` and their newlines normalized, and a body that is empty or
 contains a blank line is refused before anything is sent.
 
+The body is plain text and is escaped on the way into the mail, so a passage that quotes
+code or markup arrives with its angle brackets intact.
+
+### Answering a reply
+
+An essay that takes up a reply can say so in the mail itself, rather than only in its prose:
+
+```bash
+python main.py replies list                     # copy the Message-ID of the reply
+python main.py send "Subject" "Body" --in-reply-to '<r1@mail.gmail.com>'
+```
+
+That puts `In-Reply-To` and `References` on the outgoing mail, so the reply and the answer
+belong to one thread instead of two unrelated letters. Without the flag nothing is added and
+the mail stands on its own, which is right for an essay that answers nothing. Gmail also
+groups a conversation by subject, so an answer meant to appear under the reply in *that*
+client wants a matching `Re: …` subject as well.
+
 ### Notes to self
 
 On a day with no essay to send, a note can still be left — addressed to

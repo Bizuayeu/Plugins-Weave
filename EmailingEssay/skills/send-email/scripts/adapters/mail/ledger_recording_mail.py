@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 from domain.message_id import new_message_id
 
 if TYPE_CHECKING:
+    from domain.thread_ref import ThreadRef
     from usecases.ports import LedgerPort, MailPort
 
 __all__ = ["LedgerRecordingMail"]
@@ -45,19 +46,29 @@ class LedgerRecordingMail:
         self._recipient = recipient
 
     def send(
-        self, to: str, subject: str, body: str, *, message_id: str | None = None
+        self,
+        to: str,
+        subject: str,
+        body: str,
+        *,
+        message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
         """
         メールを送信し、台帳へ記録する。
+
+        紐づけ先（thread）は送信ヘッダの話であって台帳の列ではないため、
+        内側へ素通しするだけで記録には載せない。
 
         Args:
             to: 送信先（空の場合は既定の受信者）
             subject: 件名
             body: 本文
             message_id: 採番済み Message-ID（None時はここで採番する）
+            thread: 紐づけ先（None時はスレッドヘッダを載せない）
         """
         mid = message_id or new_message_id()
-        self._inner.send(to, subject, body, message_id=mid)
+        self._inner.send(to, subject, body, message_id=mid, thread=thread)
         self._record(mid, subject, to or self._recipient, body)
 
     def test(self) -> None:
@@ -65,22 +76,31 @@ class LedgerRecordingMail:
         self._inner.test()
 
     def send_custom(
-        self, subject: str, content: str, *, message_id: str | None = None
+        self,
+        subject: str,
+        content: str,
+        *,
+        to: str = "",
+        message_id: str | None = None,
+        thread: ThreadRef | None = None,
     ) -> None:
         """
         カスタムコンテンツを送信し、台帳へ記録する。
 
         台帳に残すのは HTML へ整形する前の content——読み返すのは人と LLM で、
-        テンプレートのマークアップは索引の用を成さない。
+        テンプレートのマークアップは索引の用を成さない（エスケープも同様に
+        送信アダプタの領分であり、台帳には生の本文が残る）。
 
         Args:
             subject: 件名
             content: 本文（プレーンテキスト）
+            to: 送信先（空の場合は既定の受信者）
             message_id: 採番済み Message-ID（None時はここで採番する）
+            thread: 紐づけ先（None時はスレッドヘッダを載せない）
         """
         mid = message_id or new_message_id()
-        self._inner.send_custom(subject, content, message_id=mid)
-        self._record(mid, subject, self._recipient, content)
+        self._inner.send_custom(subject, content, to=to, message_id=mid, thread=thread)
+        self._record(mid, subject, to or self._recipient, content)
 
     def _record(self, message_id: str, subject: str, recipient: str, body: str) -> None:
         """

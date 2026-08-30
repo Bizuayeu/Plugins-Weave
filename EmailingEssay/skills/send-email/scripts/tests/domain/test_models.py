@@ -591,3 +591,38 @@ class TestReplyRecord:
         d = self._record().to_dict()
         del d["auth_results"]
         assert ReplyRecord.from_dict(d).auth_results == ""
+
+
+class TestReplyRecordSubject:
+    """ReplyRecord.subject（返信の件名欄）"""
+
+    @staticmethod
+    def _payload(**overrides):
+        payload = {
+            "message_id": "<r1@mail>",
+            "in_reply_to": "<abc@essay.local>",
+            "sender": "reader@example.com",
+            "received_at": "2026-08-28T10:00:00",
+            "body": "ありがとう",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_defaults_to_empty(self):
+        """既定は空文字（件名を持たない旧レコードと同じ姿）"""
+        assert ReplyRecord(**self._payload()).subject == ""
+
+    def test_round_trips_through_dict(self):
+        """to_dict / from_dict を往復しても保たれる"""
+        record = ReplyRecord(**self._payload(subject="Re: 空欄は二種類ある"))
+
+        assert ReplyRecord.from_dict(record.to_dict()).subject == (
+            "Re: 空欄は二種類ある"
+        )
+
+    def test_legacy_row_without_subject_still_loads(self):
+        """subject を持たない既存の JSONL 行も読み戻せる（後方互換）"""
+        record = ReplyRecord.from_dict(self._payload())
+
+        assert record.subject == ""
+        assert record.message_id == "<r1@mail>"

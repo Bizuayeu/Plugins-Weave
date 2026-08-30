@@ -19,6 +19,7 @@ sys.path.insert(
 
 from adapters.mail.yagmail_adapter import MailError, YagmailAdapter
 from domain.config import Config
+from domain.thread_ref import ThreadRef
 
 
 class TestYagmailAdapter:
@@ -355,3 +356,143 @@ class TestMessageIdPassthrough:
         adapter.send(to="test@example.com", subject="Test Subject", body="Test Body")
 
         assert mock_smtp.send.call_args[1]["message_id"] is None
+
+
+class TestThreadHeaders:
+    """スレッドヘッダの送信（In-Reply-To / References）"""
+
+    @pytest.fixture
+    def adapter(self):
+        """アダプターのインスタンス"""
+        Config.reset()
+        with patch.dict(
+            os.environ,
+            {
+                "ESSAY_SENDER_EMAIL": "sender@example.com",
+                "ESSAY_APP_PASSWORD": "password123",
+                "ESSAY_RECIPIENT_EMAIL": "recipient@example.com",
+            },
+        ):
+            return YagmailAdapter()
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_passes_thread_headers_to_yagmail(self, mock_yagmail, adapter):
+        """thread を渡すと In-Reply-To / References が yagmail の headers に載る"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send(
+            to="test@example.com",
+            subject="件名",
+            body="本文",
+            thread=ThreadRef(
+                in_reply_to="<reply-1@mail.gmail.com>",
+                references="<essay-1@essay.local> <reply-1@mail.gmail.com>",
+            ),
+        )
+
+        headers = mock_smtp.send.call_args[1]["headers"]
+        assert headers["In-Reply-To"] == "<reply-1@mail.gmail.com>"
+        assert headers["References"] == (
+            "<essay-1@essay.local> <reply-1@mail.gmail.com>"
+        )
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_without_thread_adds_no_headers(self, mock_yagmail, adapter):
+        """thread 未指定なら headers は None（従来どおり新規スレッドとして立つ）"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send(to="test@example.com", subject="件名", body="本文")
+
+        assert mock_smtp.send.call_args[1]["headers"] is None
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_custom_forwards_thread(self, mock_yagmail, adapter):
+        """send_custom の thread が内部の send を経て yagmail まで届く"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send_custom(
+            "件名", "本文", thread=ThreadRef(in_reply_to="<reply-1@mail.gmail.com>")
+        )
+
+        headers = mock_smtp.send.call_args[1]["headers"]
+        assert headers["In-Reply-To"] == "<reply-1@mail.gmail.com>"
+
+
+class TestBodyEscaping:
+    """本文の HTML エスケープ（プレーンテキストとして届く保証）"""
+
+    @pytest.fixture
+    def adapter(self):
+        """アダプターのインスタンス"""
+        Config.reset()
+        with patch.dict(
+            os.environ,
+            {
+                "ESSAY_SENDER_EMAIL": "sender@example.com",
+                "ESSAY_APP_PASSWORD": "password123",
+                "ESSAY_RECIPIENT_EMAIL": "recipient@example.com",
+            },
+        ):
+            return YagmailAdapter()
+
+    @staticmethod
+    def _sent_body(mock_smtp):
+        return mock_smtp.send.call_args[1]["contents"]
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_html_comment_survives_as_visible_text(self, mock_yagmail, adapter):
+        """HTML コメント記法を本文に書いても描画側に食われない（2026-08-26 の実害）"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send_custom("件名", "週の欄は `<!-- PLACEHOLDER -->` に戻っていて")
+
+        body = self._sent_body(mock_smtp)
+        assert "&lt;!-- PLACEHOLDER --&gt;" in body
+        assert "<!-- PLACEHOLDER -->" not in body
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_angle_brackets_and_ampersand_are_escaped(self, mock_yagmail, adapter):
+        """山括弧とアンパサンドが実体参照になる"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send_custom("件名", "if a < b && c > d then <b>")
+
+        body = self._sent_body(mock_smtp)
+        assert "&lt; b &amp;&amp; c &gt; d" in body
+        assert "&lt;b&gt;" in body
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_paragraph_tags_are_not_escaped(self, mock_yagmail, adapter):
+        """段落分けのタグ自体はエスケープされない（エスケープは変換の前）"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send_custom("件名", "一段落目\n二段落目")
+
+        body = self._sent_body(mock_smtp)
+        assert "<p>一段落目</p><p>二段落目</p>" in body
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_custom_can_target_an_explicit_address(self, mock_yagmail, adapter):
+        """to を渡すとその宛先へ送る（--to-self の書き置き経路）"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send_custom("件名", "本文", to="sender@example.com")
+
+        assert mock_smtp.send.call_args[1]["to"] == "sender@example.com"
+
+    @patch("adapters.mail.yagmail_adapter.yagmail")
+    def test_send_custom_defaults_to_the_recipient(self, mock_yagmail, adapter):
+        """to 省略時は従来どおり既定の受信者へ送る"""
+        mock_smtp = MagicMock()
+        mock_yagmail.SMTP.return_value.__enter__.return_value = mock_smtp
+
+        adapter.send_custom("件名", "本文")
+
+        assert mock_smtp.send.call_args[1]["to"] == "recipient@example.com"

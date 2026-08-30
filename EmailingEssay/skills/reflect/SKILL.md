@@ -102,6 +102,11 @@ Output: **Email** (user is not present)
   with `python main.py send --subject-file … --body-file …` — the default route, since a body
   of more than one paragraph does not fit on a shell argument line. Do not write a throwaway
   sending script
+- **Answering a reply**: if the essay takes up a reply, add
+  `--in-reply-to '<its Message-ID>'` (the ID is in `essay_replies.jsonl`, and
+  `python main.py replies list` prints it beside the subject). The mail then belongs to that
+  reply's thread instead of arriving as an unrelated letter. Whether an essay is an answer is
+  the writer's judgment; without the flag it stands on its own, which is the default
 - **Not Delivering**: Exit silently. Nothing records the silence — scheduled runs invoke
   `claude -p` directly and never reach the wrapper that wrote `essay_wait.log`. A `--to-self`
   note, if one is written, lands in the ledger like any other send.

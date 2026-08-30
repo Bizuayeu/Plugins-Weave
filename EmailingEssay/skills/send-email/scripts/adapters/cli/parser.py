@@ -138,6 +138,17 @@ Examples:
         action="store_true",
         help="Send to the AI's own address (自分宛に送る — 書き置き用)",
     )
+    # 紐づけ先は `replies list` が出す Message-ID をそのまま貼る想定
+    send_parser.add_argument(
+        "--in-reply-to",
+        dest="in_reply_to",
+        default="",
+        metavar="MESSAGE_ID",
+        help=(
+            "Thread this mail under a message "
+            "(この便を指定の Message-ID へ紐づける — 角括弧の有無は問わない)"
+        ),
+    )
 
     # -------------------------------------------------------------------------
     # wait コマンド

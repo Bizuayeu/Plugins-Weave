@@ -57,7 +57,7 @@ flowchart TD
 
 ### 1. Load Context
 
-Ingest replies first with `python main.py replies fetch` (best-effort; a failure does not stop the run), then read the specified files and note the language setting.
+Ingest replies first with `python main.py replies fetch` (best-effort; a failure does not stop the run), then read the specified files and note the language setting. If the essay ends up answering one of those replies, send it with `--in-reply-to '<that reply's Message-ID>'` so the answer joins the reply's thread.
 
 **Language Guidelines**:
 - `ja`: Write the essay in Japanese. Use natural Japanese expressions.

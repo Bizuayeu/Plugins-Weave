@@ -62,6 +62,7 @@ EmailingEssay/
             │   ├── exceptions.py
             │   ├── message_id.py           # Message-ID minting (the ledger key)
             │   ├── models.py
+            │   ├── thread_ref.py           # In-Reply-To / References の組み立て
             │   └── validators.py
             ├── usecases/     # Business logic
             │   ├── command_builder.py
