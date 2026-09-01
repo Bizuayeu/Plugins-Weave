@@ -100,6 +100,7 @@ python scripts/main.py lease release
 | `send-reply --chat-id --update-id --text-file [--file ...] [--reply-to] [--owner]` | 返信送信。`--file` で添付、`--reply-to` で threading | 0, 1=送信失敗, 2=添付不正, 3=auth, 4=lease |
 | `proactive-send --chat-id --text-file [--file ...] [--reply-to] [--owner]` | 秘書からの能動送信（inbound 非依存の outbound push、offset 非干渉）。**`--update-id` 無し**が send-reply との差分。`--file` で添付、`--reply-to` で threading | 0, 1=送信失敗, 2=添付不正, 3=auth, 4=lease |
 | `render-pdf --path (--text \| --pages N-M)` | 受信済み PDF のオンデマンド抽出（`--text`=全文テキスト / `--pages`=指定ページ画像化） | 0, 2=不在/引数不正 |
+| `lint-numbers <path>` | 納品物（原稿 md）の裸数値スキャン。数字を含む各行に計器トークン（`実測` / `見込み` / `出典` 等の出所マーカー）が同じ行にあるかを二値判定し JSON 1 行で emit（`path` / `number_lines` / `covered` / `bare` / `bare_lines`）。presence の検査であって正しさの検査ではない。read-only、裸 0 件でも 1 行出す。裸の有無は exit code でなく JSON の値（DESIGN §3.13） | 0=OK（裸の有無に依らず）, 2=不在/不可読 |
 | `test --chat-id` | 疎通テスト（owner chat に ping 送信） | 0, 1, 3 |
 | `cleanup-media` | retention 超過の保存 media を削除（`watch` は自動発火、手動/cron 用） | 0, 2 |
 | `individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps {list\|get\|add\|remove\|import}` | 管理表 CRUD（8 表、値オブジェクトで入力検証、不正は exit 2）。`add` / `import` はトップレベル未知キーを exit 2 で弾く（fail-closed。read 経路は警告どまりで読める）、`import --json-file` は全件置換（全件検証→置換ゆえ 1 件でも不正なら無置換）。`registry_sync` 有効時は add/remove/import 後に commit&push | 0, 2 |

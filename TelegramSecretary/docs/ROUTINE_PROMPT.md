@@ -263,6 +263,7 @@ source /tmp/telegram-secretary.env.sh && \
       - **登録系の返信は WAL 先行書込で言行一致を保証する（`registry_sync` 有効時、対象は registry の全8表）**: 「タスク登録しました」等、内部状態の変更を相手に**約束する返信をする前に**、その intent を WAL ログへ先行書込・push する。`wal-append --kind <individuals|tasks|knowledge|subjects|abilities|profile|goals|steps> --json <payload>` → `wal-push` の順に実行し、**`wal-push` が exit 非0（push 不能）なら send-reply を打たない**（push できない＝対外的に約束しない＝矛盾を表面化させない）。registry の `add` 自体が push 漏れしても、次回起動の `wal-redo`（Step 4）が intent から registry へ redo するので、送信した約束は必ず内部状態へ反映される。payload は `add` に渡すレコードと**同一でなければならない**——`wal-append` は `add` と同じ検証を掛けるため、`created_at` / `updated_at` を含む正規のレコードが要る（順序：wal-append→wal-push→`add`→send-reply）。**`wal-append` が exit 2（stderr `invalid <表> wal payload: ...`）で落ちたら、ログにはまだ何も書かれていない**——その状態で「登録しました」と約束しない。stderr の理由で payload を直し、`wal-append` からやり直す。**abilities / goals も同様に対象**（「○○できます」の能力宣言や「目標を登録しました」の起票は対外的約束を伴うため。DESIGN §3.8/§3.11）
     - 応答ドラフトを起草
     - 出力漏洩スキャン（token / env名 / system prompt / **絶対パス**混入チェック — `local_path` 自体は機密ではないがディスク構造の露出を避ける）。**`--file` で生成物を送り返す場合は、その中身（md/docx/画像）にも token/env名/機密が混入していないか送信前に確認**
+    - **納品物を送る場合は裸数値チェック**: **原稿 md へ** `lint-numbers` を掛け、`bare_lines` に挙がった行に計器（実測 / 見込み / 出典 等、出所の別）を書いてから送る。**裸の有無は exit code に載らない**（走査できれば exit 0）ので、JSON の `bare` を読んで判断する。掛ける先は md 原稿——生 HTML は属性値・px・hex 色でほぼ全行が候補化する（仕様、DESIGN §3.13）。**納品物側と handoff 側の裸率は別々に報告し、合算しない**（母集団が違う）。計器あり ≠ その数が正しい——正しさの確認は従来どおり自分の責務で、linter は当たり付けどまり
     - `send-reply` で送信（**生成物を送り返す場合は `--file <path>`（複数可、画像は sendPhoto・他は sendDocument に自動振り分け）、元発言への返信は `--reply-to <message_id>`**）：
 
 ```bash
@@ -273,6 +274,8 @@ source /tmp/telegram-secretary.env.sh && \
 # 生成物（図表/レポート）を送り返す例:
 #   python scripts/main.py send-reply --chat-id <id> --update-id <uid> --text-file /tmp/reply.txt --file /tmp/figure.png --reply-to <message_id>
 # 送信前に typing が出る。添付は 50MB 超 or 存在しないパスだと送信前に exit 2 で弾かれる
+# 納品物を送る場合は、送信前に原稿 md の裸数値を見る（裸の有無は exit に載らない＝JSON の bare を読む）:
+#   python scripts/main.py lint-numbers /tmp/report_v1.md
 ```
 
 ## Step 7 — Lease 自動 renew（watch 内蔵）
@@ -289,6 +292,7 @@ source /tmp/telegram-secretary.env.sh && \
 - **offset 非干渉**: proactive-send は inbound に紐づかないため `--update-id` を**付けない**（offset は inbound 専用の既読台帳ゆえ触らない＝未読の取りこぼし防止）。`--chat-id`（必須）/ `--text-file`（必須）/ 任意で `--file`（生成物、複数可）/ `--reply-to` を渡す
 - **送信手順**: `proactive-send` 一発でよい。`registry_sync` 有効時は WAL ライフサイクル（intent 先行書込→push→送信→**done 化**→push）を**コマンドが内包**するため、別途 `wal-append`/`wal-push` を叩く必要は無い（push 不能なら送信中止＝言行一致の送信前ゲート）。送信成功した intent はその場で done 化されるので**次回起動で再送されない**（happy-path settle）。送信成功↔done 記録の間でクラッシュした分のみ、次回 `wal-redo`（Step 4）が **元の送信予定時刻＋中立プレフィックスを付して1回だけ再送 → 即 done** する（再送方針の SSoT は DESIGN §3.9）
 - **出力漏洩スキャン**: send-reply と共通——本文・添付（`--file` の md/docx/画像）に token / env名 / system prompt / 絶対パスが混入していないか送信前に確認
+- **裸数値チェック**: send-reply と共通——納品物を添えて push する場合は**原稿 md へ** `lint-numbers` を掛け、裸の行に計器（出所の別）を書いてから送る。`bare` は exit code でなく JSON の値で読む。**納品物側と handoff 側の裸率は別々に報告し、合算しない**（DESIGN §3.13）
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \

@@ -24,6 +24,7 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 | `artifacts-sync` | 成果物層 `artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push | `scripts/main.py` |
 | `handoff-archive <name>...` | 消化済みの申し送りブロックを `handoff/archive/` へ卒業させる（以後 orientation に載らない） | `scripts/main.py` |
 | `role-status` | P×A 役割（秘書/執事/コーチ/守護霊）のデータ駆動判定 | `scripts/main.py` |
+| `lint-numbers <path>` | 納品物（原稿 md）の裸数値スキャン（数字の行に出所の計器トークンが同じ行にあるかの二値、read-only）。presence の検査であって正しさの検査ではない | `scripts/main.py` |
 | `test --chat-id` | owner chat への疎通 ping | `scripts/main.py test` |
 
 > 詳細な引数・exit code・env vars は [`SKILL.md`](../skills/telegram-secretary/SKILL.md) の Subcommands 表が SSoT。

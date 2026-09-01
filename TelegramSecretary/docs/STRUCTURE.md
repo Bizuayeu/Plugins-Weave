@@ -80,8 +80,10 @@ TelegramSecretary/
 │   ├── main.py               # CLI entrypoint（subcommands）
 │   ├── domain/               # 純粋ロジック・値オブジェクト
 │   │   ├── models.py / media.py / outbound.py / exceptions.py
-│   │   ├── authorization.py / lease.py / normalize.py / offset.py / watch_window.py
+│   │   ├── authorization.py / lease.py / normalize.py / offset.py / watch_window.py / rate_limit.py
 │   │   ├── session_config.py # session_duration_sec の値域検証（範囲ガード・MAX_SECONDS）
+│   │   ├── output_scan.py    # 送信本文の漏洩スキャン（形状で決まる 4 種を redact、SECURITY §4 の機械化分）
+│   │   ├── number_lint.py    # 納品物の裸数値スキャン（数字の行に計器トークンが同じ行にあるかの presence 判定、DESIGN §3.13）
 │   │   ├── registry.py       # 管理表 値オブジェクト（Individual / Identity / Task / Knowledge / Subject / Ability / Profile / Goal / Step）＋ derive_role（P×A 役割導出、§3.11）＋ unknown_keys / invalid_subjects（書き込み口の検証純関数）
 │   │   └── wal.py            # WAL 純粋ロジック（reconcile/settle/checkpoint/quarantine・pending/done/dead の三状態・outbound の二分、DESIGN §3.7/§3.9）
 │   ├── usecases/             # オーケストレーション + Port
