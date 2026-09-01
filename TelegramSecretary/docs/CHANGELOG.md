@@ -2,6 +2,29 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.15.1] - 2026-09-02 — 裸数値の網を handoff へ広げ、構成図の欠落一件を埋める
+
+v1.15.0 の cc-defer（handoff 側への適用拡大は裸率の再悪化をトリガーに再検討）を、トリガーを
+待たずに前倒しで回収する（2026-09-02 裁可）。判断の根拠は役割分担の明確化——降下を起こす
+作動成分は裸箇所の**名指し分析**であり、機械はその**当たり付けを安くする**装置に過ぎない。
+handoff の書き手は毎枠交代する（注意は構造的に逸れる）ため、注意が逸れた枠で気づかせる
+装置は handoff 側でも同じに働く。分担（lint＝当たり付け／名指し＝本体）・別々報告・ゼロを
+目標にしない前提は不変（DESIGN §3.13 に経緯を記録）。
+
+### Changed
+
+- **`lint-numbers` の対象を納品物＋handoff へ拡大** — コードは無変更（CLI は元よりファイル
+  を選ばない）。変わるのは手順と宣言: `ROUTINE_PROMPT.md` の申し送り節に「ブロックを書き
+  上げたら `artifacts-sync` の前に掛け、`bare_lines` の行に計器か導出元か継承の別を名指して
+  から送る」を追記、`number_lint.py` の cc-defer コメントを回収、SKILL / README / commands
+  の表記を「納品物・handoff」へ同期
+- **`STRUCTURE.md` の構成図欠落 1 件を回収** — `scripts/usecases/observability.py`（v1.6.0
+  で追加されたセキュリティ観測ログ）が構成図に未記載だった。junction 多重により doc-check
+  の完全性検査対象外＝機械で捕まらない死角で見つかった分（v1.15.0 検収時の発見）
+- **ROUTINE_PROMPT を変更したため、本番へ届けるには cloud routine の body 再登録が必要**
+  （リポ修正だけでは到達しない）。手順は get → modify → update（v1 ネスト・`session_context`
+  は全体を保持）
+
 ## [1.15.0] - 2026-09-02 — 納品物の裸数値に機械の網を張る：網は誤読コストの非対称な側にだけ張る
 
 数値に出所（実測なのか見込みなのか継承なのか）が添えられていないと、読み手はどの数を
