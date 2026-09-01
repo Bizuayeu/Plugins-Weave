@@ -24,6 +24,7 @@ from domain.exceptions import (
 )
 from domain.lease import SessionLease, utc_now
 from domain.models import OutboundMessage
+from domain.number_lint import lint_numbers
 from domain.outbound import OutboundAttachment
 from domain.watch_window import WatchWindow
 from infrastructure.composition import MediaStack, build_media_stack, load_config
@@ -483,6 +484,37 @@ def cmd_render_pdf(args: argparse.Namespace) -> int:
     return EXIT_CONFIG_INVALID
 
 
+def cmd_lint_numbers(args: argparse.Namespace) -> int:
+    """納品物（原稿 md）の裸数値スキャン。結果は JSON 1 行で stdout、read-only。
+
+    走査が完了すれば裸の有無に関わらず `EXIT_OK`——二値は JSON 内の値で、exit code
+    （0-4 は外部契約）に新しい意味を重ねない。読めなければ `EXIT_CONFIG_INVALID`
+    （`cmd_render_pdf` と同型）。裸 0 件でも 1 行出す（黙る計器は掛け忘れと全緑を
+    区別させない）。config / lease / レジストリには触れない。
+    """
+    path = Path(args.path)
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"lint-numbers: cannot read {path.name}: {exc}", file=sys.stderr)
+        return EXIT_CONFIG_INVALID
+
+    report = lint_numbers(text)
+    print(
+        json.dumps(
+            {
+                "path": str(args.path),
+                "number_lines": report.number_lines,
+                "covered": report.covered,
+                "bare": report.bare,
+                "bare_lines": report.bare_lines,
+            },
+            ensure_ascii=False,
+        )
+    )
+    return EXIT_OK
+
+
 def _read_text_file(path_str: str) -> str | None:
     """--text-file を読む（send-reply / proactive-send 共通）。OK なら本文、NG なら None
     （stderr 出力済み、呼び出し側で EXIT_CONFIG_INVALID）。`_load_owned_lease` と同型。
@@ -842,6 +874,13 @@ def build_parser() -> argparse.ArgumentParser:
     g_render.add_argument(
         "--pages", help="画像化するページ範囲 N-M（1-indexed inclusive）"
     )
+
+    p_lint = sub.add_parser(
+        "lint-numbers",
+        help="納品物（原稿 md）の数字行に計器トークンが同じ行にあるかを走査",
+    )
+    p_lint.set_defaults(handler=cmd_lint_numbers)
+    p_lint.add_argument("path", help="走査する納品物原稿のパス（.md 推奨）")
 
     # 管理表 CRUD（8表）。/telegram-secretary が全操作をラップする入口。
     # 表名は REGISTRY_SPEC（SSoT）から生成し、cmd_registry を共有するため
