@@ -107,15 +107,7 @@ DigestAnalyzer の出力は以下のように使い分けられます：
 
 ### digest_type の選択
 
-DigestConfig から取得可能な digest_type 一覧:
-
-```python
-from application.config import DigestConfig
-config = DigestConfig()
-# デフォルト: ["洞察", "発見", "実装", "失敗", "転換", "継承", "予言", "統合", "進化", "覚醒"]
-```
-
-以下から最も適切なものを選択（または新規作成）：
+既定の digest_type は次の 10 種。最も適切なものを選ぶか、当てはまらなければ新しく作る：
 
 - **洞察**: 新たな理解や気づき
 - **発見**: 具体的な発見や成果
