@@ -95,14 +95,12 @@ at hand for the next reflection   (skills/reflect/SKILL.md → Load Context)
 
 Four things this makes explicit:
 
-- **Replies do come back.** They are pulled from the inbox over IMAP and land on disk; the
-  plugin no longer sends into a channel with nothing on the return leg
+- **Replies do come back.** They are pulled from the inbox over IMAP and land on disk
 - **The mail goes back out tied to what it answers.** `--in-reply-to` puts `In-Reply-To` and
-  `References` on the outgoing mail, so the string runs both ways instead of one. Without the
-  flag nothing is added and the mail stands as a new thread, which is the old behaviour and
-  still the right one for an essay that answers nothing. Gmail's conversation view also
-  groups by subject, so a mail meant to sit visibly under a reply wants a subject that
-  matches it (`Re: …`); the headers alone are what other clients thread on
+  `References` on the outgoing mail. Without the flag nothing is added and the mail stands as
+  a new thread, which is the right shape for an essay that answers nothing. Gmail's
+  conversation view also groups by subject, so a mail meant to sit visibly under a reply wants
+  a subject that matches it (`Re: …`); the headers alone are what other clients thread on
 - **Nothing polls.** `replies fetch` runs when something runs it — a reflection, or an OS
   scheduler entry (`SETUP.md` → **Scheduling Reply Ingestion**). Between runs, a reply sits in
   the inbox unread by the plugin
