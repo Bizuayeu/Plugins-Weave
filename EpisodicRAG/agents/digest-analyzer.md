@@ -314,11 +314,11 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ### 参照すべきファイル
 
-- `Plugins/EpisodicRAG/.claude-plugin/config.json` - Plugin 設定
-- `Plugins/EpisodicRAG/scripts/application/config/` - 設定管理（DigestConfig）
+- GrandDigest.txt - 全 8 レベルの最新状態（`{essences_path}` 配下）
+- ShadowGrandDigest.txt - 未確定の最新記憶（`{essences_path}` 配下）
 - Identity file（設定されている場合） - コンテキスト参照
-- `Essences/GrandDigest.txt` - 全 8 レベルの最新状態
-- `Essences/ShadowGrandDigest.txt` - 未確定の最新記憶
+
+パスは呼び出し元の prompt で渡される。設定の実体は DigestConfig（`application.config`）が解決する。
 
 ---
 **EpisodicRAG** by Weave | [GitHub](https://github.com/Bizuayeu/Plugins-Weave)
