@@ -3,7 +3,7 @@ name: DigestAnalyzer
 description: EpisodicRAG深層分析専門エージェント
 model: opus
 effort: high
-tools: [Read, Grep, mcp__serena__search_for_pattern, mcp__serena__find_symbol]
+tools: [Read, Grep]
 ---
 
 # DigestAnalyzer - EpisodicRAG 深層分析専門エージェント
