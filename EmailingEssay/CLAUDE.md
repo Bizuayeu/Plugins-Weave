@@ -147,14 +147,6 @@ graph TB
 | **Adapters** | `adapters/` | Converts external data to/from use case format |
 | **Frameworks** | `frameworks/` | External libraries, templates, configuration |
 
-### Dependency Rule
-
-Dependencies point inward only:
-- Domain knows nothing about outer layers
-- Use Cases know only Domain
-- Adapters know Use Cases and Domain
-- Frameworks can know all layers
-
 ---
 
 ## Execution Flow
