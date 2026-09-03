@@ -24,13 +24,10 @@ This command is a wrapper for `agents/essay-writer.md`. The actual reflection an
 
 ### Execution Directive
 
-**CRITICAL**: When `/essay` is invoked (any mode except `test`), you MUST:
-
-1. Use the **Task tool** to invoke `agents/essay-writer.md`
-2. Pass parameters as specified in the table below
-3. Do NOT process reflection logic directly in this command context
-
-The command layer handles user interface concerns only. All reflection and writing logic MUST be delegated to the agent.
+For every mode except `test`, invoke `agents/essay-writer.md` with the Task tool and pass the
+parameters in the table below. Reflection and writing happen in the agent, not here: keeping
+them out of this context preserves the parent conversation's token budget and lets the same
+agent serve the command, the scheduler and external triggers alike.
 
 Execution flow for each mode:
 
