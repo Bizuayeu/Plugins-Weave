@@ -179,10 +179,9 @@ forge a row of the listing.
 ### Essay Bodies Are Escaped, Not Trusted As Markup
 
 `send_custom()` treats its content as plain text and escapes it before it is put into the
-HTML template. Before v1.5.0 it did not, and text that looked like markup was read as markup
-by the renderer: the essay of 2026-08-26 mentioned an HTML comment, and the word inside it
-never reached the reader. Escaping happens before newlines become paragraph tags, so the tags
-the plugin adds are its own and everything the essay wrote is content.
+HTML template. Escaping happens before newlines become paragraph tags, so the tags the plugin
+adds are its own and everything the essay wrote is content: a passage quoting code or markup
+reaches the reader intact instead of being swallowed by the renderer.
 
 ---
 
