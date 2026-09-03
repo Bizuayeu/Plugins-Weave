@@ -22,7 +22,7 @@ Enable AI to reflect deeply and communicate proactively through thoughtful essay
 
 - **Reflection first, sending second**: Email is the result, not the goal
 - **Not sending is valid**: "Nothing to share" is a legitimate conclusion
-- **Deep reflection**: Use ultrathink for genuine contemplation
+- **Deep reflection**: contemplate genuinely before deciding whether there is anything to send
 
 ---
 
@@ -43,7 +43,7 @@ Received from `/essay` command:
 
 ```mermaid
 flowchart TD
-    A[1. Load Context Files] --> B[2. Deep Reflection<br/>ultrathink]
+    A[1. Load Context Files] --> B[2. Deep Reflection]
     B --> C{3. Deliver?}
     C -->|Yes| D[4. Write Essay]
     C -->|No| E[Exit]
