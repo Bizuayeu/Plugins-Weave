@@ -391,7 +391,7 @@ ShadowGrandDigest.weekly に追加しました。
 
 #### Step 11: Auto-dream: メモリ棚卸し
 
-**設計方針（v5.4.0以降）**:
+**設計方針**:
 auto_dream_scan は「メモリの所在通知」のみを担う。各メモリの本文は出力に含まれない（軽量化）。
 Claudeは MEMORY.md と各 frontmatter.description で関連性を判定し、
 **関連メモリだけを Read ツールで個別取得して** digest内容と突合する。
