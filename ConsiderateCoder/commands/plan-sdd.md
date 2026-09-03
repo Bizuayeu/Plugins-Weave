@@ -293,9 +293,7 @@ args に「`IMPLEMENTATION_PLAN.md` を正典として全 Stage を実装」を�
 
 ## 重要事項
 
-- **TDD Flow を裏切らない**: Stage 内で Red → Green → Refactor → Commit の順序を守る
-- **Clean Architecture の依存方向を裏切らない**: 内向きのみ
-- **ドキュメントを後回しにしない**: 計画段階で確認自体を組み込む（実作成は完了時）
+- **dev-rules（TDD Flow・依存方向・ドキュメント）を裏切らない**
 - **SSoT (Single Source of Truth) を維持**: 同じ情報を複数ドキュメントに重複記述しない。一次ソースを確定し、他は参照ポインターに留める（重複記述は片方が古くなる事故の温床）
 - **3-Strike Rule**: 計画立案で 3 回詰まったら、`AskUserQuestion` で方針を仰ぐ
 - **接続設問は常設**: Phase 7 の「`/outsource` による実装に進むか」は、判断分岐がゼロでも必ず問う（「過剰な質問の禁止」の唯一の例外）。裁可を得ずに実装へ着手しないこと、裁可を代わりに下さないことが原則
