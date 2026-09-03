@@ -152,26 +152,10 @@ Read(file_path="{loops_path}/L00199_技術探究.txt", offset=0, limit=500)
 Read(file_path="{loops_path}/L00199_技術探究.txt", offset=500, limit=500)
 ```
 
-### Grep/mcp**serena**\*（補助的検索のみ）⚠️
+### Grep（所在の確認）
 
-**用途**: 特定キーワードや構造的パターンの検索
-
-- ⚠️ 特定キーワードの検索（例: "emotional error"）
-- ⚠️ 構造的パターンの発見（例: 特定の関数定義）
-- ❌ **メイン分析には使用しない**（全文読み込みが必要）
-
-**使用例**:
-
-```python
-# キーワード検索（補助的用途のみ）
-Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches")
-```
-
-**重要**:
-
-- Read が主、Grep/mcp**serena**\*は補助
-- 全文分析は Read ツールで実施
-- Grep は特定情報の検索に留める
+分析対象は Read で全文を読む。Grep は、特定の語や構造がどのファイルにあるかを
+確かめるときに使う（例: `Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches")`）。
 
 ---
 
