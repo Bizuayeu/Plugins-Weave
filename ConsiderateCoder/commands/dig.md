@@ -140,8 +140,8 @@ Check each criterion:
 - [ ] The plan file reflects all decisions made
 </completeness_checklist>
 
-**If ANY checkbox is unchecked**: Return to Phase 3 with the remaining items.
-**If ALL checkboxes are checked**: Proceed to generate the final summary.
+Return to Phase 3 while high-risk assumptions remain unaddressed and rounds keep surfacing new decisions.
+When a round yields nothing new, write the final summary and state any criterion left unmet and why.
 
 ### Final Summary
 
