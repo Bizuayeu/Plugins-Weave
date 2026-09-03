@@ -26,11 +26,11 @@ You are setting up the EmotionPulse plugin. This plugin displays the model's emo
 
 ### Step 1: Verify plugin location
 
-Check that the EmotionPulse plugin exists by reading:
-- `~/DEV/plugins-weave/EmotionPulse/scripts/domain/constants.py`
-
-If not found, also try:
+Check that the EmotionPulse plugin exists by reading the installed path first:
 - `~/.claude/plugins/marketplaces/plugins-weave/EmotionPulse/scripts/domain/constants.py`
+
+Only when developing against a working tree, fall back to it (this path is environment-specific):
+- `<your-dev-folder>/plugins-weave/EmotionPulse/scripts/domain/constants.py`
 
 Store the found path as `<plugin_dir>`. If neither found, inform the user and stop.
 
