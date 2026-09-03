@@ -96,9 +96,11 @@ Step 1 の CLI 実行時、以下の全ステップがCLI内部で処理され�
 
 ## 出力例
 
-### エラー系（即終了）
+`status` は `error` / `warning` / `ok` の 3 値。以下は各 1 例で、実際の構造は CLI 出力を
+そのまま読む。
 
-#### 例 1: 初期セットアップ未完了
+### error（即終了）
+
 
 ```json
 {
@@ -108,17 +110,8 @@ Step 1 の CLI 実行時、以下の全ステップがCLI内部で処理され�
 }
 ```
 
-#### 例 2: ShadowGrandDigest 未作成
+### warning（処理継続）
 
-```json
-{
-  "status": "error",
-  "error": "ShadowGrandDigest.txt not found",
-  "action": "Run @digest-setup"
-}
-```
-
-#### 例 3: 未処理 Loop 検出（まだらボケ予防）
 
 ```json
 {
@@ -130,35 +123,8 @@ Step 1 の CLI 実行時、以下の全ステップがCLI内部で処理され�
 }
 ```
 
-#### 例 4: プレースホルダー検出（まだらボケ）
+### ok（推奨アクション）
 
-```json
-{
-  "status": "warning",
-  "issues": [
-    {"type": "placeholders", "level": "weekly", "count": 3, "files": ["L00196", "L00197", "L00198"]}
-  ],
-  "recommendations": ["Run /digest to complete analysis"]
-}
-```
-
-### 警告系（処理継続）
-
-#### 例 5: 中間ファイルスキップ検出
-
-```json
-{
-  "status": "warning",
-  "issues": [
-    {"type": "gaps", "level": "weekly", "range": "L00006-L00009", "missing": [7]}
-  ],
-  "recommendations": ["Add missing files to prevent memory gaps"]
-}
-```
-
-### 正常系（推奨アクション）
-
-#### 例 6: 生成可能なダイジェストあり
 
 ```json
 {
@@ -168,36 +134,6 @@ Step 1 の CLI 実行時、以下の全ステップがCLI内部で処理され�
     {"level": "weekly", "current": 7, "threshold": 5, "ready": true}
   ],
   "recommendations": ["Run /digest weekly to generate Weekly Digest"]
-}
-```
-
-#### 例 7: 生成不可・ファイル不足
-
-```json
-{
-  "status": "ok",
-  "issues": [],
-  "generatable_levels": [
-    {"level": "weekly", "current": 3, "threshold": 5, "ready": false, "needed": 2}
-  ],
-  "recommendations": ["Add 2 more Loop files"]
-}
-```
-
-#### 例 8: 複数階層生成可能
-
-```json
-{
-  "status": "ok",
-  "issues": [],
-  "generatable_levels": [
-    {"level": "weekly", "current": 10, "threshold": 5, "ready": true},
-    {"level": "monthly", "current": 5, "threshold": 5, "ready": true}
-  ],
-  "recommendations": [
-    "Run /digest weekly first",
-    "Then run /digest monthly"
-  ]
 }
 ```
 
