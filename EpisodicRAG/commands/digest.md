@@ -62,7 +62,7 @@ python -m interfaces.save_provisional_digest weekly {digests_path}/temp_individu
 
 ### 3. UIメッセージ出力
 
-> **UIメッセージ出力時は必ずコードブロックで囲むこと！**
+> **UI メッセージはコードブロックで囲む。**
 > VSCode拡張では単一改行が空白に変換されるため、
 > 対話型メッセージは三連バッククォートで囲む必要があります。
 

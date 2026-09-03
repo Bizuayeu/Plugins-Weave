@@ -59,7 +59,7 @@ cd <your-dev-folder>/plugins-weave/EpisodicRAG/scripts
 
 ### 4. UIメッセージ出力
 
-> **UIメッセージ出力時は必ずコードブロックで囲むこと！**
+> **UI メッセージはコードブロックで囲む。**
 > VSCode拡張では単一改行が空白に変換されるため、対話型メッセージは三連バッククォートで囲む必要があります。
 
 > 📖 共通の実装ガイドラインは [_implementation-notes.md](../skills/shared/_implementation-notes.md) を参照してください。
