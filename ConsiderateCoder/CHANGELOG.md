@@ -2,6 +2,19 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.6.1] - 2026-09-04
+
+### Changed
+
+- prompt-audit（2026-09-03、対象モデル Fable 5.1）の所見を commands / agents に適用。挙動に効くのは
+  `/dig` の二点——完了の門を「全チェックが付くまで戻れ」から収束基準（新しい決定が出なくなったら止まり、
+  未達の基準は理由を添えて明示する）へ（W1a-F08）、通知システムの gold example と末尾の再掲壁を除去
+  （W1a-F02 / F03。multiSelect の既定と TodoWrite の進捗追跡は本文へ移設）
+- `agents/orchestrator.md` の死んだ版数条件（CLI v2.1.217–218 の既定 1）を落とし、環境変数の候補だけ残す（W1a-F05）
+- `agents/worker.md` の `model: opus` に配役の理由行（手数型 Opus、判断は親に残す＝意図的 pin）を添える（W1a-F04）
+- `commands/plan-sdd.md` の接続設問の二重記述・近似重複・dev-rules 再掲 3 行を畳む（W1a-F09 / F12 / F13）。
+  回帰テストの検出語を「必ず最後」にも広げた
+
 ## [1.6.0] - 2026-08-25
 
 ### Added
