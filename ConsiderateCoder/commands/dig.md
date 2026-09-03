@@ -72,6 +72,7 @@ Conduct iterative rounds of deep questioning using AskUserQuestion tool.
 - Avoid open-ended questions -- provide specific choices
 - "Other" option is auto-added -- don't include it
 - Align options with existing patterns from CLAUDE.md (if available)
+- Use multiSelect sparingly (default: false)
 </rules>
 
 <question_categories>
@@ -94,7 +95,7 @@ After each answer round:
 1. Analyze the answer for NEW assumptions it reveals
 2. Follow up on the most interesting thread before moving to a new topic
 3. Go at least **2 levels deep** on each major topic before moving on
-4. Track which assumption categories remain unexplored
+4. Track which assumption categories remain unexplored (TodoWrite)
 </digging_strategy>
 
 ### Phase 4: Apply & Integrate
@@ -220,16 +221,3 @@ replicas behind a load balancer. How will you handle WebSocket session
 affinity?"
 (This question was DISCOVERED by digging into the Round 1 answer)
 </example>
-
-## Important Notes
-
-- **Must use AskUserQuestion tool** - Never use conversational questions
-- Each option must include **pros/cons**
-- Use multiSelect sparingly (default: false)
-- Read CLAUDE.md before generating questions to align with project patterns
-- **Depth first** - Go 2+ levels deep on a topic before switching to a new one
-- **Challenge, don't just clarify** - If an assumption seems reasonable, still question it
-- **Track your progress** - Use TodoWrite to track which assumption categories have been explored
-- **Don't ask obvious questions** - Focus on the hard parts the user might not have considered
-- **Write discoveries to the plan** - Every decision must be reflected in the plan file, not just reported
-- **Know when to stop** - Complete the Phase 5 checklist honestly; don't loop indefinitely
