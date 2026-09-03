@@ -1,6 +1,7 @@
 ---
 name: DigestAnalyzer
 description: EpisodicRAG深層分析専門エージェント
+# 配役: 長文 Loop の並列読み込み＝幹型（手数型 Opus、キャッシュ経済）。判断精度を優先するなら inherit へ（意図的 pin、Opus 5 プレイブック §5・§7）
 model: opus
 effort: high
 tools: [Read, Grep]
