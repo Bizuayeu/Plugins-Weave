@@ -1,6 +1,7 @@
 ---
 name: worker
 description: スコープ済みタスクの調査・実装・検証を完遂する実働部隊。関心事一つに絞ったブリーフ（十分な文脈・完了定義・報告形式付き）を渡して起動する。
+# 配役: 実装・収集・ツール駆動＝手数型 Opus。判断・裁可は親（Fable）に残す（意図的 pin、Opus 5 プレイブック §5）
 model: opus
 effort: high
 disallowedTools: Agent
