@@ -154,7 +154,7 @@ graph TB
 ```text
 User → /essay command → essay-writer.md agent
                               ↓
-                    reflect skill (ultrathink)
+                    reflect skill
                               ↓
                     Delivery Decision
                               ↓
