@@ -459,8 +459,6 @@ python -m interfaces.auto_dream_scan
 - Step 11はdigest処理の成否に影響しない（失敗してもdigest自体は完了）
 - メモリファイルの更新はClaude Codeシステムパス上のファイル（gitコミット対象外）
 - auto-memoryが無効な環境では自動スキップ
-- メモリ件数が50件を超えてくる場合、機械的全件カバー方式（last_synced_loop stamp 等）への
-  切り替えを再検討する
 
 ---
 
