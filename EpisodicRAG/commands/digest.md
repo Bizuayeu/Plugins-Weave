@@ -190,6 +190,7 @@ python -m interfaces.digest_entry --output json
 
 **プロンプトに含める情報**:
 - 対象ファイルのフルパス: `{loops_path}/L00260_タイトル.txt`
+- GrandDigest / ShadowGrandDigest の絶対パス（`{essences_path}` 配下。Step 1 の出力にある）
 - 出力形式の指示（long/short両方）
 
 ---
@@ -636,6 +637,8 @@ Task(
     description=f"Analyze {source_file} for Weekly digest",
     prompt=f"""
 分析対象ファイル: {file_path}
+GrandDigest: {essences_path}/GrandDigest.txt
+ShadowGrandDigest: {essences_path}/ShadowGrandDigest.txt
 
 このファイルを深層分析し、以下の形式でJSON出力してください：
 {{
@@ -822,6 +825,8 @@ python -m interfaces.finalize_from_shadow monthly "理論的深化・実装加�
        description=f"Analyze {source_file} for next level digest",
        prompt=f"""
    分析対象ファイル: {file_path}
+   GrandDigest: {essences_path}/GrandDigest.txt
+   ShadowGrandDigest: {essences_path}/ShadowGrandDigest.txt
 
    このファイルを深層分析し、以下の形式でJSON出力してください：
    {{
