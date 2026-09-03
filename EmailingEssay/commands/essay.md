@@ -312,7 +312,6 @@ python main.py send --subject-file subject.txt --body-file body.txt
 python main.py send "Subject" --body-file body.txt   # the two forms mix
 ```
 
-This is what a throwaway sending script used to be written for; one is no longer needed.
 Files are read `utf-8-sig` and their newlines normalized, and a body that is empty or
 contains a blank line is refused before anything is sent.
 
