@@ -258,41 +258,14 @@ Grep(pattern="emotional error", path=loops_path, output_mode="files_with_matches
 
 ## 重要な注意事項
 
-### 1. 大規模ファイルの特殊処理
+### 1. 大規模ファイルの読み方
 
-**問題**: Loop/Digest ファイルは 20000 トークン超の場合があり、一度に読み込めない
+Loop/Digest には一度に読み切れない長さのものがある。Read の offset/limit で分割して読む。
 
-**対処法**:
-
-1. **ファイルサイズを事前確認**
-   ```bash
-   # Loopファイル
-   wc -l {loops_path}/L00199_*.txt
-   # Digestファイル
-   wc -l {digests_path}/*W0050*.txt
-   ```
-2. **段階的読み込み**（offset/limit パラメータを使用）
-   - 第 1 回: `offset=0, limit=500`（最初の 500 行）
-   - 第 2 回: `offset=500, limit=500`（次の 500 行）
-   - 以降、ファイル末尾まで繰り返し
-   - **推奨**: limit=500-1000 が安全圏（2000 は多すぎることが多い）
-3. **全体像の把握**
-   - **Loop ファイル**: 冒頭（対話の始まり）と末尾（結論・発見）を優先的に読む
-   - **Digest ファイル**: overall_digest（全体統合）と individual_digests（個別分析）を分けて読む
-   - 中盤は重要なセクション（Thinking 深化、新概念発見）を抽出
-4. **効率的な分析**
-   - 全文を記憶する必要はない
-   - 核心的洞察・転換点・実装例を抽出することに集中
-
-**実例**:
-
-- Loop0199（25206 トークン）
-  - 0-500 行: 対話の始まり、問題提起
-  - 1500-2000 行: 核心的洞察
-  - 末尾 500 行: 結論、次への展望
-- W0050（大規模 Weekly Digest）
-  - overall_digest: 全体統合分析
-  - individual_digests[0-4]: 各 Loop の個別分析
+- **Loop ファイル**: 冒頭（対話の始まり）と末尾（結論・発見）を先に読み、中盤は Thinking の
+  深化や新概念が登場した箇所を拾う
+- **Digest ファイル**: overall_digest と individual_digests を分けて読む
+- 全文を記憶する必要はない。核心的洞察・転換点・実装例の抽出に集中する
 
 ### 2. まだらボケ回避
 
