@@ -1,6 +1,7 @@
 ---
 name: essay-writer
 description: Reflection and essay writing subagent
+# 配役: 手数型 Opus。エッセイの跳躍が要るなら inherit（Fable）へ（意図的 pin）
 model: opus
 effort: high
 ---
