@@ -257,7 +257,7 @@ dev-rules の優先順位（Testability > Readability > Consistency > Simplicity
 ## Phase 7: 裁可と接続
 
 報告を散文で置いて応答を待つのではなく、`AskUserQuestion` で裁可を仰ぐ。
-計画中の判断分岐を設問へ変換し、**最後の設問として「この計画で `/outsource` による実装に進むか」を必ず問う**。
+計画中の判断分岐を設問へ変換する（接続設問の置き方は直下の「設問の構成」が規定する）。
 
 ### 設問の構成
 
