@@ -388,7 +388,7 @@ python scripts/main.py init-config --session-duration-sec <秒> --agent-name <�
    - `job_config.ccr.environment_id`: 上記で控えた id
    - `job_config.ccr.events[0].data.message.content`: **この ROUTINE_PROMPT.md の「## あなたへ」〜「## Failure modes」までの本文**（本ライフサイクル管理節は含めない）。送信前に本文中の **`<INSTALL_DIR>` を skill の実配置パス**（cwd＝2リポ親起点での本スキルへの相対パス。例 `my-config-repo/TelegramSecretary`）、**`<BASE_REPO>` を `sources` の基本設定リポ名**（例 `my-config-repo`）、**`<PRIVATE_DIR>` を config の `private_dir`**（例 `my-private-repo/TelegramSecretary`）へ**置換**する（cwd＝2リポ親起点で bootstrap 前の Read/source 行を解決可能にする。bootstrap 後は env 解決ゆえ置換対象外）
    - `job_config.ccr.session_context.sources`: 本体リポ＋ Private リポの git URL
-   - `job_config.ccr.session_context.outcomes`: **registry の push に `registry_branch` の名指し宣言は不要**（2026-06-05 worktree 移行後）。管理表は `registry_dir`（独立 worktree）から `registry_cli` が固定ブランチ `claude/ts-registry` へ直接 push する方式ゆえ（`bootstrap.sh` 層1 provisioning ＋ `GitCliAdapter.push`、**DESIGN §3.6 が SSoT**）、harness の `outcomes` 配線（session 末の作業ブランチ push）には依存しない。outcomes は自動採番ブランチのままでよい。body スキーマ形式は `schedule` skill / `MEMORY: reference_remote_trigger_update` を正典参照
+   - `job_config.ccr.session_context.outcomes`: **registry の push に `registry_branch` の名指し宣言は不要**。管理表は `registry_dir`（独立 worktree）から `registry_cli` が固定ブランチ `claude/ts-registry` へ直接 push する方式ゆえ（`bootstrap.sh` 層1 provisioning ＋ `GitCliAdapter.push`、**DESIGN §3.6 が SSoT**）、harness の `outcomes` 配線（session 末の作業ブランチ push）には依存しない。outcomes は自動採番ブランチのままでよい。body スキーマ形式は `schedule` skill / `MEMORY: reference_remote_trigger_update` を正典参照
    - `job_config.ccr.session_context.allowed_tools`: `["Bash","Read","Write","Edit","Glob","Grep","WebFetch","WebSearch"]`（秘書の依頼対応での調べ物に `WebFetch`/`WebSearch` を許可）
    - `job_config.ccr.session_context.model`: 上表 Model
 
