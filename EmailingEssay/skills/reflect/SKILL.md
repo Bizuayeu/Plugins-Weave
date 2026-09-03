@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: Deep reflection skill (ultrathink enabled)
+description: Deep reflection skill - read memory and context, decide whether there is something worth sending
 ---
 
 # reflect - Reflection Skill
@@ -62,9 +62,9 @@ Read specified files as material for reflection.
 - Recent conversation logs
 - Identity/persona files
 
-### 2. Deep Reflection (ultrathink)
+### 2. Deep Reflection
 
-Use extended thinking to contemplate:
+Contemplate:
 
 - Insights emerging from context
 - Unresolved questions
