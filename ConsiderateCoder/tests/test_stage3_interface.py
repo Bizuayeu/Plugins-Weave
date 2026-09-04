@@ -161,8 +161,7 @@ def test_plan_sdd_final_approval_phase() -> None:
         i for i, line in enumerate(lines) if "outsource" in line.lower()
     ]
     last_question_line_idxs = [
-        i for i, line in enumerate(lines)
-        if "最後の設問" in line or "必ず最後" in line
+        i for i, line in enumerate(lines) if "最後の設問" in line or "必ず最後" in line
     ]
     assert last_question_line_idxs, "plan-sdd.md has no '必ず最後' rule"
     assert any(
