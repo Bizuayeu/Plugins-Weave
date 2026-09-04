@@ -2,6 +2,90 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.15.2] - 2026-09-04 — 件数絞りが依頼を落とさない（tasks 射影の active 免除と exit 表記の是正）
+
+2026-09-04、active タスクの古い id が `--tasks-latest 9` の窓から落ち、依頼そのものが起動時に
+見えなくなった。v1.10.0 の校正「active 6 件が 1 件も落ちない最大の絞り」は当時の母集団に対する
+実測値であり、母集団が育てば同じ形で再発する——定常タスクは id の若い側に居座り、件数絞りは
+id の若い側から落とすからである。本版は校正値を付け直すのではなく、**active を件数絞りの対象から
+外す**ことで再発の形そのものを塞ぐ。あわせて、実態と食い違っていた `artifacts-sync` /
+`handoff-archive` の exit 表記を是正する（コードは無変更）。
+
+### Changed
+
+- **`--tasks-latest N` の意味論を「terminal の件数上限」へ** — active（`open` / `in_progress` /
+  `blocked`）は N に関わらず常に全件載り、絞られるのは terminal（`done` / `cancelled` 等）だけ。
+  **`0` は「terminal 全捨て」**で未指定へ逆転しない規約は不変（判定は `is not None`）。見出しは
+  母数を分けて開示する:
+  `## tasks (A active + latest N of T terminal records, newest last, summary: id | status | priority | due_date | title)`。
+  実装は UseCase 層の新規純関数 `select_task_rows`（`ACTIVE_TASK_STATUSES` で active / terminal に
+  分け、terminal 側だけを `pick_latest_by_id` に通して合流、id 昇順へ戻す）。`pick_latest_by_id` は
+  knowledge / steps と共用ゆえ**不変**。`--tasks-latest` 未指定時の出力は 1 バイトも変わらない
+  （既定スナップショットテストが錠のまま green）
+- **ROUTINE_PROMPT Step 5 の校正値を新意味論で実測し直した** — `--tasks-latest 9` は**据置**
+  （terminal 側の窓は変えない）、`--notes-tail` を **500 → 200**（本実測）。active 全件の notes
+  末尾が復活する分は `--notes-tail` で収める（2026-09-04 裁可）——`--tasks-latest` はもう active に
+  効かないので、溢れを絞れるのは notes の幅の側だけである。active の notes 末尾は短くなるが、全文は
+  `tasks get --key` で引ける。実測表と母集団は下記 Notes
+- **`artifacts-sync` / `handoff-archive` の exit 表記を実態へ是正（コードは無変更）** — exit 1 は
+  `GitSyncError` 例外時のみ。push 失敗は UseCase `RegistrySyncService` が握り、**exit 0 ＋ stdout の
+  `pushed=False`** で伝える（commit はローカルに残り次回再送）。best-effort な設計を exit code で
+  表現し直すのではなく、表記を実態へ合わせた。`wal-push` / `wal-drop` の `1=push 失敗` は真に
+  must-succeed ゆえ表記は正確＝据置
+- **テスト側の追従** — `test_orientation.py` に `test_tasks_latest_exempts_active_rows_with_older_ids`
+  と `test_tasks_latest_headline_counts_the_terminal_rows_actually_shown` を足し、
+  `test_zero_tasks_latest_empties_the_summary_instead_of_passing_all_rows` を
+  `test_zero_tasks_latest_drops_all_terminal_but_keeps_active` へ改訂。既存の `--tasks-latest` テストは
+  全件 `status=open`（`_task` ファクトリの既定）で書かれており新意味論では絞られないため、データを
+  terminal 混在へ書き換えて意図を保った。Interface 層の
+  `test_registry_cli.py::test_orientation_tasks_latest_is_wired_from_the_cli` も旧見出しを錠にしていた
+  ため見出しへ追従させた
+
+### Fixed
+
+- **active の古い id が `--tasks-latest` の窓から落ち、日次日報が落ちかけた**（2026-09-04）— active
+  5 件のうち **T0005 / T0007** が `--tasks-latest 9` の窓（T0010〜T0018）に入らず、起動時の一行要約
+  にも notes にも載っていなかった（台帳を直接走査して確認）。定常タスクは id の若い側に居座るので、
+  件数絞りが active を落とす形は母集団が変われば再発する——人手の校正値ではなくコードで保証する
+
+### Notes
+
+- **実測条件**: バックアップ registry（2026-09-04 取得）の scratchpad 複製に対する read-only
+  実行（正典・Private リポ・バックアップ実体とも非接触）。再測で焼いた値と全一致を確認済み。他 8 値は
+  `--knowledge-latest 30 --handoff-latest 2 --handoff-cap 2500 --profile-cap 500 --abilities-cap 700
+  --individuals-cap 400 --goals-cap 500 --steps-latest 10`、閾値 25,600 バイト（`ORIENTATION_WARNING_BYTES`）
+
+  | 条件 | ノブ差分 | digest bytes | 余裕 |
+  |---|---|---:|---:|
+  | 基線（v1.10.0 採用値のまま） | `--tasks-latest 9 --notes-tail 500` | 25,025 | 575 |
+  | **採用** | `--tasks-latest 9 --notes-tail 200` | **23,524** | **2,076** |
+  | 中間 | `--tasks-latest 9 --notes-tail 300` | 24,024 | 1,576 |
+  | 中間 | `--tasks-latest 9 --notes-tail 400` | 24,527 | 1,073 |
+  | terminal 全件 | `--tasks-latest` 省略 `--notes-tail 200` | 23,964 | 1,636 |
+  | terminal 全捨て | `--tasks-latest 0 --notes-tail 200` | 21,894 | 3,706 |
+
+  母集団: tasks 18 件（**active 5**＝open 2 + in_progress 3、**terminal 13**＝done 12 + cancelled 1）／
+  knowledge 419 件／subjects 9 件／individuals 1 件／abilities 1 件／profile 4 件／**goals 0 件 /
+  steps 0 件**／handoff 25 ブロック（`--handoff-latest 2` ゆえ 2 使用）。
+- **採用値の出所** — 基線（v1.10.0 の 10 値そのまま）の余裕 **575 バイト**は active 1 件分（下記
+  成長単位 691 バイト）に満たず、次の起票で溢れる。`--tasks-latest` はもう active に効かないため、
+  収める先は `--notes-tail` の側になる。`--notes-tail 200` の余裕 2,076 バイトは active 約 5 件分。
+  `--tasks-latest 9` を据置にしたのは、terminal 側の窓を変える理由が本版に無いため
+- **成長単位（+1 active、実測）**: `--notes-tail 500` で **+691 バイト**（基線 25,025 → 25,716＝
+  **閾値超、WARNING 発火**）、`--notes-tail 200` で **+391 バイト**（23,524 → 23,915）。増分は
+  ≈ `notes_tail` ＋ title のバイト数 ＋ 約 48 バイトの固定分で、391 は title 143 バイトの実レコード
+  由来＝**レコード固有値であって定数ではない**（title が長いタスクなら下限寄りになる）
+- **`--steps-latest 10` は仮置きのまま継承** — steps 0 件ゆえ本版でも件数絞りの効果を測れていない。
+  昇格トリガーは [1.10.0] Notes と同じ＝**steps に実データが入った枠で実測校正する**
+- **Step 5 を変更したため、本番へ届けるには cloud routine の body 再登録が必要**（リポ修正だけでは
+  到達しない）。手順は `RemoteTrigger` の get → modify → update（v1 ネスト・`session_context` は全体を
+  保持）。**本版時点で未実施**——不可逆かつ一度きりの経路ゆえ人手で行う。Stage 完了 ≠ 本番反映で、
+  次枠の stderr `orientation digest: N bytes` を一度見るまで完了と呼ばない
+- **ShioriSecretary への移植は本版に含まない（未着手）** — 配布版は `scripts/usecases/orientation.py`
+  に同一の `_tasks_section` を持つ。v1.15.1 を同時公開したロックステップ運用ゆえ、v1.15.2 相当を別途
+  移植する（採用値そのものは配らない＝配布三則）
+- ローカル再現時の注意（Windows cp932 環境の `PYTHONIOENCODING=utf-8`）は [1.10.0] Notes と同じ
+
 ## [1.15.1] - 2026-09-02 — 裸数値の網を handoff へ広げ、構成図の欠落一件を埋める
 
 v1.15.0 の cc-defer（handoff 側への適用拡大は裸率の再悪化をトリガーに再検討）を、トリガーを
