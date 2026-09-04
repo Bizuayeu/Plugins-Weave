@@ -242,6 +242,22 @@ def pick_latest_by_id(
     return [dict(row) for row in ordered[-latest:]]
 
 
+def select_task_rows(
+    rows: Sequence[Mapping[str, Any]], latest: int
+) -> list[dict[str, Any]]:
+    """tasks の件数絞りを **terminal だけ**に掛け、active は全件通す（id 昇順で返す）。
+
+    active を落とすと依頼そのものが起動時に見えなくなる（2026-09-04 T0005/T0007——定常
+    タスクは id の若い側に居座るため、末尾 N 件の窓から先に落ちる）。latest は terminal
+    の件数上限であって母数全体の上限ではない——0 は「terminal 全捨て」で、`pick_latest_by_id`
+    の「非正は 0 件」規約はそのまま terminal 側に効く。
+    """
+    active = [dict(row) for row in rows if row.get("status") in ACTIVE_TASK_STATUSES]
+    terminal = [row for row in rows if row.get("status") not in ACTIVE_TASK_STATUSES]
+    merged = active + pick_latest_by_id(terminal, latest)
+    return sorted(merged, key=lambda r: str(r.get("id", "")))
+
+
 def tail_notes(notes: str, notes_tail: int = DEFAULT_NOTES_TAIL) -> str:
     """notes の末尾 notes_tail バイト（申し送りは末尾に堆積するため頭を捨てる）。
 
@@ -393,14 +409,24 @@ class OrientationService:
 
         落ちた task の notes だけが残ると、要約に無い id の申し送りを読む羽目になる
         （落ちた分の読み筋は `get --key`）。母数は見出しの `of M` で開示する。
+        絞りが掛かるのは terminal だけ（`select_task_rows`）なので、見出しは
+        active 件数と terminal 母数を分けて開示する。
         """
         ordered = sorted(rows, key=lambda r: str(r.get("id", "")))
         total = len(ordered)
         if latest is None:
             count = f"{total} records"
         else:
-            ordered = pick_latest_by_id(ordered, latest)
-            count = f"latest {len(ordered)} of {total} records, newest last"
+            active_total = sum(
+                1 for row in ordered if row.get("status") in ACTIVE_TASK_STATUSES
+            )
+            terminal_total = total - active_total
+            ordered = select_task_rows(ordered, latest)
+            shown_terminal = len(ordered) - active_total
+            count = (
+                f"{active_total} active + latest {shown_terminal} "
+                f"of {terminal_total} terminal records, newest last"
+            )
         lines = [
             f"## tasks ({count}, summary: id | status | priority | due_date | title)"
         ]

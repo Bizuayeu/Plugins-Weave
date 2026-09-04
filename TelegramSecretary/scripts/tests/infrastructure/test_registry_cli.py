@@ -1377,17 +1377,20 @@ def test_orientation_individuals_cap_is_wired_from_the_cli(tmp_path, capsys):
 
 
 def test_orientation_tasks_latest_is_wired_from_the_cli(tmp_path, capsys):
-    """tasks 一行要約の件数上限が CLI から効き、母数は見出しで開示される。"""
+    """tasks の件数上限が CLI から terminal だけに効き、母数は見出しで開示される。"""
     config = _config(tmp_path)
-    for task_id in ("T-001", "T-002", "T-003"):
-        run_registry_command(
-            config, "tasks", "add", _ns(json=json.dumps(dict(_TASK, id=task_id)))
-        )
+    # T-001 は active（_TASK 既定 = in_progress）、T-002 / T-003 は terminal
+    for task_id, status in (("T-001", None), ("T-002", "done"), ("T-003", "done")):
+        record = dict(_TASK, id=task_id)
+        if status:
+            record["status"] = status
+        run_registry_command(config, "tasks", "add", _ns(json=json.dumps(record)))
     capsys.readouterr()
     assert run_orientation(config, _ns(tasks_latest=1)) == 0
     out = capsys.readouterr().out
-    assert "latest 1 of 3 records, newest last" in out
-    assert "T-003 |" in out and "T-001 |" not in out
+    assert "1 active + latest 1 of 2 terminal records, newest last" in out
+    # 古い id の active は絞りを免れ、terminal は末尾 1 件だけ残る
+    assert "T-001 |" in out and "T-003 |" in out and "T-002 |" not in out
 
 
 def test_zero_steps_latest_empties_the_index_instead_of_passing_all_rows(

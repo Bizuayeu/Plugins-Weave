@@ -676,36 +676,73 @@ def test_cap_record_field_copies_the_nested_dict_before_capping():
     assert _utf8_len(capped["identity"]["context_notes"]) <= 10
 
 
+def _mixed_tasks() -> list[dict[str, Any]]:
+    """active 1 件（最も古い id）＋ terminal 3 件——件数絞りが active を落とす形の最小再現。"""
+    return [
+        _task(id="T-001", notes="NOTE_1"),
+        *(_task(id=f"T-00{i}", status="done", notes=f"NOTE_{i}") for i in range(2, 5)),
+    ]
+
+
 def test_tasks_latest_keeps_the_newest_ids_and_discloses_the_total():
-    """一行要約を id 昇順の末尾 N 件に絞る（`pick_latest_knowledge` と同じ読み筋）。"""
-    digest = _service(
-        tasks=[_task(id=f"T-00{i}", notes=f"NOTE_{i}") for i in range(1, 5)]
-    ).build(tasks_latest=2)
+    """一行要約の件数絞りは terminal だけに掛かり、母数も terminal で数える。"""
+    digest = _service(tasks=_mixed_tasks()).build(tasks_latest=2)
     assert (
-        "## tasks (latest 2 of 4 records, newest last, "
+        "## tasks (1 active + latest 2 of 3 terminal records, newest last, "
         "summary: id | status | priority | due_date | title)" in digest
     )
-    assert digest.index("T-003 |") < digest.index("T-004 |")
-    for dropped in ("T-001 |", "T-002 |"):
+    assert digest.index("T-001 |") < digest.index("T-003 |") < digest.index("T-004 |")
+    assert "T-002 |" not in digest
+
+
+def test_tasks_latest_exempts_active_rows_with_older_ids():
+    """古い id の active は絞りを免れる（2026-09-04 の窓落ちの再発をここで止める）。"""
+    digest = _service(tasks=_mixed_tasks()).build(tasks_latest=1)
+    assert "T-001 |" in digest
+    assert "T-004 |" in digest
+    for dropped in ("T-002 |", "T-003 |"):
         assert dropped not in digest
 
 
 def test_tasks_notes_follow_the_latest_filter():
     """落ちた task の notes は載せない——要約に無い id の申し送りだけが残ると読み手が迷子になる。"""
-    digest = _service(
-        tasks=[_task(id=f"T-00{i}", notes=f"NOTE_{i}") for i in range(1, 5)]
-    ).build(tasks_latest=1)
-    assert "NOTE_4" in digest
-    assert "### T-004" in digest
-    for dropped in ("NOTE_1", "NOTE_2", "NOTE_3", "### T-001"):
+    digest = _service(tasks=_mixed_tasks()).build(tasks_latest=1)
+    assert "NOTE_1" in digest
+    assert "### T-001" in digest
+    for dropped in ("NOTE_2", "NOTE_3", "NOTE_4", "### T-002", "### T-003"):
         assert dropped not in digest
 
 
-def test_zero_tasks_latest_empties_the_summary_instead_of_passing_all_rows():
-    digest = _service(tasks=[_task(id="T-001", notes="NOTE_1")]).build(tasks_latest=0)
-    assert "## tasks (latest 0 of 1 records, newest last, summary:" in digest
-    assert "T-001 |" not in digest
-    assert "NOTE_1" not in digest
+def test_tasks_latest_headline_counts_the_terminal_rows_actually_shown():
+    """N は要求値ではなく実際に載った terminal 件数（既存の `len(ordered)` の流儀）。"""
+    digest = _service(
+        tasks=[
+            _task(id="T-001"),
+            _task(id="T-002", status="blocked"),
+            _task(id="T-003", status="cancelled"),
+        ]
+    ).build(tasks_latest=5)
+    assert (
+        "## tasks (2 active + latest 1 of 1 terminal records, newest last, summary:"
+        in digest
+    )
+
+
+def test_zero_tasks_latest_drops_all_terminal_but_keeps_active():
+    digest = _service(
+        tasks=[
+            _task(id="T-001", notes="NOTE_1"),
+            _task(id="T-002", status="done", notes="NOTE_2"),
+        ]
+    ).build(tasks_latest=0)
+    assert (
+        "## tasks (1 active + latest 0 of 1 terminal records, newest last, summary:"
+        in digest
+    )
+    assert "T-001 |" in digest
+    assert "NOTE_1" in digest
+    assert "T-002 |" not in digest
+    assert "NOTE_2" not in digest
 
 
 def test_capped_tables_keep_full_text_when_the_knobs_are_unset():
