@@ -52,7 +52,7 @@ Visual expression system for AI personas with emotion-based face switching.
 
 ## Features
 
-- **20 Expression Variations**: 5 categories x 4 expressions each
+- **Expression Variations (fixed spec)**: 5 categories x 4 expressions each
 - **Nano Banana Pro Integration**: Meta-script for generating expression grids
 - **One-Click Build**: Grid image to HTML with Base64 embedded images
 - **Mobile-Friendly**: Display expressions on smartphones via artifacts
