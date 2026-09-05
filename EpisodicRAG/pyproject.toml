@@ -173,82 +173,12 @@ module = "domain.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
-# Application layer: 100% type coverage
+# Application / Infrastructure / Interfaces layers: 100% type coverage.
+# モジュールはグロブで指定する。個別列挙は追加・改名・削除のたびに置き去りになり、
+# 実際に config.* と application.validators が消えた後も残っていた（mypy が
+# unused section として警告していた）。層単位で掛ければ新規モジュールも自動で対象になる。
 [[tool.mypy.overrides]]
-module = [
-    # Package __init__.py files
-    "application",
-    "application.finalize",
-    "application.grand",
-    "application.shadow",
-    "application.tracking",
-    # Individual modules
-    "application.validators",
-    "application.finalize.digest_builder",
-    "application.finalize.shadow_validator",
-    "application.finalize.persistence",
-    "application.finalize.provisional_loader",
-    "application.grand.grand_digest",
-    "application.grand.shadow_grand_digest",
-    "application.shadow.template",
-    "application.shadow.placeholder_manager",
-    "application.shadow.file_detector",
-    "application.shadow.shadow_io",
-    "application.shadow.cascade_processor",
-    "application.shadow.shadow_updater",
-    "application.shadow.file_appender",
-    "application.tracking.digest_times",
-]
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-
-# Config layer: 100% type coverage
-[[tool.mypy.overrides]]
-module = [
-    "config",
-    "config.config_loader",
-    "config.config_repository",
-    "config.config_validator",
-    "config.directory_validator",
-    "config.level_path_service",
-    "config.path_resolver",
-    "config.plugin_root_resolver",
-    "config.threshold_provider",
-    "config.source_path_resolver",
-    "config.cli",
-    "config.validation",
-    "config.config_constants",
-]
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-
-# Infrastructure layer: 100% type coverage
-[[tool.mypy.overrides]]
-module = [
-    "infrastructure",
-    "infrastructure.json_repository",
-    "infrastructure.json_repository.operations",
-    "infrastructure.json_repository.load_strategy",
-    "infrastructure.json_repository.chained_loader",
-    "infrastructure.file_scanner",
-    "infrastructure.logging_config",
-    "infrastructure.user_interaction",
-    "infrastructure.structured_logging",
-    "infrastructure.error_handling",
-]
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-
-# Interfaces layer: 100% type coverage
-[[tool.mypy.overrides]]
-module = [
-    "interfaces",
-    "interfaces.provisional",
-    "interfaces.provisional.*",
-    "interfaces.finalize_from_shadow",
-    "interfaces.interface_helpers",
-    "interfaces.save_provisional_digest",
-]
+module = ["application", "application.*", "infrastructure", "infrastructure.*", "interfaces", "interfaces.*"]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
