@@ -1,25 +1,25 @@
 ---
 name: ops-rules
 description: Operational readiness checklist (security, cost, legal, data design, performance, incident response, LLM integration defenses) applied when a change touches deployment, infrastructure, external services, secrets, or user data.
-paths:
-  - "**/Dockerfile"
-  - "**/docker-compose.*"
-  - "**/railway.*"
-  - "**/Procfile"
-  - "**/.github/workflows/*"
-  - "**/deploy*"
-  - "**/infrastructure/**"
-  - "**/vercel.json"
-  - "**/.vercel/**"
-  - "**/.env*"
-  - "**/scripts/register*"
 ---
 
 # Operations Guidelines
 
-デプロイ・インフラ・運用に関わる作業時の確認事項。
+本規範は単体で完結する（メイン会話・サブエージェントのどちらで読まれても前提を欠かない）。
 開発方法論は同梱の dev-rules 規範を参照。
 詳細チェックリストは [エンジニア歴20年の私が、素人バイブコーディング勢に物申す（Qiita）](https://qiita.com/Akira-Isegawa/items/00f23d206c504db2ac3b) を参照。
+
+## 適用条件
+
+変更が次のいずれかに触れるとき、着手前に本規範の該当節を確認する。ファイルパスではなく**変更の性質**で判定する（Dockerfile や `.env` のような設定ファイルに限らず、OAuth 認可・API クライアント・課金処理を持つアプリケーションコードも含む）:
+
+- **デプロイ・インフラ** — コンテナ定義、CI/CD、PaaS 設定、環境変数の配線
+- **外部サービス連携** — 外部 API の呼び出し・受け口、Webhook、OAuth、決済
+- **秘匿値** — トークン・鍵・認可 ID の生成、保存、注入、ローテーション
+- **ユーザーデータ** — 個人情報・関係者情報の取得、永続化、送信、削除
+- **課金・レート** — 従量課金 API の呼び出し、クレジット消費、レート制限
+
+該当しない変更（純粋なロジック・テスト・ドキュメント）では読み流してよい。
 
 ---
 
@@ -79,3 +79,9 @@ LLM を組み込んだアプリは通常の Web セキュリティに加えて�
   post-generation でチェック
 - **レート制限** — LLM 呼び出しは IP/ユーザー単位で sliding window 制限（コスト暴走と DoS 両方の防御）
 - **入力正規化** — 全角/半角、Unicode 異体字、サロゲートペアを正規化してから validation
+
+---
+
+## Compliance Marker
+
+本規範の適用条件に該当する作業では、作業報告・最終応答の末尾に `[ops-rules applied]` と一行記す。該当作業でこの行が無ければ、規範が届いていないか適用判断が漏れたかのどちらかであり、後から検分できる観測点として機能する。

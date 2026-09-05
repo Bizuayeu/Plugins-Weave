@@ -138,7 +138,7 @@
       "name": "ConsiderateCoder",
       "source": "./ConsiderateCoder",
       "description": "Development methodology plugin: Clean Architecture x TDD x three-tier delegation (communicator / orchestrator / worker) with /plan-sdd, /outsource and /dig commands",
-      "version": "1.6.1",
+      "version": "1.6.2",
       "author": {
         "name": "Weave @ ConsiderateCoder"
       },

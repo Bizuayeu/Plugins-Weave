@@ -2,6 +2,20 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.6.2] - 2026-09-05
+
+### Changed
+
+- `skills/ops-rules/SKILL.md` のパススコープ（`paths` frontmatter、11 パターン）を外し、本文冒頭に
+  「適用条件」節（デプロイ・インフラ／外部サービス連携／秘匿値／ユーザーデータ／課金・レートの
+  五類型、変更の性質で判定）を置いた。パススコープは Read ツール起点でしか発火せず、auto mode の
+  Bash 優先指示（cat / sed で読む）の下では一度も効かないことが 2026-09-05 に判明した
+  （kawasin73 氏の報告を手元のバイナリで裏取り）。加えて、OAuth 認可や API クライアントのような
+  アプリケーションコードはもともとパターンの網に無かった。`.claude/rules/` 経由の常時ロードでは
+  dev-rules と同様に毎セッション乗る（本文 4.6 KB）
+- 同ファイルに `[ops-rules applied]` の Compliance Marker を追加（dev-rules と同型の観測点）
+- README の FAQ「メイン会話にも常時ロードできるか」を上記に合わせて更新
+
 ## [1.6.1] - 2026-09-04
 
 ### Changed

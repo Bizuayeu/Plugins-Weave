@@ -265,7 +265,7 @@ A. 衝突しない。プラグイン内の規範（`skills/dev-rules`・`skills/
 A. 動作する。`templates/outsource-report.template.html` は外部リソース読み込みや `<script>` を持たない自己完結 HTML で、プレースホルダの文字列置換だけで生成できる。`tests/` の pytest はプラグイン自体の構造検証用であり、`/plan-sdd` や `/outsource` の実行には依存しない。
 
 **Q. 規範（dev-rules / ops-rules）をメイン会話にも常時ロードできるか？**
-A. 既定では、communicator はコマンド実行時に Read、orchestrator / worker は `skills:` preload で dev-rules を受け取る（メイン会話への常時ロードはされない）。メイン会話にも常時ロードしたい場合は、プロジェクトの `.claude/rules/` を本プラグインの `skills/` ディレクトリへの junction（Windows）/ symlink（macOS/Linux）にする——`.claude/rules/` はサブディレクトリを再帰的に読むため、`dev-rules/SKILL.md`・`ops-rules/SKILL.md` の両方が常時ロードに乗り、コピーが存在しないので反映漏れも構造的に起きない。ops-rules の paths frontmatter によるパススコープ適用も `.claude/rules/` 配下でのみ機能する。
+A. 既定では、communicator はコマンド実行時に Read、orchestrator / worker は `skills:` preload で dev-rules を受け取る（メイン会話への常時ロードはされない）。メイン会話にも常時ロードしたい場合は、プロジェクトの `.claude/rules/` を本プラグインの `skills/` ディレクトリへの junction（Windows）/ symlink（macOS/Linux）にする——`.claude/rules/` はサブディレクトリを再帰的に読むため、`dev-rules/SKILL.md`・`ops-rules/SKILL.md` の両方が常時ロードに乗り、コピーが存在しないので反映漏れも構造的に起きない。ops-rules はパススコープ（`paths` frontmatter）を持たず、本文の「適用条件」節（変更の性質で判定）で効かせる——パススコープは Read ツール起点でしか発火せず、auto mode の Bash 優先指示（cat / sed で読む）の下では黙るうえ、OAuth や API クライアントのようなアプリケーションコードを網に掛けられないため外した（経緯は CHANGELOG）。
 
 **Q. agents に memory を持たせられるか？**
 A. 意図的に非搭載（設計判断）。orchestrator は「Edit/Write を持たない」構造保証を採っているが、`memory:` を有効化すると tools 指定に関わらず Read/Write/Edit が自動有効化されるため、無筆記の構造保証と memory は構造的に排他になる。worker 側の非搭載も「常にフレッシュなコンテキストで品質が上がる」という設計そのもの——記憶を持てば前回の枝葉を引きずる。
