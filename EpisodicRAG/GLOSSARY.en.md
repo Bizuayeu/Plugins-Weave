@@ -118,6 +118,32 @@ Path resolution: `base_dir + paths.loops_dir` → actual Loop directory
 
 Loops are the smallest unit of the EpisodicRAG system and serve as the foundation for all Digest generation.
 
+**Content format (canonical)**: a metadata block followed by alternating `## User` / `## Claude` headings, readable by both humans and LLMs. This is the compatibility contract with the existing corpus of 550+ Loops; the alternating heading structure is inviolable:
+
+```text
+# Claude
+
+Source: [Claude Chat](https://claude.ai/chat/{uuid})
+Extracted: {ISO8601}
+Exporter: {exporter name} v{x.y.z}
+Messages: human {N} / assistant {M}
+
+---
+
+## User
+
+{body}
+
+## Claude
+
+{body}
+```
+
+- The title line, the metadata block, the `---` separator, and each heading + body are separated by exactly one blank line
+- The Digest pipeline (including `/digest`) does not parse this format strictly with regular expressions; Claude itself reads the file and analyzes it semantically (an LLM-readable format). Loop detection depends only on the filename pattern (the regular expression above), never on the content format
+- The `Messages: human {N} / assistant {M}` counts baked into the header and the alternating `## User` / `## Claude` structure exist so that a human can audit mottled captures (partial omissions) after the fact
+- Example capture tool: [LoopExporter (Fuhito)](../LoopExporter/README.md), a private Chrome extension that emits this format directly from claude.ai's internal API
+
 ### Digest
 **Definition**: A hierarchical record that summarizes and integrates multiple Loops or lower-level Digests
 
@@ -472,7 +498,7 @@ Multilingual documentation policy for EpisodicRAG:
 | Category | Language | Reason |
 |----------|----------|--------|
 | **All Documents** | Japanese (SSoT) | Primary source of information |
-| **English Versions** | QUICKSTART, CHEATSHEET, README | Reduce onboarding barriers |
+| **English Versions** | README, QUICKSTART, CHEATSHEET, GLOSSARY, CHANGELOG, CONTRIBUTING, INDEX, CONCEPT | Reduce onboarding barriers |
 | **Developer Details** | Japanese only | AI-First - AI can understand/supplement Japanese |
 
 **AI-First Documentation Principles**:

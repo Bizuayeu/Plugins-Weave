@@ -99,7 +99,6 @@ LoopExporter/
 ## 関連ドキュメント
 
 - [要件定義書_Fuhito_LoopExporter_v0.3.md](./要件定義書_Fuhito_LoopExporter_v0.3.md) — 要求 SSoT（背景・方式選定・FR/NFR/AC、凍結）
-- `IMPLEMENTATION_PLAN.md` — Clean Architecture の Stage 分割と判断確定履歴（ローカル SDD 作業ファイル・非 track）
 - [docs/SCHEMA_NOTES.md](./docs/SCHEMA_NOTES.md) — API 実測スキーマの SSoT
 - [CHANGELOG.md](./CHANGELOG.md) — バージョン履歴
 - [EpisodicRAG GLOSSARY](../EpisodicRAG/GLOSSARY.md#loop) — Loop 形式仕様の正典

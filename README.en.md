@@ -231,7 +231,7 @@ Provides emotion-based face switching to extend AI's expressive capabilities.
 
 #### Key Features
 
-- **20 Expression Variations**: 5 categories × 4 expressions
+- **Expression Grid (fixed spec)**: 5 categories × 4 expressions
 - **Nano Banana Pro Integration**: Meta-script for generating expression grids
 - **Mobile-Friendly**: Display expressions on smartphones via artifacts
 - **Fast Switching**: Instant changes via sed-based commands
