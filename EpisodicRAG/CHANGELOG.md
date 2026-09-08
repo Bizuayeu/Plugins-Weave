@@ -11,13 +11,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#590---2026-08-26)
+- [v5.x](#5100---2026-09-08)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
 
 ---
+
+## [5.10.0] - 2026-09-08
+
+`/digest` Pattern 1 Step 3（source_files 追加）を手編集からスクリプトへ寄せ、JSON 書き出しの改行を LF に固定する。
+
+### Added
+
+- **`interfaces/add_shadow_sources.py`（`ShadowSourceAdder`）** — SGD の `source_files` へファイル名を追加する CLI。
+  `python -m interfaces.add_shadow_sources <level> <filename>...`。既登録は skip（冪等）、
+  呼び出し内の重複は 1 回だけ。既存分析がある場合は 4 要素（digest_type / keywords / abstract /
+  impression）に触れず、PLACEHOLDER 状態（finalize 直後）では件数に応じたプレースホルダー文へ更新する
+  （`update_shadow_for_new_loops` と同じ `FileAppender` の挙動。Step 7 が上書きする前提）。追加処理は既存の
+  `ShadowGrandDigestManager.add_files_to_shadow` へ委譲し、CLI は薄いラッパー。
+  空文字・パス区切りを含む名前は `EpisodicRAGError`
+- `commands/digest.md` Pattern 1 Step 3 を Edit ツールの手編集から上記 CLI へ置換。同じ文書の Step 7 が
+  「SGD の直接 Edit は事故りやすい」と言いながら Step 3 だけ手編集を指示していた矛盾を解消
+
+### Fixed
+
+- **`save_json` の改行を LF に固定** — `Path.open("w")` に `newline="\n"` が無く、Windows の text mode
+  既定で `\n` が `\r\n` に変換されていた。ShadowGrandDigest / Provisional / last_digest_times の
+  書き出しが全て CRLF になり、記憶リポ側で毎回 `CRLF will be replaced by LF` の警告が出ていた
+  （`.gitattributes` の `eol=lf` が commit 時に正規化するため履歴は無傷、working copy だけが CRLF）。
+  回帰テストは二本：出力バイトに `\r\n` が無いこと（Windows でのみ red になる）と、
+  `Path.open` が `newline="\n"` で呼ばれること（Linux CI でも回帰を捕まえる網）
+- **`index_writer.apply_index` と `tools/check_footer.fix_footer` の `write_text` も同型で LF に固定** —
+  前者は auto-memory の MEMORY.md 書き戻し（git 非追跡ゆえ正規化されず CRLF のまま残る）、後者は
+  `/doc-check` 系の footer 修正。`save_json` と同じ二本立ての回帰テストを各々に付けた
+  （`apply_index` は従来テスト無し）
+
+### Notes
+
+- インストール済み（Daily Use）側はプラグイン更新までは旧コードのまま。`/digest` の Step 3 は
+  更新後に CLI 経路へ切り替わる
+
+### 検証
+
+ruff 0 ／ ruff format 302 files already formatted ／ mypy Success（302 files、CI と同じ起動形）／
+pytest 2386 passed, 2 skipped（`-m "not slow and not performance"`）
 
 ## [5.9.0] - 2026-08-26
 

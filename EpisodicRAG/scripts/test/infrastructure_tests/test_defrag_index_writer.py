@@ -12,10 +12,11 @@ MEMORY.md live index の決定論的同期（剪定後の hygiene）の検証。
 """
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-from infrastructure.auto_dream.index_writer import rebuild_index_text
+from infrastructure.auto_dream.index_writer import apply_index, rebuild_index_text
 from infrastructure.auto_dream.memory_reader import read_memory_index
 
 _INDEX = """# Memory Index
@@ -88,3 +89,28 @@ class TestRebuildIndexPrune:
         assert "認知特性" in new_text  # user_profile の説明
         assert "簡潔・高コンテキスト" in new_text  # feedback_interaction の説明
         assert "## User" in new_text  # セクションヘッダ保持
+
+
+class TestApplyIndex:
+    """apply_index() は MEMORY.md を LF のみで書き戻す"""
+
+    @pytest.mark.integration
+    def test_書き戻しはLFのみ(self, tmp_path: Path) -> None:
+        """Windows の text mode 既定 CRLF を抑止"""
+        text = "# Memory Index\n\n- [A](a.md) — a\n- [B](b.md) — b\n"
+
+        path = apply_index(tmp_path, text)
+
+        assert path == tmp_path / "MEMORY.md"
+        assert b"\r\n" not in path.read_bytes()
+        assert path.read_text(encoding="utf-8") == text
+
+    @pytest.mark.integration
+    def test_write_textをnewline_lfで呼ぶ(self, tmp_path: Path) -> None:
+        """LF 既定の Linux でも回帰を捕まえる網"""
+        with patch.object(
+            Path, "write_text", autospec=True, side_effect=Path.write_text
+        ) as m:
+            apply_index(tmp_path, "x\n")
+
+        assert m.call_args.kwargs.get("newline") == "\n"

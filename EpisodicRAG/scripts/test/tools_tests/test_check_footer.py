@@ -8,6 +8,7 @@ tools/check_footer.py の単体テスト。
 """
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -226,6 +227,27 @@ Content here.
         content = test_file.read_text(encoding="utf-8")
         assert "Wrong Footer" not in content
         assert self.EXPECTED_FOOTER in content
+
+    def test_writes_lf_only(self, tmp_path: Path) -> None:
+        """修正後のファイルに CRLF が混入しない"""
+        test_file = tmp_path / "test.md"
+        test_file.write_text("# Title\n\nContent here.\n", encoding="utf-8")
+
+        fix_footer(test_file, self.EXPECTED_FOOTER)
+
+        assert b"\r\n" not in test_file.read_bytes()
+
+    def test_write_text_called_with_newline_lf(self, tmp_path: Path) -> None:
+        """write_text に newline="\\n" を明示（LF 既定の Linux でも回帰を捕まえる網）"""
+        test_file = tmp_path / "test.md"
+        test_file.write_text("# Title\n", encoding="utf-8")
+
+        with patch.object(
+            Path, "write_text", autospec=True, side_effect=Path.write_text
+        ) as m:
+            fix_footer(test_file, self.EXPECTED_FOOTER)
+
+        assert m.call_args.kwargs.get("newline") == "\n"
 
     def test_file_not_found(self, tmp_path: Path) -> None:
         """ファイルが存在しない場合 → False"""

@@ -117,7 +117,7 @@ TodoWrite items for Pattern 1:
 |------|---------|-------------------|
 | 1 | パス情報・新規Loop確認 | `python -m interfaces.digest_entry` |
 | 2 | SGD読み込み | `essences_path`のShadowGrandDigest.txtを読み込む |
-| 3 | source_files追加 | SGDの`weekly.overall_digest.source_files`に新規Loopファイル名を追加 |
+| 3 | source_files追加 | `python -m interfaces.add_shadow_sources weekly <ファイル名...>` |
 | 4 | DigestAnalyzer起動 | Step 3のLoopファイル別に`Task(DigestAnalyzer)`を並列起動 |
 | 5 | 分析結果受信 | 各DigestAnalyzerからlong/short分析結果を受け取る |
 | 6 | Provisional保存 | 分析結果を一時ファイル経由でProvisionalにアペンド（`save_provisional_digest`） |
@@ -157,28 +157,24 @@ python -m interfaces.digest_entry --output json
 
 **確認ポイント**:
 - `weekly.overall_digest.source_files`の現在のリスト
-- 次のStepで追加するファイル名の重複がないこと
+- 次のStepで追加するファイル名の重複がないこと（既登録は Step 3 の CLI が skip するため、ここは目視確認のみ）
 
 ---
 
 #### Step 3: source_files追加
 
-**対象ファイル**: `{essences_path}/ShadowGrandDigest.txt`
+**実行ディレクトリ**: `{plugin_root}/scripts`
 
-**操作**: Editツールで`weekly.overall_digest.source_files`配列に新規Loopファイル名を追加
-
-**追加形式**: `"L00260_タイトル.txt"` （フルファイル名）
-
-**フォーマット規約**: 配列要素は1行ずつ記述する（インライン形式 `["a.txt", "b.txt"]` は避ける）
-
-**例**:
-```json
-"source_files": [
-  "L00258_既存.txt",
-  "L00259_既存.txt",
-  "L00260_新規追加.txt"
-]
+**コマンド**:
+```bash
+python -m interfaces.add_shadow_sources weekly "L00260_タイトル.txt" ["L00261_タイトル.txt" ...]
 ```
+
+**追加形式**: フルファイル名（`{loops_path}` からの相対パスやディレクトリを付けない）。Step 1 出力の `new_loops` は番号＋タイトル（拡張子なし）なので `.txt` を補う
+
+**動作**: 既登録のファイル名は skip（冪等）。既存分析がある場合は `digest_type` / `keywords` / `abstract` / `impression` に触れない。PLACEHOLDER 状態（finalize 直後）では件数に応じたプレースホルダー文へ更新される（Step 7 が上書きするので問題ない）。改行は LF で書き出される
+
+**注意**: SGDの直接Edit（exact-match置換）は長文日本語で事故りやすく、手元の書き出しは改行コードも壊しうるため使用しないこと（Step 7 と同じ理由）
 
 ---
 

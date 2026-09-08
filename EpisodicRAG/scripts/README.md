@@ -145,6 +145,8 @@ from domain.validators import validate_type, is_valid_dict, is_valid_list
 | `digest_entry.py` | - | Digestエントリーポイント |
 | `digest_readiness.py` | - | Digest準備状態チェック |
 | `update_digest_times.py` | - | Digestタイムスタンプ更新 |
+| `update_shadow_overall.py` | `OverallDigestUpdater` | SGD overall_digest 4要素の更新（source_files 不変） |
+| `add_shadow_sources.py` | `ShadowSourceAdder` | SGD source_files へのファイル名追加（冪等。既存分析は保持、PLACEHOLDER は件数で更新）*(v5.10.0+)* |
 | `provisional/` | - | Provisionalマージ処理（`file_manager`, `input_loader`, `merger`, `validator`） |
 
 ```python

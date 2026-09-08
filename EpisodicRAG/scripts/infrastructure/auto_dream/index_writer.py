@@ -98,5 +98,6 @@ def apply_index(memory_dir: Path, text: str) -> Path:
         書き込んだ MEMORY.md のパス
     """
     index_path = memory_dir / _INDEX_FILENAME
-    index_path.write_text(text, encoding="utf-8")
+    # newline="\n": Windows の text mode 既定は \n→\r\n 変換。MEMORY.md は LF 正典
+    index_path.write_text(text, encoding="utf-8", newline="\n")
     return index_path

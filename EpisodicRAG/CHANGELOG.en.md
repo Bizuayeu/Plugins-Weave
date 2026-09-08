@@ -1,4 +1,4 @@
-<!-- Last synced: 2026-07-02 -->
+<!-- Last synced: 2026-09-08 -->
 English | [日本語](CHANGELOG.md)
 
 # Changelog
@@ -12,13 +12,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#590---2026-08-26)
+- [v5.x](#5100---2026-09-08)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
 
 ---
+
+## [5.10.0] - 2026-09-08
+
+Moves `/digest` Pattern 1 Step 3 (appending to `source_files`) from hand-editing to a script, and pins JSON output line endings to LF.
+
+### Added
+
+- **`interfaces/add_shadow_sources.py` (`ShadowSourceAdder`)** — CLI that appends file names to the SGD
+  `source_files`: `python -m interfaces.add_shadow_sources <level> <filename>...`. Already-registered
+  names are skipped (idempotent) and duplicates within one call are added once. When the level
+  already holds an analysis, the four fields (digest_type / keywords / abstract / impression) are
+  left alone; in the PLACEHOLDER state (right after a finalize) they are refreshed to placeholder
+  text sized by the file count — the same `FileAppender` behavior as `update_shadow_for_new_loops`,
+  and Step 7 overwrites them anyway. The append itself delegates to the existing
+  `ShadowGrandDigestManager.add_files_to_shadow`; the CLI is a thin wrapper. Empty names and names
+  containing a path separator raise `EpisodicRAGError`
+- `commands/digest.md` Pattern 1 Step 3 now calls this CLI instead of the Edit tool. The same document
+  warned in Step 7 that direct edits of the SGD are error-prone while Step 3 still prescribed one;
+  that contradiction is gone
+
+### Fixed
+
+- **`save_json` now writes LF only** — `Path.open("w")` lacked `newline="\n"`, so Windows text mode
+  turned every `\n` into `\r\n`. ShadowGrandDigest, Provisional and last_digest_times were all written
+  as CRLF, and the memory repository warned `CRLF will be replaced by LF` on every touch (history was
+  intact because `.gitattributes` `eol=lf` normalizes at commit; only the working copy was CRLF).
+  Two regression tests: no `\r\n` in the output bytes (red only on Windows) and `Path.open` being
+  called with `newline="\n"` (catches regressions on Linux CI too)
+- **`index_writer.apply_index` and `tools/check_footer.fix_footer` pinned to LF the same way** — the
+  former rewrites auto-memory's MEMORY.md (untracked by git, so nothing normalizes it and CRLF would
+  stick), the latter is the footer fixer behind `/doc-check`. Each got the same pair of regression
+  tests as `save_json` (`apply_index` previously had none)
+
+### Notes
+
+- The installed (Daily Use) copy keeps the old code until the plugin is updated; `/digest` Step 3
+  switches to the CLI path after that
+
+### Verification
+
+ruff 0 / ruff format 302 files already formatted / mypy Success (302 files, the same invocation CI uses) /
+pytest 2386 passed, 2 skipped (`-m "not slow and not performance"`)
 
 ## [5.9.0] - 2026-08-26
 

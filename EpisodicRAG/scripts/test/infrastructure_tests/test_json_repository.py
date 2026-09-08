@@ -9,6 +9,7 @@ JSON読み書き、テンプレート処理、ディレクトリ作成をテス�
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -151,6 +152,25 @@ class TestSaveJson:
         result = json.loads(json_file.read_text())
         assert result == new_data
         assert "old" not in result
+
+    @pytest.mark.integration
+    def test_writes_lf_only(self, tmp_path: Path) -> None:
+        """改行は LF のみ（Windows の text mode 既定 CRLF を抑止）"""
+        json_file = tmp_path / "lf.json"
+
+        save_json(json_file, {"a": 1, "b": [1, 2]})
+
+        assert b"\r\n" not in json_file.read_bytes()
+
+    @pytest.mark.integration
+    def test_opens_with_newline_lf(self, tmp_path: Path) -> None:
+        """newline="\\n" を明示して開く（LF 既定の Linux でも回帰を捕まえる網）"""
+        json_file = tmp_path / "lf2.json"
+
+        with patch.object(Path, "open", autospec=True, side_effect=Path.open) as m:
+            save_json(json_file, {"a": 1})
+
+        assert m.call_args.kwargs.get("newline") == "\n"
 
 
 # =============================================================================

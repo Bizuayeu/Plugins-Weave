@@ -40,8 +40,9 @@ from interfaces import (
 8. [CLI共通ヘルパー](#cli共通ヘルパーinterfacescli_helperspy) *(v4.1.0+)*
 9. [UpdateDigestTimes CLI](#updatedigesttimes-cliupdate_digest_timespy) *(v5.0.0+)*
 10. [OverallDigestUpdater（update_shadow_overall.py）](#overalldigestupdaterupdate_shadow_overallpy)
-11. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
-12. [DigestReadinessChecker（digest_readiness.py）](#digestreadinesscheckerdigest_readinesspy) *(v5.1.0+)*
+11. [ShadowSourceAdder（add_shadow_sources.py）](#shadowsourceadderadd_shadow_sourcespy) *(v5.10.0+)*
+12. [ShadowStateChecker（内部CLI）](#shadowstatechecker内部cli)
+13. [DigestReadinessChecker（digest_readiness.py）](#digestreadinesscheckerdigest_readinesspy) *(v5.1.0+)*
 
 ---
 
@@ -569,6 +570,40 @@ cat payload.json | python -m interfaces.update_shadow_overall monthly --stdin
 
 **バリデーション**: 必須キー欠落・keywords が非リスト・文字列フィールドの型不正は
 `EpisodicRAGError`（CLI では exit 1）。エラー時 SGD は変更されない。
+
+---
+
+## ShadowSourceAdder（add_shadow_sources.py）
+
+ShadowGrandDigest の `source_files` にファイル名を追加。既登録は skip（冪等）。
+既存分析がある場合は digest_type / keywords / abstract / impression に触れない。
+PLACEHOLDER 状態（finalize 直後）では件数に応じたプレースホルダー文へ更新する
+（`update_shadow_for_new_loops` と同じ `FileAppender` の挙動）。
+
+> **背景**: `/digest` Pattern 1 Step 3 は SGD の source_files を Edit ツールで直接編集していた。
+> 長文日本語 JSON の手編集は事故りやすく、手元の書き出しは改行コードも壊しうる。
+> 追加処理は `ShadowGrandDigestManager.add_files_to_shadow` に委譲し、CLI は薄いラッパーに留める。
+
+```python
+class ShadowSourceAdder:
+    def __init__(self, config: Optional[DigestConfig] = None): ...
+    def add_sources(self, level: str, filenames: List[str]) -> List[str]: ...
+```
+
+| メソッド | 説明 |
+|---------|------|
+| `add_sources(level, filenames) -> List[str]` | ファイル名を検証して追加・保存し、実際に追加された名前を指定順で返す。呼び出し内の重複は 1 回だけ追加 |
+
+**使用例（CLI）**:
+
+```bash
+cd scripts
+python -m interfaces.add_shadow_sources weekly "L00592_講義は顧客の仕様書.txt"
+python -m interfaces.add_shadow_sources weekly L00592_a.txt L00593_b.txt
+```
+
+**バリデーション**: 空文字・パス区切りを含む名前は `EpisodicRAGError`（CLI では exit 1）。
+ファイルの実在は検証しない。エラー時 SGD は変更されない。
 
 ---
 

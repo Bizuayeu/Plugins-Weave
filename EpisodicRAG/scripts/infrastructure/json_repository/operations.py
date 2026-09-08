@@ -123,7 +123,8 @@ def save_json(file_path: Path, data: dict[str, Any], indent: int = 2) -> None:
     formatter = get_error_formatter()
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with file_path.open("w", encoding="utf-8") as f:
+        # newline="\n": Windows の text mode 既定は \n→\r\n 変換。記憶リポは LF 正典
+        with file_path.open("w", encoding="utf-8", newline="\n") as f:
             json.dump(data, f, ensure_ascii=False, indent=indent)
     except OSError as e:
         raise FileIOError(formatter.file.file_io_error("write", file_path, e)) from e

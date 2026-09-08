@@ -192,7 +192,8 @@ def fix_footer(file_path: Path, expected_footer: str) -> bool:
 
     # 新しいフッターを追加
     new_content = content + "\n\n" + expected_footer + "\n"
-    file_path.write_text(new_content, encoding="utf-8")
+    # newline="\n": Windows の text mode 既定は \n→\r\n 変換。文書は LF 正典
+    file_path.write_text(new_content, encoding="utf-8", newline="\n")
 
     return True
 
