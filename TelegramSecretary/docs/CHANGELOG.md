@@ -2,6 +2,48 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.15.3] - 2026-09-10 — 中断は推奨経路でこそ効かせる（source 形態の bootstrap 中断と、終端予約の稼働パラメータの本体収載）
+
+2026-09-10 04:0x JST 枠で、bootstrap の依存導入が pip の read timeout で落ち `FAIL:` が 3 行出たのに、
+同じ stdout の最終行に `ready` が出た。`_ts_die` は exec 形態では `exit 1` でシェルごと止まるが、
+source 形態では `return 1` が関数から抜けるだけで `cmd || _ts_die` の次の行がそのまま走る——
+ROUTINE_PROMPT が推奨する経路（source）こそが中断の効かない側だった。あわせて、終端で窓を止めて
+書込へ移る閾値（1,500s）と watch へ戻す床（600s）が knowledge 本体にも ROUTINE_PROMPT にも無く、
+handoff 連鎖だけが運んでいた（2026-08-24 に「稼働パラメータは本体に置く」と処方が出て未実施）。
+本版はどちらも bootstrap.sh を本体として収める。
+
+### Fixed
+
+- **source 形態の bootstrap が致命失敗の直後も走り切り、最終行に `ready` を出していた** — `_ts_die` の
+  呼び出し 7 箇所を `cmd || { _ts_die "..."; return 1; }` に改めた。トップレベルの `return 1` は
+  sourced ファイル自体から抜ける（exec 形態では `_ts_die` の `exit 1` が先に効くので不達）。失敗した
+  call は exit 非 0 で返り、env snapshot も `ready` も出ない。ROUTINE_PROMPT Step 2 の成否判定を
+  exit code と `FAIL:` の有無で書き直した（旧文言「`ready` → Step 3」は、失敗時にも `ready` が出る
+  以上、判定として機能していなかった）。機序の結晶化は registry の
+  `K-20260910-a-dual-mode-abort-aborts-only-where-it-can-exit`（従事中郎が自枠で最小再現まで取った）
+
+### Added
+
+- **終端予約の稼働パラメータを bootstrap.sh に収載** — `TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC`
+  （既定 1500、出所は handoff 20260815T110300Z_session-24012f4e §2.5。以後 6 枠の実測は残り
+  1,298〜1,660s で移行）と `TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC`（既定 600、出所は
+  `K-20260817-terminal-reservation-is-durability-not-idleness` の床＝窓＋返信の所要）。env snapshot と
+  起動ログに載る。ROUTINE_PROMPT Step 6 の残り窓 call が `remaining <= RESERVE` で
+  `TERMINAL remaining=N window=M floor=F` を出し、(i) 申し送り未書込なら書込へ、(ii) 書込済みなら
+  `floor` 以上で 1 窓戻す、の二段構えを本文に置いた（判定は算術の call、行為は次の call）
+- **テスト** — `test_bootstrap_abort.py`（静的: `_ts_die` の全呼び出しが `return 1` 同梱の形／
+  挙動: fake python で pip を落として `source` し、exit 非 0・`ready` 不在・env snapshot 未生成を張る。
+  bash の無い環境は skip）、`test_poll_window_invariant.py` に `予約 > 床 >= 窓` の突合を追加
+
+### Notes
+
+- **稼働 body への波及**: bootstrap.sh は fresh clone ゆえ本体リポ main に入った次の枠から効く
+  （再登録不要）。ROUTINE_PROMPT Step 2 / Step 6 の文言は body 再登録（`RemoteTrigger update`）が
+  別途要る——再登録までは旧 body が新 bootstrap で走り、Step 2 の判定文言が古いだけで手順は壊れない
+  （失敗時は exit 非 0 で返るので、旧文言の「失敗 → 終了」がそのまま正しく働く）
+- **ShioriSecretary は未追従** — 同型の `_shiori_die` を持つ（呼び出し 7 箇所）。並行運用で乖離を
+  許容しているが、これは配布版にも同じ欠陥が乗っている状態であり、別途の追従判断を要する
+
 ## [1.15.2] - 2026-09-04 — 件数絞りが依頼を落とさない（tasks 射影の active 免除と exit 表記の是正）
 
 2026-09-04、active タスクの古い id が `--tasks-latest 9` の窓から落ち、依頼そのものが起動時に

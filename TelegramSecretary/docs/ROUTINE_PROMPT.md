@@ -35,8 +35,8 @@ cloud routine は fresh clone で起動するため、設定と人格ファイ�
 source <INSTALL_DIR>/bootstrap.sh
 ```
 
-- 成功（`[telegram-secretary-bootstrap] session_id=session-xxxxxxxx` → `ready`）→ Step 3 へ
-- 失敗 → 依存解決不能。stderr を Routine ログに残して終了
+- 成功（exit 0、stdout が `[telegram-secretary-bootstrap] session_id=session-xxxxxxxx` → `ready`）→ Step 3 へ
+- 失敗（exit 非 0、stderr に `[telegram-secretary-bootstrap] FAIL: ...`）→ 依存解決不能。stderr を Routine ログに残して終了。**失敗した call には `ready` は出ない**——最初の `FAIL:` で source ごと中断する（v1.15.3。それ以前は source 形態で中断が効かず、`FAIL:` の後に `ready` が出ていた）
 
 **env snapshot の re-source（重要）**: Claude Code / cloud routine の Bash tool は **call 毎に fresh shell**（cwd のみ persist、**env は call 間で揮発**）。そのため `source bootstrap.sh` で export した `TELEGRAM_SECRETARY_SESSION_ID` / `TELEGRAM_SECRETARY_INSTALL_DIR` 等は後続 call に**残らない**。bootstrap はこれを `TELEGRAM_SECRETARY_ENV_FILE`（既定 `/tmp/telegram-secretary.env.sh`）に **env snapshot として書き出す**ので、**Step 4-8 の各 Bash call は冒頭で必ず次を実行する**：
 
@@ -158,10 +158,14 @@ source /tmp/telegram-secretary.env.sh && \
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \
-remaining=$(( TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH - $(date +%s) ))
+remaining=$(( TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH - $(date +%s) )) && \
+window=$(( remaining < TELEGRAM_SECRETARY_POLL_SET_SEC ? remaining : TELEGRAM_SECRETARY_POLL_SET_SEC ))
 if [ "$remaining" -le 0 ]; then echo "DEADLINE_REACHED"; \
-  else echo "window=$(( remaining < TELEGRAM_SECRETARY_POLL_SET_SEC ? remaining : TELEGRAM_SECRETARY_POLL_SET_SEC ))"; fi
+  elif [ "$remaining" -le "$TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC" ]; then echo "TERMINAL remaining=$remaining window=$window floor=$TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC"; \
+  else echo "window=$window"; fi
 ```
+
+- **`TERMINAL` が出たら二段構え**（終端予約は『窓を止める理由』でなく『成果物を先に durable にする理由』、K-20260817）: **(i) 申し送り未書込なら窓を回さず書込へ**——Step 5 の手順で handoff ブロックを `Write` → `lint-numbers` → `artifacts-sync` まで済ませる。**(ii) 書込済みなら `remaining` が `floor` 以上のとき `window` で watch を 1 本回し**（戻した窓で着信があれば返信まで入る床）、`floor` 未満なら Step 8 へ。予約 `TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC`（既定 1500）と床 `TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC`（既定 600）は bootstrap.sh が持ち、関係 `予約 > 床 >= 窓` は `test_poll_window_invariant.py` が張る。**この call の出力を読んでから次の call で行為する**——算術と watch を同じ call に同梱すると判定が制御にならない（2026-08-24 実測）
 
 2. **watch を foreground 実行**（`&` を付けない）。この call **だけ** bash tool の `timeout` に `$TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS`（=600000）を明示：
 

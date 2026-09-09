@@ -83,3 +83,20 @@ def test_max_turns_floor_holds_for_the_configured_window():
 def test_bootstrap_exposes_override(var):
     """両値とも env で上書き可能な形（`${VAR:-N}`）で export されている。"""
     assert _shell_default(var) > 0
+
+
+def test_terminal_reserve_exceeds_return_floor_which_fits_a_window():
+    """終端予約 RESERVE > 戻し床 FLOOR >= 窓。
+
+    残り ≦ RESERVE で窓を回さず書込へ移り、sync 後の余剰が FLOOR 以上なら watch へ戻す
+    （K-20260817-terminal-reservation-is-durability-not-idleness）。床は「窓＋返信」の所要で
+    置くので窓より短くはできず、予約は床より長くないと「戻す」余剰が原理的に生じない。
+    1,500 / 600 は 2026-08-24 まで handoff 連鎖だけが運んでいた値（rule 80）——bootstrap に
+    置いたので、片方だけ動かしたらここで赤になる。
+    """
+    reserve = _shell_default("TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC")
+    floor = _shell_default("TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC")
+    window = _shell_default("TELEGRAM_SECRETARY_POLL_SET_SEC")
+
+    assert reserve > floor, f"予約 {reserve}s が床 {floor}s 以下（戻す余剰が生じない）"
+    assert floor >= window, f"床 {floor}s が窓 {window}s 未満（戻した窓が入らない）"

@@ -19,6 +19,11 @@ if [ "${BASH_SOURCE[0]:-}" != "${0:-}" ]; then
     _ts_sourced=1
 fi
 
+# 呼び出しは必ず `cmd || { _ts_die "..."; return 1; }` の形で書く（test_bootstrap_abort.py が張る）。
+# exec 形態は `exit 1` でシェルごと止まるが、source 形態の `return 1` はこの関数から抜けるだけで
+# 呼び出し元の次の行が走る——2026-09-10 04:0x 枠で pip が落ちても `ready` まで走り切った
+# （K-20260910-a-dual-mode-abort-aborts-only-where-it-can-exit）。トップレベルの `return 1` を
+# 同梱すると sourced ファイル自体から抜ける（exec 形態では exit が先に効くので不達）。
 _ts_die() {
     echo "[telegram-secretary-bootstrap] FAIL: $*" >&2
     if [ "$_ts_sourced" = "1" ]; then
@@ -75,17 +80,17 @@ _ts_script_dir="$(cd "$(dirname "$_ts_script_path")" && pwd)"
 if [ "${TELEGRAM_SECRETARY_MEDIA_ENABLE_DOWNLOAD:-true}" != "false" ]; then
     if [ "${TELEGRAM_SECRETARY_BUNDLE_VOICE:-true}" != "false" ]; then
         _ts_log "Heavy mode: installing media+voice extras from pyproject..."
-        python -m pip install --quiet -e "$_ts_script_dir[media,voice]" || _ts_die "media+voice deps install failed"
+        python -m pip install --quiet -e "$_ts_script_dir[media,voice]" || { _ts_die "media+voice deps install failed"; return 1; }
     else
         _ts_log "Heavy mode (BUNDLE_VOICE=false): installing media extras from pyproject..."
-        python -m pip install --quiet -e "$_ts_script_dir[media]" || _ts_die "media deps install failed"
+        python -m pip install --quiet -e "$_ts_script_dir[media]" || { _ts_die "media deps install failed"; return 1; }
         _ts_log "voice deps skipped (BUNDLE_VOICE=false) -> 音声は skipped にフォールバック"
     fi
 else
     _ts_log "Medium mode (MEDIA_ENABLE_DOWNLOAD=false): installing base deps only (httpx)..."
-    python -m pip install --quiet -e "$_ts_script_dir" || _ts_die "base deps install failed"
+    python -m pip install --quiet -e "$_ts_script_dir" || { _ts_die "base deps install failed"; return 1; }
 fi
-python -c "import httpx" >/dev/null || _ts_die "httpx import failed after install"
+python -c "import httpx" >/dev/null || { _ts_die "httpx import failed after install"; return 1; }
 
 # --- Session ID 自動 export (運用律 B 案) ---
 # lease acquire / watch / send-reply / lease renew が同じ owner を共有するように、
@@ -108,7 +113,7 @@ _ts_log "install_dir=$TELEGRAM_SECRETARY_INSTALL_DIR state_dir=$TELEGRAM_SECRETA
 # --- 設定検証 (env + config.json の欠損/不正は exit 2 で fail-fast) ---
 # validate-config を deadline 計算より先に実行する。config.json 不在/欠落/範囲外をここで弾けば、
 # 後段の session_duration_sec 取得は「検証済み」前提で単純化できる（取得前に die させる）。
-(cd "$_ts_script_dir" && python scripts/main.py validate-config) || _ts_die "validate-config failed"
+(cd "$_ts_script_dir" && python scripts/main.py validate-config) || { _ts_die "validate-config failed"; return 1; }
 
 # --- REGISTRY_DIR の絶対パス固定 (registry_dir も cwd 依存 .resolve() を回避)---
 # config.json の registry_dir（2リポ親起点の相対）を bootstrap 実行時 cwd（=2リポ親）基準で絶対化して
@@ -178,7 +183,7 @@ fi
 # session_duration_sec は config.json が正典 (validate-config 検証済み)。bootstrap はローカル取得して
 # deadline を計算するのみ。TELEGRAM_SECRETARY_SESSION_DURATION_SEC env は作らない (純2層: duration 設定値を env に置かない、
 # env は秘匿のみ)。deadline_epoch は計算"結果"ゆえ env スナップショットに残してよい。
-_ts_duration="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["session_duration_sec"])' "$_ts_script_dir/config.json")" || _ts_die "failed to read session_duration_sec from config.json"
+_ts_duration="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["session_duration_sec"])' "$_ts_script_dir/config.json")" || { _ts_die "failed to read session_duration_sec from config.json"; return 1; }
 export TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH="${TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH:-$(( $(date +%s) + _ts_duration ))}"  # 停止主軸: この epoch 秒を過ぎたら /goal 停止
 # POLL_SET_SEC: メッセージ無し時の 1 窓上限。不変条件は「窓 + 1 サイクルの最悪滞留 <= bash_timeout/1000」。
 # 最悪滞留を決めるのは long-poll の --timeout ではなく HTTP 層の再試行予算である——watch は最終サイクルの
@@ -203,7 +208,15 @@ export TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS="${TELEGRAM_SECRETARY_POLL_BASH_T
 _ts_msg_per_hour=15
 _ts_max_turns_calc=$(( _ts_duration / TELEGRAM_SECRETARY_POLL_SET_SEC + _ts_msg_per_hour * _ts_duration / 3600 ))
 export TELEGRAM_SECRETARY_MAX_TURNS="${TELEGRAM_SECRETARY_MAX_TURNS:-$(( _ts_max_turns_calc < 30 ? 30 : _ts_max_turns_calc ))}"
-_ts_log "deadline-driven poll: deadline=$TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH (now+${_ts_duration}s from config.json), window<=${TELEGRAM_SECRETARY_POLL_SET_SEC}s, max_turns=${TELEGRAM_SECRETARY_MAX_TURNS}, bash timeout ${TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS}ms"
+# 終端予約の二段構え（K-20260817-terminal-reservation-is-durability-not-idleness）。
+# 残り窓 <= RESERVE で窓を回さず書込（handoff Write → artifacts-sync）へ移り、sync 後の余剰が
+# FLOOR 以上なら残り窓で watch へ戻す。1,500 の出所は handoff 20260815T110300Z_session-24012f4e §2.5
+# （原典。以後 6 枠の実測では残り 1,298〜1,660s で移行）、600 の出所は K-20260817 の床（窓＋返信の所要）。
+# 2026-08-24 まで両値は handoff 連鎖だけが運んでいた（rule 80、本体未収載）——稼働パラメータは本体に置く。
+# 値の関係 RESERVE > FLOOR >= POLL_SET_SEC は test_poll_window_invariant.py が張る。
+export TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC="${TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC:-1500}"
+export TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC="${TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC:-600}"
+_ts_log "deadline-driven poll: deadline=$TELEGRAM_SECRETARY_SESSION_DEADLINE_EPOCH (now+${_ts_duration}s from config.json), window<=${TELEGRAM_SECRETARY_POLL_SET_SEC}s, max_turns=${TELEGRAM_SECRETARY_MAX_TURNS}, bash timeout ${TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS}ms, terminal reserve=${TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC}s floor=${TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC}s"
 
 # --- 派生 env を source 可能ファイルへ書き出し (Bash tool は call 間で env 揮発) ---
 # Claude Code / cloud routine の Bash tool は call 毎に fresh shell (cwd のみ persist、env は揮発)。
@@ -220,11 +233,13 @@ _ts_env_file="${TELEGRAM_SECRETARY_ENV_FILE:-/tmp/telegram-secretary.env.sh}"
     echo "export TELEGRAM_SECRETARY_POLL_SET_SEC=$(printf '%q' "$TELEGRAM_SECRETARY_POLL_SET_SEC")"
     echo "export TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS=$(printf '%q' "$TELEGRAM_SECRETARY_POLL_BASH_TIMEOUT_MS")"
     echo "export TELEGRAM_SECRETARY_MAX_TURNS=$(printf '%q' "$TELEGRAM_SECRETARY_MAX_TURNS")"
+    echo "export TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC=$(printf '%q' "$TELEGRAM_SECRETARY_TERMINAL_RESERVE_SEC")"
+    echo "export TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC=$(printf '%q' "$TELEGRAM_SECRETARY_TERMINAL_RETURN_FLOOR_SEC")"
     # registry_dir は registry を使う環境でのみ存在（config.json に registry_dir があれば上で絶対化済み）。
     if [ -n "${TELEGRAM_SECRETARY_REGISTRY_DIR:-}" ]; then
         echo "export TELEGRAM_SECRETARY_REGISTRY_DIR=$(printf '%q' "$TELEGRAM_SECRETARY_REGISTRY_DIR")"
     fi
-} > "$_ts_env_file" || _ts_die "failed to write env snapshot: $_ts_env_file"
+} > "$_ts_env_file" || { _ts_die "failed to write env snapshot: $_ts_env_file"; return 1; }
 export TELEGRAM_SECRETARY_ENV_FILE="$_ts_env_file"
 _ts_log "env snapshot -> $_ts_env_file"
 
