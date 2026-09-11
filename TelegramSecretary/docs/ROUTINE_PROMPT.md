@@ -83,7 +83,7 @@ Step 4 の fetch はデータをローカルに降ろすだけで、**あなた�
 
 > **8表を並べて `list` してはならない。** registry は運用で肥大する（knowledge は数百件・MB 級、tasks は 1 レコードの notes が十数万字に達する）。表を並べた出力はハーネスの出力上限を超えて persisted-output へ退避され、**データがコンテキストに載らないまま exit 0** する——読めていないのに読めたつもりで起動する沈黙失敗である（実際に十数枠再発した）。`orientation` は同じ問いに、notes 長に依存しない有界サイズで答える。機序と設計根拠は **DESIGN §3.12 が SSoT**。
 
-10. **orientation ダイジェスト（一撃）**。役割判定・8表の件数/バイト数・小表（individuals / abilities / profile / goals）の全文・tasks の一行要約と active タスクの notes 末尾・knowledge の `id | subjects | topic` 索引・subjects と steps の一行索引・前枠までの handoff ブロックが、この 1 コマンドで揃う（`role-status` を別途叩く必要はない——同一判定が `## role` に載る）：
+10. **orientation ダイジェスト（一撃）**。役割判定・8表の件数/バイト数・**outbound の最終送信確定（`## outbound`: WAL で done＝送信成功が確定した最新 `created_at` と pending 件数。「今日の日報は出したか」はこの行から判定し、WAL の生ファイルを手読みしない。pending は送信未確定＝送信済と読まない、`none` は retention 内に送信確定が無いという意味）**・小表（individuals / abilities / profile / goals）の全文・tasks の一行要約と active タスクの notes 末尾・knowledge の `id | subjects | topic` 索引・subjects と steps の一行索引・前枠までの handoff ブロックが、この 1 コマンドで揃う（`role-status` を別途叩く必要はない——同一判定が `## role` に載る）：
 
 ```bash
 source /tmp/telegram-secretary.env.sh && \

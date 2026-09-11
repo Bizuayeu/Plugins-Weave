@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from adapters.registry.json_registry_store import JsonRegistryStore
+from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
 from domain.exceptions import GitSyncError
 from domain.registry import (
     Ability,
@@ -29,6 +30,7 @@ from domain.registry import (
     invalid_subjects,
     unknown_keys,
 )
+from domain.wal import WalEntry
 from infrastructure.composition import build_git, build_sync
 from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
@@ -445,6 +447,20 @@ def _option(args: Any, name: str, default: int) -> int:
     return default if value is None else value
 
 
+def _read_outbound_entries(config: Config) -> list[WalEntry]:
+    """WAL ログを読むだけ（read-only）。読めなくても起動オリエンテーションを止めない。
+
+    不在は `[]`（`load_jsonl` の契約）。読み取り失敗は stderr で告げて空で続ける
+    （`_read_handoff_blocks` と同じ fail-open——outbound 1 行のために digest 全体を落とさない。
+    空になった事実は digest の `last_sent: none` からは見分けられないので、stderr が唯一の痕跡）。
+    """
+    try:
+        return JsonlWalLogStore(config.wal_log_path).load()
+    except OSError as exc:
+        print(f"outbound wal unreadable (shown as none): {exc}", file=sys.stderr)
+        return []
+
+
 def run_orientation(config: Config, args: Any = None) -> int:
     """起動時オリエンテーション用の絞り込みダイジェストを stdout に一撃出力する。
 
@@ -460,6 +476,7 @@ def run_orientation(config: Config, args: Any = None) -> int:
     handoff_latest = _option(args, "handoff_latest", DEFAULT_HANDOFF_LATEST)
     digest = OrientationService(listers, sizes).build(
         handoffs=_read_handoff_blocks(config, handoff_latest),
+        outbound=_read_outbound_entries(config),
         notes_tail=_option(args, "notes_tail", DEFAULT_NOTES_TAIL),
         topic_width=_option(args, "topic_width", DEFAULT_TOPIC_WIDTH),
         handoff_latest=handoff_latest,

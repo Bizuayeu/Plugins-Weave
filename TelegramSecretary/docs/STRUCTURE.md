@@ -95,7 +95,7 @@ TelegramSecretary/
 │   │   ├── download_authorized_media.py / render_authorized_media.py
 │   │   ├── manage_registry.py # 管理表 CRUD UseCase
 │   │   ├── observability.py  # セキュリティ観測ログ（未認可・レート超過・redact を stderr へ 1 行、本文は載せない。ops-rules §1）
-│   │   ├── orientation.py    # 起動時ダイジェストの射影（8 表それぞれに処方＝cap 側 4 表の長文フィールド上限／索引側 4 表の一行索引と件数絞り、category・subject 絞り/notes 末尾/handoff 選択、DESIGN §3.12）
+│   │   ├── orientation.py    # 起動時ダイジェストの射影（8 表それぞれに処方＝cap 側 4 表の長文フィールド上限／索引側 4 表の一行索引と件数絞り、category・subject 絞り/notes 末尾/handoff 選択/outbound 最終送信確定行〔WAL 射影〕、DESIGN §3.12）
 │   │   ├── registry_sync.py  # 管理表の git 永続化（イベント駆動 commit&push、GitSyncPort 越し、DESIGN §3.6）
 │   │   └── wal.py            # WAL UseCase（AppendWalIntent / PushWalLog / RedoPendingIntents〔validate 必須注入・落ちた intent は dead へ隔離〕 / SettleOutboundIntent / DropDeadIntent）
 │   ├── adapters/

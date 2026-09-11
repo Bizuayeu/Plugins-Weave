@@ -2,6 +2,26 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.16.0] - 2026-09-11 — 決定論の問いはダイジェストが答える（outbound の最終送信確定行）
+
+「今日の日報はもう出したか」の判定に、毎枠 `WAL.jsonl` を開いて手で読んでいた（4 時間枠 × 6＝
+1 日 6 回）。存在しないフィールド名で読もうとした枠、「outbound が 1 行ある＝今日の分は送信済」と
+誤読しかけた枠が実際に出た。判定は秘書の仕事のままでよいが、「最後に送信が確定した outbound は
+いつか」は決定論なので、ダイジェストへ 2 行足して手読みを消す。
+
+### Added
+
+- **`orientation` の counts 直後に `## outbound` 節** — WAL の outbound kind を射影し、
+  `last_sent: <created_at> (created_at, UTC) | <本文先頭 topic_width バイト>`（status done＝
+  happy-path settle 済み＝送信成功の記録の最新。時刻順で選ぶ＝redo の rewrite で行順が入れ替わっても
+  最新が取れる。無ければ `none`）と `pending: N`（intent は書いたが送信未確定＝時刻を載せない。
+  載せると送信済と読まれる）を出す。見出しに done/pending の意味と「done は `wal-redo` の
+  checkpoint が retention で掃除する」ことを開示する——`none` は「retention 内に送信確定なし」で
+  あって「一度も送っていない」ではない。WAL が読めない枠は stderr に `outbound wal unreadable`
+  を出して `none` で続行する（handoff の読み筋と同じ fail-open）。UseCase は `summarize_outbound`
+  （純関数）、配線は `registry_cli._read_outbound_entries`（read-only、git に触れない）。
+  ROUTINE_PROMPT Step 5 の項目 10 に「この行から判定し、WAL を手読みしない」を足した
+
 ## [1.15.3] - 2026-09-10 — 中断は推奨経路でこそ効かせる（source 形態の bootstrap 中断と、終端予約の稼働パラメータの本体収載）
 
 2026-09-10 04:0x JST 枠で、bootstrap の依存導入が pip の read timeout で落ち `FAIL:` が 3 行出たのに、

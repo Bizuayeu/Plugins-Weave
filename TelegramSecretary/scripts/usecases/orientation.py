@@ -15,9 +15,11 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from typing import Any, Protocol
 
 from domain.registry import derive_role
+from domain.wal import WalEntry
 
 # 既定値の出所: notes_tail / topic_width / handoff 系はいずれも orientation_report_20260809
 # （notes_tail は申し送りが notes 末尾 3,000–4,000 字に堆積する運用実測、topic_width は同レポート
@@ -285,6 +287,41 @@ def pick_latest_handoffs(
     return [(name, _truncate(body, cap)) for name, body in picked]
 
 
+# outbound 節の見出し。done/pending の意味と retention による掃除を**見出しで**開示する——
+# 「outbound が 1 行ある＝今日の分は送信済」の誤読と、「done が無い＝一度も送っていない」の
+# 誤読は、どちらも行の意味を読み手の記憶に頼ったときに起きる
+OUTBOUND_HEADING = (
+    "## outbound (WAL: done = sent, pending = not confirmed; "
+    "done older than wal-redo retention is purged)"
+)
+
+
+def summarize_outbound(
+    entries: Sequence[WalEntry], topic_width: int = DEFAULT_TOPIC_WIDTH
+) -> list[str]:
+    """WAL から「最後に送信が確定した outbound はいつか」を 2 行で出す（決定論の側へ移す）。
+
+    `last_sent` は status **done**（happy-path settle＝送信成功の記録、DESIGN §3.9）の
+    最新 created_at。pending は intent を書いただけで送信は確定していないので件数だけ載せ、
+    時刻は載せない（時刻を載せると送信済と読まれる）。最新は created_at の時刻順で選ぶ
+    （ログの行順は redo の rewrite で入れ替わりうる）。created_at は送信予定時刻＝再送分でも
+    元の intent 時刻であり、送信完了時刻ではない——名前をそのまま出して発明しない。本文は
+    改行を空白に畳んでから topic_width で丸めて添える（「最後の 1 通が日報だったか」を
+    見分けるため。日報本文は複数行なので、畳まないと 1 行の契約が壊れ節構造まで崩れる）。
+    """
+    outbound = [e for e in entries if e.kind == "outbound"]
+    done = [e for e in outbound if e.status == "done"]
+    pending = sum(1 for e in outbound if e.status == "pending")
+    if not done:
+        last = "none"
+    else:
+        latest = max(done, key=lambda e: datetime.fromisoformat(e.created_at))
+        body = " ".join(str(latest.payload.get("text", "")).split())
+        text = _truncate(body, topic_width)
+        last = f"{latest.created_at} (created_at, UTC) | {text}"
+    return [OUTBOUND_HEADING, f"last_sent: {last}", f"pending: {pending}"]
+
+
 class OrientationService:
     """注入された表（lister）とファイルサイズからオリエンテーション digest を組む。"""
 
@@ -298,6 +335,7 @@ class OrientationService:
         self,
         *,
         handoffs: Sequence[tuple[str, str]] = (),
+        outbound: Sequence[WalEntry] = (),
         notes_tail: int = DEFAULT_NOTES_TAIL,
         topic_width: int = DEFAULT_TOPIC_WIDTH,
         handoff_latest: int = DEFAULT_HANDOFF_LATEST,
@@ -324,6 +362,8 @@ class OrientationService:
         parts = ["# orientation", ""]
         parts += self._role_section(records)
         parts += self._counts_section(records)
+        # 起動時の判断材料（今日の日報は出したか）は表より先に読ませる
+        parts += [*summarize_outbound(outbound, topic_width), ""]
         for name in records:
             parts += self._table_section(
                 name,

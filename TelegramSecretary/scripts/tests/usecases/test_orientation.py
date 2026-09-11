@@ -353,6 +353,10 @@ profile: 0 records, 0 bytes
 goals: 0 records, 0 bytes
 steps: 0 records, 0 bytes
 
+## outbound (WAL: done = sent, pending = not confirmed; done older than wal-redo retention is purged)
+last_sent: none
+pending: 0
+
 ## individuals (1 records, full)
 [
   {
@@ -1088,3 +1092,86 @@ def test_stage1_knobs_unset_keep_the_default_snapshot():
     assert (
         _snapshot_digest(goals_cap=None, steps_latest=None) == _DEFAULT_DIGEST_SNAPSHOT
     )
+
+
+# === outbound（WAL から「最後に送信が確定した能動送信はいつか」を決定論で出す） ===
+
+from domain.wal import WalEntry
+from usecases.orientation import summarize_outbound
+
+
+def _outbound(created_at: str, status: str = "done", text: str = "日報") -> WalEntry:
+    return WalEntry(
+        key=created_at,
+        kind="outbound",
+        status=status,
+        payload={"chat_id": 1, "text": text},
+        created_at=created_at,
+    )
+
+
+def test_outbound_section_says_none_when_the_log_is_empty():
+    lines = summarize_outbound([])
+    assert lines[1] == "last_sent: none"
+    assert lines[2] == "pending: 0"
+
+
+def test_outbound_pending_is_not_reported_as_sent():
+    """pending＝intent は書いたが送信は確定していない。1 行あるだけでは送信済にならない。"""
+    lines = summarize_outbound([_outbound("2026-09-10T22:00:00+00:00", "pending")])
+    assert lines[1] == "last_sent: none"
+    assert lines[2] == "pending: 1"
+
+
+def test_outbound_picks_the_latest_done_by_time_not_by_log_order():
+    entries = [
+        _outbound("2026-09-10T22:00:00+00:00", text="後に書かれた古い方"),
+        _outbound("2026-09-09T22:00:00+00:00", text="古い"),
+        _outbound("2026-09-11T01:30:00+00:00", text="日報 9/11"),
+        _outbound("2026-09-11T02:00:00+00:00", "pending", text="未確定"),
+    ]
+    lines = summarize_outbound(entries)
+    assert (
+        lines[1] == "last_sent: 2026-09-11T01:30:00+00:00 (created_at, UTC) | 日報 9/11"
+    )
+    assert lines[2] == "pending: 1"
+
+
+def test_outbound_ignores_registry_kinds_and_bounds_the_text():
+    entries = [
+        WalEntry(
+            key="T-001",
+            kind="tasks",
+            status="done",
+            payload={"id": "T-001"},
+            created_at="2026-09-12T00:00:00+00:00",
+        ),
+        _outbound("2026-09-11T01:30:00+00:00", text="あ" * 200),
+    ]
+    lines = summarize_outbound(entries, topic_width=30)
+    assert lines[1].startswith(
+        "last_sent: 2026-09-11T01:30:00+00:00 (created_at, UTC) | "
+    )
+    shown = lines[1].split(" | ", 1)[1]
+    assert _utf8_len(shown) <= 30
+    assert shown.endswith(TRUNCATION_MARK)
+
+
+def test_outbound_text_is_flattened_to_one_line():
+    """日報本文は複数行——改行を残すと `last_sent` が複数行に割れ、2 行の契約が壊れる。"""
+    lines = summarize_outbound(
+        [_outbound("2026-09-11T01:30:00+00:00", text="【日報 9/11】\n\n・朝礼\n・見積")]
+    )
+    assert len(lines) == 3
+    assert "\n" not in lines[1]
+    assert lines[1].endswith("| 【日報 9/11】 ・朝礼 ・見積")
+
+
+def test_outbound_section_sits_right_after_counts_in_the_digest():
+    digest = _service().build(outbound=[_outbound("2026-09-11T01:30:00+00:00")])
+    assert (
+        digest.index("## counts")
+        < digest.index("## outbound")
+        < digest.index("## individuals")
+    )
+    assert "last_sent: 2026-09-11T01:30:00+00:00 (created_at, UTC) | 日報" in digest

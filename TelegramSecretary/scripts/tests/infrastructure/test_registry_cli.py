@@ -640,6 +640,9 @@ _SNAPSHOT_TASK = dict(_TASK, notes="NOTE_A")
 # Notes）——空表を隠す特別扱いは置かない（表追加のたびに暗黙挙動が増えるため）。
 # v1.10.0 Stage 1 で subjects / steps を一行索引へ**意図的に**変えたため、この 2 行の見出しが
 # `full` から `index: ...` になった（UseCase の描画変更がここへそのまま出る＝配線が生きている証）。
+# v1.16.0 で `## outbound` を counts の直後へ**意図的に**足した（「最後の outbound はいつか」は
+# 決定論なのに毎枠 WAL を手読みしていた——done/pending の取り違えも起きた）。空ログは
+# `last_sent: none` / `pending: 0` の定数 2 行。
 # counts の実バイト数だけは改行変換で OS 依存（Windows は CRLF）なので stat() から差し込む。
 # f-string 内の role 行の波括弧は二重化（表示は 1 重）。
 def _expected_default_stdout(config: Config) -> str:
@@ -657,6 +660,10 @@ abilities: 0 records, 0 bytes
 profile: 0 records, 0 bytes
 goals: 0 records, 0 bytes
 steps: 0 records, 0 bytes
+
+## outbound (WAL: done = sent, pending = not confirmed; done older than wal-redo retention is purged)
+last_sent: none
+pending: 0
 
 ## individuals (0 records, full)
 []
@@ -1420,3 +1427,47 @@ def test_orientation_knowledge_subject_is_wired_from_the_cli(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "subject=馬" in out
     assert "K-001 | 馬 |" in out and "K-002" not in out
+
+
+# === outbound 行（WAL から決定論で「最後に送信が確定したのはいつか」を出す） ===
+
+from adapters.wal.jsonl_wal_log_store import JsonlWalLogStore
+from domain.wal import WalEntry
+
+
+def test_orientation_reports_the_last_settled_outbound_from_the_wal(tmp_path, capsys):
+    """done＝送信済の最新 created_at を載せ、pending は件数だけ（送信済と読ませない）。"""
+    config = _config(tmp_path)
+    store = JsonlWalLogStore(config.wal_log_path)
+    for created_at, status in (
+        ("2026-09-10T22:00:00+00:00", "done"),
+        ("2026-09-11T01:30:00+00:00", "done"),
+        ("2026-09-11T02:00:00+00:00", "pending"),
+    ):
+        store.append(
+            WalEntry(
+                key=created_at,
+                kind="outbound",
+                status=status,
+                payload={"chat_id": 1, "text": "日報"},
+                created_at=created_at,
+            )
+        )
+    assert run_orientation(config, _ns()) == 0
+    out = capsys.readouterr().out
+    assert "last_sent: 2026-09-11T01:30:00+00:00 (created_at, UTC) | 日報" in out
+    assert "pending: 1" in out
+
+
+def test_orientation_survives_an_unreadable_wal(tmp_path, capsys, monkeypatch):
+    """WAL が読めなくても digest は出す（fail-open、handoff の読み筋と同型）。"""
+    config = _config(tmp_path)
+
+    def boom(self):
+        raise OSError("locked")
+
+    monkeypatch.setattr(JsonlWalLogStore, "load", boom)
+    assert run_orientation(config, _ns()) == 0
+    captured = capsys.readouterr()
+    assert "last_sent: none" in captured.out
+    assert "outbound wal unreadable" in captured.err
