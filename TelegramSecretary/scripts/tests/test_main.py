@@ -1667,6 +1667,19 @@ def test_orientation_accepts_the_new_knobs(env_ready, capsys):
     assert "## steps (latest 0 of 0 records, newest last" in out
 
 
+def test_orientation_accepts_artifacts_latest(env_ready, capsys):
+    """`--artifacts-latest` が main 経由で UseCase まで届く（見出しの開示で確認）。"""
+    assert main(["orientation", "--artifacts-latest", "0"]) == EXIT_OK
+    assert "## artifacts (0 files, " in capsys.readouterr().out
+
+
+def test_knowledge_search_parser_entry(env_ready, capsys):
+    """`knowledge search --query` が parser を通り、空表でも 0 matches で exit 0。"""
+    rc = main(["knowledge", "search", "--query", "気学", "--query", "配点", "--any"])
+    assert rc == EXIT_OK
+    assert "(0 matches of 0 records, query: 気学 OR 配点," in capsys.readouterr().out
+
+
 def test_wal_append_accepts_outbound_kind(env_ready):
     """parser が --kind outbound を受け付ける（registry_sync 無効ゆえ no-op で exit 0）。
 

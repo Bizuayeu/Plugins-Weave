@@ -2,6 +2,65 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.17.0] - 2026-09-12 — 監査証跡と採択済みの読み口を揃える（成果物索引と knowledge の検索口）
+
+2026-09-12、占いの件で古い基準のまま答えて訂正する事故が出た。原因は不注意だけでなく構造で、
+tasks の `notes` は追記のみで撤回を書かないため置き換えられた基準が断定形のまま残り、しかも
+起動時の射影に載るのは `notes` の側で、採択済みの成果物（HTML）は索引の外にあった——分けて
+置いてあっても、読み手は監査証跡の側に落ちる。同じ日に、新しい知見を焼く前の既出照合に
+検索の口が無く、27 語の部分文字列走査を自前で 457 件に当てる形になっていた（2 件とも既出を
+正しく見つけたが、件数が増えるほどこの手作業が結晶化の律速になる）。本版は読み口を二つ足す。
+
+### Added
+
+- **`orientation` の tasks.notes 直後に `## artifacts` 節（タスクごとの成果物索引、名前だけ）** —
+  `artifacts/` 配下を再帰列挙（`handoff/` は申し送りの節が別に読むので除く）し、パス中の
+  タスク id トークン（`t0007/` ディレクトリ・`_t0013_` ファイル名成分。英数字に挟まれた形は
+  拾わない、最初のトークンで束ねる）で群にする。名前を並べるのは **active タスクの群だけ**
+  （tasks.notes と同じ規約。各群は basename 降順＝名前の日付が新しい順、`--artifacts-latest N`
+  で群ごとに頭打ち・見出しに `latest N of M files`）、active 以外の群と untagged は
+  `other: T0013 30, untagged 217` の一行に畳む。active なのに成果物が無い群も `0 files` で載せる
+  （無いことも判断材料——成果物が無ければ notes の値しか無いと分かる）。**中身は開かない**
+  （パスの列挙だけ。退行テストで `Path.open` 不在を固定）。配置が tasks.notes の直後なのは、
+  「notes から引いた値を外へ出す前に採択済みの成果物を見る」読み順を配置で作るため。
+  実 registry（282 files）での実測は `--artifacts-latest 3` で 830 バイト（本節のみ）
+- **`knowledge search --query Q [--query Q2] [--any] [--category C] [--subject S] [--limit N] [--topic-width N]`** —
+  read-only の検索口（git にも sync にも触れない）。id / subjects / topic / content に対する
+  部分文字列一致で、両側を NFKC → casefold に正規化してから照合する（「ＬＬＭ」と「llm」を
+  別語にすると既出照合が表記揺れで空振りし、重複を焼く側に倒れる）。複数 `--query` は既定
+  AND（精査向き）、`--any` で OR（同義語を並べた既出照合向き）。絞りの順は
+  category → subject → query → limit（orientation の索引と同じ合成順）。出力は索引行
+  （`id | subjects | topic`、content は載せない——当たりを付けて `get --key` で本文を引く
+  読み筋は orientation と同じ）で、見出しに `N matches of M records` と合成則を開示、0 件でも
+  exit 0（観測であって検証ではない）。`--query` 無しと knowledge 以外の表は exit 2。総バイトを
+  stderr に `knowledge search: N bytes` として申告し、25,600 超は退避の可能性と絞り方を警告する
+  （一般語で数百件当たれば索引行でも退避圏に入る）。UseCase は `search_knowledge`（純関数、
+  `usecases/knowledge_search.py`）、配線は `registry_cli._search_knowledge`
+- **テスト** — `test_orientation.py`（トークン抽出・群の並び・active のみ列挙・latest 0・配置）、
+  `test_knowledge_search.py`（content 一致・NFKC/大小・AND/OR・空語は 0 件・入力順と複製）、
+  `test_registry_cli.py`（handoff 除外・不在 no-op・**成果物を開かない**・search の見出し開示／
+  exit 2 条件／sync 不発／閾値超警告）、`test_main.py`（両ノブの parser 入口）
+
+### Changed
+
+- **ROUTINE_PROMPT Step 5 の採用値を再校正** — `--artifacts-latest 3` を足し、
+  `--knowledge-latest` を 30 → **20** に下げた。実 registry（2026-09-12、457 件）での実測は
+  旧採用値で **24,665 バイト**（余裕 935）、artifacts を足すと 25,494（余裕 106）で詰まり過ぎ、
+  knowledge 20 で **23,391 バイト**（余裕 2,209＝v1.15.2 校正時の余裕 2,076 と同水準）。落とした
+  索引 10 行の読み筋は本版の `knowledge search` が引き受ける（索引を眺めて当たりを付ける代わりに
+  語で引く）。Step 5 の節列挙に artifacts を足し、「notes の値を外へ出す前に成果物索引を見る」を
+  body 側に置いた（DESIGN §3.12 の上流配置——秘書が knowledge に書いた規律は下流ゆえ、それだけ
+  では効かない）。Step 11 の結晶化手順に「`knowledge search` で既出照合してから add」を足した
+
+### Notes
+
+- **稼働 body への波及**: コード（bootstrap / CLI）は本体リポ main に入った次の枠から効くが、
+  ROUTINE_PROMPT 本文の再登録が要る。`--artifacts-latest` を呼ぶ body を先に登録すると旧コードの
+  枠が argparse エラーで落ちる——**順序は plugins-weave push → 本体 PR マージ → body 再登録**
+- 成果物の命名にタスク id を含めるのは秘書が自然発生させた規約（`t0007/`・`drafts/…_t0013_…`）で、
+  本版はそれを読むだけ（DESIGN §3.10「標準化するのは置き場と命名だけ」の範囲）。legacy の平置き
+  217 件は untagged として件数だけ載る
+
 ## [1.16.0] - 2026-09-11 — 決定論の問いはダイジェストが答える（outbound の最終送信確定行）
 
 「今日の日報はもう出したか」の判定に、毎枠 `WAL.jsonl` を開いて手で読んでいた（4 時間枠 × 6＝

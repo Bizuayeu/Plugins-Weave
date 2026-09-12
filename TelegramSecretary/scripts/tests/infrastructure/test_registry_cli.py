@@ -675,6 +675,10 @@ T-001 | in_progress | high | - | 見積を送る
 ### T-001
 NOTE_A
 
+## artifacts (0 files, grouped by task token in path, names only, newest name first; active tasks listed, others counted)
+### T-001 (0 files)
+other: none
+
 ## knowledge (1 records, index: id | subjects | topic)
 K-001 | - | 申し送りの置き場
 
@@ -1471,3 +1475,190 @@ def test_orientation_survives_an_unreadable_wal(tmp_path, capsys, monkeypatch):
     captured = capsys.readouterr()
     assert "last_sent: none" in captured.out
     assert "outbound wal unreadable" in captured.err
+
+
+# === v1.17.0: artifacts 索引の読み口と knowledge search ===
+
+
+def _write_artifact(config: Config, rel: str) -> Path:
+    path = config.artifacts_path / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("BODY_MUST_NOT_BE_READ", encoding="utf-8")
+    return path
+
+
+def test_orientation_lists_artifacts_recursively_but_not_handoff(tmp_path, capsys):
+    """`handoff/` は申し送りの節が別に読む——同じ物を二度載せない。中身は開かない。"""
+    config = _config(tmp_path)
+    task = {**_TASK, "id": "T0007", "status": "in_progress"}
+    run_registry_command(config, "tasks", "add", _ns(json=json.dumps(task)))
+    capsys.readouterr()
+    _write_artifact(config, "t0007/20260912_candidate5.html")
+    _write_artifact(config, "drafts/20260910_t0007_note.md")
+    _write_artifact(config, "legacy_20260801.py")
+    _write_handoff(config, "20260912T000000Z_s.md", "HANDOFF_BODY")
+    _write_handoff(config, "archive/20260901T000000Z_s.md", "ARCHIVED")
+    assert run_orientation(config, _ns(artifacts_latest=1)) == 0
+    out = capsys.readouterr().out
+    assert "## artifacts (3 files, " in out
+    assert "### T0007 (latest 1 of 2 files)" in out
+    assert "t0007/20260912_candidate5.html" in out
+    assert "drafts/20260910_t0007_note.md" not in out  # latest 1
+    assert "other: untagged 1" in out
+    section = out.split("## artifacts")[1].split("## knowledge")[0]
+    assert "handoff/" not in section
+    assert "BODY_MUST_NOT_BE_READ" not in out
+
+
+def test_orientation_completes_when_artifacts_dir_absent(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_orientation(config, _ns()) == 0
+    assert "## artifacts (0 files, " in capsys.readouterr().out
+
+
+def test_orientation_does_not_open_artifact_files(tmp_path, monkeypatch, capsys):
+    """索引はパスだけ——成果物の本文を読む経路が無いことを open の不在で固定する。
+
+    表・WAL の読みは既存経路（open を使う）なので空の fake に差し替えてから
+    Path.open / read_text を塞ぐ——artifacts の列挙で 1 回でも開けば AssertionError。
+    """
+    config = _config(tmp_path)
+    _write_artifact(config, "t0007/a.html")
+    active = [{**_TASK, "id": "T0007", "status": "in_progress"}]
+    monkeypatch.setattr(
+        "infrastructure.registry_cli.registry_service",
+        lambda config, name: type(
+            "S", (), {"list": staticmethod(lambda: active if name == "tasks" else [])}
+        )(),
+    )
+    monkeypatch.setattr(
+        "infrastructure.registry_cli._read_outbound_entries", lambda config: []
+    )
+
+    def _boom(self, *a, **kw):
+        raise AssertionError(f"artifact opened: {self}")
+
+    monkeypatch.setattr(Path, "read_text", _boom)
+    monkeypatch.setattr(Path, "open", _boom)
+    assert run_orientation(config, _ns()) == 0
+    assert "t0007/a.html" in capsys.readouterr().out
+
+
+def _seed_knowledge(config: Config, *records: dict) -> None:
+    for rec in records:
+        run_registry_command(config, "knowledge", "add", _ns(json=json.dumps(rec)))
+
+
+def _search_ns(**kw) -> argparse.Namespace:
+    base = {
+        "query": None,
+        "any": False,
+        "category": None,
+        "subject": None,
+        "limit": None,
+        "topic_width": None,
+    }
+    base.update(kw)
+    return _ns(**base)
+
+
+def test_knowledge_search_finds_by_content_and_prints_index_lines(tmp_path, capsys):
+    config = _config(tmp_path)
+    _seed_knowledge(
+        config,
+        {**_KNOWLEDGE, "id": "K-001", "topic": "気学", "content": "配点で読む"},
+        {**_KNOWLEDGE, "id": "K-002", "topic": "台帳", "content": "先頭が腐る"},
+    )
+    capsys.readouterr()
+    rc = run_registry_command(config, "knowledge", "search", _search_ns(query=["配点"]))
+    assert rc == 0
+    captured = capsys.readouterr()
+    lines = captured.out.splitlines()
+    assert lines[0] == (
+        "## knowledge search (1 matches of 2 records, query: 配点, "
+        "index: id | subjects | topic)"
+    )
+    assert lines[1].startswith("K-001 | - | 気学")
+    assert "先頭が腐る" not in captured.out and "配点で読む" not in captured.out
+    assert "knowledge search: " in captured.err and "bytes" in captured.err
+
+
+def test_knowledge_search_and_or_limit_and_scope_are_disclosed(tmp_path, capsys):
+    config = _config(tmp_path)
+    _seed_knowledge(
+        config,
+        {**_KNOWLEDGE, "id": "K-001", "topic": "気学 配点", "category": "method"},
+        {**_KNOWLEDGE, "id": "K-002", "topic": "気学 比和", "category": "method"},
+        {**_KNOWLEDGE, "id": "K-003", "topic": "気学 配点", "category": "harness"},
+    )
+    capsys.readouterr()
+    rc = run_registry_command(
+        config, "knowledge", "search", _search_ns(query=["気学", "配点"])
+    )
+    assert rc == 0
+    assert "(2 matches of 3 records, query: 気学 AND 配点," in capsys.readouterr().out
+    rc = run_registry_command(
+        config,
+        "knowledge",
+        "search",
+        _search_ns(query=["配点", "比和"], any=True, category="method", limit=1),
+    )
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert (
+        "(latest 1 of 2 matches of 2 records, newest last, category=method, "
+        "query: 配点 OR 比和," in out
+    )
+    assert "K-002" in out and "K-001" not in out
+
+
+def test_knowledge_search_zero_matches_is_exit_0(tmp_path, capsys):
+    config = _config(tmp_path)
+    _seed_knowledge(config, _KNOWLEDGE)
+    capsys.readouterr()
+    rc = run_registry_command(
+        config, "knowledge", "search", _search_ns(query=["無い語"])
+    )
+    assert rc == 0
+    assert "(0 matches of 1 records," in capsys.readouterr().out
+
+
+def test_knowledge_search_requires_a_query(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_registry_command(config, "knowledge", "search", _search_ns()) == 2
+    rc = run_registry_command(config, "knowledge", "search", _search_ns(query=[" "]))
+    assert rc == 2
+    assert "requires at least one --query" in capsys.readouterr().err
+
+
+def test_search_is_knowledge_only(tmp_path, capsys):
+    config = _config(tmp_path)
+    assert run_registry_command(config, "tasks", "search", _search_ns(query=["x"])) == 2
+    assert "knowledge-only" in capsys.readouterr().err
+
+
+def test_knowledge_search_does_not_trigger_sync(tmp_path):
+    fake = FakeGitSync()
+    config = _config(tmp_path, sync=True)
+    sync = RegistrySyncService(fake)
+    rc = run_registry_command(
+        config, "knowledge", "search", _search_ns(query=["x"]), sync
+    )
+    assert rc == 0
+    assert fake.commit_calls == [] and fake.push_calls == 0
+
+
+def test_knowledge_search_warns_when_oversized(tmp_path, capsys):
+    config = _config(tmp_path)
+    rows = [
+        {**_KNOWLEDGE, "id": f"K-{i:04d}", "topic": "共通語 " + "t" * 200}
+        for i in range(ORIENTATION_WARNING_BYTES // 100)
+    ]
+    run_registry_command(config, "knowledge", "import", _ns(json=json.dumps(rows)))
+    capsys.readouterr()
+    rc = run_registry_command(
+        config, "knowledge", "search", _search_ns(query=["共通語"])
+    )
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert "WARNING: knowledge search output is" in err and "--limit" in err

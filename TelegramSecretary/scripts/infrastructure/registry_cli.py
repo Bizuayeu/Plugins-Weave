@@ -34,6 +34,7 @@ from domain.wal import WalEntry
 from infrastructure.composition import build_git, build_sync
 from infrastructure.config import Config
 from infrastructure.exit_codes import EXIT_CONFIG_INVALID, EXIT_FETCH_FAILED, EXIT_OK
+from usecases.knowledge_search import search_knowledge
 from usecases.manage_registry import RegistryService
 from usecases.orientation import (
     DEFAULT_HANDOFF_CAP,
@@ -41,6 +42,10 @@ from usecases.orientation import (
     DEFAULT_NOTES_TAIL,
     DEFAULT_TOPIC_WIDTH,
     OrientationService,
+    filter_knowledge_by_category,
+    filter_knowledge_by_subject,
+    index_knowledge,
+    pick_latest_by_id,
 )
 
 if TYPE_CHECKING:
@@ -126,6 +131,12 @@ def run_registry_command(
     if action == "import":
         return _import_records(config, name, spec, svc, args, sync)
 
+    if action == "search":
+        if name != "knowledge":
+            print(f"search is knowledge-only (got {name})", file=sys.stderr)
+            return EXIT_CONFIG_INVALID
+        return _search_knowledge(svc, args)
+
     if action == "add":
         try:
             raw = read_json_arg(args)
@@ -150,6 +161,66 @@ def run_registry_command(
 
     print(f"unknown action: {action}", file=sys.stderr)
     return EXIT_CONFIG_INVALID
+
+
+def _search_knowledge(svc: RegistryService, args: Any) -> int:
+    """`knowledge search --query Q [--query Q2] [--any] [--category C] [--subject S] [--limit N]`。
+
+    read-only（git にも sync にも触れない）。絞りの順は category → subject → query → limit
+    （orientation の索引と同じ合成順。母数 M は category / subject を掛けた後の件数）。
+    出力は索引行（`id | subjects | topic`、content は載せない——当たりを付けて `get --key`
+    で本文を引く読み筋は orientation と同じ）。見出しに一致数・母数・合成則・表示件数を
+    開示し、0 件でも exit 0（検索は観測であって検証ではない）。`--query` 無しだけが exit 2。
+    総バイトは stderr に申告し、閾値超は退避の可能性を警告する（orientation と同じ計器——
+    一般語で数百件当たれば索引行でも退避圏に入る）。
+    """
+    terms = [str(t) for t in (getattr(args, "query", None) or [])]
+    if not any(t.strip() for t in terms):
+        print("knowledge search requires at least one --query", file=sys.stderr)
+        return EXIT_CONFIG_INVALID
+    match_all = not getattr(args, "any", False)
+    category = getattr(args, "category", None)
+    subject = getattr(args, "subject", None)
+    limit = getattr(args, "limit", None)
+    topic_width = _option(args, "topic_width", DEFAULT_TOPIC_WIDTH)
+
+    rows = sorted(svc.list(), key=lambda r: str(r.get("id", "")))
+    if category is not None:
+        rows = filter_knowledge_by_category(rows, category)
+    if subject is not None:
+        rows = filter_knowledge_by_subject(rows, subject)
+    matched = search_knowledge(rows, terms, match_all)
+    shown = matched if limit is None else pick_latest_by_id(matched, limit)
+
+    joiner = " AND " if match_all else " OR "
+    scope = "" if category is None else f", category={category}"
+    scope += "" if subject is None else f", subject={subject}"
+    count = f"{len(matched)} matches of {len(rows)} records"
+    if limit is not None:
+        count = f"latest {len(shown)} of " + count + ", newest last"
+    heading = (
+        f"## knowledge search ({count}{scope}, query: {joiner.join(terms)}, "
+        "index: id | subjects | topic)"
+    )
+    payload = "\n".join([heading, *[index_knowledge(k, topic_width) for k in shown]])
+    print(payload)
+    _report_search_size(payload)
+    return EXIT_OK
+
+
+def _report_search_size(payload: str) -> None:
+    """検索結果の総バイトを stderr に自己申告する（`_report_orientation_size` と同じ計器）。"""
+    size = len(payload.encode("utf-8"))
+    print(f"knowledge search: {size} bytes", file=sys.stderr)
+    if size <= ORIENTATION_WARNING_BYTES:
+        return
+    print(
+        f"WARNING: knowledge search output is {size} bytes (> {ORIENTATION_WARNING_BYTES}) — "
+        "output this large can be diverted to persisted output while the command "
+        "still exits 0. Narrow it with `--limit`, more `--query` terms (AND), "
+        "`--category` or `--subject`.",
+        file=sys.stderr,
+    )
 
 
 def _import_records(
@@ -387,7 +458,8 @@ def _report_orientation_size(digest: str) -> None:
         f"WARNING: orientation digest is {size} bytes (> {ORIENTATION_WARNING_BYTES}) — "
         "output this large can be diverted to persisted output while the command "
         "still exits 0, leaving the digest out of the agent's context. Narrow it with "
-        "`--knowledge-latest` / `--notes-tail` / `--handoff-latest` / `--handoff-cap`.",
+        "`--knowledge-latest` / `--notes-tail` / `--handoff-latest` / `--handoff-cap` / "
+        "`--artifacts-latest`.",
         file=sys.stderr,
     )
 
@@ -434,6 +506,27 @@ def _read_handoff_blocks(config: Config, limit: int) -> list[tuple[str, str]]:
     return blocks
 
 
+def _read_artifact_paths(config: Config) -> list[str]:
+    """`artifacts/` 配下のファイルを相対 POSIX パスで再帰列挙する（`handoff/` サブツリーは除く）。
+
+    読むのはパスだけで中身は開かない（スキーマレス、DESIGN §3.10）——標準化するのは
+    「パス中のタスク id トークン」だけで、束ね方は UseCase の `group_artifacts_by_task`。
+    `handoff/` は申し送りの節が別に読むので外す（同じ物を二度載せない）。不在・列挙不能は
+    `[]`（no-op 完走、`_read_handoff_blocks` と同じ fail-open）。
+    """
+    directory = config.artifacts_path
+    handoff = handoff_dir(config)
+    try:
+        return sorted(
+            path.relative_to(directory).as_posix()
+            for path in directory.rglob("*")
+            if path.is_file() and handoff not in path.parents
+        )
+    except OSError as exc:
+        print(f"artifacts unlistable (shown as none): {exc}", file=sys.stderr)
+        return []
+
+
 def _option(args: Any, name: str, default: int) -> int:
     """argparse Namespace から orientation の数値オプションを解決する（未指定のみ既定値）。
 
@@ -477,6 +570,8 @@ def run_orientation(config: Config, args: Any = None) -> int:
     digest = OrientationService(listers, sizes).build(
         handoffs=_read_handoff_blocks(config, handoff_latest),
         outbound=_read_outbound_entries(config),
+        artifacts=_read_artifact_paths(config),
+        artifacts_latest=getattr(args, "artifacts_latest", None),
         notes_tail=_option(args, "notes_tail", DEFAULT_NOTES_TAIL),
         topic_width=_option(args, "topic_width", DEFAULT_TOPIC_WIDTH),
         handoff_latest=handoff_latest,

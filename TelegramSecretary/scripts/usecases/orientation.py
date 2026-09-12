@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Any, Protocol
@@ -287,6 +288,72 @@ def pick_latest_handoffs(
     return [(name, _truncate(body, cap)) for name, body in picked]
 
 
+# artifacts のパスに現れるタスク id トークン（`t0007/` ディレクトリ、`_t0013_` ファイル名成分）。
+# 標準化するのは「パス中にこのトークンがあれば、そのタスクの成果物とみなす」ことだけで、
+# 中身は開かない（DESIGN §3.10 スキーマレス原則）。英数字に挟まれた `t0007` は語の一部と
+# みなして拾わない。最初に現れたトークンで束ねる（ディレクトリ名がファイル名より先）
+TASK_TOKEN_RE = re.compile(r"(?<![0-9A-Za-z])[Tt](\d{4})(?![0-9A-Za-z])")
+UNTAGGED_ARTIFACTS = "untagged"
+
+
+def task_token(path: str) -> str | None:
+    """パスからタスク id（`T0007` 形に正規化）を拾う。無ければ None。"""
+    match = TASK_TOKEN_RE.search(path)
+    return f"T{match.group(1)}" if match else None
+
+
+def group_artifacts_by_task(paths: Sequence[str]) -> dict[str, list[str]]:
+    """成果物パス群をタスク id で束ね、各群を**名前（basename）降順**に並べる。
+
+    命名が日付始まり（`20260912_t0005_daily_report.md`）なので basename 降順＝名前の
+    日付が新しい順。作成順ではない（`t0007/20260914_*` の日付は開催日）——並びの根拠は
+    名前だけで、mtime は fresh clone では clone 時刻になるため使わない。トークンの無い
+    パスは `untagged` に束ねる（legacy の平置きが大半）。
+    """
+    groups: dict[str, list[str]] = {}
+    for path in paths:
+        groups.setdefault(task_token(path) or UNTAGGED_ARTIFACTS, []).append(path)
+    for key, members in groups.items():
+        groups[key] = sorted(
+            members, key=lambda p: (p.rsplit("/", 1)[-1], p), reverse=True
+        )
+    return groups
+
+
+def index_artifacts(
+    paths: Sequence[str],
+    active_task_ids: Sequence[str],
+    latest: int | None = None,
+) -> list[str]:
+    """`## artifacts` 節——タスクごとの成果物索引（ファイル名だけ、中身は載せない）。
+
+    名前を並べるのは **active タスクの群だけ**（tasks.notes と同じ規約。起動時に要るのは
+    進行中の依頼の採択済み成果物であって、終端タスクの資産は `Read` で引ける）。active
+    以外の群と untagged は件数の一行に畳む——群の存在と母数は開示し、行数は増やさない。
+    active なのに成果物が無いタスクも `0 files` で載せる（「無い」も判断材料——成果物が
+    無ければ notes の値しか無いと分かる）。latest は群ごとの件数上限（None＝蓋なし、
+    非正＝0 件、`pick_latest_by_id` と同じ規約）。
+    """
+    groups = group_artifacts_by_task(paths)
+    lines = [
+        f"## artifacts ({len(paths)} files, grouped by task token in path, "
+        "names only, newest name first; active tasks listed, others counted)"
+    ]
+    for task_id in sorted(active_task_ids):
+        members = groups.pop(task_id, [])
+        if latest is None:
+            shown = members
+            count = f"{len(members)} files"
+        else:
+            shown = members[: max(latest, 0)]
+            count = f"latest {len(shown)} of {len(members)} files"
+        lines.append(f"### {task_id} ({count})")
+        lines.extend(shown)
+    others = ", ".join(f"{key} {len(groups[key])}" for key in sorted(groups))
+    lines.append(f"other: {others or 'none'}")
+    return lines
+
+
 # outbound 節の見出し。done/pending の意味と retention による掃除を**見出しで**開示する——
 # 「outbound が 1 行ある＝今日の分は送信済」の誤読と、「done が無い＝一度も送っていない」の
 # 誤読は、どちらも行の意味を読み手の記憶に頼ったときに起きる
@@ -336,6 +403,8 @@ class OrientationService:
         *,
         handoffs: Sequence[tuple[str, str]] = (),
         outbound: Sequence[WalEntry] = (),
+        artifacts: Sequence[str] = (),
+        artifacts_latest: int | None = None,
         notes_tail: int = DEFAULT_NOTES_TAIL,
         topic_width: int = DEFAULT_TOPIC_WIDTH,
         handoff_latest: int = DEFAULT_HANDOFF_LATEST,
@@ -377,6 +446,16 @@ class OrientationService:
                 tasks_latest,
                 steps_latest,
             )
+            if name == "tasks":
+                # 成果物索引は tasks.notes の**直後**に置く——notes から引いた値を外へ出す前に
+                # 採択済みの成果物を見る、という読み順を配置で作る（2026-09-12 T0020 の誤答は
+                # notes の古い基準を成果物より先に読んだことで起きた）
+                active_ids = [
+                    str(row.get("id", ""))
+                    for row in records[name]
+                    if row.get("status") in ACTIVE_TASK_STATUSES
+                ]
+                parts += [*index_artifacts(artifacts, active_ids, artifacts_latest), ""]
         parts += self._handoff_section(handoffs, handoff_latest, handoff_cap)
         return "\n".join(parts)
 

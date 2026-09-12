@@ -338,6 +338,8 @@ _INDIVIDUAL_RECORD = {
 # 併せて 8 表目 subjects を `_TABLES` に載せた——REGISTRY_SPEC（SSoT）は v1.9.0 Stage 4 で
 # 既に 8 表で、この fixture だけが 7 表のまま取り残されていた。動いたのは counts の 1 行と
 # subjects / steps の 2 セクションで、他 6 表は `_UNRELATED_SECTIONS_SNAPSHOT` が固定する。
+# v1.17.0 で tasks.notes の直後に `## artifacts` 節を**意図的に**足した（同じ別枠扱い。空入力でも
+# 節は出る＝active タスクの `0 files` と `other: none` を開示する）。
 _DEFAULT_DIGEST_SNAPSHOT = """# orientation
 
 ## role
@@ -376,6 +378,10 @@ T-002 | done | low | - | 請求書
 ## tasks.notes (active only, last 4000 bytes)
 ### T-001
 NOTE_A
+
+## artifacts (0 files, grouped by task token in path, names only, newest name first; active tasks listed, others counted)
+### T-001 (0 files)
+other: none
 
 ## knowledge (2 records, index: id | subjects | topic)
 K-001 | - | 申し送りの置き場
@@ -1175,3 +1181,115 @@ def test_outbound_section_sits_right_after_counts_in_the_digest():
         < digest.index("## individuals")
     )
     assert "last_sent: 2026-09-11T01:30:00+00:00 (created_at, UTC) | 日報" in digest
+
+
+# === v1.17.0: artifacts 索引（タスクごとの成果物、名前だけ） ===
+
+from usecases.orientation import (  # noqa: E402
+    UNTAGGED_ARTIFACTS,
+    group_artifacts_by_task,
+    index_artifacts,
+    task_token,
+)
+
+
+def test_task_token_reads_directory_and_filename_forms():
+    assert task_token("t0007/20260912_candidate5_per_horse.html") == "T0007"
+    assert task_token("drafts/20260912_t0005_daily_report.md") == "T0005"
+    assert task_token("T0013/x.md") == "T0013"
+
+
+def test_task_token_ignores_tokens_embedded_in_words_and_returns_none():
+    """英数字に挟まれた `t0007` は語の一部（`bt0007x`）。トークン無しは None。"""
+    assert task_token("drafts/bt0007x_report.md") is None
+    assert task_token("axis_ledger_v5_20260804.md") is None
+    assert task_token("drafts/20260912_t00050_x.md") is None  # 5 桁は別物
+
+
+def test_task_token_takes_the_first_occurrence_directory_before_filename():
+    assert task_token("t0007/20260912_t0020_x.html") == "T0007"
+
+
+def test_group_artifacts_by_task_sorts_each_group_by_basename_descending():
+    groups = group_artifacts_by_task(
+        [
+            "drafts/20260908_t0005_daily_report.md",
+            "t0005/20260912_note.md",
+            "drafts/20260910_t0005_daily_report.md",
+            "legacy_20260801.py",
+        ]
+    )
+    assert groups["T0005"] == [
+        "t0005/20260912_note.md",
+        "drafts/20260910_t0005_daily_report.md",
+        "drafts/20260908_t0005_daily_report.md",
+    ]
+    assert groups[UNTAGGED_ARTIFACTS] == ["legacy_20260801.py"]
+
+
+def test_index_artifacts_lists_active_tasks_and_counts_the_rest():
+    paths = [
+        "t0007/20260912_a.html",
+        "t0007/20260914_b.html",
+        "drafts/20260824_t0013_v4.html",
+        "drafts/20260824_t0013_textbook.html",
+        "legacy.py",
+    ]
+    lines = index_artifacts(paths, active_task_ids=["T0020", "T0007"])
+    assert lines[0].startswith("## artifacts (5 files, ")
+    # active は id 昇順で、無い群も 0 files で載る（「無い」も判断材料）
+    assert lines[1] == "### T0007 (2 files)"
+    assert lines[2:4] == ["t0007/20260914_b.html", "t0007/20260912_a.html"]
+    assert lines[4] == "### T0020 (0 files)"
+    assert lines[5] == "other: T0013 2, untagged 1"
+
+
+def test_index_artifacts_latest_caps_each_active_group_and_discloses_the_total():
+    paths = [f"drafts/2026090{i}_t0005_daily_report.md" for i in range(1, 6)]
+    lines = index_artifacts(paths, ["T0005"], latest=2)
+    assert lines[1] == "### T0005 (latest 2 of 5 files)"
+    assert lines[2:4] == [
+        "drafts/20260905_t0005_daily_report.md",
+        "drafts/20260904_t0005_daily_report.md",
+    ]
+    assert lines[4] == "other: none"
+
+
+def test_index_artifacts_zero_latest_lists_no_names_but_keeps_headings():
+    lines = index_artifacts(["t0005/a.md"], ["T0005"], latest=0)
+    assert lines[1] == "### T0005 (latest 0 of 1 files)"
+    assert lines[2] == "other: none"
+
+
+def test_index_artifacts_empty_input_still_renders_the_section():
+    lines = index_artifacts([], ["T0005"])
+    assert lines[0].startswith("## artifacts (0 files, ")
+    assert lines[1] == "### T0005 (0 files)"
+    assert lines[2] == "other: none"
+
+
+def test_artifacts_section_sits_right_after_tasks_notes_and_before_knowledge():
+    """notes から引いた値を外へ出す前に成果物を見る、という読み順を配置で作る。"""
+    digest = _service(
+        tasks=[
+            _task(id="T0007", status="in_progress"),
+            _task(id="T0001", status="done"),
+        ],
+        knowledge=[_knowledge()],
+    ).build(artifacts=["t0007/20260912_a.html", "drafts/20260801_t0001_old.md"])
+    assert (
+        digest.index("## tasks.notes")
+        < digest.index("## artifacts")
+        < digest.index("## knowledge")
+    )
+    assert "### T0007 (1 files)" in digest
+    assert "t0007/20260912_a.html" in digest
+    # 終端タスクの群は件数だけ（名前は載らない）
+    assert "old.md" not in digest
+    assert "other: T0001 1" in digest
+
+
+def test_build_without_artifacts_keeps_the_section_with_zero_files():
+    digest = _service().build()
+    assert "## artifacts (0 files, " in digest
+    assert "other: none" in digest

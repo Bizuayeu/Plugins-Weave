@@ -889,9 +889,38 @@ def build_parser() -> argparse.ArgumentParser:
         p_reg = sub.add_parser(_name, help=f"{_name} 管理表の CRUD")
         p_reg.set_defaults(handler=cmd_registry, registry_name=_name)
         p_reg.add_argument(
-            "registry_action", choices=["list", "get", "add", "remove", "import"]
+            "registry_action",
+            choices=["list", "get", "add", "remove", "import", "search"],
         )
         p_reg.add_argument("--key", help="get/remove のキー（uuid または id）")
+        # search（knowledge 専用・read-only）。他表で指定すると exit 2
+        p_reg.add_argument(
+            "--query",
+            action="append",
+            help="search の検索語（反復可。既定は全語一致、--any でいずれか一致）",
+        )
+        p_reg.add_argument(
+            "--any",
+            action="store_true",
+            help="search で複数 --query を OR 合成する（既定は AND）",
+        )
+        p_reg.add_argument("--category", help="search の母数を category 完全一致で絞る")
+        p_reg.add_argument(
+            "--subject", help="search の母数を subjects の要素一致で絞る"
+        )
+        p_reg.add_argument(
+            "--limit",
+            type=int,
+            default=None,
+            help="search の一致を新しい順 N 件に絞る（未指定なら全件）",
+        )
+        p_reg.add_argument(
+            "--topic-width",
+            dest="topic_width",
+            type=int,
+            default=None,
+            help=f"search 索引行の topic 切り詰め幅 (default {DEFAULT_TOPIC_WIDTH})",
+        )
         p_reg.add_argument(
             "--json", help="add するレコード／import する配列の JSON 文字列"
         )
@@ -991,6 +1020,13 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
         help="steps 索引を新しい順 N 件に絞る（未指定なら全件）",
+    )
+    p_orientation.add_argument(
+        "--artifacts-latest",
+        dest="artifacts_latest",
+        type=int,
+        default=None,
+        help="artifacts 索引で active タスクごとに載せる件数（名前降順、未指定なら全件）",
     )
 
     # 成果物層（artifacts/、handoff ブロックを含む）の commit & push。
