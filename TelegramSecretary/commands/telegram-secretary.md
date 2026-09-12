@@ -20,7 +20,8 @@ description: cloud routine 常駐 Telegram 秘書の登録・設定・管理表�
 | `unschedule` | 停止（`enabled:false`、二度と起動しない） | `RemoteTrigger update` |
 | `init-config` / `show-config` / `validate-config` | 運用設定（config.json）の生成・表示・検証 | `scripts/main.py` |
 | `individuals\|tasks\|knowledge\|subjects\|abilities\|profile\|goals\|steps {list\|get\|add\|remove\|import}` | 管理表 CRUD（8 表、何を残すか・何を行使するかは SecretaryRole 判断、書き込みは決定論 I/O）。`import --json-file` は全件置換（全件検証→置換、1 件でも不正なら無置換 exit 2） | `scripts/main.py` |
-| `orientation` | 起動時オリエンテーションのダイジェスト（role + 8表の件数/射影 + 申し送り handoff）。8表を並べた `list` の代わりに叩く read-only 射影 | `scripts/main.py` |
+| `orientation` | 起動時オリエンテーションのダイジェスト（role + 8表の件数/射影 + active タスクの成果物索引 + 申し送り handoff）。8表を並べた `list` の代わりに叩く read-only 射影 | `scripts/main.py` |
+| `knowledge search --query Q [--query Q2] [--any] [--category C] [--subject S] [--limit N]` | knowledge の read-only 検索（id / subjects / topic / content の部分文字列一致、索引行で返る）。新しい知見を焼く前の既出照合の口 | `scripts/main.py` |
 | `artifacts-sync` | 成果物層 `artifacts/`（申し送りの `handoff/` ブロックを含む）を固定ブランチへ commit & push | `scripts/main.py` |
 | `handoff-archive <name>...` | 消化済みの申し送りブロックを `handoff/archive/` へ卒業させる（以後 orientation に載らない） | `scripts/main.py` |
 | `role-status` | P×A 役割（秘書/執事/コーチ/守護霊）のデータ駆動判定 | `scripts/main.py` |
