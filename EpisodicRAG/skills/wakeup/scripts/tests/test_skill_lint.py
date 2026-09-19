@@ -75,6 +75,8 @@ class TestCurlSafety:
         text = _read(SKILL_MD)
         assert "@raw.githubusercontent.com" not in text
         assert "@api.github.com" not in text
+        # The git route must not regress into a PAT-in-URL clone.
+        assert "@github.com" not in text
         assert not re.search(r"[?&]token=", text), (
             "token must use the Authorization header, not the URL"
         )
@@ -83,6 +85,24 @@ class TestCurlSafety:
         text = _read(SKILL_MD)
         assert "Authorization: Bearer $TOKEN" in text
         assert "--fail" in text
+
+
+class TestGitHubGateFallback:
+    """Sandboxes with a GitHub gate 403 every api.github.com call, so the procedure
+    must name the failure signature and carry a git-transport route."""
+
+    def test_gate_signature_is_documented(self):
+        text = _read(SKILL_MD)
+        assert "add_repo" in text
+        assert "sessions are bound to their configured repositories" in text
+
+    def test_git_route_resolves_sha_and_reads_without_the_api(self):
+        text = _read(SKILL_MD)
+        assert "git ls-remote" in text
+        assert "--filter=blob:none" in text
+
+    def test_git_route_passes_token_via_credential_helper(self):
+        assert "credential.helper" in _read(SKILL_MD)
 
 
 class TestWriteBackSafety:

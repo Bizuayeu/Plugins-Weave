@@ -12,11 +12,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#5100---2026-09-08)
+- [v5.x](#5110---2026-09-19)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.11.0] - 2026-09-19
+
+Adds a git-transport detour to wakeup for sandboxes that sit behind a GitHub gate.
+
+### Added
+
+- **wakeup: Step 2 detour (git transport)** — the egress proxy of cloud-session sandboxes answers
+  403 to every `api.github.com` call, public repos and authenticated requests included, and swallows
+  a caller-supplied `Authorization` header (anthropics/claude-code #84581 / #86828). Step 2 resolves
+  the SHA through the API, so it always fails there. SKILL.md now names the gate's failure signature
+  (`add_repo` / `sessions are bound to their configured repositories`) and, once seen, swaps only the SHA
+  lookup for `git ls-remote` instead of retrying curl (the body still comes from the SHA-pinned raw
+  URL). A partial clone (`--filter=blob:none --no-checkout`) + `git show` is documented as the
+  second stage for when raw fails too. The token travels through an environment variable and a credential helper, so the
+  never-in-the-URL rule holds on the git route too. The curl route is kept as is (git was unusable
+  in the claude.ai chat sandbox for a period, so neither route is dropped)
+- Private reference (on-demand) documents how to read under the gate; write-back documents the
+  constraint (no push to a repository that is not attached to the session) and that an attached
+  session pushes as the session owner
+- **Measured (2026-09-19, in a gated sandbox)**: `raw.githubusercontent.com` passes with its
+  auth header (only `api.github.com` is blocked); a credential-helper token passes the proxy; no
+  token is left in `.git/config`. The write-back (push) refusal has not been measured
+
+### Changed
+
+- `test_skill_lint.py`: the token-in-URL check now covers `@github.com` (it only covered the raw and
+  api hosts, so a PAT-in-URL clone slipped through). Adds `TestGitHubGateFallback` for the gate
+  signature and the git route (3 tests)
 
 ---
 

@@ -11,11 +11,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#5100---2026-09-08)
+- [v5.x](#5110---2026-09-19)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.11.0] - 2026-09-19
+
+wakeup に、GitHub gate のあるサンドボックス向けの git transport 迂回経路を足す。
+
+### Added
+
+- **wakeup: Step 2 の迂回（git transport）** — クラウドセッション系サンドボックスの egress proxy は
+  `api.github.com` を公開リポ・認証付きでも一律 403 にし、自前の `Authorization` ヘッダを握り潰す
+  （anthropics/claude-code #84581 / #86828）。既存の Step 2 は SHA を API で取るため、gate 下では
+  必ず落ちる。SKILL.md に gate の失敗署名（`add_repo` / `sessions are bound to their configured
+  repositories`）を明記し、見えたら curl を叩き直さず、SHA 取得だけ `git ls-remote` に差し替える手順を追加（本文は既存の
+  SHA 固定 raw のまま）。raw も落ちた場合の二段目として partial clone
+  （`--filter=blob:none --no-checkout`）＋ `git show` を併記。token は環境変数 →
+  credential helper で渡し、URL に載せない規律を git 経路でも保つ。既存の curl 経路はそのまま
+  （claude.ai チャット環境では git が使えない時期があったため、片方に寄せない）
+- Private 参照（on-demand）に gate 下の読み方、書き戻しに gate 下の制約（未アタッチのリポへは
+  push 不能）と、アタッチ時は push 主体がセッション所有者になる注意を追記
+- **実測（2026-09-19、gate のあるサンドボックス）**: `raw.githubusercontent.com` は認証ヘッダごと
+  通る（塞がれているのは `api.github.com` だけ）／credential helper 経由の token は proxy を通る／
+  `.git/config` に token は残らない。書き戻し（push）の拒否は未実測
+
+### Changed
+
+- `test_skill_lint.py`: token の URL 埋め込み検査に `@github.com` を追加（従来は raw / api の 2 ホスト
+  のみで、PAT-in-URL の clone がすり抜けた）。gate 署名と git 経路の記載を検査する
+  `TestGitHubGateFallback`（3 本）を追加
 
 ---
 
