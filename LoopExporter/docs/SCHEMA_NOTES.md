@@ -40,6 +40,7 @@ effective_thinking_mode, current_leaf_message_uuid, chat_messages
 ```
 
 - **`current_leaf_message_uuid` がトップレベルに存在する。** FR-3 の「UI 表示中の枝（current leaf path）」解決はこの値を起点に `parent_message_uuid` を遡行するだけでよく、`created_at` 比較などの推測ロジックは不要（実測で `current_leaf_message_uuid` は「一度も他メッセージの親になっていないノード（真の葉）」と一致することを確認済み）。
+- **`has_assistant_outputs` は 2026-09-20 に出現した後付けフィールド（スキーマドリフト実測第三号）**。L00596 エクスポート時に警告 `Unknown field "has_assistant_outputs" on the conversation (top-level)` として検知。値・意味は未採取。Loop 変換には不要のため gateway の既知フィールド台帳に登録済み（警告は出ない・回帰テストあり）。
 - `settings` はオブジェクトで、実測したサブキーは `enabled_web_search` / `enabled_sourdough` / `enabled_foccacia` / `enabled_mcp_tools` / `enabled_monkeys_in_a_barrel` / `enabled_saffron` / `tool_search_mode` / `preview_feature_uses_artifacts` / `enabled_artifacts_attachments` / `enabled_turmeric` / `thinking_mode` / `effort_level`（claude.ai 内部の機能フラグ群。Loop 変換には不要な情報のため FR-5 の変換規則では読み捨ててよい）。
 
 ### 3.2 `chat_messages[]` 要素
@@ -72,7 +73,8 @@ truncated, attachments, files, sync_sources, parent_message_uuid
 補足:
 - `text.citations` は標本内では常に空配列（フィールドは存在するが、非空時の要素形状は未確認）。
 - `tool_use.name` / `tool_result.name` の実測値の例（claude.ai 標準ツールの汎用識別子。業務固有の値ではない）: `view` / `bash_tool` / `present_files` / `web_fetch` / `web_search`。`integration_name` の実測例: `File Creation` / `Web Fetch`。FR-5 の一行要約 `[tool: {name}]` はこの `name` フィールドを使う想定で問題ない。
-- 未知の `content[].type`（上記 4 種以外）は標本内には出現しなかった。NFR-3 の「未知フィールドは警告付きで生 JSON 保全」は実装上のフォールバックとして維持する（実測で存在しないことは「今後も出ない」ことを意味しない）。
+- **`image` は 2026-09-20 の L00596 エクスポートで初めて観測した 5 種目の type**（human メッセージに画像を貼った会話）。実測フィールドは `type, file_uuid, start_timestamp, stop_timestamp` で、画像本体は持たない。同じメッセージの `files[]` に対応する要素があり `[file: {name}]` 注記が出るため、ブロック自体は本文から除外する。`files[]` に対応が無い場合だけ `[image: {file_uuid}]` を一行残す（標本 1 件の観察ゆえ、対応が常にあるとは仮定しない。`files[]` 側のどのキーが `file_uuid` と一致するかは未採取で、実装は `file_uuid` と `uuid` の両方を見る）。
+- 上記以外の未知の `content[].type` は標本内には出現しなかった。NFR-3 の「未知フィールドは警告付きで生 JSON 保全」は実装上のフォールバックとして維持する（実測で存在しないことは「今後も出ない」ことを意味しない）。
 
 ### 3.4 ページネーション（NFR-4）
 

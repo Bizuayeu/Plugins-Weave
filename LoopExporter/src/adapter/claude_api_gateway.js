@@ -33,6 +33,7 @@ const KNOWN_TOP_LEVEL_FIELDS = new Set([
   "effective_thinking_mode",
   "current_leaf_message_uuid",
   "chat_messages",
+  "has_assistant_outputs", // appeared 2026-09-20 (schema drift #3, L00596) -- conversation-level flag, not needed for Loop conversion
 ]);
 
 const KNOWN_MESSAGE_FIELDS = new Set([

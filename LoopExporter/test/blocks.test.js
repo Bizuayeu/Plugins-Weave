@@ -62,7 +62,42 @@ test("convertBlocks preserves an unknown block type as raw JSON and records a wa
   assert.match(result.warnings[0], /mystery_block/);
 });
 
-test("convertBlocks handles an orphan tool_use (no matching tool_result) without crashing", () => {
+test("convertBlocks excludes image blocks without a warning (files[] carries the annotation)", () => {
+  const fabricated = [
+    { type: "image", file_uuid: "cccccccc-0000-4000-8000-000000000001" },
+    { type: "text", text: "Can you read this screenshot?", citations: [] },
+  ];
+  const result = convertBlocks(fabricated);
+  assert.equal(result.text, "Can you read this screenshot?");
+  assert.deepEqual(result.warnings, []);
+});
+
+test("convertMessage annotates an image once via files[] when the block's file_uuid is listed there", () => {
+  const message = {
+    content: [
+      { type: "image", file_uuid: "cccccccc-0000-4000-8000-000000000001" },
+      { type: "text", text: "Can you read this screenshot?", citations: [] },
+    ],
+    files: [{ file_uuid: "cccccccc-0000-4000-8000-000000000001", file_name: "screenshot.jpeg" }],
+  };
+  const result = convertMessage(message);
+  assert.equal(result.text, "Can you read this screenshot?\n\n[file: screenshot.jpeg]");
+  assert.deepEqual(result.warnings, []);
+});
+
+test("convertMessage keeps an [image: uuid] line when no files[] entry covers the image block", () => {
+  const message = {
+    content: [
+      { type: "image", file_uuid: "cccccccc-0000-4000-8000-000000000002" },
+      { type: "text", text: "Orphan image.", citations: [] },
+    ],
+    files: [],
+  };
+  const result = convertMessage(message);
+  assert.equal(result.text, "Orphan image.\n\n[image: cccccccc-0000-4000-8000-000000000002]");
+});
+
+test("convertBlocks handles an orphan tool_use(no matching tool_result) without crashing", () => {
   const fabricated = [
     {
       type: "tool_use",

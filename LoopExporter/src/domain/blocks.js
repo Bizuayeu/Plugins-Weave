@@ -23,6 +23,7 @@ var Fuhito = globalThis.Fuhito || (globalThis.Fuhito = {});
  *  - tool_use / tool_result -> one line "[tool: {name}]"; a tool_use/tool_result
  *    pair sharing the same id/tool_use_id collapses to a single line (no doubling)
  *  - thinking      -> excluded (not part of the existing Loop corpus)
+ *  - image         -> excluded here; convertMessage annotates it through files[]
  *  - unknown type  -> the raw block is preserved (JSON.stringify) in the output
  *    AND recorded as a warning -- never silently dropped (NFR-3)
  *
@@ -41,6 +42,8 @@ function convertBlocks(content) {
       if (block.text) parts.push(block.text);
     } else if (type === "thinking") {
       // FR-5 default: excluded entirely.
+    } else if (type === "image") {
+      // Carries only file_uuid (no pixels); annotated by convertMessage via files[].
     } else if (type === "tool_use") {
       parts.push(`[tool: ${block.name}]`);
       if (block.id) summarizedToolIds.add(block.id);
@@ -91,6 +94,19 @@ function convertMessage(message) {
   const parts = [];
   if (blockResult.text) parts.push(blockResult.text);
   for (const line of fileLines) parts.push(line);
+
+  // An image block normally has a files[] entry (-> "[file: name]" above). If it
+  // does not, keep its file_uuid visible instead of dropping it silently (NFR-3).
+  const fileUuids = new Set();
+  for (const file of message.files || []) {
+    if (file && file.file_uuid) fileUuids.add(file.file_uuid);
+    if (file && file.uuid) fileUuids.add(file.uuid);
+  }
+  for (const block of message.content || []) {
+    if (block && block.type === "image" && !fileUuids.has(block.file_uuid)) {
+      parts.push(`[image: ${block.file_uuid}]`);
+    }
+  }
 
   return { text: parts.join("\n\n"), warnings: blockResult.warnings };
 }

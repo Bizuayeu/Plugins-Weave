@@ -15,7 +15,7 @@
   window.__fuhitoContentLoaded = true;
 
   // Keep in sync with manifest.json "version".
-  const EXPORTER_VERSION = "0.2.0";
+  const EXPORTER_VERSION = "0.2.1";
 
   const CHAT_PATH_RE = /^\/chat\/([0-9a-fA-F-]+)/;
 

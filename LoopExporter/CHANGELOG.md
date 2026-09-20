@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1] - 2026-09-20
+
+### Fixed
+
+- **`image` ブロックの生 JSON 混入を解消**: 画像を貼った会話（L00596）で、`content[]` の `image` ブロックが未知 type として生 JSON のまま Loop 本文に残っていた。ブロックは `file_uuid` しか持たず、同じメッセージの `files[]` から `[file: {name}]` 注記が出るため、本文からは除外する。`files[]` に対応が無い場合だけ `[image: {file_uuid}]` を残す
+- **スキーマドリフト第三号 `has_assistant_outputs` の警告ノイズ解消**: 会話トップレベルの後付けフィールドを既知フィールド台帳に登録。実測記録は `docs/SCHEMA_NOTES.md` §3.1 / §3.3
+
 ## [0.2.0] - 2026-07-18
 
 ### Added
