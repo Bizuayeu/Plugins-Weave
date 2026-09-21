@@ -2,6 +2,65 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.18.0] - 2026-09-21 — 人は増える（individuals を全文から一人一行の索引へ）
+
+2026-09-21、起動時 digest が 2 枠続けて警告閾値を越えた（26,462 → 26,478 バイト、閾値 25,600）。
+秘書の一次診断は「knowledge が 457 → 507 件に育った」だったが、**原因は individuals の 1 → 4 件**
+である。バックアップ registry の 2026-09-13 と 09-21 のスナップショットに同じ引数の orientation を
+当てて節ごとに差を取ると、+3,329 バイトのうち **individuals が +3,133**、knowledge は +104
+（`--knowledge-latest 20` の蓋が効いており、件数は digest に出ない）。knowledge の件数と超過は
+同じ時期に起きただけで、因果ではなかった——次に同じことが起きたとき別のノブを疑わないよう、
+訂正をここに残す。
+
+individuals は v1.9.0 で「1 レコードが長い」側と読んで cap を当てた表だが、全文 JSON は
+1 件あたり骨格（キー名・インデント・timestamps・空配列）だけで約 640 バイトを持ち、cap は
+件数に効かない。v1.10.0 の「蓋の無い表は消えた」は、この表の件数については成り立っていなかった。
+
+### Changed
+
+- **`orientation` の individuals を一人一行の索引へ** — 列は
+  `uuid | display_name | role | status | chat | honorific | tone | category | priority_bias |
+  taboo_topics | shared_with | relationship_label | context_notes`。載せる基準は二つ:
+  **着信から個票を引く鍵**（`uuid` は先頭に置き `get --key` へそのまま写せる形、`chat` は
+  `tg:<id>/line:<id>`）と、**個票を引く前でも外してはならない応対の制約**（honorific / tone /
+  taboo_topics / shared_with）。timestamps は載せない。空は `-`、リストは `/` 連結、自由記述の
+  改行は空白へ畳む（行が割れると索引として読めなくなる）。件数絞りは付けない——「誰と」の
+  一覧から行を落とすと、着信した相手に辿り着けなくなる（subjects と同じ理由）。
+  既定出力のスナップショットは、この 1 セクションだけを**意図的に**動かした
+- **`--individuals-cap` は引数名を保ち、意味を「索引行の context_notes 頭の幅」へ移した**
+  （未指定なら 120 バイト）。登録済みの routine body は `--individuals-cap 400` を渡し続けるので、
+  引数を消すと orientation が exit 2 で止まり、再登録まで秘書が起動時の記憶を読めなくなる。
+  本体の更新は次の bootstrap で届き、body の更新は再登録まで届かない——この時間差を引数の
+  互換で吸収した。**登録済みの引数のままでも 25,003 バイトで閾値の内側に入る**（下表）
+- **ROUTINE_PROMPT Step 5 の校正値**: `--individuals-cap` 400 → 200。context_notes の続きは
+  応答前の `individuals get --key <uuid>`（既存手順）が引くので、起動時に要るのは誰が誰かの
+  当たりまで。**反映には `/telegram-secretary` の再登録が要る**
+
+  実測（2026-09-21 の実 registry の複製、individuals 4 件・knowledge 507 件・artifacts 294 files、
+  ほかの 10 値は据置）:
+
+  | 本体 | `--individuals-cap` | digest bytes | 余裕 |
+  |---|---|---|---|
+  | v1.17.0（全文 JSON） | 400 | 26,478 | −878 |
+  | v1.17.0 | 200 | 25,678 | −78 |
+  | **v1.18.0（索引）** | 400（登録済み body のまま） | 25,003 | 597 |
+  | **v1.18.0** | **200（採用）** | **24,203** | **1,397** |
+  | v1.18.0 | 120 | 23,888 | 1,712 |
+  | v1.18.0 | 0 | 23,418 | 2,182 |
+
+  - **伸びが消えたのではなく、傾きが下がった**: 1 件あたり約 1,060 → 約 430 バイト（cap 200 時。
+    うち列の固定分が約 230）。余裕 1,397 バイトは individuals 約 3 件分で、v1.17.0 採用時の
+    余裕 2,209 には戻っていない——digest の支配項は今も profile（4,772）・handoff（5,133）・
+    knowledge 索引（4,341）で、この三つは本版で触っていない
+  - **採用値 200 の出所**: 現行 400 の半分。120（既定）まで下げても得るのは 315 バイトで、
+    起動時に相手の当たりを付ける材料を削る割に合わない
+
+### Docs
+
+- DESIGN §3.12 の 8 行表・有界式・実装写像（cap 側 3 表／索引側 5 表）と、蓄積側と並べた対応表を更新。
+  「individuals を索引へ移した」の段に判断の根拠を置いた
+- SKILL.md / README.md の `orientation` 行、STRUCTURE.md、`orientation --help`
+
 ## [1.17.0] - 2026-09-12 — 監査証跡と採択済みの読み口を揃える（成果物索引と knowledge の検索口）
 
 2026-09-12、占いの件で古い基準のまま答えて訂正する事故が出た。原因は不注意だけでなく構造で、

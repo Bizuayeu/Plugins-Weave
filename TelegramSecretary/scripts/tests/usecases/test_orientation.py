@@ -340,6 +340,8 @@ _INDIVIDUAL_RECORD = {
 # subjects / steps の 2 セクションで、他 6 表は `_UNRELATED_SECTIONS_SNAPSHOT` が固定する。
 # v1.17.0 で tasks.notes の直後に `## artifacts` 節を**意図的に**足した（同じ別枠扱い。空入力でも
 # 節は出る＝active タスクの `0 files` と `other: none` を開示する）。
+# v1.18.0 で individuals を一人一行の索引へ**意図的に**変えた（同じ別枠扱い。動いたのはこの
+# 1 セクションだけ——下の `_UNRELATED_SECTIONS_SNAPSHOT` の individuals も同じ literal へ更新した）。
 _DEFAULT_DIGEST_SNAPSHOT = """# orientation
 
 ## role
@@ -359,17 +361,8 @@ steps: 0 records, 0 bytes
 last_sent: none
 pending: 0
 
-## individuals (1 records, full)
-[
-  {
-    "uuid": "u1",
-    "display_name": "yamada",
-    "role": "associate",
-    "status": "active",
-    "created_at": "t",
-    "updated_at": "t"
-  }
-]
+## individuals (1 records, index: uuid | display_name | role | status | chat | honorific | tone | category | priority_bias | taboo_topics | shared_with | relationship_label | context_notes (head 120 bytes); full record: individuals get --key <uuid>)
+u1 | yamada | associate | active | - | - | - | - | - | - | - | - | -
 
 ## tasks (2 records, summary: id | status | priority | due_date | title)
 T-001 | open | high | 2026-08-10 | 見積を送る
@@ -643,24 +636,75 @@ def test_abilities_cap_bounds_guidance():
     assert _utf8_len(_table_json(digest, "abilities")[0]["guidance"]) <= 40
 
 
-def test_individuals_cap_bounds_the_nested_context_notes():
-    """individuals の支配項は identity 直下——ネストしていても兄弟キーは不変のまま丸める。"""
-    record = dict(_INDIVIDUAL_RECORD)
-    record["identity"] = {"context_notes": "の" * 300, "taboo_topics": ["政治"]}
-    digest = _service(individuals=[record]).build(individuals_cap=60)
-    assert (
-        "## individuals (1 records, full, identity.context_notes cap 60 bytes)"
-        in digest
+def _individual(**identity) -> dict:
+    return dict(_INDIVIDUAL_RECORD, identity=identity)
+
+
+def test_individuals_are_indexed_one_line_per_record():
+    """individuals は件数が増える表＝処方は cap でなく索引（v1.18.0）。
+
+    2026-09-21 の閾値超過は 1→4 件の増加が原因だった——全文 JSON は 1 件あたり骨格だけで
+    約 640 バイトを持ち、cap は件数に効かない。
+    """
+    records = [_individual(context_notes="n") | {"uuid": f"u{i}"} for i in range(4)]
+    section = _section(_service(individuals=records).build(), "individuals")
+    assert section.splitlines()[0].startswith(
+        "## individuals (4 records, index: uuid | "
     )
-    identity = _table_json(digest, "individuals")[0]["identity"]
-    assert _utf8_len(identity["context_notes"]) <= 60
-    assert identity["taboo_topics"] == ["政治"]
+    assert len(section.strip().splitlines()) == 1 + 4
+    assert '"uuid"' not in section  # JSON 全文ではない
 
 
-def test_cap_is_a_noop_when_the_dominant_field_is_absent():
-    """支配項を持たないレコードでも cap 指定で落ちない（表は表のまま出る）。"""
-    digest = _service(individuals=[_INDIVIDUAL_RECORD]).build(individuals_cap=10)
-    assert _table_json(digest, "individuals")[0] == _INDIVIDUAL_RECORD
+def test_individual_index_row_carries_routing_and_safety_columns():
+    """着信 chat から uuid を引く鍵と、応対の安全に効く列（taboo / shared_with）は索引に残す。"""
+    record = _individual(
+        honorific="さん",
+        tone="polite",
+        category="client",
+        priority_bias="high",
+        taboo_topics=["政治", "宗教"],
+        shared_with=["u9"],
+        relationship_label="施主",
+        context_notes="初回 8/1",
+    ) | {"telegram_chat_id": 12345, "line_user_id": "Uabc"}
+    row = _section(_service(individuals=[record]).build(), "individuals").splitlines()[
+        1
+    ]
+    assert row == (
+        "u1 | yamada | associate | active | tg:12345/line:Uabc | さん | polite | client"
+        " | high | 政治/宗教 | u9 | 施主 | 初回 8/1"
+    )
+
+
+def test_individuals_cap_bounds_the_context_notes_head():
+    """`--individuals-cap` は名前を保ち、意味を「索引行の context_notes 頭の幅」に移す。
+
+    登録済みの routine body が `--individuals-cap 400` を渡し続けるので、引数は消せない。
+    """
+    record = _individual(context_notes="CTX" + "の" * 300, taboo_topics=["政治"])
+    section = _section(
+        _service(individuals=[record]).build(individuals_cap=60), "individuals"
+    )
+    assert "context_notes (head 60 bytes)" in section.splitlines()[0]
+    row = section.splitlines()[1]
+    notes = row.rsplit(" | ", 1)[1]
+    assert notes.startswith("CTX") and notes.endswith("…")
+    assert _utf8_len(notes) <= 60
+    assert " | 政治 | " in row  # 丸めるのは context_notes だけ
+
+
+def test_zero_individuals_cap_leaves_only_the_marker():
+    record = _individual(context_notes="CTX_MARKER")
+    digest = _service(individuals=[record]).build(individuals_cap=0)
+    assert "CTX_MARKER" not in digest
+
+
+def test_individual_index_row_stays_on_one_line():
+    """context_notes は複数行で書かれる——改行を残すと行が割れて索引が読めなくなる。"""
+    record = _individual(context_notes="一行目\n二行目", relationship_label="a\nb")
+    section = _section(_service(individuals=[record]).build(), "individuals")
+    assert len(section.strip().splitlines()) == 2
+    assert "a b | 一行目 二行目" in section
 
 
 def test_zero_profile_cap_leaves_only_the_marker():
@@ -911,6 +955,7 @@ def test_knowledge_subject_unset_keeps_the_default_snapshot():
 # subjects / steps の描画は本サイクルで**意図的に**変える（v1.9.0 の索引 3 列化と同じ扱い）。
 # 変えない側を先に機械で固定するのがこのブロックの錠——**v1.9.0 の出力から転記した
 # 6 表分の literal** で、以後の描画変更がここへ滲み出したら即座に割れる。
+# individuals の literal だけは v1.18.0 の索引形へ差し替えた（以後はその形を固定する）。
 _UNRELATED_SECTIONS = (
     "individuals",
     "tasks",
@@ -921,17 +966,8 @@ _UNRELATED_SECTIONS = (
     "goals",
 )
 
-_UNRELATED_SECTIONS_SNAPSHOT = """## individuals (1 records, full)
-[
-  {
-    "uuid": "u1",
-    "display_name": "yamada",
-    "role": "associate",
-    "status": "active",
-    "created_at": "t",
-    "updated_at": "t"
-  }
-]
+_UNRELATED_SECTIONS_SNAPSHOT = """## individuals (1 records, index: uuid | display_name | role | status | chat | honorific | tone | category | priority_bias | taboo_topics | shared_with | relationship_label | context_notes (head 120 bytes); full record: individuals get --key <uuid>)
+u1 | yamada | associate | active | - | - | - | - | - | - | - | - | -
 
 ## tasks (2 records, summary: id | status | priority | due_date | title)
 T-001 | open | high | 2026-08-10 | 見積を送る

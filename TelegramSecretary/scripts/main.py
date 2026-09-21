@@ -991,7 +991,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="individuals_cap",
         type=int,
         default=None,
-        help="individuals の identity.context_notes を丸めるバイト上限（未指定なら全文）",
+        help="individuals 索引行の context_notes 頭のバイト幅（未指定なら 120。全文は individuals get --key）",
     )
     p_orientation.add_argument(
         "--abilities-cap",

@@ -44,9 +44,10 @@ ACTIVE_TASK_STATUSES = frozenset({"open", "in_progress", "blocked"})
 # 全文で載る小表の「支配的長文フィールド」への経路（orientation_report_20260810 実測の支配項）。
 # 蓋はここだけに掛ける——レコード全体の JSON を丸めると構造が壊れ、個票を `get --key` で
 # 引き直す読み筋まで死ぬ。goals は件数が少なく本文が長い側なのでここに載る。件数が増える側
-# （subjects / steps）は cap では有界にならないので索引で処方する（表の性質が処方を決める）
+# （subjects / steps / individuals）は cap では有界にならないので索引で処方する（表の性質が
+# 処方を決める）。individuals は v1.18.0 でこちらへ移した——1→4 件で digest が 3,133 バイト
+# 伸び、閾値を超えた（全文 JSON は 1 件あたり骨格だけで約 640 バイトを持つ）
 _CAP_FIELDS: Mapping[str, tuple[str, ...]] = {
-    "individuals": ("identity", "context_notes"),
     "abilities": ("guidance",),
     "profile": ("content",),
     "goals": ("notes",),
@@ -103,6 +104,60 @@ def _truncate(text: str, width: int) -> str:
     if _utf8_len(text) <= width:
         return text
     return _head_bytes(text, width - _MARK_BYTES) + TRUNCATION_MARK
+
+
+INDIVIDUAL_INDEX_COLUMNS = (
+    "uuid | display_name | role | status | chat | honorific | tone | category"
+    " | priority_bias | taboo_topics | shared_with | relationship_label | context_notes"
+)
+
+
+def index_individual(
+    record: Mapping[str, Any], notes_width: int = DEFAULT_TOPIC_WIDTH
+) -> str:
+    """individuals の索引行（列は `INDIVIDUAL_INDEX_COLUMNS`）。timestamps は**載せない**。
+
+    人は増える＝処方は cap ではなく索引（`index_subject` と同じ理由）。載せる列は二種:
+    着信から個票を引く鍵（uuid を先頭に置き `get --key` へそのまま写せる形、chat は
+    `tg:<id>/line:<id>`）と、個票を引く前でも外してはならない応対の制約（honorific / tone /
+    taboo_topics / shared_with）。丸めるのは context_notes だけで、全文は `get --key`。
+    空は `-`（列が消えると読み手が桁をずらして誤読する）。自由記述の改行は空白へ畳む——
+    行が割れると索引として読めなくなる。
+    """
+    raw_identity = record.get("identity")
+    identity: Mapping[str, Any] = (
+        raw_identity if isinstance(raw_identity, Mapping) else {}
+    )
+
+    def cell(value: Any) -> str:
+        return " ".join(str(value).split()) if value not in (None, "") else "-"
+
+    def joined(values: Any) -> str:
+        return "/".join(str(v) for v in values or []) or "-"
+
+    chat = "/".join(
+        f"{prefix}:{record[key]}"
+        for prefix, key in (("tg", "telegram_chat_id"), ("line", "line_user_id"))
+        if record.get(key) is not None
+    )
+    notes = cell(identity.get("context_notes"))
+    return " | ".join(
+        [
+            str(record.get("uuid", "")),
+            cell(record.get("display_name")),
+            cell(record.get("role")),
+            cell(record.get("status")),
+            chat or "-",
+            cell(identity.get("honorific")),
+            cell(identity.get("tone")),
+            cell(identity.get("category")),
+            cell(identity.get("priority_bias")),
+            joined(identity.get("taboo_topics")),
+            joined(identity.get("shared_with")),
+            cell(identity.get("relationship_label")),
+            notes if notes == "-" else _truncate(notes, notes_width),
+        ]
+    )
 
 
 def summarize_task(task: Mapping[str, Any]) -> str:
@@ -505,7 +560,9 @@ class OrientationService:
             return self._subjects_section(rows)
         if name == "steps":
             return self._steps_section(rows, steps_latest)
-        # 既定は全文（小表＝individuals / abilities / profile / goals。いずれも件数が少なく
+        if name == "individuals":
+            return self._individuals_section(rows, caps.get(name))
+        # 既定は全文（小表＝abilities / profile / goals。いずれも件数が少なく
         # 1 レコードが長い側なので、蓋は _CAP_FIELDS の cap で掛ける）。
         # 表が増えても列挙漏れで欠落しない側に倒す（肥大したらここで射影を足す）
         cap = caps.get(name)
@@ -609,6 +666,25 @@ class OrientationService:
             f"## subjects ({len(ordered)} records, "
             "index: id | label | aliases | status | note)",
             *[index_subject(s) for s in ordered],
+        ]
+        return [*lines, ""]
+
+    def _individuals_section(
+        self, rows: list[dict[str, Any]], notes_width: int | None = None
+    ) -> list[str]:
+        """人を uuid 昇順の索引で**全量**並べる（件数絞りは付けない）。
+
+        「誰と」の一覧から行を落とすと、着信した相手に辿り着けなくなる（`_subjects_section`
+        と同じ理由）。`--individuals-cap` は引数名を保ったまま context_notes 頭の幅になった
+        ——登録済みの routine body がこの引数を渡し続けるので、消すと orientation が exit 2 で
+        止まる。None は既定幅。
+        """
+        width = DEFAULT_TOPIC_WIDTH if notes_width is None else notes_width
+        ordered = sorted(rows, key=lambda r: str(r.get("uuid", "")))
+        lines = [
+            f"## individuals ({len(ordered)} records, index: {INDIVIDUAL_INDEX_COLUMNS} "
+            f"(head {width} bytes); full record: individuals get --key <uuid>)",
+            *[index_individual(r, width) for r in ordered],
         ]
         return [*lines, ""]
 

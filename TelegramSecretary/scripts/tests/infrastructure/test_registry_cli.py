@@ -665,8 +665,7 @@ steps: 0 records, 0 bytes
 last_sent: none
 pending: 0
 
-## individuals (0 records, full)
-[]
+## individuals (0 records, index: uuid | display_name | role | status | chat | honorific | tone | category | priority_bias | taboo_topics | shared_with | relationship_label | context_notes (head 120 bytes); full record: individuals get --key <uuid>)
 
 ## tasks (1 records, summary: id | status | priority | due_date | title)
 T-001 | in_progress | high | - | 見積を送る
@@ -1376,14 +1375,14 @@ def test_orientation_caps_are_wired_from_the_cli(tmp_path, capsys):
 
 
 def test_orientation_individuals_cap_is_wired_from_the_cli(tmp_path, capsys):
-    """ネストした支配項（identity.context_notes）にも CLI から蓋が掛かる。"""
+    """索引行の context_notes 頭の幅が CLI から効く（引数名は v1.9.0 から不変）。"""
     config = _config(tmp_path)
     record = dict(_INDIVIDUAL, identity={"context_notes": "CTX_MARKER" + "y" * 1_000})
     run_registry_command(config, "individuals", "add", _ns(json=json.dumps(record)))
     capsys.readouterr()
     assert run_orientation(config, _ns(individuals_cap=6)) == 0
     out = capsys.readouterr().out
-    assert "identity.context_notes cap 6 bytes" in out
+    assert "context_notes (head 6 bytes)" in out
     assert "CTX_MARKER" not in out
 
 
