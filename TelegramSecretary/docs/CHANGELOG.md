@@ -2,6 +2,15 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [Unreleased]
+
+### Fixed
+
+- **ROUTINE_PROMPT Step 5 項目 10 の見出し文** — v1.18.0 で individuals を索引へ移したのに、
+  「小表（individuals / abilities / profile / goals）の全文」が残っていた。individuals を小表から外し
+  「individuals の一人一行索引」と書き分けた（同じ項の本文と ShioriSecretary v1.18.0 は既にこの形）。
+  文言のみでコードと校正値は不変。稼働中の body には再登録で反映する
+
 ## [1.18.0] - 2026-09-21 — 人は増える（individuals を全文から一人一行の索引へ）
 
 2026-09-21、起動時 digest が 2 枠続けて警告閾値を越えた（26,462 → 26,478 バイト、閾値 25,600）。
