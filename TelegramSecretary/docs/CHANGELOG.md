@@ -4,12 +4,76 @@
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-09-25 — 理解は育つ（profile / abilities を全文から一行索引へ）
+
+2026-09-25 の起動時 digest は 24,787 バイトで、警告閾値 25,600 に対し余裕 813 バイトだった。
+秘書の報告（session-2c2ff9d1）は、表ごとに**構成比**と**限界費用**（1 件増えたときの増分）を分けて
+測っている。knowledge は構成比 17.6% だが、限界費用は 14 バイトだった（537 → 538 件で実測。
+`--knowledge-latest 20` の窓が押し出すため）。一方、profile は 4 件しかないのに 1 件約 1,190 バイトで、
+あと 1 件増えれば閾値を越える。v1.18.0 の individuals と同じ誤読である。profile は「principal 1 件」の
+前提で cap 側に置かれていたが、P 軸は人物理解が深まるほど育つ表だった。cap が縛るのは `content`
+だけで、`traits[]` / `sources[]` / timestamps と JSON の骨格は丸められずにそのまま出ていた。
+
+### Changed
+
+- **`orientation` の profile / abilities を一行索引へ** — 列は individuals と同じ基準で選んだ
+  （個票を引く鍵と、個票を引く前でも要る列）。
+  - profile: `id | subject | method | traits | content`。`traits` は応答調整に引く特性タグなので
+    全量載せる（individuals の taboo_topics と同格）。`sources`（出所のポインタ）と timestamps は
+    `profile get --key` の側に置く
+  - abilities: `id | name | trigger | skill_path | guidance`。`trigger` は発動シグナルなので全量載せる。
+    `related` と timestamps は `abilities get --key` の側に置く
+  - 並びは鍵（id）の昇順。件数絞りは付けない。空は `-`、リストは `/` 連結で、改行は空白へ畳む。
+    既定出力のスナップショットでは、この 2 セクションだけを**意図的に**動かした
+- **`--profile-cap` / `--abilities-cap` は引数名を保ち、意味を「索引行の `content` / `guidance` 頭の幅」へ移した**
+  （未指定なら 120 バイト＝「未指定なら全文」から変わる）。理由は v1.18.0 の `--individuals-cap` と
+  同じで、登録済みの routine body がこの引数を渡し続けるから。**校正値 500 / 700 は据置のため、
+  body の再登録は要らない**（下表）
+- 索引行のセル整形（空は `-`・改行を畳む・リストの `/` 連結）を individuals と共用の関数へ寄せた。
+  individuals のリスト列（taboo_topics / shared_with）も要素内の改行を畳むようになった
+- goals は cap 側に残した。0 件のため、索引の列を実測から選べない（`_CAP_FIELDS` に `cc-defer`。
+  昇格の条件は、goals に実データが入った枠で実測すること）
+
+  実測（2026-09-25 の実 registry のバックアップを複製して測定。profile 4 件・abilities 1 件・
+  individuals 4 件・knowledge 536 件・artifacts 302 files、ほかの 9 値は据置）:
+
+  | 本体 | `--profile-cap` / `--abilities-cap` | profile 節 | abilities 節 | digest bytes | 余裕 |
+  |---|---|---|---|---|---|
+  | v1.18.0（全文 JSON） | 500 / 700 | 4,772 | 1,274 | 24,784 | 816 |
+  | v1.18.0 | 120 / 120 | 3,249 | 695 | 22,682 | 2,918 |
+  | **v1.19.0（索引）** | **500 / 700（登録済み body のまま・採用）** | **2,910** | **1,160** | **22,808** | **2,792** |
+  | v1.19.0 | 300 / 300 | 2,107 | 761 | 21,606 | 3,994 |
+  | v1.19.0 | 200 / 200 | 1,711 | 661 | 21,110 | 4,490 |
+  | v1.19.0 | 120 / 120 | 1,387 | 581 | 20,706 | 4,894 |
+
+  - **傾きが下がった**: profile の限界費用は、1 件あたり約 1,180 バイトから約 700 バイトになった
+    （cap 500 時の 4 行で 554〜789 バイト）。余裕 2,792 バイトは profile 約 4 件分にあたる。
+    上限を持つのは丸めた 1 列だけで、`traits` と `trigger` は全量のまま残る。これらの長さは、
+    特性タグと発動語がいくつ書かれるかで決まる
+  - **採用値の出所**: 登録済みの 500 / 700 を据え置いた。body 再登録（取り消しの効かない一度きりの
+    経路）を踏まずに余裕が戻るからである。120 まで下げれば余裕はさらに 2,102 バイト増えるが、
+    その分だけ P 軸の起動時の材料（content の頭）を削ることになる。余裕が再び詰まったとき、
+    この表から選び直す
+
 ### Fixed
 
-- **ROUTINE_PROMPT Step 5 項目 10 の見出し文** — v1.18.0 で individuals を索引へ移したのに、
-  「小表（individuals / abilities / profile / goals）の全文」が残っていた。individuals を小表から外し
-  「individuals の一人一行索引」と書き分けた（同じ項の本文と ShioriSecretary v1.18.0 は既にこの形）。
-  文言のみでコードと校正値は不変。稼働中の body には再登録で反映する
+- **ROUTINE_PROMPT Step 5 項目 10 の見出し文** — v1.18.0 で individuals を索引へ移した後も、
+  「小表（individuals / abilities / profile / goals）の全文」という記述が残っていた。
+  individuals を小表から外し、「individuals の一人一行索引」と書き分けた（同じ項の本文と
+  ShioriSecretary v1.18.0 は、既にこの形になっている）。本版の索引化に合わせて
+  「小表（goals）の全文・individuals / abilities / profile の一行索引」へ進めた
+- **ROUTINE_PROMPT Step 5 のコード既定の記述** — 「cap 系は全て蓋なし」となっていたが、
+  v1.18.0 以降は索引行の頭の幅が 120 である。これに合わせて直した
+
+### Docs
+
+- DESIGN §3.12 に次の更新を入れた: 蓄積側と並べた対応表、有界式、8 行表（profile / abilities を索引側へ、
+  goals は据置の理由つき）、実装の写像（`_CAP_FIELDS` 1 表／`_INDEXED_SMALL_TABLES` 3 表／分岐 4 表）。
+  判断の根拠は「profile / abilities も索引へ移した」の段に置いた
+- ROUTINE_PROMPT Step 5 に次の更新を入れた: 校正値の括弧（22,808 バイト・余裕 2,792）、
+  読み筋の段（`sources` / `related` / 続きは `get --key`）、abilities / profile の項目。
+  文言は次の再登録で body に反映する（引数は不変）
+- SKILL.md / README.md の `orientation` 行、STRUCTURE.md、`orientation --help`
 
 ## [1.18.0] - 2026-09-21 — 人は増える（individuals を全文から一人一行の索引へ）
 

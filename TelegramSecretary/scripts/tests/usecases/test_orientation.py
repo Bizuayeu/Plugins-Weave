@@ -342,6 +342,8 @@ _INDIVIDUAL_RECORD = {
 # 節は出る＝active タスクの `0 files` と `other: none` を開示する）。
 # v1.18.0 で individuals を一人一行の索引へ**意図的に**変えた（同じ別枠扱い。動いたのはこの
 # 1 セクションだけ——下の `_UNRELATED_SECTIONS_SNAPSHOT` の individuals も同じ literal へ更新した）。
+# v1.19.0 で abilities / profile を一行索引へ**意図的に**変えた（同じ別枠扱い。動いたのはこの
+# 2 セクションだけ——`_UNRELATED_SECTIONS_SNAPSHOT` の同じ 2 表も同じ literal へ更新した）。
 _DEFAULT_DIGEST_SNAPSHOT = """# orientation
 
 ## role
@@ -382,11 +384,9 @@ K-002 | - | 請求の締め
 
 ## subjects (0 records, index: id | label | aliases | status | note)
 
-## abilities (0 records, full)
-[]
+## abilities (0 records, index: id | name | trigger | skill_path | guidance (head 120 bytes); full record: abilities get --key <id>)
 
-## profile (0 records, full)
-[]
+## profile (0 records, index: id | subject | method | traits | content (head 120 bytes); full record: profile get --key <id>)
 
 ## goals (0 records, full)
 []
@@ -604,36 +604,86 @@ def _table_json(digest: str, name: str) -> list[dict]:
     return json.loads(body.split("\n## ", 1)[0])
 
 
-def test_profile_cap_bounds_content_and_discloses_the_cap():
-    """支配項 content をバイトで丸め、蓋が掛かっている事実を見出しで開示する。
+def test_profile_is_indexed_one_line_per_record():
+    """profile は P 軸＝人物理解が深まるほど育つ表＝処方は cap でなく索引（v1.19.0）。
 
-    丸めの規約（バイト・文字境界・マーカーは幅の内側）は `_truncate` のものがそのまま効く
-    ——新しい丸め方をここで発明しない。
+    2026-09-25 実測で 4 件 4,772 バイト、1 件あたり約 1,190 バイト——cap が効くのは content
+    だけで、traits / sources / timestamps と JSON の骨格は素通りだった。
     """
-    digest = _service(profile=[_profile(content="あ" * 500)]).build(profile_cap=100)
-    assert "## profile (1 records, full, content cap 100 bytes)" in digest
-    content = _table_json(digest, "profile")[0]["content"]
+    records = [_profile(id=f"PF-00{i}", content="c") for i in range(4)]
+    section = _section(_service(profile=records).build(), "profile")
+    assert section.splitlines()[0].startswith(
+        "## profile (4 records, index: id | subject | method | traits | content"
+    )
+    assert len(section.strip().splitlines()) == 1 + 4
+    assert '"id"' not in section  # JSON 全文ではない
+
+
+def test_profile_index_row_keeps_traits_and_drops_sources():
+    """traits は応答調整に引く特性タグ＝個票を引く前でも要る（individuals の taboo と同格）。
+
+    sources は個票の先にある出所のポインタ＝`get --key` の側に置く。timestamps も載せない。
+    """
+    record = _profile(
+        content="本文", traits=["寡黙", "率直"], sources=["SOURCE_MARKER"]
+    )
+    section = _section(_service(profile=[record]).build(), "profile")
+    assert (
+        section.splitlines()[1] == "PF-001 | principal | interview | 寡黙/率直 | 本文"
+    )
+    assert "SOURCE_MARKER" not in section
+
+
+def test_profile_cap_bounds_the_content_head():
+    """`--profile-cap` は名前を保ち、意味を「索引行の content 頭の幅」に移す（v1.18.0 と同型）。
+
+    登録済みの routine body が `--profile-cap 500` を渡し続けるので、引数は消せない。
+    """
+    record = _profile(content="CTX" + "あ" * 300, traits=["寡黙"])
+    section = _section(_service(profile=[record]).build(profile_cap=100), "profile")
+    assert "content (head 100 bytes)" in section.splitlines()[0]
+    row = section.splitlines()[1]
+    content = row.rsplit(" | ", 1)[1]
+    assert content.startswith("CTX") and content.endswith(TRUNCATION_MARK)
     assert _utf8_len(content) <= 100
-    assert content.endswith(TRUNCATION_MARK)
+    assert " | 寡黙 | " in row  # 丸めるのは content だけ
 
 
-def test_cap_leaves_the_other_fields_of_the_record_intact():
-    """丸めるのは支配項 1 つだけ——JSON 構造を壊さない（個票は `get --key` で引ける）。"""
-    record = _table_json(
-        _service(profile=[_profile(content="z" * 500, traits=["寡黙"])]).build(
-            profile_cap=50
-        ),
-        "profile",
-    )[0]
-    assert record["id"] == "PF-001"
-    assert record["method"] == "interview"
-    assert record["traits"] == ["寡黙"]
+def test_ability_index_row_keeps_the_trigger_and_drops_related():
+    """trigger は発動シグナル＝起動時に要る。related と timestamps は `get --key` の側。"""
+    record = _ability(guidance="手順", related=["RELATED_MARKER"])
+    section = _section(_service(abilities=[record]).build(), "abilities")
+    assert section.splitlines()[0] == (
+        "## abilities (1 records, index: id | name | trigger | skill_path | guidance"
+        " (head 120 bytes); full record: abilities get --key <id>)"
+    )
+    assert section.splitlines()[1] == (
+        "A-001 | 占術鑑定 | 占い | skills/precognitive-viewer | 手順"
+    )
+    assert "RELATED_MARKER" not in section
 
 
-def test_abilities_cap_bounds_guidance():
-    digest = _service(abilities=[_ability(guidance="g" * 500)]).build(abilities_cap=40)
-    assert "## abilities (1 records, full, guidance cap 40 bytes)" in digest
-    assert _utf8_len(_table_json(digest, "abilities")[0]["guidance"]) <= 40
+def test_abilities_cap_bounds_the_guidance_head():
+    record = _ability(guidance="g" * 500)
+    section = _section(
+        _service(abilities=[record]).build(abilities_cap=40), "abilities"
+    )
+    assert "guidance (head 40 bytes)" in section.splitlines()[0]
+    guidance = section.splitlines()[1].rsplit(" | ", 1)[1]
+    assert _utf8_len(guidance) <= 40
+    assert guidance.endswith(TRUNCATION_MARK)
+
+
+def test_profile_and_ability_rows_stay_on_one_line():
+    """自由記述は複数行で書かれる——改行を残すと行が割れて索引が読めなくなる。"""
+    digest = _service(
+        profile=[_profile(content="一行目\n二行目", traits=["a\nb"])],
+        abilities=[_ability(trigger="占い\n鑑定", guidance="手順1\n手順2")],
+    ).build()
+    assert len(_section(digest, "profile").strip().splitlines()) == 2
+    assert "a b | 一行目 二行目" in digest
+    assert len(_section(digest, "abilities").strip().splitlines()) == 2
+    assert "占い 鑑定 | skills/precognitive-viewer | 手順1 手順2" in digest
 
 
 def _individual(**identity) -> dict:
@@ -711,8 +761,8 @@ def test_zero_profile_cap_leaves_only_the_marker():
     """`0` はマーカーのみ＝falsy-zero 封じ（判定は `is not None`、丸めは `_truncate` の非正規約）。"""
     digest = _service(profile=[_profile(content="CONTENT_MARKER")]).build(profile_cap=0)
     assert "CONTENT_MARKER" not in digest
-    assert _table_json(digest, "profile")[0]["content"] == TRUNCATION_MARK
-    assert "## profile (1 records, full, content cap 0 bytes)" in digest
+    assert _section(digest, "profile").splitlines()[1].endswith(f" | {TRUNCATION_MARK}")
+    assert "content (head 0 bytes)" in digest
 
 
 def test_cap_record_field_does_not_mutate_the_input_record():
@@ -799,12 +849,21 @@ def test_zero_tasks_latest_drops_all_terminal_but_keeps_active():
     assert "NOTE_2" not in digest
 
 
-def test_capped_tables_keep_full_text_when_the_knobs_are_unset():
-    """ノブ未指定の既定は蓋なし＝現行挙動（新オプションは既定出力を動かさない）。"""
+def test_indexed_small_tables_default_to_the_topic_width_when_the_knobs_are_unset():
+    """索引へ移した表は、ノブ未指定なら頭 DEFAULT_TOPIC_WIDTH バイト（individuals と同じ既定）。
+
+    v1.19.0 で「未指定＝全文」から意図的に変えた——全文のままでは 1 レコードの長さに上限が無い。
+    """
     long_text = "あ" * 300
-    digest = _service(profile=[_profile(content=long_text)]).build()
-    assert "## profile (1 records, full)" in digest
-    assert _table_json(digest, "profile")[0]["content"] == long_text
+    digest = _service(
+        profile=[_profile(content=long_text)],
+        abilities=[_ability(guidance=long_text)],
+    ).build()
+    for name, field in (("profile", "content"), ("abilities", "guidance")):
+        section = _section(digest, name)
+        assert f"{field} (head {DEFAULT_TOPIC_WIDTH} bytes)" in section.splitlines()[0]
+        cell = section.splitlines()[1].rsplit(" | ", 1)[1]
+        assert _utf8_len(cell) <= DEFAULT_TOPIC_WIDTH
 
 
 def test_stage2_knobs_unset_keep_the_default_snapshot():
@@ -956,6 +1015,7 @@ def test_knowledge_subject_unset_keeps_the_default_snapshot():
 # 変えない側を先に機械で固定するのがこのブロックの錠——**v1.9.0 の出力から転記した
 # 6 表分の literal** で、以後の描画変更がここへ滲み出したら即座に割れる。
 # individuals の literal だけは v1.18.0 の索引形へ差し替えた（以後はその形を固定する）。
+# abilities / profile の literal は v1.19.0 の索引形へ差し替えた（同上）。
 _UNRELATED_SECTIONS = (
     "individuals",
     "tasks",
@@ -981,11 +1041,9 @@ NOTE_A
 K-001 | - | 申し送りの置き場
 K-002 | - | 請求の締め
 
-## abilities (0 records, full)
-[]
+## abilities (0 records, index: id | name | trigger | skill_path | guidance (head 120 bytes); full record: abilities get --key <id>)
 
-## profile (0 records, full)
-[]
+## profile (0 records, index: id | subject | method | traits | content (head 120 bytes); full record: profile get --key <id>)
 
 ## goals (0 records, full)
 []

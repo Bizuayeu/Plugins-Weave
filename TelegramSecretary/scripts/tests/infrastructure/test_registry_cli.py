@@ -683,11 +683,9 @@ K-001 | - | 申し送りの置き場
 
 ## subjects (0 records, index: id | label | aliases | status | note)
 
-## abilities (0 records, full)
-[]
+## abilities (0 records, index: id | name | trigger | skill_path | guidance (head 120 bytes); full record: abilities get --key <id>)
 
-## profile (0 records, full)
-[]
+## profile (0 records, index: id | subject | method | traits | content (head 120 bytes); full record: profile get --key <id>)
 
 ## goals (0 records, full)
 []
@@ -1356,7 +1354,10 @@ def test_import_syncs_once_for_the_whole_batch(tmp_path):
 
 
 def test_orientation_caps_are_wired_from_the_cli(tmp_path, capsys):
-    """profile / abilities の cap が build() まで届き、見出しで開示される。"""
+    """profile / abilities の cap が索引行の頭の幅として build() まで届き、見出しで開示される。
+
+    引数名は v1.9.0 から不変（登録済みの routine body が渡し続ける、v1.19.0）。
+    """
     config = _config(tmp_path)
     run_registry_command(config, "profile", "add", _ns(json=json.dumps(_PROFILE)))
     run_registry_command(
@@ -1368,8 +1369,8 @@ def test_orientation_caps_are_wired_from_the_cli(tmp_path, capsys):
     capsys.readouterr()
     assert run_orientation(config, _ns(profile_cap=0, abilities_cap=4)) == 0
     out = capsys.readouterr().out
-    assert "## profile (1 records, full, content cap 0 bytes)" in out
-    assert "## abilities (1 records, full, guidance cap 4 bytes)" in out
+    assert "content (head 0 bytes); full record: profile get --key <id>)" in out
+    assert "guidance (head 4 bytes); full record: abilities get --key <id>)" in out
     # cap 0 はマーカーのみ（falsy-zero 封じが CLI 経由でも効く）
     assert "INTJ" not in out and "GUIDE_MARKER" not in out
 

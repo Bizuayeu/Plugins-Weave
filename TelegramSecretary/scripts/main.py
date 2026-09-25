@@ -984,7 +984,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="profile_cap",
         type=int,
         default=None,
-        help="profile の content を丸めるバイト上限（未指定なら全文）",
+        help="profile 索引行の content 頭のバイト幅（未指定なら 120。全文は profile get --key）",
     )
     p_orientation.add_argument(
         "--individuals-cap",
@@ -998,7 +998,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="abilities_cap",
         type=int,
         default=None,
-        help="abilities の guidance を丸めるバイト上限（未指定なら全文）",
+        help="abilities 索引行の guidance 頭のバイト幅（未指定なら 120。全文は abilities get --key）",
     )
     p_orientation.add_argument(
         "--goals-cap",

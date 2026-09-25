@@ -106,8 +106,8 @@ Infrastructure → Interface(Adapter) → UseCase → Domain
 |---|---|---|
 | **KNOWLEDGE** | `--knowledge-latest` / `--knowledge-category` / `--knowledge-subject` | 索引行の件数（`content` は元から載らない） |
 | **TASKS** | `--notes-tail` / `--tasks-latest` | active の notes 末尾 / **終端**の一行要約の件数（active は絞りの対象外、v1.15.2） |
-| **PROFILE** | `--profile-cap` | `content`（v1.9.0） |
-| **ABILITIES** | `--abilities-cap` | `guidance`（v1.9.0） |
+| **PROFILE** | `--profile-cap`（件数絞りは持たない。索引化で有界、v1.19.0） | 索引行の `content` 頭の幅（人物理解の一覧ゆえ母数は減らさない） |
+| **ABILITIES** | `--abilities-cap`（件数絞りは持たない。索引化で有界、v1.19.0） | 索引行の `guidance` 頭の幅（能力カタログゆえ母数は減らさない） |
 | **INDIVIDUALS** | `--individuals-cap`（件数絞りは持たない。索引化で有界、v1.18.0） | 索引行の `context_notes` 頭の幅（「誰と」の一覧ゆえ母数は減らさない） |
 | **GOALS** | `--goals-cap` | `notes`（v1.10.0） |
 | **STEPS** | `--steps-latest` | 索引行の件数（v1.10.0。`notes` は元から載らない） |
@@ -237,9 +237,10 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **出力の有界性（なぜサイズが読めるか）**: ダイジェストは全文でなく**射影**であり、出力量は概ね
 
   ```
-  小表全文（abilities/profile/goals）
-      ※ v1.9.0 以降 abilities / profile、v1.10.0 以降 goals も cap で頭打ちにできる
+  小表全文（goals）
+      ※ v1.10.0 以降 goals も cap で頭打ちにできる
     + individuals 件数 × 索引行（context_notes 頭は individuals_cap で丸め、v1.18.0）
+    + profile / abilities 件数 × 索引行（content / guidance 頭は各 cap で丸め、v1.19.0）
     + subjects 件数 × 索引行（note は topic_width で丸め、v1.10.0）
     + steps 件数（steps_latest で頭打ち可、v1.10.0）× 索引行
     + active タスク数 × 一行要約
@@ -267,6 +268,7 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
 - **蓋の無い表への上限ノブ（案A、v1.9.0）**: 下の「絞れない床」が示すとおり、v1.8.0 の 4 ノブは knowledge 索引・notes 末尾・handoff 本文の 3 項にしか効かず、床（小表全文＋tasks 一行要約）には手が届かなかった。`--profile-cap` / `--individuals-cap` / `--abilities-cap` / `--tasks-latest` は**この床を初めて可動域に入れる**。cap が当たるのは表の支配的長文フィールド 1 つ（`content` / `identity.context_notes` / `guidance`）だけで、丸めの規約は既存 `_truncate` をそのまま使う（新しい丸め処理を書かない＝読み手が表ごとに切れ方を覚えずに済む）。**既定は未指定＝全文**（非破壊）で、見出しに `full, <field path> cap N bytes` として開示する
 - **tasks の件数絞りは終端にのみ掛かる（active 免除、v1.15.2）**: `--tasks-latest` は当初 tasks 全件に掛かっていた。2026-09-04、active の古い id（T0005 / T0007）が `--tasks-latest 9` の窓から落ち、一行要約にも notes にも載らなかった。id は起票順に振られる一方**定常タスクは若い id のまま active に居座る**ため、新しい順 N 件の窓は構造的に active を落とす——母集団が変われば人手の校正値では再発する。そこで件数絞りは**終端（done / cancelled 等）にのみ掛け、active（open / in_progress / blocked）は常に全件載せる**（UseCase の純関数 `select_task_rows`）。**依頼そのものは起動時に必ず見える**——絞れるのは済んだ仕事の要約行だけ。見出しは `A active + latest N of T terminal records, newest last` で active 数・終端の母数・実際に載った件数を開示し、`0` の意味は「終端を全捨て」（0 が未指定へ逆転しない規約は不変）。notes は載った集合の active に連動する（＝active 全件の末尾が載る）ので、`--notes-tail` は active 件数との積で効く——採用値と実測表は CHANGELOG v1.15.2
 - **individuals を索引へ移した（v1.18.0）**: v1.9.0 は individuals を「1 レコードが長い」側と読んで cap を当てたが、人は増える。2026-09-21 に digest が閾値を越えた（26,478 バイト）原因は 1 → 4 件の増加で、この表だけで +3,133 バイト——全文 JSON は 1 件あたり骨格（キー名・インデント・timestamps・空配列）だけで約 640 バイトを持ち、cap は件数に効かない。処方を索引へ移し、載せる列を二種に絞った: **着信から個票を引く鍵**（`uuid` を先頭に置いて `get --key` へ写せる形、`chat` は `tg:<id>/line:<id>`）と、**個票を引く前でも外してはならない応対の制約**（`honorific` / `tone` / `taboo_topics` / `shared_with`）。鍵を落とすと着信のたびに全件を読み直すことになり、制約を落とすと索引だけ読んで応対した枠が禁忌を踏む。丸めるのは `context_notes` だけで、全文は応答前の `individuals get --key`（ROUTINE_PROMPT の既存手順）が引く。**`--individuals-cap` は引数名を保ち、意味だけを「索引行の context_notes 頭の幅」へ移した**——登録済みの routine body がこの引数を渡し続けるので、消すと orientation が exit 2 で止まる（本体の更新は次の bootstrap で届くが、body の更新は再登録まで届かない。この時間差を引数の互換で吸収する）。1 件あたりの重さは約 1,060 → 約 430 バイト（`--individuals-cap 200` 時、実測は CHANGELOG v1.18.0）で、**伸びが消えたのではなく傾きが下がった**
+- **profile / abilities も索引へ移した（v1.19.0）**: 同じ誤読が残っていた。profile は「principal 1 件」の前提で cap 側に置いたが、P 軸は人物理解が深まるほど育つ表で、2026-09-25 には 4 件・4,772 バイト（1 件≈1,180）になっていた。cap が縛るのは `content` だけで、`traits[]` / `sources[]` / timestamps と JSON の骨格は素通り——1 レコードの描画長が「そのレコードに誰が何を書いたか」で決まり、上限が無かった。処方は individuals と同じ基準で列を選ぶ: profile は `id | subject | method | traits | content`（**traits は応答調整に引く特性タグ＝個票を引く前でも要る側**なので全量、`sources` は出所のポインタなので `get --key` の側）、abilities は `id | name | trigger | skill_path | guidance`（**trigger は発動シグナル**なので全量、`related` はポインタ）。丸めるのは `content` / `guidance` だけで、**`--profile-cap` / `--abilities-cap` は引数名を保ち意味だけを頭の幅へ移した**（v1.18.0 と同じ互換の理由。未指定は 120）。登録済みの引数のまま 1 件あたり profile 約 1,180 → 約 700 バイト（実測は CHANGELOG v1.19.0）。**全量で載せる列（traits・trigger）はなお有界ではない**——上限を持つのは丸めた 1 列だけで、行の残りは固定列の長さと特性タグの数で決まる。goals は 0 件で列を実測から選べないため cap 側に残した（`_CAP_FIELDS` の `cc-defer`）
 - **絞れない床（校正で動かせる部分が増えた）**: v1.8.0 で全ノブを最小に振っても残った **11,629 バイト**は、小表の全文（individuals / abilities / **profile 6,417B** / goals / steps）と tasks の一行要約だった——25,600 の目標に対し床だけで 45%。v1.9.0 は subjects 表が加わって床が **13,847 バイト**へ上がる一方、案A のノブを最小に振ると床は **6,919 バイト**（目標の 27%）まで下がる。**C（主題軸）が床を押し上げ、A（上限ノブ）が床を掘り下げる**——A を C の前提条件として同版に入れたのはこのため（実測は CHANGELOG v1.9.0）。**v1.10.0 で「蓋の無い表」は消えた**——subjects / steps を索引化し goals に cap を掛けたので、8 表すべてが可動域に入り、床は「表の件数 × 索引行」まで縮む（実測は CHANGELOG v1.10.0）。**ただしこの時点の individuals は cap 側に置いたままで、件数には蓋が無かった**（下の v1.18.0）
 - **表の性質が処方を決める（8 表の処方一覧）★SSoT**: 蓋の掛け方は表ごとの気分ではなく、**1 レコードが長いのか／レコード数が増えるのか**で決まる。前者には cap（支配的長文フィールド 1 つだけを丸める）、後者には索引または件数絞り（行あたりを最小化し、母数は見出しで開示する）。新しい表が生えたら、この二択のどちらかに必ず入れる——どちらでもない表は「蓋の無い表」であり、育ったときに沈黙失敗を再発させる側になる。
 
@@ -276,12 +278,12 @@ individuals/tasks/knowledge が「事実データ」（誰と・何を頼まれ�
   | tasks | 一行要約＋`--tasks-latest`（**終端にのみ掛かる——active は免除**、notes は載った集合の active に連動） | 件数が増える |
   | knowledge | `id \| subjects \| topic` 索引＋絞り 3 種（category / subject / latest） | 件数が増える |
   | subjects | 索引（`id \| label \| aliases \| status \| note`、件数絞りは付けない） | `subjects add` で語彙を育てるのが正規ワークフロー＝件数が増える。ただし「どの主題で引くか」を選ぶ一覧ゆえ母数は減らせない——絞るのは行あたりの重さだけ |
-  | abilities | cap（`guidance`、`--abilities-cap`） | 1 レコードが長い（`trigger` / `skill_path` は発動判断に要るので丸めない） |
-  | profile | cap（`content`、`--profile-cap`） | 1 レコードが長い（principal 1 件） |
-  | goals | cap（`notes`、`--goals-cap`） | 件数は少なく本文が長い |
+  | abilities | 索引（`id \| name \| trigger \| skill_path \| guidance`、件数絞りは付けない）＋`--abilities-cap`（`guidance` 頭の幅） | 能力は増える（v1.19.0 で cap から移した）。`trigger` / `skill_path` は発動判断に要るので丸めない |
+  | profile | 索引（`id \| subject \| method \| traits \| content`、件数絞りは付けない）＋`--profile-cap`（`content` 頭の幅） | 人物理解は深まるほど育つ＝件数が増える（v1.19.0 で cap から移した。「principal 1 件」の前提は 4 件で崩れた） |
+  | goals | cap（`notes`、`--goals-cap`） | 件数は少なく本文が長い（0 件ゆえ索引の列を実測から選べない、v1.19.0 で据置） |
   | steps | 索引（`id \| goal_id \| seq \| status \| title`）＋`--steps-latest` | 目標からの逆算単位ゆえ設計上 `done` が高速に溜まる＝件数が増える |
 
-  実装上、この表は 2 箇所に写っている——`_CAP_FIELDS`（cap 側 3 表への経路の写像）と `_table_section` の分岐（索引側 5 表）。**「既定は全文」の分岐に残るのは cap 側 3 表**（abilities / profile / goals）で、`_CAP_FIELDS` のキー集合とちょうど一致する。subjects に cap でなく索引を採ったのは、cap が 1 レコードの長さにしか効かず語彙の件数成長に無力だから——全文 JSON は `created_at` / `updated_at` という**この用途で価値ゼロの数十バイト**を毎レコード運ぶ
+  実装上、この表は 3 箇所に写っている——`_CAP_FIELDS`（cap 側 1 表への経路の写像）、`_INDEXED_SMALL_TABLES`（索引で載せる小表 3 表の列・鍵・行の射影）、`_table_section` の分岐（残る索引側 4 表）。**「既定は全文」の分岐に残るのは cap 側 1 表**（goals）で、`_CAP_FIELDS` のキー集合とちょうど一致する。subjects に cap でなく索引を採ったのは、cap が 1 レコードの長さにしか効かず語彙の件数成長に無力だから——全文 JSON は `created_at` / `updated_at` という**この用途で価値ゼロの数十バイト**を毎レコード運ぶ
 - **category の許可集合（なぜ読み取り経路で弾くか）**: `category` は**認識の型**の軸であり、許可集合 10 種（`observation` / `research` / `harness` / `domain-insight` / `analysis` / `design` / `method` / `philosophy` / `business` / `decision`）に閉じる。旧実装の `d.get("category", "general")` は範囲外を**沈黙のうちに生成する fail-open** で、これが分類の増殖と綴り揺れの温床だった——上の「絞り」は category を軸に効くので、軸が揺れれば絞り自体が壊れる。検証は値オブジェクトの `__post_init__` に置く＝**読み取り経路でも発火する**ため、範囲外を含む既存データは `list` / `orientation` ごと exit 2 で落ちる（v1.8.0 の破壊的変更。移行手順は CHANGELOG v1.8.0）。主題（馬・建設 等）の軸は **knowledge の `subjects[]`**（v1.9.0）が担い、二軸を混ぜない——語彙は SUBJECTS 表が持ち、範囲外は書き込み口で弾ける（§3.8。v1.8.0 が置いた `topic` の接頭辞規約は、検証できない規約ゆえ v1.9.0 で廃止した）
 
 > 消化（handoff → knowledge への結晶化）と卒業（archive）のサイクルは v1.6.0 で載った。分離（第一段）が「読む量を切る」だったのに対し、消化と卒業は**母数そのものを減らす**——選択（何を結晶化し、何を卒業させるか）＝α は秘書の判断に残し、移動と読み筋だけをコードが持つ（§2 の踏襲）。

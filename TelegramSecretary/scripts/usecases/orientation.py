@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Any, Protocol
 
@@ -43,13 +43,12 @@ ACTIVE_TASK_STATUSES = frozenset({"open", "in_progress", "blocked"})
 
 # 全文で載る小表の「支配的長文フィールド」への経路（orientation_report_20260810 実測の支配項）。
 # 蓋はここだけに掛ける——レコード全体の JSON を丸めると構造が壊れ、個票を `get --key` で
-# 引き直す読み筋まで死ぬ。goals は件数が少なく本文が長い側なのでここに載る。件数が増える側
-# （subjects / steps / individuals）は cap では有界にならないので索引で処方する（表の性質が
-# 処方を決める）。individuals は v1.18.0 でこちらへ移した——1→4 件で digest が 3,133 バイト
-# 伸び、閾値を超えた（全文 JSON は 1 件あたり骨格だけで約 640 バイトを持つ）
+# 引き直す読み筋まで死ぬ。件数が増える側（subjects / steps / individuals / profile / abilities）
+# は cap では有界にならないので索引で処方する（表の性質が処方を決める）。individuals は
+# v1.18.0、profile / abilities は v1.19.0 で索引へ移した——cap が縛るのは 1 フィールドだけで、
+# 残りのフィールドと JSON の骨格は素通りする（profile は 2026-09-25 実測で 1 件≈1,190 バイト）
+# cc-defer: goals だけ cap 側に残す（0 件で列を実測から選べない）、実データが入った枠で索引化を判断
 _CAP_FIELDS: Mapping[str, tuple[str, ...]] = {
-    "abilities": ("guidance",),
-    "profile": ("content",),
     "goals": ("notes",),
 }
 
@@ -106,10 +105,28 @@ def _truncate(text: str, width: int) -> str:
     return _head_bytes(text, width - _MARK_BYTES) + TRUNCATION_MARK
 
 
+def _cell(value: Any) -> str:
+    """索引のセル。空は `-`（列が消えると読み手が桁をずらして誤読する）、改行は空白へ畳む。"""
+    return " ".join(str(value).split()) if value not in (None, "") else "-"
+
+
+def _joined(values: Any) -> str:
+    """リスト列は `/` 連結の 1 セル（空は `-`、要素内の改行も畳む）。"""
+    return _cell("/".join(str(v) for v in values or []))
+
+
+def _head_cell(value: Any, width: int) -> str:
+    """丸める自由記述のセル（畳んでから width バイトの頭へ。空は `-` のまま）。"""
+    text = _cell(value)
+    return text if text == "-" else _truncate(text, width)
+
+
 INDIVIDUAL_INDEX_COLUMNS = (
     "uuid | display_name | role | status | chat | honorific | tone | category"
     " | priority_bias | taboo_topics | shared_with | relationship_label | context_notes"
 )
+PROFILE_INDEX_COLUMNS = "id | subject | method | traits | content"
+ABILITY_INDEX_COLUMNS = "id | name | trigger | skill_path | guidance"
 
 
 def index_individual(
@@ -128,36 +145,80 @@ def index_individual(
     identity: Mapping[str, Any] = (
         raw_identity if isinstance(raw_identity, Mapping) else {}
     )
-
-    def cell(value: Any) -> str:
-        return " ".join(str(value).split()) if value not in (None, "") else "-"
-
-    def joined(values: Any) -> str:
-        return "/".join(str(v) for v in values or []) or "-"
-
     chat = "/".join(
         f"{prefix}:{record[key]}"
         for prefix, key in (("tg", "telegram_chat_id"), ("line", "line_user_id"))
         if record.get(key) is not None
     )
-    notes = cell(identity.get("context_notes"))
     return " | ".join(
         [
             str(record.get("uuid", "")),
-            cell(record.get("display_name")),
-            cell(record.get("role")),
-            cell(record.get("status")),
+            _cell(record.get("display_name")),
+            _cell(record.get("role")),
+            _cell(record.get("status")),
             chat or "-",
-            cell(identity.get("honorific")),
-            cell(identity.get("tone")),
-            cell(identity.get("category")),
-            cell(identity.get("priority_bias")),
-            joined(identity.get("taboo_topics")),
-            joined(identity.get("shared_with")),
-            cell(identity.get("relationship_label")),
-            notes if notes == "-" else _truncate(notes, notes_width),
+            _cell(identity.get("honorific")),
+            _cell(identity.get("tone")),
+            _cell(identity.get("category")),
+            _cell(identity.get("priority_bias")),
+            _joined(identity.get("taboo_topics")),
+            _joined(identity.get("shared_with")),
+            _cell(identity.get("relationship_label")),
+            _head_cell(identity.get("context_notes"), notes_width),
         ]
     )
+
+
+def index_profile(
+    record: Mapping[str, Any], content_width: int = DEFAULT_TOPIC_WIDTH
+) -> str:
+    """profile の索引行（列は `PROFILE_INDEX_COLUMNS`）。sources と timestamps は**載せない**。
+
+    人物理解は深まるほど育つ＝処方は cap ではなく索引（`index_individual` と同じ理由）。
+    traits は応答調整に引く特性タグ＝個票を引く前でも要る側なので全量載せ（individuals の
+    taboo_topics と同格）、sources は個票の先にある出所のポインタなので `get --key` の側に置く。
+    丸めるのは content だけ。
+    """
+    return " | ".join(
+        [
+            str(record.get("id", "")),
+            _cell(record.get("subject")),
+            _cell(record.get("method")),
+            _joined(record.get("traits")),
+            _head_cell(record.get("content"), content_width),
+        ]
+    )
+
+
+def index_ability(
+    record: Mapping[str, Any], guidance_width: int = DEFAULT_TOPIC_WIDTH
+) -> str:
+    """abilities の索引行（列は `ABILITY_INDEX_COLUMNS`）。related と timestamps は**載せない**。
+
+    trigger は発動シグナル＝「いつ何ができるか」を起動時に掴むための列なので全量載せる。
+    related は関連レコードへのポインタで、個票を引いた後に辿れば足りる。丸めるのは guidance だけ。
+    """
+    return " | ".join(
+        [
+            str(record.get("id", "")),
+            _cell(record.get("name")),
+            _cell(record.get("trigger")),
+            _cell(record.get("skill_path")),
+            _head_cell(record.get("guidance"), guidance_width),
+        ]
+    )
+
+
+# 一行索引で載せる小表: 表名 → (列見出し, 個票を引く鍵, 行の射影)。件数絞りは付けない——
+# 「誰と／誰を／何ができるか」の一覧から行を落とすと、個票へ辿り着けなくなる。丸めの幅は
+# `--<表>-cap`（引数名は v1.9.0 から不変＝登録済みの routine body を壊さない）、未指定は既定幅
+_INDEXED_SMALL_TABLES: Mapping[
+    str, tuple[str, str, Callable[[Mapping[str, Any], int], str]]
+] = {
+    "individuals": (INDIVIDUAL_INDEX_COLUMNS, "uuid", index_individual),
+    "abilities": (ABILITY_INDEX_COLUMNS, "id", index_ability),
+    "profile": (PROFILE_INDEX_COLUMNS, "id", index_profile),
+}
 
 
 def summarize_task(task: Mapping[str, Any]) -> str:
@@ -560,10 +621,10 @@ class OrientationService:
             return self._subjects_section(rows)
         if name == "steps":
             return self._steps_section(rows, steps_latest)
-        if name == "individuals":
-            return self._individuals_section(rows, caps.get(name))
-        # 既定は全文（小表＝abilities / profile / goals。いずれも件数が少なく
-        # 1 レコードが長い側なので、蓋は _CAP_FIELDS の cap で掛ける）。
+        if name in _INDEXED_SMALL_TABLES:
+            return self._small_table_index_section(name, rows, caps.get(name))
+        # 既定は全文（小表＝goals。件数が少なく 1 レコードが長い側なので、
+        # 蓋は _CAP_FIELDS の cap で掛ける）。
         # 表が増えても列挙漏れで欠落しない側に倒す（肥大したらここで射影を足す）
         cap = caps.get(name)
         path = _CAP_FIELDS.get(name)
@@ -669,22 +730,24 @@ class OrientationService:
         ]
         return [*lines, ""]
 
-    def _individuals_section(
-        self, rows: list[dict[str, Any]], notes_width: int | None = None
+    def _small_table_index_section(
+        self, name: str, rows: list[dict[str, Any]], width: int | None = None
     ) -> list[str]:
-        """人を uuid 昇順の索引で**全量**並べる（件数絞りは付けない）。
+        """小表（individuals / abilities / profile）を鍵の昇順の索引で**全量**並べる。
 
-        「誰と」の一覧から行を落とすと、着信した相手に辿り着けなくなる（`_subjects_section`
-        と同じ理由）。`--individuals-cap` は引数名を保ったまま context_notes 頭の幅になった
-        ——登録済みの routine body がこの引数を渡し続けるので、消すと orientation が exit 2 で
-        止まる。None は既定幅。
+        件数絞りは付けない——一覧から行を落とすと、着信した相手や使える能力に辿り着けなくなる
+        （`_subjects_section` と同じ理由）。`--<表>-cap` は引数名を保ったまま自由記述 1 列の
+        頭の幅になった（individuals は v1.18.0、abilities / profile は v1.19.0）——登録済みの
+        routine body がこの引数を渡し続けるので、消すと orientation が exit 2 で止まる。
+        None は既定幅。
         """
-        width = DEFAULT_TOPIC_WIDTH if notes_width is None else notes_width
-        ordered = sorted(rows, key=lambda r: str(r.get("uuid", "")))
+        columns, key, index_row = _INDEXED_SMALL_TABLES[name]
+        head = DEFAULT_TOPIC_WIDTH if width is None else width
+        ordered = sorted(rows, key=lambda r: str(r.get(key, "")))
         lines = [
-            f"## individuals ({len(ordered)} records, index: {INDIVIDUAL_INDEX_COLUMNS} "
-            f"(head {width} bytes); full record: individuals get --key <uuid>)",
-            *[index_individual(r, width) for r in ordered],
+            f"## {name} ({len(ordered)} records, index: {columns} "
+            f"(head {head} bytes); full record: {name} get --key <{key}>)",
+            *[index_row(r, head) for r in ordered],
         ]
         return [*lines, ""]
 
