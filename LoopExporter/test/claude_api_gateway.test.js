@@ -140,10 +140,12 @@ test("fetchConversation warns on an unknown field inside a chat_messages[] eleme
   assert.ok(warnings.some((w) => /mystery_msg_field/.test(w) && w.includes(conv.chat_messages[0].uuid)));
 });
 
-test("fetchConversation does not warn on ledger-registered drift fields (input_mode, compaction_summary, has_assistant_outputs)", async () => {
+test("fetchConversation does not warn on ledger-registered drift fields (input_mode, compaction_summary, has_assistant_outputs, is_archived, workspace_upgraded)", async () => {
   const org = loadFixture("organizations.json");
   const conv = loadFixture("conversation_tree.json");
   conv.has_assistant_outputs = true; // schema drift #3 (2026-09-20)
+  conv.is_archived = false; // schema drift #4 (2026-09-25)
+  conv.workspace_upgraded = false; // schema drift #5 (2026-09-25)
   conv.chat_messages[0].input_mode = "keyboard"; // schema drift #1 (2026-07-16)
   conv.chat_messages[1].compaction_summary = "summary of compacted context"; // schema drift #2 (2026-07-18)
   const fetchFn = createDispatchFetch({ orgBody: org, conversationBody: conv });

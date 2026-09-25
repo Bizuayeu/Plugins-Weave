@@ -41,6 +41,7 @@ effective_thinking_mode, current_leaf_message_uuid, chat_messages
 
 - **`current_leaf_message_uuid` がトップレベルに存在する。** FR-3 の「UI 表示中の枝（current leaf path）」解決はこの値を起点に `parent_message_uuid` を遡行するだけでよく、`created_at` 比較などの推測ロジックは不要（実測で `current_leaf_message_uuid` は「一度も他メッセージの親になっていないノード（真の葉）」と一致することを確認済み）。
 - **`has_assistant_outputs` は 2026-09-20 に出現した後付けフィールド（スキーマドリフト実測第三号）**。L00596 エクスポート時に警告 `Unknown field "has_assistant_outputs" on the conversation (top-level)` として検知。値・意味は未採取。Loop 変換には不要のため gateway の既知フィールド台帳に登録済み（警告は出ない・回帰テストあり）。
+- **`is_archived` と `workspace_upgraded` は 2026-09-25 に同時に出現した後付けフィールド（スキーマドリフト実測第四号・第五号）**。L00598 エクスポート時に警告 `Unknown field "..." on the conversation (top-level)` として 2 件同時に検知。値・意味は未採取（名前からアーカイブ状態と、chat／Cowork 統合に伴うワークスペース移行の印と推定）。Loop 変換には不要のため gateway の既知フィールド台帳に登録済み（警告は出ない・回帰テストあり）。
 - `settings` はオブジェクトで、実測したサブキーは `enabled_web_search` / `enabled_sourdough` / `enabled_foccacia` / `enabled_mcp_tools` / `enabled_monkeys_in_a_barrel` / `enabled_saffron` / `tool_search_mode` / `preview_feature_uses_artifacts` / `enabled_artifacts_attachments` / `enabled_turmeric` / `thinking_mode` / `effort_level`（claude.ai 内部の機能フラグ群。Loop 変換には不要な情報のため FR-5 の変換規則では読み捨ててよい）。
 
 ### 3.2 `chat_messages[]` 要素

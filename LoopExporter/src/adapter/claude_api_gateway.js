@@ -34,6 +34,8 @@ const KNOWN_TOP_LEVEL_FIELDS = new Set([
   "current_leaf_message_uuid",
   "chat_messages",
   "has_assistant_outputs", // appeared 2026-09-20 (schema drift #3, L00596) -- conversation-level flag, not needed for Loop conversion
+  "is_archived", // appeared 2026-09-25 (schema drift #4, L00598) -- conversation-level flag, not needed for Loop conversion
+  "workspace_upgraded", // appeared 2026-09-25 (schema drift #5, L00598) -- conversation-level flag, not needed for Loop conversion
 ]);
 
 const KNOWN_MESSAGE_FIELDS = new Set([
