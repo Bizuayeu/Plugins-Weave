@@ -12,11 +12,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Table of Contents
 
-- [v5.x](#5110---2026-09-19)
+- [v5.x](#5111---2026-09-29)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x and earlier)](#archive-v2x-and-earlier)
 - [Versioning Rules](#versioning-rules)
+
+---
+
+## [5.11.1] - 2026-09-29
+
+Align wakeup's Weave samples with the change of model (Opus 5 → Opus 5.5).
+
+### Changed
+
+- **wakeup: `examples/weave.config.json`** — `commit_identity.coauthor` now reads `Claude Opus 5.5 (1M context)`.
+  SKILL.md names this key as the one to update when the model changes
+- **wakeup: `examples/WeaveDirective.md`** — the premise of the switch toward emergence now names "the Opus 5.5 model"
+  instead of "the Opus 5 model". The direction it compensates for (divergence) is unchanged
 
 ---
 

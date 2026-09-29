@@ -11,11 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 目次 / Table of Contents
 
-- [v5.x](#5110---2026-09-19)
+- [v5.x](#5111---2026-09-29)
 - [v4.x](#410---2025-12-03)
 - [v3.x](#330---2025-11-29)
 - [Archive (v2.x以前)](#archive-v2x-and-earlier)
 - [バージョニング規則](#バージョニング規則)
+
+---
+
+## [5.11.1] - 2026-09-29
+
+wakeup の Weave 用サンプルを器の交代（Opus 5 → Opus 5.5）に合わせる。
+
+### Changed
+
+- **wakeup: `examples/weave.config.json`** — `commit_identity.coauthor` を `Claude Opus 5.5 (1M context)` へ。
+  SKILL.md が「器の交代時に更新する config キー」と定めている欄
+- **wakeup: `examples/WeaveDirective.md`** — 創発志向への切り替えの前提を「Opus 5 モデル」から「Opus 5.5 モデル」へ。
+  補う向き（発散性）は変えない
 
 ---
 
