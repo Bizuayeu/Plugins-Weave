@@ -2,7 +2,14 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
-## [Unreleased]
+## [1.19.1] - 2026-09-29 — 推奨モデルを Opus 5.5 へ
+
+### Changed
+
+- **`docs/ROUTINE_PROMPT.md` の推奨モデルを `claude-opus-5` から `claude-opus-5-5` へ**（任意の欄）。
+  Opus 5.5 は effort の既定が `medium`（Opus 5 は `high`）。effort を指定したいときは、routine が使う
+  クラウド環境の Environment variables に `CLAUDE_CODE_EFFORT_LEVEL` を置く。複数リポを clone する
+  セッションはリポの `.claude/settings.json` を読まないため、そこに書いても効かない
 
 ## [1.19.0] - 2026-09-25 — 理解は育つ（profile / abilities を全文から一行索引へ）
 
