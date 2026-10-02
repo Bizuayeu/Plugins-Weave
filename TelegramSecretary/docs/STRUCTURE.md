@@ -44,7 +44,6 @@ TelegramSecretary/
 ├── banner.png                # バナー（README.md が参照）
 ├── bootstrap.sh
 ├── pyproject.toml
-├── .gitattributes            # 改行コード方針（junction 共有先と揃える LF 固定）
 ├── .gitignore
 │
 ├── docs/                     # ドキュメント（README.md から参照）

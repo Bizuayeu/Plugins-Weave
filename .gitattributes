@@ -1,4 +1,10 @@
-# シェルスクリプトは実行環境（bash）が LF を要求するため、checkout 時の CRLF 変換から除外する
+# 改行の既定：テキストはリポジトリでも作業ツリーでも LF にする。Windows（Git for Windows の既定で
+# core.autocrlf=true）と Linux（CI・cloud routine）の両方で checkout されるため、autocrlf に任せると
+# 作業ツリーだけが CRLF になる。junction で共有する Homunculus-Weave と同じ方針で、改行の規則は
+# このファイルだけに置く（サブツリーごとの .gitattributes は持たない）
+* text=auto eol=lf
+
+# シェルスクリプトは実行環境（bash）が LF を要求する（上の既定に含まれるが、意図として明示する）
 *.sh text eol=lf
 
 # Windows のスクリプトは CRLF を要求する（cmd は LF 終端行を解釈できず、
