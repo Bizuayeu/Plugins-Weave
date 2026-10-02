@@ -83,6 +83,39 @@ def test_readme_links_resolve() -> None:
         assert resolved.exists(), f"README.md link target does not exist: {target!r}"
 
 
+def _bundled_entries() -> list[Path]:
+    """Every command, agent and skill the plugin ships."""
+    return [
+        *sorted((PLUGIN_ROOT / "commands").glob("*.md")),
+        *sorted((PLUGIN_ROOT / "agents").glob("*.md")),
+        *sorted((PLUGIN_ROOT / "skills").glob("*/SKILL.md")),
+    ]
+
+
+def test_readme_lists_every_bundled_entry() -> None:
+    """README.md links every shipped command / agent / skill by its relative
+    path: an entry point the README does not name is invisible to the users
+    who read it first, and the list rots silently with each addition."""
+    text = README_PATH.read_text(encoding="utf-8")
+    entries = _bundled_entries()
+    assert entries, "no bundled commands / agents / skills found"
+    for path in entries:
+        rel = path.relative_to(PLUGIN_ROOT).as_posix()
+        assert f"]({rel})" in text, f"README.md does not link bundled entry {rel!r}"
+
+
+def test_manifest_description_names_every_command() -> None:
+    """plugin.json's description enumerates the slash commands, so the
+    enumeration must be complete (marketplace.json mirrors it 1:1)."""
+    manifest = json.loads(PLUGIN_MANIFEST_PATH.read_text(encoding="utf-8"))
+    commands = sorted((PLUGIN_ROOT / "commands").glob("*.md"))
+    assert commands, "no bundled commands found"
+    for path in commands:
+        assert f"/{path.stem}" in manifest["description"], (
+            f"plugin.json description does not name /{path.stem}"
+        )
+
+
 def test_readme_and_changelog_generic() -> None:
     """README.md and CHANGELOG.md carry no local-environment/dev-session
     tokens; the YYYY-MM date-pattern check applies to README.md only."""

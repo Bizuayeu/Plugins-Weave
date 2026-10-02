@@ -84,7 +84,7 @@ A plugin collection for AI to evolve from a mere "tool" into a "collaborative pa
 | Your Goal | Reference |
 |-----------|-----------|
 | 🚀 **Getting started** | [README](ConsiderateCoder/README.md) |
-| 📖 **Command specification** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) / [dig](ConsiderateCoder/commands/dig.md) |
+| 📖 **Command specification** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) / [dig](ConsiderateCoder/commands/dig.md) / [refactor](ConsiderateCoder/commands/refactor.md) |
 
 ---
 
@@ -316,6 +316,7 @@ Keeps Telegram Bot API long-polling alive on a cloud routine, so a secretary age
 | `/ConsiderateCoder:plan-sdd` | Generates an implementation plan (IMPLEMENTATION_PLAN.md) |
 | `/ConsiderateCoder:outsource` | Executes development via three-tier delegation, generating an acceptance report & quiz & next plan |
 | `/ConsiderateCoder:dig` | Deep exploratory interview to discover unknowns and strengthen plans |
+| `/ConsiderateCoder:refactor` | Diagnoses code and documents and tidies them one change unit at a time after approval, without changing observable behavior |
 
 → [Full README](ConsiderateCoder/README.md)
 

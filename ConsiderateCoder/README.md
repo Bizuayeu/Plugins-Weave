@@ -1,6 +1,6 @@
 # ConsiderateCoder
 
-Clean Architecture × TDD × 三層委任（communicator / orchestrator / worker）を一つの開発方法論として配布するプラグイン。`/plan-sdd` で実装計画を編み、その場の裁可から `/outsource` の委任実行へ途切れずつなぐ。
+Clean Architecture × TDD × 三層委任（communicator / orchestrator / worker）を一つの開発方法論として配布するプラグイン。`/plan-sdd` で実装計画を編み、その場の裁可から `/outsource` の委任実行へ途切れずつなぐ。既存のコードと文書は `/refactor` が振る舞いを変えずに整える。
 
 ## 1. コンセプト
 
@@ -61,7 +61,8 @@ ConsiderateCoder/
 ├── commands/
 │   ├── plan-sdd.md
 │   ├── outsource.md
-│   └── dig.md
+│   ├── dig.md
+│   └── refactor.md
 ├── scripts/
 │   └── watchdog.sh
 ├── skills/
@@ -81,6 +82,7 @@ ConsiderateCoder/
 - [`commands/plan-sdd.md`](commands/plan-sdd.md) — `IMPLEMENTATION_PLAN.md` を生成する SDD 計画コマンド
 - [`commands/outsource.md`](commands/outsource.md) — communicator - orchestrator - worker の三層委任フローの入口コマンド
 - [`commands/dig.md`](commands/dig.md) — 意図が固まる前の深掘りインタビュー（隠れた前提・未検討リスクの掘り起こし）
+- [`commands/refactor.md`](commands/refactor.md) — 振る舞いを変えずにコードと文書を診断し、裁可を経て一単位ずつ整えるリファクタリング
 - [`skills/dev-rules/SKILL.md`](skills/dev-rules/SKILL.md) — Clean Architecture・TDD Flow・3-Strike Rule・Decision Priority を定める開発規範（orchestrator / worker へ起動時に全文注入される）
 - [`scripts/watchdog.sh`](scripts/watchdog.sh) — bg 起動時の死活監視スクリプト（対象リポの書き込み沈黙を検知して STALLED を発報）
 - [`skills/ops-rules/SKILL.md`](skills/ops-rules/SKILL.md) — デプロイ・セキュリティ・コスト・LLM 統合防御のチェックリスト
@@ -244,7 +246,26 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 
 運用律（ブリーフの4条件・レビューの規律・通信と再投入の規律）の詳細は [`agents/orchestrator.md`](agents/orchestrator.md) を単一の正典とする。ここでは重複記述しない。
 
-## 8. モデル配分チューニング指針
+## 8. /refactor リファレンス
+
+```
+/ConsiderateCoder:refactor [対象パス・重点観点]
+```
+
+既存のコードと文書を、観測可能な振る舞いを変えずに整える。引数を省くとカレントのプロジェクト全体が対象になる（`/plan-sdd`・`/outsource` と違い、使い方の表示では終わらない）。6 段のフローで進む：
+
+1. **着手前の確認** — 作業ツリー・規約と正典・検査器（テスト・静的チェック・CI）・公開境界・モデルに届く文の所在
+2. **ベースライン** — 検査器をすべて回して記録する。赤なら着手しない
+3. **診断** — SSoT・腐敗・矛盾・リンクから、外部契約・モデルに届く文・公開境界までの観点で所見を集める。広い対象は観点群ごとに `Explore` サブエージェントへ委譲する
+4. **計画と裁可** — 所見を変更単位に束ねてリスク区分を付ける。機械的・構造的な変更は計画の裁可で進め、モデルに届く文と外部契約・不可逆な操作は変更前後を示して一件ずつ承認を取る。発見した不具合は混ぜずに報告へ回す
+5. **実施** — 安全網（現在の振る舞いを固定するテスト。一度失敗させて検出力を確かめる）を先に張り、一単位ずつ変更・検査・コミットする
+6. **検証と報告** — ベースラインと比べ、差分を検分し、残したものを報告する
+
+文書だけの対象でも使える。文書では書かれている事実と手順を振る舞いとみなし、テストランナーの無い文書集ではリンク・アンカー・構成図の確認をベースラインに、変更前後の差分の検分を安全網にする。
+
+観点とリスク区分の正典は [`commands/refactor.md`](commands/refactor.md) とし、ここでは重複記述しない。
+
+## 9. モデル配分チューニング指針
 
 設計思想は「三層とも器は落とさず、effort で判断の層だけ上へ振る」。`high` が API 既定で、思考量はターンごとに adaptive thinking が決める。`xhigh` 以上は思考を無効化できなくなる領域——常時思考が効くのは判断の層であり、実装を担う層では effort を上げるほどタスク外の変更（スコープ膨張）が増える。
 
@@ -256,7 +277,7 @@ Acceptance: 未ログインで /dashboard に来たら認証へ飛び、成功�
 
 > **注意**: 環境変数 `CLAUDE_CODE_SUBAGENT_MODEL` が設定されていると、agent frontmatter の `model:` も呼び出し時の指定も**黙って上書き**され、すべてのサブエージェントの器が変わる（`inherit` を設定すれば通常の解決順に戻る）。挙動がこの指針と食い違うときは、まずこの環境変数を疑う。
 
-## 9. FAQ
+## 10. FAQ
 
 **Q. 既存の `CLAUDE.md` やローカルの `.claude/rules/` と衝突しないか？**
 A. 衝突しない。プラグイン内の規範（`skills/dev-rules`・`skills/ops-rules`）は配布向けに一般化した版であり、リポジトリ固有の `CLAUDE.md` や既存のローカル規範を上書きしない。同じ規範を指していれば重複があっても実害はなく、内容が食い違う場合はローカル側を正とする。
@@ -266,6 +287,9 @@ A. 動作する。`templates/outsource-report.template.html` は外部リソー�
 
 **Q. 規範（dev-rules / ops-rules）をメイン会話にも常時ロードできるか？**
 A. 既定では、communicator はコマンド実行時に Read、orchestrator / worker は `skills:` preload で dev-rules を受け取る（メイン会話への常時ロードはされない）。メイン会話にも常時ロードしたい場合は、プロジェクトの `.claude/rules/` を本プラグインの `skills/` ディレクトリへの junction（Windows）/ symlink（macOS/Linux）にする——`.claude/rules/` はサブディレクトリを再帰的に読むため、`dev-rules/SKILL.md`・`ops-rules/SKILL.md` の両方が常時ロードに乗り、コピーが存在しないので反映漏れも構造的に起きない。ops-rules はパススコープ（`paths` frontmatter）を持たず、本文の「適用条件」節（変更の性質で判定）で効かせる——パススコープは Read ツール起点でしか発火せず、auto mode の Bash 優先指示（cat / sed で読む）の下では黙るうえ、OAuth や API クライアントのようなアプリケーションコードを網に掛けられないため外した（経緯は CHANGELOG）。
+
+**Q. `/refactor` が `skills/` でなく `commands/` にあるのはなぜか？**
+A. `skills/` は規範（Domain 層）の置き場で、上の FAQ のとおり `.claude/rules/` を `skills/` への junction / symlink にすると配下がサブディレクトリまで常時ロードされるため。手順書をそこへ置くと、使わないセッションでも毎回文脈に載る。Claude Code の公式文書は新しいプラグインに `skills/` を勧めているが、本プラグインは入口（Interface 層）を `commands/` に揃え、`/plan-sdd`・`/outsource`・`/dig` と同じ扱いにしている。
 
 **Q. agents に memory を持たせられるか？**
 A. 意図的に非搭載（設計判断）。orchestrator は「Edit/Write を持たない」構造保証を採っているが、`memory:` を有効化すると tools 指定に関わらず Read/Write/Edit が自動有効化されるため、無筆記の構造保証と memory は構造的に排他になる。worker 側の非搭載も「常にフレッシュなコンテキストで品質が上がる」という設計そのもの——記憶を持てば前回の枝葉を引きずる。

@@ -83,7 +83,7 @@ AIが単なる「ツール」から「協働パートナー」へ進化するた
 | あなたの目的 | 参照先 |
 |-------------|--------|
 | 🚀 **初めて使う** | [README](ConsiderateCoder/README.md) |
-| 📖 **コマンド仕様** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) / [dig](ConsiderateCoder/commands/dig.md) |
+| 📖 **コマンド仕様** | [plan-sdd](ConsiderateCoder/commands/plan-sdd.md) / [outsource](ConsiderateCoder/commands/outsource.md) / [dig](ConsiderateCoder/commands/dig.md) / [refactor](ConsiderateCoder/commands/refactor.md) |
 
 ---
 
@@ -315,6 +315,7 @@ Telegram Bot API の long-polling を cloud routine（**Claude Code Routines**�
 | `/ConsiderateCoder:plan-sdd` | 実装計画書（IMPLEMENTATION_PLAN.md）を生成 |
 | `/ConsiderateCoder:outsource` | 三層委任で開発を実行し、検収レポート&クイズ&二次計画を生成 |
 | `/ConsiderateCoder:dig` | 深掘りインタビューで未知の要件を発見し計画を強化 |
+| `/ConsiderateCoder:refactor` | 振る舞いを変えずにコードと文書を診断し、裁可を経て一単位ずつ整える |
 
 → [詳細README](ConsiderateCoder/README.md)
 
