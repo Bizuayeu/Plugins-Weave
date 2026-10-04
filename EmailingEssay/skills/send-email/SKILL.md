@@ -54,6 +54,7 @@ yagmail
 | send | `python main.py send "Subject" "Body" --to-self` | Send a note to the AI's own address (`ESSAY_SENDER_EMAIL`); the ledger records it under that address |
 | send | `python main.py send "Subject" "Body" --in-reply-to '<id@host>'` | Thread this mail under a message — the ID is one `replies list` prints; brackets optional |
 | wait | `python main.py wait TIME [OPTIONS]` | One-time schedule |
+| wait | `python main.py wait list` | List active waiting processes |
 | schedule | `python main.py schedule FREQ TIME [OPTIONS]` | Recurring schedule |
 | replies | `python main.py replies fetch` | Ingest replies to sent essays |
 | replies | `python main.py replies list` | List ingested replies |
