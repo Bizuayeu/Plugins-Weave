@@ -87,15 +87,14 @@ EmailingEssay/
             │       ├── schedule_storage.py
             │       └── waiter_storage.py
             ├── frameworks/   # External frameworks (templates)
-            ├── tests/        # Test suite, mirrors the layers
-            │   ├── domain/test_message_id.py
-            │   ├── adapters/test_imap_inbox.py
-            │   ├── adapters/test_ledger_recording_mail.py
-            │   ├── adapters/storage/test_ledger_storage.py
-            │   ├── usecases/test_ingest_replies.py
-            │   ├── usecases/test_import_legacy.py
-            │   └── …                       # existing suites, one per layer
-            └── archive/      # Retired implementation backup
+            └── tests/        # Test suite, mirrors the layers
+                ├── domain/test_message_id.py
+                ├── adapters/test_imap_inbox.py
+                ├── adapters/test_ledger_recording_mail.py
+                ├── adapters/storage/test_ledger_storage.py
+                ├── usecases/test_ingest_replies.py
+                ├── usecases/test_import_legacy.py
+                └── …                       # existing suites, one per layer
 ```
 
 The `scripts/` directory follows Clean Architecture (Domain → Use Cases → Adapters → Frameworks).
@@ -238,13 +237,13 @@ The Clean Architecture enables easy extension:
 ### Adding a New Mail Adapter
 
 1. Create new adapter in `adapters/mail/`
-2. Implement the `MailSender` port interface from `usecases/ports.py`
+2. Implement the `MailPort` port interface from `usecases/ports.py`
 3. Register in `usecases/factories.py`
 
 ### Adding a New Scheduler
 
 1. Create new adapter in `adapters/scheduler/`
-2. Implement the `Scheduler` port interface
+2. Implement the `SchedulerPort` port interface
 3. Handle platform-specific scheduling (Windows Task Scheduler, cron, etc.)
 
 ### Custom Templates
