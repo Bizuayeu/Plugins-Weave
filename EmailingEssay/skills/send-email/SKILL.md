@@ -141,19 +141,23 @@ Note: Persistent data directory is created automatically if not exists.
 The `wait` and `schedule` features use `--dangerously-skip-permissions` when launching Claude Code.
 
 **Why it's needed**:
+
 - Scheduled/background tasks run without a terminal
 - Claude cannot prompt for permission confirmations in headless mode
 
 **What it does**:
+
 - Bypasses interactive permission prompts for automated execution
-- Only used for invoking `/essay` command (read + email operation)
+- Passed only on the command that launches `/essay`, but it covers the whole run — not only what `/essay` normally does
 
 **Safeguards**:
-- No file modifications or system changes are made by the essay command
-- Essay content is sent only to the configured `ESSAY_RECIPIENT_EMAIL`
+
+- The run writes files: the subject and body files it sends from, and through the send path `essay_ledger.jsonl`, `sent/`, `essay_replies.jsonl` and `emailingessay.log` (see File Locations)
+- The plugin's own send path delivers to `ESSAY_RECIPIENT_EMAIL`, or to `ESSAY_SENDER_EMAIL` with `--to-self`
 - A `wait` run logs its launch, the target time being reached, and the return code to `~/.claude/plugins/.emailingessay/essay_wait.log`; a registered `schedule` invokes `claude -p` directly and never reaches that wrapper
 
 **Best practices**:
+
 - Keep `ESSAY_RECIPIENT_EMAIL` set to your own email address
 - Review what was actually sent in the ledger (`essay_ledger.jsonl` + `sent/`, see File Locations), which records every send; `essay_wait.log` covers `wait` runs only
 - Audit registered tasks with `python main.py schedule list`
