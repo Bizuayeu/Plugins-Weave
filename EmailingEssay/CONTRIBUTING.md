@@ -49,52 +49,11 @@ EmailingEssay/
     │   └── SKILL.md
     └── send-email/         # Email sending skill
         ├── SKILL.md
-        └── scripts/        # Python implementation
-            ├── main.py       # Entry point
-            ├── domain/       # Core entities
-            │   ├── code_generator.py
-            │   ├── config.py
-            │   ├── constants.py
-            │   ├── exceptions.py
-            │   ├── message_id.py           # Message-ID minting (the ledger key)
-            │   ├── models.py
-            │   ├── thread_ref.py           # In-Reply-To / References assembly
-            │   └── validators.py
-            ├── usecases/     # Business logic
-            │   ├── command_builder.py
-            │   ├── factories.py
-            │   ├── import_legacy.py        # Retroactive ledger migration
-            │   ├── ingest_replies.py       # Reply ingestion
-            │   ├── ports.py
-            │   ├── schedule_essay.py
-            │   └── wait_essay.py
-            ├── adapters/     # Interface implementations
-            │   ├── cli/      # CLI handlers & parser
-            │   ├── mail/
-            │   │   ├── imap_inbox.py           # IMAP reply source
-            │   │   ├── ledger_recording_mail.py # MailPort decorator, records every send
-            │   │   └── yagmail_adapter.py      # Gmail SMTP
-            │   ├── process/  # subprocess spawner
-            │   ├── scheduler/ # cron/Task Scheduler adapters
-            │   └── storage/
-            │       ├── ledger_storage.py    # JSONL ledger + sent/ bodies
-            │       ├── path_resolver.py
-            │       ├── process_cache.py
-            │       ├── schedule_storage.py
-            │       └── waiter_storage.py
-            ├── frameworks/   # External frameworks (templates)
-            ├── tests/        # Test suite, mirrors the layers
-            │   ├── domain/test_message_id.py
-            │   ├── adapters/test_imap_inbox.py
-            │   ├── adapters/test_ledger_recording_mail.py
-            │   ├── adapters/storage/test_ledger_storage.py
-            │   ├── usecases/test_ingest_replies.py
-            │   ├── usecases/test_import_legacy.py
-            │   └── …                       # existing suites, one per layer
-            └── archive/      # Retired implementation backup
+        └── scripts/        # Python implementation: domain/ usecases/ adapters/ frameworks/ tests/
 ```
 
-For detailed architecture, see `CLAUDE.md` → **Clean Architecture Details** section.
+The full `scripts/` tree is kept in one place, `CLAUDE.md` → **File Structure**; for the layers, see
+`CLAUDE.md` → **Clean Architecture Details**.
 
 ---
 
@@ -164,44 +123,15 @@ Tests mirror the Clean Architecture layers:
 ### Adding a Mail Adapter
 
 1. Create `adapters/mail/new_adapter.py`
-2. Implement `MailPort` from `usecases/ports.py`:
-   ```python
-   from usecases.ports import MailPort
-
-   class NewMailAdapter(MailPort):
-       def send(self, to: str, subject: str, body: str) -> None:
-           # Implementation
-           pass
-
-       def test(self) -> None:
-           # Send test email
-           pass
-
-       def send_custom(self, subject: str, content: str) -> None:
-           # Custom content
-           pass
-   ```
+2. Implement `MailPort` — its method signatures are defined in `usecases/ports.py`, the one place they are kept
 3. Register in `usecases/factories.py`
 4. Add tests in `tests/adapters/`
 
 ### Adding a Scheduler
 
 1. Create `adapters/scheduler/new_scheduler.py`
-2. Implement `SchedulerPort`:
-   ```python
-   from usecases.ports import SchedulerPort, TaskInfo
-
-   class NewSchedulerAdapter(SchedulerPort):
-       def add(self, task_name: str, command: str, frequency: str, time: str, *, weekday: str = "", day_spec: str = "") -> None:
-           pass
-
-       def remove(self, name: str) -> None:
-           pass
-
-       def list(self) -> list[TaskInfo]:
-           return []
-   ```
-3. Handle platform detection in factories
+2. Subclass `BaseSchedulerAdapter` (`adapters/scheduler/base.py`), which follows `SchedulerPort` in `usecases/ports.py`
+3. Handle platform detection in `get_scheduler()` (`adapters/scheduler/__init__.py`)
 
 ---
 
