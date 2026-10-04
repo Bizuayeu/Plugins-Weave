@@ -429,6 +429,49 @@ def test_refactor_stops_on_red_baseline() -> None:
     )
 
 
+def test_refactor_advisory_checkers_do_not_stop() -> None:
+    """A checker CI runs without gating (continue-on-error) can be red while
+    the build is green; stopping on it would block every refactor of such a
+    repository. Its count is recorded as a known red and must not grow."""
+    region = _refactor_region("Phase 2")
+    assert any(
+        "合否" in line and "既知の赤" in line and "増や" in line for line in region
+    ), (
+        "refactor.md Phase 2 must record a non-gating checker's red as a known "
+        "count that must not grow"
+    )
+
+
+def test_refactor_structural_red_is_the_units_safety_net() -> None:
+    """A test written to the spec that fails on current code is an E finding
+    only when the cause is behavior. When the cause is the structure an
+    approved B unit changes (dependency direction, placement), the red test
+    is that unit's safety net and the change turns it green."""
+    region = _refactor_region("Phase 5")
+    assert any(
+        "区分 E" in line and "承認済みの B 単位" in line and "緑" in line
+        for line in region
+    ), (
+        "refactor.md Phase 5 must tell a behavioral red (E) from a structural "
+        "red that an approved B unit turns green"
+    )
+
+
+def test_refactor_first_pass_defers_environment_bound_merges() -> None:
+    """With too many findings to verify at once, the first pass ships what
+    tests and checkers can pin, and defers merges that touch the runtime
+    environment (quoting, path resolution, external services) — named in the
+    plan and reported in Phase 6."""
+    region = _refactor_region("Phase 4")
+    assert any(
+        "第一便" in line and "先送り" in line and "残したもの" in line
+        for line in region
+    ), (
+        "refactor.md Phase 4 must say how to narrow the first pass and where "
+        "the deferred findings are reported"
+    )
+
+
 REFACTOR_VIEWPOINTS = (
     # the eight the hand-typed refactor prompt always carried
     "SSoT",
