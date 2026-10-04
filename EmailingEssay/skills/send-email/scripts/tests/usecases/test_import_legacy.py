@@ -377,8 +377,8 @@ LITERAL_RUNNER = '''# -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
 
-SCRIPTS_DIR = r"C:\\Users\\anyth\\.claude\\plugins\\marketplaces\\plugins-weave"
-BODY_PATH = Path(r"C:\\Users\\anyth\\.claude\\plugins\\.emailingessay\\{body}")
+SCRIPTS_DIR = r"C:\\Users\\example\\.claude\\plugins\\marketplaces\\plugins-weave"
+BODY_PATH = Path(r"C:\\Users\\example\\.claude\\plugins\\.emailingessay\\{body}")
 
 SUBJECT = "{subject}"
 
@@ -397,7 +397,7 @@ OLD_LITERAL_RUNNER = """# -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
 
-body_path = Path(r"C:\\Users\\anyth\\.claude\\plugins\\.emailingessay\\{body}")
+body_path = Path(r"C:\\Users\\example\\.claude\\plugins\\.emailingessay\\{body}")
 content = body_path.read_text(encoding="utf-8").strip("\\n")
 
 subject = "{subject}"
@@ -410,7 +410,7 @@ FILE_SUBJECT_RUNNER = """# -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
 
-DATA = r"C:\\Users\\anyth\\.claude\\plugins\\.emailingessay"
+DATA = r"C:\\Users\\example\\.claude\\plugins\\.emailingessay"
 
 subject = Path(DATA, "{subject_file}").read_text(encoding="utf-8").strip()
 body = Path(DATA, "{body}").read_text(encoding="utf-8").strip("\\n")
