@@ -44,9 +44,9 @@ Key terms used throughout this plugin:
 | Term | Definition |
 |------|------------|
 | **theme** | Essay topic or subject provided via `-t` or `--theme` option |
-| **context_files** | Reference files for reflection, provided via `-f` or `--file` option |
+| **context_files** | Reference files for reflection, provided via `-c` (one file) or `-f` (a list of paths, one per line) |
 | **mode** | Execution mode: `wait` (one-time), `schedule` (recurring), or `test` |
-| **frequency** | Schedule interval: `daily`, `weekly`, `monthly`, `quarterly`, `half_yearly`, `yearly`, or `custom` |
+| **frequency** | Schedule interval: `daily`, `weekly`, or `monthly` (`monthly` takes a day such as `15`, `3rd_wed`, `last_fri` or `last_day`) |
 | **reflection** | Deep thinking process before essay composition (uses UltraThink) |
 | **delivery decision** | Conscious choice to send or not send (silence is meaningful) |
 | **ledger** | Append-only record of every sent essay, keyed by `message_id` |
@@ -72,9 +72,9 @@ Key terms used throughout this plugin:
 | Option | Description | Example |
 |--------|-------------|---------|
 | `-t`, `--theme` | Essay theme | `-t "Weekly reflection"` |
-| `-f`, `--file` | Context file | `-f ./notes.md` |
-| `-r`, `--recipient` | Email recipient | `-r user@example.com` |
-| `--time` | Delivery time | `--time 09:00` |
+| `-c`, `--context` | Single context file | `-c ./notes.md` |
+| `-f`, `--file-list` | List of context files, one path per line | `-f ./context_list.txt` |
+| `-l`, `--lang` | Language: `ja`, `en` or `auto` | `-l ja` |
 
 ### Ledger and Replies
 
