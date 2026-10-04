@@ -23,14 +23,16 @@ Welcome! This guide helps you contribute to EmailingEssay.
 ### Installation
 
 1. Fork and clone the repository
-2. Install dependencies:
+2. Install the package with its development dependencies, from the `EmailingEssay` directory:
+
    ```bash
-   pip install yagmail pytest
+   pip install -e ".[dev]"
    ```
+
 3. Verify setup:
+
    ```bash
-   cd skills/send-email/scripts
-   pytest
+   python -m pytest
    ```
 
 ---
@@ -98,7 +100,7 @@ For detailed architecture, see `CLAUDE.md` → **Clean Architecture Details** se
 
 ## Code Style
 
-- **Python**: PEP 8, 100 char line limit
+- **Python**: formatted with `ruff format` (line length 88) and linted with `ruff check`; the rules live in `pyproject.toml`
 - **Type hints**: Required for public functions
 - **Docstrings**: Triple-quoted, describe purpose
 - **Naming**:
@@ -112,11 +114,11 @@ For detailed architecture, see `CLAUDE.md` → **Clean Architecture Details** se
 
 ### Running Tests
 
+Run from the `EmailingEssay` directory, as CI does:
+
 ```bash
-cd skills/send-email/scripts
-pytest                    # All tests
-pytest tests/domain/      # Domain layer only
-pytest -v                 # Verbose output
+python -m pytest                                          # All tests, with coverage
+python -m pytest --no-cov skills/send-email/scripts/tests/domain/  # Domain layer only (coverage gate applies to full runs)
 ```
 
 ### Test Structure

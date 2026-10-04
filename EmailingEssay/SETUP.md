@@ -87,7 +87,7 @@ pip install yagmail
 ### Development
 
 ```bash
-pip install pytest  # For running tests
+pip install -e ".[dev]"  # From the EmailingEssay directory: pytest, coverage, ruff, mypy, bandit
 ```
 
 For full development setup, see `CONTRIBUTING.md` → **Development Setup** section.
