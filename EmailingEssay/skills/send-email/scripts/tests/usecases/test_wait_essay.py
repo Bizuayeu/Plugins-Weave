@@ -154,6 +154,21 @@ class TestWaitEssayUseCase:
         content = script_file.read_text(encoding="utf-8")
         assert "朝の振り返り" in content
 
+    def test_spawn_script_launch_command(self, usecase, tmp_path):
+        """生成スクリプトの起動コマンドとログの宛先（現状の振る舞いを固定する特性テスト）"""
+        future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
+
+        usecase.spawn(target_time=future_time, theme="theme", lang="ja")
+
+        content = (tmp_path / "essay_waiter_temp.py").read_text(encoding="utf-8")
+        assert 'CLAUDE_ARGS = """\'theme\' -l ja --send"""' in content
+        assert (
+            "cmd = 'claude --dangerously-skip-permissions -p \"/essay ' "
+            "+ CLAUDE_ARGS + '\"'"
+        ) in content
+        log_file = str(tmp_path / "essay_wait.log").replace("\\", "/")
+        assert f'LOG_FILE = r"{log_file}"' in content
+
     def test_spawn_returns_pid(self, usecase, mock_spawner):
         """spawn() がプロセスIDを返す"""
         future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
