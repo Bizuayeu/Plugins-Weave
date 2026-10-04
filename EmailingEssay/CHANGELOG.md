@@ -5,6 +5,55 @@ All notable changes to EmailingEssay will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-10-04
+
+A behavior-preserving cleanup: dead code removed, documents brought level with the code, and
+tests that verified nothing replaced by ones that do. No command, option, file path or
+environment variable that has an effect changed.
+
+### Added
+
+- **The wait path's launch line is now under test.** The schedule path's `claude` command was
+  pinned by `test_command_builder.py`; the line `essay_waiter.py.template` renders for `wait`,
+  and the `essay_wait.log` it writes to, had no test at all
+- **A layer test that inspects imports.** It walks `domain/` with `ast` and fails on any import
+  of `usecases`, `adapters` or `frameworks`. It replaces two layer tests that imported a module
+  and asserted nothing
+
+### Changed
+
+- **`domain` no longer imports `usecases`.** `ScheduleEntry` and `WaiterEntry` moved to
+  `domain/models.py`; `usecases/ports.py` re-exports them, so existing imports still resolve
+- **Documents match the code.** `README.md` listed `-r/--recipient` and `--time`, which do not
+  exist, and frequencies (`quarterly`, `yearly`, …) that were never implemented. `SETUP.md` and
+  `CONTRIBUTING.md` installed `pytest` alone, which stops on the `--cov` in `pyproject.toml`;
+  they now install `.[dev]` as CI does. `send-email/SKILL.md`'s safeguards said the run modifies
+  no files — since [1.4.0] the body is written to a file before it is sent — and its CLI table
+  gains `wait list`, which the parser already accepted. `CLAUDE.md` names the ports as they are
+  (`MailPort`, `SchedulerPort`). The `archive/` directory, git-ignored and absent from a clone,
+  left both trees; `CONTRIBUTING.md` now points at the one full tree in `CLAUDE.md` and at
+  `ports.py` for signatures instead of copying them
+- **Docstrings and comments match the code**, and the Stage/Phase numbers of past refactors —
+  two unrelated series, citing a plan the repository does not hold — are gone. The fixture
+  that copied a real runner no longer carries a personal home directory
+
+### Removed
+
+- Symbols with no reference outside their definition: `WEEKDAYS_ABBR`, `WEEKDAY_NUM_TO_ABBR`,
+  `FULL_TO_WEEKDAY_NUM`, `DEFAULT_LOG_TRUNCATE`, `MAX_LOG_TRUNCATE`, `weekday_to_python_num`,
+  `StorageCorruptionError`, `clear_template_cache`, `WindowsSchedulerAdapter.DAY_ABBR_MAP`,
+  `TargetTime.generate_parsing_code`, `wait_essay.get_persistent_dir`, and `Config.log_level`
+  / `Config.log_json`. `ESSAY_LOG_LEVEL` was read into the former and never used;
+  `ESSAY_LOG_JSON` is still read where it always took effect, in `logging_config`
+- Tests that verified nothing: `test_current_behavior.py` (16 bodies of `pass`, recording time
+  formats that are not implemented) and one duplicate in `test_wait_essay.py`, along with the
+  five tests that covered only the removed symbols
+
+### Verification
+
+ruff 0 / ruff format clean (76 files) / mypy Success (76 files) / bandit 0 / pytest 589 passed
+(coverage 88.5%)
+
 ## [1.5.0] - 2026-08-30
 
 Three defects the plugin reported about itself, in the essay of 2026-08-30. The string that
