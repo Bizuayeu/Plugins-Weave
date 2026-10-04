@@ -30,31 +30,9 @@ WEEKDAYS_FULL: Final[tuple[str, ...]] = (
     "sunday",
 )
 
-# 曜日省略形のリスト（順序保証用）
-WEEKDAYS_ABBR: Final[tuple[str, ...]] = (
-    "mon",
-    "tue",
-    "wed",
-    "thu",
-    "fri",
-    "sat",
-    "sun",
-)
-
 # =============================================================================
-# 曜日マッピング（Python weekday → 文字列）
+# 曜日マッピング（文字列 → Python weekday）
 # =============================================================================
-
-# Python weekday番号 → 曜日省略形（0=月曜, 6=日曜）
-WEEKDAY_NUM_TO_ABBR: Final[dict[int, str]] = {
-    0: "mon",
-    1: "tue",
-    2: "wed",
-    3: "thu",
-    4: "fri",
-    5: "sat",
-    6: "sun",
-}
 
 # 曜日省略形 → Python weekday番号
 ABBR_TO_WEEKDAY_NUM: Final[dict[str, int]] = {
@@ -65,17 +43,6 @@ ABBR_TO_WEEKDAY_NUM: Final[dict[str, int]] = {
     "fri": 4,
     "sat": 5,
     "sun": 6,
-}
-
-# 曜日フルネーム → Python weekday番号
-FULL_TO_WEEKDAY_NUM: Final[dict[str, int]] = {
-    "monday": 0,
-    "tuesday": 1,
-    "wednesday": 2,
-    "thursday": 3,
-    "friday": 4,
-    "saturday": 5,
-    "sunday": 6,
 }
 
 # =============================================================================
@@ -140,40 +107,8 @@ FULL_TO_CRON: Final[dict[str, int]] = {
 
 
 # =============================================================================
-# ログ出力設定
-# =============================================================================
-
-# ログ出力のデフォルト文字数制限
-DEFAULT_LOG_TRUNCATE: Final[int] = 500
-
-# ログ出力の最大文字数制限
-MAX_LOG_TRUNCATE: Final[int] = 10000
-
-
-# =============================================================================
 # ヘルパー関数
 # =============================================================================
-
-
-def weekday_to_python_num(weekday: str) -> int:
-    """
-    曜日文字列をPython weekday番号に変換する。
-
-    Args:
-        weekday: 曜日（省略形または完全形）
-
-    Returns:
-        Python weekday番号（0=月曜, 6=日曜）
-
-    Raises:
-        ValueError: 無効な曜日の場合
-    """
-    weekday_lower = weekday.lower()
-    if weekday_lower in ABBR_TO_WEEKDAY_NUM:
-        return ABBR_TO_WEEKDAY_NUM[weekday_lower]
-    if weekday_lower in FULL_TO_WEEKDAY_NUM:
-        return FULL_TO_WEEKDAY_NUM[weekday_lower]
-    raise ValueError(f"Invalid weekday: {weekday}")
 
 
 def weekday_to_schtasks(weekday: str) -> str:

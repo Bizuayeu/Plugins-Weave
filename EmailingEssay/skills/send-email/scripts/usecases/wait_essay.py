@@ -28,28 +28,8 @@ if TYPE_CHECKING:
 __all__ = [
     "WaitEssayUseCase",
     "WaiterError",
-    "get_persistent_dir",
     "parse_target_time",
 ]
-
-
-def get_persistent_dir() -> str:
-    """
-    永続ディレクトリを取得する。
-
-    スクリプトやログファイルを保存するディレクトリ。
-    Claude Code plugin convention: ~/.claude/plugins/.emailingessay
-
-    Returns:
-        永続ディレクトリのパス
-
-    Note:
-        この関数は後方互換性のために残されています。
-        新しいコードでは StoragePort.get_persistent_dir() を使用してください。
-    """
-    path = Path.home() / ".claude" / "plugins" / ".emailingessay"
-    path.mkdir(parents=True, exist_ok=True)
-    return str(path)
 
 
 def parse_target_time(time_str: str) -> datetime:

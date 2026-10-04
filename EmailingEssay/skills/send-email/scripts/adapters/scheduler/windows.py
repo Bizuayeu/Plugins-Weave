@@ -26,9 +26,6 @@ _List = list
 class WindowsSchedulerAdapter(BaseSchedulerAdapter):
     """Windows Task Scheduler のアダプター"""
 
-    # 後方互換性のため残す（constants からインポート推奨）
-    DAY_ABBR_MAP = ABBR_TO_SCHTASKS
-
     def add(
         self,
         task_name: str,

@@ -164,31 +164,3 @@ ESSAY_RECIPIENT_EMAIL=recv@test.com
         config = Config.load(env_file=env_file)
 
         assert config.email.sender == "test@test.com"
-
-    def test_log_level_default(self, monkeypatch):
-        """log_levelのデフォルト値"""
-        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@test.com")
-        monkeypatch.setenv("ESSAY_APP_PASSWORD", "pass")
-        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
-        monkeypatch.delenv("ESSAY_LOG_LEVEL", raising=False)
-
-        from domain.config import Config
-
-        Config.reset()
-        config = Config.load()
-
-        assert config.log_level == "INFO"
-
-    def test_log_json_default(self, monkeypatch):
-        """log_jsonのデフォルト値"""
-        monkeypatch.setenv("ESSAY_SENDER_EMAIL", "test@test.com")
-        monkeypatch.setenv("ESSAY_APP_PASSWORD", "pass")
-        monkeypatch.setenv("ESSAY_RECIPIENT_EMAIL", "recv@test.com")
-        monkeypatch.delenv("ESSAY_LOG_JSON", raising=False)
-
-        from domain.config import Config
-
-        Config.reset()
-        config = Config.load()
-
-        assert config.log_json is False

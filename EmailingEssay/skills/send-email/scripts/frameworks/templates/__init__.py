@@ -55,11 +55,6 @@ def load_template(name: str, use_cache: bool = True) -> str:
     return content
 
 
-def clear_template_cache() -> None:
-    """テンプレートキャッシュをクリアする（テスト用）"""
-    _template_cache.clear()
-
-
 def render_template(template: str, **kwargs: Any) -> str:
     """
     テンプレートをレンダリングする。
@@ -86,4 +81,4 @@ def render_template(template: str, **kwargs: Any) -> str:
     return re.sub(r"\{\{(\w+)\}\}", replacer, template)
 
 
-__all__ = ["TemplateError", "clear_template_cache", "load_template", "render_template"]
+__all__ = ["TemplateError", "load_template", "render_template"]

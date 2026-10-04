@@ -8,11 +8,9 @@
 from .constants import (
     ABBR_TO_WEEKDAY_NUM,
     VALID_WEEKDAYS,
-    WEEKDAYS_ABBR,
     WEEKDAYS_FULL,
     ordinal_to_schtasks,
     weekday_to_cron,
-    weekday_to_python_num,
     weekday_to_schtasks,
 )
 from .exceptions import (
@@ -37,9 +35,7 @@ __all__ = [
     # constants
     "VALID_WEEKDAYS",
     "WEEKDAYS_FULL",
-    "WEEKDAYS_ABBR",
     "ABBR_TO_WEEKDAY_NUM",
-    "weekday_to_python_num",
     "weekday_to_schtasks",
     "weekday_to_cron",
     "ordinal_to_schtasks",

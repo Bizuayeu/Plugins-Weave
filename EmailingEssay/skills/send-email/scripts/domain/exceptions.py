@@ -91,17 +91,6 @@ class StorageError(AdapterError):
     pass
 
 
-class StorageCorruptionError(StorageError):
-    """
-    ストレージファイル破損エラー。
-
-    JSONファイルの破損を検出した場合に発生。
-    バックアップからの復旧を試行した結果も含む。
-    """
-
-    pass
-
-
 class TemplateError(AdapterError):
     """
     テンプレート処理エラー。
@@ -125,12 +114,3 @@ class WaiterError(EmailingEssayError):
     """
 
     pass
-
-
-# =============================================================================
-# 後方互換性のためのエイリアス（非推奨、将来削除予定）
-# =============================================================================
-
-# 既存コードからの移行を容易にするため、models.pyからの直接インポートをサポート
-# 使用例: from domain.models import ValidationError
-# 推奨:   from domain.exceptions import ValidationError

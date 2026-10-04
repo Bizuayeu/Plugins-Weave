@@ -33,8 +33,6 @@ class Config:
     """
 
     email: EmailConfig
-    log_json: bool = False
-    log_level: str = "INFO"
     # Stage 8: リトライポリシー設定化
     mail_retry_count: int = 3  # デフォルト3回
 
@@ -77,8 +75,6 @@ class Config:
                 password=os.environ.get("ESSAY_APP_PASSWORD", ""),
                 recipient=os.environ.get("ESSAY_RECIPIENT_EMAIL", ""),
             ),
-            log_json=os.environ.get("ESSAY_LOG_JSON", "").lower() == "true",
-            log_level=os.environ.get("ESSAY_LOG_LEVEL", "INFO"),
             # Stage 8: リトライポリシー設定化
             mail_retry_count=retry_count,
         )

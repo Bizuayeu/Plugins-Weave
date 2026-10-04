@@ -20,7 +20,6 @@ sys.path.insert(
 from usecases.wait_essay import (
     WaiterError,
     WaitEssayUseCase,
-    get_persistent_dir,
     parse_target_time,
 )
 
@@ -282,15 +281,3 @@ class TestWaitEssayUseCaseSeparatedPorts:
         )
         usecase.list_waiters()
         mock_waiter_storage.get_active_waiters.assert_called_once()
-
-
-class TestGetPersistentDir:
-    """get_persistent_dir() のテスト"""
-
-    def test_persistent_dir_uses_claude_convention(self):
-        """永続ディレクトリは ~/.claude/plugins/.emailingessay を使用する"""
-        result = get_persistent_dir()
-        # Claude Code plugin convention: ~/.claude/plugins/.emailingessay
-        assert (
-            ".claude" in result and "plugins" in result and ".emailingessay" in result
-        )

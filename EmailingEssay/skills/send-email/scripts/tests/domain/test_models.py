@@ -311,26 +311,6 @@ class TestTargetTime:
         with pytest.raises(ValidationError, match="Invalid"):
             TargetTime.parse("not a time")
 
-    def test_generate_parsing_code_contains_datetime(self):
-        """生成コードにdatetimeが含まれる"""
-        from domain.models import TargetTime
-
-        target = TargetTime.parse("12:00")
-        code = target.generate_parsing_code()
-        assert "datetime" in code
-        assert "12:00" in code
-
-    def test_generate_parsing_code_is_valid_python(self):
-        """生成コードが有効なPython"""
-        from datetime import datetime, timedelta
-
-        from domain.models import TargetTime
-
-        target = TargetTime.parse("23:59")
-        code = target.generate_parsing_code()
-        # 構文エラーがなく実行可能
-        exec(f"from datetime import datetime, timedelta\n{code}")
-
 
 class TestScheduleConfig:
     """ScheduleConfig Value Object のテスト（Stage 1: パラメータ蓄積問題の解消）"""

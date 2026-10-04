@@ -164,9 +164,6 @@ class MonthlyPattern:
     weekday: str | None = None  # 曜日指定用（mon, tue, wed, ...）
     ordinal: int | None = None  # NTH_WEEKDAY用（1-5）
 
-    # 後方互換性のため残す（constants.VALID_WEEKDAYSを使用推奨）
-    # VALID_WEEKDAYS = VALID_WEEKDAYS  # constants からインポート済み
-
     @classmethod
     def parse(cls, day_spec: str) -> MonthlyPattern:
         """
@@ -326,8 +323,7 @@ class TargetTime:
     """
     ターゲット時刻のドメインモデル
 
-    時刻解析ロジックを一元化し、実行時パース用のコード生成も提供する。
-    wait_essay.pyとランナースクリプトで共通利用される。
+    時刻解析ロジックを一元化する。
     """
 
     datetime: datetime
@@ -372,31 +368,6 @@ class TargetTime:
             return cls(datetime=target, original_format="HH:MM")
         except ValueError as e:
             raise ValidationError(f"Invalid time format: {time_str}") from e
-
-    def generate_parsing_code(self) -> str:
-        """
-        Runnerスクリプト用のPython時刻パースコードを生成する。
-
-        Returns:
-            実行可能なPythonコード文字列
-        """
-        time_str = (
-            self.datetime.strftime("%H:%M")
-            if self.original_format == "HH:MM"
-            else self.datetime.strftime("%Y-%m-%d %H:%M")
-        )
-
-        return f'''time_str = "{time_str}"
-if " " in time_str and len(time_str) > 10:
-    target = datetime.strptime(time_str, "%Y-%m-%d %H:%M")
-else:
-    target = datetime.strptime(time_str, "%H:%M").replace(
-        year=datetime.now().year,
-        month=datetime.now().month,
-        day=datetime.now().day
-    )
-    if target < datetime.now():
-        target += timedelta(days=1)'''
 
 
 # =============================================================================
