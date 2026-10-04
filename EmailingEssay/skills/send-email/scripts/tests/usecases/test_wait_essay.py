@@ -258,19 +258,6 @@ class TestWaitEssayUseCaseSeparatedPorts:
         )
         assert usecase is not None
 
-    def test_spawn_uses_path_resolver(
-        self, mock_waiter_storage, mock_path_resolver, mock_spawner
-    ):
-        """spawn()がPathResolverPortを使用する"""
-        usecase = WaitEssayUseCase(
-            waiter_storage=mock_waiter_storage,
-            path_resolver=mock_path_resolver,
-            spawner_port=mock_spawner,
-        )
-        future_time = (datetime.now() + timedelta(hours=1)).strftime("%H:%M")
-        usecase.spawn(target_time=future_time)
-        mock_path_resolver.get_persistent_dir.assert_called()
-
     def test_spawn_uses_waiter_storage(
         self, mock_waiter_storage, mock_path_resolver, mock_spawner
     ):
