@@ -12,6 +12,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, TypedDict, runtime_checkable
 
+# 永続化される辞書の形はドメインの語彙。ここでは再エクスポートだけをする
+from domain.models import ScheduleEntry, WaiterEntry
+
 if TYPE_CHECKING:
     from domain.models import LedgerRecord, ReplyRecord
     from domain.thread_ref import ThreadRef
@@ -21,35 +24,10 @@ if TYPE_CHECKING:
 # =============================================================================
 
 
-class ScheduleEntry(TypedDict, total=False):
-    """スケジュールエントリの型定義"""
-
-    name: str
-    frequency: str
-    weekday: str
-    time: str
-    theme: str
-    context: str
-    file_list: str
-    lang: str
-    day_spec: str
-    monthly_type: str
-    created: str
-
-
 class TaskInfo(TypedDict):
     """タスク情報の型定義"""
 
     name: str
-
-
-class WaiterEntry(TypedDict):
-    """待機プロセスエントリの型定義"""
-
-    pid: int
-    target_time: str
-    theme: str
-    registered_at: str
 
 
 # =============================================================================

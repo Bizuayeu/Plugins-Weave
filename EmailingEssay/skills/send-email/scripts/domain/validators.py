@@ -10,9 +10,7 @@ from __future__ import annotations
 
 from typing import Any, TypeGuard
 
-from usecases.ports import ScheduleEntry, WaiterEntry
-
-from .models import LedgerRecord, ReplyRecord
+from .models import LedgerRecord, ReplyRecord, ScheduleEntry, WaiterEntry
 
 # 台帳・返信レコードの必須フィールド（いずれも str）
 _LEDGER_REQUIRED = ("message_id", "sent_at", "subject", "recipient", "body_file")

@@ -12,10 +12,35 @@ import re
 from dataclasses import asdict, dataclass, fields
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any
+from typing import Any, TypedDict
 
 from .constants import ABBR_TO_WEEKDAY_NUM, VALID_WEEKDAYS, WEEKDAYS_FULL
 from .exceptions import DomainError, ValidationError
+
+
+class ScheduleEntry(TypedDict, total=False):
+    """スケジュールエントリの型定義"""
+
+    name: str
+    frequency: str
+    weekday: str
+    time: str
+    theme: str
+    context: str
+    file_list: str
+    lang: str
+    day_spec: str
+    monthly_type: str
+    created: str
+
+
+class WaiterEntry(TypedDict):
+    """待機プロセスエントリの型定義"""
+
+    pid: int
+    target_time: str
+    theme: str
+    registered_at: str
 
 
 @dataclass

@@ -5,9 +5,11 @@
 各コンポーネントの連携をテストする。
 """
 
+import ast
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -132,16 +134,25 @@ class TestWaitUseCaseIntegration:
 class TestCleanArchitectureLayers:
     """Clean Architecture 層の分離テスト"""
 
-    def test_domain_has_no_external_dependencies(self):
-        """ドメイン層は外部依存がない"""
-        # domain.models のインポートが標準ライブラリのみに依存
-        from domain.models import EssaySchedule, MonthlyPattern, MonthlyType
-        # インポートが成功すれば外部依存なし
-
-    def test_usecases_depend_only_on_domain(self):
-        """ユースケース層はドメイン層のみに依存"""
-        from usecases.ports import MailPort, SchedulerPort, WaiterPort
-        # Protocolは標準ライブラリ
+    def test_domain_imports_no_outer_layer(self):
+        """ドメイン層は外側の層（usecases / adapters / frameworks）を import しない"""
+        scripts_dir = Path(__file__).resolve().parent.parent
+        outer = {"usecases", "adapters", "frameworks"}
+        violations = []
+        for path in (scripts_dir / "domain").glob("*.py"):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+                if isinstance(node, ast.Import):
+                    names = [alias.name for alias in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.level == 0:
+                    names = [node.module or ""]
+                else:
+                    continue
+                violations += [
+                    f"{path.name}:{node.lineno} {name}"
+                    for name in names
+                    if name.split(".")[0] in outer
+                ]
+        assert violations == []
 
     def test_adapters_implement_ports(self):
         """アダプター層はポートを実装"""
