@@ -5,7 +5,7 @@
 fake InboxPort と実 LedgerStorageAdapter（tmp_path）で、
 取り込み判定と冪等性を検証する。ネットワークには一切触れない。
 
-Stage 4: IMAP による返信の取り込み
+IMAP による返信の取り込み
 """
 
 import os

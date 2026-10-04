@@ -2,7 +2,7 @@
 """
 ScheduleStorageAdapter のテスト
 
-Stage 5.2: ストレージアダプター責務分離
+ストレージアダプター責務分離
 """
 
 import json

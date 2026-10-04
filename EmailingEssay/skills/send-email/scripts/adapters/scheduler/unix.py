@@ -133,8 +133,8 @@ class UnixSchedulerAdapter(BaseSchedulerAdapter):
             day_num = self._weekday_to_cron_num(weekday)
             return f"{minute} {hour} * * {day_num} {command}"
         elif frequency == "monthly":
-            # 月次はランナースクリプトで対応するため、日次でチェック
-            # 上位層でランナースクリプトを作成し、そのパスをcommandとして渡す
+            # 月次は日次の cron として登録する。上位層がランナースクリプトを作るのは
+            # last_day のときだけで、それ以外の月次は command がそのまま毎日走る
             return f"{minute} {hour} * * * {command}"
         else:
             raise SchedulerError(f"Unknown frequency: {frequency}")

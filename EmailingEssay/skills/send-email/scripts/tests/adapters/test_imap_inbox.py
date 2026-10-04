@@ -5,7 +5,7 @@ IMAP 受信箱アダプターのテスト
 実接続は行わない。imaplib.IMAP4_SSL を差し替えたうえで、
 socket も塞いで「万一の実接続」をテスト側で構造的に禁止する。
 
-Stage 4: IMAP による返信の取り込み
+IMAP による返信の取り込み
 """
 
 import base64

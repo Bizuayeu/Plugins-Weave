@@ -20,7 +20,7 @@ def get_scheduler() -> BaseSchedulerAdapter:
         スケジューラアダプターのインスタンス（SchedulerPort準拠）
 
     Note:
-        Stage 5: 型安全なファクトリー改善
+        型安全なファクトリー改善
         返り値の型を基底クラスに変更し、factories.pyでのcast()を不要にした。
     """
     if sys.platform == "win32":

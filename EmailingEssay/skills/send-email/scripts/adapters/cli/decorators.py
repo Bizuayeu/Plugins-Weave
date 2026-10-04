@@ -2,7 +2,7 @@
 """
 CLIハンドラ用デコレータ
 
-Stage 2: バリデーション重複解消
+バリデーション重複解消
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def validate_config(handler: Handler) -> Handler:
     Returns:
         バリデーション付きハンドラ
 
-    Stage 2: バリデーション重複解消
+    バリデーション重複解消
     """
 
     @wraps(handler)

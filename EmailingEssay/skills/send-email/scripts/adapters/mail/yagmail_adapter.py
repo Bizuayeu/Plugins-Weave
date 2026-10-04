@@ -84,7 +84,7 @@ class YagmailAdapter:
         self._sender = config.email.sender
         self._password = config.email.password
         self._recipient = config.email.recipient
-        # Stage 8: リトライポリシー設定化
+        # リトライポリシー設定化
         self._max_retries = config.mail_retry_count
 
     def _render_html(self, content: str, title: str = "") -> str:
@@ -145,7 +145,7 @@ class YagmailAdapter:
         Raises:
             MailError: 送信に失敗した場合
 
-        Stage 8: リトライポリシー設定化
+        リトライポリシー設定化
         デフォルトリトライ回数をConfigから読み込むよう変更
         """
         recipient = to if to else self._recipient
@@ -155,7 +155,7 @@ class YagmailAdapter:
         # 自動付与を条件分岐するため、載せるものが無いときは None に倒す
         headers = thread.headers() if thread else None
         last_error: Exception | None = None
-        # Stage 8: Configからのデフォルト値使用
+        # Configからのデフォルト値使用
         retries = max_retries if max_retries is not None else self._max_retries
 
         for attempt in range(retries):

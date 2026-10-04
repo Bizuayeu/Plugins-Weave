@@ -90,7 +90,7 @@ class ClaudeCommandBuilder:
             quote_style: クォートスタイル
 
         Returns:
-            構築された引数文字列（例: "'theme' -c 'path' -l ja"）
+            構築された引数文字列（例: "'theme' -c 'path' -l ja --send"）
         """
         q = cls.get_quote_char(quote_style)
         args: list[str] = []
@@ -129,9 +129,10 @@ class ClaudeCommandBuilder:
             lang: 言語
 
         Returns:
-            完全なコマンド文字列（例: "claude --dangerously-skip-permissions -p '/essay ...'"）
+            完全なコマンド文字列（例: 'claude --dangerously-skip-permissions -p "/essay ..."'。
+            win32 では claude を ~/.local/bin/claude.exe の絶対パスで呼ぶ）
         """
-        # スケジューラ用は常にescapedスタイル（schtasksコマンド経由のため）
+        # win32 は schtasks の /tr を通るので escaped、それ以外は single
         args_str = cls.build_args(
             theme=theme,
             context=context,

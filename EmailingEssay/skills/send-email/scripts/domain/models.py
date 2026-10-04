@@ -51,8 +51,8 @@ class ScheduleConfig:
     ScheduleEssayUseCase.add() の9パラメータを1つのオブジェクトに集約し、
     パラメータ蓄積問題を解消する。
 
-    Stage 1: パラメータ蓄積問題の解消
-    Stage 3: バリデーションのドメイン層移行
+    パラメータ蓄積問題の解消
+    バリデーションのドメイン層移行
     """
 
     frequency: str  # "daily" | "weekly" | "monthly"
@@ -71,7 +71,7 @@ class ScheduleConfig:
         """
         設定を検証する。無効な場合は ValueError を発生させる。
 
-        Stage 3: バリデーションのドメイン層移行
+        バリデーションのドメイン層移行
         """
         self._validate_frequency()
         self._validate_time()
@@ -120,7 +120,7 @@ class ScheduleConfig:
         Returns:
             MonthlyType の値（文字列）。monthly以外は空文字を返す。
 
-        Stage 3: バリデーションのドメイン層移行
+        バリデーションのドメイン層移行
         """
         if self.frequency != "monthly" or not self.day_spec:
             return ""
@@ -192,7 +192,7 @@ class MonthlyPattern:
         # date: "15", "5", "31" etc.
         if re.match(r"^\d+$", day_spec):
             day_num = int(day_spec)
-            # Stage 7: 入力バリデーション強化 - 日付範囲チェック
+            # 入力バリデーション強化 - 日付範囲チェック
             if day_num < 1 or day_num > 31:
                 raise ValueError(f"Invalid day of month: {day_num} (must be 1-31)")
             return cls(type=MonthlyType.DATE, day_num=day_num)
@@ -202,7 +202,7 @@ class MonthlyPattern:
         if match:
             ordinal = int(match.group(1))
             weekday = match.group(3).lower()
-            # Stage 7: 入力バリデーション強化 - 序数範囲チェック
+            # 入力バリデーション強化 - 序数範囲チェック
             if ordinal < 1 or ordinal > 5:
                 raise ValueError(f"Invalid ordinal: {ordinal} (must be 1-5)")
             if weekday not in VALID_WEEKDAYS:
@@ -312,7 +312,7 @@ __all__ = [
     "MonthlyPattern",
     "MonthlyType",
     "ReplyRecord",
-    "ScheduleConfig",  # Stage 1: パラメータ蓄積問題の解消
+    "ScheduleConfig",  # パラメータ蓄積問題の解消
     "TargetTime",
     "ValidationError",  # 後方互換性のため再エクスポート
 ]

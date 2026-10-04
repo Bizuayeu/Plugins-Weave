@@ -192,41 +192,41 @@ class TestMonthlyPattern:
             MonthlyPattern.parse("5th_xyz")  # xyzは有効な曜日ではない
 
     # =========================================================================
-    # Stage 7: 入力バリデーション強化テスト
+    # 入力バリデーション強化テスト
     # =========================================================================
 
     def test_parse_day_num_out_of_range_zero(self):
-        """日付0でValueError（Stage 7: 入力バリデーション強化）"""
+        """日付0でValueError（入力バリデーション強化）"""
         with pytest.raises(ValueError, match="day"):
             MonthlyPattern.parse("0")
 
     def test_parse_day_num_out_of_range_32(self):
-        """日付32でValueError（Stage 7: 入力バリデーション強化）"""
+        """日付32でValueError（入力バリデーション強化）"""
         with pytest.raises(ValueError, match="day"):
             MonthlyPattern.parse("32")
 
     def test_parse_day_num_valid_range_1(self):
-        """日付1は有効（Stage 7: 入力バリデーション強化）"""
+        """日付1は有効（入力バリデーション強化）"""
         result = MonthlyPattern.parse("1")
         assert result.day_num == 1
 
     def test_parse_day_num_valid_range_31(self):
-        """日付31は有効（Stage 7: 入力バリデーション強化）"""
+        """日付31は有効（入力バリデーション強化）"""
         result = MonthlyPattern.parse("31")
         assert result.day_num == 31
 
     def test_parse_ordinal_out_of_range_zero(self):
-        """序数0でValueError（Stage 7: 入力バリデーション強化）"""
+        """序数0でValueError（入力バリデーション強化）"""
         with pytest.raises(ValueError, match="ordinal"):
             MonthlyPattern.parse("0th_mon")
 
     def test_parse_ordinal_out_of_range_6(self):
-        """序数6でValueError（Stage 7: 入力バリデーション強化）"""
+        """序数6でValueError（入力バリデーション強化）"""
         with pytest.raises(ValueError, match="ordinal"):
             MonthlyPattern.parse("6th_mon")
 
     def test_parse_ordinal_valid_range_5(self):
-        """序数5は有効（Stage 7: 入力バリデーション強化）"""
+        """序数5は有効（入力バリデーション強化）"""
         result = MonthlyPattern.parse("5th_fri")
         assert result.ordinal == 5
         assert result.weekday == "fri"
@@ -313,7 +313,7 @@ class TestTargetTime:
 
 
 class TestScheduleConfig:
-    """ScheduleConfig Value Object のテスト（Stage 1: パラメータ蓄積問題の解消）"""
+    """ScheduleConfig Value Object のテスト（パラメータ蓄積問題の解消）"""
 
     def test_create_daily_config(self):
         """日次スケジュール設定の作成"""
@@ -400,7 +400,7 @@ class TestScheduleConfig:
 
 
 class TestScheduleConfigValidation:
-    """ScheduleConfig.validate() のテスト（Stage 3: バリデーションのドメイン層移行）"""
+    """ScheduleConfig.validate() のテスト（バリデーションのドメイン層移行）"""
 
     def test_valid_daily_config(self):
         """有効なdaily設定は例外なし"""

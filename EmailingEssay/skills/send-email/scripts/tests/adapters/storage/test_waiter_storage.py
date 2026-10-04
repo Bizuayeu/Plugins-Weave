@@ -2,7 +2,7 @@
 """
 WaiterStorageAdapter のテスト
 
-Stage 5.3: ストレージアダプター責務分離
+ストレージアダプター責務分離
 """
 
 import json

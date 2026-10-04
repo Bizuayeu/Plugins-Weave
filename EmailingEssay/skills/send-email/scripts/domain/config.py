@@ -33,7 +33,7 @@ class Config:
     """
 
     email: EmailConfig
-    # Stage 8: リトライポリシー設定化
+    # リトライポリシー設定化
     mail_retry_count: int = 3  # デフォルト3回
 
     # シングルトンインスタンス
@@ -75,7 +75,7 @@ class Config:
                 password=os.environ.get("ESSAY_APP_PASSWORD", ""),
                 recipient=os.environ.get("ESSAY_RECIPIENT_EMAIL", ""),
             ),
-            # Stage 8: リトライポリシー設定化
+            # リトライポリシー設定化
             mail_retry_count=retry_count,
         )
         return cls._instance

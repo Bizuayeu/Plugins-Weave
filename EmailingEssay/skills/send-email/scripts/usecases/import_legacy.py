@@ -18,7 +18,7 @@
 
 移行元は読むだけ——削除も改変もしない（不可逆操作を移行に含めない）。
 
-Stage 5: 遡及移行
+遡及移行
 """
 
 from __future__ import annotations
@@ -30,6 +30,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from domain.constants import WAIT_LOG_NAME
 from frameworks.logging_config import get_logger
 
 if TYPE_CHECKING:
@@ -43,7 +44,6 @@ __all__ = ["ImportLegacyUseCase", "LegacyItem", "LegacyPlan", "LegacySkip"]
 
 # 移行元の実体（`~/.claude/plugins/.emailingessay/`）で実測した命名
 BODY_GLOB = "*essay_body*"
-WAIT_LOG_NAME = "essay_wait.log"
 
 # 日付付き件名ファイル: `_essay_subject_20260724` / `essay_subject_20260814_pm`
 SUBJECT_STEM_RE = re.compile(r"^.*essay_subject_\d{8}(?:_\w+)?$")
@@ -68,7 +68,7 @@ SUBJECT_NAMES = ("subject", "SUBJECT")
 # 復号に失敗したバイトの置換文字。件名に混じっていれば化けている
 REPLACEMENT_CHAR = "\ufffd"
 
-# 作業ゴミの目印（IMPLEMENTATION_PLAN Stage 5 の列挙。`_tmp` は `_temp` と同族）
+# 作業ゴミの目印（`_tmp` は `_temp` と同族）
 JUNK_PREFIXES = ("temp_", "tmp_")
 JUNK_INFIXES = ("_tmp_", "_temp_")
 JUNK_SUFFIXES = ("_latest", "_temp", "_tmp")

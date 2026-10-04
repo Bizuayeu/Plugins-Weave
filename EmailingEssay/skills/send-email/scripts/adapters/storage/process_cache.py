@@ -2,7 +2,7 @@
 """
 プロセス生存チェックのキャッシュ
 
-Stage 3: ProcessAlivenessCache抽出
+ProcessAlivenessCache抽出
 複雑なキャッシュロジックをjson_adapter.pyから分離し、
 テスト可能性と可読性を向上させる。
 """

@@ -2,7 +2,7 @@
 """
 PathResolverAdapter のテスト
 
-Stage 5.1: ストレージアダプター責務分離
+ストレージアダプター責務分離
 """
 
 import os

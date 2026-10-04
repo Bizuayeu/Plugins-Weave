@@ -228,7 +228,7 @@ class TestE2EScenarios:
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        # Stage 5: 責務分離後のPort注入
+        # 責務分離後のPort注入
         usecase = ScheduleEssayUseCase(scheduler, storage, path_resolver)
 
         # Step 1: Add
@@ -342,7 +342,7 @@ class TestE2EScenarios:
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        # Stage 5: 責務分離後のPort注入
+        # 責務分離後のPort注入
         usecase = ScheduleEssayUseCase(scheduler, storage, path_resolver)
 
         # Step 1: 3つのスケジュールを追加
@@ -380,7 +380,7 @@ class TestE2EScenarios:
         scheduler = Mock()
         scheduler.list.return_value = []
 
-        # Stage 5: 責務分離後のPort注入
+        # 責務分離後のPort注入
         usecase = ScheduleEssayUseCase(scheduler, storage, path_resolver)
 
         # Step 1: スケジュールを追加

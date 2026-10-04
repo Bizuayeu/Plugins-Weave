@@ -121,7 +121,7 @@ class TestAdapterRegistry:
 
 
 class TestMailAdapterIsLedgerWrapped:
-    """get_mail_adapter が台帳記録デコレータで包んだものを返す（Stage 3）"""
+    """get_mail_adapter が台帳記録デコレータで包んだものを返す"""
 
     @pytest.fixture(autouse=True)
     def _mail_env(self, monkeypatch):

@@ -2,7 +2,7 @@
 """
 LedgerStorageAdapter のテスト
 
-Stage 2: 送信台帳の永続化（JSONL インデックス + sent/ 本文）
+送信台帳の永続化（JSONL インデックス + sent/ 本文）
 """
 
 import json
@@ -227,7 +227,7 @@ class TestLedgerStorageAdapter:
 
 
 class TestLedgerStorageReplies:
-    """返信側の永続化（Stage 4 の受け皿）"""
+    """返信側の永続化"""
 
     @pytest.fixture
     def path_resolver(self, tmp_path):

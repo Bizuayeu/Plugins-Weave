@@ -6,9 +6,9 @@
 main.py や便利関数から使用される。
 AdapterRegistryによるシングルトンパターンを提供。
 
-Stage 5: ストレージアダプター責務分離
+ストレージアダプター責務分離
 - PathResolverAdapter, ScheduleStorageAdapter, WaiterStorageAdapter に分離
-- cast() を完全排除（isinstance アサーションに置換）
+- 戻り値の型は isinstance アサーションで確かめる（Protocol を返す get_mail_adapter だけは cast を使う）
 """
 
 from __future__ import annotations
@@ -86,7 +86,7 @@ def get_mail_adapter() -> MailPort:
     メールアダプターを取得する（シングルトン）。
 
     台帳記録デコレータで包んで返す。送信経路はすべてここを通るため、
-    呼び出し側を変えずに全送信が台帳に載る（Stage 3）。
+    呼び出し側を変えずに全送信が台帳に載る。
     """
     from adapters.mail import LedgerRecordingMail, YagmailAdapter
     from domain.config import Config
@@ -105,7 +105,7 @@ def get_scheduler() -> SchedulerPort:
     """
     プラットフォームに応じたスケジューラを取得する（シングルトン）。
 
-    Stage 6: 型安全性強化 - isinstance アサーションを追加
+    型安全性強化 - isinstance アサーションを追加
     """
     from adapters.scheduler import get_scheduler as _get_scheduler
 
@@ -122,7 +122,7 @@ def get_path_resolver() -> PathResolverPort:
     """
     パス解決アダプターを取得する（シングルトン）。
 
-    Stage 5: 責務分離 - PathResolverAdapter を使用
+    責務分離 - PathResolverAdapter を使用
     """
     from adapters.storage.path_resolver import PathResolverAdapter
 
@@ -139,7 +139,7 @@ def get_schedule_storage() -> ScheduleStoragePort:
     """
     スケジュールストレージアダプターを取得する（シングルトン）。
 
-    Stage 5: 責務分離 - ScheduleStorageAdapter を使用
+    責務分離 - ScheduleStorageAdapter を使用
     """
     from adapters.storage.schedule_storage import ScheduleStorageAdapter
 
@@ -159,7 +159,7 @@ def get_ledger() -> LedgerPort:
     """
     送信台帳ストレージアダプターを取得する（シングルトン）。
 
-    Stage 2: 台帳の永続化 - LedgerStorageAdapter を使用
+    台帳の永続化 - LedgerStorageAdapter を使用
     """
     from adapters.storage.ledger_storage import LedgerStorageAdapter
 
@@ -181,7 +181,7 @@ def get_inbox() -> InboxPort:
 
     構築時に接続は張らない（YagmailAdapter と同じく設定の検証のみ）。
 
-    Stage 4: IMAP による返信の取り込み
+    IMAP による返信の取り込み
     """
     from adapters.mail import ImapInboxAdapter
 
@@ -198,7 +198,7 @@ def get_waiter_storage() -> WaiterStoragePort:
     """
     待機プロセスストレージアダプターを取得する（シングルトン）。
 
-    Stage 5: 責務分離 - WaiterStorageAdapter を使用
+    責務分離 - WaiterStorageAdapter を使用
     """
     from adapters.storage.waiter_storage import WaiterStorageAdapter
 
@@ -218,7 +218,7 @@ def get_spawner() -> ProcessSpawnerPort:
     """
     プロセススポーナーを取得する（シングルトン）。
 
-    Stage 6: 型安全性強化
+    型安全性強化
     """
     from adapters.process import ProcessSpawner
 

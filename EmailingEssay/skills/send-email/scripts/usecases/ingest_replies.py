@@ -9,7 +9,7 @@
 （ops-rules 7 のフェンシング）。判定はここで行い、受信箱の実装（IMAP か否か）
 には依存しない。
 
-Stage 4: IMAP による返信の取り込み
+IMAP による返信の取り込み
 """
 
 from __future__ import annotations

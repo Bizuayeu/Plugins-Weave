@@ -1,6 +1,6 @@
 # tests/domain/test_code_generator.py
 """
-SafeCodeGenerator のテスト（Stage 4: エスケープロジック集中化）
+SafeCodeGenerator のテスト（エスケープロジック集中化）
 """
 
 import os

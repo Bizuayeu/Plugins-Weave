@@ -97,9 +97,9 @@ class ScheduleEssayUseCase:
         Args:
             config: スケジュール設定を含むScheduleConfig
 
-        Stage 1: パラメータ蓄積問題の解消
+        パラメータ蓄積問題の解消
         """
-        # バリデーション（Stage 3: ドメイン層に移行）
+        # バリデーション（ドメイン層で行う）
         config.validate()
         monthly_type = config.monthly_type
 
@@ -131,7 +131,7 @@ class ScheduleEssayUseCase:
             )
             scheduler_registered = True
 
-            # Step 2: JSONバックアップに保存（Stage 4: EssayScheduleを使用）
+            # Step 2: JSONバックアップに保存（EssayScheduleを使用）
             from domain.models import EssaySchedule
 
             essay_schedule = EssaySchedule(
@@ -240,7 +240,7 @@ class ScheduleEssayUseCase:
             logger.info(f"Schedule not found in backup: {name}")
 
     # Private methods
-    # Note: Validation methods moved to ScheduleConfig.validate() (Stage 3)
+    # Note: Validation lives in ScheduleConfig.validate()
 
     def _generate_task_name(
         self, frequency: str, time_spec: str, theme: str, name: str, day_spec: str
@@ -346,7 +346,7 @@ class ScheduleEssayUseCase:
         """
         EssayScheduleをストレージに保存する。
 
-        Stage 4: パラメータ集約によるメソッド簡略化
+        パラメータ集約によるメソッド簡略化
 
         Args:
             schedule: 保存するEssayScheduleオブジェクト

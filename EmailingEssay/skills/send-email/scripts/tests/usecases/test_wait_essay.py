@@ -221,7 +221,7 @@ class TestWaitEssayUseCaseDI:
 
 
 class TestWaitEssayUseCaseSeparatedPorts:
-    """分離Port使用のテスト（Phase C: StoragePort除去）"""
+    """分離Port使用のテスト"""
 
     @pytest.fixture
     def mock_waiter_storage(self):

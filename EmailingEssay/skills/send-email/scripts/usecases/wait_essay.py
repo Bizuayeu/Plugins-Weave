@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from domain.constants import WAIT_LOG_NAME
 from domain.exceptions import WaiterError
 
 from .command_builder import build_claude_args
@@ -101,16 +102,13 @@ class WaitEssayUseCase:
 
         Returns:
             プロセスID
-
-        Raises:
-            WaiterError: 起動に失敗した場合
         """
         # Claudeコマンドの引数を構築（統一ユーティリティ使用）
         claude_args = build_claude_args(theme, context, file_list, lang)
 
         # 永続ディレクトリを取得（DIされたPathResolverを使用）
         persistent_dir = Path(self._path_resolver.get_persistent_dir())
-        log_file = str(persistent_dir / "essay_wait.log").replace("\\", "/")
+        log_file = str(persistent_dir / WAIT_LOG_NAME).replace("\\", "/")
 
         # 待機スクリプトを生成
         script = self._generate_waiter_script(target_time, claude_args, log_file)

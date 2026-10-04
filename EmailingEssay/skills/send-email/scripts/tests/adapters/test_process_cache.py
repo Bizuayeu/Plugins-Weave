@@ -1,6 +1,6 @@
 # tests/adapters/test_process_cache.py
 """
-ProcessAlivenessCache のテスト（Stage 3: プロセスキャッシュ抽出）
+ProcessAlivenessCache のテスト（プロセスキャッシュ抽出）
 """
 
 import os

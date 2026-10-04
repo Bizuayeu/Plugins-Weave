@@ -2,7 +2,6 @@
 """
 ScheduleEssayUseCase のユニットテスト
 
-Phase 9.1: TDD補完 - Phase 9で漏れたテストを追加
 """
 
 import os
@@ -194,7 +193,7 @@ class TestScheduleEssayUseCaseRemove:
 
 
 class TestScheduleEssayUseCaseSeparatedPorts:
-    """分離Port使用のテスト（Phase C: StoragePort除去）"""
+    """分離Port使用のテスト"""
 
     @pytest.fixture
     def mock_scheduler(self):
@@ -379,7 +378,7 @@ class TestScheduleEssayUseCaseRollback:
 
 
 class TestScheduleEssayUseCaseWithConfig:
-    """ScheduleConfigを使用したadd()メソッドのテスト（Stage 1: パラメータ蓄積問題の解消）"""
+    """ScheduleConfigを使用したadd()メソッドのテスト（パラメータ蓄積問題の解消）"""
 
     @pytest.fixture
     def mock_scheduler(self):
@@ -489,7 +488,7 @@ class TestScheduleEssayUseCaseWithConfig:
 
 
 class TestScheduleEssayUseCaseLogging:
-    """出力ログのテスト（Stage 2: print→logger）"""
+    """出力ログのテスト（print→logger）"""
 
     import logging
 
@@ -589,7 +588,7 @@ class TestScheduleEssayUseCaseLogging:
 
 
 class TestSaveScheduleEntry:
-    """_save_schedule_entry のテスト（Stage 4: パラメータ集約）"""
+    """_save_schedule_entry のテスト（パラメータ集約）"""
 
     @pytest.fixture
     def mock_scheduler(self):

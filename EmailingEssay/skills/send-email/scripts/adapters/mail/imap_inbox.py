@@ -11,7 +11,7 @@ In-Reply-To を持つものだけ本文を取りに行く」。サーバ側の S
 依存しない（Gmail での挙動が渋いため）。突合と受け入れ判定は UseCase の領分で、
 ここが返すのはあくまで候補。
 
-Stage 4: IMAP による返信の取り込み
+IMAP による返信の取り込み
 """
 
 from __future__ import annotations

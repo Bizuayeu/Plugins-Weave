@@ -157,12 +157,12 @@ class TestYagmailAdapter:
 
 
 # =============================================================================
-# Stage 8: リトライポリシー設定化テスト
+# リトライポリシー設定化テスト
 # =============================================================================
 
 
 class TestRetryPolicyConfiguration:
-    """リトライポリシー設定のテスト（Stage 8）"""
+    """リトライポリシー設定のテスト"""
 
     def test_config_has_mail_retry_count(self, monkeypatch):
         """Configにmail_retry_countが存在する"""
@@ -208,7 +208,7 @@ class TestRetryPolicyConfiguration:
 
 
 class TestYagmailAdapterWithConfig:
-    """Config統合テスト（Phase 5）"""
+    """Config統合テスト"""
 
     def test_yagmail_adapter_uses_config(self, monkeypatch):
         """YagmailAdapterがConfigを使用"""
@@ -306,12 +306,12 @@ class TestCollapseStyleWhitespace:
 
 
 # =============================================================================
-# Stage 3: Message-ID の受け渡し
+# Message-ID の受け渡し
 # =============================================================================
 
 
 class TestMessageIdPassthrough:
-    """採番済み Message-ID を yagmail へ渡す（Stage 3）"""
+    """採番済み Message-ID を yagmail へ渡す"""
 
     @pytest.fixture
     def adapter(self, monkeypatch):

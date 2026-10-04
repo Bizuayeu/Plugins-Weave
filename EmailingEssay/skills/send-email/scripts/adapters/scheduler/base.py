@@ -40,6 +40,6 @@ class BaseSchedulerAdapter(ABC):
         pass
 
     @abstractmethod
-    def list(self) -> list[dict[str, Any]]:
+    def list(self, known_names: list[str] | None = None) -> list[dict[str, Any]]:
         """スケジュール一覧を取得する"""
         pass

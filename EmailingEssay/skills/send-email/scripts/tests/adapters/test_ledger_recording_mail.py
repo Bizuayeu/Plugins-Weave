@@ -2,7 +2,7 @@
 """
 LedgerRecordingMail のテスト
 
-Stage 3: 送信経路の合流点を塞ぐ（MailPort デコレータ）
+送信経路の合流点を塞ぐ（MailPort デコレータ）
 
 外部送信は一切行わない。fake MailPort + fake LedgerPort で完結させる。
 """

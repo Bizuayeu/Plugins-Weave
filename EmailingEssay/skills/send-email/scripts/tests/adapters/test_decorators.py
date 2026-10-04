@@ -1,6 +1,6 @@
 # tests/adapters/test_decorators.py
 """
-デコレータのテスト（Stage 2: バリデーション重複解消）
+デコレータのテスト（バリデーション重複解消）
 """
 
 import os

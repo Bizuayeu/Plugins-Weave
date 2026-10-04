@@ -114,7 +114,7 @@ class TestStorageAdaptersImplementPorts:
 
 
 class TestInboxPort:
-    """InboxPortのテスト（Stage 4）"""
+    """InboxPortのテスト"""
 
     def test_protocol_has_fetch_replies(self):
         """fetch_repliesメソッドを持つ"""

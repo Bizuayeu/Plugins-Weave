@@ -5,7 +5,7 @@
 永続化ディレクトリやランナースクリプト用ディレクトリのパス解決を担当。
 PathResolverPort を実装。
 
-Stage 5.1: ストレージアダプター責務分離
+ストレージアダプター責務分離
 """
 
 from __future__ import annotations

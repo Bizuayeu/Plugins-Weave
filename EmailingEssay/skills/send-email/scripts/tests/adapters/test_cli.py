@@ -323,7 +323,7 @@ class TestScheduleHandlerUseCase:
 
 
 class TestRepliesParser:
-    """replies サブコマンドのパース（Stage 4）"""
+    """replies サブコマンドのパース"""
 
     @pytest.fixture
     def parser(self):
@@ -518,7 +518,7 @@ class TestRepliesHandlers:
 
 
 class TestLedgerParser:
-    """ledger サブコマンドのパース（Stage 5）"""
+    """ledger サブコマンドのパース"""
 
     @pytest.fixture
     def parser(self):
