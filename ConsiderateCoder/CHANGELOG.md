@@ -2,6 +2,16 @@
 
 すべての主要な変更をこのファイルに記録する。形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に準拠する。
 
+## [1.8.0] - 2026-11-08
+
+### Added
+
+- dev-rules の General Principles に「設定値は一か所で厳密に読む」— 環境変数や設定の値は共通の parser を通し、
+  unset と空は既定のまま、正しい値は意味を保ち、それ以外は名前・渡された値・受ける形を示して起動の時点で止める。
+  直に読む箇所が新しく増えたら機械検査で止める。上流の TensorFold では、使う場所で直に読む読み手が三十ほど、
+  打ち間違いを黙って既定値や反対の状態に読んでいた（[#2370](https://github.com/ashhart/TensorFold/issues/2370)）。
+  この形は、その持ち主が [#2487](https://github.com/ashhart/TensorFold/issues/2487) で規則として認めた物
+
 ## [1.7.1] - 2026-10-04
 
 `/refactor` の初回実走（EmailingEssay v1.5.1）で、文言どおりには進めなかった三箇所を明文化した。
